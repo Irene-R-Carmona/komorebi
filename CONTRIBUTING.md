@@ -17,23 +17,55 @@ Ejemplos válidos: `feature/loyalty-redemption`, `fix/reservation-overlap`, `doc
 
 ---
 
+## Configuración del host (Windows — obligatorio)
+
+Docker Desktop en Windows usa WSL2, que por defecto consume **la mitad de la RAM del sistema** (8 GB en una máquina de 16 GB).
+Sin configuración explícita puede dejar al sistema operativo sin memoria antes de que Docker llegue a sus propios límites.
+
+Crea el fichero `%USERPROFILE%\.wslconfig` con este contenido:
+
+```ini
+[wsl2]
+memory=10GB
+processors=4
+swap=4GB
+guiApplications=false
+```
+
+Después reinicia WSL2 para aplicar los cambios:
+
+```powershell
+wsl --shutdown
+```
+
+> **Por qué `memory=10GB`**: deja ~6 GB para Windows y aplicaciones del host con margen cómodo.
+> `guiApplications=false` desactiva el servidor gráfico de WSL2 si no se usan apps GUI de Linux, ahorrando
+> ~200 MB adicionales del subsistema.
+
+---
+
 ## Desarrollo local
 
 El proyecto corre **completamente dentro de Docker**. No se instala PHP ni Composer en el host.
 
 1. **Levantar el stack**
+
    ```bash
    make dev
    ```
+
    Arranca los contenedores: PHP 8.4 (FrankenPHP), MySQL 8.4, Redis 8 y Mailpit.
 
 2. **Acceder al contenedor**
+
    ```bash
    make bash
    ```
+
    Todos los comandos `make` que invocan PHP deben ejecutarse desde aquí o via `docker compose exec app <cmd>`.
 
 3. **Aplicar migraciones**
+
    ```bash
    make db-migrate
    ```
@@ -43,6 +75,7 @@ El proyecto corre **completamente dentro de Docker**. No se instala PHP ni Compo
    - Mailpit (emails de desarrollo): `http://localhost:8025`
 
 5. **Ejecutar tests**
+
    ```bash
    make test          # unitarios + integración
    make phpstan       # análisis estático PHPStan nivel 5
@@ -71,17 +104,21 @@ El proyecto corre **completamente dentro de Docker**. No se instala PHP ni Compo
 > Para la referencia completa ver [`AGENTS.md`](AGENTS.md).
 
 - **Servicios devuelven `Result`**, nunca lanzan excepciones para fallos de negocio esperados.
+
   ```php
   return Result::ok($data);
   return Result::fail('Mensaje de error', 'error_code');
   ```
+
 - **Controladores devuelven `?ResponseInterface`**, nunca usan `header()` ni `exit`.
+
   ```php
   public function store(ServerRequestInterface $request): ResponseInterface
   {
       return $this->response->redirect('/admin/items');
   }
   ```
+
 - **Variables de entorno** accedidas siempre via `Env::get('KEY')`, nunca con `getenv()` directamente.
 - **Secretos** gestionados via `SecretLoader::require('nombre')`, nunca hardcodeados.
 
@@ -93,9 +130,11 @@ El proyecto corre **completamente dentro de Docker**. No se instala PHP ni Compo
 - Validar antes de commit: `make cs-check`.
 - Corregir automáticamente: `make cs-fix`.
 - Obligatorio en **cada fichero PHP**:
+
   ```php
   <?php
 
   declare(strict_types=1);
   ```
+
 - Análisis estático: **PHPStan nivel 5** + **Psalm nivel 5** (`make phpstan`, `make psalm`).

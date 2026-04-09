@@ -1,4 +1,4 @@
-.PHONY: help up down restart logs bash db-reset db-seed db-migrate clean test test-unit test-integration test-coverage test-build test-clean test-api psalm ci coverage cs-check cs-fix audit sonar-up sonar-down analyze e2e e2e-a11y lighthouse playwright-install
+.PHONY: help up down restart logs bash db-reset db-seed db-migrate clean test test-unit test-integration test-coverage test-build test-clean test-api psalm ci coverage cs-check cs-fix audit sonar-up sonar-down analyze e2e e2e-a11y lighthouse playwright-install dev dev-full workers-up workers-down xdebug-on
 
 # Colores para output
 GREEN=\033[0;32m
@@ -15,6 +15,19 @@ up: ## Levantar contenedores
 
 dev: ## Levantar en modo desarrollo (con utilidades)
 	docker compose --profile dev up -d
+
+dev-full: ## Levantar en modo desarrollo completo (incluye workers de cola)
+	docker compose --profile dev --profile workers up -d
+
+workers-up: ## Arrancar workers de cola (queue, email, notification)
+	docker compose --profile workers up -d
+
+workers-down: ## Detener workers de cola
+	docker compose --profile workers stop
+
+xdebug-on: ## Reconstruir contenedor app con Xdebug habilitado (tarda 1-2 min)
+	docker compose build --build-arg XDEBUG_ENABLE=true app
+	docker compose up -d app
 
 down: ## Detener contenedores (mantener volúmenes)
 	docker compose down

@@ -28,7 +28,19 @@ COPY docker/php/ini/php.ini /usr/local/etc/php/conf.d/00-php.ini
 COPY docker/php/ini/error-dev.ini /usr/local/etc/php/conf.d/01-error.ini
 COPY docker/php/ini/uploads.ini /usr/local/etc/php/conf.d/02-uploads.ini
 COPY docker/php/ini/memory.ini /usr/local/etc/php/conf.d/03-memory.ini
-COPY docker/php/ini/xdebug.ini /usr/local/etc/php/conf.d/04-xdebug.ini
+COPY docker/php/ini/memory-dev.ini /usr/local/etc/php/conf.d/05-memory-dev.ini
+COPY docker/php/ini/opcache-dev.ini /usr/local/etc/php/conf.d/06-opcache.ini
+
+# Xdebug desactivado por defecto; para activarlo: make xdebug-on
+ARG XDEBUG_ENABLE=false
+COPY docker/php/ini/xdebug.ini /tmp/xdebug.ini
+COPY docker/php/ini/xdebug-disabled.ini /tmp/xdebug-disabled.ini
+RUN if [ "$XDEBUG_ENABLE" = "true" ]; then \
+    cp /tmp/xdebug.ini /usr/local/etc/php/conf.d/04-xdebug.ini; \
+    else \
+    cp /tmp/xdebug-disabled.ini /usr/local/etc/php/conf.d/04-xdebug.ini; \
+    fi \
+    && rm /tmp/xdebug.ini /tmp/xdebug-disabled.ini
 
 COPY frankenphp.Caddyfile /app/frankenphp.Caddyfile
 

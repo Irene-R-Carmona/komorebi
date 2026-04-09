@@ -5,7 +5,7 @@ Custom PHP 8.4 MVC framework (no Laravel/Symfony app layer). Everything runs ins
 
 ## Architecture Overview
 
-```
+```text
 public/index.php          → Front controller (12-Factor bootstrap)
 bootstrap/container.php   → Service Providers (register → boot lifecycle)
 app/routes.php            → All route definitions (PSR-7/PSR-15)
@@ -34,7 +34,7 @@ if (!$result->ok) { Flash::error($result->getMessage()); return $this->response-
 $data = $result->data;
 ```
 
-**Controller return type** — methods return `?ResponseInterface`.  
+**Controller return type** — methods return `?ResponseInterface`.
 Return `null` when calling `View::render()` directly (it echoes); return a `ResponseInterface` for redirects/JSON:
 
 ```php
@@ -90,11 +90,12 @@ $router->group(['prefix' => '/admin', 'middleware' => $adminMiddleware], functio
 **Middleware** — use `MiddlewareFactory` (`$mw`) in `routes.php`; PSR-15 objects go in the third argument array:
 
 ```php
-$mw->auth()          // requires session
-$mw->role('admin')   // RBAC check (roles: admin, manager, supervisor, reception, kitchen, keeper, user)
-$mw->csrf()          // CSRF validation for POST routes
-$mw->guest()         // redirect if already authenticated
-$mw->api()           // JSON-only API gate
+$mw->auth()               // requires session
+$mw->role('admin')        // RBAC check (roles: admin, manager, supervisor, reception, kitchen, keeper, user)
+$mw->csrf()               // CSRF validation — required on ALL mutating routes (POST/PUT/PATCH/DELETE)
+$mw->guest()              // redirect if already authenticated
+$mw->api()                // JSON-only API gate
+$mw->rateLimit('key')     // Redis-backed rate limiting per named bucket
 ```
 
 **Repositories** — extend `AbstractRepository`; must implement two abstract methods:
@@ -144,19 +145,50 @@ Container::singleton(MyService::class, fn() => new MyService(Container::make(PDO
 ## Developer Workflows
 
 ```bash
-make dev          # Start Docker stack (app + mysql + redis + mailpit)
-make bash         # Shell inside app container
-make test         # PHPUnit --testdox
-make phpstan      # Static analysis (level 5, baseline: phpstan-baseline.neon)
-make db-migrate   # Apply SQL migrations only
-make db-seed      # Run seeders only
-make clean        # Clear storage/cache/* and storage/logs/*
-make logs-app     # Tail app container logs
-make db-reset     # Drop + recreate volumes (destructive, asks confirmation)
+make dev              # Start Docker stack (app + mysql + redis + mailpit)
+make bash             # Shell inside app container
+make logs-app         # Tail app container logs
+make clean            # Clear storage/cache/* and storage/logs/*
+
+make db-migrate       # Apply SQL migrations only
+make db-seed          # Run seeders only
+make db-reset         # Drop + recreate volumes (destructive, asks confirmation)
+make db-verify        # Verify current schema state
+
+make test             # Full test cycle (build image → migrate → phpunit → down)
+make test-unit        # Unit tests in parallel (requires dev stack running)
+make test-integration # Integration tests with ephemeral DB
+make test-coverage    # HTML + Clover coverage report
+
+make phpstan          # PHPStan level 5 (baseline: phpstan-baseline.neon)
+make psalm            # Psalm static analysis
+make cs-check         # PSR-12 dry-run
+make cs-fix           # Auto-fix PSR-12 style
+make ci               # Full quality gate: phpstan + psalm + test + cs-check
+make audit            # Composer security audit
+
+make e2e              # Playwright end-to-end tests
+make e2e-a11y         # Accessibility tests only (WCAG 2.1 AA)
 ```
 
 Config is read from environment variables only (12-Factor III). Secrets use `SecretLoader::require('db_password')`
 which looks for env var `DB_PASSWORD` then `/run/secrets/db_password`.
+
+**Env helpers** — never use `getenv()` directly; use the typed wrappers:
+
+```php
+Env::get('KEY', 'default');  // string
+Env::int('PORT', 8080);      // int
+Env::bool('DEBUG', false);   // bool
+```
+
+**Feature flags** — optional modules gated by env vars; disabled flags skip provider registration:
+
+```bash
+FEATURE_OPS=1         # Ops module: shifts, supervisor assignments
+FEATURE_BACKOFFICE=1  # Backoffice admin module
+FEATURE_KEEPER=1      # Keeper module: animal health checks
+```
 
 ## Testing Conventions
 
@@ -189,3 +221,15 @@ Every test file **must** include this docblock (enforced by `tests/bootstrap.php
 | `bootstrap/container.php`                 | Service Provider boot order                     |
 | `Makefile`                                | All dev commands                                |
 
+## Reference Docs
+
+| Doc                             | Topic                                           |
+|---------------------------------|-------------------------------------------------|
+| `README.md`                     | Quick-start, env vars, local Docker setup       |
+| `CONTRIBUTING.md`               | Branch naming, PR process, local workflow       |
+| `DEFINITION_OF_DONE.md`         | Acceptance criteria by change type              |
+| `docs/ARCHITECTURE.md`          | 12-Factor layers, RBAC, dependencies, patterns  |
+| `docs/DEPLOYMENT.md`            | Production secrets, scaling, ops guide          |
+| `docs/openapi.yaml`             | REST API specification                          |
+| `docs/diagrams/`                | C4, request lifecycle, auth flow, ER diagrams   |
+| `SECURITY.md`                   | Vulnerability reporting policy                  |

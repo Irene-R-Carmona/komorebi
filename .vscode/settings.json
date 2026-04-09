@@ -1,1 +1,20 @@
-{}
+{
+  // ─── PHP Built-in Validator ───────────────────────────────────────────────
+  // Desactivado: Intelephense provee diagnósticos PHP con su propio LSP.
+  // El validador built-in requiere un ejecutable PHP local que no existe en
+  // este proyecto (corre 100% en Docker).
+  "php.validate.enable": false,
+  // ─── Intelephense ─────────────────────────────────────────────────────────
+  "intelephense.environment.phpVersion": "8.4",
+  // ─── phpcs ────────────────────────────────────────────────────────────────
+  "phpcs.executablePath": "${workspaceFolder}/bin/phpcs.bat",
+  // ─── PHPStan ──────────────────────────────────────────────────────────────
+  "phpstan.executablePath": "${workspaceFolder}/bin/phpstan.bat",
+  // ─── PHP CS Fixer ─────────────────────────────────────────────────────────
+  "php-cs-fixer.executablePath": "${workspaceFolder}/bin/php-cs-fixer.bat",
+  // ─── Psalm ────────────────────────────────────────────────────────────────
+  "psalm.psalmScriptPath": "${workspaceFolder}/bin/psalm.bat",
+  // ─── PHPUnit ──────────────────────────────────────────────────────────────
+  "phpunit.phpunit": "${workspaceFolder}/bin/phpunit.bat",
+  "phpunit.phpExecutablePath": "${workspaceFolder}/bin/php.bat"
+}
