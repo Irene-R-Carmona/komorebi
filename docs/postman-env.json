@@ -1,0 +1,12 @@
+{
+  "id": "komorebi-local",
+  "name": "Komorebi Local",
+  "values": [
+    { "key": "BASE_URL", "value": "http://localhost:9000", "enabled": true },
+    {
+      "key": "API_BASE",
+      "value": "http://localhost:9000/api/v1",
+      "enabled": true
+    }
+  ]
+}

@@ -1,0 +1,1212 @@
+/* ============================================================================
+   SECCIÓN: CATÁLOGO Y DETALLE DE CAFÉS
+   Contiene: Filtros, Cards, Vista de Detalle (Hero) y Modal de Animales.
+   ============================================================================ */
+
+/* ----------------------------------------
+   FILTROS (Barra Superior)
+---------------------------------------- */
+.filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background-color: var(--color-superficie);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-sm);
+  border: 1px solid var(--color-borde);
+}
+
+.filtros__busqueda {
+  width: 100%;
+}
+
+.filtros__input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  font-size: 1rem;
+  transition: all 0.2s;
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+}
+
+.filtros__input:focus {
+  border-color: var(--color-acento);
+  box-shadow: 0 0 0 3px rgba(201, 169, 89, 0.1);
+  outline: none;
+}
+
+.filtros__tipos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filtros__btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-borde);
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: var(--color-texto-suave);
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filtros__btn:hover {
+  border-color: var(--color-primario);
+  color: var(--color-primario);
+}
+
+.filtros__btn--activo {
+  background-color: var(--color-primario);
+  border-color: var(--color-primario);
+  color: white !important;
+}
+
+/* Indicador de filtros guardados */
+.filtros__saved {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(201, 169, 89, 0.1) 0%, rgba(201, 169, 89, 0.05) 100%);
+  border-left: 3px solid var(--color-acento);
+  border-radius: var(--radio-md);
+  font-size: 0.9rem;
+}
+
+.filtros__saved-icon {
+  display: flex;
+  align-items: center;
+  color: var(--color-acento);
+}
+
+.filtros__saved-icon svg {
+  flex-shrink: 0;
+}
+
+.filtros__saved-text {
+  flex: 1;
+  color: var(--color-texto);
+  font-weight: 500;
+}
+
+.filtros__saved-clear {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: white;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-sm);
+  color: var(--color-texto-suave);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filtros__saved-clear:hover {
+  border-color: #dc3545;
+  color: #dc3545;
+  background: #fff5f5;
+}
+
+.filtros__saved-clear svg {
+  flex-shrink: 0;
+}
+
+/* ----------------------------------------
+   GRID CATÁLOGO (Cards)
+---------------------------------------- */
+.catalogo__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.card {
+  background-color: var(--color-superficie);
+  border-radius: var(--radio-lg);
+  overflow: hidden;
+  box-shadow: var(--sombra-sm);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--sombra-md);
+}
+
+.card__imagen {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  background-color: var(--color-fondo-alt);
+}
+
+.card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.card:hover .card__img {
+  transform: scale(1.05);
+}
+
+.card__tipo-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+}
+
+.card__contenido {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.card__nombre {
+  font-family: var(--fuente-titulo);
+  font-size: 1.25rem;
+  color: var(--color-primario);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.card__nombre-jp {
+  font-size: 0.85rem;
+  color: var(--color-texto-suave);
+  display: block;
+  margin-top: 2px;
+}
+
+.card__ubicacion {
+  font-size: 0.9rem;
+  color: var(--color-texto-suave);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card__horario {
+  font-size: 0.85rem;
+  color: var(--color-texto-suave);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card__descripcion {
+  font-size: 0.95rem;
+  color: var(--color-texto);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px dashed var(--color-borde);
+  padding-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card__precio {
+  font-family: var(--fuente-acento);
+  font-size: 1.2rem;
+  color: var(--color-acento);
+  font-weight: 600;
+}
+
+.card__rating {
+  display: flex;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--color-texto);
+}
+
+.star--filled {
+  color: #FFD700;
+}
+
+.card__acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.card__btn {
+  flex: 1;
+  padding: 0.7rem;
+  text-align: center;
+  border-radius: var(--radio-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.card__btn--animales {
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  border: 1px solid var(--color-borde);
+}
+
+.card__btn--animales:hover {
+  background: var(--color-borde);
+}
+
+.card__btn--reservar {
+  background: var(--color-acento);
+  color: white;
+  border: 1px solid var(--color-acento);
+}
+
+.card__btn--reservar:hover {
+  background: var(--color-acento-hover);
+  border-color: var(--color-acento-hover);
+}
+
+/* --- VISTA DETALLE (/cafes/{slug}) --- */
+.cafe-breadcrumbs {
+  margin-bottom: 1.5rem;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  padding-left: 0;
+  background: none;
+  color: var(--color-texto);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-back:hover {
+  color: var(--color-acento);
+}
+
+/* Hero Inmersivo */
+.cafe-hero {
+  position: relative;
+  height: 500px;
+  border-radius: var(--radio-lg);
+  overflow: hidden;
+  margin-bottom: var(--espaciado-xl);
+  box-shadow: var(--sombra-lg);
+  display: flex;
+  align-items: flex-end;
+  background-color: var(--color-primario);
+}
+
+.cafe-hero__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cafe-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.5) 40%, rgba(0, 0, 0, 0.1) 100%);
+}
+
+.cafe-hero__content {
+  position: relative;
+  z-index: 2;
+  padding: var(--espaciado-xl);
+  width: 100%;
+  color: white;
+}
+
+.cafe-hero__badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.cafe-hero__badge {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.cafe-hero__titulo {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1;
+  margin: 0.5rem 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.cafe-hero__subtitulo {
+  font-family: var(--fuente-acento);
+  font-size: 1.5rem;
+  opacity: 0.9;
+}
+
+.cafe-hero__meta {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  flex-wrap: wrap;
+}
+
+.cafe-hero__meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+}
+
+/* Info Layout */
+.cafe-info {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 3rem;
+  margin-bottom: 4rem;
+}
+
+.cafe-info__texto h3 {
+  color: var(--color-primario);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.cafe-info__description {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--color-texto);
+  margin-bottom: 2rem;
+}
+
+/* Grid de detalles del café */
+.cafe-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.detail-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--color-superficie);
+  border-radius: var(--radio-md);
+  border: 1px solid var(--color-borde);
+  transition: all 0.2s ease;
+}
+
+.detail-card:hover {
+  border-color: var(--color-acento);
+  box-shadow: 0 2px 8px rgba(201, 169, 89, 0.15);
+}
+
+.detail-card__icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(201, 169, 89, 0.1) 0%, rgba(201, 169, 89, 0.05) 100%);
+  border-radius: var(--radio-sm);
+  color: var(--color-acento);
+}
+
+.detail-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-card__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  margin: 0 0 0.25rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-card__text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-texto);
+  margin: 0;
+}
+
+.detail-card__meta {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--color-texto-suave);
+}
+
+/* Servicios y comodidades */
+.cafe-amenities {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: var(--color-fondo);
+  border-radius: var(--radio-md);
+  border-left: 4px solid var(--color-acento);
+}
+
+.cafe-amenities__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-texto);
+  margin: 0 0 1rem 0;
+}
+
+.cafe-amenities__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.cafe-amenities__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--color-texto);
+}
+
+.cafe-amenities__item svg {
+  flex-shrink: 0;
+  color: var(--color-acento);
+}
+
+.cafe-info__texto p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--color-texto);
+}
+
+.cafe-info__cta-box {
+  background: var(--color-superficie);
+  padding: 2rem;
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-md);
+  border: 1px solid var(--color-borde);
+  position: sticky;
+  top: 100px;
+  text-align: center;
+}
+
+.cafe-info__cta-title {
+  margin-bottom: 1rem;
+  color: var(--color-primario);
+}
+
+.cafe-info__cta-desc {
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  color: var(--color-texto-suave);
+}
+
+.btn-cta-lg {
+  width: 100%;
+  justify-content: center;
+  display: flex;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  font-size: 1.1rem;
+}
+
+.text-small {
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 1rem;
+  opacity: 0.7;
+}
+
+/* Caja de Horarios */
+.cafe-hours-box {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: var(--color-fondo);
+  border-radius: var(--radio-md);
+  border-left: 4px solid var(--color-acento);
+}
+
+.cafe-hours-title {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--color-texto);
+}
+
+.cafe-hours-text {
+  margin: 0;
+  color: var(--color-texto-suave);
+  font-size: 1rem;
+}
+
+@media (max-width: 900px) {
+  .cafe-info {
+    grid-template-columns: 1fr;
+  }
+
+  .cafe-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cafe-amenities__list {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-card__icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ============================================================================
+   SECCIÓN DE ANIMALES
+   ============================================================================ */
+
+.animales-section {
+  margin: var(--espaciado-xl) 0;
+  padding: var(--espaciado-lg) 0;
+  border-top: 2px solid var(--color-borde);
+}
+
+/* --- ANIMAL CARDS (Lista) --- */
+.animal-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--color-superficie);
+  border-radius: var(--radio-lg);
+  border: 1px solid var(--color-borde);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.animal-card:hover {
+  border-color: var(--color-acento);
+  transform: translateX(5px);
+  box-shadow: var(--sombra-sm);
+}
+
+.animal-card__avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid var(--color-fondo);
+}
+
+.animal-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.animal-card__info {
+  flex: 1;
+}
+
+.animal-card__nombre {
+  font-weight: 700;
+  color: var(--color-primario);
+  display: block;
+  font-size: 1.1rem;
+}
+
+.animal-card__detalle {
+  font-size: 0.85rem;
+  color: var(--color-texto-suave);
+  margin-top: 2px;
+}
+
+.animal-card__flecha {
+  color: var(--color-borde);
+  font-size: 1.2rem;
+  transition: transform 0.2s;
+}
+
+.animal-card:hover .animal-card__flecha {
+  transform: translateX(3px);
+  color: var(--color-acento);
+}
+
+/* --- MODAL ANIMAL (Diseño Wide Premium) --- */
+.animal-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  transition: opacity 0.3s ease;
+}
+
+.animal-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(30, 25, 20, 0.85);
+  backdrop-filter: blur(6px);
+}
+
+.animal-modal__card {
+  position: relative;
+  background-color: var(--color-superficie);
+  border-radius: var(--radio-lg);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  max-width: 950px;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (min-width: 850px) {
+  .animal-modal__card {
+    flex-direction: row;
+    height: 600px;
+    max-height: 80vh;
+  }
+}
+
+.animal-modal__foto {
+  position: relative;
+  height: 250px;
+  background-color: var(--color-fondo-alt);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 850px) {
+  .animal-modal__foto {
+    height: 100%;
+    width: 45%;
+  }
+}
+
+.animal-modal__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.animal-modal__card:hover .animal-modal__img {
+  transform: scale(1.03);
+}
+
+.modal-layout-wrapper {
+  display: contents;
+}
+
+.animal-modal__content {
+  flex: 1;
+  padding: 2.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-borde) transparent;
+}
+
+.animal-modal__content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.animal-modal__content::-webkit-scrollbar-thumb {
+  background: var(--color-borde);
+  border-radius: 3px;
+}
+
+.animal-modal__header {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-borde);
+  padding-bottom: 1rem;
+}
+
+.animal-modal__raza {
+  font-family: var(--fuente-acento);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--color-acento);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.animal-modal__nombre {
+  font-family: var(--fuente-titulo);
+  font-size: 3rem;
+  color: var(--color-primario);
+  line-height: 1;
+  margin: 0;
+}
+
+.animal-modal__stats {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.animal-modal__stat {
+  background-color: var(--color-fondo);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: var(--color-texto-suave);
+  border: 1px solid var(--color-borde);
+}
+
+.animal-modal__bio {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--color-texto);
+  margin-bottom: 2rem;
+}
+
+.animal-modal__preferencias {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  background-color: var(--color-fondo);
+  padding: 1.5rem;
+  border-radius: var(--radio-md);
+}
+
+@media (max-width: 500px) {
+  .animal-modal__preferencias {
+    grid-template-columns: 1fr;
+  }
+}
+
+.animal-modal__lista ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.animal-modal__lista li {
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+  padding-left: 12px;
+  position: relative;
+  color: var(--color-texto-suave);
+}
+
+.animal-modal__lista li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--color-borde);
+}
+
+.detalle__lista-titulo {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Botón cerrar flotante */
+.animal-modal__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 44px;
+  height: 44px;
+  background-color: white;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-texto);
+  transition: transform 0.2s ease, background-color 0.2s, color 0.2s;
+}
+
+.animal-modal__close:hover {
+  transform: rotate(90deg) scale(1.1);
+  background-color: var(--color-error);
+  color: white;
+}
+
+/* Cuidados especiales */
+.detalle__cuidados {
+  margin-top: auto;
+  padding: 1rem;
+  background-color: rgba(201, 169, 89, 0.1);
+  border-radius: var(--radio-md);
+  border-left: 4px solid var(--color-acento);
+}
+
+.detalle__cuidados-titulo {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+  color: var(--color-acento);
+}
+
+.detalle__cuidados-texto {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Empty state */
+.catalogo__vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem;
+  text-align: center;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.catalogo__vacio-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+  animation: float 3s ease-in-out infinite;
+}
+
+.catalogo__vacio-titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 1.5rem;
+  color: var(--color-primario);
+  margin: 0 0 0.5rem 0;
+}
+
+.catalogo__vacio-texto {
+  font-size: 1rem;
+  color: var(--color-texto-suave);
+  max-width: 450px;
+  margin: 0 auto 1.5rem auto;
+  line-height: 1.6;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ============================================================================
+   EXPERIENCIAS / PASES SECTION
+   ============================================================================ */
+
+.experiences-section {
+  margin: var(--espaciado-xl) 0;
+  padding: var(--espaciado-lg) 0;
+  border-top: 2px solid var(--color-borde);
+}
+
+.experiences-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--espaciado-lg);
+  margin-top: var(--espaciado-md);
+}
+
+@media (max-width: 768px) {
+  .experiences-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   EXPERIENCE CARD
+────────────────────────────────────────────────────────────────────────── */
+
+.experience-card {
+  background: var(--color-superficie);
+  border-radius: var(--radio-lg);
+  overflow: hidden;
+  box-shadow: var(--sombra-md);
+  transition: transform var(--transicion), box-shadow var(--transicion);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.experience-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sombra-lg);
+}
+
+.experience-card__image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--color-fondo-alt), var(--color-borde));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.experience-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transicion);
+}
+
+.experience-card:hover .experience-card__img {
+  transform: scale(1.05);
+}
+
+.experience-card__placeholder {
+  font-size: 4rem;
+  opacity: 0.3;
+}
+
+.experience-card__content {
+  padding: var(--espaciado-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaciado-sm);
+  flex: 1;
+}
+
+.experience-card__name {
+  font-family: var(--fuente-titulo);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.experience-card__jp {
+  font-family: var(--fuente-acento);
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+
+.experience-card__description {
+  font-size: 0.9375rem;
+  color: var(--color-texto);
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+}
+
+.experience-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaciado-sm);
+  padding-top: var(--espaciado-sm);
+  border-top: 1px solid var(--color-borde);
+  margin-top: auto;
+}
+
+.experience-meta__item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  background: var(--color-fondo);
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radio-sm);
+}
+
+.experience-meta__item .icon {
+  font-size: 1rem;
+}
+
+/* Atributos especiales */
+.experience-card__attrs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: var(--espaciado-sm);
+}
+
+.experience-attr {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(201, 169, 89, 0.15);
+  color: var(--color-primario);
+  border-radius: var(--radio-full);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid rgba(201, 169, 89, 0.3);
+}
+
+/* Tags de tipos de animales */
+.experience-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.experience-tag {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  background: linear-gradient(135deg, rgba(201, 169, 89, 0.15), rgba(92, 61, 46, 0.1));
+  color: var(--color-primario);
+  border-radius: var(--radio-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  border: 1px solid rgba(201, 169, 89, 0.3);
+}
+
+/* Precio y botón */
+.experience-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--espaciado-md);
+  border-top: 2px solid var(--color-borde);
+  background: var(--color-fondo);
+  gap: var(--espaciado-md);
+}
+
+.experience-card__price {
+  display: flex;
+  flex-direction: column;
+}
+
+.experience-price__amount {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-acento);
+  font-family: var(--fuente-titulo);
+  line-height: 1;
+}
+
+.experience-price__label {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  margin-top: 0.375rem;
+}
+
+.experience-card__cta {
+  padding: 0.75rem 1.5rem;
+  background: var(--color-primario);
+  color: white;
+  text-decoration: none;
+  border-radius: var(--radio-md);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: all var(--transicion-rapida);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: var(--sombra-sm);
+}
+
+.experience-card__cta:hover {
+  background: var(--color-acento);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(92, 61, 46, 0.3);
+}
+
+.experience-card__cta:active {
+  transform: translateY(0);
+  box-shadow: var(--sombra-sm);
+}
+
+@media (max-width: 768px) {
+  .experience-card__footer {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .experience-card__price {
+    align-items: center;
+    padding-bottom: var(--espaciado-sm);
+  }
+
+  .experience-card__cta {
+    width: 100%;
+  }
+}

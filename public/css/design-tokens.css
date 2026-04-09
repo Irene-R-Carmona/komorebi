@@ -1,0 +1,379 @@
+/**
+ * KOMOREBI DESIGN SYSTEM - Design Tokens
+ * Versión: 1.0.0
+ * Fecha: 2026-02-13
+ *
+ * Sistema unificado de tokens para todos los layouts:
+ * - Public (japonés aesthetic)
+ * - Backoffice (modern UI)
+ * - KDS (industrial)
+ * - Reception (zen minimalist)
+ *
+ * Estrategia: Crear tokens base estandarizados mientras
+ * mantenemos compatibilidad con variables existentes.
+ */
+
+/* ============================================================================
+   COLOR TOKENS
+   ============================================================================ */
+
+:root {
+  /* --- PRIMARY (Bamboo Green - Komorebi Brand) --- */
+  --color-primary-50: #f0f9f4;
+  --color-primary-100: #dbf0e3;
+  --color-primary-200: #b9e1ca;
+  --color-primary-300: #8bcba8;
+  --color-primary-400: #5aad82;
+  --color-primary-500: #3a9263;
+  /* Base */
+  --color-primary-600: #2a7550;
+  --color-primary-700: #225d41;
+  --color-primary-800: #4d3a2e;
+  /* Adjusted for brand */
+  --color-primary-900: #3d2e1f;
+
+  /* --- SECONDARY (Cherry Blossom Accent) --- */
+  --color-secondary-50: #fef2f3;
+  --color-secondary-100: #fde6e8;
+  --color-secondary-200: #fbd0d5;
+  --color-secondary-300: #f7aab2;
+  --color-secondary-400: #f27a8a;
+  --color-secondary-500: #e74c5e;
+  /* Base */
+  --color-secondary-600: #d32f44;
+  --color-secondary-700: #b22234;
+  --color-secondary-800: #951f30;
+  --color-secondary-900: #7f1d2d;
+
+  /* --- ACCENT (Gold - Komorebi Signature) --- */
+  --color-accent-50: #fefcf3;
+  --color-accent-100: #fdf8e3;
+  --color-accent-200: #faefc7;
+  --color-accent-300: #f6e29f;
+  --color-accent-400: #f0cd6c;
+  --color-accent-500: #c9a959;
+  /* Base - Existing brand */
+  --color-accent-600: #b8963d;
+  --color-accent-700: #9a7d2f;
+  --color-accent-800: #7d6428;
+  --color-accent-900: #665224;
+
+  /* --- NEUTRAL (Zen Grays) --- */
+  --color-neutral-50: #fafaf9;
+  --color-neutral-100: #f5f5f4;
+  --color-neutral-200: #e7e5e4;
+  --color-neutral-300: #d6d3d1;
+  --color-neutral-400: #a8a29e;
+  --color-neutral-500: #78716c;
+  --color-neutral-600: #57534e;
+  --color-neutral-700: #44403c;
+  --color-neutral-800: #292524;
+  --color-neutral-900: #1c1917;
+
+  /* --- SEMANTIC COLORS --- */
+  --color-success: #22c55e;
+  --color-success-light: #dcfce7;
+  --color-success-dark: #166534;
+
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+  --color-warning-dark: #92400e;
+
+  --color-danger: #ef4444;
+  --color-danger-light: #fee2e2;
+  --color-danger-dark: #991b1b;
+
+  --color-info: #3b82f6;
+  --color-info-light: #dbeafe;
+  --color-info-dark: #1e40af;
+
+  /* --- WORKSPACE SPECIFIC COLORS --- */
+  /* KDS - Kitchen Display System */
+  --color-kds-hot: #ef4444;
+  --color-kds-cold: #3b82f6;
+  --color-kds-bar: #f59e0b;
+  --color-kds-bg: #0f1419;
+  --color-kds-surface: #1a2028;
+
+  /* Reception - Zen Interface */
+  --color-reception-zen: #78716c;
+  --color-reception-accent: #d4af37;
+  --color-reception-calm: #f5f5f4;
+
+  /* --- COMPATIBILITY ALIASES (Existing Variables) --- */
+  /* Para global.css (público) */
+  --color-primario: var(--color-primary-800);
+  /* #5C3D2E existing */
+  --color-acento: var(--color-accent-500);
+  /* #C9A959 existing */
+  --color-fondo: #F7F3EB;
+  --color-superficie: #FFFFFF;
+  --color-texto: #2D2218;
+  --color-exito: var(--color-success);
+  --color-error: var(--color-danger);
+
+  /* Para backoffice.css */
+  --brand-primary: var(--color-primary-800);
+  --brand-accent: var(--color-accent-500);
+}
+
+/* Dark Mode Overrides */
+[data-tema="oscuro"] {
+  --color-fondo: #1A1410;
+  --color-superficie: #3D2E1F;
+  --color-texto: #E8DCC4;
+}
+
+/* ============================================================================
+   TYPOGRAPHY TOKENS
+   ============================================================================ */
+
+:root {
+  /* --- FONT FAMILIES --- */
+  --font-sans: 'Space Grotesk', 'Noto Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Epilogue', 'Noto Sans', sans-serif;
+  /* Reception zen titles */
+  --font-mono: 'Roboto Mono', 'Courier New', monospace;
+  /* KDS times/codes */
+  --font-japanese: 'Noto Sans JP', sans-serif;
+
+  /* Existing fonts (compatibility) */
+  --fuente-titulo: 'Shippori Mincho', serif;
+  --fuente-cuerpo: 'Zen Maru Gothic', sans-serif;
+  --fuente-acento: 'Kaisei Decol', serif;
+
+  /* --- FONT SIZES (Type Scale 1.250 - Major Third) --- */
+  --text-xs: 0.75rem;
+  /* 12px */
+  --text-sm: 0.875rem;
+  /* 14px */
+  --text-base: 1rem;
+  /* 16px - body default */
+  --text-lg: 1.125rem;
+  /* 18px */
+  --text-xl: 1.25rem;
+  /* 20px */
+  --text-2xl: 1.563rem;
+  /* 25px */
+  --text-3xl: 1.953rem;
+  /* 31px */
+  --text-4xl: 2.441rem;
+  /* 39px */
+  --text-5xl: 3.052rem;
+  /* 49px */
+
+  /* --- FONT WEIGHTS --- */
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-black: 900;
+
+  /* --- LINE HEIGHTS --- */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  /* --- LETTER SPACING --- */
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+}
+
+/* ============================================================================
+   SPACING TOKENS (4px base unit)
+   ============================================================================ */
+
+:root {
+  --space-0: 0;
+  --space-1: 0.25rem;
+  /* 4px */
+  --space-2: 0.5rem;
+  /* 8px */
+  --space-3: 0.75rem;
+  /* 12px */
+  --space-4: 1rem;
+  /* 16px - base */
+  --space-5: 1.25rem;
+  /* 20px */
+  --space-6: 1.5rem;
+  /* 24px */
+  --space-8: 2rem;
+  /* 32px */
+  --space-10: 2.5rem;
+  /* 40px */
+  --space-12: 3rem;
+  /* 48px */
+  --space-16: 4rem;
+  /* 64px */
+  --space-20: 5rem;
+  /* 80px */
+  --space-24: 6rem;
+  /* 96px */
+
+  /* Compatibility aliases */
+  --espaciado-xs: var(--space-2);
+  --espaciado-sm: var(--space-4);
+  --espaciado-md: var(--space-6);
+  --espaciado-lg: var(--space-10);
+  --espaciado-xl: var(--space-16);
+}
+
+/* ============================================================================
+   BORDER RADIUS TOKENS
+   ============================================================================ */
+
+:root {
+  --radius-none: 0;
+  --radius-sm: 0.25rem;
+  /* 4px */
+  --radius-md: 0.5rem;
+  /* 8px */
+  --radius-lg: 0.75rem;
+  /* 12px */
+  --radius-xl: 1rem;
+  /* 16px */
+  --radius-2xl: 1.5rem;
+  /* 24px */
+  --radius-full: 9999px;
+  /* Pills/circles */
+
+  /* Compatibility aliases */
+  --radio-sm: var(--radius-sm);
+  --radio-md: var(--radius-md);
+  --radio-lg: var(--radius-lg);
+  --radio-full: var(--radius-full);
+}
+
+/* ============================================================================
+   SHADOW TOKENS (Elevation Layers)
+   ============================================================================ */
+
+:root {
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+
+  /* Compatibility aliases */
+  --sombra-sm: var(--shadow-sm);
+  --sombra-md: var(--shadow-md);
+  --sombra-lg: var(--shadow-lg);
+}
+
+/* ============================================================================
+   Z-INDEX SCALE (Stacking Order)
+   ============================================================================ */
+
+:root {
+  --z-base: 0;
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-fixed: 30;
+  --z-modal-backdrop: 40;
+  --z-modal: 50;
+  --z-popover: 60;
+  --z-tooltip: 70;
+  --z-toast: 80;
+  --z-debug: 9999;
+}
+
+/* ============================================================================
+   TRANSITION TOKENS
+   ============================================================================ */
+
+:root {
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slower: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Compatibility aliases */
+  --transicion-rapida: var(--transition-fast);
+  --transicion: var(--transition-base);
+}
+
+/* ============================================================================
+   CONTAINER & BREAKPOINT TOKENS
+   ============================================================================ */
+
+:root {
+  /* Container widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+
+  /* Breakpoints (for reference in docs) */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+/* ============================================================================
+   ACCESSIBILITY & INTERACTIVE TOKENS
+   ============================================================================ */
+
+:root {
+  /* Focus ring */
+  --focus-ring: 0 0 0 3px var(--color-primary-200);
+  --focus-ring-offset: 2px;
+
+  /* Touch targets (WCAG 2.1) */
+  --touch-target-min: 44px;
+
+  /* Motion preferences */
+  --motion-reduce: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: var(--motion-reduce);
+    --transition-base: var(--motion-reduce);
+    --transition-slow: var(--motion-reduce);
+    --transition-slower: var(--motion-reduce);
+  }
+}
+
+/* ============================================================================
+   UTILITY CLASSES (Screen Reader Only, etc.)
+   ============================================================================ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}

@@ -1,0 +1,383 @@
+/* ============================================================================
+   BACKOFFICE REVIEWS - Estilos para moderación de reseñas
+   ============================================================================ */
+
+/* ─────────────────────────────────────────────────────────────────────────
+   LAYOUT GENERAL
+────────────────────────────────────────────────────────────────────────── */
+
+.reviews-moderation {
+    margin: var(--espaciado-lg) 0;
+}
+
+.reviews-queue {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaciado-md);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   CARD DE RESEÑA PARA MODERAR
+────────────────────────────────────────────────────────────────────────── */
+
+.review-moderation-card {
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-md);
+    padding: var(--espaciado-md);
+    box-shadow: var(--sombra-sm);
+    transition: all var(--transicion);
+}
+
+.review-moderation-card:hover {
+    border-color: var(--color-acento);
+    box-shadow: var(--sombra-md);
+}
+
+/* Header de la card */
+.review-mod__header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--espaciado-md);
+    align-items: start;
+    padding-bottom: var(--espaciado-md);
+    border-bottom: 1px solid var(--color-borde);
+    margin-bottom: var(--espaciado-md);
+}
+
+.review-mod__avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radio-full);
+    background: linear-gradient(135deg, var(--color-acento), var(--color-primario));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.review-mod__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.review-mod__author {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-texto);
+}
+
+.review-mod__cafe {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-texto-suave);
+}
+
+.review-mod__date {
+    display: block;
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.review-mod__rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(201, 169, 89, 0.1) 0%, transparent 100%);
+    padding: var(--espaciado-xs) var(--espaciado-sm);
+    border-radius: var(--radio-md);
+}
+
+.review-mod__rating-text {
+    font-weight: 600;
+    color: var(--color-acento);
+    font-size: 0.95rem;
+    margin-left: 0.5rem;
+}
+
+/* Contenido de la reseña */
+.review-mod__content {
+    margin-bottom: var(--espaciado-md);
+}
+
+.review-mod__title {
+    margin: 0 0 var(--espaciado-xs) 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-texto);
+    font-family: var(--fuente-titulo);
+}
+
+.review-mod__body {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--color-texto-suave);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--color-fondo-alt);
+    padding: var(--espaciado-sm);
+    border-radius: var(--radio-sm);
+}
+
+/* Acciones */
+.review-mod__actions {
+    display: flex;
+    gap: var(--espaciado-sm);
+    justify-content: flex-end;
+    padding-top: var(--espaciado-md);
+    border-top: 1px solid var(--color-borde);
+}
+
+.form-inline {
+    display: contents;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   MODAL
+────────────────────────────────────────────────────────────────────────── */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(45, 34, 24, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-card {
+    background: var(--color-superficie);
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra-lg);
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--espaciado-md);
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-texto);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-texto-suave);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radio-md);
+    transition: var(--transicion);
+}
+
+.modal-close:hover {
+    background: var(--color-fondo-alt);
+    color: var(--color-texto);
+}
+
+.modal-form {
+    padding: var(--espaciado-md);
+}
+
+.modal-actions {
+    display: flex;
+    gap: var(--espaciado-sm);
+    justify-content: flex-end;
+    padding-top: var(--espaciado-md);
+    border-top: 1px solid var(--color-borde);
+    margin-top: var(--espaciado-md);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   EMPTY STATE
+────────────────────────────────────────────────────────────────────────── */
+
+.empty-state {
+    text-align: center;
+    padding: var(--espaciado-xl) var(--espaciado-lg);
+    background: linear-gradient(135deg, rgba(94, 111, 100, 0.08) 0%, rgba(201, 169, 89, 0.05) 100%);
+    border-radius: var(--radio-lg);
+    border: 2px dashed var(--color-borde);
+}
+
+.empty-state__icon {
+    font-size: 3rem;
+    margin-bottom: var(--espaciado-md);
+}
+
+.empty-state h3 {
+    margin: 0 0 var(--espaciado-sm) 0;
+    font-size: 1.25rem;
+    color: var(--color-exito);
+    font-weight: 600;
+}
+
+.empty-state p {
+    margin: 0;
+    color: var(--color-texto-suave);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   STATS GRID
+────────────────────────────────────────────────────────────────────────── */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--espaciado-md);
+    margin: var(--espaciado-lg) 0;
+}
+
+.stat-card {
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-md);
+    padding: var(--espaciado-md);
+    text-align: center;
+    box-shadow: var(--sombra-sm);
+}
+
+.stat-card__number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-acento);
+    font-family: var(--fuente-titulo);
+}
+
+.stat-card__label {
+    font-size: 0.95rem;
+    color: var(--color-texto-suave);
+    margin-top: 0.5rem;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   BREADCRUMB
+────────────────────────────────────────────────────────────────────────── */
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: var(--espaciado-lg);
+    font-size: 0.9rem;
+    color: var(--color-texto-suave);
+}
+
+.breadcrumb a {
+    color: var(--color-acento);
+    text-decoration: none;
+    transition: color var(--transicion);
+}
+
+.breadcrumb a:hover {
+    color: var(--color-acento-hover);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   BACKOFFICE HEADER
+────────────────────────────────────────────────────────────────────────── */
+
+.backoffice-header {
+    margin-bottom: var(--espaciado-lg);
+}
+
+.backoffice-title {
+    margin: 0 0 0.5rem 0;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 700;
+    color: var(--color-texto);
+    font-family: var(--fuente-titulo);
+}
+
+.backoffice-subtitle {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--color-texto-suave);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   RESPONSIVE
+────────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .review-mod__header {
+        grid-template-columns: auto 1fr;
+        gap: var(--espaciado-sm);
+    }
+
+    .review-mod__rating {
+        grid-column: 1 / -1;
+    }
+
+    .review-mod__actions {
+        flex-wrap: wrap;
+    }
+
+    .modal-card {
+        width: 95%;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .review-mod__header {
+        grid-template-columns: 1fr;
+    }
+
+    .review-mod__avatar {
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+    }
+
+    .review-mod__actions {
+        flex-direction: column;
+    }
+
+    .review-mod__actions .btn {
+        width: 100%;
+    }
+}

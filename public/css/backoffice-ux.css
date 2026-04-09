@@ -1,0 +1,1214 @@
+/**
+ * Backoffice UX/UI Enhancements
+ *
+ * Mejoras de experiencia de usuario aplicando Laws of UX y WCAG 2.1 AA
+ * Complementa backoffice-bootstrap.css con componentes mejorados
+ *
+ * @version 2.0
+ * @author TFC DAW - Komorebi Café
+ */
+
+/* ============================================================================
+   VARIABLES CSS - Tema Backoffice
+   ============================================================================ */
+
+:root {
+  /* Paleta Komorebi - Admin Theme */
+  --admin-primary: #5C3D2E;
+  --admin-primary-hover: #4a2f23;
+  --admin-accent: #C9A959;
+  --admin-accent-hover: #b8963d;
+
+  --admin-bg: #F7F3EB;
+  --admin-bg-alt: #E8DCC4;
+  --admin-surface: #FFFFFF;
+
+  --admin-text: #2D2218;
+  --admin-text-muted: #5C4A3A;
+  --admin-text-light: #FFFFFF;
+
+  --admin-border: #D4C4A8;
+  --admin-border-hover: #B8A890;
+
+  /* Estados */
+  --admin-success: #5E6F64;
+  --admin-warning: #E69500;
+  --admin-error: #9B2335;
+  --admin-info: #3B82F6;
+
+  /* Sidebar */
+  --sidebar-bg: #212529;
+  --sidebar-text: #FFFFFF;
+  --sidebar-hover: rgba(255, 255, 255, 0.1);
+  --sidebar-active: var(--admin-accent);
+  --sidebar-width: 260px;
+
+  /* Sombras & Efectos */
+  --shadow-sm: 0 2px 8px rgba(45, 34, 24, 0.08);
+  --shadow-md: 0 4px 16px rgba(45, 34, 24, 0.12);
+  --shadow-lg: 0 8px 32px rgba(45, 34, 24, 0.16);
+  --shadow-hover: 0 6px 20px rgba(45, 34, 24, 0.14);
+
+  /* Transiciones */
+  --transition: 0.3s ease;
+  --transition-fast: 0.15s ease;
+
+  /* Espaciado */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.5rem;
+  --space-xl: 4rem;
+
+  /* Radios */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 50%;
+
+  /* Touch Targets (Ley de Fitts) */
+  --touch-min: 44px;
+}
+
+/* ============================================================================
+   LAYOUT MEJORADO
+   ============================================================================ */
+
+body {
+  background: var(--admin-bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Skip Link (Accesibilidad) */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  padding: var(--space-sm);
+  background: var(--admin-primary);
+  color: var(--admin-text-light);
+  z-index: 9999;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  margin: var(--space-xs);
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid var(--admin-accent);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   SIDEBAR MEJORADO
+   ============================================================================ */
+
+.sidebar {
+  background: var(--sidebar-bg);
+  box-shadow: var(--shadow-md);
+}
+
+.sidebar-brand {
+  padding: var(--space-md);
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-brand img {
+  max-height: 40px;
+  transition: transform var(--transition-fast);
+}
+
+.sidebar-brand:hover img {
+  transform: scale(1.05);
+}
+
+/* Navegación Sidebar */
+.sidebar-nav {
+  padding: var(--space-sm);
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Nav Items - Ley de Fitts (44px mínimo) */
+.sidebar-nav .nav-link {
+  min-height: var(--touch-min);
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.25rem;
+  border-radius: var(--radius-md);
+  color: var(--sidebar-text);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  font-size: 0.9375rem;
+}
+
+.sidebar-nav .nav-link:hover {
+  background: var(--sidebar-hover);
+  transform: translateX(4px);
+}
+
+.sidebar-nav .nav-link:focus-visible {
+  outline: 3px solid var(--admin-accent);
+  outline-offset: -3px;
+}
+
+.sidebar-nav .nav-link.active {
+  background: var(--sidebar-active);
+  color: var(--admin-text);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.sidebar-nav .nav-link i {
+  width: 24px;
+  margin-right: 0.75rem;
+  font-size: 1.125rem;
+}
+
+/* Sidebar Headings */
+.sidebar-heading {
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.75rem 1rem 0.5rem;
+  margin-top: 1rem;
+  font-weight: 700;
+}
+
+.sidebar-heading:first-child {
+  margin-top: 0;
+}
+
+/* User Info Footer */
+.sidebar-user {
+  padding: var(--space-md);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-user .dropdown-toggle {
+  min-height: var(--touch-min);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+  cursor: pointer;
+}
+
+.sidebar-user .dropdown-toggle:hover {
+  background: var(--sidebar-hover);
+}
+
+.sidebar-user img {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--admin-accent);
+  object-fit: cover;
+}
+
+/* ============================================================================
+   HEADER MEJORADO
+   ============================================================================ */
+
+.main-header {
+  background: var(--admin-surface);
+  border-bottom: 1px solid var(--admin-border);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-sm) var(--space-md);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* Mobile Toggle - Ley de Fitts */
+.btn-mobile-toggle {
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  padding: 0.5rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--radius-md);
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-mobile-toggle:hover {
+  background: var(--admin-bg-alt);
+  border-color: var(--admin-border-hover);
+  transform: scale(1.05);
+}
+
+.btn-mobile-toggle:focus-visible {
+  outline: 3px solid var(--admin-accent);
+  outline-offset: 2px;
+}
+
+.btn-mobile-toggle i {
+  font-size: 1.25rem;
+}
+
+/* Header Title */
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-primary);
+  margin: 0;
+}
+
+/* Cafe Badge */
+.cafe-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--admin-bg-alt);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.cafe-badge i {
+  color: var(--admin-accent);
+}
+
+/* ============================================================================
+   BOTONES MEJORADOS - Ley de Fitts
+   ============================================================================ */
+
+/* Touch targets mínimos */
+.btn {
+  min-height: var(--touch-min);
+  min-width: var(--touch-min);
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+}
+
+.btn:focus-visible {
+  outline: 3px solid var(--admin-accent);
+  outline-offset: 2px;
+}
+
+/* Primary Button */
+.btn-primary {
+  background: var(--admin-primary);
+  color: var(--admin-text-light);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--admin-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Accent/Warning Button */
+.btn-warning {
+  background: var(--admin-accent);
+  color: var(--admin-text);
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: var(--admin-accent-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Success Button */
+.btn-success {
+  background: var(--admin-success);
+  color: var(--admin-text-light);
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #4d5c52;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Danger Button */
+.btn-danger {
+  background: var(--admin-error);
+  color: var(--admin-text-light);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #7a1c2a;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Outline Buttons */
+.btn-outline-primary {
+  border: 2px solid var(--admin-primary);
+  color: var(--admin-primary);
+  background: transparent;
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+  background: var(--admin-primary);
+  color: var(--admin-text-light);
+}
+
+/* Estado de Carga */
+.btn--loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.btn--loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  margin: -10px 0 0 -10px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: var(--radius-full);
+  animation: spinner 0.6s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Button Sizes */
+.btn-sm {
+  min-height: 36px;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.875rem;
+}
+
+.btn-lg {
+  min-height: 52px;
+  padding: 0.875rem 1.75rem;
+  font-size: 1.125rem;
+}
+
+/* Disabled State */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ============================================================================
+   FORMULARIOS MEJORADOS
+   ============================================================================ */
+
+.form-label {
+  font-weight: 600;
+  color: var(--admin-text);
+  margin-bottom: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.form-label--required::after {
+  content: '*';
+  color: var(--admin-error);
+  margin-left: 0.25rem;
+}
+
+/* Form Controls */
+.form-control,
+.form-select {
+  min-height: var(--touch-min);
+  padding: 0.625rem 1rem;
+  border: 2px solid var(--admin-border);
+  border-radius: var(--radius-md);
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  transition: all var(--transition-fast);
+  font-size: 1rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--admin-accent);
+  box-shadow: 0 0 0 3px rgba(201, 169, 89, 0.15);
+  outline: none;
+}
+
+.form-control:hover:not(:focus):not(:disabled),
+.form-select:hover:not(:focus):not(:disabled) {
+  border-color: var(--admin-border-hover);
+}
+
+/* Validation States */
+.form-control.is-valid,
+.form-select.is-valid {
+  border-color: var(--admin-success);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%235E6F64' viewBox='0 0 16 16'%3E%3Cpath d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.25rem;
+  padding-right: 3rem;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: var(--admin-error);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239B2335' viewBox='0 0 16 16'%3E%3Cpath d='M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.25rem;
+  padding-right: 3rem;
+}
+
+/* Feedback Messages */
+.valid-feedback,
+.invalid-feedback {
+  display: none;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.valid-feedback {
+  color: var(--admin-success);
+}
+
+.invalid-feedback {
+  color: var(--admin-error);
+}
+
+.form-control.is-valid~.valid-feedback,
+.form-control.is-invalid~.invalid-feedback,
+.form-select.is-valid~.valid-feedback,
+.form-select.is-invalid~.invalid-feedback {
+  display: block;
+}
+
+/* Form Hints */
+.form-hint {
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
+  margin-top: 0.25rem;
+}
+
+/* Checkbox y Radio mejorados */
+.form-check-input {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  border: 2px solid var(--admin-border);
+  cursor: pointer;
+}
+
+.form-check-input:focus {
+  border-color: var(--admin-accent);
+  box-shadow: 0 0 0 3px rgba(201, 169, 89, 0.15);
+}
+
+.form-check-input:checked {
+  background-color: var(--admin-primary);
+  border-color: var(--admin-primary);
+}
+
+.form-check-label {
+  margin-left: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ============================================================================
+   CARDS MEJORADAS
+   ============================================================================ */
+
+.card {
+  border: 1px solid var(--admin-border);
+  border-radius: var(--radius-lg);
+  background: var(--admin-surface);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  background: var(--admin-bg-alt);
+  border-bottom: 1px solid var(--admin-border);
+  padding: var(--space-md);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: var(--space-md);
+}
+
+.card-footer {
+  background: var(--admin-bg);
+  border-top: 1px solid var(--admin-border);
+  padding: var(--space-md);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* Stat Cards */
+.stat-card {
+  background: var(--admin-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+}
+
+.stat-card__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+}
+
+.stat-card__value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--admin-primary);
+  line-height: 1.2;
+}
+
+.stat-card__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--admin-text-muted);
+  font-weight: 600;
+}
+
+.stat-card__trend {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   TABLAS MEJORADAS
+   ============================================================================ */
+
+.table-responsive {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table thead th {
+  background: var(--admin-bg-alt);
+  border-bottom: 2px solid var(--admin-border);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  letter-spacing: 0.05em;
+  color: var(--admin-text);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.table tbody td {
+  padding: var(--space-sm) var(--space-md);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.table-hover tbody tr:hover {
+  background: var(--admin-bg-alt);
+  cursor: pointer;
+}
+
+/* Action Buttons en tablas - Ley de Fitts */
+.table .action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.table .btn-sm {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0.375rem 0.75rem;
+}
+
+/* ============================================================================
+   BADGES MEJORADOS
+   ============================================================================ */
+
+.badge {
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.025em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.badge-primary {
+  background: var(--admin-primary);
+  color: var(--admin-text-light);
+}
+
+.badge-success {
+  background: var(--admin-success);
+  color: var(--admin-text-light);
+}
+
+.badge-warning {
+  background: var(--admin-warning);
+  color: var(--admin-text-light);
+}
+
+.badge-danger {
+  background: var(--admin-error);
+  color: var(--admin-text-light);
+}
+
+.badge-info {
+  background: var(--admin-info);
+  color: var(--admin-text-light);
+}
+
+/* ============================================================================
+   ALERTS MEJORADOS
+   ============================================================================ */
+
+.alert {
+  border-radius: var(--radius-lg);
+  border: none;
+  padding: var(--space-md);
+  display: flex;
+  align-items: start;
+  gap: var(--space-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.alert::before {
+  content: '';
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.alert-success {
+  background: rgba(94, 111, 100, 0.1);
+  color: var(--admin-success);
+  border-left: 4px solid var(--admin-success);
+}
+
+.alert-success::before {
+  content: '\f26b';
+  /* check-circle */
+}
+
+.alert-warning {
+  background: rgba(230, 149, 0, 0.1);
+  color: var(--admin-warning);
+  border-left: 4px solid var(--admin-warning);
+}
+
+.alert-warning::before {
+  content: '\f33a';
+  /* exclamation-triangle */
+}
+
+.alert-danger {
+  background: rgba(155, 35, 53, 0.1);
+  color: var(--admin-error);
+  border-left: 4px solid var(--admin-error);
+}
+
+.alert-danger::before {
+  content: '\f623';
+  /* x-circle */
+}
+
+.alert-info {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--admin-info);
+  border-left: 4px solid var(--admin-info);
+}
+
+.alert-info::before {
+  content: '\f431';
+  /* info-circle */
+}
+
+/* ============================================================================
+   TOASTS MEJORADOS
+   ============================================================================ */
+
+.toast-container {
+  position: fixed;
+  top: var(--space-md);
+  right: var(--space-md);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  min-width: 300px;
+  max-width: 400px;
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast.hiding {
+  animation: slideOutRight 0.3s ease forwards;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+.toast-header {
+  background: var(--admin-surface);
+  border-bottom: 1px solid var(--admin-border);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.toast-header i {
+  font-size: 1.25rem;
+}
+
+.toast-body {
+  padding: var(--space-md);
+}
+
+/* Toast variantes */
+.toast-success .toast-header {
+  background: rgba(94, 111, 100, 0.1);
+  color: var(--admin-success);
+}
+
+.toast-warning .toast-header {
+  background: rgba(230, 149, 0, 0.1);
+  color: var(--admin-warning);
+}
+
+.toast-error .toast-header {
+  background: rgba(155, 35, 53, 0.1);
+  color: var(--admin-error);
+}
+
+.toast-info .toast-header {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--admin-info);
+}
+
+/* ============================================================================
+   MODALES MEJORADOS
+   ============================================================================ */
+
+.modal-content {
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--admin-border);
+  background: var(--admin-bg-alt);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.modal-title {
+  font-weight: 700;
+  color: var(--admin-primary);
+}
+
+.modal-body {
+  padding: var(--space-md);
+}
+
+.modal-footer {
+  padding: var(--space-md);
+  border-top: 1px solid var(--admin-border);
+  background: var(--admin-bg);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.btn-close:focus {
+  outline: 3px solid var(--admin-accent);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   PAGINATION MEJORADA
+   ============================================================================ */
+
+.pagination {
+  gap: 0.5rem;
+}
+
+.page-link {
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--admin-border);
+  border-radius: var(--radius-md);
+  color: var(--admin-text);
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.page-link:hover {
+  background: var(--admin-bg-alt);
+  border-color: var(--admin-border-hover);
+  color: var(--admin-primary);
+}
+
+.page-link:focus-visible {
+  outline: 3px solid var(--admin-accent);
+  outline-offset: 2px;
+  z-index: 2;
+}
+
+.page-item.active .page-link {
+  background: var(--admin-primary);
+  border-color: var(--admin-primary);
+  color: var(--admin-text-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.page-item.disabled .page-link {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ============================================================================
+   BREADCRUMBS MEJORADOS
+   ============================================================================ */
+
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin-bottom: var(--space-md);
+}
+
+.breadcrumb-item {
+  font-size: 0.9375rem;
+}
+
+.breadcrumb-item a {
+  color: var(--admin-text-muted);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.breadcrumb-item a:hover {
+  color: var(--admin-primary);
+}
+
+.breadcrumb-item.active {
+  color: var(--admin-primary);
+  font-weight: 600;
+}
+
+/* ============================================================================
+   PROGRESS BARS MEJORADAS
+   ============================================================================ */
+
+.progress {
+  height: 8px;
+  border-radius: var(--radius-md);
+  background: var(--admin-bg-alt);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  border-radius: var(--radius-md);
+  transition: width 0.6s ease;
+  background: linear-gradient(90deg, var(--admin-primary), var(--admin-accent));
+}
+
+/* ============================================================================
+   EMPTY STATES
+   ============================================================================ */
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-xl) var(--space-md);
+  color: var(--admin-text-muted);
+}
+
+.empty-state__icon {
+  font-size: 4rem;
+  opacity: 0.3;
+  margin-bottom: var(--space-md);
+  display: block;
+}
+
+.empty-state__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin-bottom: var(--space-sm);
+}
+
+.empty-state__message {
+  font-size: 0.9375rem;
+  margin-bottom: var(--space-md);
+}
+
+/* ============================================================================
+   SKELETON LOADING
+   ============================================================================ */
+
+.skeleton {
+  background: linear-gradient(90deg, var(--admin-bg-alt) 25%, var(--admin-bg) 50%, var(--admin-bg-alt) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-text {
+  height: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-title {
+  height: 1.5rem;
+  width: 60%;
+  margin-bottom: 1rem;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+}
+
+/* ============================================================================
+   TOOLTIPS MEJORADOS
+   ============================================================================ */
+
+[data-bs-toggle="tooltip"] {
+  cursor: help;
+}
+
+.tooltip .tooltip-inner {
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 991.98px) {
+  .toast-container {
+    right: var(--space-sm);
+    left: var(--space-sm);
+  }
+
+  .toast {
+    min-width: auto;
+    max-width: none;
+  }
+
+  .stat-card {
+    padding: var(--space-sm);
+  }
+
+  .stat-card__value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  :root {
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .header-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* ============================================================================
+   UTILITIES
+   ============================================================================ */
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus Visible Mejorado */
+:focus-visible {
+  outline: 3px solid var(--admin-accent);
+  outline-offset: 2px;
+}
+
+/* Reduce Motion para accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: more) {
+  :root {
+    --admin-primary: #000000;
+    --admin-accent: #FFA500;
+    --admin-border: #000000;
+  }
+}
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+
+  .sidebar,
+  .main-header,
+  .btn,
+  .action-buttons,
+  .toast-container,
+  .modal,
+  .offcanvas {
+    display: none !important;
+  }
+
+  .card {
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  body {
+    background: white;
+  }
+}

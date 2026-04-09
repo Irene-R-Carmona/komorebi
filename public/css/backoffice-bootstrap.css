@@ -1,0 +1,306 @@
+/**
+ * Backoffice Bootstrap Overrides
+ *
+ * Estilos personalizados para mantener el branding de Komorebi
+ * mientras se usa Bootstrap 5.3 como base.
+ */
+
+:root {
+  /* Komorebi Brand Colors */
+  --komorebi-primary: #5C3D2E;
+  --komorebi-accent: #C9A959;
+  --komorebi-bg: #F7F3EB;
+  --komorebi-bg-alt: #E8DCC4;
+  --komorebi-text: #2D2218;
+  --komorebi-text-muted: #5C4A3A;
+  --komorebi-border: #D4C4A8;
+
+  /* Sidebar */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 80px;
+}
+
+/* ============================================================================
+   LAYOUT
+   ============================================================================ */
+
+body {
+  background: var(--komorebi-bg);
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-width);
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+  transition: width 0.3s ease;
+}
+
+.sidebar-brand {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-nav .nav-link {
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  margin: 0 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.sidebar-nav .nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-nav .nav-link.active {
+  background: var(--komorebi-accent);
+  color: var(--komorebi-text) !important;
+}
+
+.sidebar-heading {
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+/* Main Content */
+.main-content {
+  min-width: 0;
+}
+
+/* ============================================================================
+   BOOTSTRAP OVERRIDES
+   ============================================================================ */
+
+/* Primary color override */
+.btn-primary {
+  background-color: var(--komorebi-primary);
+  border-color: var(--komorebi-primary);
+}
+
+.btn-primary:hover {
+  background-color: #4a2f23;
+  border-color: #4a2f23;
+}
+
+.bg-primary {
+  background-color: var(--komorebi-primary) !important;
+}
+
+.text-primary {
+  color: var(--komorebi-primary) !important;
+}
+
+.border-primary {
+  border-color: var(--komorebi-primary) !important;
+}
+
+/* Accent/Warning color */
+.btn-warning {
+  background-color: var(--komorebi-accent);
+  border-color: var(--komorebi-accent);
+  color: var(--komorebi-text);
+}
+
+.btn-warning:hover {
+  background-color: #b8963d;
+  border-color: #b8963d;
+}
+
+.bg-warning {
+  background-color: var(--komorebi-accent) !important;
+  color: var(--komorebi-text) !important;
+}
+
+/* Cards */
+.card {
+  border-color: var(--komorebi-border);
+  box-shadow: 0 2px 8px rgba(45, 34, 24, 0.08);
+}
+
+.card-header {
+  background-color: var(--komorebi-bg-alt);
+  border-bottom-color: var(--komorebi-border);
+}
+
+/* Tables */
+.table {
+  color: var(--komorebi-text);
+}
+
+.table-striped>tbody>tr:nth-of-type(odd)>* {
+  background-color: rgba(247, 243, 235, 0.5);
+}
+
+.table-hover>tbody>tr:hover>* {
+  background-color: var(--komorebi-bg-alt);
+}
+
+/* Forms */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--komorebi-accent);
+  box-shadow: 0 0 0 0.25rem rgba(201, 169, 89, 0.25);
+}
+
+.form-label {
+  color: var(--komorebi-text);
+  font-weight: 500;
+}
+
+/* Badges */
+.badge {
+  font-weight: 500;
+  padding: 0.375rem 0.75rem;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 0.5rem;
+}
+
+/* Navbar */
+.navbar-light {
+  box-shadow: 0 1px 3px rgba(45, 34, 24, 0.08);
+}
+
+/* Toasts */
+.toast {
+  border-color: var(--komorebi-border);
+}
+
+/* Offcanvas mobile menu */
+.offcanvas.bg-dark .nav-link.active {
+  background: var(--komorebi-accent);
+  color: var(--komorebi-text) !important;
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+/* Scrollbar personalizado */
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Estado de carga */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Empty state */
+.empty-state {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--komorebi-text-muted);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+  margin-bottom: 1rem;
+}
+
+/* Stats cards */
+.stat-card {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--komorebi-border);
+  box-shadow: 0 2px 8px rgba(45, 34, 24, 0.08);
+}
+
+.stat-card-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--komorebi-primary);
+}
+
+.stat-card-label {
+  font-size: 0.875rem;
+  color: var(--komorebi-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Action buttons group */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 991.98px) {
+  .sidebar {
+    display: none;
+  }
+}
+
+@media (min-width: 992px) {
+  .btn[data-bs-toggle="offcanvas"] {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   DARK MODE SUPPORT
+   ============================================================================ */
+
+[data-bs-theme="dark"] {
+  --komorebi-bg: #1a1410;
+  --komorebi-bg-alt: #2d2218;
+  --komorebi-text: #e8dcc4;
+  --komorebi-text-muted: #b8a890;
+  --komorebi-border: #4a3828;
+}
+
+[data-bs-theme="dark"] .card {
+  background-color: #2d2218;
+  border-color: var(--komorebi-border);
+}
+
+[data-bs-theme="dark"] .table {
+  --bs-table-bg: transparent;
+}
+
+[data-bs-theme="dark"] .stat-card {
+  background: #2d2218;
+}
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+
+  .sidebar,
+  .navbar,
+  .offcanvas,
+  .btn,
+  .action-buttons {
+    display: none !important;
+  }
+
+  .main-content {
+    width: 100% !important;
+  }
+}

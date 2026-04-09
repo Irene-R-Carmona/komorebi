@@ -1,0 +1,387 @@
+/* ============================================================================
+   SECCIÓN: HOME
+   ============================================================================ */
+
+/* ============================================
+   BADGES CONTEXTUALES
+   Clima Tokyo + Estación Japonesa - Minimalista
+   ============================================ */
+.hero__badges {
+  position: absolute;
+  top: var(--espaciado-md);
+  right: var(--espaciado-md);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaciado-sm);
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  cursor: help;
+  max-width: 280px;
+}
+
+.badge:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateX(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.badge__icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.badge__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.badge__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.85;
+  font-weight: 600;
+}
+
+.badge__value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.badge--clima .badge__value {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 48em) {
+  .hero__badges {
+    position: static;
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: var(--espaciado-md);
+    padding: 0 var(--espaciado-sm);
+  }
+
+  .badge {
+    flex: 1;
+    max-width: none;
+    font-size: 0.8rem;
+  }
+
+  .badge__icon {
+    font-size: 1.25rem;
+  }
+
+  .badge__label {
+    font-size: 0.625rem;
+  }
+
+  .badge__value {
+    font-size: 0.75rem;
+  }
+}
+
+/* --- HERO CINEMATOGRÁFICO --- */
+.hero {
+  /* Ocupar toda la pantalla menos el header */
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--espaciado-xl) var(--espaciado-md);
+  position: relative;
+  overflow: hidden;
+  /* Color de fondo mientras carga la imagen */
+  background-color: var(--color-primario);
+}
+
+/* Imagen de fondo con animación Ken Burns */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/hero/hero-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  /* Animación lenta de zoom para dar vida */
+  animation: kenBurns 20s infinite alternate;
+}
+
+@keyframes kenBurns {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.1);
+  }
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,
+      rgba(45, 34, 24, 0.5) 0%,
+      rgba(45, 34, 24, 0.3) 50%,
+      rgba(45, 34, 24, 0.8) 100%);
+  z-index: 1;
+  backdrop-filter: blur(1px);
+}
+
+/* Contenido Hero */
+.hero__content {
+  max-width: 800px;
+  position: relative;
+  z-index: 2;
+  color: white;
+  animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.hero__subtitle {
+  font-family: var(--fuente-acento);
+  font-size: 1.2rem;
+  color: var(--color-acento);
+  margin-bottom: 1rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  display: block;
+}
+
+.hero__title {
+  font-family: var(--fuente-titulo);
+  font-size: clamp(3rem, 8vw, 5rem);
+  /* Título GIGANTE */
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  font-weight: 700;
+}
+
+.hero__description {
+  font-size: 1.25rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 600px;
+  margin: 0 auto 3rem auto;
+  font-weight: 300;
+}
+
+/* Botones de Acción (Grandes y Táctiles - Ley de Fitts) */
+.hero__cta-group {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-hero {
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  border-radius: 50px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  border: 2px solid transparent;
+}
+
+.btn-hero--primary {
+  background-color: var(--color-acento);
+  color: var(--color-primario);
+  box-shadow: 0 10px 30px rgba(201, 169, 89, 0.4);
+}
+
+.btn-hero--primary:hover {
+  background-color: white;
+  transform: translateY(-4px);
+  box-shadow: 0 15px 40px rgba(255, 255, 255, 0.2);
+}
+
+.btn-hero--secondary {
+  background-color: transparent;
+  color: white;
+  border-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.btn-hero--secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: white;
+}
+
+/* Scroll Indicator */
+.hero__scroll {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  color: rgba(255, 255, 255, 0.6);
+  animation: bounce 2s infinite;
+  cursor: pointer;
+}
+
+/* --- CÓMO FUNCIONA (Cards Flotantes) --- */
+.como-funciona {
+  padding: var(--espaciado-xl) 0;
+  background-color: var(--color-fondo);
+  position: relative;
+}
+
+.como-funciona__header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.como-funciona__titulo {
+  font-size: 2.5rem;
+  color: var(--color-primario);
+  margin-bottom: 0.5rem;
+}
+
+.como-funciona__pasos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--espaciado-md);
+}
+
+.paso-card {
+  background: var(--color-superficie);
+  padding: 3rem 2rem;
+  border-radius: var(--radio-lg);
+  text-align: center;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.paso-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  border-color: var(--color-acento);
+}
+
+.paso-card__numero {
+  font-family: var(--fuente-acento);
+  font-size: 4rem;
+  color: rgba(201, 169, 89, 0.15);
+  /* Marca de agua */
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  line-height: 1;
+}
+
+.paso-card__icono {
+  font-size: 3.5rem;
+  margin-bottom: 1.5rem;
+  display: inline-block;
+}
+
+.paso-card__titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 1.5rem;
+  color: var(--color-primario);
+  margin-bottom: 1rem;
+}
+
+.paso-card__texto {
+  color: var(--color-texto-suave);
+  line-height: 1.6;
+}
+
+/* --- ESTADÍSTICAS (Banner Moderno) --- */
+.estadisticas {
+  background-color: var(--color-primario);
+  color: white;
+  padding: 4rem 0;
+  margin-top: var(--espaciado-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Patrón de fondo sutil */
+.estadisticas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E");
+  opacity: 0.3;
+}
+
+.estadisticas__grid {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 3rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-item__valor {
+  font-family: var(--fuente-acento);
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--color-acento);
+  display: block;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.stat-item__label {
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero__title {
+    font-size: 3.5rem;
+  }
+
+  .hero__cta-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-hero {
+    width: 100%;
+  }
+
+  .estadisticas__grid {
+    flex-direction: column;
+    gap: 2rem;
+  }
+}

@@ -1,0 +1,270 @@
+/**
+ * Stat Card Styles (Dashboard Component)
+ *
+ * Enhanced stat cards using the design system Card component
+ * Integrates with: card.css, design-tokens.css
+ *
+ * Usage in dashboards:
+ * - Manager dashboard: KPIs grid
+ * - Admin dashboard: Metrics overview
+ */
+
+/* ============================================
+   STATS GRID LAYOUT
+   ============================================ */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-4, 1rem);
+  margin-bottom: var(--space-6, 1.5rem);
+}
+
+@media (min-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ============================================
+   STAT CARD ENHANCEMENTS
+   ============================================ */
+
+.stat-card {
+  /* Override card padding for stat-specific layout */
+  min-height: 140px;
+}
+
+.stat-card h2 {
+  font-size: var(--text-3xl, 1.875rem);
+  font-weight: var(--font-bold, 700);
+  line-height: 1.2;
+  color: var(--color-neutral-900, #111827);
+}
+
+.stat-card .text-muted {
+  color: var(--color-neutral-500, #6b7280);
+  font-size: var(--text-sm, 0.875rem);
+}
+
+/* ============================================
+   STAT CARD ICONS
+   ============================================ */
+
+.stat-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg, 12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.stat-card__icon--primary {
+  background-color: var(--color-primary-100, #c7e6d5);
+  color: var(--color-primary-700, #2a6b4a);
+}
+
+.stat-card__icon--success {
+  background-color: var(--color-success-100, #dcfce7);
+  color: var(--color-success-700, #15803d);
+}
+
+.stat-card__icon--warning {
+  background-color: var(--color-warning-100, #fef3c7);
+  color: var(--color-warning-700, #b45309);
+}
+
+.stat-card__icon--info {
+  background-color: var(--color-info-100, #dbeafe);
+  color: var(--color-info-700, #1d4ed8);
+}
+
+.stat-card__icon--danger {
+  background-color: var(--color-danger-100, #fee2e2);
+  color: var(--color-danger-700, #b91c1c);
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 768px) {
+  .stat-card h2 {
+    font-size: var(--text-2xl, 1.5rem);
+  }
+
+  .stat-card__icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .stat-card h2 {
+    color: var(--color-neutral-50, #f9fafb);
+  }
+
+  .stat-card .text-muted {
+    color: var(--color-neutral-400, #9ca3af);
+  }
+
+  .stat-card__icon--primary {
+    background-color: rgba(58, 146, 99, 0.2);
+    color: var(--color-primary-300, #85d3ae);
+  }
+
+  .stat-card__icon--success {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: var(--color-success-300, #86efac);
+  }
+
+  .stat-card__icon--warning {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: var(--color-warning-300, #fcd34d);
+  }
+
+  .stat-card__icon--info {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: var(--color-info-300, #93c5fd);
+  }
+
+  .stat-card__icon--danger {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: var(--color-danger-300, #fca5a5);
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-card {
+    transition: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .stat-card__icon {
+    border: 2px solid currentColor;
+  }
+}
+
+/* ============================================
+   QUICK ACTIONS ENHANCEMENTS
+   ============================================ */
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4, 1rem);
+  margin-bottom: var(--space-6, 1.5rem);
+}
+
+.quick-action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-4, 1rem);
+  background-color: var(--color-neutral-50, #f9fafb);
+  border: 1px solid var(--color-neutral-200, #e5e7eb);
+  border-radius: var(--radius-lg, 12px);
+  text-decoration: none;
+  color: inherit;
+  transition: all var(--duration-fast, 150ms) var(--ease-out, ease-out);
+}
+
+.quick-action:hover {
+  background-color: var(--color-neutral-100, #f3f4f6);
+  border-color: var(--color-neutral-300, #d1d5db);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+  text-decoration: none;
+}
+
+.quick-action:focus-visible {
+  outline: 2px solid var(--color-primary-500, #3a9263);
+  outline-offset: 2px;
+}
+
+.quick-action__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md, 8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.quick-action__icon--primary {
+  background-color: var(--color-primary-100, #c7e6d5);
+  color: var(--color-primary-700, #2a6b4a);
+}
+
+.quick-action__icon--success {
+  background-color: var(--color-success-100, #dcfce7);
+  color: var(--color-success-700, #15803d);
+}
+
+.quick-action__icon--info {
+  background-color: var(--color-info-100, #dbeafe);
+  color: var(--color-info-700, #1d4ed8);
+}
+
+.quick-action__icon--warning {
+  background-color: var(--color-warning-100, #fef3c7);
+  color: var(--color-warning-700, #b45309);
+}
+
+.quick-action__content {
+  flex: 1;
+}
+
+.quick-action__title {
+  margin: 0 0 0.25rem 0;
+  font-size: var(--text-base, 1rem);
+  font-weight: var(--font-semibold, 600);
+  color: var(--color-neutral-900, #111827);
+}
+
+.quick-action__desc {
+  margin: 0;
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-neutral-500, #6b7280);
+}
+
+@media (prefers-color-scheme: dark) {
+  .quick-action {
+    background-color: var(--color-neutral-800, #1f2937);
+    border-color: var(--color-neutral-700, #374151);
+  }
+
+  .quick-action:hover {
+    background-color: var(--color-neutral-700, #374151);
+    border-color: var(--color-neutral-600, #4b5563);
+  }
+
+  .quick-action__title {
+    color: var(--color-neutral-50, #f9fafb);
+  }
+
+  .quick-action__desc {
+    color: var(--color-neutral-400, #9ca3af);
+  }
+}

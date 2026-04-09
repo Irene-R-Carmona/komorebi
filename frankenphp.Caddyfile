@@ -1,0 +1,24 @@
+:80 {
+	# Compression (gzip, zstd, brotli) para todos los responses
+	encode gzip zstd
+
+	# Cache control headers para assets estáticos (DESHABILITADO EN DEV)
+	# @static {
+	# 	path *.css *.js *.jpg *.jpeg *.png *.gif *.svg *.woff *.woff2 *.ttf *.eot *.ico
+	# }
+	# header @static Cache-Control "public, max-age=31536000, immutable"
+
+	# Cabeceras de seguridad (CSP, HSTS, etc.) manejadas por SecurityHeadersMiddleware en PHP
+
+	# Deshabilitar server tokens
+	header -Server
+
+	# Cabeceras de seguridad HTTP
+	header X-Frame-Options "SAMEORIGIN"
+	header X-Content-Type-Options "nosniff"
+	header Referrer-Policy "strict-origin-when-cross-origin"
+
+	root * /app/public
+	php_server
+	file_server
+}

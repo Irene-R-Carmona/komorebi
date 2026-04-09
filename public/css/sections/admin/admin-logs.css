@@ -1,0 +1,200 @@
+/**
+ * Estilos específicos para los módulos de Logs (Auth y Audit)
+ * Diseño: Tabla de logs con filtros avanzados
+ */
+
+/* ======================================
+   Log Table Styles
+   ====================================== */
+
+.log-table {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.log-table__header {
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  color: var(--white);
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+}
+
+.log-table__row {
+  border-bottom: 1px solid var(--gray-200);
+  transition: background-color 0.2s;
+}
+
+.log-table__row:hover {
+  background-color: var(--gray-50);
+}
+
+.log-table__cell {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+/* ======================================
+   Log Type Badges
+   ====================================== */
+
+.log-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.log-badge--success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.log-badge--error {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.log-badge--warning {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.log-badge--info {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+/* ======================================
+   Filter Section
+   ====================================== */
+
+.log-filters {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.log-filters__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.log-filters__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+/* ======================================
+   IP Address Display
+   ====================================== */
+
+.ip-address {
+  font-family: 'Courier New', monospace;
+  background-color: var(--gray-100);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+/* ======================================
+   Suspicious Activity Alert
+   ====================================== */
+
+.suspicious-alert {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left: 4px solid #f59e0b;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.suspicious-alert__icon {
+  color: #f59e0b;
+  font-size: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+/* ======================================
+   Stats Cards for Logs
+   ====================================== */
+
+.log-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.log-stat-card {
+  background: var(--white);
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--coffee-500);
+}
+
+.log-stat-card__value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.log-stat-card__label {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  margin-top: 0.25rem;
+}
+
+/* ======================================
+   Export Button
+   ====================================== */
+
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.export-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* ======================================
+   Responsive Design
+   ====================================== */
+
+@media (max-width: 768px) {
+  .log-filters__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .log-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .log-table__cell {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}

@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<ruleset name="Komorebi Coding Standard">
+    <description>Estándar de codificación para Komorebi Café PFC</description>
+
+    <!-- Archivos y directorios a analizar -->
+    <file>app</file>
+    <file>tests</file>
+
+    <!-- Excluir directorios -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/storage/*</exclude-pattern>
+    <exclude-pattern>*/public/*</exclude-pattern>
+    <exclude-pattern>*/resources/*</exclude-pattern>
+    <exclude-pattern>*/migrations/*</exclude-pattern>
+    <exclude-pattern>*/bootstrap/*</exclude-pattern>
+
+    <!-- Configuración general -->
+    <arg name="colors"/>
+    <arg value="sp"/> <!-- Show progress and sniff codes -->
+    <arg name="parallel" value="8"/> <!-- Procesamiento paralelo -->
+    <arg name="extensions" value="php"/>
+    <arg name="encoding" value="utf-8"/>
+
+    <!-- Estándares de codificación -->
+    <!-- PSR-12 es el estándar moderno de PHP -->
+    <rule ref="PSR12">
+        <!-- Permitir líneas largas (120 caracteres) -->
+        <exclude name="Generic.Files.LineLength"/>
+    </rule>
+
+    <!-- Reglas adicionales de PSR-1 -->
+    <rule ref="PSR1">
+        <!-- Permitir funciones fuera de clases (helpers) -->
+        <exclude name="PSR1.Files.SideEffects"/>
+    </rule>
+
+    <!-- Límites de complejidad -->
+    <rule ref="Generic.Metrics.CyclomaticComplexity">
+        <properties>
+            <property name="complexity" value="15"/>
+            <property name="absoluteComplexity" value="30"/>
+        </properties>
+    </rule>
+
+    <rule ref="Generic.Metrics.NestingLevel">
+        <properties>
+            <property name="nestingLevel" value="5"/>
+            <property name="absoluteNestingLevel" value="8"/>
+        </properties>
+    </rule>
+
+    <!-- Límite de longitud de línea más permisivo -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120"/>
+            <property name="absoluteLineLimit" value="180"/>
+        </properties>
+    </rule>
+
+    <!-- Buenas prácticas -->
+    <rule ref="Generic.PHP.DisallowShortOpenTag"/>
+    <rule ref="Generic.PHP.DisallowAlternativePHPTags"/>
+    <rule ref="Generic.PHP.DeprecatedFunctions"/>
+    <rule ref="Generic.PHP.ForbiddenFunctions"/>
+
+    <!-- Comentarios y documentación -->
+    <rule ref="Squiz.Commenting.FunctionComment">
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamTag"/>
+        <exclude name="Squiz.Commenting.FunctionComment.ParamCommentFullStop"/>
+    </rule>
+
+    <!-- Arrays -->
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+
+    <!-- Espacios en blanco -->
+    <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace">
+        <properties>
+            <property name="ignoreBlankLines" value="false"/>
+        </properties>
+    </rule>
+</ruleset>

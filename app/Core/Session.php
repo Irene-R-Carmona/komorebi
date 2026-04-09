@@ -1,0 +1,439 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Core;
+
+use Exception;
+
+/**
+ * Gestión centralizada de sesiones.
+ *
+ * Características:
+ * - Inicio seguro con cookies HttpOnly/Secure
+ * - Métodos específicos para usuario autenticado
+ * - Helpers genéricos get/set/has/remove
+ */
+final class Session
+{
+    private static bool $started = false;
+
+    // ─────────────────────────────────────────────────────────────
+    // Inicio y destrucción
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Inicia la sesión si no está activa.
+     * Configura cookies seguras automáticamente.
+     *
+     * @return void
+     */
+    public static function start(): void
+    {
+        // Asegurar que la superglobal $_SESSION existe para evitar notices
+        // que en el contexto de tests se convierten en excepciones.
+        if (!\array_key_exists('_SESSION', $GLOBALS) || !\is_array($GLOBALS['_SESSION'])) {
+            $GLOBALS['_SESSION'] = [];
+        }
+
+        // Si la sesión ya está activa en este proceso, nada que hacer
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            self::$started = true;
+            return;
+        }
+
+        // En entornos CLI (tests) evitamos manipular parámetros de cookie
+        // ya que pueden generar warnings si los "headers" ya fueron
+        // considerados como enviados por la harness; arrancar la sesión
+        // sin tocar las cookies es suficiente para los tests.
+        // Si los headers ya fueron enviados (por la harness de tests), no
+        // intentar arrancar la sesión ni tocar parámetros de cookie (evita
+        // warnings/excepciones); en ese caso nos quedamos con la superglobal
+        // inicializada y seguimos.
+        if (headers_sent()) {
+            if (!\array_key_exists('_SESSION', $GLOBALS) || !\is_array($GLOBALS['_SESSION'])) {
+                $GLOBALS['_SESSION'] = [];
+            }
+        } else {
+            // En entornos normales (web/server) configuramos cookies y arrancamos
+            \session_set_cookie_params([
+                'lifetime' => 0,                              // Hasta cerrar navegador
+                'path' => '/',
+                'domain' => '',
+                'secure' => Env::bool('APP_HTTPS', false),  // HTTPS en producción
+                'httponly' => true,                           // No accesible desde JS
+                'samesite' => 'Lax',                          // Protección CSRF adicional
+            ]);
+
+            \session_start();
+        }
+
+        // Si la sesión fue realmente iniciada, marcar flag
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            self::$started = true;
+        }
+    }
+
+    /**
+     * Regenera el ID de sesión.
+     * SIEMPRE llamar después de login (previene session fixation).
+     *
+     * @return void
+     */
+    public static function regenerate(): void
+    {
+        self::start();
+        \session_regenerate_id(true);
+    }
+
+    /**
+     * Destruye la sesión completamente (logout).
+     *
+     * @return void
+     */
+    public static function destroy(): void
+    {
+        self::start();
+
+        // Limpiar datos
+        $_SESSION = [];
+
+        // Destruir cookie de sesión
+        if (\ini_get('session.use_cookies')) {
+            $params = \session_get_cookie_params();
+            $samesite = isset($params['samesite']) ? (string) $params['samesite'] : 'Lax';
+            if (!in_array($samesite, ['Lax', 'lax', 'None', 'none', 'Strict', 'strict'], true)) {
+                $samesite = 'Lax';
+            }
+
+            $cookieOptions = [
+                'expires' => \time() - 42000,
+                'path' => isset($params['path']) ? (string) $params['path'] : '/',
+                'domain' => isset($params['domain']) ? (string) $params['domain'] : '',
+                'secure' => isset($params['secure']) ? (bool) $params['secure'] : false,
+                'httponly' => isset($params['httponly']) ? (bool) $params['httponly'] : true,
+                'samesite' => $samesite,
+            ];
+
+            \setcookie((string) \session_name(), '', $cookieOptions);
+        }
+
+        \session_destroy();
+        self::$started = false;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Autenticación - Métodos específicos de usuario
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Verifica si hay un usuario autenticado.
+     *
+     * @return boolean
+     */
+    public static function isAuthenticated(): bool
+    {
+        self::start();
+
+        return !empty($_SESSION['user_id']);
+    }
+
+    /**
+     * Obtiene el ID del usuario actual (null si no autenticado).
+     *
+     * @return integer|null
+     */
+    public static function userId(): ?int
+    {
+        self::start();
+
+        return isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+    }
+
+    /**
+     * Obtiene el rol del usuario actual.
+     *
+     * @return string
+     */
+    public static function role(): string
+    {
+        self::start();
+
+        // Preferir valor 'user_role' si existe, sino derivar del primer elemento de 'user_roles'
+        $role = $_SESSION['user_role'] ?? null;
+        if ($role) {
+            return (string) $role;
+        }
+
+        $roles = $_SESSION['user_roles'] ?? [];
+        if (!empty($roles) && \is_array($roles)) {
+            return (string) ($roles[0] ?? 'guest');
+        }
+
+        return 'guest';
+    }
+
+    /**
+     * Obtiene el nombre del usuario actual.
+     *
+     * @return string
+     */
+    public static function userName(): string
+    {
+        self::start();
+
+        return (string) ($_SESSION['user_name'] ?? '');
+    }
+
+    /**
+     * Obtiene el email del usuario actual.
+     *
+     * @return string
+     */
+    public static function userEmail(): string
+    {
+        self::start();
+
+        return (string) ($_SESSION['user_email'] ?? '');
+    }
+
+    /**
+     * Obtiene el café asignado al usuario (para staff).
+     *
+     * @return integer|null
+     */
+    public static function userCafeId(): ?int
+    {
+        self::start();
+        $cafeId = $_SESSION['user_cafe_id'] ?? null;
+
+        return $cafeId !== null ? (int) $cafeId : null;
+    }
+
+    /**
+     * Obtiene todos los datos del usuario actual.
+     *
+     * @return array{id: int|null, name: string, email: string, role: string, cafe_id: int|null}
+     */
+    public static function user(): array
+    {
+        self::start();
+
+        return [
+            'id' => self::userId(),
+            'name' => self::userName(),
+            'email' => self::userEmail(),
+            'role' => self::role(),
+            'cafe_id' => self::userCafeId(),
+        ];
+    }
+
+    /**
+     * Establece la sesión del usuario tras login/registro.
+     * Regenera el ID de sesión automáticamente (seguridad).
+     *
+     * @param array{id: int, name?: string, email?: string, role?: string, cafe_id?: int|null} $user
+     * @return void
+     */
+    public static function setUser(array $user): void
+    {
+        self::regenerate(); // Previene session fixation
+
+        $_SESSION['user_id'] = (int) ($user['id'] ?? 0);
+        $_SESSION['user_name'] = (string) ($user['name'] ?? '');
+        $_SESSION['user_email'] = (string) ($user['email'] ?? '');
+
+        // Manejar roles (RBAC puro) - puede ser array de códigos
+        if (isset($user['role']) && \is_array($user['role'])) {
+            $mapped = \array_map(static function ($r) {
+                $aliases = [
+                    'techou' => 'manager',
+                    'encargado' => 'supervisor',
+                ];
+                $r = (string) $r;
+
+                return $aliases[$r] ?? $r;
+            }, $user['role']);
+
+            // Eliminar duplicados y reindexar
+            $_SESSION['user_roles'] = \array_values(\array_unique($mapped));
+        } else {
+            $_SESSION['user_roles'] = [];
+        }
+
+        // Mantener compatibilidad con código legacy que usa 'user_role' (string)
+        $primaryRole = 'user';
+        if (!empty($_SESSION['user_roles'])) {
+            $primaryRole = (string) ($_SESSION['user_roles'][0] ?? 'user');
+        } elseif (!empty($user['role'])) {
+            $primaryRole = (string) $user['role'];
+        }
+        $_SESSION['user_role'] = $primaryRole;
+
+        $_SESSION['user_cafe_id'] = $user['cafe_id'] ?? null;
+
+        // Nota: Evitar cerrar y reabrir la sesión aquí (puede causar race conditions)
+        Logger::error('[Session::setUser] Datos de sesión establecidos para user_id: ' . $_SESSION['user_id']);
+    }
+
+    /**
+     * Carga y cachea los permisos del usuario en sesión.
+     *
+     * IMPORTANTE: Llamar después de setUser() en login.
+     *
+     * @param integer $userId ID del usuario a cargar permisos
+     * @return void
+     */
+    public static function cacheUserPermissions(int $userId): void
+    {
+        self::start();
+
+        try {
+            $db = Database::getConnection();
+            $stmt = $db->prepare(
+                'SELECT DISTINCT p.code FROM permissions p
+                 INNER JOIN role_permissions rp ON p.id = rp.permission_id
+                 INNER JOIN roles r ON rp.role_id = r.id
+                 INNER JOIN user_roles ur ON r.id = ur.role_id
+                 WHERE ur.user_id = :user_id'
+            );
+            $stmt->execute(['user_id' => $userId]);
+
+            $permissions = [];
+            foreach ($stmt->fetchAll() as $row) {
+                $permissions[$row['code']] = true;
+            }
+
+            $_SESSION['user_permissions'] = $permissions;
+            $_SESSION['permissions_cached_at'] = \time();
+        } catch (Exception $e) {
+            Logger::error('[Session] Error cacheando permisos: ' . $e->getMessage());
+            $_SESSION['user_permissions'] = [];
+        }
+    }
+
+    /**
+     * Invalida el caché de permisos actual.
+     *
+     * @return void
+     */
+    public static function invalidatePermissionsCache(): void
+    {
+        self::start();
+        unset($_SESSION['user_permissions'], $_SESSION['permissions_cached_at']);
+    }
+
+    /**
+     * Obtiene el caché de permisos del usuario.
+     *
+     * @return array<string, bool> Array donde key=permiso, value=true si tiene permiso
+     */
+    public static function getPermissionsCache(): array
+    {
+        self::start();
+
+        return $_SESSION['user_permissions'] ?? [];
+    }
+
+    /**
+     * Verifica si un permiso está en el caché.
+     *
+     * @param string $permission Código del permiso (ej: 'cafe.kitchen.view')
+     * @return boolean|null true si tiene, false si no tiene, null si no está en caché
+     */
+    public static function hasPermissionCached(string $permission): ?bool
+    {
+        self::start();
+
+        $cache = $_SESSION['user_permissions'] ?? null;
+
+        if ($cache === null) {
+            return null; // No está cacheado
+        }
+
+        return isset($cache[$permission]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Helpers genéricos (para cualquier dato en sesión)
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Obtiene un valor de sesión.
+     *
+     * @param string $key     Clave de sesión
+     * @param mixed  $default Valor por defecto si no existe
+     * @return mixed Valor almacenado en sesión o `$default`
+     */
+    public static function get(string $key, mixed $default = null): mixed
+    {
+        self::start();
+
+        return $_SESSION[$key] ?? $default;
+    }
+
+    /**
+     * Establece un valor en sesión.
+     *
+     * @param string $key   Clave a establecer
+     * @param mixed  $value Valor a guardar
+     * @return void
+     */
+    public static function set(string $key, mixed $value): void
+    {
+        self::start();
+        $_SESSION[$key] = $value;
+    }
+
+    /**
+     * Verifica si existe una clave en sesión.
+     *
+     * @param string $key Clave a comprobar
+     * @return boolean True si la clave existe
+     */
+    public static function has(string $key): bool
+    {
+        self::start();
+
+        return isset($_SESSION[$key]);
+    }
+
+    /**
+     * Elimina una clave de sesión.
+     *
+     * @param string $key Clave a eliminar
+     * @return void
+     */
+    public static function remove(string $key): void
+    {
+        self::start();
+        unset($_SESSION[$key]);
+    }
+
+    /**
+     * Obtiene y elimina un valor (útil para datos one-time).
+     *
+     * @param string $key     Clave a obtener y eliminar
+     * @param mixed  $default Valor por defecto si no existe
+     * @return mixed Valor obtenido o `$default`
+     */
+    public static function pull(string $key, mixed $default = null): mixed
+    {
+        $value = self::get($key, $default);
+        self::remove($key);
+
+        return $value;
+    }
+
+    /**
+     * Obtiene todos los datos de sesión (debug).
+     *
+     * @psalm-return array<string, mixed>
+     */
+    public static function all(): array
+    {
+        self::start();
+
+        return $_SESSION;
+    }
+}

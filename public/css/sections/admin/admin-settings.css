@@ -1,0 +1,346 @@
+/**
+ * Admin Settings Styles
+ * ============================================================================
+ * Estilos específicos para configuración del sistema.
+ *
+ * Secciones:
+ * - Settings Tabs
+ * - Form Sections
+ * - Range Sliders
+ * - Toggle Switches
+ * - Maintenance Mode Alert
+ * - SMTP Test
+ *
+ * @version 1.0.0
+ * @requires admin-common.css
+ */
+
+/* ============================================================================
+   SETTINGS TABS
+   ============================================================================ */
+
+.settings-tabs {
+  display: flex;
+  gap: var(--admin-space-xs);
+  border-bottom: 1px solid var(--admin-border);
+  margin-bottom: var(--admin-space-lg);
+  overflow-x: auto;
+  padding-bottom: 1px;
+}
+
+.settings-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--admin-space-sm);
+  padding: var(--admin-space-md) var(--admin-space-lg);
+  border: none;
+  background: transparent;
+  color: var(--admin-text-muted);
+  font-weight: 500;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: all var(--admin-transition-fast);
+  white-space: nowrap;
+}
+
+.settings-tab:hover {
+  color: var(--admin-text);
+  background: var(--admin-bg);
+}
+
+.settings-tab--active {
+  color: var(--admin-primary);
+  border-bottom-color: var(--admin-primary);
+  background: var(--admin-primary-light);
+}
+
+.settings-tab__icon {
+  font-size: 1.125rem;
+}
+
+/* ============================================================================
+   SETTINGS FORM
+   ============================================================================ */
+
+.settings-form {
+  max-width: 900px;
+}
+
+.settings-section {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  margin-bottom: var(--admin-space-lg);
+  overflow: hidden;
+}
+
+.settings-section__header {
+  background: var(--admin-bg-alt);
+  padding: var(--admin-space-md) var(--admin-space-lg);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.settings-section__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--admin-space-sm);
+}
+
+.settings-section__body {
+  padding: var(--admin-space-lg);
+}
+
+/* ============================================================================
+   RANGE SLIDER
+   ============================================================================ */
+
+.range-input {
+  display: flex;
+  align-items: center;
+  gap: var(--admin-space-md);
+}
+
+.range-input__slider {
+  flex: 1;
+}
+
+.range-input__value {
+  min-width: 60px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--admin-text);
+  background: var(--admin-bg-alt);
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--admin-radius-md);
+  font-size: 0.875rem;
+}
+
+.range-input__unit {
+  color: var(--admin-text-muted);
+  font-size: 0.8125rem;
+  margin-left: 0.25rem;
+}
+
+/* Estilo personalizado de rango */
+.form-range::-webkit-slider-thumb {
+  background: var(--admin-primary);
+  border: 2px solid var(--admin-primary);
+}
+
+.form-range::-moz-range-thumb {
+  background: var(--admin-primary);
+  border: 2px solid var(--admin-primary);
+}
+
+.form-range:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 0.25rem var(--admin-primary-light);
+}
+
+/* ============================================================================
+   TOGGLE SWITCH - LARGE
+   ============================================================================ */
+
+.form-switch-lg .form-check-input {
+  width: 3em;
+  height: 1.5em;
+  cursor: pointer;
+}
+
+.form-switch-lg .form-check-label {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ============================================================================
+   MAINTENANCE MODE ALERT
+   ============================================================================ */
+
+.maintenance-alert {
+  display: flex;
+  align-items: center;
+  gap: var(--admin-space-md);
+  padding: var(--admin-space-md);
+  background: var(--admin-error-light);
+  border: 1px solid var(--admin-error);
+  border-radius: var(--admin-radius-md);
+  margin-bottom: var(--admin-space-lg);
+  color: var(--admin-error);
+}
+
+.maintenance-alert__icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.maintenance-alert__content {
+  flex: 1;
+}
+
+.maintenance-alert__title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.maintenance-alert__text {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* ============================================================================
+   SMTP TEST SECTION
+   ============================================================================ */
+
+.smtp-test {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--admin-space-md);
+  background: var(--admin-bg);
+  border-radius: var(--admin-radius-md);
+  margin-top: var(--admin-space-md);
+}
+
+.smtp-test__status {
+  display: flex;
+  align-items: center;
+  gap: var(--admin-space-sm);
+}
+
+.smtp-test__status-icon {
+  font-size: 1.25rem;
+}
+
+.smtp-test__status-icon--success {
+  color: var(--admin-success);
+}
+
+.smtp-test__status-icon--error {
+  color: var(--admin-error);
+}
+
+.smtp-test__status-icon--pending {
+  color: var(--admin-warning);
+}
+
+/* ============================================================================
+   PASSWORD REQUIREMENTS
+   ============================================================================ */
+
+.password-requirements {
+  margin-top: var(--admin-space-sm);
+  padding: var(--admin-space-sm);
+  background: var(--admin-bg-alt);
+  border-radius: var(--admin-radius-md);
+  font-size: 0.8125rem;
+}
+
+.password-requirements__title {
+  font-weight: 600;
+  margin-bottom: var(--admin-space-xs);
+  color: var(--admin-text);
+}
+
+.password-requirements__list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--admin-text-muted);
+}
+
+.password-requirements__item {
+  margin-bottom: 0.125rem;
+}
+
+.password-requirements__item--met {
+  color: var(--admin-success);
+  text-decoration: line-through;
+}
+
+/* ============================================================================
+   TIMEZONE SELECT
+   ============================================================================ */
+
+.timezone-select {
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+/* ============================================================================
+   LANGUAGE FLAGS
+   ============================================================================ */
+
+.language-option {
+  display: flex;
+  align-items: center;
+  gap: var(--admin-space-sm);
+}
+
+.language-option__flag {
+  font-size: 1.25rem;
+}
+
+/* ============================================================================
+   DEPOSIT SLIDER (conditional)
+   ============================================================================ */
+
+.deposit-section {
+  overflow: hidden;
+  transition: all var(--admin-transition);
+  max-height: 0;
+  opacity: 0;
+}
+
+.deposit-section--visible {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: var(--admin-space-md);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 767.98px) {
+  .settings-tabs {
+    padding-bottom: var(--admin-space-xs);
+  }
+
+  .settings-tab {
+    padding: var(--admin-space-sm) var(--admin-space-md);
+    font-size: 0.875rem;
+  }
+
+  .settings-tab__icon {
+    font-size: 1rem;
+  }
+
+  .range-input {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .range-input__value {
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+/* ============================================================================
+   PRINT
+   ============================================================================ */
+
+@media print {
+  .settings-tabs {
+    display: none;
+  }
+
+  .settings-section {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+}

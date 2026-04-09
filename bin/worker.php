@@ -1,0 +1,160 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Worker PHP 12-Factor para procesamiento de colas asíncronas.
+ *
+ * Cambios 12-Factor:
+ * - No carga archivos .env (usa variables de entorno inyectadas)
+ * - Logs a stderr/stdout (no archivos)
+ * - Config vía Config::init() (12-Factor III)
+ */
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use App\Core\Config;
+use App\Core\Logger;
+use App\Core\Queue;
+use App\Jobs\JobInterface;
+
+// ============================================================================
+// INICIALIZACIÓN 12-FACTOR
+// ============================================================================
+
+// Cargar configuración desde variables de entorno (no archivos)
+try {
+    Config::init();
+} catch (Throwable $e) {
+    fwrite(STDERR, "[Worker] [FATAL] Error de configuración: " . $e->getMessage() . "\n");
+    exit(1);
+}
+
+// Obtener nombre de la cola
+$queueName = $argv[1] ?? 'default';
+
+// Validar conexión a servicios
+try {
+    $testSize = Queue::size($queueName);
+    Logger::info('[Worker] Iniciado', [
+        'queue' => $queueName,
+        'pending' => $testSize,
+        'pid' => getmypid(),
+        'env' => Config::getString('app.env', 'production')
+    ]);
+} catch (Throwable $e) {
+    Logger::critical('[Worker] Sin conexión a Redis', ['error' => $e->getMessage()]);
+    fwrite(STDERR, "[Worker] ERROR: No se pudo conectar a Redis\n");
+    exit(1);
+}
+
+// ============================================================================
+// SIGNAL HANDLING (Factor IX: Disposability)
+// ============================================================================
+
+$shouldStop = false;
+
+$signalHandler = static function (int $signo) use (&$shouldStop, $queueName): void {
+    $signalName = match ($signo) {
+        SIGTERM => 'SIGTERM',
+        SIGINT => 'SIGINT',
+        default => "Signal $signo",
+    };
+
+    Logger::warning('[Worker] Señal recibida, shutdown graceful', [
+        'signal' => $signalName,
+        'queue' => $queueName
+    ]);
+
+    fwrite(STDOUT, "\n[Worker] $signalName recibido. Finalizando...\n");
+    $shouldStop = true;
+};
+
+if (function_exists('pcntl_signal')) {
+    pcntl_signal(SIGTERM, $signalHandler);
+    pcntl_signal(SIGINT, $signalHandler);
+    pcntl_async_signals(true);
+}
+
+// ============================================================================
+// LOOP PRINCIPAL
+// ============================================================================
+
+fwrite(STDOUT, "[Worker] Escuchando cola '$queueName'...\n");
+
+$processed = 0;
+$errors = 0;
+
+while (!$shouldStop) {
+    try {
+        // Procesar señales
+        if (function_exists('pcntl_signal_dispatch')) {
+            pcntl_signal_dispatch();
+        }
+
+        if ($shouldStop) {
+            break;
+        }
+
+        // Obtener job (bloqueante con timeout)
+        $jobData = Queue::pop($queueName);
+
+        if ($jobData === null) {
+            continue; // No hay trabajo, volver a esperar
+        }
+
+        $jobClass = $jobData['job'] ?? null;
+
+        if (!$jobClass || !class_exists($jobClass)) {
+            Logger::error('[Worker] Job inválido', ['data' => $jobData]);
+            continue;
+        }
+
+        $job = new $jobClass();
+
+        if (!$job instanceof JobInterface) {
+            Logger::error('[Worker] Job no implementa interfaz', ['class' => $jobClass]);
+            continue;
+        }
+
+        // Ejecutar
+        $start = microtime(true);
+        fwrite(STDOUT, "[Worker] Procesando: $jobClass\n");
+
+        try {
+            $job->handle($jobData['payload'] ?? []);
+            $duration = round((microtime(true) - $start) * 1000, 2);
+            $processed++;
+
+            Logger::info('[Worker] Job OK', [
+                'job' => $jobClass,
+                'ms' => $duration
+            ]);
+        } catch (Throwable $e) {
+            $errors++;
+            Logger::error('[Worker] Job falló', [
+                'job' => $jobClass,
+                'error' => $e->getMessage()
+            ]);
+
+            // Reintentar si aplica
+            Queue::retry($jobData, $queueName, 3);
+        }
+    } catch (Throwable $e) {
+        Logger::critical('[Worker] Error en loop', ['error' => $e->getMessage()]);
+        sleep(5); // Evitar CPU spinning en errores críticos
+    }
+}
+
+// ============================================================================
+// SHUTDOWN
+// ============================================================================
+
+Logger::info('[Worker] Detenido', [
+    'processed' => $processed,
+    'errors' => $errors
+]);
+
+fwrite(STDOUT, "[Worker] Finalizado. Procesados: $processed, Errores: $errors\n");
+exit(0);

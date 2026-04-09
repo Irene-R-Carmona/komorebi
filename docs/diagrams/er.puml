@@ -1,0 +1,756 @@
+@startuml
+!theme plain
+hide circle
+skinparam entity {
+    BackgroundColor #FAFAFA
+    BorderColor #777777
+    HeaderBackgroundColor #E8E8E8
+}
+
+' =============================================================================
+' --- Infrastructure ---
+' =============================================================================
+
+entity "cafes" as CAFES {
+    * id : BIGINT
+    --
+    name : VARCHAR(100)
+    japanese_name : VARCHAR(100)
+    slug : VARCHAR(120)
+    location : VARCHAR(255)
+    category : ENUM
+    animal_type : VARCHAR(50)
+    description : TEXT
+    price_per_hour : INT
+    rating_avg : DECIMAL(3,2)
+    rating_count : INT
+    opening_time : TIME
+    closing_time : TIME
+    capacity_max : INT
+    latitude : DECIMAL(10,8)
+    longitude : DECIMAL(11,8)
+    timezone : VARCHAR(50)
+    is_active : BOOL
+    has_reservations : BOOL
+    image_url : VARCHAR(255)
+    deleted_at : TIMESTAMP
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "cafe_zones" as CAFE_ZONES {
+    * id : BIGINT
+    --
+    # cafe_id : BIGINT
+    name : VARCHAR(50)
+    type : ENUM
+    status : ENUM
+    capacity : INT
+    requires_briefing : BOOL
+    requires_shoes_off : BOOL
+    sort_order : TINYINT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "trackers" as TRACKERS {
+    * id : BIGINT
+    --
+    # cafe_id : BIGINT
+    code : VARCHAR(20)
+    type : ENUM
+    status : ENUM
+    last_assigned_at : TIMESTAMP
+    last_assigned_reservation_id : BIGINT
+    notes : TEXT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+' =============================================================================
+' --- Users & RBAC ---
+' =============================================================================
+
+entity "users" as USERS {
+    * id : BIGINT
+    --
+    uuid : CHAR(36)
+    # cafe_id : BIGINT
+    name : VARCHAR(100)
+    email : VARCHAR(255)
+    password : VARCHAR(255)
+    email_verified_at : DATETIME
+    is_active : BOOL
+    admin_notes : TEXT
+    preferences : JSON
+    avatar : VARCHAR(255)
+    login_attempts : TINYINT
+    locked_until : DATETIME
+    last_login : DATETIME
+    last_ip_address : VARCHAR(45)
+    deleted_at : TIMESTAMP
+    anonymized_at : TIMESTAMP
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "roles" as ROLES {
+    * id : INT
+    --
+    code : VARCHAR(50)
+    name : VARCHAR(100)
+    description : TEXT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "permissions" as PERMISSIONS {
+    * id : INT
+    --
+    code : VARCHAR(100)
+    name : VARCHAR(100)
+    description : TEXT
+    resource : VARCHAR(50)
+    action : VARCHAR(50)
+    created_at : TIMESTAMP
+}
+
+entity "role_permissions" as ROLE_PERMISSIONS {
+    # role_id : INT
+    # permission_id : INT
+}
+
+entity "user_roles" as USER_ROLES {
+    # user_id : BIGINT
+    # role_id : INT
+    --
+    assigned_at : TIMESTAMP
+    # assigned_by : BIGINT
+}
+
+' =============================================================================
+' --- Content ---
+' =============================================================================
+
+entity "menu_categories" as MENU_CATEGORIES {
+    * id : BIGINT
+    --
+    name : VARCHAR(50)
+    slug : VARCHAR(60)
+    display_order : TINYINT
+    created_at : TIMESTAMP
+}
+
+entity "products" as PRODUCTS {
+    * id : BIGINT
+    --
+    # category_id : BIGINT
+    product_type : ENUM
+    name : VARCHAR(100)
+    japanese_name : VARCHAR(150)
+    slug : VARCHAR(150)
+    description : TEXT
+    price : INT
+    station : ENUM
+    prep_time : TINYINT
+    recipe_steps : TEXT
+    ingredients_list : JSON
+    critical_check : VARCHAR(255)
+    calories : INT
+    attributes : JSON
+    target_cafe_types : JSON
+    target_animal_types : JSON
+    duration_minutes : INT
+    min_pax : TINYINT
+    max_pax : TINYINT
+    pass_duration_minutes : INT
+    image_url : VARCHAR(255)
+    is_active : BOOL
+    is_seasonal : BOOL
+    sort_order : INT
+    deleted_at : TIMESTAMP
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "allergens" as ALLERGENS {
+    * id : INT
+    --
+    code : VARCHAR(10)
+    name : VARCHAR(50)
+    japanese_name : VARCHAR(50)
+    icon_class : VARCHAR(50)
+    icon_color : VARCHAR(20)
+    severity : ENUM
+    description : TEXT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "product_allergens" as PRODUCT_ALLERGENS {
+    # product_id : BIGINT
+    # allergen_id : INT
+    --
+    notes : VARCHAR(255)
+    created_at : TIMESTAMP
+}
+
+entity "favorites" as FAVORITES {
+    # user_id : BIGINT
+    # cafe_id : BIGINT
+    --
+    created_at : TIMESTAMP
+}
+
+entity "reviews" as REVIEWS {
+    * id : BIGINT
+    --
+    # cafe_id : BIGINT
+    # user_id : BIGINT
+    # reservation_id : BIGINT
+    rating : TINYINT
+    title : VARCHAR(100)
+    body : TEXT
+    status : ENUM
+    rejection_reason : TEXT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "audit_logs" as AUDIT_LOGS {
+    * id : BIGINT
+    --
+    # user_id : BIGINT
+    action : VARCHAR(100)
+    resource_type : VARCHAR(50)
+    resource_id : BIGINT
+    old_values : JSON
+    new_values : JSON
+    ip_address : VARCHAR(45)
+    user_agent : TEXT
+    created_at : TIMESTAMP
+    retention_until : TIMESTAMP
+}
+
+entity "auth_audit_logs" as AUTH_AUDIT_LOGS {
+    * id : BIGINT
+    --
+    # user_id : BIGINT
+    event_type : ENUM
+    ip_address : VARCHAR(45)
+    user_agent : TEXT
+    device_name : VARCHAR(100)
+    success : BOOL
+    reason : VARCHAR(255)
+    created_at : TIMESTAMP
+    retention_until : TIMESTAMP
+}
+
+' =============================================================================
+' --- Reservations ---
+' =============================================================================
+
+entity "time_slots" as TIME_SLOTS {
+    * id : BIGINT
+    --
+    # cafe_id : BIGINT
+    slot_date : DATE
+    slot_time : TIME
+    total_capacity : INT
+    available_spots : INT
+    reserved_spots : INT
+    is_blocked : BOOL
+    blocked_reason : VARCHAR(255)
+    duration_minutes : TINYINT
+    min_advance_hours : TINYINT
+    max_advance_days : SMALLINT
+    # created_by : BIGINT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "reservations" as RESERVATIONS {
+    * id : BIGINT
+    --
+    # user_id : BIGINT
+    # cafe_id : BIGINT
+    # pass_product_id : BIGINT
+    pass_name : VARCHAR(100)
+    pass_unit_price : INT
+    pass_duration_minutes : INT
+    # time_slot_id : BIGINT
+    # tracker_id : BIGINT
+    # current_zone_id : BIGINT
+    reservation_date : DATE
+    reservation_time : TIME
+    guest_count : INT
+    status : ENUM
+    notes : TEXT
+    check_in_at : TIMESTAMP
+    check_out_at : TIMESTAMP
+    protocol_hygiene : BOOL
+    protocol_briefing : BOOL
+    protocol_shoes : BOOL
+    final_amount : INT
+    payment_status : ENUM
+    payment_method : VARCHAR(50)
+    payment_notes : TEXT
+    deleted_at : TIMESTAMP
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "reservation_items" as RESERVATION_ITEMS {
+    * id : BIGINT
+    --
+    # reservation_id : BIGINT
+    # product_id : BIGINT
+    quantity : INT
+    unit_price : DECIMAL(10,2)
+    status : ENUM
+    created_at : TIMESTAMP
+}
+
+entity "waitlist" as WAITLIST {
+    * id : BIGINT
+    --
+    # time_slot_id : BIGINT
+    # user_id : BIGINT
+    position : INT
+    token : VARCHAR(64)
+    expires_at : TIMESTAMP
+    response_timeout_minutes : TINYINT
+    status : ENUM
+    contact_email : VARCHAR(255)
+    contact_phone : VARCHAR(20)
+    guest_count : TINYINT
+    special_requests : TEXT
+    notified_at : TIMESTAMP
+    confirmed_at : TIMESTAMP
+    # reservation_id : BIGINT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "supervisor_assignments" as SUPERVISOR_ASSIGNMENTS {
+    * id : INT
+    --
+    # supervisor_id : INT
+    # reservation_id : INT
+    table_code : VARCHAR(20)
+    # cafe_id : INT
+    is_active : TINYINT
+    assigned_at : TIMESTAMP
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+' =============================================================================
+' --- Animals ---
+' =============================================================================
+
+entity "species_rules" as SPECIES_RULES {
+    * id : BIGINT
+    --
+    species_key : VARCHAR(50)
+    human_ratio : DECIMAL(3,1)
+    max_consecutive_minutes : INT
+    min_rest_minutes : INT
+    created_at : TIMESTAMP
+}
+
+entity "animals" as ANIMALS {
+    * id : BIGINT
+    --
+    # cafe_id : BIGINT
+    # current_zone_id : BIGINT
+    name : VARCHAR(100)
+    species_type : VARCHAR(50)
+    age : INT
+    personality : VARCHAR(100)
+    description : TEXT
+    interaction_level : TINYINT
+    attributes : JSON
+    image_url : VARCHAR(255)
+    current_status : ENUM
+    last_health_check : TIMESTAMP
+    deleted_at : TIMESTAMP
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "animal_status_log" as ANIMAL_STATUS_LOG {
+    * id : BIGINT
+    --
+    # animal_id : BIGINT
+    old_status : ENUM
+    new_status : ENUM
+    reason : TEXT
+    # logged_by : BIGINT
+    created_at : TIMESTAMP
+}
+
+entity "animal_incidents" as ANIMAL_INCIDENTS {
+    * id : BIGINT
+    --
+    # animal_id : BIGINT
+    incident_type : VARCHAR(50)
+    description : TEXT
+    severity : ENUM
+    # reported_by : BIGINT
+    resolved_at : TIMESTAMP
+    # resolved_by : BIGINT
+    created_at : TIMESTAMP
+}
+
+entity "animal_relationships" as ANIMAL_RELATIONSHIPS {
+    # animal_a : BIGINT
+    # animal_b : BIGINT
+    --
+    type : ENUM
+}
+
+entity "interaction_sessions" as INTERACTION_SESSIONS {
+    * id : BIGINT
+    --
+    # animal_id : BIGINT
+    # reservation_id : BIGINT
+    start_time : DATETIME
+    end_time : DATETIME
+    intensity : ENUM
+    created_at : TIMESTAMP
+}
+
+entity "animal_health_checks" as ANIMAL_HEALTH_CHECKS {
+    * id : BIGINT
+    --
+    # animal_id : BIGINT
+    # checked_by : BIGINT
+    check_date : DATE
+    weight_kg : DECIMAL(5,2)
+    temperature_c : DECIMAL(4,2)
+    appetite : ENUM
+    energy_level : ENUM
+    coat_condition : ENUM
+    eyes_clear : BOOL
+    breathing_normal : BOOL
+    mobility_normal : BOOL
+    notes : TEXT
+    alerts : JSON
+    created_at : TIMESTAMP
+}
+
+' =============================================================================
+' --- Auth ---
+' =============================================================================
+
+entity "email_verification_tokens" as EMAIL_VERIFICATION_TOKENS {
+    * id : BIGINT
+    --
+    # user_id : BIGINT
+    token_hash : VARCHAR(255)
+    expires_at : DATETIME
+    verified_at : DATETIME
+    created_at : TIMESTAMP
+}
+
+entity "password_reset_tokens" as PASSWORD_RESET_TOKENS {
+    * id : BIGINT
+    --
+    # user_id : BIGINT
+    token_hash : VARCHAR(255)
+    expires_at : DATETIME
+    used_at : DATETIME
+    ip_address : VARCHAR(45)
+    user_agent : TEXT
+    created_at : TIMESTAMP
+}
+
+entity "active_sessions" as ACTIVE_SESSIONS {
+    * id : BIGINT
+    --
+    # user_id : BIGINT
+    session_id : VARCHAR(255)
+    ip_address : VARCHAR(45)
+    user_agent : TEXT
+    device_name : VARCHAR(100)
+    last_activity : DATETIME
+    created_at : DATETIME
+    expires_at : DATETIME
+    revoked_at : DATETIME
+    revoke_reason : VARCHAR(100)
+    # revoked_by : BIGINT
+}
+
+entity "rate_limits" as RATE_LIMITS {
+    * id : BIGINT
+    --
+    action : VARCHAR(50)
+    identifier : VARCHAR(255)
+    attempt_count : INT
+    last_attempt : DATETIME
+    locked_until : DATETIME
+    ip_address : VARCHAR(45)
+    created_at : TIMESTAMP
+    updated_at : DATETIME
+}
+
+' =============================================================================
+' --- Loyalty ---
+' =============================================================================
+
+entity "loyalty_cards" as LOYALTY_CARDS {
+    * id : BIGINT
+    --
+    # user_id : BIGINT
+    stamps : INT
+    current_tier : ENUM
+    visits_count : INT
+    total_rewards_redeemed : INT
+    last_stamp_at : TIMESTAMP
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "loyalty_rewards" as LOYALTY_REWARDS {
+    * id : BIGINT
+    --
+    # user_id : BIGINT
+    # loyalty_card_id : BIGINT
+    reward_type : ENUM
+    stamps_cost : INT
+    redeemed_at : TIMESTAMP
+    used_at : TIMESTAMP
+    expires_at : TIMESTAMP
+    status : ENUM
+    redemption_code : VARCHAR(20)
+    notes : TEXT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "loyalty_reward_catalog" as LOYALTY_REWARD_CATALOG {
+    * id : BIGINT
+    --
+    reward_type : ENUM
+    name_es : VARCHAR(100)
+    name_en : VARCHAR(100)
+    description_es : TEXT
+    description_en : TEXT
+    stamps_required : INT
+    tier_required : ENUM
+    validity_days : INT
+    is_active : BOOL
+    display_order : INT
+    icon : VARCHAR(50)
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "user_animal_visits" as USER_ANIMAL_VISITS {
+    * id : BIGINT
+    --
+    # user_id : BIGINT
+    # animal_id : BIGINT
+    # reservation_id : BIGINT
+    visited_at : TIMESTAMP
+    interaction_rating : TINYINT
+}
+
+' =============================================================================
+' --- Staff ---
+' =============================================================================
+
+entity "staff_shifts" as STAFF_SHIFTS {
+    * id : BIGINT
+    --
+    # user_id : BIGINT
+    # cafe_id : BIGINT
+    shift_date : DATE
+    shift_start : TIME
+    shift_end : TIME
+    notes : TEXT
+    # created_by : BIGINT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+    deleted_at : TIMESTAMP
+}
+
+' =============================================================================
+' --- Misc ---
+' =============================================================================
+
+entity "newsletter_subscriptions" as NEWSLETTER_SUBSCRIPTIONS {
+    * id : INT
+    --
+    email : VARCHAR(255)
+    token : VARCHAR(64)
+    confirmed_at : TIMESTAMP
+    unsubscribed_at : TIMESTAMP
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "settings" as SETTINGS {
+    * key : VARCHAR(100)
+    --
+    value : TEXT
+    type : ENUM
+    group_name : VARCHAR(50)
+    description : VARCHAR(255)
+    is_public : TINYINT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "weather_cache" as WEATHER_CACHE {
+    * id : BIGINT
+    --
+    latitude : DECIMAL(10,6)
+    longitude : DECIMAL(10,6)
+    timezone : VARCHAR(50)
+    data : JSON
+    cached_at : TIMESTAMP
+    expires_at : TIMESTAMP
+}
+
+entity "holiday_cache" as HOLIDAY_CACHE {
+    * id : BIGINT
+    --
+    year : INT
+    country : VARCHAR(2)
+    holidays : JSON
+    cached_at : TIMESTAMP
+    expires_at : TIMESTAMP
+}
+
+entity "api_audit_log" as API_AUDIT_LOG {
+    * id : BIGINT
+    --
+    endpoint : VARCHAR(100)
+    method : VARCHAR(10)
+    status_code : INT
+    response_time : INT
+    cached : BOOL
+    # user_id : BIGINT
+    ip_address : VARCHAR(45)
+    requested_at : TIMESTAMP
+}
+
+entity "telegram_users" as TELEGRAM_USERS {
+    * id : BIGINT
+    --
+    # user_id : BIGINT
+    telegram_id : BIGINT
+    chat_id : BIGINT
+    username : VARCHAR(100)
+    first_name : VARCHAR(100)
+    last_name : VARCHAR(100)
+    is_active : BOOL
+    linked_at : TIMESTAMP
+    unlinked_at : TIMESTAMP
+    last_message_at : TIMESTAMP
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "telegram_message_log" as TELEGRAM_MESSAGE_LOG {
+    * id : BIGINT
+    --
+    # telegram_user_id : BIGINT
+    direction : ENUM
+    command : VARCHAR(100)
+    message_text : TEXT
+    response_text : TEXT
+    success : BOOL
+    error_message : TEXT
+    created_at : TIMESTAMP
+    retention_until : TIMESTAMP
+}
+
+' =============================================================================
+' Relationships
+' =============================================================================
+
+' --- Infrastructure ---
+CAFES ||--o{ CAFE_ZONES : "has zones"
+CAFES ||--o{ TRACKERS : "has trackers"
+
+' --- Users & RBAC ---
+CAFES ||--o{ USERS : "employs"
+ROLES ||--o{ ROLE_PERMISSIONS : "grants"
+PERMISSIONS ||--o{ ROLE_PERMISSIONS : "granted via"
+USERS ||--o{ USER_ROLES : "has role"
+ROLES ||--o{ USER_ROLES : "assigned to"
+USERS ||--o{ USER_ROLES : "assigned by"
+
+' --- Content ---
+MENU_CATEGORIES ||--o{ PRODUCTS : "contains"
+PRODUCTS ||--o{ PRODUCT_ALLERGENS : "has allergen"
+ALLERGENS ||--o{ PRODUCT_ALLERGENS : "declared in"
+USERS ||--o{ FAVORITES : "marks"
+CAFES ||--o{ FAVORITES : "favorited by"
+CAFES ||--o{ REVIEWS : "has reviews"
+USERS ||--o{ REVIEWS : "writes"
+USERS ||--o{ AUDIT_LOGS : "generates"
+USERS ||--o{ AUTH_AUDIT_LOGS : "generates"
+
+' --- Reservations ---
+CAFES ||--o{ TIME_SLOTS : "has slots"
+USERS ||--o{ TIME_SLOTS : "created by"
+USERS ||--o{ RESERVATIONS : "makes"
+CAFES ||--o{ RESERVATIONS : "hosts"
+PRODUCTS ||--o{ RESERVATIONS : "pass for"
+TIME_SLOTS ||--o{ RESERVATIONS : "booked in"
+TRACKERS ||--o{ RESERVATIONS : "assigned to"
+CAFE_ZONES ||--o{ RESERVATIONS : "current zone"
+RESERVATIONS ||--o{ RESERVATION_ITEMS : "contains"
+PRODUCTS ||--o{ RESERVATION_ITEMS : "ordered as"
+RESERVATIONS ||--o{ REVIEWS : "linked to"
+TIME_SLOTS ||--o{ WAITLIST : "queue for"
+USERS ||--o{ WAITLIST : "waits in"
+RESERVATIONS ||--o{ WAITLIST : "confirmed as"
+USERS ||--o{ SUPERVISOR_ASSIGNMENTS : "supervises"
+RESERVATIONS ||--o{ SUPERVISOR_ASSIGNMENTS : "supervised in"
+CAFES ||--o{ SUPERVISOR_ASSIGNMENTS : "supervision at"
+
+' --- Animals ---
+CAFES ||--o{ ANIMALS : "houses"
+CAFE_ZONES ||--o{ ANIMALS : "located in"
+ANIMALS ||--o{ ANIMAL_STATUS_LOG : "status logged"
+USERS ||--o{ ANIMAL_STATUS_LOG : "logged by"
+ANIMALS ||--o{ ANIMAL_INCIDENTS : "involved in"
+USERS ||--o{ ANIMAL_INCIDENTS : "reported by"
+USERS ||--o{ ANIMAL_INCIDENTS : "resolved by"
+ANIMALS ||--o{ ANIMAL_RELATIONSHIPS : "side A"
+ANIMALS ||--o{ ANIMAL_RELATIONSHIPS : "side B"
+ANIMALS ||--o{ INTERACTION_SESSIONS : "interacts in"
+RESERVATIONS ||--o{ INTERACTION_SESSIONS : "during"
+ANIMALS ||--o{ ANIMAL_HEALTH_CHECKS : "checked in"
+USERS ||--o{ ANIMAL_HEALTH_CHECKS : "performed by"
+
+' --- Auth ---
+USERS ||--o{ EMAIL_VERIFICATION_TOKENS : "has"
+USERS ||--o{ PASSWORD_RESET_TOKENS : "has"
+USERS ||--o{ ACTIVE_SESSIONS : "has session"
+USERS ||--o{ ACTIVE_SESSIONS : "revoked by"
+
+' --- Loyalty ---
+USERS ||--|| LOYALTY_CARDS : "owns"
+USERS ||--o{ LOYALTY_REWARDS : "redeems"
+LOYALTY_CARDS ||--o{ LOYALTY_REWARDS : "generates"
+USERS ||--o{ USER_ANIMAL_VISITS : "records"
+ANIMALS ||--o{ USER_ANIMAL_VISITS : "visited in"
+RESERVATIONS ||--o{ USER_ANIMAL_VISITS : "during"
+
+' --- Staff ---
+USERS ||--o{ STAFF_SHIFTS : "works"
+CAFES ||--o{ STAFF_SHIFTS : "shift at"
+USERS ||--o{ STAFF_SHIFTS : "created by"
+
+' --- Misc ---
+USERS ||--o{ API_AUDIT_LOG : "triggers"
+USERS ||--|| TELEGRAM_USERS : "linked to"
+TELEGRAM_USERS ||--o{ TELEGRAM_MESSAGE_LOG : "has messages"
+
+@enduml

@@ -1,0 +1,345 @@
+/**
+ * Badge Component Styles
+ *
+ * Depends on: design-tokens.css
+ * Version: 1.0.0
+ * Date: 2026-02-13
+ *
+ * Features:
+ * - 5 variants: success, warning, danger, info, neutral
+ * - 3 sizes: sm, md, lg
+ * - Dot indicator mode
+ * - Icon support with Material Symbols
+ * - High contrast mode support
+ */
+
+/* ============================================================================
+   BASE BADGE
+   ============================================================================ */
+
+.badge {
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+
+  /* Sizing */
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+
+  /* Typography */
+  font-family: var(--font-sans, system-ui, sans-serif);
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--font-medium, 500);
+  line-height: var(--leading-none, 1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide, 0.025em);
+  white-space: nowrap;
+
+  /* Appearance */
+  border-radius: var(--radius-full, 9999px);
+  transition: all var(--transition-fast, 150ms);
+
+  /* Reset */
+  vertical-align: middle;
+}
+
+/* ============================================================================
+   SIZES
+   ============================================================================ */
+
+.badge--sm {
+  padding: 2px var(--space-1, 4px);
+  font-size: 0.625rem;
+  /* 10px */
+  gap: 2px;
+}
+
+.badge--sm .badge__icon {
+  font-size: 0.875em;
+}
+
+.badge--md {
+  /* Default size - already defined in base */
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  font-size: var(--text-xs, 12px);
+}
+
+.badge--lg {
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  font-size: var(--text-sm, 14px);
+  gap: var(--space-2, 8px);
+}
+
+.badge--lg .badge__icon {
+  font-size: 1.125em;
+}
+
+/* ============================================================================
+   VARIANTS
+   ============================================================================ */
+
+/* SUCCESS - Confirmations, completed states */
+.badge--success {
+  background-color: var(--color-success-light, #dcfce7);
+  color: var(--color-success-dark, #166534);
+}
+
+/* WARNING - Cautions, pending states */
+.badge--warning {
+  background-color: var(--color-warning-light, #fef3c7);
+  color: var(--color-warning-dark, #92400e);
+}
+
+/* DANGER - Errors, critical states */
+.badge--danger {
+  background-color: var(--color-danger-light, #fee2e2);
+  color: var(--color-danger-dark, #991b1b);
+}
+
+/* INFO - Informational, neutral positive */
+.badge--info {
+  background-color: var(--color-info-light, #dbeafe);
+  color: var(--color-info-dark, #1e40af);
+}
+
+/* NEUTRAL - Default, unemphasized */
+.badge--neutral {
+  background-color: var(--color-neutral-100, #f5f5f4);
+  color: var(--color-neutral-700, #44403c);
+}
+
+/* ============================================================================
+   ICON
+   ============================================================================ */
+
+.badge__icon {
+  font-size: 1em;
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   DOT INDICATOR MODE
+   ============================================================================ */
+
+.badge--dot {
+  padding-left: var(--space-3, 12px);
+  position: relative;
+}
+
+.badge__dot {
+  position: absolute;
+  left: var(--space-2, 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full, 9999px);
+  background-color: currentColor;
+}
+
+/* Dot colors by variant */
+.badge--success .badge__dot {
+  background-color: var(--color-success, #22c55e);
+}
+
+.badge--warning .badge__dot {
+  background-color: var(--color-warning, #f59e0b);
+}
+
+.badge--danger .badge__dot {
+  background-color: var(--color-danger, #ef4444);
+}
+
+.badge--info .badge__dot {
+  background-color: var(--color-info, #3b82f6);
+}
+
+.badge--neutral .badge__dot {
+  background-color: var(--color-neutral-500, #78716c);
+}
+
+/* Pulsing animation for dot (optional - add .badge--pulse class) */
+.badge--pulse .badge__dot {
+  animation: badge-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes badge-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: translateY(-50%) scale(1.1);
+  }
+}
+
+/* ============================================================================
+   COUNTER BADGE VARIANT
+   ============================================================================ */
+
+/* Circular badge for numbers (add .badge--counter class) */
+.badge--counter {
+  min-width: 20px;
+  height: 20px;
+  padding: 0;
+  justify-content: center;
+  border-radius: var(--radius-full, 9999px);
+  font-size: var(--text-xs, 12px);
+}
+
+.badge--counter.badge--sm {
+  min-width: 16px;
+  height: 16px;
+  font-size: 0.625rem;
+  /* 10px */
+}
+
+.badge--counter.badge--lg {
+  min-width: 24px;
+  height: 24px;
+  font-size: var(--text-sm, 14px);
+}
+
+/* ============================================================================
+   ACCESSIBILITY
+   ============================================================================ */
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .badge {
+    transition: none;
+  }
+
+  .badge--pulse .badge__dot {
+    animation: none;
+  }
+}
+
+/* High Contrast Mode (Windows) */
+@media (prefers-contrast: high) {
+  .badge {
+    border: 1px solid currentColor;
+  }
+}
+
+/* ============================================================================
+   DARK MODE SUPPORT
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .badge--success {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+  }
+
+  .badge--warning {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+  }
+
+  .badge--danger {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+  }
+
+  .badge--info {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+  }
+
+  .badge--neutral {
+    background-color: var(--color-neutral-800, #292524);
+    color: var(--color-neutral-300, #d6d3d1);
+  }
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+/* Badge group (for multiple badges) */
+.badge-group {
+  display: inline-flex;
+  gap: var(--space-2, 8px);
+  flex-wrap: wrap;
+}
+
+/* Outline variant (add .badge--outline class) */
+.badge--outline {
+  background-color: transparent !important;
+  border: 1px solid currentColor;
+}
+
+.badge--outline.badge--success {
+  color: var(--color-success, #22c55e);
+}
+
+.badge--outline.badge--warning {
+  color: var(--color-warning, #f59e0b);
+}
+
+.badge--outline.badge--danger {
+  color: var(--color-danger, #ef4444);
+}
+
+.badge--outline.badge--info {
+  color: var(--color-info, #3b82f6);
+}
+
+.badge--outline.badge--neutral {
+  color: var(--color-neutral-600, #57534e);
+}
+
+/* Positioned badge (for notifications on buttons/avatars) */
+.badge--positioned {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  z-index: var(--z-badge, 10);
+}
+
+/* Clickable badge (if used as interactive element) */
+.badge--clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.badge--clickable:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.badge--clickable:active {
+  transform: scale(0.95);
+}
+
+.badge--clickable:focus {
+  outline: none;
+}
+
+.badge--clickable:focus-visible {
+  outline: 2px solid var(--color-primary-500, #3a9263);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring, 0 0 0 3px rgba(58, 146, 99, 0.2));
+}
+
+/* Touch target compliant for interactive badges (WCAG 2.1 AA) */
+.badge--clickable {
+  min-height: 44px;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  font-size: var(--text-sm, 14px);
+  display: inline-flex;
+}
+
+/* Override size classes when clickable - maintain accessibility */
+.badge--clickable.badge--sm,
+.badge--clickable.badge--md,
+.badge--clickable.badge--lg {
+  min-height: 44px;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+}

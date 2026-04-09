@@ -1,0 +1,249 @@
+<?php
+
+declare(strict_types=1);
+
+
+/**
+ * ¿Qué pruebas aquí?
+ * ¿Qué me quieres demostrar?
+ * ¿Qué va a fallar en este test si se cambia el código?
+ */
+namespace Tests\Unit\Services;
+
+use App\Services\MenuService;
+use App\Repositories\Contracts\MenuRepositoryInterface;
+use PDO;
+use PDOStatement;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * Tests Unitarios de MenuService
+ *
+ * Valida lógica de negocio sin tocar BD real (usa mocks).
+ */
+#[AllowMockObjectsWithoutExpectations]
+final class MenuServiceTest extends TestCase
+{
+    private MenuService $service;
+    private PDO $mockDb;
+    private MenuRepositoryInterface $mockMenuRepo;
+
+    protected function setUp(): void
+    {
+        $this->mockDb = $this->createMock(PDO::class);
+        $this->mockMenuRepo = $this->createMock(MenuRepositoryInterface::class);
+        $this->service = new MenuService($this->mockDb, $this->mockMenuRepo);
+    }
+
+    protected function tearDown(): void
+    {
+        unset($this->service, $this->mockDb, $this->mockMenuRepo);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Tests: getCategories
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetCategoriesExcludesExperiencesByDefault(): void
+    {
+        // ARRANGE: Mock repository method
+        $this->mockMenuRepo->expects($this->once())
+            ->method('getCategories')
+            ->with(false)
+            ->willReturn([
+                ['id' => 1, 'name' => 'Bebidas', 'slug' => 'bebidas', 'display_order' => 1],
+                ['id' => 2, 'name' => 'Comida', 'slug' => 'comida', 'display_order' => 2],
+            ]);
+
+        // ACT
+        $result = $this->service->getCategories();
+
+        // ASSERT
+        $this->assertIsArray($result);
+        $this->assertCount(2, $result);
+        $this->assertSame('Bebidas', $result[0]['name']);
+        $this->assertSame('Comida', $result[1]['name']);
+    }
+
+    public function testGetCategoriesIncludesExperiencesWhenRequested(): void
+    {
+        // ARRANGE: Mock repository method
+        $this->mockMenuRepo->expects($this->once())
+            ->method('getCategories')
+            ->with(true)
+            ->willReturn([
+                ['id' => 1, 'name' => 'Bebidas', 'slug' => 'bebidas', 'display_order' => 1],
+                ['id' => 3, 'name' => 'Experiencias', 'slug' => 'experiencias', 'display_order' => 5],
+            ]);
+
+        // ACT
+        $result = $this->service->getCategories(true);
+
+        // ASSERT
+        $this->assertCount(2, $result);
+        $this->assertSame('Experiencias', $result[1]['name']);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Tests: getProductsByCategory
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetProductsByCategoryReturnsGroupedProducts(): void
+    {
+        // ARRANGE: Mock repository returns FLAT array (service will group)
+        $this->mockMenuRepo->expects($this->once())
+            ->method('getProductsByCategory')
+            ->with([])
+            ->willReturn([
+                ['id' => 1, 'category_id' => 1, 'name' => 'Café Latte', 'price' => 500, 'allergen_ids' => null, 'allergen_names' => null],
+                ['id' => 2, 'category_id' => 1, 'name' => 'Cappuccino', 'price' => 550, 'allergen_ids' => null, 'allergen_names' => null],
+                ['id' => 3, 'category_id' => 2, 'name' => 'Croissant', 'price' => 300, 'allergen_ids' => null, 'allergen_names' => null],
+            ]);
+
+        // ACT
+        $result = $this->service->getProductsByCategory();
+
+        // ASSERT
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey(1, $result); // Categoría 1
+        $this->assertArrayHasKey(2, $result); // Categoría 2
+        $this->assertCount(2, $result[1]); // 2 productos en categoría 1
+        $this->assertCount(1, $result[2]); // 1 producto en categoría 2
+    }
+
+    public function testGetProductsByCategoryExcludesAllergens(): void
+    {
+        // ARRANGE: Mock repository with allergen filter (returns FLAT array)
+        $this->mockMenuRepo->expects($this->once())
+            ->method('getProductsByCategory')
+            ->with([5])
+            ->willReturn([
+                ['id' => 1, 'category_id' => 1, 'name' => 'Producto sin leche', 'price' => 500, 'allergen_ids' => null, 'allergen_names' => null]
+            ]);
+
+        // ACT: Excluir alérgeno ID 5 (leche)
+        $result = $this->service->getProductsByCategory([5]);
+
+        // ASSERT
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result[1]);
+        $this->assertSame('Producto sin leche', $result[1][0]['name']);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Tests: getPasses
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetPassesReturnsAvailablePasses(): void
+    {
+        // ARRANGE: Mock repository
+        $this->mockMenuRepo->expects($this->once())
+            ->method('getPasses')
+            ->willReturn([
+                ['id' => 10, 'name' => 'Pase 1H', 'price' => 1500, 'product_type' => 'pass'],
+                ['id' => 11, 'name' => 'Pase 2H', 'price' => 2500, 'product_type' => 'pass'],
+            ]);
+
+        // ACT
+        $result = $this->service->getPasses();
+
+        // ASSERT
+        $this->assertIsArray($result);
+        $this->assertCount(2, $result);
+        $this->assertSame('Pase 1H', $result[0]['name']);
+        $this->assertSame('pass', $result[0]['product_type']);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Tests: getPassesForCafe
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetPassesForCafeWithoutFiltersReturnsAllPasses(): void
+    {
+        // ARRANGE: Mock repository method
+        $this->mockMenuRepo->expects($this->once())
+            ->method('getPassesForCafe')
+            ->with(null, null)
+            ->willReturn([
+                [
+                    'id' => 10,
+                    'name' => 'Pase Komorebi',
+                    'target_cafe_types' => '',
+                    'target_animal_types' => '',
+                ],
+            ]);
+
+        // ACT
+        $result = $this->service->getPassesForCafe();
+
+        // ASSERT
+        $this->assertCount(1, $result);
+        $this->assertSame('Pase Komorebi', $result[0]['name']);
+    }
+
+    public function testGetPassesForCafeFiltersPassesByTargets(): void
+    {
+        // ARRANGE: Mock repository with filtered passes
+        $this->mockMenuRepo->expects($this->once())
+            ->method('getPassesForCafe')
+            ->with('lounge', 'cat')
+            ->willReturn([
+                [
+                    'id' => 10,
+                    'name' => 'Pase Genérico',
+                    'target_cafe_types' => '',
+                    'target_animal_types' => '',
+                ],
+                [
+                    'id' => 11,
+                    'name' => 'Pase Lounge',
+                    'target_cafe_types' => '["lounge"]',
+                    'target_animal_types' => '["cat"]',
+                ],
+            ]);
+
+        // ACT: Filtrar por lounge + cat
+        $result = $this->service->getPassesForCafe('lounge', 'cat');
+
+        // ASSERT: Solo retorna genérico y el compatible
+        $this->assertCount(2, $result);
+        $names = array_column($result, 'name');
+        $this->assertContains('Pase Genérico', $names);
+        $this->assertContains('Pase Lounge', $names);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Tests: getMenuForView
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetMenuForViewReturnsCompleteStructure(): void
+    {
+        // ARRANGE: Mock repository methods
+        $this->mockMenuRepo->method('getCategories')
+            ->willReturn([['id' => 1, 'name' => 'Bebidas', 'slug' => 'bebidas', 'display_order' => 1]]);
+
+        $this->mockMenuRepo->method('getProductsByCategory')
+            ->willReturn([['id' => 1, 'category_id' => 1, 'name' => 'Café', 'price' => 500, 'allergen_ids' => null, 'allergen_names' => null]]);
+
+        $this->mockMenuRepo->method('getPasses')
+            ->willReturn([['id' => 10, 'name' => 'Pase 1H', 'product_type' => 'pass']]);
+
+        $this->mockMenuRepo->method('getAllergens')
+            ->willReturn([['id' => 1, 'name' => 'Leche', 'name_jp' => 'ミルク', 'icon' => 'milk', 'icon_color' => '#fff', 'severity' => 'high']]);
+
+        // ACT
+        $result = $this->service->getMenuForView();
+
+        // ASSERT: Verificar estructura completa
+        $this->assertArrayHasKey('categorias', $result);
+        $this->assertArrayHasKey('productos', $result);
+        $this->assertArrayHasKey('pases', $result);
+        $this->assertArrayHasKey('allergens', $result);
+        $this->assertArrayHasKey('cafeTypes', $result);
+
+        // Verificar tipos de café
+        $this->assertCount(4, $result['cafeTypes']);
+        $this->assertSame('lounge', $result['cafeTypes'][0]['value']);
+    }
+}

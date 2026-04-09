@@ -1,0 +1,111 @@
+# =============================================================================
+# Entorno de test aislado para Komorebi Café
+#
+# Levanta MySQL + Redis efímeros (tmpfs / sin persistencia en disco) y un
+# contenedor PHP-CLI con pcov para ejecutar PHPUnit.
+#
+# Uso:
+#   make test                  # Ciclo completo: build → migrate → phpunit → down
+#   make test-unit             # Solo tests unitarios (sin servicios externos)
+#   make test-integration      # Solo tests de integración
+#   make test-coverage         # Con reporte de cobertura HTML + Clover
+#   make test-clean            # Eliminar contenedores y volúmenes huérfanos
+#
+# Notas:
+#   - Ningún servicio expone puertos al host (red interna test-net).
+#   - Los datos de MySQL viven en tmpfs: desaparecen al detener el contenedor.
+#   - Redis no tiene contraseña ni persistencia en este entorno.
+#   - Los límites de recursos son conservadores para una máquina de 16 GB.
+# =============================================================================
+
+services:
+
+  # --------------------------------------------------------------------------
+  # BASE DE DATOS de test — MySQL 8.4 con almacenamiento efímero (tmpfs)
+  # --------------------------------------------------------------------------
+  db-test:
+    image: mysql:8.4
+    tmpfs:
+      - /var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: komorebi_test
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.0"
+        reservations:
+          memory: 256m
+    networks:
+      - test-net
+
+  # --------------------------------------------------------------------------
+  # CACHÉ de test — Redis 8 sin contraseña ni persistencia
+  # --------------------------------------------------------------------------
+  cache-test:
+    image: redis:8-alpine
+    command: redis-server --appendonly no --save ""
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: "0.5"
+    networks:
+      - test-net
+
+  # --------------------------------------------------------------------------
+  # PHP TEST — imagen PHP-CLI + pcov; aplica migraciones y corre PHPUnit
+  # --------------------------------------------------------------------------
+  php-test:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile.test
+    volumes:
+      - ./:/app
+    environment:
+      APP_ENV: testing
+      APP_KEY: base64:dGVzdGtleWZvcnVuaXR0ZXN0c29ubHkxMjM0NTY3
+      DB_HOST: db-test
+      DB_PORT: 3306
+      DB_DATABASE: komorebi_test
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      REDIS_HOST: cache-test
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      MAIL_HOST: localhost
+      MAIL_PORT: 1025
+      RUN_INTEGRATION_TESTS: "1"
+    depends_on:
+      db-test:
+        condition: service_healthy
+      cache-test:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "2.0"
+        reservations:
+          memory: 128m
+    # El comando se sobreescribe desde el Makefile (migrations + phpunit)
+    command: ["php", "vendor/bin/phpunit", "--testdox"]
+    networks:
+      - test-net
+
+networks:
+  test-net:
+    driver: bridge
+    # Red completamente aislada — sin acceso a la red de desarrollo

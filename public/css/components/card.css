@@ -1,0 +1,283 @@
+/**
+ * Card Component Styles
+ *
+ * Depends on: design-tokens.css
+ * Version: 1.0.0
+ * Date: 2026-02-13
+ *
+ * Features:
+ * - 4 variants: default, glass, outlined, elevated
+ * - 4 padding sizes: none, sm, md, lg
+ * - Interactive state with hover effect
+ * - Flexible layout with header, body, footer sections
+ */
+
+/* ============================================================================
+   BASE CARD
+   ============================================================================ */
+
+.card {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+
+  /* Appearance */
+  background-color: var(--color-superficie, white);
+  border-radius: var(--radius-lg, 12px);
+  transition: all var(--transition-base, 250ms);
+
+  /* Reset */
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============================================================================
+   PADDING VARIANTS
+   ============================================================================ */
+
+.card--padding-none {
+  padding: 0;
+}
+
+.card--padding-none .card__header,
+.card--padding-none .card__body,
+.card--padding-none .card__footer {
+  padding: 0;
+}
+
+.card--padding-sm .card__header,
+.card--padding-sm .card__body,
+.card--padding-sm .card__footer {
+  padding: var(--space-3, 12px);
+}
+
+.card--padding-md .card__header,
+.card--padding-md .card__body,
+.card--padding-md .card__footer {
+  padding: var(--space-4, 16px);
+}
+
+.card--padding-lg .card__header,
+.card--padding-lg .card__body,
+.card--padding-lg .card__footer {
+  padding: var(--space-6, 24px);
+}
+
+/* ============================================================================
+   STYLE VARIANTS
+   ============================================================================ */
+
+/* DEFAULT - Subtle shadow, clean background */
+.card--default {
+  background-color: white;
+  border: 1px solid var(--color-neutral-200, #e7e5e4);
+  box-shadow: var(--shadow-sm);
+}
+
+/* GLASS - Glassmorphism effect */
+.card--glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Fallback for browsers without backdrop-filter support */
+@supports not (backdrop-filter: blur(10px)) {
+  .card--glass {
+    background: rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* OUTLINED - Border emphasis, no shadow */
+.card--outlined {
+  background-color: white;
+  border: 2px solid var(--color-neutral-300, #d6d3d1);
+  box-shadow: none;
+}
+
+/* ELEVATED - Prominent shadow, lifted appearance */
+.card--elevated {
+  background-color: white;
+  border: none;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ============================================================================
+   SECTIONS
+   ============================================================================ */
+
+.card__header {
+  border-bottom: 1px solid var(--color-neutral-200, #e7e5e4);
+}
+
+.card__body {
+  flex: 1;
+}
+
+.card__footer {
+  border-top: 1px solid var(--color-neutral-200, #e7e5e4);
+}
+
+/* Remove section borders for outlined variant (already has outer border) */
+.card--outlined .card__header,
+.card--outlined .card__footer {
+  border-color: var(--color-neutral-200, #e7e5e4);
+}
+
+/* Remove section borders for glass variant (keep it clean) */
+.card--glass .card__header,
+.card--glass .card__footer {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================================================
+   INTERACTIVE STATE
+   ============================================================================ */
+
+.card--interactive {
+  cursor: pointer;
+  user-select: none;
+}
+
+.card--default.card--interactive:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--color-neutral-300, #d6d3d1);
+}
+
+.card--glass.card--interactive:hover {
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.card--outlined.card--interactive:hover {
+  border-color: var(--color-primary-500, #3a9263);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
+
+.card--elevated.card--interactive:hover {
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-4px);
+}
+
+.card--interactive:active {
+  transform: translateY(0);
+}
+
+/* ============================================================================
+   ACCESSIBILITY
+   ============================================================================ */
+
+/* Focus state for interactive cards */
+.card--interactive:focus {
+  outline: none;
+}
+
+.card--interactive:focus-visible {
+  outline: 2px solid var(--color-primary-500, #3a9263);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring, 0 0 0 3px rgba(58, 146, 99, 0.2));
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .card--interactive:hover {
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   DARK MODE SUPPORT
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .card--default {
+    background-color: var(--color-neutral-800, #292524);
+    border-color: var(--color-neutral-700, #44403c);
+  }
+
+  .card--glass {
+    background: rgba(41, 37, 36, 0.7);
+    border-color: rgba(68, 64, 60, 0.3);
+  }
+
+  .card--outlined {
+    background-color: var(--color-neutral-800, #292524);
+    border-color: var(--color-neutral-600, #57534e);
+  }
+
+  .card--elevated {
+    background-color: var(--color-neutral-800, #292524);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3),
+      0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  }
+
+  .card__header,
+  .card__footer {
+    border-color: var(--color-neutral-700, #44403c);
+  }
+
+  .card--glass .card__header,
+  .card--glass .card__footer {
+    border-color: rgba(68, 64, 60, 0.3);
+  }
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+/* Card with image */
+.card--with-image {
+  padding: 0;
+}
+
+.card--with-image .card__image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.card--with-image .card__body,
+.card--with-image .card__footer {
+  padding: var(--space-4, 16px);
+}
+
+/* Horizontal card layout */
+.card--horizontal {
+  flex-direction: row;
+}
+
+.card--horizontal .card__header {
+  border-bottom: none;
+  border-right: 1px solid var(--color-neutral-200, #e7e5e4);
+  min-width: 200px;
+}
+
+/* Card grid (for layouts with multiple cards) */
+.card-grid {
+  display: grid;
+  gap: var(--space-4, 16px);
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+@media (max-width: 640px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Compact card (for lists) */
+.card--compact .card__header,
+.card--compact .card__body,
+.card--compact .card__footer {
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+}

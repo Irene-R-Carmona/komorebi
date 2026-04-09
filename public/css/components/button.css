@@ -1,0 +1,340 @@
+/**
+ * Button Component Styles
+ *
+ * Depends on: design-tokens.css
+ * Version: 1.0.0
+ * Date: 2026-02-13
+ *
+ * Features:
+ * - 4 variants: primary, secondary, danger, ghost
+ * - 3 sizes: sm, md, lg
+ * - States: hover, active, focus, disabled, loading
+ * - Icon support with Material Symbols
+ * - WCAG 2.1 AA compliant (44px min touch target)
+ * - Reduced motion support
+ */
+
+/* ============================================================================
+   BASE BUTTON
+   ============================================================================ */
+
+.btn {
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+
+  /* Sizing */
+  min-height: var(--touch-target-min, 44px);
+  /* WCAG 2.1 */
+  padding: var(--space-2) var(--space-4);
+
+  /* Typography */
+  font-family: var(--font-sans, system-ui, sans-serif);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  line-height: var(--leading-none, 1);
+  text-decoration: none;
+  text-align: center;
+
+  /* Appearance */
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast, 150ms);
+
+  /* Reset */
+  background: none;
+  color: inherit;
+  user-select: none;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Focus State (WCAG 2.1) */
+.btn:focus {
+  outline: none;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary-500, #3a9263);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring, 0 0 0 3px rgba(58, 146, 99, 0.2));
+}
+
+/* ============================================================================
+   SIZES
+   ============================================================================ */
+
+.btn--sm {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.btn--md {
+  /* Default size - already defined in base */
+  min-height: var(--touch-target-min, 44px);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-base);
+}
+
+.btn--lg {
+  min-height: 52px;
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-lg);
+}
+
+/* ============================================================================
+   VARIANTS
+   ============================================================================ */
+
+/* PRIMARY - Main CTAs */
+.btn--primary {
+  background-color: var(--color-primary-500, #3a9263);
+  color: white;
+  border-color: var(--color-primary-500, #3a9263);
+}
+
+.btn--primary:hover:not(:disabled):not(.btn--disabled) {
+  background-color: var(--color-primary-600, #2a7550);
+  border-color: var(--color-primary-600, #2a7550);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn--primary:active:not(:disabled):not(.btn--disabled) {
+  background-color: var(--color-primary-700, #225d41);
+  border-color: var(--color-primary-700, #225d41);
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* SECONDARY - Secondary actions */
+.btn--secondary {
+  background-color: white;
+  color: var(--color-neutral-700, #44403c);
+  border-color: var(--color-neutral-300, #d6d3d1);
+}
+
+.btn--secondary:hover:not(:disabled):not(.btn--disabled) {
+  background-color: var(--color-neutral-50, #fafaf9);
+  border-color: var(--color-neutral-400, #a8a29e);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.btn--secondary:active:not(:disabled):not(.btn--disabled) {
+  background-color: var(--color-neutral-100, #f5f5f4);
+  transform: translateY(0);
+}
+
+/* DANGER - Destructive actions */
+.btn--danger {
+  background-color: var(--color-danger, #ef4444);
+  color: white;
+  border-color: var(--color-danger, #ef4444);
+}
+
+.btn--danger:hover:not(:disabled):not(.btn--disabled) {
+  background-color: var(--color-danger-dark, #dc2626);
+  border-color: var(--color-danger-dark, #dc2626);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn--danger:active:not(:disabled):not(.btn--disabled) {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* GHOST - Subtle actions */
+.btn--ghost {
+  background-color: transparent;
+  color: var(--color-neutral-700, #44403c);
+  border-color: transparent;
+}
+
+.btn--ghost:hover:not(:disabled):not(.btn--disabled) {
+  background-color: var(--color-neutral-100, #f5f5f4);
+}
+
+.btn--ghost:active:not(:disabled):not(.btn--disabled) {
+  background-color: var(--color-neutral-200, #e7e5e4);
+}
+
+/* ============================================================================
+   STATES
+   ============================================================================ */
+
+/* DISABLED */
+.btn--disabled,
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* CARGANDO */
+.btn--loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.btn--loading .btn__label {
+  visibility: hidden;
+}
+
+.btn--loading .btn__icon {
+  visibility: hidden;
+}
+
+/* ============================================================================
+   ICON
+   ============================================================================ */
+
+.btn__icon {
+  font-size: 1.25em;
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+/* Icon-only button (no label) */
+.btn:has(.btn__icon):not(:has(.btn__label)) {
+  padding: var(--space-2);
+  min-width: var(--touch-target-min, 44px);
+}
+
+/* ============================================================================
+   SPINNER (Loading State)
+   ============================================================================ */
+
+.btn__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--radius-full, 9999px);
+  animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* ============================================================================
+   ACCESSIBILITY
+   ============================================================================ */
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+
+  .btn:hover:not(:disabled):not(.btn--disabled) {
+    transform: none;
+  }
+
+  .btn__spinner {
+    animation: none;
+    /* Show static loading indicator */
+    border-top-color: currentColor;
+    border-right-color: transparent;
+  }
+}
+
+/* High Contrast Mode (Windows) */
+@media (prefers-contrast: high) {
+  .btn {
+    border-width: 2px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .btn--secondary {
+    background-color: var(--color-neutral-800, #292524);
+    color: var(--color-neutral-100, #f5f5f4);
+    border-color: var(--color-neutral-600, #57534e);
+  }
+
+  .btn--secondary:hover:not(:disabled):not(.btn--disabled) {
+    background-color: var(--color-neutral-700, #44403c);
+    border-color: var(--color-neutral-500, #78716c);
+  }
+
+  .btn--ghost {
+    color: var(--color-neutral-100, #f5f5f4);
+  }
+
+  .btn--ghost:hover:not(:disabled):not(.btn--disabled) {
+    background-color: var(--color-neutral-800, #292524);
+  }
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+/* Full width button */
+.btn--full {
+  width: 100%;
+}
+
+/* Icon-only button (explicit) */
+.btn--icon-only {
+  padding: var(--space-2);
+  min-width: var(--touch-target-min, 44px);
+}
+
+.btn--icon-only .btn__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Button group */
+.btn-group {
+  display: inline-flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.btn-group--attached {
+  gap: 0;
+}
+
+.btn-group--attached .btn {
+  border-radius: 0;
+}
+
+.btn-group--attached .btn:first-child {
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.btn-group--attached .btn:last-child {
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.btn-group--attached .btn:not(:last-child) {
+  border-right: none;
+}

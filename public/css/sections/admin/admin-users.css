@@ -1,0 +1,530 @@
+/**
+ * Admin Users Styles
+ * ============================================================================
+ * Estilos específicos para gestión de usuarios.
+ *
+ * Secciones:
+ * - User Table
+ * - User Avatar
+ * - Role Badges
+ * - User Modal
+ * - Password Field
+ *
+ * @version 1.0.0
+ * @requires admin-common.css
+ */
+
+/* ============================================================================
+   USER TABLE
+   ============================================================================ */
+
+.user-row {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.user-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--admin-primary);
+  transform: scaleY(0);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-row:hover::before {
+  transform: scaleY(1);
+}
+
+.user-row:hover {
+  background: linear-gradient(to right, rgba(0, 102, 204, 0.03), transparent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.user-row--inactive {
+  opacity: 0.65;
+}
+
+.user-row--inactive:hover {
+  opacity: 0.85;
+}
+
+/* User info cell */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--admin-space-sm);
+}
+
+.user-info__details {
+  min-width: 0;
+  flex: 1;
+}
+
+.user-info__name {
+  font-weight: 600;
+  color: var(--admin-text);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-info__email {
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================================
+   USER AVATAR
+   ============================================================================ */
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--admin-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--admin-primary), #0066CC);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.user-avatar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2));
+  opacity: 0;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-row:hover .user-avatar::before {
+  opacity: 1;
+}
+
+.user-row:hover .user-avatar {
+  transform: scale(1.1) rotate(-5deg);
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+}
+
+.user-avatar--sm {
+  width: 32px;
+  height: 32px;
+  font-size: 0.75rem;
+}
+
+.user-avatar--lg {
+  width: 56px;
+  height: 56px;
+  font-size: 1.25rem;
+}
+
+/* Avatar con imagen */
+.user-avatar--image {
+  padding: 0;
+  overflow: hidden;
+}
+
+.user-avatar--image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Variantes de color basadas en rol */
+.user-avatar--admin {
+  background: linear-gradient(135deg, #DC2626, #B91C1C);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+}
+
+.user-avatar--manager {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+}
+
+.user-avatar--supervisor {
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+.user-avatar--staff {
+  background: linear-gradient(135deg, #10B981, #059669);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+/* ============================================================================
+   ROLE BADGES
+   ============================================================================ */
+
+.role-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: var(--admin-radius-md);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+}
+
+.role-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.role-badge--admin {
+  background: #FEE2E2;
+  color: #991B1B;
+  border-color: #FCA5A5;
+}
+
+.role-badge--manager {
+  background: #FEF3C7;
+  color: #92400E;
+  border-color: #FCD34D;
+}
+
+.role-badge--supervisor {
+  background: #DBEAFE;
+  color: #1E40AF;
+  border-color: #93C5FD;
+}
+
+.role-badge--reception {
+  background: #E0E7FF;
+  color: #3730A3;
+  border-color: #A5B4FC;
+}
+
+.role-badge--kitchen {
+  background: #D1FAE5;
+  color: #065F46;
+  border-color: #6EE7B7;
+}
+
+.role-badge--keeper {
+  background: #EDE9FE;
+  color: #5B21B6;
+  border-color: #C4B5FD;
+}
+
+.role-badge--user {
+  background: #F3F4F6;
+  color: #374151;
+  border-color: #D1D5DB;
+}
+
+/* ============================================================================
+   USER STATUS
+   ============================================================================ */
+
+.user-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--admin-radius-md);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-status:hover {
+  transform: translateY(-1px);
+}
+
+.user-status--active {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #6EE7B7;
+}
+
+.user-status--inactive {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+}
+
+.user-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--admin-radius-full);
+  background: currentColor;
+  position: relative;
+}
+
+.user-status--active .user-status__dot {
+  animation: pulse-status-active 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-status-active {
+  0% {
+    box-shadow: 0 0 0 0 rgba(6, 95, 70, 0.7);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(6, 95, 70, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(6, 95, 70, 0);
+  }
+}
+}
+
+/* ============================================================================
+   USER MODAL
+   ============================================================================ */
+
+.user-modal__avatar-preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--admin-space-lg);
+}
+
+.user-modal__section {
+  margin-bottom: var(--admin-space-lg);
+  padding-bottom: var(--admin-space-lg);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.user-modal__section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.user-modal__section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin-bottom: var(--admin-space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--admin-space-sm);
+}
+
+/* ============================================================================
+   PASSWORD FIELD
+   ============================================================================ */
+
+.password-field {
+  position: relative;
+}
+
+.password-field__input {
+  padding-right: 3rem;
+}
+
+.password-field__toggle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  transition: color var(--admin-transition-fast);
+}
+
+.password-field__toggle:hover {
+  color: var(--admin-text);
+}
+
+.password-field__toggle:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: -2px;
+}
+
+/* Password strength indicator */
+.password-strength {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: var(--admin-space-sm);
+}
+
+.password-strength__bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--admin-border);
+  transition: background-color var(--admin-transition-fast);
+}
+
+.password-strength--weak .password-strength__bar:nth-child(1) {
+  background: var(--admin-error);
+}
+
+.password-strength--medium .password-strength__bar:nth-child(-n+2) {
+  background: var(--admin-warning);
+}
+
+.password-strength--strong .password-strength__bar:nth-child(-n+3) {
+  background: var(--admin-info);
+}
+
+.password-strength--very-strong .password-strength__bar {
+  background: var(--admin-success);
+}
+
+.password-strength__text {
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* ============================================================================
+   TABLE SORTABLE HEADERS
+   ============================================================================ */
+
+.th-sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.th-sortable:hover {
+  background-color: var(--admin-bg);
+}
+
+.th-sortable__content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.th-sortable__icon {
+  font-size: 0.75rem;
+  opacity: 0.4;
+  transition: opacity var(--admin-transition-fast);
+}
+
+.th-sortable:hover .th-sortable__icon,
+.th-sortable--active .th-sortable__icon {
+  opacity: 1;
+}
+
+.th-sortable--asc .th-sortable__icon::before {
+  content: "\F128";
+  /* bi-sort-down */
+}
+
+.th-sortable--desc .th-sortable__icon::before {
+  content: "\F127";
+  /* bi-sort-up */
+}
+
+/* ============================================================================
+   FILTER BUTTONS GROUP
+   ============================================================================ */
+
+.filter-btn-group {
+  display: inline-flex;
+  border-radius: var(--admin-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+}
+
+.filter-btn-group__btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  background: var(--admin-surface);
+  border: none;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  transition: all var(--admin-transition-fast);
+}
+
+.filter-btn-group__btn:not(:last-child) {
+  border-right: 1px solid var(--admin-border);
+}
+
+.filter-btn-group__btn:hover {
+  background: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.filter-btn-group__btn--active {
+  background: var(--admin-primary);
+  color: var(--admin-text-light);
+}
+
+.filter-btn-group__btn--active:hover {
+  background: var(--admin-primary-hover);
+  color: var(--admin-text-light);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 991.98px) {
+  .user-info__email {
+    display: none;
+  }
+
+  .role-badges {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .filter-btn-group {
+    width: 100%;
+  }
+
+  .filter-btn-group__btn {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+/* ============================================================================
+   PRINT
+   ============================================================================ */
+
+@media print {
+  .user-avatar {
+    border: 1px solid #ccc !important;
+    background: #f5f5f5 !important;
+    color: #333 !important;
+  }
+
+  .role-badge,
+  .user-status {
+    border: 1px solid currentColor;
+  }
+}

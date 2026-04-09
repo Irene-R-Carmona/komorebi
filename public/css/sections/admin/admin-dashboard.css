@@ -1,0 +1,578 @@
+/**
+ * Admin Dashboard Styles
+ * ============================================================================
+ * Estilos específicos para el dashboard principal.
+ *
+ * @version 2.0.0 - Refactorización completa (elimina inline styles y clases de IA)
+ * @requires backoffice-modern.css
+ */
+
+/* ============================================================================
+   ALPINE.JS CLOAK
+   ============================================================================ */
+
+[x-cloak] {
+  display: none !important;
+}
+
+/* ============================================================================
+   DASHBOARD HEADER
+   ============================================================================ */
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dashboard-header__title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+  line-height: 1.2;
+}
+
+.dashboard-header__subtitle {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 400;
+}
+
+.dashboard-header__meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dashboard-header__date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+/* ============================================================================
+   QUICK ACTIONS GRID
+   ============================================================================ */
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--admin-space-md);
+  margin-bottom: var(--admin-space-lg);
+}
+
+.quick-action-card {
+  display: flex;
+  align-items: center;
+  gap: var(--admin-space-md);
+  padding: var(--admin-space-md);
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  text-decoration: none;
+  color: var(--admin-text);
+  transition: all var(--admin-transition);
+}
+
+.quick-action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-md);
+  border-color: var(--admin-accent);
+  color: var(--admin-primary);
+}
+
+.quick-action-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-primary-light);
+  color: var(--admin-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.quick-action-card__content {
+  flex: 1;
+}
+
+.quick-action-card__title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+.quick-action-card__desc {
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+  margin: 0;
+}
+
+/* ============================================================================
+   DASHBOARD GRID LAYOUT
+   ============================================================================ */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--admin-space-lg);
+}
+
+@media (max-width: 1199.98px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================================
+   ACTIVITY FEED (reemplaza estructura inline de IA)
+   ============================================================================ */
+
+.activity-feed {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  border-left: 3px solid transparent;
+  background: linear-gradient(to right, transparent, var(--bg-secondary));
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.activity-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: currentColor;
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.activity-item:hover {
+  transform: translateX(4px);
+  background: var(--surface-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.activity-item:hover::before {
+  width: 4px;
+}
+
+.activity-item--success {
+  color: var(--success-500);
+  border-left-color: var(--success-500);
+}
+
+.activity-item--success .activity-item__icon {
+  background: linear-gradient(135deg, var(--success-500), #2E8B57);
+  box-shadow: 0 4px 12px rgba(46, 139, 87, 0.25);
+}
+
+.activity-item--info {
+  color: var(--info-500);
+  border-left-color: var(--info-500);
+}
+
+.activity-item--info .activity-item__icon {
+  background: linear-gradient(135deg, var(--info-500), #4A8DB5);
+  box-shadow: 0 4px 12px rgba(90, 159, 212, 0.25);
+}
+
+.activity-item--warning {
+  color: var(--warning-500);
+  border-left-color: var(--warning-500);
+}
+
+.activity-item--warning .activity-item__icon {
+  background: linear-gradient(135deg, #FFB347, #FF9500);
+  box-shadow: 0 4px 12px rgba(255, 179, 71, 0.25);
+}
+
+.activity-item__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.activity-item:hover .activity-item__icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.activity-item__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-item__text {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.activity-item__meta {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* ============================================================================
+   SYSTEM STATUS (reemplaza estructura inline de IA)
+   ============================================================================ */
+
+.system-status {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.125rem;
+  border-radius: var(--radius-lg);
+  border: 2px solid transparent;
+  background: var(--surface-primary);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.status-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.status-item--online {
+  border-color: var(--success-500);
+  background: linear-gradient(to right, var(--success-50), var(--surface-primary));
+}
+
+.status-item--warning {
+  border-color: var(--warning-500);
+  background: linear-gradient(to right, var(--warning-50), var(--surface-primary));
+}
+
+.status-item--offline {
+  border-color: var(--danger-500);
+  background: linear-gradient(to right, var(--danger-50), var(--surface-primary));
+}
+
+.status-item__info {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.status-item__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.375rem;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.status-item:hover .status-item__icon {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.status-item--online .status-item__icon {
+  color: var(--success-500);
+}
+
+.status-item--warning .status-item__icon {
+  color: var(--warning-500);
+}
+
+.status-item--offline .status-item__icon {
+  color: var(--danger-500);
+}
+
+.status-item__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.status-item__label {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.status-item__desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.status-item__indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-md);
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.status-item__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-dot {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.status-item--online .status-item__dot {
+  background: var(--success-500);
+  box-shadow: 0 0 0 0 rgba(46, 139, 87, 0.7);
+  animation: pulse-success 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-success {
+  0% {
+    box-shadow: 0 0 0 0 rgba(46, 139, 87, 0.7);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(46, 139, 87, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(46, 139, 87, 0);
+  }
+}
+
+.status-item--warning .status-item__dot {
+  background: var(--warning-500);
+  box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.7);
+  animation: pulse-warning 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-warning {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.7);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(255, 149, 0, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 149, 0, 0);
+  }
+}
+
+.status-item--offline .status-item__dot {
+  background: var(--danger-500);
+  box-shadow: none;
+  animation: none;
+}
+
+.status-item__status {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.status-item--online .status-item__status {
+  color: var(--success-500);
+}
+
+.status-item--warning .status-item__status {
+  color: var(--warning-500);
+}
+
+.status-item--offline .status-item__status {
+  color: var(--danger-500);
+}
+
+/* ============================================================================
+   CHART CONTAINER
+   ============================================================================ */
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+.chart-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--surface-primary);
+  z-index: 1;
+}
+
+.chart-loading p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   TABLE CELLS (elimina inline styles)
+   ============================================================================ */
+
+.table-cell-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.table-cell-user__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gradient-coffee);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.table-cell-user__name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.table-cell--secondary {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.table-cell-date__main {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.table-cell-date__time {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-top: 0.125rem;
+}
+
+/* ============================================================================
+   EMPTY STATE (elimina emoji y inline styles)
+   ============================================================================ */
+
+.empty-state {
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.empty-state__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--text-tertiary);
+  opacity: 0.5;
+}
+
+.empty-state__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state__text {
+  color: var(--text-secondary);
+  margin: 0 0 1.5rem 0;
+  font-size: 0.875rem;
+}
+
+/* Empty state compacto para tarjetas pequeñas */
+.empty-state--compact {
+  padding: 2rem 1rem;
+}
+
+.empty-state--compact .empty-state__icon {
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state--compact .empty-state__text {
+  margin: 0;
+  font-size: 0.8125rem;
+}

@@ -1,0 +1,118 @@
+<?php
+
+declare(strict_types=1);
+
+
+/**
+ * ¿Qué pruebas aquí?
+ * ¿Qué me quieres demostrar?
+ * ¿Qué va a fallar en este test si se cambia el código?
+ */
+use App\Core\Middleware;
+use App\Core\Session;
+use App\Exceptions\MiddlewareException;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * Tests para Middleware RBAC (can, role, auth)
+ */
+final class MiddlewareTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        // Asegurar que la sesión está iniciada y limpia para tests
+        Session::start();
+        $_SESSION = [];
+    }
+
+    protected function tearDown(): void
+    {
+        $_SESSION = [];
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Permisos (can)
+    // ─────────────────────────────────────────────────────────────
+
+    public function testCanWithPermissionPasses(): void
+    {
+        // Simular sesión con user_id, roles y cache de permisos
+        $_SESSION['user_id'] = 1;
+        $_SESSION['user_roles'] = ['user'];
+        $_SESSION['user_permissions'] = [
+            'user.profile.view' => true,
+            'reservation.create' => true,
+        ];
+
+        // No debe lanzar excepción
+        Middleware::can('reservation.create');
+
+        $this->assertTrue(true);
+    }
+
+    public function testCanWithoutPermissionThrows(): void
+    {
+        $_SESSION['user_id'] = 1;
+        $_SESSION['user_roles'] = ['user'];
+        $_SESSION['user_permissions'] = [
+            'user.profile.view' => true,
+        ];
+
+        $this->expectException(MiddlewareException::class);
+
+        Middleware::can('admin.users.delete');
+    }
+
+    public function testCanWithWildcardPermissionPasses(): void
+    {
+        $_SESSION['user_id'] = 1;
+        $_SESSION['user_roles'] = ['super_admin'];
+        $_SESSION['user_permissions'] = ['*' => true]; // Wildcard
+
+        // Admin puede acceder a cualquier permiso
+        Middleware::can('admin.users.delete');
+        Middleware::can('reservation.cancel');
+
+        $this->assertTrue(true);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Autenticación (auth)
+    // ─────────────────────────────────────────────────────────────
+
+    public function testAuthWithAuthenticatedUserPasses(): void
+    {
+        $_SESSION['user_id'] = 1;
+
+        // No debe lanzar excepción
+        Middleware::auth();
+
+        $this->assertTrue(true);
+    }
+
+    public function testAuthWithGuestThrows(): void
+    {
+        // No hay user_id en sesión
+        unset($_SESSION['user_id']);
+
+        $this->expectException(MiddlewareException::class);
+
+        Middleware::auth();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Edge cases
+    // ─────────────────────────────────────────────────────────────
+
+    public function testCanWithEmptyPermissionsArrayThrows(): void
+    {
+        // Usar user_id sin permisos en la BD para evitar dependencia de datos reales
+        $_SESSION['user_id'] = 999999;
+        $_SESSION['user_roles'] = ['user'];
+        $_SESSION['user_permissions'] = []; // Sin permisos
+
+        $this->expectException(MiddlewareException::class);
+
+        Middleware::can('reservation.create');
+    }
+}

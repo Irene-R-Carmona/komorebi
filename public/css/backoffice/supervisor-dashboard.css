@@ -1,0 +1,132 @@
+/**
+ * Supervisor Dashboard - Estilos específicos
+ */
+
+.bento-grid--supervisor {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+/* Reservas */
+.reservation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.reservation-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--card-bg, white);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.reservation-card__time {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-600, #2563eb);
+  min-width: 4rem;
+}
+
+.reservation-card__info h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.reservation-card__info p {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+/* Status badge is now handled by badge component */
+.reservation-card .badge {
+  margin-left: auto;
+}
+
+/* Mesas */
+.table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.table-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 2px solid;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.table-cell--free {
+  border-color: #10b981;
+  background: #d1fae5;
+}
+
+.table-cell--occupied {
+  border-color: #ef4444;
+  background: #fee2e2;
+}
+
+.table-cell__code {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.table-cell__capacity {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 0.5rem;
+}
+
+/* Status badge is now handled by badge component */
+.table-cell__status.badge {
+  margin-top: 0.5rem;
+}
+
+/* Órdenes */
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.order-card {
+  padding: 1rem;
+  background: var(--card-bg, white);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.order-card__header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.order-card__items {
+  margin-bottom: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+/* Status badge is now handled by badge component */
+.order-card .badge {
+  display: inline-block;
+}
+
+[x-cloak] {
+  display: none !important;
+}

@@ -1,0 +1,512 @@
+/* ============================================================================
+   SECCIÓN: DASHBOARD USUARI
+   ============================================================================ */
+
+.profile-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-bottom: 4rem;
+    display: grid;
+    gap: 3rem;
+    /* Animación de entrada suave */
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* --- BLOQUE SUPERIOR: DASHBOARD --- */
+.dashboard-header {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 850px) {
+    .dashboard-header {
+        grid-template-columns: 1.2fr 1fr; /* Tarjeta Membresía | Próxima Aventura */
+    }
+}
+
+/* 1. TARJETA DE MEMBRESÍA (Gamificación) */
+.member-card {
+    background: linear-gradient(135deg, var(--color-primario) 0%, #3e2b24 100%);
+    border-radius: var(--radio-lg);
+    padding: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 15px 30px rgba(92, 61, 46, 0.3);
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Patrón de fondo decorativo */
+.member-card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.3;
+    transform: rotate(30deg);
+}
+
+.member-card__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    position: relative;
+    z-index: 2;
+}
+
+.member-card__logo {
+    font-family: var(--fuente-titulo);
+    font-size: 1.2rem;
+    opacity: 0.8;
+}
+
+.member-card__tier {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(4px);
+}
+
+.member-card__user {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.member-card__avatar {
+    width: 70px;
+    height: 70px;
+    background: white;
+    color: var(--color-primario);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.member-card__info h2 {
+    font-size: 1.5rem;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.member-card__info p {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin: 0;
+}
+
+.member-card__stats {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    opacity: 0.9;
+    font-family: var(--fuente-acento);
+}
+
+/* 2. WIDGET PRÓXIMA AVENTURA (UX: Visibilidad de estado) */
+.next-adventure {
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-lg);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+}
+
+.next-adventure--empty {
+    text-align: center;
+    color: var(--color-texto-suave);
+    background-color: rgba(0, 0, 0, 0.02);
+    border-style: dashed;
+}
+
+.next-adventure__label {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    color: var(--color-acento);
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.next-adventure__card {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.next-adventure__img {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radio-md);
+    object-fit: cover;
+}
+
+.next-adventure__details h3 {
+    margin: 0 0 0.3rem 0;
+    font-size: 1.2rem;
+    color: var(--color-primario);
+}
+
+.next-adventure__details p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--color-texto);
+}
+
+.next-adventure__cta {
+    margin-top: 1.5rem;
+    align-self: flex-start;
+}
+
+/* --- BLOQUE INFERIOR: CONFIGURACIÓN (Grid) --- */
+.settings-grid {
+    display: grid;
+    gap: 2rem;
+}
+
+@media (min-width: 768px) {
+    .settings-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.settings-box {
+    background: var(--color-superficie);
+    padding: 2rem;
+    border-radius: var(--radio-lg);
+    border: 1px solid var(--color-borde);
+    box-shadow: var(--sombra-sm);
+}
+
+.settings-header {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-borde);
+    padding-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.settings-icon {
+    font-size: 1.5rem;
+}
+
+.settings-title {
+    font-size: 1.1rem;
+    margin: 0;
+    color: var(--color-primario);
+}
+
+/* Botones de acción específicos */
+.btn-update {
+    background: var(--color-fondo);
+    color: var(--color-texto);
+    border: 1px solid var(--color-borde);
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.8rem;
+    border-radius: var(--radio-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-update:hover {
+    border-color: var(--color-primario);
+    color: var(--color-primario);
+    background: white;
+}
+
+.btn-danger-outline {
+    background: transparent;
+    color: var(--color-error);
+    border: 1px solid rgba(155, 35, 53, 0.3);
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.8rem;
+    border-radius: var(--radio-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-danger-outline:hover {
+    background: var(--color-error);
+    color: white;
+}
+
+/* Barra de progreso dentro de member-card */
+.member-progress {
+    margin-top: 0.75rem;
+    position: relative;
+    z-index: 2;
+}
+
+.member-progress__bar {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.25);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.member-progress__fill {
+    height: 100%;
+    width: var(--progress, 0%);
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.55));
+}
+
+/* Badge/estado dentro del widget "Próxima aventura" */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    border: 1px solid var(--color-borde);
+    background: rgba(0, 0, 0, 0.03);
+    color: var(--color-texto);
+    margin-top: 0.5rem;
+}
+
+.status-pill--pending {
+    background: rgba(255, 193, 7, 0.15);
+    border-color: rgba(255, 193, 7, 0.35);
+}
+
+.status-pill--confirmed {
+    background: rgba(46, 196, 182, 0.12);
+    border-color: rgba(46, 196, 182, 0.35);
+}
+
+.status-pill--active {
+    background: rgba(76, 175, 80, 0.12);
+    border-color: rgba(76, 175, 80, 0.35);
+}
+
+/* Acciones del widget */
+.next-adventure__actions {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SECCIÓN: MIS RESEÑAS
+────────────────────────────────────────────────────────────────────────── */
+
+.my-reviews-section {
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-md);
+    padding: var(--espaciado-lg);
+    box-shadow: var(--sombra-sm);
+}
+
+.my-reviews-section .settings-header {
+    display: flex;
+    align-items: center;
+    gap: var(--espaciado-sm);
+    margin-bottom: var(--espaciado-md);
+    padding-bottom: var(--espaciado-md);
+    border-bottom: 2px solid var(--color-borde);
+}
+
+.my-reviews-section .settings-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-texto);
+}
+
+/* Empty state */
+.reviews-empty {
+    text-align: center;
+    padding: var(--espaciado-lg);
+    background: var(--color-fondo-alt);
+    border-radius: var(--radio-md);
+    color: var(--color-texto-suave);
+}
+
+.reviews-empty p {
+    margin: 0 0 var(--espaciado-md) 0;
+    line-height: 1.6;
+}
+
+/* Listado de mis reseñas */
+.my-reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaciado-md);
+}
+
+.my-review-card {
+    padding: var(--espaciado-md);
+    background: var(--color-fondo-alt);
+    border-left: 4px solid var(--color-acento);
+    border-radius: var(--radio-sm);
+    transition: all var(--transicion);
+}
+
+.my-review-card:hover {
+    background: linear-gradient(135deg, var(--color-fondo-alt) 0%, rgba(201, 169, 89, 0.05) 100%);
+    transform: translateX(4px);
+}
+
+.my-review__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--espaciado-sm);
+    margin-bottom: var(--espaciado-sm);
+}
+
+.my-review__top {
+    flex: 1;
+}
+
+.my-review__title {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-texto);
+}
+
+.my-review__cafe {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--color-texto-suave);
+}
+
+.my-review__status {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    background: var(--color-fondo);
+    color: var(--color-texto-suave);
+}
+
+.my-review__status--status-pending {
+    background: rgba(255, 193, 7, 0.15);
+    color: #f57f17;
+}
+
+.my-review__status--status-approved {
+    background: rgba(94, 111, 100, 0.15);
+    color: var(--color-exito);
+}
+
+.my-review__status--status-rejected {
+    background: rgba(155, 35, 53, 0.15);
+    color: var(--color-error);
+}
+
+.my-review__rating {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: var(--espaciado-sm);
+    font-size: 1rem;
+}
+
+.my-review__body {
+    margin: 0 0 var(--espaciado-sm) 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--color-texto-suave);
+}
+
+.my-review__meta {
+    font-size: 0.8rem;
+    color: #999;
+    margin-bottom: var(--espaciado-sm);
+}
+
+.my-review__actions {
+    display: flex;
+    gap: var(--espaciado-sm);
+    padding-top: var(--espaciado-sm);
+    border-top: 1px solid rgba(212, 196, 168, 0.3);
+}
+
+.btn-icon-text {
+    background: none;
+    border: none;
+    color: var(--color-acento);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color var(--transicion);
+    padding: 0.25rem 0.5rem;
+}
+
+.btn-icon-text:hover {
+    color: var(--color-acento-hover);
+}
+
+.btn-icon-text--danger {
+    color: var(--color-error);
+}
+
+.btn-icon-text--danger:hover {
+    color: #c73b52;
+}
+
+.my-review__rejection-reason {
+    margin-top: var(--espaciado-sm);
+    padding: var(--espaciado-sm);
+    background: rgba(155, 35, 53, 0.08);
+    border-left: 3px solid var(--color-error);
+    border-radius: var(--radio-sm);
+    font-size: 0.85rem;
+    color: var(--color-error);
+    line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+    .my-review-card {
+        padding: var(--espaciado-sm);
+    }
+
+    .my-review__header {
+        flex-direction: column;
+    }
+
+    .my-review__actions {
+        flex-wrap: wrap;
+    }
+
+    .btn-icon-text {
+        flex: 1;
+        text-align: center;
+        padding: 0.5rem;
+    }
+}

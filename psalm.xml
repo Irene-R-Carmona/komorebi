@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<psalm
+    errorLevel="5"
+    resolveFromConfigFile="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+    errorBaseline=".quality/baselines/psalm-baseline.xml"
+    findUnusedBaselineEntry="false"
+    findUnusedCode="true"
+>
+    <projectFiles>
+        <directory name="app" />
+        <ignoreFiles>
+            <directory name="vendor" />
+            <directory name="storage" />
+            <directory name="public" />
+            <directory name="resources" />
+        </ignoreFiles>
+    </projectFiles>
+
+    <issueHandlers>
+        <!-- Nivel 5 es el recomendado para proyectos académicos -->
+        <!-- Permite cierta flexibilidad sin comprometer la calidad -->
+
+        <!-- Ignorar warnings de mixed types en arrays de BD -->
+        <MixedAssignment errorLevel="suppress" />
+        <MixedArgument errorLevel="suppress" />
+        <MixedArrayAccess errorLevel="suppress" />
+
+        <!-- Suprimir errores de propiedades no inicializadas en modelos de BD -->
+        <PropertyNotSetInConstructor errorLevel="suppress" />
+
+        <!-- Permitir array shapes sin definir exactamente -->
+        <MixedReturnStatement errorLevel="info" />
+
+        <!-- Ignorar posibles nulls en superglobals -->
+        <PossiblyNullArgument errorLevel="info" />
+    </issueHandlers>
+
+    <plugins>
+        <!-- Plugin para mejor análisis de arrays -->
+    </plugins>
+</psalm>

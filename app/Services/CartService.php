@@ -1,0 +1,324 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Core\Session;
+use App\Models\Product;
+use App\Models\ReservationItem;
+
+/**
+ * Servicio de Carrito de Compras
+ *
+ * Gestiona el carrito en sesión para pedidos durante la visita.
+ * Solo permite productos tipo 'item' (no pases).
+ */
+final class CartService
+{
+    private const string SESSION_KEY = 'cart';
+    private const int MAX_QTY_PER_ITEM = 99;
+    private const int MAX_UNIQUE_ITEMS = 50;
+
+    private Product $productModel;
+
+    public function __construct(?Product $productModel = null)
+    {
+        $this->productModel = $productModel ?? new Product();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Lectura
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Obtiene el carrito actual.
+     *
+     * @return array{items: array<int, int>, totalQty: int, totalPrice: float}
+     */
+    public function get(): array
+    {
+        $cart = Session::get(self::SESSION_KEY);
+
+        if (!\is_array($cart) || !isset($cart['items'])) {
+            return $this->emptyCart();
+        }
+
+        // Asegurar tipos correctos
+        return [
+            'items' => \is_array($cart['items']) ? $cart['items'] : [],
+            'totalQty' => (int) ($cart['totalQty'] ?? 0),
+            'totalPrice' => (float) ($cart['totalPrice'] ?? 0.0),
+        ];
+    }
+
+    /**
+     * Obtiene el carrito con detalles de productos.
+     *
+     * @return array{items: array, totalQty: int, totalPrice: float}
+     */
+    public function getWithDetails(): array
+    {
+        $cart = $this->get();
+
+        if (empty($cart['items'])) {
+            return [
+                'items' => [],
+                'totalQty' => 0,
+                'totalPrice' => 0.0,
+            ];
+        }
+
+        $productIds = \array_keys($cart['items']);
+        $products = $this->productModel->findByIds($productIds);
+
+        $detailedItems = [];
+        foreach ($cart['items'] as $productId => $qty) {
+            $product = $products[$productId] ?? null;
+
+            $isAvailable = $product['is_active'] ?? false;
+            if ($product && $isAvailable) {
+                $detailedItems[] = [
+                    'product_id' => $productId,
+                    'name' => $product['name'],
+                    'japanese_name' => $product['japanese_name'],
+                    'price' => (int) $product['price'],
+                    'quantity' => (int) $qty,
+                    'subtotal' => (int) $product['price'] * (int) $qty,
+                    'image_url' => $product['image_url'],
+                    'station' => $product['station'],
+                ];
+            }
+        }
+
+        return [
+            'items' => $detailedItems,
+            'totalQty' => $cart['totalQty'],
+            'totalPrice' => $cart['totalPrice'],
+        ];
+    }
+
+    /**
+     * Verifica si el carrito está vacío.
+     */
+    public function isEmpty(): bool
+    {
+        $cart = $this->get();
+
+        return empty($cart['items']);
+    }
+
+    /**
+     * Obtiene la cantidad de un producto específico.
+     */
+    public function getQuantity(int $productId): int
+    {
+        $cart = $this->get();
+
+        return (int) ($cart['items'][$productId] ?? 0);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Modificación
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Añade un producto al carrito.
+     */
+    public function add(int $productId, int $quantity = 1): array
+    {
+        return $this->updateItem($productId, $quantity);
+    }
+
+    /**
+     * Establece la cantidad exacta de un producto.
+     */
+    public function setQuantity(int $productId, int $quantity): array
+    {
+        $cart = $this->get();
+        $currentQty = (int) ($cart['items'][$productId] ?? 0);
+        $change = $quantity - $currentQty;
+
+        return $this->updateItem($productId, $change);
+    }
+
+    /**
+     * Elimina un producto del carrito.
+     */
+    public function remove(int $productId): array
+    {
+        $cart = $this->get();
+
+        if (isset($cart['items'][$productId])) {
+            unset($cart['items'][$productId]);
+            Session::set(self::SESSION_KEY, $cart);
+            $this->recalculate();
+        }
+
+        return $this->get();
+    }
+
+    /**
+     * Actualiza la cantidad de un producto.
+     *
+     * @param integer $change Cambio en cantidad (+/-)
+     */
+    public function updateItem(int $productId, int $change): array
+    {
+        if ($productId <= 0 || $change === 0) {
+            return $this->get();
+        }
+
+        // Validar que el producto existe y es un item disponible
+        $product = $this->productModel->findById($productId);
+
+        $cart = $this->get();
+
+        $isAvailable = $product['is_active'] ?? false;
+        // Combinar validaciones para limitar retornos
+        if (
+            !$product || !$isAvailable || $product['product_type'] !== 'item' ||
+            (!isset($cart['items'][$productId]) && \count($cart['items']) >= self::MAX_UNIQUE_ITEMS)
+        ) {
+            return $this->get();
+        }
+
+        $currentQty = (int) ($cart['items'][$productId] ?? 0);
+        $newQty = $currentQty + $change;
+
+        if ($newQty <= 0) {
+            unset($cart['items'][$productId]);
+        } else {
+            $cart['items'][$productId] = \min(self::MAX_QTY_PER_ITEM, $newQty);
+        }
+
+        Session::set(self::SESSION_KEY, $cart);
+        $this->recalculate();
+
+        return $this->get();
+    }
+
+    /**
+     * Vacía el carrito.
+     */
+    public function clear(): void
+    {
+        Session::remove(self::SESSION_KEY);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Conversión a Reserva
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Obtiene los items del carrito formateados para crear reservation_items.
+     *
+     * @return array<int, array{product_id: int, quantity: int, unit_price: float}>
+     */
+    public function getItemsForReservation(): array
+    {
+        $cart = $this->getWithDetails();
+        $items = [];
+
+        foreach ($cart['items'] as $item) {
+            $items[] = [
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'unit_price' => (float) $item['price'],
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Transfiere el carrito a una reserva y lo vacía.
+     */
+    public function transferToReservation(int $reservationId): bool
+    {
+        $items = $this->getItemsForReservation();
+
+        if (empty($items)) {
+            return true;
+        }
+
+        $reservationItem = new ReservationItem();
+
+        foreach ($items as $item) {
+            $reservationItem->add(
+                $reservationId,
+                $item['product_id'],
+                $item['quantity'],
+                $item['unit_price']
+            );
+        }
+
+        $this->clear();
+
+        return true;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Helpers privados
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Recalcula totales del carrito.
+     */
+    private function recalculate(): void
+    {
+        $cart = $this->get();
+
+        if (empty($cart['items'])) {
+            Session::set(self::SESSION_KEY, $this->emptyCart());
+
+            return;
+        }
+
+        $productIds = \array_keys($cart['items']);
+        $products = $this->productModel->findByIds($productIds);
+
+        $totalQty = 0;
+        $totalPrice = 0.0;
+        $validItems = [];
+
+        foreach ($cart['items'] as $id => $qty) {
+            $id = (int) $id;
+            $qty = (int) $qty;
+
+            // Validar producto existe, está disponible y es item
+            $product = $products[$id] ?? null;
+
+            $isAvailable = $product['is_active'] ?? false;
+            if (!$product || !$isAvailable || $product['product_type'] !== 'item') {
+                continue;
+            }
+
+            if ($qty <= 0) {
+                continue;
+            }
+
+            $validItems[$id] = $qty;
+            $totalQty += $qty;
+            $totalPrice += $qty * (float) $product['price'];
+        }
+
+        Session::set(self::SESSION_KEY, [
+            'items' => $validItems,
+            'totalQty' => $totalQty,
+            'totalPrice' => $totalPrice,
+        ]);
+    }
+
+    /**
+     * Retorna estructura de carrito vacío.
+     */
+    private function emptyCart(): array
+    {
+        return [
+            'items' => [],
+            'totalQty' => 0,
+            'totalPrice' => 0.0,
+        ];
+    }
+}

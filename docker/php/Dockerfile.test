@@ -1,0 +1,44 @@
+# syntax=docker/dockerfile:1.7
+# =============================================================================
+# Imagen PHP-CLI para tests aislados
+#
+# Propósito:  correr PHPUnit (unit + integration) con pcov para cobertura.
+#             Sin FrankenPHP, sin xdebug, sin Node — mínimo y rápido.
+#
+# Uso:
+#   docker compose -f docker-compose.test.yml build php-test
+#   docker compose -f docker-compose.test.yml run --rm php-test
+# =============================================================================
+
+FROM php:8.4-cli-alpine
+
+# php-extension-installer simplifica la instalación de extensiones en Alpine
+COPY --from=mlocati/php-extension-installer:2 /usr/bin/install-php-extensions /usr/bin/install-php-extensions
+
+# Extensiones necesarias para el proyecto + pcov para cobertura
+# pcov es 3-5x más rápido que xdebug para cobertura (sin overhead de debug)
+RUN install-php-extensions \
+    pdo_mysql \
+    mbstring \
+    intl \
+    gd \
+    zip \
+    bcmath \
+    exif \
+    redis \
+    pcntl \
+    pcov
+
+# Composer desde imagen oficial (sin curl ni script de instalación)
+COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
+
+# INI de configuración para el entorno de test
+COPY docker/php/ini/php.ini     /usr/local/etc/php/conf.d/00-php.ini
+COPY docker/php/ini/memory.ini  /usr/local/etc/php/conf.d/03-memory.ini
+COPY docker/php/ini/pcov.ini    /usr/local/etc/php/conf.d/05-pcov.ini
+COPY docker/php/ini/opcache-test.ini /usr/local/etc/php/conf.d/06-opcache-test.ini
+
+WORKDIR /app
+
+# No hay ENTRYPOINT propio — docker-compose.test.yml define el comando
+CMD ["php", "vendor/bin/phpunit", "--testdox"]

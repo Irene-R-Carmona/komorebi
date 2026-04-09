@@ -1,0 +1,323 @@
+/**
+ * Admin Reviews Styles
+ * ============================================================================
+ * Estilos específicos para moderación de reseñas.
+ *
+ * @version 1.0.0
+ * @requires admin-common.css
+ */
+
+/* ============================================================================
+   REVIEW CARDS
+   ============================================================================ */
+
+.review-moderation-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-lg);
+    padding: var(--admin-space-lg);
+    margin-bottom: var(--admin-space-lg);
+    transition: box-shadow var(--admin-transition);
+}
+
+.review-moderation-card:hover {
+    box-shadow: var(--admin-shadow-md);
+}
+
+.review-moderation-card--approved {
+    border-left: 4px solid var(--admin-success);
+    opacity: 0.7;
+}
+
+.review-moderation-card--rejected {
+    border-left: 4px solid var(--admin-error);
+    opacity: 0.7;
+}
+
+/* Header */
+.review-mod__header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--admin-space-md);
+    margin-bottom: var(--admin-space-md);
+    padding-bottom: var(--admin-space-md);
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.review-mod__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--admin-radius-full);
+    background: var(--admin-primary-light);
+    color: var(--admin-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.review-mod__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.review-mod__author {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--admin-text);
+    margin: 0 0 0.25rem 0;
+}
+
+.review-mod__cafe {
+    font-size: 0.875rem;
+    color: var(--admin-text-muted);
+    margin: 0 0 0.25rem 0;
+}
+
+.review-mod__cafe strong {
+    color: var(--admin-text);
+}
+
+.review-mod__date {
+    font-size: 0.75rem;
+    color: var(--admin-text-muted);
+}
+
+/* Rating */
+.review-mod__rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.review-mod__star {
+    color: #ffc107;
+    font-size: 1.25rem;
+}
+
+.review-mod__star--empty {
+    color: var(--admin-border);
+}
+
+.review-mod__rating-text {
+    margin-left: 0.5rem;
+    font-weight: 600;
+    color: var(--admin-text);
+}
+
+/* Content */
+.review-mod__content {
+    margin-bottom: var(--admin-space-md);
+}
+
+.review-mod__title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--admin-text);
+    margin: 0 0 var(--admin-space-sm) 0;
+}
+
+.review-mod__body {
+    font-size: 0.9375rem;
+    color: var(--admin-text);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Actions */
+.review-mod__actions {
+    display: flex;
+    gap: var(--admin-space-sm);
+    padding-top: var(--admin-space-md);
+    border-top: 1px solid var(--admin-border);
+}
+
+.review-mod__actions .btn {
+    min-width: 120px;
+}
+
+/* ============================================================================
+   REVIEW QUEUE LAYOUT
+   ============================================================================ */
+
+.reviews-queue {
+    display: grid;
+    gap: var(--admin-space-lg);
+}
+
+@media (min-width: 992px) {
+    .reviews-queue {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ============================================================================
+   EMPTY STATE (Reviews)
+   ============================================================================ */
+
+.reviews-empty {
+    text-align: center;
+    padding: var(--admin-space-xl);
+    background: var(--admin-success-light);
+    border-radius: var(--admin-radius-lg);
+    border: 2px dashed var(--admin-success);
+}
+
+.reviews-empty__icon {
+    font-size: 4rem;
+    margin-bottom: var(--admin-space-md);
+    display: block;
+}
+
+.reviews-empty__title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--admin-success);
+    margin: 0 0 var(--admin-space-sm) 0;
+}
+
+.reviews-empty__text {
+    color: var(--admin-success);
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* ============================================================================
+   REJECT MODAL
+   ============================================================================ */
+
+.reject-reason__textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.reject-reason__help {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8125rem;
+    color: var(--admin-text-muted);
+    margin-top: 0.25rem;
+}
+
+.reject-reason__counter {
+    font-weight: 500;
+}
+
+.reject-reason__counter--warning {
+    color: var(--admin-warning);
+}
+
+.reject-reason__counter--error {
+    color: var(--admin-error);
+}
+
+/* ============================================================================
+   QUICK STATS
+   ============================================================================ */
+
+.review-stats {
+    display: flex;
+    gap: var(--admin-space-md);
+    margin-bottom: var(--admin-space-lg);
+}
+
+.review-stats__item {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-lg);
+    padding: var(--admin-space-md) var(--admin-space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--admin-space-md);
+}
+
+.review-stats__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--admin-radius-full);
+    background: var(--admin-warning-light);
+    color: var(--admin-warning);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.review-stats__content {
+    display: flex;
+    flex-direction: column;
+}
+
+.review-stats__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--admin-text);
+    line-height: 1;
+}
+
+.review-stats__label {
+    font-size: 0.8125rem;
+    color: var(--admin-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+.review-enter {
+    animation: slideInUp 0.3s ease;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.review-exit {
+    animation: slideOutRight 0.3s ease forwards;
+}
+
+@keyframes slideOutRight {
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 767.98px) {
+    .review-mod__header {
+        flex-wrap: wrap;
+    }
+
+    .review-mod__rating {
+        width: 100%;
+        margin-top: var(--admin-space-sm);
+    }
+
+    .review-mod__actions {
+        flex-direction: column;
+    }
+
+    .review-mod__actions .btn {
+        width: 100%;
+    }
+
+    .review-stats {
+        flex-direction: column;
+    }
+}

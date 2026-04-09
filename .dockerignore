@@ -1,0 +1,63 @@
+# Git
+.git/
+.gitignore
+
+# Dependencias (se instalan en build)
+vendor/
+node_modules/
+composer.lock
+package-lock.json
+
+# Entorno (12-Factor: nunca en imagen)
+.env
+.env.*
+!.env.example
+secrets/
+
+# Desarrollo
+tests/
+.phpunit.result.cache
+phpunit.xml
+.php-cs-fixer.cache
+phpstan.neon
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentación
+docs/
+*.md
+README*
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Storage (volumen externo)
+storage/logs/*
+storage/cache/*
+storage/uploads/*
+!storage/logs/.gitkeep
+!storage/cache/.gitkeep
+!storage/uploads/.gitkeep
+
+# Backups locales
+backups/
+*.sql
+*.sql.gz
+*.dump
+
+# Assets compilados (si usas vite/webpack)
+public/build/
+public/hot
+mix-manifest.json
+
+# Docker
+docker-compose.override.yml
+docker/mysql/data/
+docker/redis/data/

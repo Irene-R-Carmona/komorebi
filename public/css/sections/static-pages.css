@@ -1,0 +1,569 @@
+/**
+ * STATIC PAGES - Sistema centralizado para páginas estáticas
+ * Inspirado en: Stripe, Linear, Vercel
+ * Uso: Legal (privacy, cookies, terms), FAQ, About/Historia, Contact
+ */
+
+/* ============================================================
+   BASE CONTAINER
+   ============================================================ */
+
+.static-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+.static-page--narrow {
+  max-width: 850px;
+}
+
+/* ============================================================
+   HERO SECTION (Reutilizable)
+   ============================================================ */
+
+.static-hero {
+  text-align: center;
+  padding: 4rem 2rem 3rem;
+  margin-bottom: 3rem;
+  background: linear-gradient(135deg, var(--color-fondo) 0%, var(--color-fondo-alt) 100%);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.static-hero__icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.static-hero__title {
+  font-family: var(--fuente-titulos);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-primario);
+  margin-bottom: 1rem;
+}
+
+.static-hero__subtitle {
+  font-size: 1.125rem;
+  color: var(--color-texto-suave);
+  max-width: 600px;
+  margin: 0 auto 0.5rem;
+  line-height: 1.6;
+}
+
+.static-hero__date {
+  font-size: 0.9rem;
+  color: var(--color-texto-suave);
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+/* Alerts en hero */
+.static-hero__alert {
+  max-width: 600px;
+  margin: 1.5rem auto 0;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radio-md);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.static-hero__alert--success {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.static-hero__alert--error {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+/* ============================================================
+   LAYOUT CON SIDEBAR (Legal pages - estilo Stripe/Vercel)
+   ============================================================ */
+
+.static-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+/* Sidebar TOC */
+.static-sidebar {
+  position: sticky;
+  top: 100px;
+  /* Debajo del header fijo */
+  padding: 1.5rem;
+  background: var(--color-fondo-alt);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+}
+
+.static-sidebar__title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-texto-suave);
+  margin-bottom: 1rem;
+}
+
+.static-sidebar__nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.static-sidebar__link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  color: var(--color-texto);
+  text-decoration: none;
+  font-size: 0.9rem;
+  border-radius: var(--radio-sm);
+  transition: all 0.2s ease;
+  border-left: 2px solid transparent;
+}
+
+.static-sidebar__link:hover {
+  background: rgba(201, 169, 89, 0.08);
+  border-left-color: var(--color-acento);
+}
+
+.static-sidebar__link--active {
+  background: rgba(92, 61, 46, 0.08);
+  border-left-color: var(--color-acento);
+  font-weight: 600;
+  color: var(--color-primario);
+}
+
+.static-sidebar__link--nested {
+  padding-left: 1.5rem;
+  font-size: 0.85rem;
+}
+
+/* Content area */
+.static-content {
+  max-width: 750px;
+  /* Óptimo para lectura */
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+.static-content h2 {
+  font-family: var(--fuente-titulos);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-primario);
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-borde);
+  scroll-margin-top: 120px;
+  /* Offset para anchor links */
+}
+
+.static-content h2:first-child {
+  margin-top: 0;
+  border-top: none;
+  padding-top: 0;
+}
+
+.static-content h3 {
+  font-family: var(--fuente-titulos);
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  scroll-margin-top: 120px;
+}
+
+.static-content p {
+  margin-bottom: 1.25rem;
+  color: var(--color-texto);
+}
+
+.static-content ul,
+.static-content ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.75rem;
+}
+
+.static-content li {
+  margin-bottom: 0.5rem;
+}
+
+.static-content a {
+  color: var(--color-acento);
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.static-content a:hover {
+  color: var(--color-primario);
+}
+
+.static-content strong {
+  font-weight: 600;
+  color: var(--color-primario);
+}
+
+.static-content code {
+  background: var(--color-fondo-alt);
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radio-sm);
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+/* Callout boxes */
+.static-content__callout {
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  background: var(--color-fondo-alt);
+  border-left: 4px solid var(--color-acento);
+  border-radius: var(--radio-sm);
+}
+
+.static-content__callout--info {
+  border-left-color: #0ea5e9;
+  background: #e0f2fe;
+}
+
+.static-content__callout--warning {
+  border-left-color: #f59e0b;
+  background: #fef3c7;
+}
+
+/* ============================================================
+   GRID SYSTEM (Reutilizable para Contact, Team, etc.)
+   ============================================================ */
+
+.static-grid {
+  display: grid;
+  gap: 2rem;
+  margin: 3rem 0;
+}
+
+.static-grid--2col {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.static-grid--3col {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.static-grid--4col {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Card component */
+.static-card {
+  padding: 2rem;
+  background: white;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  transition: all 0.3s ease;
+}
+
+.static-card:hover {
+  border-color: var(--color-acento);
+  box-shadow: var(--sombra-md);
+  transform: translateY(-2px);
+}
+
+.static-card__icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.static-card__title {
+  font-family: var(--fuente-titulos);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  margin-bottom: 0.75rem;
+}
+
+.static-card__text {
+  color: var(--color-texto-suave);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.static-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-acento);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.static-card__link:hover {
+  color: var(--color-primario);
+}
+
+/* ============================================================
+   FAQ FLAT (Sin acordeones - estilo Stripe/Vercel)
+   ============================================================ */
+
+.static-faq {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.static-faq__section {
+  margin-bottom: 4rem;
+}
+
+.static-faq__section-title {
+  font-family: var(--fuente-titulos);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primario);
+  margin-bottom: 2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--color-acento);
+}
+
+.static-faq__item {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.static-faq__item:last-child {
+  border-bottom: none;
+}
+
+.static-faq__question {
+  font-family: var(--fuente-titulos);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: start;
+  gap: 0.75rem;
+}
+
+.static-faq__question::before {
+  content: "Q:";
+  flex-shrink: 0;
+  color: var(--color-acento);
+  font-weight: 700;
+}
+
+.static-faq__answer {
+  color: var(--color-texto);
+  line-height: 1.7;
+  padding-left: 2.25rem;
+  /* Alinear con pregunta */
+}
+
+.static-faq__answer p {
+  margin-bottom: 1rem;
+}
+
+.static-faq__answer p:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================================
+   TEAM GRID (Para About/Historia)
+   ============================================================ */
+
+.static-team {
+  margin: 3rem 0;
+}
+
+.static-team__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2.5rem;
+  margin-top: 2rem;
+}
+
+.static-team__member {
+  text-align: center;
+}
+
+.static-team__photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--color-borde);
+  margin: 0 auto 1rem;
+  display: block;
+  transition: border-color 0.3s ease;
+}
+
+.static-team__member:hover .static-team__photo {
+  border-color: var(--color-acento);
+}
+
+.static-team__name {
+  font-family: var(--fuente-titulos);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  margin-bottom: 0.25rem;
+}
+
+.static-team__role {
+  font-size: 0.9rem;
+  color: var(--color-texto-suave);
+  margin-bottom: 0.5rem;
+}
+
+.static-team__bio {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-texto);
+  text-align: center;
+}
+
+/* ============================================================
+   CTA SECTION (Call to Action final)
+   ============================================================ */
+
+.static-cta {
+  text-align: center;
+  padding: 3rem 2rem;
+  margin-top: 4rem;
+  background: var(--color-primario);
+  color: white;
+  border-radius: var(--radio-lg);
+}
+
+.static-cta__title {
+  font-family: var(--fuente-titulos);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.static-cta__text {
+  font-size: 1.125rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.static-cta .btn {
+  background: white;
+  color: var(--color-primario);
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  border-radius: var(--radio-md);
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.static-cta .btn:hover {
+  background: var(--color-fondo);
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-lg);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 992px) {
+  .static-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .static-sidebar {
+    position: relative;
+    top: 0;
+    max-height: none;
+  }
+
+  .static-hero__title {
+    font-size: 2rem;
+  }
+
+  .static-grid--3col,
+  .static-grid--4col {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .static-page {
+    padding: 2rem 1.5rem;
+  }
+
+  .static-hero {
+    padding: 3rem 1.5rem 2rem;
+  }
+
+  .static-hero__title {
+    font-size: 1.75rem;
+  }
+
+  .static-hero__subtitle {
+    font-size: 1rem;
+  }
+
+  .static-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .static-content h3 {
+    font-size: 1.25rem;
+  }
+
+  .static-grid {
+    gap: 1.5rem;
+  }
+
+  .static-card {
+    padding: 1.5rem;
+  }
+
+  .static-team__grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 2rem;
+  }
+
+  .static-cta {
+    padding: 2rem 1.5rem;
+  }
+
+  .static-cta__title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .static-hero__icon {
+    font-size: 2.5rem;
+  }
+
+  .static-grid--2col,
+  .static-grid--3col,
+  .static-grid--4col {
+    grid-template-columns: 1fr;
+  }
+
+  .static-team__grid {
+    grid-template-columns: 1fr;
+  }
+}

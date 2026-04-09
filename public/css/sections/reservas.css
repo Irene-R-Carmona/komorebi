@@ -1,0 +1,1220 @@
+/* ============================================================================
+   KOMOREBI - RESERVAS
+   ============================================================================ */
+
+[x-cloak] {
+  display: none !important;
+}
+
+/* ------------------------------
+   INVITADO
+   ------------------------------ */
+.reserva__invitado {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.5rem;
+  max-width: 1050px;
+  margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  .reserva__invitado {
+    grid-template-columns: 1.1fr 1fr;
+    padding: 2rem;
+  }
+}
+
+.reserva__invitado-escena {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-sm);
+  min-height: 260px;
+  position: relative;
+  overflow: hidden;
+}
+
+.reserva__invitado-contenido {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-sm);
+  padding: 1.75rem;
+}
+
+.reserva__invitado-kanji {
+  margin: 0;
+  font-size: 0.9rem;
+  letter-spacing: 0.35rem;
+  color: var(--color-acento);
+  font-weight: 800;
+}
+
+.reserva__invitado-titulo {
+  margin: 0.5rem 0 0;
+  color: var(--color-primario);
+}
+
+.reserva__invitado-descripcion {
+  margin: 0.75rem 0 1.25rem;
+  color: var(--color-texto-suave);
+  line-height: 1.5;
+}
+
+.reserva__invitado-acciones {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.reserva__invitado-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radio-md);
+  text-decoration: none;
+  font-weight: 700;
+  border: 1px solid var(--color-borde);
+}
+
+.reserva__invitado-btn--principal {
+  background: var(--color-primario);
+  color: white;
+  border-color: transparent;
+}
+
+.reserva__invitado-btn--secundario {
+  background: transparent;
+  color: var(--color-texto);
+}
+
+.reserva__invitado-btn-link {
+  color: var(--color-acento);
+  font-weight: 800;
+}
+
+/* Decoración simple (no excesiva) */
+.reserva__invitado-neko {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  display: flex;
+  align-items: end;
+  gap: 0.5rem;
+  opacity: 0.9;
+}
+
+.reserva__invitado-neko-emoji {
+  font-size: 2rem;
+}
+
+.reserva__invitado-neko-zzz {
+  font-size: 0.9rem;
+  color: var(--color-texto-suave);
+}
+
+.reserva__invitado-yunomi {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  opacity: 0.8;
+}
+
+/* ------------------------------
+   PRO APP UI (index.php)
+   ------------------------------ */
+.rsv2 {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--espaciado-md);
+}
+
+/* Header */
+.rsv2__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: var(--espaciado-lg);
+}
+
+.rsv2__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-family: var(--fuente-titulo);
+  color: var(--color-primario);
+  font-weight: 600;
+}
+
+.rsv2__subtitle {
+  margin: 0.375rem 0 0;
+  color: var(--color-texto-suave);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Layout con áreas para ordenar en móvil */
+.rsv2__layout {
+  display: grid;
+  grid-template-areas: "form history";
+  grid-template-columns: 1fr 380px;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.rsv2-card--history {
+  grid-area: history;
+}
+
+.rsv2-card--form {
+  grid-area: form;
+}
+
+/* Card */
+.rsv2-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-sm);
+  padding: var(--espaciado-lg);
+  transition: all var(--transicion);
+}
+
+.rsv2-card:focus-within {
+  box-shadow: var(--sombra-md);
+  border-color: var(--color-acento);
+}
+
+.rsv2-card__title {
+  margin: 0 0 1rem 0;
+  font-size: 1.05rem;
+  color: var(--color-primario);
+}
+
+.rsv2-count {
+  opacity: .65;
+  font-weight: 700;
+  margin-left: 0.4rem;
+  font-size: 0.95rem;
+}
+
+.rsv2-empty {
+  margin: 0;
+  color: var(--color-texto-suave);
+}
+
+/* Responsive: Layout móvil */
+@media (max-width: 1100px) {
+  .rsv2__layout {
+    grid-template-areas:
+      "form"
+      "history";
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* Sticky form (desktop) */
+@media (min-width: 981px) {
+  .rsv2-card--form {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+/* History scroll interno (desktop) */
+.rsv2-history {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 981px) {
+  .rsv2-history {
+    max-height: calc(100vh - 250px);
+    overflow: auto;
+    padding-right: 0.25rem;
+  }
+
+  /* Scrollbar sutil (sensación app) */
+  .rsv2-history::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .rsv2-history::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  .rsv2-history::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* Elementos */
+.rsv2-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.85rem;
+  padding: 0.95rem;
+  border-radius: var(--radio-md);
+  border: 1px solid var(--color-borde);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.rsv2-item--dim {
+  opacity: 0.6;
+}
+
+.rsv2-item__title {
+  margin: 0;
+  font-weight: 800;
+}
+
+.rsv2-item__meta {
+  margin: 0.25rem 0 0 0;
+  color: var(--color-texto-suave);
+  font-size: 0.95rem;
+}
+
+.rsv2-item__actions {
+  text-align: right;
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+}
+
+.rsv2-ref {
+  opacity: .65;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Pills */
+.rsv2-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border: 1px solid var(--color-borde);
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--color-texto);
+  width: fit-content;
+}
+
+.rsv2-pill::before {
+  content: "●";
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.rsv2-pill--confirmed {
+  background: rgba(46, 196, 182, 0.12);
+  border-color: rgba(46, 196, 182, 0.35);
+}
+
+.rsv2-pill--pending {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.35);
+}
+
+.rsv2-pill--cancelled {
+  background: rgba(155, 35, 53, 0.10);
+  border-color: rgba(155, 35, 53, 0.25);
+}
+
+.rsv2-pill--active {
+  background: rgba(76, 175, 80, 0.12);
+  border-color: rgba(76, 175, 80, 0.35);
+}
+
+/* Form */
+.rsv2-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.rsv2-form__row {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.rsv2-help {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-texto-suave);
+}
+
+/* Summary */
+.rsv2-summary {
+  border-top: 1px solid var(--color-borde);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.rsv2-summary__line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rsv2-summary__extras {
+  margin-top: 0.35rem;
+  color: var(--color-texto-suave);
+  font-size: 0.95rem;
+}
+
+.rsv2-summary__extras-title {
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+  color: var(--color-texto);
+}
+
+.rsv2-note {
+  margin: 0;
+  color: var(--color-texto-suave);
+  font-size: 0.9rem;
+}
+
+/* Botones fallback (por si no existen en global) */
+.btn-danger-outline {
+  background: transparent;
+  color: var(--color-error);
+  border: 1px solid rgba(155, 35, 53, 0.3);
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radio-md);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn-danger-outline:hover {
+  background: var(--color-error);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(155, 35, 53, 0.25);
+}
+
+.btn-danger-outline:active {
+  transform: translateY(0);
+}
+
+.rsv2-btn-cancel {
+  width: auto;
+  margin: 0;
+}
+
+/* Botón principal submit (diseño destacado con paleta Komorebi) */
+.btn--primario,
+.btn-primary,
+.btn-confirmar {
+  min-height: 54px;
+  padding: 1rem 2rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  border-radius: var(--radio-md);
+  transition: all var(--transicion-rapida);
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(135deg, var(--color-primario), var(--color-acento));
+  color: white;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: var(--sombra-md);
+  font-family: var(--fuente-cuerpo);
+}
+
+.btn--primario:hover:not(:disabled),
+.btn-primary:hover:not(:disabled),
+.btn-confirmar:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-acento-hover), var(--color-primario));
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-lg);
+}
+
+.btn--primario:active:not(:disabled),
+.btn-primary:active:not(:disabled),
+.btn-confirmar:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--sombra-sm);
+}
+
+.btn--primario:disabled,
+.btn-primary:disabled,
+.btn-confirmar:disabled {
+  background: var(--color-borde);
+  color: var(--color-texto-suave);
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+/* ============================================================================
+   BOOKING TICKET (Formulario principal)
+   ============================================================================ */
+
+.booking-ticket {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaciado-lg);
+}
+
+.booking-ticket__header {
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-md);
+  padding-bottom: var(--espaciado-md);
+  border-bottom: 2px solid var(--color-borde);
+}
+
+.booking-ticket__kanji {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-acento);
+  font-family: var(--fuente-acento);
+  line-height: 1;
+}
+
+.booking-ticket__titles {
+  flex: 1;
+}
+
+.booking-ticket__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  font-family: var(--fuente-titulo);
+}
+
+.booking-ticket__subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+}
+
+.booking-ticket__step {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  background: var(--color-fondo);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radio-full);
+  white-space: nowrap;
+}
+
+/* Barra de progreso */
+.booking-progress {
+  margin-bottom: var(--espaciado-md);
+}
+
+.booking-progress__bar {
+  height: 6px;
+  background: var(--color-fondo-alt);
+  border-radius: var(--radio-full);
+  overflow: hidden;
+  margin-bottom: var(--espaciado-sm);
+}
+
+.booking-progress__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-acento), var(--color-primario));
+  border-radius: var(--radio-full);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.booking-progress__labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-texto-suave);
+}
+
+.booking-progress__labels span {
+  transition: all var(--transicion);
+}
+
+.booking-progress__labels span.is-done {
+  color: var(--color-primario);
+  font-weight: 600;
+}
+
+/* Secciones del formulario */
+.booking-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaciado-md);
+}
+
+.booking-section__title {
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  margin-bottom: var(--espaciado-xs);
+}
+
+.booking-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--color-acento), var(--color-primario));
+  color: white;
+  border-radius: var(--radio-full);
+  font-size: 0.875rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Filas del formulario */
+.booking-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaciado-xs);
+}
+
+.booking-row__label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-texto);
+}
+
+/* Select y inputs mejorados (estilo Komorebi) */
+.form-select,
+.form-input,
+.form-textarea {
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  font-size: 1rem;
+  color: var(--color-texto);
+  background: var(--color-superficie);
+  transition: all var(--transicion-rapida);
+  font-family: var(--fuente-cuerpo);
+  width: 100%;
+}
+
+.form-input[type="date"] {
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.form-input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: opacity(0.5);
+  transition: filter var(--transicion-rapida);
+}
+
+.form-input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  filter: opacity(1);
+}
+
+.booking-section .form-select:hover,
+.booking-section .form-input:hover,
+.booking-section .form-textarea:hover {
+  border-color: var(--color-acento);
+}
+
+.booking-section .form-select:focus,
+.booking-section .form-input:focus,
+.booking-section .form-textarea:focus {
+  outline: none;
+  border-color: var(--color-acento);
+  box-shadow: 0 0 0 4px rgba(201, 169, 89, 0.15);
+  background: var(--color-fondo);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.5;
+}
+
+/* Contador de personas (Diseño Komorebi) */
+.stepper-fancy {
+  display: inline-flex;
+  align-items: center;
+  width: 100px;
+  gap: 0;
+  background: var(--color-superficie);
+  border: 2px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  overflow: hidden;
+}
+
+.stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  color: var(--color-acento);
+  border: none;
+  font-size: 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transicion-rapida);
+  line-height: 1;
+}
+
+.stepper-btn:hover:not(:disabled) {
+  background: var(--color-fondo-alt);
+  color: var(--color-primario);
+}
+
+.stepper-btn:active:not(:disabled) {
+  background: var(--color-borde);
+}
+
+.stepper-btn:disabled {
+  color: var(--color-texto-suave);
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.stepper-val {
+  min-width: 3.5rem;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primario);
+  padding: 0 0.75rem;
+  border-left: 1px solid var(--color-borde);
+  border-right: 1px solid var(--color-borde);
+  font-family: var(--fuente-titulo);
+}
+
+/* Mensajes de ayuda */
+.booking-hint {
+  margin: var(--espaciado-xs) 0 0;
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  line-height: 1.4;
+}
+
+.text-error {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+/* Resumen financiero (diseño Komorebi) */
+.booking-summary {
+  padding: var(--espaciado-md);
+  background: linear-gradient(135deg,
+      rgba(201, 169, 89, 0.08),
+      rgba(92, 61, 46, 0.05));
+  border: 2px solid var(--color-acento);
+  border-radius: var(--radio-md);
+  margin-top: var(--espaciado-md);
+}
+
+.booking-summary__line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: var(--espaciado-sm);
+  font-size: 1rem;
+  color: var(--color-texto);
+}
+
+.booking-summary__line:last-child {
+  margin-bottom: 0;
+  padding-top: var(--espaciado-sm);
+  margin-top: 0.5rem;
+  border-top: 2px solid var(--color-acento);
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--color-primario);
+  font-family: var(--fuente-titulo);
+}
+
+.booking-summary__line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.booking-summary__line:last-child {
+  margin-bottom: 0;
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  border-top: 2px solid var(--color-borde);
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--color-texto);
+}
+
+/* Accesibilidad: focus visible */
+.form-input:focus-visible,
+.form-select:focus-visible,
+.form-textarea:focus-visible,
+.btn-confirmar:focus-visible,
+.btn-danger-outline:focus-visible {
+  outline: 3px solid rgba(46, 196, 182, 0.35);
+  outline-offset: 2px;
+}
+
+/* SECCIÓN DUPLICADA ELIMINADA - mantener solo la versión principal arriba */
+
+/* Pases (selector tipo cards - Diseño Komorebi) */
+.booking-pass-grid {
+  display: grid;
+  gap: var(--espaciado-sm);
+  margin-top: var(--espaciado-sm);
+}
+
+.booking-pass {
+  display: block;
+  position: relative;
+  padding: var(--espaciado-md);
+  border-radius: var(--radio-md);
+  border: 2px solid var(--color-borde);
+  background: var(--color-superficie);
+  cursor: pointer;
+  transition: all var(--transicion-rapida);
+  overflow: hidden;
+}
+
+.booking-pass:hover {
+  border-color: var(--color-acento);
+  box-shadow: var(--sombra-md);
+  transform: translateY(-2px);
+}
+
+.booking-pass--selected {
+  border-color: var(--color-acento);
+  border-width: 3px;
+  background: linear-gradient(135deg,
+      rgba(201, 169, 89, 0.1),
+      rgba(92, 61, 46, 0.05));
+  box-shadow: 0 0 0 3px rgba(201, 169, 89, 0.2), var(--sombra-md);
+  padding: calc(var(--espaciado-md) - 1px);
+}
+
+.booking-pass input[type="radio"] {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--color-acento);
+  z-index: 2;
+}
+
+.booking-pass__img {
+  width: 100%;
+  height: 160px;
+  border-radius: var(--radio-md);
+  object-fit: cover;
+  background: linear-gradient(135deg,
+      var(--color-fondo-alt),
+      var(--color-fondo));
+  margin-bottom: var(--espaciado-sm);
+  border: 1px solid var(--color-borde);
+}
+
+.booking-pass__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.booking-pass__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.booking-pass__name {
+  font-weight: 700;
+  color: var(--color-primario);
+  font-size: 1.1875rem;
+  line-height: 1.3;
+  flex: 1;
+  padding-right: 2.5rem;
+  font-family: var(--fuente-titulo);
+}
+
+.booking-pass__price {
+  font-weight: 700;
+  color: var(--color-acento);
+  font-size: 1.5rem;
+  white-space: nowrap;
+  font-family: var(--fuente-titulo);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.booking-pass__jp {
+  font-size: 0.9375rem;
+  color: var(--color-texto-suave);
+  font-family: var(--fuente-acento);
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.booking-pass__description {
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.booking-pass__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.badge-mini {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radio-full);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--color-fondo-alt);
+  color: var(--color-texto);
+  border: 1px solid var(--color-borde);
+  white-space: nowrap;
+  transition: all var(--transicion-rapida);
+}
+
+.badge-mini:hover {
+  background: var(--color-borde);
+  transform: translateY(-1px);
+}
+
+.booking-pass__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-borde);
+}
+
+.booking-mini-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4rem 0.875rem;
+  border-radius: var(--radio-full);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, rgba(201, 169, 89, 0.15), rgba(201, 169, 89, 0.08));
+  color: var(--color-primario);
+  border: 1px solid rgba(201, 169, 89, 0.35);
+  white-space: nowrap;
+  transition: all var(--transicion-rapida);
+}
+
+.booking-mini-badge:hover {
+  background: linear-gradient(135deg, rgba(201, 169, 89, 0.25), rgba(201, 169, 89, 0.15));
+  transform: translateY(-1px);
+}
+
+/* Información de clima y festividades */
+.booking-info-box {
+  margin-top: var(--espaciado-md);
+  padding: var(--espaciado-md);
+  background: linear-gradient(135deg, rgba(92, 61, 46, 0.05), rgba(201, 169, 89, 0.05));
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.booking-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.booking-info-item__icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.booking-info-item__content {
+  flex: 1;
+}
+
+.booking-info-item__title {
+  font-weight: 600;
+  color: var(--color-primario);
+  margin-bottom: 0.25rem;
+}
+
+.booking-info-item__text {
+  color: var(--color-texto-suave);
+  font-size: 0.875rem;
+}
+
+.booking-weather {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-fondo);
+  border-radius: var(--radio-md);
+  font-size: 0.875rem;
+}
+
+.booking-weather__temp {
+  font-weight: 700;
+  color: var(--color-primario);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .booking-pass__img {
+    height: 140px;
+  }
+
+  .booking-pass__name {
+    font-size: 1.0625rem;
+  }
+
+  .booking-pass__price {
+    font-size: 1.3125rem;
+  }
+
+  .booking-pass__description {
+    font-size: 0.8125rem;
+  }
+}
+
+align-items: center;
+gap: 0.6rem;
+padding: 0.45rem 0.6rem;
+border-radius: 999px;
+border: 1px solid var(--color-borde);
+background: rgba(255, 255, 255, 0.7);
+backdrop-filter: blur(4px);
+}
+
+.booking-ticket .stepper-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid var(--color-borde);
+  background: white;
+  color: var(--color-primario);
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease, opacity .12s ease;
+}
+
+.booking-ticket .stepper-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(46, 196, 182, 0.45);
+  background: rgba(46, 196, 182, 0.08);
+}
+
+.booking-ticket .stepper-btn:active {
+  transform: translateY(0);
+}
+
+.booking-ticket .stepper-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.booking-ticket .stepper-btn:focus-visible {
+  outline: 3px solid rgba(46, 196, 182, 0.35);
+  outline-offset: 2px;
+}
+
+.booking-ticket .stepper-val {
+  min-width: 34px;
+  text-align: center;
+  font-weight: 900;
+  color: var(--color-texto);
+  font-family: var(--fuente-acento);
+}
+
+/* Pases (selector tipo cards - Diseño moderno tipo Airbnb) */
+.booking-pass-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.booking-pass {
+  display: block;
+  position: relative;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1.5px solid #E0E0E0;
+  background: var(--color-superficie);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.booking-pass:hover {
+  border-color: var(--color-primario);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.booking-pass--selected {
+  border-color: var(--color-primario);
+  border-width: 2px;
+  background: linear-gradient(135deg, rgba(201, 169, 89, 0.04), rgba(92, 61, 46, 0.02));
+  box-shadow: 0 0 0 1px var(--color-primario), 0 2px 8px rgba(92, 61, 46, 0.12);
+  padding: calc(1.25rem - 0.5px);
+}
+
+.booking-pass input[type="radio"] {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--color-primario);
+  z-index: 2;
+}
+
+.booking-pass__img {
+  width: 100%;
+  height: 140px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: linear-gradient(135deg, var(--color-fondo-alt), var(--color-fondo));
+  margin-bottom: 1rem;
+}
+
+.booking-pass__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.booking-pass__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.booking-pass__name {
+  font-weight: 600;
+  color: var(--color-texto);
+  font-size: 1.0625rem;
+  line-height: 1.3;
+  flex: 1;
+  padding-right: 2rem;
+}
+
+.booking-pass__price {
+  font-weight: 700;
+  color: var(--color-texto);
+  font-size: 1.25rem;
+  white-space: nowrap;
+  font-family: var(--fuente-titulo);
+}
+
+.booking-pass__jp {
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  font-family: var(--fuente-acento);
+  margin-bottom: 0.5rem;
+}
+
+.booking-pass__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.badge-mini {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  white-space: nowrap;
+}
+
+.booking-pass__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.booking-mini-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  background: rgba(201, 169, 89, 0.1);
+  color: var(--color-primario);
+  white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .booking-pass__img {
+    height: 120px;
+  }
+
+  .booking-pass__name {
+    font-size: 1rem;
+  }
+
+  .booking-pass__price {
+    font-size: 1.125rem;
+  }
+}

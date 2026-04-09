@@ -1,0 +1,50 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\ExceptionRenderers;
+
+use App\Core\View;
+use App\Exceptions\NotFoundException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+
+/**
+ * Renderiza NotFoundException → 404.
+ * API: JSON.
+ * HTML: vista errors/404.
+ */
+final class NotFoundExceptionRenderer extends AbstractExceptionRenderer
+{
+    #[\Override]
+    public function supports(\Throwable $e): bool
+    {
+        return $e instanceof NotFoundException;
+    }
+
+    #[\Override]
+    public function priority(): int
+    {
+        return 80;
+    }
+
+    #[\Override]
+    public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
+    {
+        assert($e instanceof NotFoundException);
+
+        if ($this->isApiRequest($request)) {
+            return $this->response->json([
+                'error'         => $e->getMessage(),
+                'resource_type' => $e->getResourceType(),
+            ], 404);
+        }
+
+        $html = View::renderToString('errors/404', [
+            'message'       => $e->getMessage(),
+            'resource_type' => $e->getResourceType(),
+        ]);
+
+        return $this->response->html($html, 404);
+    }
+}

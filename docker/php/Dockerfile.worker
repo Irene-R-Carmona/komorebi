@@ -1,0 +1,44 @@
+# syntax=docker/dockerfile:1.7
+# =============================================================================
+# Worker image — PHP CLI for queue/email/notification workers
+# Derived from Dockerfile.prod: no Xdebug, no Node, no Composer, minimal.
+# =============================================================================
+
+# Stage 1: build vendor
+FROM composer:2.8 AS vendor-build
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+COPY . /app
+RUN composer dump-autoload --optimize
+
+# Stage 2: runtime
+FROM dunglas/frankenphp:1.11.1-php8.4-alpine
+
+WORKDIR /app
+
+RUN install-php-extensions \
+    pdo_mysql \
+    mbstring \
+    intl \
+    gd \
+    zip \
+    bcmath \
+    exif \
+    redis \
+    pcntl
+
+COPY docker/php/ini/php.ini          /usr/local/etc/php/conf.d/00-php.ini
+COPY docker/php/ini/error-prod.ini   /usr/local/etc/php/conf.d/01-error.ini
+COPY docker/php/ini/memory.ini       /usr/local/etc/php/conf.d/03-memory.ini
+COPY docker/php/ini/opcache.ini      /usr/local/etc/php/conf.d/04-opcache.ini
+
+COPY --from=vendor-build /app /app
+
+RUN addgroup -S appgroup \
+    && adduser -S appuser -G appgroup \
+    && chown -R appuser:appgroup /app
+
+USER appuser
+
+# No ENTRYPOINT — compose defines the command directly (php bin/worker.php)

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.0/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="depends,defects"
+         requireCoverageMetadata="false"
+         beStrictAboutCoverageMetadata="true"
+         failOnRisky="false"
+         failOnWarning="true">
+
+    <!-- Test Suites -->
+    <testsuites>
+        <testsuite name="Unit Tests">
+            <directory>tests/Unit</directory>
+        </testsuite>
+
+        <testsuite name="Integration Tests">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+
+    <!-- Code Coverage -->
+    <source>
+        <include>
+            <directory suffix=".php">app/Core</directory>
+            <directory suffix=".php">app/Services</directory>
+            <directory suffix=".php">app/Models</directory>
+            <directory suffix=".php">app/Http/Controllers</directory>
+            <directory suffix=".php">app/Repositories</directory>
+        </include>
+
+        <exclude>
+            <directory>app/Views</directory>
+            <file>app/routes.php</file>
+        </exclude>
+    </source>
+
+    <!-- Logging -->
+    <logging>
+        <testdoxHtml outputFile="tests/reports/testdox.html"/>
+        <junit outputFile="tests/reports/junit.xml"/>
+    </logging>
+
+    <!-- PHP Settings -->
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_NAME" value="komorebi_test"/>
+        <env name="DB_USER" value="root"/>
+        <env name="DB_PASSWORD" value="root"/>
+        <env name="RUN_INTEGRATION_TESTS" value="1"/>
+        <env name="REDIS_HOST" value="127.0.0.1"/>
+        <env name="REDIS_PORT" value="6379"/>
+    </php>
+</phpunit>

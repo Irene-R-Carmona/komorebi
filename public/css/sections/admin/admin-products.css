@@ -1,0 +1,474 @@
+/**
+ * Admin Products Styles
+ * ============================================================================
+ * Estilos específicos para gestión de productos (listado, crear, editar).
+ *
+ * Secciones:
+ * - Product Table
+ * - Allergen Components
+ * - Image Preview
+ * - Form Sections
+ * - Action Buttons (sticky mobile)
+ *
+ * @version 1.0.0
+ * @requires admin-common.css
+ */
+
+/* ============================================================================
+   PRODUCT TABLE
+   ============================================================================ */
+
+.product-thumbnail {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-bg-alt);
+}
+
+.product-thumbnail-placeholder {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--admin-bg-alt);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-muted);
+  font-size: 1.25rem;
+}
+
+.product-info {
+  min-width: 0;
+}
+
+.product-name {
+  font-weight: 600;
+  color: var(--admin-text);
+  margin-bottom: 0.125rem;
+  display: block;
+}
+
+.product-name-jp {
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+  display: block;
+}
+
+.product-price {
+  font-weight: 700;
+  color: var(--admin-text);
+  white-space: nowrap;
+}
+
+/* Row inactive state */
+.product-row--inactive {
+  opacity: 0.6;
+}
+
+.product-row--inactive:hover {
+  opacity: 0.8;
+}
+
+/* Status toggle button in table */
+.status-toggle {
+  min-width: 85px;
+  font-size: 0.8125rem;
+  padding: 0.375rem 0.75rem;
+}
+
+/* ============================================================================
+   ALLERGEN COMPONENTS - Grid
+   ============================================================================ */
+
+.allergen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--admin-space-md);
+}
+
+@media (min-width: 1400px) {
+  .allergen-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ============================================================================
+   ALLERGEN COMPONENTS - Checkbox Card
+   ============================================================================ */
+
+.allergen-card {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+.allergen-card__input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 2;
+  margin: 0;
+}
+
+.allergen-card__label {
+  display: flex;
+  align-items: center;
+  gap: var(--admin-space-md);
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface);
+  cursor: pointer;
+  transition: border-color var(--admin-transition-fast),
+    background-color var(--admin-transition-fast),
+    box-shadow var(--admin-transition-fast);
+  min-height: var(--admin-touch-min);
+}
+
+.allergen-card__input:hover+.allergen-card__label {
+  border-color: var(--admin-accent);
+  background: var(--admin-bg);
+}
+
+.allergen-card__input:focus-visible+.allergen-card__label {
+  outline: 3px solid var(--admin-accent);
+  outline-offset: 2px;
+}
+
+.allergen-card__input:checked+.allergen-card__label {
+  border-color: var(--admin-primary);
+  background: var(--admin-primary-light);
+  box-shadow: inset 0 0 0 1px var(--admin-primary);
+}
+
+.allergen-card__icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-bg-alt);
+}
+
+.allergen-card__input:checked+.allergen-card__label .allergen-card__icon {
+  background: var(--admin-surface);
+}
+
+.allergen-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.allergen-card__name {
+  font-weight: 600;
+  color: var(--admin-text);
+  display: block;
+  margin-bottom: 0.125rem;
+}
+
+.allergen-card__name-jp {
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+  display: block;
+}
+
+.allergen-card__severity {
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   ALLERGEN COMPONENTS - Badges (for table)
+   ============================================================================ */
+
+.allergen-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.allergen-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-accent-light);
+  transition: transform var(--admin-transition-fast);
+}
+
+.allergen-badge:hover {
+  transform: scale(1.15);
+}
+
+.allergen-badge i {
+  font-size: 0.875rem;
+}
+
+.allergen-badge[data-bs-toggle="tooltip"] {
+  cursor: help;
+}
+
+/* ============================================================================
+   ALLERGEN COMPONENTS - Severity Badges
+   ============================================================================ */
+
+.severity-badge {
+  display: inline-block;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.severity-badge--high {
+  background: var(--admin-error-light);
+  color: var(--admin-error);
+}
+
+.severity-badge--medium {
+  background: var(--admin-warning-light);
+  color: #996600;
+}
+
+.severity-badge--low {
+  background: var(--admin-info-light);
+  color: var(--admin-info);
+}
+
+/* ============================================================================
+   IMAGE PREVIEW
+   ============================================================================ */
+
+.image-preview {
+  position: relative;
+  border: 2px dashed var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  padding: var(--admin-space-lg);
+  text-align: center;
+  transition: border-color var(--admin-transition),
+    background-color var(--admin-transition);
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-preview:hover {
+  border-color: var(--admin-border-hover);
+}
+
+.image-preview--has-image {
+  border-style: solid;
+  padding: var(--admin-space-sm);
+  background: var(--admin-bg);
+}
+
+.image-preview--error {
+  border-color: var(--admin-error);
+  background: var(--admin-error-light);
+}
+
+.image-preview__placeholder {
+  color: var(--admin-text-muted);
+}
+
+.image-preview__placeholder-icon {
+  font-size: 3rem;
+  opacity: 0.4;
+  margin-bottom: var(--admin-space-sm);
+  display: block;
+}
+
+.image-preview__placeholder-text {
+  font-size: 0.875rem;
+}
+
+.image-preview__img {
+  max-width: 100%;
+  max-height: 160px;
+  border-radius: var(--admin-radius-md);
+  object-fit: contain;
+}
+
+.image-preview__remove {
+  position: absolute;
+  top: var(--admin-space-sm);
+  right: var(--admin-space-sm);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--admin-radius-full);
+  border: none;
+  background: var(--admin-error);
+  color: var(--admin-text-light);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--admin-transition-fast),
+    transform var(--admin-transition-fast);
+}
+
+.image-preview:hover .image-preview__remove,
+.image-preview__remove:focus {
+  opacity: 1;
+}
+
+.image-preview__remove:hover {
+  transform: scale(1.1);
+}
+
+.image-preview__remove:focus-visible {
+  opacity: 1;
+  outline: 3px solid var(--admin-accent);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   FORM ENHANCEMENTS
+   ============================================================================ */
+
+/* Required indicator - extends admin-common */
+.form-label.required::after {
+  content: " *";
+  color: var(--admin-error);
+}
+
+/* Slug field with auto-generation indicator */
+.slug-field {
+  position: relative;
+}
+
+.slug-field__indicator {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--admin-surface);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--admin-radius-sm);
+}
+
+.slug-field .form-control {
+  padding-right: 4.5rem;
+}
+
+/* ============================================================================
+   METADATA (Edit page)
+   ============================================================================ */
+
+.metadata-list {
+  margin: 0;
+}
+
+.metadata-list dt {
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+  font-weight: 500;
+  margin-bottom: 0.125rem;
+}
+
+.metadata-list dd {
+  font-size: 0.875rem;
+  color: var(--admin-text);
+  margin-bottom: var(--admin-space-md);
+}
+
+.metadata-list dd:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================================================
+   PRODUCT FORM CONTAINER
+   ============================================================================ */
+
+.product-form-container {
+  max-width: 1400px;
+}
+
+/* ============================================================================
+   ACTION BUTTONS - Sticky on Mobile
+   ============================================================================ */
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-space-sm);
+}
+
+@media (max-width: 991.98px) {
+  .form-actions--sticky {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--admin-surface);
+    padding: var(--admin-space-md);
+    border-top: 1px solid var(--admin-border);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    flex-direction: row;
+    gap: var(--admin-space-sm);
+  }
+
+  .form-actions--sticky .btn {
+    flex: 1;
+  }
+
+  /* Espacio para el sticky footer */
+  .product-form-container {
+    padding-bottom: 100px;
+  }
+}
+
+/* ============================================================================
+   LOADING / SUBMITTING STATE
+   ============================================================================ */
+
+.form-submitting {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.form-submitting::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.5);
+  z-index: 10;
+  border-radius: inherit;
+}
+
+/* ============================================================================
+   PRINT
+   ============================================================================ */
+
+@media print {
+
+  .form-actions,
+  .image-preview__remove,
+  .allergen-card__input {
+    display: none !important;
+  }
+
+  .product-form-container {
+    padding-bottom: 0 !important;
+  }
+}

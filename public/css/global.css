@@ -1,0 +1,1005 @@
+/* ============================================================================
+   KOMOREBI CAFÉ — GLOBAL (Core Styles)
+   Contiene: Variables, Reset, Tipografía, Layout, Header, Footer, UI Kit Base.
+   ============================================================================ */
+
+/* Alpine.js x-cloak */
+[x-cloak] {
+  display: none !important;
+}
+
+/* ----------------------------------------
+   01. VARIABLES CSS - Temas
+---------------------------------------- */
+:root {
+  /* Paleta */
+  --color-fondo: #F7F3EB;
+  --color-fondo-alt: #E8DCC4;
+  --color-superficie: #FFFFFF;
+  --color-texto: #2D2218;
+  --color-texto-suave: #5C4A3A;
+  --color-primario: #5C3D2E;
+  --color-acento: #C9A959;
+  --color-acento-hover: #B8963D;
+  --color-borde: #D4C4A8;
+  --color-exito: #5E6F64;
+  --color-error: #9B2335;
+
+  /* Sombras & Efectos */
+  --sombra-sm: 0 2px 8px rgba(45, 34, 24, 0.08);
+  --sombra-md: 0 4px 16px rgba(45, 34, 24, 0.12);
+  --sombra-lg: 0 8px 32px rgba(45, 34, 24, 0.16);
+  --transicion: 0.3s ease;
+  --transicion-rapida: 0.15s ease;
+
+  /* Espaciado & Bordes */
+  --espaciado-xs: 0.5rem;
+  --espaciado-sm: 1rem;
+  --espaciado-md: 1.5rem;
+  --espaciado-lg: 2.5rem;
+  --espaciado-xl: 4rem;
+  --radio-sm: 4px;
+  --radio-md: 8px;
+  --radio-lg: 16px;
+  --radio-full: 50%;
+
+  /* Tipografía */
+  --fuente-titulo: 'Shippori Mincho', serif;
+  --fuente-cuerpo: 'Zen Maru Gothic', sans-serif;
+  --fuente-acento: 'Kaisei Decol', serif;
+}
+
+[data-tema="oscuro"] {
+  --color-fondo: #1A1410;
+  --color-fondo-alt: #2D2218;
+  --color-superficie: #3D2E1F;
+  --color-texto: #E8DCC4;
+  --color-texto-suave: #B8A890;
+  --color-primario: #C9A959;
+  --color-borde: #4A3828;
+  --sombra-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --sombra-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* ----------------------------------------
+   02. RESET Y BASE
+---------------------------------------- */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--fuente-cuerpo);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-texto);
+  background-color: var(--color-fondo);
+  transition: background-color var(--transicion), color var(--transicion);
+  /* Patrón SVG inyectado */
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30L30 0z' fill='none' stroke='%23D4C4A8' stroke-width='0.5' opacity='0.3'/%3E%3C/svg%3E");
+}
+
+[data-tema="oscuro"] body {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30L30 0z' fill='none' stroke='%234A3828' stroke-width='0.5' opacity='0.4'/%3E%3C/svg%3E");
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ----------------------------------------
+   03. TIPOGRAFÍA
+---------------------------------------- */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--fuente-titulo);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+h2 {
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+h3 {
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+/* ----------------------------------------
+   04. LAYOUT
+---------------------------------------- */
+.seccion {
+  min-height: calc(100vh - 70px);
+  padding: var(--espaciado-lg) 0;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.seccion__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--espaciado-md);
+}
+
+.seccion__header {
+  text-align: center;
+  margin-bottom: var(--espaciado-xl);
+}
+
+.seccion__titulo {
+  font-family: var(--fuente-titulo);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  color: var(--color-primario);
+  margin-bottom: var(--espaciado-xs);
+}
+
+.seccion__subtitulo {
+  font-size: 1.1rem;
+  color: var(--color-texto-suave);
+}
+
+/* ----------------------------------------
+   05. HEADER & NAVEGACIÓN
+---------------------------------------- */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
+  box-shadow: var(--sombra-sm);
+  transition: background-color var(--transicion);
+}
+
+.header__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--espaciado-sm) var(--espaciado-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaciado-md);
+}
+
+/* Logo */
+.header__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-xs);
+  font-family: var(--fuente-titulo);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  transition: color var(--transicion-rapida);
+}
+
+/* Backoffice logout button hover replacement for inline handlers */
+.btn-logout:hover {
+  background: rgba(220, 53, 69, 0.1) !important;
+  border-color: #dc3545 !important;
+  color: #dc3545 !important;
+}
+
+.header__logo:hover {
+  color: var(--color-acento);
+}
+
+.header__logo-icon {
+  font-size: 1.5rem;
+}
+
+/* Nav Desktop */
+.header__nav {
+  display: flex;
+  gap: var(--espaciado-xs);
+}
+
+.header__link {
+  color: var(--color-texto-suave);
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: var(--espaciado-xs) var(--espaciado-sm);
+  border-radius: var(--radio-md);
+  transition: all var(--transicion-rapida);
+  position: relative;
+}
+
+.header__link:hover,
+.header__link--activo {
+  color: var(--color-primario);
+  background-color: var(--color-fondo-alt);
+}
+
+.header__link--activo::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background-color: var(--color-acento);
+  border-radius: 2px;
+}
+
+/* Controles (Tema, Login) */
+.header__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-xs);
+}
+
+.header__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radio-full);
+  background-color: var(--color-fondo-alt);
+  transition: transform var(--transicion-rapida), background-color var(--transicion);
+}
+
+.header__btn:hover {
+  transform: scale(1.05);
+  background-color: var(--color-borde);
+}
+
+/* Login Btn */
+.header__btn-login {
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-xs);
+  padding: var(--espaciado-xs) var(--espaciado-sm);
+  background-color: var(--color-primario);
+  color: white;
+  border-radius: var(--radio-md);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color var(--transicion-rapida);
+}
+
+.header__btn-login:hover {
+  background-color: var(--color-acento);
+}
+
+/* Menu Movil */
+.header__menu-toggle {
+  display: none;
+}
+
+.header__nav-movil {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
+  box-shadow: var(--sombra-md);
+  padding: var(--espaciado-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaciado-xs);
+}
+
+.header__nav-movil.hidden {
+  display: none;
+}
+
+.header__link-movil {
+  display: block;
+  padding: var(--espaciado-sm);
+  color: var(--color-texto);
+  border-radius: var(--radio-md);
+}
+
+.header__link-movil:hover {
+  background-color: var(--color-fondo-alt);
+}
+
+.header__user-area {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header__profile-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-texto);
+  transition: opacity 0.2s ease;
+}
+
+.header__profile-link:hover {
+  opacity: 0.7;
+}
+
+.header__avatar {
+  width: 32px;
+  height: 32px;
+  background-color: var(--color-acento);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.header__username {
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.header__separator {
+  color: var(--color-borde);
+  font-size: 1.2rem;
+  font-weight: 300;
+}
+
+.header__logout {
+  font-size: 0.85rem;
+  color: var(--color-texto-suave);
+  transition: color 0.2s;
+  font-weight: 500;
+}
+
+.header__logout:hover {
+  color: var(--color-error);
+  /* Rojo suave al pasar el ratón */
+  text-decoration: underline;
+}
+
+.header__nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.header__dropdown-btn {
+  color: var(--color-texto-suave);
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: var(--espaciado-xs) var(--espaciado-sm);
+  border-radius: var(--radio-md);
+  transition: all var(--transicion-rapida);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+
+.header__dropdown-btn:hover,
+.header__dropdown-btn--activo {
+  color: var(--color-primario);
+  background-color: var(--color-fondo-alt);
+}
+
+.header__dropdown-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s;
+}
+
+.header__dropdown-btn[aria-expanded="true"] .header__dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* Menú flotante */
+.header__dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: var(--color-superficie);
+  min-width: 180px;
+  box-shadow: var(--sombra-md);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+  z-index: 110;
+  transform-origin: top left;
+}
+
+.header__dropdown-link {
+  display: block;
+  padding: 0.6rem 1.2rem;
+  color: var(--color-texto);
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.header__dropdown-link:hover {
+  background-color: var(--color-fondo-alt);
+  color: var(--color-primario);
+}
+
+.header__dropdown-link--activo {
+  font-weight: 600;
+  color: var(--color-acento);
+}
+
+@media (max-width: 768px) {
+  .header__username {
+    display: none;
+  }
+
+  .header__separator {
+    display: none;
+  }
+
+  .header__nav {
+    display: none;
+  }
+
+  .header__menu-toggle {
+    display: flex;
+  }
+
+  .header__btn-login-texto {
+    display: none;
+  }
+}
+
+/* ----------------------------------------
+   06. COMPONENTES BASE (Botones, Forms, Toast)
+---------------------------------------- */
+/* Botones - Siguiendo Ley de Fitts (mínimo 44x44px táctil) */
+.btn {
+  padding: 0.75rem 1.5rem;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: var(--radio-md);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transicion);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
+}
+
+/* Efecto ripple al hacer clic */
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn--primario {
+  background-color: var(--color-primario);
+  color: white;
+  box-shadow: var(--sombra-sm);
+}
+
+.btn--primario:hover {
+  background-color: var(--color-acento);
+  box-shadow: var(--sombra-md);
+  transform: translateY(-2px);
+}
+
+.btn--primario:active {
+  transform: translateY(0);
+}
+
+.btn--primario:disabled {
+  background-color: var(--color-borde);
+  color: var(--color-texto-suave);
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+  transform: none;
+}
+
+.btn--secundario {
+  background-color: var(--color-fondo-alt);
+  color: var(--color-texto);
+  border: 2px solid var(--color-borde);
+}
+
+.btn--secundario:hover {
+  background-color: var(--color-superficie);
+  border-color: var(--color-primario);
+  color: var(--color-primario);
+  box-shadow: var(--sombra-sm);
+}
+
+.btn--secundario:active {
+  transform: scale(0.98);
+}
+
+/* Estado de carga */
+.btn--loading {
+  pointer-events: none;
+  position: relative;
+  color: transparent;
+}
+
+.btn--loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  margin-left: -10px;
+  margin-top: -10px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Formularios - Validación y feedback mejorados */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+  position: relative;
+}
+
+.form-label {
+  font-size: 0.95rem;
+  color: var(--color-texto);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-label--required::after {
+  content: '*';
+  color: var(--color-error);
+  margin-left: 0.25rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  min-height: 44px;
+  border: 2px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  font-size: 1rem;
+  font-family: inherit;
+  background-color: var(--color-superficie);
+  color: var(--color-texto);
+  transition: all var(--transicion);
+}
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+  border-color: var(--color-primario);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-acento);
+  box-shadow: 0 0 0 4px rgba(201, 169, 89, 0.15);
+  background-color: var(--color-superficie);
+}
+
+/* Estados de validación */
+.form-input--error,
+.form-select--error,
+.form-textarea--error {
+  border-color: var(--color-error);
+  background-color: rgba(155, 35, 53, 0.05);
+}
+
+.form-input--error:focus,
+.form-select--error:focus,
+.form-textarea--error:focus {
+  box-shadow: 0 0 0 4px rgba(155, 35, 53, 0.15);
+}
+
+.form-input--success,
+.form-select--success,
+.form-textarea--success {
+  border-color: var(--color-exito);
+  background-color: rgba(94, 111, 100, 0.05);
+}
+
+.form-input--success:focus,
+.form-select--success:focus,
+.form-textarea--success:focus {
+  box-shadow: 0 0 0 4px rgba(94, 111, 100, 0.15);
+}
+
+/* Mensajes de ayuda y error */
+.form-hint {
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-error {
+  font-size: 0.875rem;
+  color: var(--color-error);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: slideInDown 0.3s ease-out;
+}
+
+.form-error::before {
+  content: '⚠️';
+}
+
+.form-success {
+  font-size: 0.875rem;
+  color: var(--color-exito);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: slideInDown 0.3s ease-out;
+}
+
+.form-success::before {
+  content: '✓';
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Indicador de campo requerido */
+.form-input:required,
+.form-select:required,
+.form-textarea:required {
+  box-shadow: none;
+}
+
+/* Placeholder mejorado */
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--color-texto-suave);
+  opacity: 0.6;
+}
+
+/* Select con mejor UX */
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%235C4A3A' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 3rem;
+  cursor: pointer;
+}
+
+.form-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--color-fondo);
+}
+
+/* Toast - Mensajes de feedback mejorados */
+.toast {
+  position: fixed;
+  bottom: var(--espaciado-lg);
+  right: var(--espaciado-lg);
+  background-color: var(--color-superficie);
+  padding: 1rem 1.5rem;
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-lg);
+  z-index: 400;
+  animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  max-width: 500px;
+  border-left: 5px solid var(--color-acento);
+}
+
+.toast__icono {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.toast__mensaje {
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--color-texto);
+}
+
+.toast__close {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: var(--color-texto-suave);
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: color var(--transicion);
+  flex-shrink: 0;
+}
+
+.toast__close:hover {
+  color: var(--color-texto);
+}
+
+.toast--exito {
+  border-left-color: var(--color-exito);
+}
+
+.toast--error {
+  border-left-color: var(--color-error);
+}
+
+.toast--warning {
+  border-left-color: #F59E0B;
+}
+
+.toast--info {
+  border-left-color: #3B82F6;
+}
+
+/* Responsive toast */
+@media (max-width: 640px) {
+  .toast {
+    left: var(--espaciado-sm);
+    right: var(--espaciado-sm);
+    bottom: var(--espaciado-sm);
+    min-width: auto;
+  }
+}
+
+/* Modales (Estructura Base) */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaciado-sm);
+}
+
+.modal__overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.modal__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-fondo);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ----------------------------------------
+   07. FOOTER
+---------------------------------------- */
+.footer {
+  background-color: var(--color-fondo-alt);
+  padding: var(--espaciado-lg) var(--espaciado-sm);
+  margin-top: var(--espaciado-xl);
+  text-align: center;
+}
+
+.footer__text {
+  color: var(--color-texto-suave);
+  margin-bottom: var(--espaciado-xs);
+}
+
+.footer__copy {
+  font-family: var(--fuente-acento);
+  font-size: 0.9rem;
+  color: var(--color-acento);
+}
+
+/* ----------------------------------------
+   08. UTILIDADES Y ANIMACIONES
+---------------------------------------- */
+.hidden {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ============================================================================
+   MEJORAS UX/UI (Globales)
+   ============================================================================ */
+
+/* 1. ACCESIBILIDAD (Focus visible pero estético) */
+:focus-visible {
+  outline: 3px solid var(--color-acento);
+  outline-offset: 3px;
+  border-radius: var(--radio-sm);
+}
+
+/* Skip link para accesibilidad por teclado */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-primario);
+  color: white;
+  border-radius: var(--radio-md);
+  font-weight: 600;
+  z-index: 9999;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Indicador de navegación por teclado */
+body.keyboard-navigation *:focus {
+  outline: 3px solid var(--color-acento);
+  outline-offset: 3px;
+}
+
+/* 2. MICRO-INTERACCIONES (Feedback táctil) */
+/* Todos los botones y cards interactivas se hunden ligeramente al pulsar */
+.btn:active,
+.header__btn:active,
+.menu__tab:active,
+.card:active,
+.animal-card:active,
+.producto-card:active {
+  transform: scale(0.97);
+  transition: transform 0.1s;
+}
+
+/* 3. SCROLLBAR PERSONALIZADO (Estética consistente) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-fondo);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-borde);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-primario);
+}

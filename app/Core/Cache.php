@@ -1,0 +1,249 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Core;
+
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
+use Symfony\Component\Cache\Psr16Cache;
+
+/**
+ * Servicio de Cache con Redis
+ *
+ * Proporciona operaciones de cache usando Redis como backend.
+ * Con fallback automático a ArrayAdapter (symfony/cache) si Redis no está disponible.
+ * Internamente delega en PSR-16 (Psr16Cache).
+ */
+final class Cache
+{
+    private static mixed $redis = null;
+    private static ?Psr16Cache $pool = null;
+    private static bool $initialized = false;
+
+    private static function init(): void
+    {
+        if (self::$initialized) {
+            return;
+        }
+        self::$initialized = true;
+
+        $host     = Env::get('REDIS_HOST', 'redis');
+        $port     = (int) Env::get('REDIS_PORT', '6379');
+        $password = Env::get('REDIS_PASSWORD');
+
+        if (class_exists(\Redis::class)) {
+            try {
+                $r = new \Redis();
+                if ($r->connect($host, $port, 2.5)) {
+                    if ($password && !$r->auth($password)) {
+                        Logger::warning('[Cache] Redis auth failed');
+                    }
+                    self::$redis = $r;
+                    self::$pool  = new Psr16Cache(new RedisAdapter($r));
+                    return;
+                }
+            } catch (\Throwable $e) {
+                Logger::warning('[Cache] Redis unavailable, fallback to ArrayAdapter', [
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Fallback: symfony/cache ArrayAdapter (reemplaza la clase anónima de ~200 líneas)
+        self::$pool = new Psr16Cache(new ArrayAdapter(defaultLifetime: 0, storeSerialized: true));
+    }
+
+    /**
+     * Obtiene la instancia de Redis (o null si no disponible)
+     */
+    public static function getRedis(): mixed
+    {
+        self::init();
+        return self::$redis;
+    }
+
+    /**
+     * Obtiene un valor del cache
+     *
+     * @param string $key     Clave del cache
+     * @param mixed  $default Valor por defecto si no existe
+     */
+    public static function get(string $key, mixed $default = null): mixed
+    {
+        self::init();
+        if (self::$pool === null) {
+            return $default;
+        }
+        return self::$pool->get(self::sanitizeKey($key), $default);
+    }
+
+    /**
+     * Guarda un valor en el cache
+     *
+     * @param string $key   Clave del cache
+     * @param mixed  $value Valor a almacenar
+     * @param int    $ttl   Tiempo de vida en segundos (default: 3600)
+     */
+    public static function set(string $key, mixed $value, int $ttl = 3600): bool
+    {
+        self::init();
+        return self::$pool?->set(self::sanitizeKey($key), $value, $ttl) ?? false;
+    }
+
+    /**
+     * Elimina un valor del cache
+     *
+     * @param string $key Clave del cache
+     */
+    public static function delete(string $key): bool
+    {
+        self::init();
+        return self::$pool?->delete(self::sanitizeKey($key)) ?? false;
+    }
+
+    /**
+     * Verifica si una key existe en el cache
+     *
+     * @param string $key Clave del cache
+     */
+    public static function has(string $key): bool
+    {
+        self::init();
+        return self::$pool?->has(self::sanitizeKey($key)) ?? false;
+    }
+
+    /**
+     * Limpia todo el cache
+     */
+    public static function flush(): bool
+    {
+        self::init();
+        return self::$pool?->clear() ?? false;
+    }
+
+    /**
+     * Elimina múltiples keys que coincidan con un patrón (requiere Redis con SCAN)
+     *
+     * @param string $pattern Patrón de búsqueda (ej: "products:*")
+     * @return int|false Número de keys eliminadas, o 0 si Redis no está disponible
+     */
+    public static function deletePattern(string $pattern): int|false
+    {
+        self::init();
+        if (self::$redis === null) {
+            Logger::warning('[Cache] deletePattern not supported without Redis', ['pattern' => $pattern]);
+            return 0;
+        }
+        try {
+            $cursor          = null;
+            $deleted         = 0;
+            $sanitizedPattern = self::sanitizePattern($pattern);
+            do {
+                $keys = self::$redis->scan($cursor, $sanitizedPattern, 100);
+                if ($keys !== false && $keys !== []) {
+                    $deleted += self::$redis->del(...$keys);
+                }
+            } while ($cursor !== 0 && $cursor !== null);
+            return $deleted;
+        } catch (\Throwable $e) {
+            Logger::warning('[Cache] deletePattern failed', ['exception' => $e->getMessage()]);
+            return 0;
+        }
+    }
+
+    /**
+     * Obtiene o genera un valor de cache (patrón remember)
+     *
+     * @param string   $key      Clave del cache
+     * @param callable $callback Función que genera el valor si no está en cache
+     * @param int      $ttl      Tiempo de vida en segundos
+     */
+    public static function remember(string $key, callable $callback, int $ttl = 3600): mixed
+    {
+        $value = self::get($key);
+        if ($value !== null) {
+            return $value;
+        }
+        $value = $callback();
+        self::set($key, $value, $ttl);
+        return $value;
+    }
+
+    /**
+     * Incrementa un contador de forma atómica usando Redis INCRBY.
+     * Requiere Redis; retorna false si Redis no está disponible o falla.
+     *
+     * @param string $key Clave del contador (raw, no sanitizada)
+     * @param int    $by  Cantidad a incrementar (default: 1)
+     * @return int|false Nuevo valor del contador o false si falla
+     */
+    public static function increment(string $key, int $by = 1): int|false
+    {
+        self::init();
+        if (self::$redis === null) {
+            return false;
+        }
+        try {
+            return self::$redis->incrBy($key, $by);
+        } catch (\Throwable $e) {
+            Logger::warning('[Cache] increment failed', ['key' => $key, 'exception' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+    /**
+     * Decrementa un contador de forma atómica usando Redis DECRBY.
+     * Requiere Redis; retorna false si Redis no está disponible o falla.
+     *
+     * @param string $key Clave del contador (raw, no sanitizada)
+     * @param int    $by  Cantidad a decrementar (default: 1)
+     * @return int|false Nuevo valor del contador o false si falla
+     */
+    public static function decrement(string $key, int $by = 1): int|false
+    {
+        self::init();
+        if (self::$redis === null) {
+            return false;
+        }
+        try {
+            return self::$redis->decrBy($key, $by);
+        } catch (\Throwable $e) {
+            Logger::warning('[Cache] decrement failed', ['key' => $key, 'exception' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+    /**
+     * Sanitiza una clave de cache para cumplir con PSR-16 (prohíbe {}()/\@: entre otros)
+     * Las claves del proyecto usan ':' como separador (ej: products:1), por lo que se hace
+     * rawurlencode() para que sean transparentes al llamador.
+     */
+    private static function sanitizeKey(string $key): string
+    {
+        return rawurlencode($key);
+    }
+
+    /**
+     * Sanitiza un patrón glob preservando los wildcards (* y ?)
+     * Usado en deletePattern para que el SCAN de Redis coincida con las claves sanitizadas.
+     */
+    private static function sanitizePattern(string $pattern): string
+    {
+        return str_replace(
+            [':', '{', '}', '(', ')', '/', '\\', '@'],
+            ['%3A', '%7B', '%7D', '%28', '%29', '%2F', '%5C', '%40'],
+            $pattern
+        );
+    }
+
+    /**
+     * Reinicia el estado interno (útil para tests y reconfiguración)
+     */
+    public static function reset(): void
+    {
+        self::$redis       = null;
+        self::$pool        = null;
+        self::$initialized = false;
+    }
+}

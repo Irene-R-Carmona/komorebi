@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="6.15.1@28dc127af1b5aecd52314f6f645bafc10d0e11f9">
+  <file src="app/Core/Container.php">
+    <UndefinedMethod>
+      <code><![CDATA[isBuiltin]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="app/Core/Csrf.php">
+    <InvalidReturnStatement>
+      <code><![CDATA[$_POST[self::FIELD_NAME]]]></code>
+    </InvalidReturnStatement>
+  </file>
+  <file src="app/Core/Database.php">
+    <MethodSignatureMustOmitReturnType>
+      <code><![CDATA[private function __clone(): void {}]]></code>
+    </MethodSignatureMustOmitReturnType>
+  </file>
+  <file src="app/Core/MiddlewarePipeline.php">
+    <InvalidPropertyAssignmentValue>
+      <code><![CDATA[$this->middlewares]]></code>
+    </InvalidPropertyAssignmentValue>
+  </file>
+  <file src="app/Core/Queue.php">
+    <InvalidCast>
+      <code><![CDATA[$redis->lLen($queueKey)]]></code>
+    </InvalidCast>
+    <UndefinedMethod>
+      <code><![CDATA[ExternalServiceException::withMessage(
+                'Error al añadir job a la cola: ' . $e->getMessage()
+            )]]></code>
+      <code><![CDATA[ExternalServiceException::withMessage(
+                'Error al extraer job de la cola: ' . $e->getMessage()
+            )]]></code>
+      <code><![CDATA[ExternalServiceException::withMessage(
+                'Redis no está disponible para el sistema de colas. Verifica la configuración.'
+            )]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="app/Core/Seeders/ReservationSeeder.php">
+    <InvalidArrayOffset>
+      <code><![CDATA[$usedSlots[$slot['id']]]]></code>
+    </InvalidArrayOffset>
+  </file>
+  <file src="app/Core/Seeders/ReviewSeeder.php">
+    <InvalidArrayOffset>
+      <code><![CDATA[$cafeReviewCounts[$cafeId]]]></code>
+      <code><![CDATA[$cafeReviewCounts[$cafeId]]]></code>
+      <code><![CDATA[$cafeReviewCounts[$cafeId]]]></code>
+    </InvalidArrayOffset>
+  </file>
+  <file src="app/Core/Session.php">
+    <InvalidReturnStatement>
+      <code><![CDATA[$_SESSION]]></code>
+    </InvalidReturnStatement>
+    <InvalidReturnType>
+      <code><![CDATA[array<string, mixed>]]></code>
+    </InvalidReturnType>
+    <NoValue>
+      <code><![CDATA[$user['role']]]></code>
+    </NoValue>
+  </file>
+  <file src="app/Core/View.php">
+    <InvalidArgument>
+      <code><![CDATA[[self::class, 'escapeData']]]></code>
+    </InvalidArgument>
+  </file>
+  <file src="app/Http/Controllers/Admin/AnimalController.php">
+    <UndefinedMethod>
+      <code><![CDATA[createAnimal]]></code>
+      <code><![CDATA[deleteAnimal]]></code>
+      <code><![CDATA[getAllAnimals]]></code>
+      <code><![CDATA[getAnimalById]]></code>
+      <code><![CDATA[updateAnimal]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="app/Http/Controllers/Admin/ProductController.php">
+    <InvalidArgument>
+      <code><![CDATA[$allergenIds]]></code>
+      <code><![CDATA[$allergenIds]]></code>
+    </InvalidArgument>
+  </file>
+  <file src="app/Http/Controllers/Admin/ReportController.php">
+    <InvalidArgument>
+      <code><![CDATA[['Fecha Desde', $dateFrom]]]></code>
+      <code><![CDATA[['Fecha Hasta', $dateTo]]]></code>
+    </InvalidArgument>
+  </file>
+  <file src="app/Http/Controllers/Admin/ReviewController.php">
+    <TooFewArguments>
+      <code><![CDATA[rejectReview]]></code>
+      <code><![CDATA[rejectReview]]></code>
+    </TooFewArguments>
+    <UndefinedMethod>
+      <code><![CDATA[getAllReviews]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="app/Http/Controllers/Admin/UserController.php">
+    <UndefinedMethod>
+      <code><![CDATA[findAll]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="app/Http/Controllers/Public/NewsletterController.php">
+    <MissingFile>
+      <code><![CDATA[require __DIR__ . '/../../../resources/views/public/newsletter/confirm.php']]></code>
+      <code><![CDATA[require __DIR__ . '/../../resources/views/public/newsletter/confirm.php']]></code>
+      <code><![CDATA[require __DIR__ . '/../../resources/views/public/newsletter/unsubscribe.php']]></code>
+    </MissingFile>
+  </file>
+  <file src="app/Http/Controllers/Public/WaitlistViewController.php">
+    <MissingFile>
+      <code><![CDATA[require __DIR__ . '/../../../resources/views/errors/400.php']]></code>
+      <code><![CDATA[require __DIR__ . '/../../../resources/views/errors/400.php']]></code>
+      <code><![CDATA[require __DIR__ . '/../../../resources/views/errors/400.php']]></code>
+      <code><![CDATA[require __DIR__ . '/../../../resources/views/errors/400.php']]></code>
+      <code><![CDATA[require __DIR__ . '/../../../resources/views/errors/404.php']]></code>
+      <code><![CDATA[require __DIR__ . '/../../../resources/views/public/waitlist-confirm.php']]></code>
+      <code><![CDATA[require __DIR__ . '/../../../resources/views/public/waitlist-success.php']]></code>
+    </MissingFile>
+  </file>
+  <file src="app/Http/Controllers/Shared/ReservationController.php">
+    <InvalidArgument>
+      <code><![CDATA[[
+            'user_id' => $userId,
+            'cafe_id' => $cafeId,
+            'pass_product_id' => $passProductId,
+            'date' => $fecha,
+            'time' => $hora,
+            'guests' => $personas,
+            'comments' => $comentarios,
+        ]]]></code>
+    </InvalidArgument>
+  </file>
+  <file src="app/Jobs/ProcessImageJob.php">
+    <UndefinedMethod>
+      <code><![CDATA[FilesystemException::withMessage(
+                    "Archivo de origen no encontrado: {$sourcePath}"
+                )]]></code>
+      <code><![CDATA[FilesystemException::withMessage(
+                    "Estructura de size inválida en índice {$index}. Requerido: width, height, suffix"
+                )]]></code>
+      <code><![CDATA[FilesystemException::withMessage(
+                    "No se pudo cargar la imagen: {$sourcePath}"
+                )]]></code>
+      <code><![CDATA[FilesystemException::withMessage(
+                    "No se pudo leer la información de la imagen: {$sourcePath}"
+                )]]></code>
+      <code><![CDATA[FilesystemException::withMessage(
+                    "Tipo de imagen no soportado: {$imageInfo['mime']}"
+                )]]></code>
+      <code><![CDATA[FilesystemException::withMessage(
+                "No se pudo crear el thumbnail para: {$sourcePath}"
+            )]]></code>
+      <code><![CDATA[FilesystemException::withMessage(
+                "No se pudo guardar el thumbnail: {$destinationPath}"
+            )]]></code>
+      <code><![CDATA[FilesystemException::withMessage(
+                'Campo requerido ausente en ProcessImageJob: source_path'
+            )]]></code>
+      <code><![CDATA[FilesystemException::withMessage(
+                'Campo requerido ausente o inválido en ProcessImageJob: sizes'
+            )]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="app/Jobs/SendEmailJob.php">
+    <UndefinedMethod>
+      <code><![CDATA[ExternalServiceException::withMessage(
+                'Error al enviar email: ' . $mail->ErrorInfo
+            )]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="app/Models/AuditLog.php">
+    <InvalidArgument>
+      <code><![CDATA[$ip]]></code>
+    </InvalidArgument>
+  </file>
+  <file src="app/Models/AuthAuditLog.php">
+    <InvalidArgument>
+      <code><![CDATA[$ip]]></code>
+    </InvalidArgument>
+  </file>
+  <file src="app/Models/LoyaltyRewardCatalog.php">
+    <InvalidArrayOffset>
+      <code><![CDATA[$tierOrder[$reward['tier_required']]]]></code>
+    </InvalidArrayOffset>
+  </file>
+  <file src="app/Models/Reservation.php">
+    <InvalidArrayOffset>
+      <code><![CDATA[$data['time_slot_id']]]></code>
+    </InvalidArrayOffset>
+  </file>
+  <file src="app/Models/TimeSlot.php">
+    <TooManyTemplateParams>
+      <code><![CDATA[Result<bool>]]></code>
+    </TooManyTemplateParams>
+  </file>
+  <file src="app/Services/AdminService.php">
+    <InvalidArrayOffset>
+      <code><![CDATA[$usersMap[$userId]]]></code>
+    </InvalidArrayOffset>
+  </file>
+  <file src="app/Services/AuthService.php">
+    <InvalidArgument>
+      <code><![CDATA[[
+            'id' => $userId,
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'role' => $roleValue,
+            'cafe_id' => $user['cafe_id'] ?? null,
+        ]]]></code>
+    </InvalidArgument>
+  </file>
+  <file src="app/Services/NewsletterService.php">
+    <UndefinedDocblockClass>
+      <code><![CDATA[RandomException]]></code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="app/Services/ReservationService.php">
+    <UndefinedClass>
+      <code><![CDATA[RuntimeException]]></code>
+    </UndefinedClass>
+  </file>
+  <file src="app/Services/ReservationTimeSlotService.php">
+    <InvalidArgument>
+      <code><![CDATA[$data]]></code>
+      <code><![CDATA[$data]]></code>
+      <code><![CDATA[[
+                'cafe_id' => $data['cafe_id'],
+                'date' => $data['reservation_date'],
+                'time' => $data['reservation_time'],
+                'min_spots' => $data['guest_count'],
+            ]]]></code>
+    </InvalidArgument>
+    <TooFewArguments>
+      <code><![CDATA[addToWaitlist]]></code>
+      <code><![CDATA[addToWaitlist]]></code>
+      <code><![CDATA[addToWaitlist]]></code>
+      <code><![CDATA[findAvailable]]></code>
+      <code><![CDATA[findAvailable]]></code>
+      <code><![CDATA[findAvailable]]></code>
+    </TooFewArguments>
+  </file>
+  <file src="app/Services/WaitlistService.php">
+    <UndefinedMethod>
+      <code><![CDATA[findByIdForUpdate]]></code>
+    </UndefinedMethod>
+  </file>
+</files>

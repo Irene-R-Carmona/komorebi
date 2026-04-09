@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# Script: php
+# Proyecto: Komorebi Café
+#
+# Descripción:
+#   Wrapper local para ejecutar el intérprete PHP dentro del contenedor Docker
+#   llamado "app". Permite que el desarrollador ejecute comandos PHP desde la
+#   máquina host como si PHP estuviera instalado localmente.
+#
+# Funcionamiento:
+#   - Si no se pasan argumentos, abre una sesión interactiva de PHP dentro del
+#     contenedor.
+#   - Si se pasan argumentos, los reenvía al comando "php" del contenedor.
+#
+# Motivo de uso:
+#   - Evita instalar PHP en el host.
+#   - Permite que editores/IDEs utilicen el PHP del contenedor.
+#   - Garantiza que todos los entornos (dev/CI) usen la misma versión de PHP.
+#
+# Notas:
+#   - Se usa "-T" para desactivar pseudo-TTY cuando es necesario (CI/IDE).
+#   - Requiere que el contenedor "app" esté levantado.
+# -----------------------------------------------------------------------------
+
+set -euo pipefail
+
+if [ "$#" -eq 0 ]; then
+  exec docker compose exec -T app php
+else
+  exec docker compose exec -T app php "$@"
+fi

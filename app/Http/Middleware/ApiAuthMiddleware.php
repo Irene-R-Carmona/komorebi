@@ -1,0 +1,133 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Middleware;
+
+use App\Core\Database;
+use App\Core\Http\ResponseFactory;
+use App\Core\Logger;
+use App\Core\Result;
+use App\Core\Session;
+use App\Services\Contracts\ApiTokenServiceInterface;
+use PDO;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Throwable;
+
+/**
+ * Middleware PSR-15 de autenticación para rutas de API.
+ *
+ * Devuelve siempre JSON — nunca redirige ni usa Flash.
+ * Usar en rutas bajo /api/.
+ */
+final class ApiAuthMiddleware implements MiddlewareInterface
+{
+    public function __construct(
+        private readonly ResponseFactory $response,
+        private readonly ?ApiTokenServiceInterface $tokenService = null,
+    ) {}
+
+    #[\Override]
+    public function process(
+        ServerRequestInterface $request,
+        RequestHandlerInterface $handler
+    ): ResponseInterface {
+        // ── Bearer token path ────────────────────────────────────────────────
+        $authHeader = $request->getHeaderLine('Authorization');
+        if (str_starts_with($authHeader, 'Bearer ')) {
+            $plain  = trim(substr($authHeader, 7));
+            $result = $this->tokenService?->validate($plain);
+
+            if ($result === null || !$result->ok) {
+                $detail = $result?->error ?? 'Token inválido o expirado.';
+                $code   = $result?->code  ?? 'invalid_token';
+                return $this->response->problem(Result::fail($detail, $code), 401);
+            }
+
+            /** @var array{user_id: int, user: array<string,mixed>, user_roles: array<string>, token_id: int} $data */
+            $data    = $result->data;
+            $request = $request->withAttribute('user_id',    $data['user_id'])
+                                ->withAttribute('user',       $data['user'])
+                                ->withAttribute('user_roles', $data['user_roles'])
+                                ->withAttribute('auth_method', 'bearer');
+
+            return $handler->handle($request);
+        }
+        // ── Session path (sin cambios) ────────────────────────────────────────
+        Session::start();
+
+        $userId = Session::get('user_id');
+
+        if (empty($userId)) {
+            return $this->response->json([
+                'ok'    => false,
+                'error' => 'No autenticado.',
+                'code'  => 'unauthenticated',
+            ], 401);
+        }
+
+        $sessionUser = Session::get('user');
+        if (!empty($sessionUser) && isset($sessionUser['id']) && (int) $sessionUser['id'] === (int) $userId) {
+            $user = $sessionUser;
+        } else {
+            $user = $this->fetchUserFromDb((int) $userId);
+            if ($user !== null) {
+                Session::set('user', $user);
+            }
+        }
+
+        if (!$user || !$user['is_active']) {
+            Session::destroy();
+
+            return $this->response->json([
+                'ok'    => false,
+                'error' => 'Cuenta desactivada.',
+                'code'  => 'account_disabled',
+            ], 401);
+        }
+
+        $this->loadUserRolesInSession((int) $userId);
+
+        $request = $request->withAttribute('user_id', (int) $userId);
+        $request = $request->withAttribute('user', $user);
+
+        return $handler->handle($request);
+    }
+
+    private function fetchUserFromDb(int $userId): ?array
+    {
+        try {
+            $db = Database::getConnection();
+            $stmt = $db->prepare('SELECT id, name, email, is_active FROM users WHERE id = ?');
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            return $user ?: null;
+        } catch (Throwable $e) {
+            Logger::error('[ApiAuthMiddleware] Error fetching user', ['user_id' => $userId, 'error' => $e->getMessage()]);
+
+            return null;
+        }
+    }
+
+    private function loadUserRolesInSession(int $userId): void
+    {
+        if (!empty(Session::get('user_roles'))) {
+            return;
+        }
+
+        try {
+            $db = Database::getConnection();
+            $stmt = $db->prepare('SELECT r.code FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?');
+            $stmt->execute([$userId]);
+            $roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            Session::set('user_roles', $roles);
+        } catch (Throwable $e) {
+            Logger::error('[ApiAuthMiddleware] Error loading roles', ['user_id' => $userId, 'error' => $e->getMessage()]);
+            Session::set('user_roles', ['user']);
+        }
+    }
+}

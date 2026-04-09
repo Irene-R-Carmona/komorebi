@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+# -----------------------------------------------------------------------------
+# Script: run-phpstan.sh
+# Proyecto: Komorebi Café
+#
+# Descripción:
+#   Ejecuta PHPStan dentro del contenedor Docker "app" utilizando el archivo
+#   phar descargado en /var/www/html/tools/phpstan.phar.
+#
+# Motivo de uso:
+#   - Permite ejecutar análisis estático sin instalar PHPStan en el host.
+#   - Garantiza que el análisis se realiza con la misma versión en todos los
+#     entornos (dev/CI).
+#
+# Requisitos:
+#   - El contenedor "app" debe estar levantado.
+#   - El archivo phpstan.phar debe existir en la ruta indicada.
+# -----------------------------------------------------------------------------
+
+set -e
+docker compose exec app php /var/www/html/tools/phpstan.phar "$@"

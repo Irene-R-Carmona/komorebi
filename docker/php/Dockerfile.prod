@@ -1,0 +1,61 @@
+# syntax=docker/dockerfile:1.7
+
+FROM composer:2.8 AS vendor-build
+
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+COPY . /app
+RUN composer dump-autoload --optimize
+
+FROM dunglas/frankenphp:1.11.1-php8.4-alpine
+
+WORKDIR /app
+
+RUN install-php-extensions \
+    pdo_mysql \
+    mbstring \
+    intl \
+    gd \
+    zip \
+    bcmath \
+    exif \
+    redis \
+    pcntl
+
+COPY docker/php/ini/php.ini /usr/local/etc/php/conf.d/00-php.ini
+COPY docker/php/ini/error-prod.ini /usr/local/etc/php/conf.d/01-error.ini
+COPY docker/php/ini/uploads.ini /usr/local/etc/php/conf.d/02-uploads.ini
+COPY docker/php/ini/opcache.ini /usr/local/etc/php/conf.d/04-opcache.ini
+
+COPY frankenphp.Caddyfile /app/frankenphp.Caddyfile
+COPY --from=vendor-build /app /app
+
+# Normalizar entrypoint, crear public/vendor y establecer permisos en una única capa
+RUN apk add --no-cache dos2unix \
+    && dos2unix /app/docker/php/docker-entrypoint.sh || true \
+    && mkdir -p /app/public/vendor \
+    && chmod +x /app/docker/php/docker-entrypoint.sh || true
+
+# Publicar assets públicos desde la etapa vendor-build a public/vendor (ej.: bootstrap-icons)
+COPY --from=vendor-build /app/vendor/twbs /app/public/vendor/twbs
+
+COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+RUN chmod +x /usr/local/bin/docker-entrypoint
+
+# session.cookie_secure = 1 en producción (HTTPS obligatorio)
+RUN echo 'session.cookie_secure = 1' >> /usr/local/etc/php/conf.d/00-php.ini
+
+# Seguridad: usuario no-root en producción
+RUN addgroup -S appgroup \
+    && adduser -S appuser -G appgroup \
+    && chown -R appuser:appgroup /app
+
+USER appuser
+
+EXPOSE 80
+
+ENTRYPOINT ["docker-entrypoint"]
+CMD ["frankenphp", "run", "--config=/app/frankenphp.Caddyfile"]

@@ -1,0 +1,44 @@
+# ──────────────────────────────────────────────────────────────
+#  PHPStan — Configuración
+#  Docs: https://phpstan.org/config-reference
+# ──────────────────────────────────────────────────────────────
+
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+
+    # ── Nivel de análisis ──────────────────────────────────────
+    level: 5
+
+    # ── Rutas a analizar ───────────────────────────────────────
+    paths:
+        - app
+        - scripts
+        - tests
+
+    # ── Rutas excluidas ────────────────────────────────────────
+    excludePaths:
+        - vendor
+        - node_modules
+        - storage
+        - cache
+        - tmp
+        - tests/fixtures
+
+    # ── PHP objetivo ───────────────────────────────────────────
+    phpVersion: 80400  # PHP 8.4
+
+    # ── Carga de stubs / bootstrap ─────────────────────────────
+    bootstrapFiles:
+        - vendor/autoload.php
+
+    # scanFiles:
+    #     - config/constants.php
+
+    # scanDirectories:
+    #     - src
+
+    # ── Tratamiento de errores ─────────────────────────────────
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: true

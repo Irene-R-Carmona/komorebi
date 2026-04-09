@@ -1,0 +1,1197 @@
+openapi: 3.1.0
+info:
+  title: Komorebi Café API
+  description: |
+    API REST para la plataforma Komorebi Café (lista de espera, franjas horarias, supervisor, manager).
+
+    ## Autenticación
+
+    La API utiliza cookies de sesión PHP. Para obtener una sesión válida,
+    realiza una petición `POST /login` con `email` y `password` como campos de formulario
+    (`application/x-www-form-urlencoded`). Al autenticarse correctamente el servidor
+    devuelve la cookie `PHPSESSID` que debe enviarse en cada petición subsiguiente.
+
+    ## CSRF
+
+    Todas las peticiones `POST`, `PUT` y `DELETE` a rutas SSR (no-API) requieren un
+    campo `csrf_token` en el cuerpo del formulario o el header `X-CSRF-Token`.
+    Los endpoints `/api/v1/*` de tipo GET no requieren CSRF.
+    Los endpoints `/api/v1/*` de tipo POST (ej. `/api/v1/supervisor/assign`,
+    `/api/v1/waitlist/join`) sí requieren CSRF token.
+  version: 1.0.0
+  contact:
+    name: Komorebi Café
+
+servers:
+  - url: http://localhost:9000/api/v1
+    description: Desarrollo local
+
+tags:
+  - name: holidays
+    description: Días festivos y disponibilidad por fecha
+  - name: timeslots
+    description: Franjas horarias y estadísticas de ocupación
+  - name: waitlist
+    description: Lista de espera (unirse, consultar posición, confirmar)
+  - name: manager
+    description: Dashboard del manager (métricas, ingresos, animales, reservas) — requiere rol manager/admin
+  - name: supervisor
+    description: Gestión de asignaciones de mesas — requiere rol supervisor/manager/admin
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: PHPSESSID
+      description: |
+        Cookie de sesión PHP. Para obtener una sesión válida:
+        1. `POST /login` con `email` y `password` (form-encoded) más el `csrf_token` del formulario.
+        2. El servidor responde con `Set-Cookie: PHPSESSID=<token>; HttpOnly`.
+        3. Envía esa cookie en cada petición autenticada.
+        La sesión expira al cerrar el navegador o al llamar a `POST /logout`.
+
+  schemas:
+    ProblemDetails:
+      type: object
+      required:
+        - type
+        - title
+        - status
+        - detail
+      properties:
+        type:
+          type: string
+          example: about:blank
+          description: URI que identifica el tipo de problema (RFC 9457)
+        title:
+          type: string
+          example: Unprocessable Entity
+          description: Título legible del tipo de error
+        status:
+          type: integer
+          example: 422
+          description: Código HTTP de estado
+        detail:
+          type: string
+          example: El café no existe
+          description: Explicación específica del problema
+        code:
+          type: string
+          example: cafe_not_found
+          description: Código de error interno de la aplicación
+
+    Holiday:
+      type: object
+      required:
+        - date
+        - name
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2026-01-01"
+        name:
+          type: string
+          example: Año Nuevo
+
+    TimeSlot:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        date:
+          type: string
+          format: date
+          example: "2026-04-10"
+        time:
+          type: string
+          example: "14:00"
+          description: Hora en formato HH:MM
+        available:
+          type: integer
+          example: 6
+          description: Plazas disponibles
+        capacity:
+          type: integer
+          example: 10
+          description: Capacidad total del slot
+        occupancy:
+          type: string
+          example: "40%"
+          description: Porcentaje de ocupación
+        status:
+          type: string
+          example: available
+          enum:
+            - available
+            - almost_full
+            - full
+        duration:
+          type: string
+          example: "90 min"
+
+    WaitlistEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 789
+        token:
+          type: string
+          example: abc123def456
+        position:
+          type: integer
+          example: 3
+        message:
+          type: string
+          example: "Te has unido a la lista de espera en posición 3"
+
+    WaitlistStatus:
+      type: object
+      properties:
+        position:
+          type: integer
+          example: 2
+        status:
+          type: string
+          example: waiting
+          enum:
+            - waiting
+            - promoted
+            - confirmed
+            - expired
+        estimated_wait_minutes:
+          type: integer
+          example: 30
+        time_slot:
+          type: object
+          properties:
+            date:
+              type: string
+              format: date
+              example: "2026-02-15"
+            time:
+              type: string
+              example: "14:00:00"
+            cafe_name:
+              type: string
+              example: Neko no Niwa
+
+    DashboardMetrics:
+      type: object
+      description: Métricas operativas en tiempo real del café asignado al manager
+      required:
+        - reservations_today
+        - revenue_today
+        - active_staff
+        - animals_count
+        - monthly_reservations
+        - avg_rating
+        - pending_reservations
+      properties:
+        reservations_today:
+          type: integer
+          description: Número de reservas del día (confirmadas, activas y completadas)
+          example: 12
+        revenue_today:
+          type: number
+          format: float
+          description: Ingresos totales del día (reservas completadas y pagadas)
+          example: 145.50
+        active_staff:
+          type: integer
+          description: Número de empleados activos asignados al café
+          example: 8
+        animals_count:
+          type: integer
+          description: Número de animales activos en el café
+          example: 15
+        weekly_revenue:
+          type: array
+          description: Ingresos de los últimos 7 días (una entrada por día con reservas)
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+                example: "2026-03-21"
+              revenue:
+                type: string
+                description: Importe como string decimal devuelto por MySQL
+                example: "230.50"
+        monthly_reservations:
+          type: integer
+          description: Total de reservas del mes actual
+          example: 98
+        avg_rating:
+          type: number
+          format: float
+          description: Puntuación media del café
+          example: 4.3
+        pending_reservations:
+          type: integer
+          description: Reservas pendientes de confirmación
+          example: 5
+
+    WeeklyRevenueChart:
+      type: object
+      properties:
+        labels:
+          type: array
+          items:
+            type: string
+          example:
+            ["21/03", "22/03", "23/03", "24/03", "25/03", "26/03", "27/03"]
+        datasets:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+                example: "Ingresos (€)"
+              data:
+                type: array
+                items:
+                  type: number
+                  format: float
+                example: [150.0, 230.5, 180.0, 320.0, 410.0, 90.0, 275.0]
+              borderColor:
+                type: string
+                example: "rgb(75, 192, 192)"
+              backgroundColor:
+                type: string
+                example: "rgba(75, 192, 192, 0.2)"
+
+    TopAnimal:
+      type: object
+      description: Animal con mayor número de interacciones registradas en el café
+      required:
+        - id
+        - name
+        - species_type
+        - interaction_count
+      properties:
+        id:
+          type: integer
+          example: 7
+        name:
+          type: string
+          example: Sakura
+        species_type:
+          type: string
+          description: Tipo de especie del animal
+          example: cat
+        interaction_count:
+          type: integer
+          description: Número total de sesiones de interacción registradas
+          example: 42
+
+    ReservationStatusChart:
+      type: object
+      properties:
+        labels:
+          type: array
+          items:
+            type: string
+          example: ["Pending", "Confirmed", "Completed", "Cancelled"]
+        datasets:
+          type: array
+          items:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  type: integer
+                example: [5, 12, 8, 2]
+              backgroundColor:
+                type: array
+                items:
+                  type: string
+                example: ["#FFA726", "#66BB6A", "#26C6DA", "#EF5350"]
+
+    Assignment:
+      type: object
+      description: Asignación de una reserva a una mesa gestionada por un supervisor
+      required:
+        - id
+        - supervisor_id
+        - reservation_id
+        - table_code
+        - cafe_id
+        - is_active
+        - assigned_at
+      properties:
+        id:
+          type: integer
+          example: 1
+        supervisor_id:
+          type: integer
+          description: ID del usuario con rol supervisor que realizó la asignación
+          example: 10
+        reservation_id:
+          type: integer
+          description: ID de la reserva asignada
+          example: 123
+        table_code:
+          type: string
+          maxLength: 20
+          description: Código identificador de la mesa
+          example: A1
+        cafe_id:
+          type: integer
+          description: ID del café al que pertenece la mesa
+          example: 2
+        is_active:
+          type: integer
+          enum: [0, 1]
+          description: "1 = asignación activa, 0 = inactiva"
+          example: 1
+        assigned_at:
+          type: string
+          format: date-time
+          example: "2026-03-27T14:30:00Z"
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-03-27T14:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-03-27T14:30:00Z"
+
+paths:
+  # ============================================================
+  # HOLIDAYS
+  # ============================================================
+
+  /holidays:
+    get:
+      summary: Listar días festivos
+      description: Devuelve la lista completa de días festivos para el año en curso. No requiere autenticación.
+      operationId: getHolidays
+      tags:
+        - holidays
+      responses:
+        "200":
+          description: Lista de días festivos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  holidays:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Holiday"
+                  count:
+                    type: integer
+                    example: 10
+              example:
+                holidays:
+                  - date: "2026-01-01"
+                    name: Año Nuevo
+                  - date: "2026-12-25"
+                    name: Navidad
+                count: 10
+
+  /holidays/check:
+    get:
+      summary: Comprobar si una fecha es festivo
+      description: Verifica si la fecha indicada es un día festivo y si está disponible para reservas.
+      operationId: checkHoliday
+      tags:
+        - holidays
+      parameters:
+        - name: date
+          in: query
+          required: true
+          description: Fecha a comprobar en formato YYYY-MM-DD
+          schema:
+            type: string
+            format: date
+            example: "2026-12-25"
+      responses:
+        "200":
+          description: Resultado de la comprobación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                    example: "2026-12-25"
+                  is_holiday:
+                    type: boolean
+                    example: true
+                  available_for_reservations:
+                    type: boolean
+                    example: false
+        "400":
+          description: Parámetro date faltante o con formato inválido
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                missing_parameter:
+                  summary: Parámetro date no enviado
+                  value:
+                    type: about:blank
+                    title: Bad Request
+                    status: 400
+                    detail: 'Parámetro "date" requerido (formato: YYYY-MM-DD)'
+                    code: missing_parameter
+                invalid_format:
+                  summary: Formato de fecha inválido
+                  value:
+                    type: about:blank
+                    title: Bad Request
+                    status: 400
+                    detail: Formato de fecha inválido. Use YYYY-MM-DD
+                    code: invalid_date_format
+
+  # ============================================================
+  # TIME SLOTS
+  # ============================================================
+
+  /time-slots/available:
+    get:
+      summary: Slots disponibles para reserva
+      description: Devuelve las franjas horarias con plazas disponibles para un café y rango de fechas. No requiere autenticación.
+      operationId: getAvailableTimeSlots
+      tags:
+        - timeslots
+      parameters:
+        - name: cafe_id
+          in: query
+          required: false
+          description: ID del café (por defecto 1)
+          schema:
+            type: integer
+            default: 1
+            example: 1
+        - name: start_date
+          in: query
+          required: false
+          description: Fecha de inicio del rango (YYYY-MM-DD). Por defecto hoy.
+          schema:
+            type: string
+            format: date
+            example: "2026-04-10"
+        - name: end_date
+          in: query
+          required: false
+          description: Fecha de fin del rango (YYYY-MM-DD). Por defecto hoy + 7 días.
+          schema:
+            type: string
+            format: date
+            example: "2026-04-17"
+        - name: min_spots
+          in: query
+          required: false
+          description: Mínimo de plazas disponibles requeridas
+          schema:
+            type: integer
+            default: 1
+            example: 2
+      responses:
+        "200":
+          description: Lista de slots disponibles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      cafe_id:
+                        type: integer
+                        example: 1
+                      date_range:
+                        type: object
+                        properties:
+                          start:
+                            type: string
+                            format: date
+                            example: "2026-04-10"
+                          end:
+                            type: string
+                            format: date
+                            example: "2026-04-17"
+                      total_slots:
+                        type: integer
+                        example: 14
+                      slots:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TimeSlot"
+        "500":
+          description: Error interno al consultar la base de datos
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Internal Server Error
+                status: 500
+                detail: Error al obtener slots
+                code: server_error
+
+  /time-slots/stats:
+    get:
+      summary: Estadísticas de ocupación
+      description: Devuelve estadísticas de ocupación agregadas para un café en el rango de fechas indicado. No requiere autenticación.
+      operationId: getTimeSlotStats
+      tags:
+        - timeslots
+      parameters:
+        - name: cafe_id
+          in: query
+          required: false
+          description: ID del café (por defecto 1)
+          schema:
+            type: integer
+            default: 1
+            example: 1
+        - name: start_date
+          in: query
+          required: false
+          description: Fecha de inicio (YYYY-MM-DD). Por defecto hoy.
+          schema:
+            type: string
+            format: date
+            example: "2026-04-10"
+        - name: end_date
+          in: query
+          required: false
+          description: Fecha de fin (YYYY-MM-DD). Por defecto hoy + 7 días.
+          schema:
+            type: string
+            format: date
+            example: "2026-04-17"
+      responses:
+        "200":
+          description: Estadísticas de ocupación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    additionalProperties: true
+                    description: Estadísticas de ocupación (estructura devuelta por TimeSlot::getOccupancyStats)
+        "500":
+          description: Error interno al calcular estadísticas
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Internal Server Error
+                status: 500
+                detail: Error al obtener estadísticas
+                code: server_error
+
+  # ============================================================
+  # WAITLIST
+  # ============================================================
+
+  /waitlist/join:
+    post:
+      summary: Unirse a la lista de espera
+      description: Añade al usuario a la lista de espera de un slot sin disponibilidad inmediata. No requiere autenticación de sesión (el token devuelto actúa como credencial).
+      operationId: joinWaitlist
+      tags:
+        - waitlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - time_slot_id
+                - user_id
+              properties:
+                time_slot_id:
+                  type: integer
+                  example: 123
+                  description: ID del slot al que se desea unir
+                user_id:
+                  type: integer
+                  example: 45
+                  description: ID del usuario
+                guest_count:
+                  type: integer
+                  default: 1
+                  example: 2
+                  description: Número de acompañantes (incluido el solicitante)
+                contact_email:
+                  type: string
+                  format: email
+                  example: usuario@ejemplo.com
+                contact_phone:
+                  type: string
+                  example: "+34666123456"
+                special_requests:
+                  type: string
+                  example: Mesa junto a ventana
+            example:
+              time_slot_id: 123
+              user_id: 45
+              guest_count: 2
+              contact_email: usuario@ejemplo.com
+              contact_phone: "+34666123456"
+              special_requests: Mesa junto a ventana
+      responses:
+        "201":
+          description: Usuario añadido a la lista de espera
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/WaitlistEntry"
+              example:
+                ok: true
+                data:
+                  id: 789
+                  token: abc123def456
+                  position: 3
+                  message: Te has unido a la lista de espera en posición 3
+        "400":
+          description: Faltan campos requeridos o el slot no acepta más entradas
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Bad Request
+                status: 400
+                detail: "Faltan campos requeridos: time_slot_id, user_id"
+                code: bad_request
+
+  /waitlist/position/{token}:
+    get:
+      summary: Consultar posición en la lista de espera
+      description: Devuelve la posición actual y el estado del usuario en la lista de espera identificado por su token.
+      operationId: getWaitlistPosition
+      tags:
+        - waitlist
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: Token único asignado al unirse a la lista de espera
+          schema:
+            type: string
+            example: abc123def456
+      responses:
+        "200":
+          description: Estado de la entrada en la lista de espera
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/WaitlistStatus"
+              example:
+                ok: true
+                data:
+                  position: 2
+                  status: waiting
+                  estimated_wait_minutes: 30
+                  time_slot:
+                    date: "2026-02-15"
+                    time: "14:00:00"
+                    cafe_name: Neko no Niwa
+        "400":
+          description: Token vacío o no proporcionado
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Bad Request
+                status: 400
+                detail: Token requerido
+                code: bad_request
+        "404":
+          description: Token no encontrado en la lista de espera
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Not Found
+                status: 404
+                detail: Entrada en lista de espera no encontrada
+                code: not_found
+
+  /waitlist/confirm/{token}:
+    post:
+      summary: Confirmar promoción desde lista de espera
+      description: Convierte una entrada de lista de espera promovida en una reserva confirmada. El token identifica la entrada de forma inequívoca.
+      operationId: confirmWaitlistPromotion
+      tags:
+        - waitlist
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: Token único de la entrada en lista de espera
+          schema:
+            type: string
+            example: abc123def456
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: Datos opcionales adicionales para la confirmación de la reserva
+            example: {}
+      responses:
+        "200":
+          description: Promoción confirmada y reserva creada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      reservation_id:
+                        type: integer
+                        example: 456
+                      message:
+                        type: string
+                        example: Reserva confirmada exitosamente
+              example:
+                ok: true
+                data:
+                  reservation_id: 456
+                  message: Reserva confirmada exitosamente
+        "400":
+          description: Token vacío, expirado o la entrada no está en estado promovida
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Bad Request
+                status: 400
+                detail: La entrada de lista de espera no está disponible para confirmar
+                code: invalid_state
+
+  # ============================================================
+  # MANAGER DASHBOARD
+  # ============================================================
+
+  /manager/dashboard/stats:
+    get:
+      summary: Métricas en tiempo real del dashboard
+      description: |
+        Devuelve métricas operativas del café asignado al manager autenticado.
+        Diseñado para polling desde Alpine.js (cada ~30 segundos).
+      operationId: getManagerStats
+      tags:
+        - manager
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Métricas del dashboard
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/DashboardMetrics"
+                  timestamp:
+                    type: integer
+                    description: Unix timestamp del momento de la consulta
+                    example: 1743120000
+        "401":
+          description: No autenticado
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Unauthorized
+                status: 401
+                detail: Sesión no iniciada
+                code: unauthenticated
+        "403":
+          description: Usuario autenticado sin café asignado o sin rol suficiente
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Forbidden
+                status: 403
+                detail: No tienes un café asignado
+                code: cafe_not_assigned
+        "500":
+          description: Error interno al obtener métricas
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Internal Server Error
+                status: 500
+                detail: Error al obtener métricas
+                code: server_error
+
+  /manager/dashboard/weekly-revenue:
+    get:
+      summary: Ingresos de los últimos 7 días
+      description: Devuelve los datos formateados para Chart.js con los ingresos diarios de la semana en curso. Requiere rol manager o admin.
+      operationId: getManagerWeeklyRevenue
+      tags:
+        - manager
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Datos de ingresos semanales para Chart.js
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/WeeklyRevenueChart"
+        "401":
+          description: No autenticado
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Sin café asignado o sin rol suficiente
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Forbidden
+                status: 403
+                detail: No tienes un café asignado
+                code: cafe_not_assigned
+        "500":
+          description: Error interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+
+  /manager/dashboard/top-animals:
+    get:
+      summary: Top 5 animales más populares
+      description: Devuelve los 5 animales con mayor número de interacciones registradas en el café asignado. Requiere rol manager o admin.
+      operationId: getManagerTopAnimals
+      tags:
+        - manager
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Lista de los 5 animales más populares
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TopAnimal"
+        "401":
+          description: No autenticado
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Sin café asignado o sin rol suficiente
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Forbidden
+                status: 403
+                detail: No tienes un café asignado
+                code: cafe_not_assigned
+        "500":
+          description: Error interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+
+  /manager/dashboard/reservation-status:
+    get:
+      summary: Distribución de estados de reservas
+      description: Devuelve la distribución de estados de reservas de los últimos 30 días, formateada para un gráfico dona/pie de Chart.js. Requiere rol manager o admin.
+      operationId: getManagerReservationStatus
+      tags:
+        - manager
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Distribución de estados para Chart.js
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/ReservationStatusChart"
+              example:
+                success: true
+                data:
+                  labels:
+                    - Pending
+                    - Confirmed
+                    - Completed
+                    - Cancelled
+                  datasets:
+                    - data: [5, 12, 8, 2]
+                      backgroundColor:
+                        - "#FFA726"
+                        - "#66BB6A"
+                        - "#26C6DA"
+                        - "#EF5350"
+        "401":
+          description: No autenticado
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Sin café asignado o sin rol suficiente
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Forbidden
+                status: 403
+                detail: No tienes un café asignado
+                code: cafe_not_assigned
+        "500":
+          description: Error interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+
+  # ============================================================
+  # SUPERVISOR
+  # ============================================================
+
+  /supervisor/assign:
+    post:
+      summary: Asignar reserva a una mesa
+      description: |
+        Crea una asignación de mesa para una reserva existente.
+        Requiere rol supervisor, manager o admin.
+        También requiere CSRF token (header `X-CSRF-Token` o campo `_token` en el body).
+      operationId: supervisorAssign
+      tags:
+        - supervisor
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reservation_id
+                - table_code
+              properties:
+                reservation_id:
+                  type: integer
+                  example: 123
+                  description: ID de la reserva a asignar
+                table_code:
+                  type: string
+                  example: A1
+                  description: Código identificador de la mesa
+            example:
+              reservation_id: 123
+              table_code: A1
+      responses:
+        "200":
+          description: Mesa asignada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Mesa asignada correctamente
+                  data:
+                    $ref: "#/components/schemas/Assignment"
+              example:
+                success: true
+                message: Mesa asignada correctamente
+                data:
+                  id: 1
+                  reservation_id: 123
+                  table_code: A1
+        "401":
+          description: No autenticado
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Sin rol suficiente para asignar mesas
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Forbidden
+                status: 403
+                detail: No tienes permisos para asignar mesas
+                code: forbidden
+        "422":
+          description: Datos válidos pero la regla de negocio falla (ej. reserva ya asignada, mesa no existe)
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Unprocessable Entity
+                status: 422
+                detail: La reserva ya tiene una mesa asignada
+                code: validation_error
+        "500":
+          description: Error interno al crear la asignación
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+
+  /supervisor/assignments:
+    get:
+      summary: Listar todas las asignaciones
+      description: |
+        Devuelve la lista completa de asignaciones de mesas activas.
+        Requiere al menos sesión iniciada (lógica interna verifica rol supervisor/manager/admin).
+      operationId: supervisorListAssignments
+      tags:
+        - supervisor
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Lista de asignaciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Assignment"
+              example:
+                success: true
+                data:
+                  - id: 1
+                    reservation_id: 123
+                    table_code: A1
+                  - id: 2
+                    reservation_id: 124
+                    table_code: B3
+        "401":
+          description: No autenticado
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Error interno al listar asignaciones
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: about:blank
+                title: Internal Server Error
+                status: 500
+                detail: Error al obtener asignaciones
+                code: server_error

@@ -1,0 +1,50 @@
+﻿# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+vendor/
+node_modules/
+
+# Runtime
+storage/logs/*.log
+!storage/logs/.gitkeep
+storage/cache/*
+!storage/cache/.gitkeep
+storage/uploads/*
+!storage/uploads/.gitkeep
+storage/invoices/*
+!storage/invoices/.gitkeep
+bootstrap/cache/*
+!bootstrap/cache/.gitkeep
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Testing
+.phpunit.result.cache
+.phpunit.cache/
+tests/reports/
+coverage/
+
+# Build artifacts
+public/build/
+public/hot
+
+# Quality tools cache
+.php-cs-fixer.cache
+.psalm/cache/
+.sonarqube/

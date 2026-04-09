@@ -1,0 +1,483 @@
+/**
+ * Admin Roles Styles
+ * ============================================================================
+ * Estilos específicos para gestión de roles y permisos.
+ *
+ * Secciones:
+ * - Role Cards
+ * - Permission Matrix
+ * - Role Badges
+ * - Module Headers
+ * - Permission Checkboxes
+ * - Stats Cards
+ *
+ * @version 1.0.0
+ * @requires admin-common.css
+ */
+
+/* ============================================================================
+   ROLE CARDS
+   ============================================================================ */
+
+.role-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  padding: var(--admin-space-lg);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition:
+    transform var(--admin-transition),
+    box-shadow var(--admin-transition);
+}
+
+.role-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.role-card--system {
+  border-left: 4px solid var(--admin-warning);
+}
+
+.role-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--admin-space-md);
+}
+
+.role-card__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin: 0;
+}
+
+.role-card__code {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  font-family: monospace;
+  background: var(--admin-bg-alt);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--admin-radius-sm);
+}
+
+.role-card__badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--admin-radius-md);
+}
+
+.role-card__badge--system {
+  background: var(--admin-warning-light);
+  color: #996600;
+}
+
+.role-card__description {
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
+  margin-bottom: var(--admin-space-md);
+  flex: 1;
+}
+
+.role-card__meta {
+  display: flex;
+  gap: var(--admin-space-md);
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+  margin-bottom: var(--admin-space-md);
+  padding-top: var(--admin-space-sm);
+  border-top: 1px solid var(--admin-border);
+}
+
+.role-card__meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.role-card__actions {
+  display: flex;
+  gap: var(--admin-space-sm);
+}
+
+.role-card__actions .btn {
+  flex: 1;
+  font-size: 0.8125rem;
+  padding: 0.5rem;
+}
+
+/* ============================================================================
+   PERMISSION MATRIX
+   ============================================================================ */
+
+.permission-matrix {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  overflow: hidden;
+}
+
+.permission-matrix__table {
+  width: 100%;
+  margin-bottom: 0;
+  font-size: 0.875rem;
+}
+
+.permission-matrix__table th {
+  background: var(--admin-bg-alt);
+  border-bottom: 2px solid var(--admin-border);
+  font-weight: 600;
+  padding: var(--admin-space-md);
+  text-align: center;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-width: 80px;
+}
+
+.permission-matrix__table th:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  z-index: 11;
+  background: var(--admin-bg-alt);
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+  min-width: 250px;
+}
+
+.permission-matrix__table td {
+  padding: var(--admin-space-sm) var(--admin-space-md);
+  border-bottom: 1px solid var(--admin-border);
+  vertical-align: middle;
+  text-align: center;
+}
+
+.permission-matrix__table td:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: var(--admin-surface);
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.permission-matrix__table tr:hover td {
+  background: var(--admin-bg);
+}
+
+.permission-matrix__table tr:hover td:first-child {
+  background: var(--admin-bg);
+}
+
+/* Module header row */
+.permission-matrix__module {
+  background: var(--admin-bg-alt) !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.permission-matrix__module td {
+  background: var(--admin-bg-alt) !important;
+  padding: var(--admin-space-sm) var(--admin-space-md);
+}
+
+/* Permission name cell */
+.permission-matrix__permission {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.permission-matrix__permission-name {
+  font-weight: 500;
+  color: var(--admin-text);
+}
+
+.permission-matrix__permission-code {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  font-family: monospace;
+}
+
+/* Casilla en matriz */
+.permission-matrix__checkbox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 80px;
+  width: 80px;
+  text-align: center;
+}
+
+.permission-matrix__checkbox .form-check-input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.permission-matrix__checkbox .form-check-input:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   ROLE BADGES (en lista)
+   ============================================================================ */
+
+.role-list-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--admin-radius-md);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.role-list-badge--admin {
+  background: var(--admin-error-light);
+  color: var(--admin-error);
+}
+
+.role-list-badge--manager {
+  background: var(--admin-warning-light);
+  color: #996600;
+}
+
+.role-list-badge--supervisor {
+  background: var(--admin-info-light);
+  color: var(--admin-info);
+}
+
+.role-list-badge--reception {
+  background: var(--admin-primary-light);
+  color: var(--admin-primary);
+}
+
+.role-list-badge--kitchen {
+  background: var(--admin-success-light);
+  color: var(--admin-success);
+}
+
+.role-list-badge--keeper {
+  background: rgba(139, 92, 246, 0.1);
+  color: #7c3aed;
+}
+
+.role-list-badge--user {
+  background: var(--admin-bg-alt);
+  color: var(--admin-text-muted);
+}
+
+/* ============================================================================
+   PERMISSION MODAL
+   ============================================================================ */
+
+.permission-search {
+  position: sticky;
+  top: 0;
+  background: var(--admin-surface);
+  padding: var(--admin-space-md) 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--admin-border);
+  margin-bottom: var(--admin-space-md);
+}
+
+.permission-groups {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.permission-group {
+  margin-bottom: var(--admin-space-lg);
+}
+
+.permission-group__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin-bottom: var(--admin-space-sm);
+  padding-bottom: var(--admin-space-xs);
+  border-bottom: 1px solid var(--admin-border);
+  display: flex;
+  align-items: center;
+  gap: var(--admin-space-sm);
+}
+
+.permission-group__title::before {
+  content: '';
+  width: 4px;
+  height: 16px;
+  background: var(--admin-primary);
+  border-radius: 2px;
+}
+
+.permission-list {
+  display: grid;
+  gap: var(--admin-space-xs);
+}
+
+.permission-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--admin-space-sm);
+  padding: var(--admin-space-sm);
+  border-radius: var(--admin-radius-md);
+  transition: background-color var(--admin-transition-fast);
+}
+
+.permission-item:hover {
+  background: var(--admin-bg);
+}
+
+.permission-item__checkbox {
+  margin-top: 0.125rem;
+}
+
+.permission-item__label {
+  flex: 1;
+  cursor: pointer;
+  margin: 0;
+}
+
+.permission-item__name {
+  font-weight: 500;
+  color: var(--admin-text);
+  display: block;
+  margin-bottom: 0.125rem;
+}
+
+.permission-item__code {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  font-family: monospace;
+}
+
+/* ============================================================================
+   ROLE FORM MODAL
+   ============================================================================ */
+
+.role-form__icon-preview {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--admin-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: var(--admin-space-md);
+}
+
+.role-form__icon-preview--admin {
+  background: var(--admin-error-light);
+  color: var(--admin-error);
+}
+
+.role-form__icon-preview--manager {
+  background: var(--admin-warning-light);
+  color: #996600;
+}
+
+/* ============================================================================
+   TABS CUSTOMIZATION
+   ============================================================================ */
+
+.roles-tabs {
+  border-bottom: 1px solid var(--admin-border);
+  margin-bottom: var(--admin-space-lg);
+}
+
+.roles-tabs .nav-link {
+  color: var(--admin-text-muted);
+  font-weight: 500;
+  padding: var(--admin-space-sm) var(--admin-space-lg);
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+
+.roles-tabs .nav-link:hover {
+  color: var(--admin-text);
+  border-color: var(--admin-border);
+}
+
+.roles-tabs .nav-link.active {
+  color: var(--admin-primary);
+  border-bottom-color: var(--admin-primary);
+  background: transparent;
+}
+
+/* ============================================================================
+   INFO ALERTS
+   ============================================================================ */
+
+.matrix-info {
+  display: flex;
+  align-items: center;
+  gap: var(--admin-space-md);
+  padding: var(--admin-space-md);
+  background: var(--admin-info-light);
+  border-radius: var(--admin-radius-md);
+  margin-bottom: var(--admin-space-lg);
+  font-size: 0.875rem;
+  color: var(--admin-info);
+}
+
+.matrix-info i {
+  font-size: 1.25rem;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 991.98px) {
+  .permission-matrix__container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .permission-matrix__table {
+    min-width: 600px;
+  }
+
+  .permission-matrix__table th,
+  .permission-matrix__table td {
+    white-space: nowrap;
+  }
+
+  .role-card__actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .role-card {
+    padding: var(--admin-space-md);
+  }
+
+  .permission-groups {
+    max-height: 300px;
+  }
+}
+
+/* ============================================================================
+   PRINT
+   ============================================================================ */
+
+@media print {
+  .permission-matrix__checkbox {
+    display: none;
+  }
+
+  .role-card__actions {
+    display: none !important;
+  }
+}
