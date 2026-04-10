@@ -172,13 +172,13 @@ $this->logCritical('DB unreachable', ['dsn' => $dsn]);
 
 ### Level taxonomy
 
-| Level      | When to use                                                         |
-| ---------- | ------------------------------------------------------------------- |
-| `debug`    | Development detail: SQL queries, cache hits, algorithm steps        |
-| `info`     | Normal operation: successful operations with side effects           |
-| `warning`  | Expected failures: validation errors, business rule rejections      |
-| `error`    | Unexpected failures: catch blocks, Result::fail from external deps  |
-| `critical` | System integrity: config missing, DB unreachable, unrecoverable     |
+| Level      | When to use                                                        |
+| ---------- | ------------------------------------------------------------------ |
+| `debug`    | Development detail: SQL queries, cache hits, algorithm steps       |
+| `info`     | Normal operation: successful operations with side effects          |
+| `warning`  | Expected failures: validation errors, business rule rejections     |
+| `error`    | Unexpected failures: catch blocks, Result::fail from external deps |
+| `critical` | System integrity: config missing, DB unreachable, unrecoverable    |
 
 ### Channels
 
