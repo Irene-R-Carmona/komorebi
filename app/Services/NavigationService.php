@@ -212,4 +212,34 @@ final class NavigationService
     {
         return \trim($url, '/');
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // API de Instancia (reemplaza los métodos estáticos @deprecated)
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Obtiene el menú de navegación para un rol.
+     *
+     * @return array<string, array<int, array{icon: string, label: string, url: string, badge?: int}>>
+     */
+    public function getMenu(string $role): array
+    {
+        return self::getMenuForRole($role);
+    }
+
+    /**
+     * Obtiene el menú completo con badges dinámicos.
+     */
+    public function getMenuBadged(string $role, array $badges = []): array
+    {
+        return self::getMenuWithBadges($role, $badges);
+    }
+
+    /**
+     * Verifica si una URL pertenece a la sección activa.
+     */
+    public function checkIsActive(string $itemUrl, string $currentUrl): bool
+    {
+        return self::isActive($itemUrl, $currentUrl);
+    }
 }
