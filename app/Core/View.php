@@ -25,6 +25,32 @@ final class View
     // ─────────────────────────────────────────────────────────────
 
     /**
+     * Retorna el array de security headers (testeable sin side-effects).
+     * @return array<string, string>
+     */
+    public static function getSecurityHeaders(): array
+    {
+        return [
+            'Content-Security-Policy'   => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
+            'X-Frame-Options'           => 'DENY',
+            'X-Content-Type-Options'    => 'nosniff',
+            'Referrer-Policy'           => 'strict-origin-when-cross-origin',
+            'Permissions-Policy'        => 'geolocation=(), microphone=(), camera=()',
+        ];
+    }
+
+    private static function sendSecurityHeaders(): void
+    {
+        if (\headers_sent()) {
+            return;
+        }
+
+        foreach (self::getSecurityHeaders() as $name => $value) {
+            \header("$name: $value");
+        }
+    }
+
+    /**
      * Renderiza una vista con layout opcional.
      *
      * @param string      $view     Ej: "auth/login", "errors/404"
@@ -38,6 +64,8 @@ final class View
         array $extraCss = [],
         ?string $layout = 'main'
     ): void {
+        self::sendSecurityHeaders();
+
         // 1) Extraer extraCss y extraJs del array de datos ANTES de escapar
         // El extraCss puede venir como parámetro o dentro de $data
         if (!empty($data['extraCss'])) {

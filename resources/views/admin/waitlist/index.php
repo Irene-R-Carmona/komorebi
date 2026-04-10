@@ -186,6 +186,7 @@
                                         <form method="POST" action="/admin/waitlists/<?= $w['id'] ?>/cancel"
                                             data-action="confirm" data-confirm="¿Cancelar esta waitlist?"
                                             class="inline">
+                                            <?= Csrf::field() ?>
                                             <button type="submit" class="text-red-600 hover:text-red-900">
                                                 Cancelar
                                             </button>

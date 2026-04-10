@@ -8,11 +8,14 @@ use App\Core\BaseService;
 use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Result;
+use App\Events\ReviewPublishedEvent;
 use App\Models\Review;
 use App\Models\User;
+use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\CafeRepository;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Repositories\ReviewRepository;
+use DateTimeImmutable;
 use Exception;
 use RuntimeException;
 
@@ -30,18 +33,22 @@ final class ReviewService extends BaseService
 
     private ReviewRepositoryInterface $reviewRepository;
 
-    private CafeRepository $cafeRepository;
+    private CafeRepositoryInterface $cafeRepository;
+
+    private ?\Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher;
 
     public function __construct(
         ?Review $reviewModel = null,
         ?User $userModel = null,
         ?ReviewRepositoryInterface $reviewRepository = null,
-        ?CafeRepository $cafeRepository = null
+        ?CafeRepositoryInterface $cafeRepository = null,
+        ?\Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher = null
     ) {
         $this->reviewModel = $reviewModel ?? new Review();
         $this->userModel = $userModel ?? new User();
         $this->reviewRepository = $reviewRepository ?? new ReviewRepository();
         $this->cafeRepository = $cafeRepository ?? new CafeRepository();
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -147,6 +154,16 @@ final class ReviewService extends BaseService
                 'cafe_id' => $cafeId,
                 'action' => 'approve',
             ]);
+
+            if ($this->eventDispatcher !== null) {
+                $this->eventDispatcher->dispatch(new ReviewPublishedEvent(
+                    (int) $review['id'],
+                    (int) $review['user_id'],
+                    (int) $review['rating'],
+                    (string) ($review['body'] ?? ''),
+                    new DateTimeImmutable(),
+                ));
+            }
 
             return Result::ok('Reseña aprobada exitosamente');
         } catch (Exception $e) {

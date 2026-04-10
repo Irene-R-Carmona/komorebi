@@ -1,14 +1,14 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Variable \\$password in empty\\(\\) always exists and is not falsy\\.$#"
+			message: "#^Result of && is always false\\.$#"
 			count: 1
 			path: app/Core/Cache.php
 
 		-
-			message: "#^Dead catch \\- RuntimeException is never thrown in the try block\\.$#"
+			message: "#^Strict comparison using \\!\\=\\= between null and null will always evaluate to false\\.$#"
 			count: 1
-			path: app/Core/Container.php
+			path: app/Core/Cache.php
 
 		-
 			message: "#^Unsafe usage of new static\\(\\)\\.$#"
@@ -82,11 +82,6 @@ parameters:
 
 		-
 			message: "#^Call to method getAvailableSlots\\(\\) on an unknown class App\\\\Services\\\\TimeSlotService\\.$#"
-			count: 1
-			path: app/Http/Controllers/Api/ReservationController.php
-
-		-
-			message: "#^Instantiated class App\\\\Services\\\\TimeSlotService not found\\.$#"
 			count: 1
 			path: app/Http/Controllers/Api/ReservationController.php
 
@@ -216,6 +211,11 @@ parameters:
 			path: scripts/benchmark.php
 
 		-
+			message: "#^Variable \\$brace_depth might not be defined\\.$#"
+			count: 1
+			path: scripts/fix_reservation_tests.php
+
+		-
 			message: "#^Function renderBadge not found\\.$#"
 			count: 2
 			path: tests/Integration/AccessibilityTest.php
@@ -229,11 +229,6 @@ parameters:
 			message: "#^Function renderModal not found\\.$#"
 			count: 2
 			path: tests/Integration/AccessibilityTest.php
-
-		-
-			message: "#^Access to constant FETCH_ASSOC on an unknown class Tests\\\\Integration\\\\PDO\\.$#"
-			count: 2
-			path: tests/Integration/AuthIntegrationTest.php
 
 		-
 			message: "#^Function renderBadge not found\\.$#"
@@ -256,38 +251,23 @@ parameters:
 			path: tests/Integration/ModalComponentTest.php
 
 		-
-			message: "#^Access to constant FETCH_ASSOC on an unknown class Tests\\\\Integration\\\\PDO\\.$#"
-			count: 1
-			path: tests/Integration/ReservationIntegrationTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$reservationId of method App\\\\Services\\\\ReservationService\\:\\:cancel\\(\\) expects int, App\\\\Core\\\\Result given\\.$#"
-			count: 2
-			path: tests/Integration/ReservationIntegrationTest.php
-
-		-
-			message: "#^Access to constant FETCH_ASSOC on an unknown class Tests\\\\Integration\\\\PDO\\.$#"
-			count: 1
-			path: tests/Integration/ReviewIntegrationTest.php
-
-		-
 			message: "#^Constant Tests\\\\Integration\\\\ReviewIntegrationTest\\:\\:TEST_REVIEW_ID_BASE is unused\\.$#"
 			count: 1
 			path: tests/Integration/ReviewIntegrationTest.php
 
 		-
-			message: "#^Access to constant FETCH_ASSOC on an unknown class Tests\\\\Integration\\\\PDO\\.$#"
-			count: 2
-			path: tests/Integration/WaitlistIntegrationTest.php
+			message: "#^Call to an undefined method App\\\\Services\\\\Contracts\\\\ApiTokenServiceInterface\\:\\:method\\(\\)\\.$#"
+			count: 4
+			path: tests/Unit/Controllers/Api/V1/TokenControllerTest.php
+
+		-
+			message: "#^Call to an undefined method Psr\\\\Http\\\\Message\\\\ServerRequestInterface\\:\\:method\\(\\)\\.$#"
+			count: 11
+			path: tests/Unit/Controllers/Api/V1/TokenControllerTest.php
 
 		-
 			message: "#^Call to an undefined method App\\\\Services\\\\HealthCheckService\\:\\:expects\\(\\)\\.$#"
 			count: 3
-			path: tests/Unit/Controllers/HealthCheckControllerTest.php
-
-		-
-			message: "#^Class App\\\\Http\\\\Controllers\\\\Keeper\\\\HealthCheckController constructor invoked with 1 parameter, 0 required\\.$#"
-			count: 1
 			path: tests/Unit/Controllers/HealthCheckControllerTest.php
 
 		-
@@ -311,8 +291,13 @@ parameters:
 			path: tests/Unit/Controllers/Manager/ReviewControllerTest.php
 
 		-
+			message: "#^Call to an undefined method App\\\\Repositories\\\\UserRepository\\:\\:method\\(\\)\\.$#"
+			count: 1
+			path: tests/Unit/Controllers/Manager/StaffControllerTest.php
+
+		-
 			message: "#^Call to an undefined method PDO\\:\\:method\\(\\)\\.$#"
-			count: 2
+			count: 1
 			path: tests/Unit/Controllers/Manager/StaffControllerTest.php
 
 		-
@@ -321,14 +306,39 @@ parameters:
 			path: tests/Unit/Controllers/Manager/StaffControllerTest.php
 
 		-
-			message: "#^Parameter \\#3 \\$shiftService of class App\\\\Http\\\\Controllers\\\\Manager\\\\StaffController constructor expects App\\\\Services\\\\StaffShiftService\\|null, PDO&PHPUnit\\\\Framework\\\\MockObject\\\\MockObject given\\.$#"
-			count: 1
-			path: tests/Unit/Controllers/Manager/StaffControllerTest.php
-
-		-
 			message: "#^Call to an undefined method PDO\\:\\:method\\(\\)\\.$#"
 			count: 6
 			path: tests/Unit/Core/TransactionalServiceTest.php
+
+		-
+			message: "#^Constant Tests\\\\Unit\\\\Http\\\\Controllers\\\\Auth\\\\AuthControllerTest\\:\\:CSRF_TOKEN is unused\\.$#"
+			count: 1
+			path: tests/Unit/Http/Controllers/Auth/AuthControllerTest.php
+
+		-
+			message: "#^Call to an undefined method PDO\\:\\:method\\(\\)\\.$#"
+			count: 2
+			path: tests/Unit/Http/Controllers/Keeper/AnimalCareControllerTest.php
+
+		-
+			message: "#^Call to an undefined method Psr\\\\Http\\\\Message\\\\ServerRequestInterface\\:\\:method\\(\\)\\.$#"
+			count: 5
+			path: tests/Unit/Middleware/ApiAuthMiddlewareTest.php
+
+		-
+			message: "#^Property Middleware\\\\ApiAuthMiddlewareTest\\:\\:\\$handler is never read, only written\\.$#"
+			count: 1
+			path: tests/Unit/Middleware/ApiAuthMiddlewareTest.php
+
+		-
+			message: "#^Access to an undefined property Psr\\\\Http\\\\Server\\\\RequestHandlerInterface\\:\\:\\$callCount\\.$#"
+			count: 3
+			path: tests/Unit/Middleware/CorsMiddlewareTest.php
+
+		-
+			message: "#^Class App\\\\Core\\\\Http\\\\ResponseFactory constructor invoked with 2 parameters, 0 required\\.$#"
+			count: 1
+			path: tests/Unit/Middleware/CorsMiddlewareTest.php
 
 		-
 			message: "#^Call to an undefined method PDO\\:\\:method\\(\\)\\.$#"
@@ -342,12 +352,12 @@ parameters:
 
 		-
 			message: "#^Call to an undefined method PDO\\:\\:expects\\(\\)\\.$#"
-			count: 9
+			count: 13
 			path: tests/Unit/Repositories/CafeRepositoryTest.php
 
 		-
 			message: "#^Call to an undefined method PDOStatement\\:\\:expects\\(\\)\\.$#"
-			count: 12
+			count: 18
 			path: tests/Unit/Repositories/CafeRepositoryTest.php
 
 		-
@@ -364,6 +374,16 @@ parameters:
 			message: "#^Call to an undefined method PDO\\:\\:method\\(\\)\\.$#"
 			count: 12
 			path: tests/Unit/Repositories/ProductRepositoryStockTest.php
+
+		-
+			message: "#^Call to an undefined method PDO\\:\\:expects\\(\\)\\.$#"
+			count: 5
+			path: tests/Unit/Repositories/ProductRepositoryTest.php
+
+		-
+			message: "#^Call to an undefined method PDOStatement\\:\\:expects\\(\\)\\.$#"
+			count: 7
+			path: tests/Unit/Repositories/ProductRepositoryTest.php
 
 		-
 			message: "#^Call to an undefined method PDO\\:\\:method\\(\\)\\.$#"
@@ -386,17 +406,27 @@ parameters:
 			path: tests/Unit/Repositories/WaitlistRepositoryTest.php
 
 		-
-			message: "#^Property AuthServiceTest\\:\\:\\$userModelMock \\(App\\\\Models\\\\User&PHPUnit\\\\Framework\\\\MockObject\\\\MockObject\\) does not accept App\\\\Models\\\\User&PHPUnit\\\\Framework\\\\MockObject\\\\Stub\\.$#"
+			message: "#^Call to an undefined method App\\\\Repositories\\\\Contracts\\\\AnimalRepositoryInterface\\:\\:method\\(\\)\\.$#"
+			count: 3
+			path: tests/Unit/Services/AnimalCareServiceTest.php
+
+		-
+			message: "#^Call to an undefined method PDO\\:\\:method\\(\\)\\.$#"
 			count: 1
+			path: tests/Unit/Services/AnimalCareServiceTest.php
+
+		-
+			message: "#^Call to an undefined method App\\\\Repositories\\\\Contracts\\\\ApiTokenRepositoryInterface\\:\\:method\\(\\)\\.$#"
+			count: 7
+			path: tests/Unit/Services/ApiTokenServiceTest.php
+
+		-
+			message: "#^Call to an undefined method App\\\\Repositories\\\\UserRepository\\:\\:method\\(\\)\\.$#"
+			count: 6
 			path: tests/Unit/Services/AuthServiceTest.php
 
 		-
 			message: "#^Property AuthServiceTest\\:\\:\\$userModelMock is never read, only written\\.$#"
-			count: 1
-			path: tests/Unit/Services/AuthServiceTest.php
-
-		-
-			message: "#^Property AuthServiceTest\\:\\:\\$userRepoMock \\(App\\\\Repositories\\\\UserRepository&PHPUnit\\\\Framework\\\\MockObject\\\\MockObject\\) does not accept App\\\\Repositories\\\\UserRepository&PHPUnit\\\\Framework\\\\MockObject\\\\Stub\\.$#"
 			count: 1
 			path: tests/Unit/Services/AuthServiceTest.php
 
@@ -414,6 +444,11 @@ parameters:
 			message: "#^Call to an undefined method App\\\\Repositories\\\\Contracts\\\\CafeRepositoryInterface\\:\\:expects\\(\\)\\.$#"
 			count: 9
 			path: tests/Unit/Services/CafeServiceTest.php
+
+		-
+			message: "#^Method Tests\\\\Unit\\\\Services\\\\ClimaContextoServiceTest\\:\\:condicionesProvider\\(\\) should return array\\<string, array\\{string\\}\\> but returns array\\{array\\{'clear'\\}, array\\{'clouds'\\}, array\\{'rain'\\}, array\\{'snow'\\}, array\\{'fog'\\}, array\\{'thunderstorm'\\}\\}\\.$#"
+			count: 1
+			path: tests/Unit/Services/ClimaContextoServiceTest.php
 
 		-
 			message: "#^Call to an undefined method App\\\\Repositories\\\\Contracts\\\\HealthCheckRepositoryInterface\\:\\:expects\\(\\)\\.$#"
@@ -446,13 +481,13 @@ parameters:
 			path: tests/Unit/Services/MenuServiceTest.php
 
 		-
-			message: "#^Property Tests\\\\Unit\\\\Services\\\\NewsletterServiceTest\\:\\:\\$dbMock \\(PDO&PHPUnit\\\\Framework\\\\MockObject\\\\MockObject\\) does not accept PDO&PHPUnit\\\\Framework\\\\MockObject\\\\Stub\\.$#"
-			count: 1
+			message: "#^Call to an undefined method PDO\\:\\:method\\(\\)\\.$#"
+			count: 5
 			path: tests/Unit/Services/NewsletterServiceTest.php
 
 		-
-			message: "#^Property Tests\\\\Unit\\\\Services\\\\RateLimitingServiceTest\\:\\:\\$dbMock \\(PDO&PHPUnit\\\\Framework\\\\MockObject\\\\MockObject\\) does not accept PDO&PHPUnit\\\\Framework\\\\MockObject\\\\Stub\\.$#"
-			count: 1
+			message: "#^Call to an undefined method Psr\\\\Cache\\\\CacheItemPoolInterface\\:\\:method\\(\\)\\.$#"
+			count: 9
 			path: tests/Unit/Services/RateLimitingServiceTest.php
 
 		-
@@ -461,8 +496,18 @@ parameters:
 			path: tests/Unit/Services/ReceptionServiceTest.php
 
 		-
+			message: "#^Call to an undefined method App\\\\Repositories\\\\Contracts\\\\CafeRepositoryInterface\\:\\:expects\\(\\)\\.$#"
+			count: 3
+			path: tests/Unit/Services/ReservationServiceTest.php
+
+		-
 			message: "#^Call to an undefined method App\\\\Repositories\\\\Contracts\\\\CafeRepositoryInterface\\:\\:method\\(\\)\\.$#"
 			count: 24
+			path: tests/Unit/Services/ReservationServiceTest.php
+
+		-
+			message: "#^Call to an undefined method App\\\\Repositories\\\\Contracts\\\\ProductRepositoryInterface\\:\\:expects\\(\\)\\.$#"
+			count: 4
 			path: tests/Unit/Services/ReservationServiceTest.php
 
 		-
@@ -496,43 +541,23 @@ parameters:
 			path: tests/Unit/Services/StaffShiftServiceTest.php
 
 		-
-			message: "#^Call to an undefined method App\\\\Repositories\\\\SupervisorAssignmentRepository\\:\\:method\\(\\)\\.$#"
+			message: "#^Call to an undefined method App\\\\Repositories\\\\Contracts\\\\SupervisorAssignmentRepositoryInterface\\:\\:method\\(\\)\\.$#"
 			count: 4
 			path: tests/Unit/Services/SupervisorAssignmentServiceTest.php
 
 		-
-			message: "#^Property Tests\\\\Unit\\\\Services\\\\UserServiceTest\\:\\:\\$repoMock \\(App\\\\Repositories\\\\UserRepository&PHPUnit\\\\Framework\\\\MockObject\\\\MockObject\\) does not accept App\\\\Repositories\\\\UserRepository&PHPUnit\\\\Framework\\\\MockObject\\\\Stub\\.$#"
-			count: 1
+			message: "#^Call to an undefined method App\\\\Models\\\\User\\:\\:method\\(\\)\\.$#"
+			count: 7
 			path: tests/Unit/Services/UserServiceTest.php
 
 		-
-			message: "#^Property Tests\\\\Unit\\\\Services\\\\UserServiceTest\\:\\:\\$userModelMock \\(App\\\\Models\\\\User&PHPUnit\\\\Framework\\\\MockObject\\\\MockObject\\) does not accept App\\\\Models\\\\User&PHPUnit\\\\Framework\\\\MockObject\\\\Stub\\.$#"
-			count: 1
+			message: "#^Call to an undefined method App\\\\Repositories\\\\UserRepository\\:\\:method\\(\\)\\.$#"
+			count: 7
 			path: tests/Unit/Services/UserServiceTest.php
 
 		-
-			message: "#^Property Tests\\\\Unit\\\\Services\\\\WaitlistServiceTest\\:\\:\\$dbMock is unused\\.$#"
-			count: 1
-			path: tests/Unit/Services/WaitlistServiceTest.php
-
-		-
-			message: "#^Property Tests\\\\Unit\\\\Services\\\\WaitlistServiceTest\\:\\:\\$emailMock is unused\\.$#"
-			count: 1
-			path: tests/Unit/Services/WaitlistServiceTest.php
-
-		-
-			message: "#^Property Tests\\\\Unit\\\\Services\\\\WaitlistServiceTest\\:\\:\\$service is never written, only read\\.$#"
-			count: 1
-			path: tests/Unit/Services/WaitlistServiceTest.php
-
-		-
-			message: "#^Property Tests\\\\Unit\\\\Services\\\\WaitlistServiceTest\\:\\:\\$timeSlotMock is unused\\.$#"
-			count: 1
-			path: tests/Unit/Services/WaitlistServiceTest.php
-
-		-
-			message: "#^Property Tests\\\\Unit\\\\Services\\\\WaitlistServiceTest\\:\\:\\$waitlistMock is unused\\.$#"
-			count: 1
+			message: "#^Call to an undefined method App\\\\Repositories\\\\Contracts\\\\WaitlistRepositoryInterface\\:\\:method\\(\\)\\.$#"
+			count: 3
 			path: tests/Unit/Services/WaitlistServiceTest.php
 
 		-

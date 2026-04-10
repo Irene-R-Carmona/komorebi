@@ -220,6 +220,64 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         return $this->findByProductType('item', $cafeId);
     }
 
+    /**
+     * Buscar pases disponibles para reserva (sin filtro de café).
+     */
+    public function findAvailablePasses(): array
+    {
+        $stmt = $this->db->query(
+            "SELECT id, name, japanese_name, description, price,
+                    duration_minutes, min_pax, max_pax,
+                    target_cafe_types, target_animal_types,
+                    attributes, image_url
+             FROM products
+             WHERE product_type = 'pass'
+               AND is_active = 1
+             ORDER BY price, duration_minutes"
+        );
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Verificar que un pase existe y está activo.
+     */
+    public function existsAndActivePass(int $productId): bool
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id FROM products WHERE id = :id AND product_type = 'pass' AND is_active = 1"
+        );
+        $stmt->execute(['id' => $productId]);
+
+        return $stmt->fetch() !== false;
+    }
+
+    /**
+     * Buscar items del carrito por sus IDs.
+     * Usa parámetros posicionales para prevenir SQL injection.
+     *
+     * @param int[] $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function findItemsByIds(array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        $placeholders = \implode(',', \array_fill(0, \count($ids), '?'));
+
+        $stmt = $this->db->prepare(
+            "SELECT id, name, price FROM products
+             WHERE id IN ($placeholders)
+             AND product_type = 'item'
+             AND is_active = 1"
+        );
+        $stmt->execute($ids);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     /*
      * ==========================================================================
      * MÉTODOS DE GESTIÓN DE STOCK - COMPORTAMIENTO PLACEHOLDER

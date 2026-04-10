@@ -40,9 +40,16 @@ final class ClimaContextoServiceTest extends TestCase
         $data = $service->obtenerClimaActual();
 
         $requiredKeys = [
-            'condicion', 'temperatura', 'temperatura_celsius',
-            'descripcion', 'mensaje_poetico', 'hora_tokyo',
-            'hora_local_tokyo', 'codigo_wmo', 'timestamp', 'desde_cache',
+            'condicion',
+            'temperatura',
+            'temperatura_celsius',
+            'descripcion',
+            'mensaje_poetico',
+            'hora_tokyo',
+            'hora_local_tokyo',
+            'codigo_wmo',
+            'timestamp',
+            'desde_cache',
         ];
 
         foreach ($requiredKeys as $key) {
@@ -100,8 +107,11 @@ final class ClimaContextoServiceTest extends TestCase
 
         $data = $service->obtenerClimaActual();
 
-        $this->assertSame($expectedCondicion, $data['condicion'],
-            "Código WMO {$wmoCode} debería mapearse a '{$expectedCondicion}', obtuvo '{$data['condicion']}'");
+        $this->assertSame(
+            $expectedCondicion,
+            $data['condicion'],
+            "Código WMO {$wmoCode} debería mapearse a '{$expectedCondicion}', obtuvo '{$data['condicion']}'"
+        );
     }
 
     /**
@@ -171,9 +181,15 @@ final class ClimaContextoServiceTest extends TestCase
         $fallback = $ref->invoke($clima, $horaObj);
 
         $requiredKeys = [
-            'condicion', 'temperatura', 'temperatura_celsius',
-            'descripcion', 'mensaje_poetico', 'hora_tokyo',
-            'hora_local_tokyo', 'codigo_wmo', 'timestamp',
+            'condicion',
+            'temperatura',
+            'temperatura_celsius',
+            'descripcion',
+            'mensaje_poetico',
+            'hora_tokyo',
+            'hora_local_tokyo',
+            'codigo_wmo',
+            'timestamp',
         ];
 
         foreach ($requiredKeys as $key) {

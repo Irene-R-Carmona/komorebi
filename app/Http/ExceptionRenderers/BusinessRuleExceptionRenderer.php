@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\ExceptionRenderers;
 
 use App\Core\Flash;
+use App\Core\Result;
+use App\Core\ServiceErrorCode;
 use App\Exceptions\BusinessRuleException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -34,11 +36,14 @@ final class BusinessRuleExceptionRenderer extends AbstractExceptionRenderer
         assert($e instanceof BusinessRuleException);
 
         if ($this->isApiRequest($request)) {
-            return $this->response->json([
-                'error'     => $e->getMessage(),
-                'rule_code' => $e->getRuleCode(),
-                'context'   => $e->getContext(),
-            ], $e->getHttpCode());
+            $context = \array_merge(
+                ['rule_code' => $e->getRuleCode()],
+                $e->getContext()
+            );
+            return $this->response->problem(
+                Result::fail($e->getMessage(), ServiceErrorCode::BUSINESS_RULE, context: $context),
+                $e->getHttpCode()
+            );
         }
 
         Flash::error($e->getMessage());

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\ExceptionRenderers;
 
+use App\Core\Result;
+use App\Core\ServiceErrorCode;
 use App\Core\View;
 use App\Exceptions\AuthorizationException;
 use Psr\Http\Message\ResponseInterface;
@@ -34,10 +36,10 @@ final class AuthorizationExceptionRenderer extends AbstractExceptionRenderer
         assert($e instanceof AuthorizationException);
 
         if ($this->isApiRequest($request)) {
-            return $this->response->json([
-                'error'      => $e->getMessage(),
-                'permission' => $e->getPermission(),
-            ], 403);
+            return $this->response->problem(
+                Result::fail($e->getMessage(), ServiceErrorCode::FORBIDDEN, context: ['permission' => $e->getPermission()]),
+                403
+            );
         }
 
         $html = View::renderToString('errors/403', [

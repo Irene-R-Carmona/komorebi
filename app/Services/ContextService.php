@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Container;
 use App\Core\Middleware;
 use App\Core\Session;
 use App\Models\Cafe;
@@ -21,8 +22,6 @@ final class ContextService
 {
     private const string ADMIN_CAFE_KEY = 'admin_selected_cafe_id';
 
-    private static ?array $cafeCache = null;
-
     // ─────────────────────────────────────────────────────────────
     // Obtención de Contexto
     // ─────────────────────────────────────────────────────────────
@@ -30,85 +29,62 @@ final class ContextService
     /**
      * Obtiene el ID del café activo para el usuario actual.
      *
+     * @deprecated Use ContextServiceInstance via inyección de dependencias.
      * @return integer|null ID del café o null (vista global para admin)
      */
     public static function getCafeId(): ?int
     {
-        $role = Session::role();
-        $userCafeId = Session::userCafeId();
-
-        // Staff/Manager/Keeper: siempre su café asignado
-        if ($role !== Middleware::ROLE_ADMIN && $userCafeId !== null) {
-            return $userCafeId;
-        }
-
-        // Admin: puede tener un café seleccionado o vista global
-        if ($role === Middleware::ROLE_ADMIN) {
-            $selectedId = Session::get(self::ADMIN_CAFE_KEY);
-
-            return $selectedId !== null ? (int) $selectedId : null;
-        }
-
-        return $userCafeId;
+        return Container::make(ContextServiceInstance::class)->getCafeId();
     }
 
     /**
      * Verifica si el usuario tiene contexto de café definido.
+     *
+     * @deprecated Use ContextServiceInstance via inyección de dependencias.
      */
     public static function hasCafeContext(): bool
     {
-        return self::getCafeId() !== null;
+        return Container::make(ContextServiceInstance::class)->hasCafeContext();
     }
 
     /**
      * Verifica si el usuario puede ver todos los cafés (admin sin selección).
+     *
+     * @deprecated Use ContextServiceInstance via inyección de dependencias.
      */
     public static function isGlobalView(): bool
     {
-        return Session::role() === Middleware::ROLE_ADMIN
-            && self::getCafeId() === null;
+        return Container::make(ContextServiceInstance::class)->isGlobalView();
     }
 
     /**
      * Obtiene el café actual con todos sus datos.
+     *
+     * @deprecated Use ContextServiceInstance via inyección de dependencias.
      */
     public static function getCafe(): ?array
     {
-        $cafeId = self::getCafeId();
-
-        if ($cafeId === null) {
-            return null;
-        }
-
-        // Cache para evitar múltiples queries en la misma request
-        if (self::$cafeCache !== null && self::$cafeCache['id'] === $cafeId) {
-            return self::$cafeCache;
-        }
-
-        $cafe = new Cafe();
-        self::$cafeCache = $cafe->findById($cafeId);
-
-        return self::$cafeCache;
+        return Container::make(ContextServiceInstance::class)->getCafe();
     }
 
     /**
      * Obtiene el nombre del café actual.
+     *
+     * @deprecated Use ContextServiceInstance via inyección de dependencias.
      */
     public static function getCafeName(): string
     {
-        $cafe = self::getCafe();
-
-        return $cafe['name'] ?? 'Vista Global';
+        return Container::make(ContextServiceInstance::class)->getCafeName();
     }
 
     /**
      * Obtiene el slug del café actual.
+     *
+     * @deprecated Use ContextServiceInstance via inyección de dependencias.
      */
     public static function getCafeSlug(): ?string
     {
-        $cafe = self::getCafe();
-
-        return $cafe['slug'] ?? null;
+        return Container::make(ContextServiceInstance::class)->getCafeSlug();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -133,7 +109,6 @@ final class ContextService
         }
 
         Session::set(self::ADMIN_CAFE_KEY, $cafeId);
-        self::$cafeCache = $cafe;
 
         return true;
     }
@@ -145,7 +120,6 @@ final class ContextService
     {
         if (Session::role() === Middleware::ROLE_ADMIN) {
             Session::remove(self::ADMIN_CAFE_KEY);
-            self::$cafeCache = null;
         }
     }
 
@@ -155,33 +129,23 @@ final class ContextService
 
     /**
      * Verifica si el usuario puede acceder a un café específico.
+     *
+     * @deprecated Use ContextServiceInstance via inyección de dependencias.
      */
     public static function canAccessCafe(int $cafeId): bool
     {
-        $role = Session::role();
-
-        // Admin puede acceder a cualquier café
-        if ($role === Middleware::ROLE_ADMIN) {
-            return true;
-        }
-
-        // Otros roles solo a su café asignado
-        return Session::userCafeId() === $cafeId;
+        return Container::make(ContextServiceInstance::class)->canAccessCafe($cafeId);
     }
 
     /**
      * Requiere que el usuario tenga contexto de café.
      * Lanza excepción si no hay contexto.
+     *
+     * @deprecated Use ContextServiceInstance via inyección de dependencias.
      */
     public static function requireCafeContext(): int
     {
-        $cafeId = self::getCafeId();
-
-        if ($cafeId === null) {
-            throw new RuntimeException('Se requiere seleccionar un café para esta operación.');
-        }
-
-        return $cafeId;
+        return Container::make(ContextServiceInstance::class)->requireCafeContext();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -190,16 +154,12 @@ final class ContextService
 
     /**
      * Obtiene datos de contexto para pasar a las vistas.
+     *
+     * @deprecated Use ContextServiceInstance via inyección de dependencias.
      */
     public static function getViewData(): array
     {
-        return [
-            'cafe_id' => self::getCafeId(),
-            'cafe_name' => self::getCafeName(),
-            'cafe' => self::getCafe(),
-            'is_global' => self::isGlobalView(),
-            'can_switch' => Session::role() === Middleware::ROLE_ADMIN,
-        ];
+        return Container::make(ContextServiceInstance::class)->getViewData();
     }
 
     /**
@@ -207,6 +167,6 @@ final class ContextService
      */
     public static function clearCache(): void
     {
-        self::$cafeCache = null;
+        // Cache is now managed per-request by ContextServiceInstance
     }
 }

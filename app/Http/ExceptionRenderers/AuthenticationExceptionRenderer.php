@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\ExceptionRenderers;
 
 use App\Core\Flash;
+use App\Core\Result;
+use App\Core\ServiceErrorCode;
 use App\Core\Session;
 use App\Exceptions\AuthenticationException;
 use Psr\Http\Message\ResponseInterface;
@@ -35,10 +37,10 @@ final class AuthenticationExceptionRenderer extends AbstractExceptionRenderer
         assert($e instanceof AuthenticationException);
 
         if ($this->isApiRequest($request)) {
-            return $this->response->json([
-                'error'  => $e->getMessage(),
-                'reason' => $e->getReason(),
-            ], 401);
+            return $this->response->problem(
+                Result::fail($e->getMessage(), ServiceErrorCode::UNAUTHORIZED, context: ['reason' => $e->getReason()]),
+                401
+            );
         }
 
         Flash::error($e->getMessage());

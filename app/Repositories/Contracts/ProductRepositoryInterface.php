@@ -49,4 +49,27 @@ interface ProductRepositoryInterface
      * @param int $quantity Unidades a reponer
      */
     public function incrementStock(int $id, int $quantity = 1): bool;
+
+    /**
+     * Buscar pases disponibles para reserva (sin filtro de café).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAvailablePasses(): array;
+
+    /**
+     * Verificar que un pase existe y está activo.
+     *
+     * @param int $productId
+     * @return bool
+     */
+    public function existsAndActivePass(int $productId): bool;
+
+    /**
+     * Buscar items del carrito por sus IDs.
+     *
+     * @param int[] $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function findItemsByIds(array $ids): array;
 }

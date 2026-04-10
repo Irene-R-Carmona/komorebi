@@ -25,6 +25,10 @@ use App\Providers\StaffServiceProvider;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\UserRepository;
 use App\Services\AccountDeletionService;
+use App\Services\ContextServiceInstance;
+use App\Services\NavigationService;
+use App\Repositories\CafeRepository;
+use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Jobs\RewardUnlockedJob;
 use App\Jobs\SendTelegramNotificationJob;
 use App\Repositories\ApiTokenRepository;
@@ -52,6 +56,14 @@ $providers = [
 
 if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
     $providers[] = StaffServiceProvider::class;
+}
+
+if (\App\Core\Env::bool('FEATURE_KEEPER', true)) {
+    $providers[] = \App\Providers\KeeperServiceProvider::class;
+}
+
+if (\App\Core\Env::bool('FEATURE_OPS', true)) {
+    $providers[] = \App\Providers\OpsServiceProvider::class;
 }
 
 // Fase 1: register() para todos los providers
@@ -108,3 +120,17 @@ Container::singleton(ApiTokenServiceInterface::class, fn() => new ApiTokenServic
 // Alias por concrete class (para compatibilidad interna si fuera necesario)
 Container::singleton(ApiTokenRepository::class, fn() => Container::make(ApiTokenRepositoryInterface::class));
 Container::singleton(ApiTokenService::class, fn() => Container::make(ApiTokenServiceInterface::class));
+
+// ContextServiceInstance: versión inyectable de ContextService (per-request)
+Container::bind(ContextServiceInstance::class, function (): ContextServiceInstance {
+    $selectedId = \App\Core\Session::get('admin_selected_cafe_id');
+    return new ContextServiceInstance(
+        new CafeRepository(\App\Core\Database::getConnection()),
+        \App\Core\Session::role() ?? '',
+        \App\Core\Session::userCafeId(),
+        $selectedId !== null ? (int) $selectedId : null
+    );
+});
+
+// NavigationService: singleton inyectable (sin dependencias, lógica pura)
+Container::singleton(NavigationService::class, fn() => new NavigationService());

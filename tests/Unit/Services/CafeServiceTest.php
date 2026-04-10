@@ -8,6 +8,7 @@ declare(strict_types=1);
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Tests\Unit\Services;
 
 use App\Core\Result;
@@ -16,7 +17,6 @@ use App\Repositories\Contracts\CafeRepositoryInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use InvalidArgumentException;
-use RuntimeException;
 
 /**
  * Tests Unitarios de CafeService

@@ -87,6 +87,49 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
     }
 
     /**
+     * Buscar cafés disponibles para reserva.
+     */
+    public function findAvailableForReservation(): array
+    {
+        $stmt = $this->db->query(
+            'SELECT id, name, slug, location, category, animal_type, price_per_hour,
+                    opening_time, closing_time, capacity_max, image_url,
+                    latitude, longitude, timezone
+             FROM cafes WHERE has_reservations = 1 AND is_active = 1'
+        );
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Buscar cafés disponibles para reserva, indexados por ID.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAvailableForReservationById(): array
+    {
+        $cafes = $this->findAvailableForReservation();
+        $byId = [];
+
+        foreach ($cafes as $cafe) {
+            $byId[(int) $cafe['id']] = $cafe;
+        }
+
+        return $byId;
+    }
+
+    /**
+     * Verificar que un café existe y está activo.
+     */
+    public function existsAndActive(int $cafeId): bool
+    {
+        $stmt = $this->db->prepare('SELECT id FROM cafes WHERE id = :id AND is_active = 1');
+        $stmt->execute(['id' => $cafeId]);
+
+        return $stmt->fetch() !== false;
+    }
+
+    /**
      * Buscar por categoría.
      */
     public function findByCategory(string $category): array

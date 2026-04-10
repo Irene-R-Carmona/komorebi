@@ -8,6 +8,7 @@ declare(strict_types=1);
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Repositories;
 
 use App\Repositories\CafeRepository;
@@ -245,5 +246,96 @@ final class CafeRepositoryTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertCount(1, $result);
+    }
+
+    public function testFindAvailableForReservationFiltersCorrectly(): void
+    {
+        $expectedData = [
+            ['id' => 1, 'name' => 'Café Neko', 'slug' => 'neko', 'is_active' => 1, 'has_reservations' => 1],
+        ];
+
+        $this->stmtMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(PDO::FETCH_ASSOC)
+            ->willReturn($expectedData);
+
+        $this->pdoMock
+            ->expects($this->once())
+            ->method('query')
+            ->with($this->stringContains('has_reservations = 1'))
+            ->willReturn($this->stmtMock);
+
+        $result = $this->repository->findAvailableForReservation();
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Café Neko', $result[0]['name']);
+    }
+
+    public function testFindAvailableForReservationByIdIndexesById(): void
+    {
+        $expectedData = [
+            ['id' => 3, 'name' => 'Café Inu', 'slug' => 'inu'],
+            ['id' => 7, 'name' => 'Café Neko', 'slug' => 'neko'],
+        ];
+
+        $this->stmtMock
+            ->expects($this->once())
+            ->method('fetchAll')
+            ->with(PDO::FETCH_ASSOC)
+            ->willReturn($expectedData);
+
+        $this->pdoMock
+            ->expects($this->once())
+            ->method('query')
+            ->willReturn($this->stmtMock);
+
+        $result = $this->repository->findAvailableForReservationById();
+
+        $this->assertArrayHasKey(3, $result);
+        $this->assertArrayHasKey(7, $result);
+        $this->assertSame('Café Inu', $result[3]['name']);
+        $this->assertSame('Café Neko', $result[7]['name']);
+    }
+
+    public function testExistsAndActiveReturnsTrueWhenFound(): void
+    {
+        $this->stmtMock
+            ->expects($this->once())
+            ->method('execute')
+            ->with(['id' => 1])
+            ->willReturn(true);
+
+        $this->stmtMock
+            ->expects($this->once())
+            ->method('fetch')
+            ->willReturn(['id' => 1]);
+
+        $this->pdoMock
+            ->expects($this->once())
+            ->method('prepare')
+            ->willReturn($this->stmtMock);
+
+        $this->assertTrue($this->repository->existsAndActive(1));
+    }
+
+    public function testExistsAndActiveReturnsFalseWhenNotFound(): void
+    {
+        $this->stmtMock
+            ->expects($this->once())
+            ->method('execute')
+            ->willReturn(true);
+
+        $this->stmtMock
+            ->expects($this->once())
+            ->method('fetch')
+            ->willReturn(false);
+
+        $this->pdoMock
+            ->expects($this->once())
+            ->method('prepare')
+            ->willReturn($this->stmtMock);
+
+        $this->assertFalse($this->repository->existsAndActive(999));
     }
 }

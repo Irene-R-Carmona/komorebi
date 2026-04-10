@@ -76,7 +76,7 @@ final class ExceptionRenderersTest extends TestCase
     {
         $r   = new ValidationExceptionRenderer($this->responseFactory);
         $res = $r->render(new ValidationException(), $this->apiRequest);
-        $this->assertStringContainsString('application/json', $res->getHeaderLine('Content-Type'));
+        $this->assertStringContainsString('application/problem+json', $res->getHeaderLine('Content-Type'));
     }
 
     // -----------------------------------------------------------------------

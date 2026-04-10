@@ -233,3 +233,52 @@ Every test file **must** include this docblock (enforced by `tests/bootstrap.php
 | `docs/openapi.yaml`             | REST API specification                          |
 | `docs/diagrams/`                | C4, request lifecycle, auth flow, ER diagrams   |
 | `SECURITY.md`                   | Vulnerability reporting policy                  |
+
+## Skills de IA Disponibles
+
+Las skills amplían el comportamiento del agente con flujos de trabajo disciplinados.
+Todas las skills del proyecto están en `.agents/skills/` y registradas en `skills-lock.json`.
+Las skills globales/extensión (`find-skills`, `troubleshoot`, `agent-customization`) viven
+en el perfil de usuario o extensión — no se registran en el lock file del proyecto.
+
+> **Regla de oro:** Antes de cualquier acción o respuesta, consulta `.github/instructions/ai-workflow.instructions.md`
+> para saber qué skill invocar. Cuando haya duda (≥ 1% de probabilidad), invoca la skill.
+
+### Planificación y Diseño
+
+| Skill                        | Cuándo invocarla en Komorebi Café                                         |
+|------------------------------|---------------------------------------------------------------------------|
+| `brainstorming`              | ANTES de cualquier feature, componente nuevo o cambio de comportamiento. Explora requisitos y diseño antes de tocar código. |
+| `writing-plans`              | Tras brainstorming aprobado, para crear el plan de implementación paso a paso en `docs/plans/`. |
+| `executing-plans`            | Para ejecutar un plan ya escrito en `docs/plans/` con checkpoints de revisión. |
+| `subagent-driven-development`| Cuando el plan del proyecto tiene 3+ tareas independientes dentro de la misma sesión. |
+| `dispatching-parallel-agents`| Cuando hay 2+ tareas completamente independientes (sin estado compartido) ejecutables en paralelo. |
+
+### Desarrollo
+
+| Skill                    | Cuándo invocarla en Komorebi Café                                         |
+|--------------------------|---------------------------------------------------------------------------|
+| `test-driven-development`| Al implementar cualquier feature o bugfix — escribe el test antes del código. Todos los tests en `tests/Unit/` o `tests/Integration/`. |
+| `systematic-debugging`   | Ante cualquier bug, test fallido o comportamiento inesperado. ANTES de proponer un fix. |
+| `frontend-design`        | Al crear o rediseñar vistas en `resources/views/` con interfaz de usuario rica (CSS, Alpine.js). |
+| `interface-design`       | Para dashboards y paneles admin/operativos: backoffice, KDS, recepción, keeper. |
+| `api-design-principles`  | Al modificar o añadir rutas en la API REST — revisar `docs/openapi.yaml` y seguir convenciones PSR-7. |
+
+### Calidad y Revisión
+
+| Skill                        | Cuándo invocarla en Komorebi Café                                         |
+|------------------------------|---------------------------------------------------------------------------|
+| `verification-before-completion` | ANTES de afirmar que algo está hecho, arreglado o que los tests pasan. Requiere evidencia real (`make test-unit`, PHPStan, etc.). |
+| `requesting-code-review`     | Tras completar la implementación y antes de hacer merge — verifica que el trabajo cumple la Definition of Done. |
+| `receiving-code-review`      | Al recibir feedback en una PR — exige rigor técnico antes de aceptar o rechazar cambios. |
+| `finishing-a-development-branch` | Cuando la implementación está completa y todos los tests pasan — guía el proceso de integración o PR. |
+
+### Utilidades
+
+| Skill                   | Cuándo invocarla en Komorebi Café                                          |
+|-------------------------|----------------------------------------------------------------------------|
+| `using-superpowers`     | Al iniciar cada sesión de trabajo — establece qué skills están disponibles y cuándo usarlas. |
+| `writing-skills`        | Al crear o editar archivos `SKILL.md` en `.agents/skills/`. Aplica TDD a documentación de procesos. |
+| `find-skills`           | Cuando se identifica una necesidad que podría tener una skill instalable (`npx skills find`). |
+| `troubleshoot`          | Cuando el comportamiento del agente es inesperado (tools ignoradas, skills no cargadas, instrucciones omitidas). |
+| `agent-customization`   | Al crear o editar archivos de configuración del agente: `.instructions.md`, `.prompt.md`, `AGENTS.md`, `SKILL.md`. |

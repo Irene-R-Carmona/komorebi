@@ -87,4 +87,34 @@ interface CafeRepositoryInterface
      * @return bool
      */
     public function delete(int $id): bool;
+
+    /**
+     * Buscar cafés disponibles para reserva.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAvailableForReservation(): array;
+
+    /**
+     * Buscar cafés disponibles para reserva, indexados por ID.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAvailableForReservationById(): array;
+
+    /**
+     * Verificar que un café existe y está activo.
+     *
+     * @param int $cafeId
+     * @return bool
+     */
+    public function existsAndActive(int $cafeId): bool;
+
+    /**
+     * Recalcular y actualizar el rating promedio de un café.
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function updateRating(int $id): bool;
 }

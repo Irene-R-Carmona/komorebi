@@ -16,9 +16,12 @@ use App\Models\Review;
 use App\Models\User;
 use App\Services\ReviewService;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
+use App\Events\ReviewPublishedEvent;
+use App\Repositories\Contracts\CafeRepositoryInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Tests para ReviewService
@@ -33,13 +36,13 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 final class ReviewServiceTest extends TestCase
 {
     private ReviewService $service;
-    private Review&MockObject $reviewModelMock;
+    private Review $reviewModelMock;
     private User&MockObject $userModelMock;
     private ReviewRepositoryInterface&MockObject $reviewRepoMock;
 
     protected function setUp(): void
     {
-        $this->reviewModelMock = $this->createMock(Review::class);
+        $this->reviewModelMock = $this->createStub(Review::class);
         $this->userModelMock = $this->createMock(User::class);
         $this->reviewRepoMock = $this->createMock(ReviewRepositoryInterface::class);
         $this->service = new ReviewService($this->reviewModelMock, $this->userModelMock, $this->reviewRepoMock);
@@ -294,5 +297,75 @@ final class ReviewServiceTest extends TestCase
         $result = $this->service->deleteReview(123);
 
         $this->assertTrue($result);
+    }
+
+    public function testApproveReviewDispatchesReviewPublishedEvent(): void
+    {
+        // ARRANGE: Construir servicio con CafeRepository stub y EventDispatcher mock
+        $cafeRepoStub = $this->createStub(CafeRepositoryInterface::class);
+        $dispatcherMock = $this->createMock(EventDispatcherInterface::class);
+
+        $service = new ReviewService(
+            $this->reviewModelMock,
+            $this->userModelMock,
+            $this->reviewRepoMock,
+            $cafeRepoStub,
+            $dispatcherMock
+        );
+
+        $this->reviewRepoMock->method('findById')->willReturn([
+            'id' => 42,
+            'user_id' => 7,
+            'cafe_id' => 3,
+            'rating' => 4,
+            'body' => 'Muy buena experiencia',
+            'status' => 'pending',
+        ]);
+        $this->reviewRepoMock->method('updateStatus')->willReturn(true);
+
+        // ASSERT: dispatch() debe ser llamado con ReviewPublishedEvent
+        $dispatcherMock->expects($this->once())
+            ->method('dispatch')
+            ->with($this->callback(function (ReviewPublishedEvent $event): bool {
+                return $event->reviewId === 42
+                    && $event->userId === 7
+                    && $event->rating === 4
+                    && $event->comment === 'Muy buena experiencia';
+            }));
+
+        // ACT
+        $result = $service->approveReview(42);
+
+        $this->assertTrue($result->ok);
+    }
+
+    public function testApproveReviewDoesNotDispatchWhenNullDispatcher(): void
+    {
+        // ARRANGE: Servicio sin EventDispatcher (por defecto)
+        $cafeRepoStub = $this->createStub(CafeRepositoryInterface::class);
+
+        $service = new ReviewService(
+            $this->reviewModelMock,
+            $this->userModelMock,
+            $this->reviewRepoMock,
+            $cafeRepoStub,
+            null
+        );
+
+        $this->reviewRepoMock->method('findById')->willReturn([
+            'id' => 42,
+            'user_id' => 7,
+            'cafe_id' => 3,
+            'rating' => 4,
+            'body' => 'OK',
+            'status' => 'pending',
+        ]);
+        $this->reviewRepoMock->method('updateStatus')->willReturn(true);
+
+        // ACT: sin dispatcher, no debe lanzar error
+        $result = $service->approveReview(42);
+
+        // ASSERT
+        $this->assertTrue($result->ok);
     }
 }

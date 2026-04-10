@@ -27,6 +27,7 @@ use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\Contracts\TimeSlotRepositoryInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 #[\PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations]
 final class ReservationServiceTest extends TestCase
@@ -53,16 +54,16 @@ final class ReservationServiceTest extends TestCase
     {
         // Mock PDO (necesario para constructor del servicio)
         // NO se ejecutan queries reales - todos los repos están mockeados
-        $this->mockPdo = $this->createMock(\PDO::class);
+        $this->mockPdo = $this->createStub(\PDO::class);
 
         // Mock interfaces (not concrete classes)
         $this->mockReservationRepo = $this->createMock(ReservationRepositoryInterface::class);
         $this->mockCafeRepo = $this->createMock(CafeRepositoryInterface::class);
         $this->mockProductRepo = $this->createMock(ProductRepositoryInterface::class);
-        $this->mockAnimalRepo = $this->createMock(AnimalRepositoryInterface::class);
-        $this->mockTimeSlotRepo = $this->createMock(TimeSlotRepositoryInterface::class);
-        $this->mockInvoiceService = $this->createMock(InvoicePDFServiceInterface::class);
-        $this->mockEmailService = $this->createMock(EmailServiceInterface::class);
+        $this->mockAnimalRepo = $this->createStub(AnimalRepositoryInterface::class);
+        $this->mockTimeSlotRepo = $this->createStub(TimeSlotRepositoryInterface::class);
+        $this->mockInvoiceService = $this->createStub(InvoicePDFServiceInterface::class);
+        $this->mockEmailService = $this->createStub(EmailServiceInterface::class);
 
         $this->service = new ReservationService(
             $this->mockPdo,
@@ -637,7 +638,7 @@ final class ReservationServiceTest extends TestCase
             ->method('hasAvailableCapacity')
             ->with(self::VALID_CAFE_ID, self::VALID_DATE, self::VALID_TIME)
             ->willReturn(false);
-                // ACT
+        // ACT
         $result = $this->service->create([
             'user_id' => self::VALID_USER_ID,
             'cafe_id' => self::VALID_CAFE_ID,
@@ -693,7 +694,7 @@ final class ReservationServiceTest extends TestCase
             ->method('existsForUserAndDateTime')
             ->with(self::VALID_USER_ID, self::VALID_CAFE_ID, self::VALID_DATE, self::VALID_TIME)
             ->willReturn(true);
-                // ACT
+        // ACT
         $result = $this->service->create([
             'user_id' => self::VALID_USER_ID,
             'cafe_id' => self::VALID_CAFE_ID,
@@ -823,7 +824,7 @@ final class ReservationServiceTest extends TestCase
         $this->mockReservationRepo
             ->method('create')
             ->willThrowException(new \PDOException('Database error: constraint violation'));
-                // ACT
+        // ACT
         $result = $this->service->create([
             'user_id' => self::VALID_USER_ID,
             'cafe_id' => self::VALID_CAFE_ID,
@@ -1022,5 +1023,136 @@ final class ReservationServiceTest extends TestCase
         // ASSERT: Se crea correctamente cuando no hay límite máximo
         $this->assertTrue($result->ok);
         $this->assertSame(555, $result->data);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Tests de delegación: métodos de catálogo → repositorios
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetAvailableCafesForReservationDelegatesToCafeRepo(): void
+    {
+        $expected = [
+            ['id' => 1, 'name' => 'Café Neko', 'slug' => 'neko'],
+        ];
+
+        $this->mockCafeRepo
+            ->expects($this->once())
+            ->method('findAvailableForReservation')
+            ->willReturn($expected);
+
+        $result = $this->service->getAvailableCafesForReservation();
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testGetAvailableCafesByIdDelegatesToCafeRepo(): void
+    {
+        $expected = [1 => ['id' => 1, 'name' => 'Café Neko']];
+
+        $this->mockCafeRepo
+            ->expects($this->once())
+            ->method('findAvailableForReservationById')
+            ->willReturn($expected);
+
+        $result = $this->service->getAvailableCafesById();
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testGetAvailablePassesForReservationDelegatesToProductRepo(): void
+    {
+        $expected = [
+            ['id' => 2, 'name' => 'Pase 1h', 'price' => 1500],
+        ];
+
+        $this->mockProductRepo
+            ->expects($this->once())
+            ->method('findAvailablePasses')
+            ->willReturn($expected);
+
+        $result = $this->service->getAvailablePassesForReservation();
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testValidateCafeExistsDelegatesToCafeRepo(): void
+    {
+        $this->mockCafeRepo
+            ->expects($this->once())
+            ->method('existsAndActive')
+            ->with(42)
+            ->willReturn(true);
+
+        $this->assertTrue($this->service->validateCafeExists(42));
+    }
+
+    public function testValidatePassExistsDelegatesToProductRepo(): void
+    {
+        $this->mockProductRepo
+            ->expects($this->once())
+            ->method('existsAndActivePass')
+            ->with(7)
+            ->willReturn(false);
+
+        $this->assertFalse($this->service->validatePassExists(7));
+    }
+
+    public function testEnrichCartItemsDelegatesToProductRepo(): void
+    {
+        $cartItems = [10 => 2, 20 => 1];
+        $expected = [
+            ['id' => 10, 'name' => 'Matcha Latte', 'price' => 650],
+            ['id' => 20, 'name' => 'Croissant', 'price' => 350],
+        ];
+
+        $this->mockProductRepo
+            ->expects($this->once())
+            ->method('findItemsByIds')
+            ->with([10, 20])
+            ->willReturn($expected);
+
+        $result = $this->service->enrichCartItems($cartItems);
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testEnrichCartItemsReturnsEmptyArrayForEmptyInput(): void
+    {
+        $this->mockProductRepo
+            ->expects($this->never())
+            ->method('findItemsByIds');
+
+        $result = $this->service->enrichCartItems([]);
+
+        $this->assertSame([], $result);
+    }
+
+    public function testEventDispatcherIsNotCalledOnValidationFailure(): void
+    {
+        // ARRANGE: EventDispatcher mock que NO debe recibir ninguna llamada
+        $dispatcherMock = $this->createMock(EventDispatcherInterface::class);
+
+        $service = new ReservationService(
+            $this->mockPdo,
+            $this->mockReservationRepo,
+            $this->mockCafeRepo,
+            $this->mockProductRepo,
+            $this->mockAnimalRepo,
+            $this->mockTimeSlotRepo,
+            $this->mockInvoiceService,
+            $this->mockEmailService,
+            $dispatcherMock
+        );
+
+        $dispatcherMock->expects($this->never())->method('dispatch');
+
+        // ACT: datos incompletos provocan fallo antes de llegar a la transacción
+        $result = $service->create([
+            'user_id' => 1,
+            // cafe_id falta → falla validateRequired()
+        ]);
+
+        // ASSERT
+        $this->assertFalse($result->ok);
     }
 }

@@ -8,6 +8,7 @@ declare(strict_types=1);
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Tests\Unit\Services;
 
 use App\Services\MenuService;
@@ -31,7 +32,7 @@ final class MenuServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->mockDb = $this->createMock(PDO::class);
+        $this->mockDb = $this->createStub(PDO::class);
         $this->mockMenuRepo = $this->createMock(MenuRepositoryInterface::class);
         $this->service = new MenuService($this->mockDb, $this->mockMenuRepo);
     }

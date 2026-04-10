@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Cache;
 use App\Core\Database;
+use App\Core\Logger;
 use App\Core\TransactionalService;
 use App\Exceptions\DatabaseException;
 use App\Exceptions\ValidationException;
@@ -13,7 +14,6 @@ use App\Models\AuditLog;
 use App\Repositories\ProductRepository;
 use PDO;
 use PDOException;
-use RuntimeException;
 
 /**
  * Servicio de gestión de productos
@@ -246,7 +246,8 @@ final class ProductService extends TransactionalService
 
             return $this->db->prepare($sql)->execute(['id' => $id]);
         } catch (PDOException $e) {
-            throw new RuntimeException('Error al cambiar estado del producto: ' . $e->getMessage());
+            Logger::error('[ProductService] Error al cambiar estado del producto', ['exception' => $e->getMessage()]);
+            return false;
         }
     }
 

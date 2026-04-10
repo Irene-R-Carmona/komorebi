@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Result;
+use App\Events\ReservationConfirmedEvent;
 use App\Exceptions\BusinessRuleException;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
@@ -22,7 +23,9 @@ use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\TimeSlotRepositoryInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
+use DateTimeImmutable;
 use PDO;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Throwable;
 
 /**
@@ -43,6 +46,7 @@ final class ReservationService
     // Servicios adicionales
     private InvoicePDFServiceInterface $invoiceService;
     private EmailServiceInterface $emailService;
+    private ?EventDispatcherInterface $eventDispatcher;
 
     public function __construct(
         ?PDO $db = null,
@@ -52,7 +56,8 @@ final class ReservationService
         ?AnimalRepositoryInterface $animalRepo = null,
         ?TimeSlotRepositoryInterface $timeSlotRepo = null,
         ?InvoicePDFServiceInterface $invoiceService = null,
-        ?EmailServiceInterface $emailService = null
+        ?EmailServiceInterface $emailService = null,
+        ?EventDispatcherInterface $eventDispatcher = null
     ) {
         $this->db = $db ?? Database::getConnection();
 
@@ -66,6 +71,7 @@ final class ReservationService
         // Servicios adicionales
         $this->invoiceService = $invoiceService ?? new InvoicePDFService();
         $this->emailService = $emailService ?? new EmailService();
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -179,6 +185,26 @@ final class ReservationService
                 return $reservationId;
             });
 
+            if ($this->eventDispatcher !== null) {
+                try {
+                    $userProfile = (new UserService())->getProfile($userId);
+                    $this->eventDispatcher->dispatch(new ReservationConfirmedEvent(
+                        $reservationId,
+                        $userId,
+                        (string) ($userProfile['email'] ?? ''),
+                        $date,
+                        $time,
+                        $guests,
+                        new DateTimeImmutable(),
+                    ));
+                } catch (Throwable $e) {
+                    Logger::error('[ReservationService] Error dispatching ReservationConfirmedEvent', [
+                        'reservation_id' => $reservationId,
+                        'exception' => $e->getMessage(),
+                    ]);
+                }
+            }
+
             return Result::ok($reservationId);
         } catch (ValidationException | BusinessRuleException $e) {
             $code = $e instanceof BusinessRuleException ? ($e->getRuleCode() ?? 'business_rule_error') : 'validation_error';
@@ -266,14 +292,7 @@ final class ReservationService
      */
     public function getAvailableCafesForReservation(): array
     {
-        $stmt = $this->db->query(
-            'SELECT id, name, slug, location, category, animal_type, price_per_hour,
-                    opening_time, closing_time, capacity_max, image_url,
-                    latitude, longitude, timezone
-             FROM cafes WHERE has_reservations = 1 AND is_active = 1'
-        );
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->cafeRepo->findAvailableForReservation();
     }
 
     /**
@@ -283,14 +302,7 @@ final class ReservationService
      */
     public function getAvailableCafesById(): array
     {
-        $cafes = $this->getAvailableCafesForReservation();
-        $cafesById = [];
-
-        foreach ($cafes as $cafe) {
-            $cafesById[(int) $cafe['id']] = $cafe;
-        }
-
-        return $cafesById;
+        return $this->cafeRepo->findAvailableForReservationById();
     }
 
     /**
@@ -300,20 +312,7 @@ final class ReservationService
      */
     public function getAvailablePassesForReservation(): array
     {
-        $stmt = $this->db->query(
-            "SELECT
-                            id, name, japanese_name, description, price,
-                            duration_minutes,
-                            min_pax, max_pax,
-                            target_cafe_types, target_animal_types,
-                            attributes, image_url
-                        FROM products
-                        WHERE product_type = 'pass'
-                            AND is_active = 1
-                        ORDER BY price, duration_minutes"
-        );
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->productRepo->findAvailablePasses();
     }
 
     /**
@@ -324,10 +323,7 @@ final class ReservationService
      */
     public function validateCafeExists(int $cafeId): bool
     {
-        $stmt = $this->db->prepare('SELECT id FROM cafes WHERE id = :id AND is_active = 1');
-        $stmt->execute(['id' => $cafeId]);
-
-        return $stmt->fetch() !== false;
+        return $this->cafeRepo->existsAndActive($cafeId);
     }
 
     /**
@@ -338,10 +334,7 @@ final class ReservationService
      */
     public function validatePassExists(int $passProductId): bool
     {
-        $stmt = $this->db->prepare('SELECT id FROM products WHERE id = :id AND product_type = "pass" AND is_active = 1');
-        $stmt->execute(['id' => $passProductId]);
-
-        return $stmt->fetch() !== false;
+        return $this->productRepo->existsAndActivePass($passProductId);
     }
 
     /**
@@ -357,18 +350,8 @@ final class ReservationService
         }
 
         $ids = \array_map('intval', \array_keys($cartItems));
-        $placeholders = \implode(',', \array_fill(0, \count($ids), '?'));
 
-        $stmt = $this->db->prepare(
-            "SELECT id, name, price FROM products
-             WHERE id IN ($placeholders)
-             AND product_type = 'item'
-             AND is_active = 1"
-        );
-
-        $stmt->execute($ids);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->productRepo->findItemsByIds($ids);
     }
 
     // ─────────────────────────────────────────────────────────────

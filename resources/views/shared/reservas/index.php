@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -20,16 +20,6 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
 <section class="seccion seccion--activa">
     <script src="/js/sections/reservas.js?v=11"></script>
     <script src="/js/dietary-preferences.js"></script>
-
-    <!-- Debug temporal (remover en producci\u00f3n) -->
-    <?php if (isset($_GET['debug'])): ?>
-        <div style="background: #f0f0f0; padding: 1rem; margin: 1rem; border: 2px solid #333; font-family: monospace; font-size: 12px;">
-            <strong>DEBUG INFO:</strong><br>
-            Caf\u00e9s JSON: <?= htmlspecialchars(substr((string) $cafesJson, 0, 200)) ?>...<br>
-            Pases JSON: <?= htmlspecialchars(substr((string) $passesJson, 0, 200)) ?>...<br>
-            Cart Total: <?= $cartTotal ?><br>
-        </div>
-    <?php endif; ?>
 
     <div class="seccion__container rsv2"
         x-data='reservaForm(<?= $cafesJson ?>, <?= $passesJson ?>, <?= $cartTotal ?>, <?= json_encode($festivos ?? []) ?>)'>

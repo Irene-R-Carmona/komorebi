@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\ExceptionRenderers;
 
 use App\Core\Env;
+use App\Core\Result;
+use App\Core\ServiceErrorCode;
 use App\Core\View;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -33,7 +35,10 @@ final class FallbackExceptionRenderer extends AbstractExceptionRenderer
         $isDebug = (bool) (Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production'));
 
         if ($this->isApiRequest($request)) {
-            return $this->response->json(['error' => 'Error interno del servidor.'], 500);
+            return $this->response->problem(
+                Result::fail('Error interno del servidor.', ServiceErrorCode::SERVER_ERROR),
+                500
+            );
         }
 
         $html = View::renderToString('errors/500', [

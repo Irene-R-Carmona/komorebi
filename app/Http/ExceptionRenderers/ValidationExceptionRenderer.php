@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\ExceptionRenderers;
 
 use App\Core\Flash;
+use App\Core\Result;
+use App\Core\ServiceErrorCode;
 use App\Core\View;
 use App\Exceptions\ValidationException;
 use Psr\Http\Message\ResponseInterface;
@@ -35,10 +37,10 @@ final class ValidationExceptionRenderer extends AbstractExceptionRenderer
         assert($e instanceof ValidationException);
 
         if ($this->isApiRequest($request)) {
-            return $this->response->json([
-                'error'  => $e->getMessage(),
-                'errors' => $e->getErrors(),
-            ], $e->getHttpCode());
+            return $this->response->problem(
+                Result::fail($e->getMessage(), ServiceErrorCode::VALIDATION_ERROR, context: ['errors' => $e->getErrors()]),
+                $e->getHttpCode()
+            );
         }
 
         Flash::error($e->getMessage());

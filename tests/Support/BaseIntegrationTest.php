@@ -37,6 +37,8 @@ use PHPUnit\Framework\TestCase;
 #[Group('integration')]
 abstract class BaseIntegrationTest extends TestCase
 {
+    use ResultAssertions;
+
     /** Conexión real a MySQL — compartida entre todos los métodos de la misma clase. */
     protected static PDO $db;
 

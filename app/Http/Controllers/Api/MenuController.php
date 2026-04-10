@@ -57,7 +57,7 @@ final class MenuController extends AbstractApiController
         $input = \json_decode((string) $request->getBody(), true) ?? [];
 
         if (empty($input['product_id'])) {
-            return $this->error('product_id requerido', 'missing_product_id');
+            return $this->unprocessable('product_id requerido', 'missing_product_id');
         }
 
         $productId = (int) $input['product_id'];

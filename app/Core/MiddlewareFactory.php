@@ -165,7 +165,7 @@ final class MiddlewareFactory
      */
     public function rateLimit(string $action, int $max = 5, int $window = 60): HttpRateLimitMiddleware
     {
-        return new HttpRateLimitMiddleware($this->response, new RateLimitingService(), $action);
+        return new HttpRateLimitMiddleware($this->response, new RateLimitingService(new \App\Services\CacheService()), $action);
     }
 
     /**

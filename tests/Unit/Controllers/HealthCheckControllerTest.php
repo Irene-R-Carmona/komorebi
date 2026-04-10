@@ -8,6 +8,7 @@ declare(strict_types=1);
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Tests\Unit\Controllers;
 
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;

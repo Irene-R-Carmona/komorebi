@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
+use App\Core\ServiceErrorCode;
 use App\Http\Transformers\TransformerInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -31,26 +32,6 @@ abstract class AbstractApiController
     protected function success(mixed $data = null, int $status = 200, array $headers = []): ResponseInterface
     {
         return $this->response->json(['ok' => true, 'data' => $data], $status, $headers);
-    }
-
-    /**
-     * Respuesta de error.
-     *
-     * @param array<string, mixed>|null $extra Campos adicionales en el payload de error
-     * @param array<string, string>     $headers
-     */
-    protected function error(
-        string $message,
-        string $code = 'error',
-        int $status = 400,
-        ?array $extra = null,
-        array $headers = [],
-    ): ResponseInterface {
-        $payload = ['ok' => false, 'error' => $message, 'code' => $code];
-        if ($extra !== null) {
-            $payload = \array_merge($payload, $extra);
-        }
-        return $this->response->json($payload, $status, $headers);
     }
 
     /**
@@ -81,37 +62,37 @@ abstract class AbstractApiController
     }
 
     /** 404 Not Found */
-    protected function notFound(string $detail, string $code = 'not_found'): ResponseInterface
+    protected function notFound(string $detail, string|ServiceErrorCode $code = ServiceErrorCode::NOT_FOUND): ResponseInterface
     {
         return $this->response->problem(Result::fail($detail, $code), 404);
     }
 
     /** 403 Forbidden */
-    protected function forbidden(string $detail, string $code = 'forbidden'): ResponseInterface
+    protected function forbidden(string $detail, string|ServiceErrorCode $code = ServiceErrorCode::FORBIDDEN): ResponseInterface
     {
         return $this->response->problem(Result::fail($detail, $code), 403);
     }
 
     /** 401 Unauthorized */
-    protected function unauthorized(string $detail, string $code = 'unauthorized'): ResponseInterface
+    protected function unauthorized(string $detail, string|ServiceErrorCode $code = ServiceErrorCode::UNAUTHORIZED): ResponseInterface
     {
         return $this->response->problem(Result::fail($detail, $code), 401);
     }
 
     /** 422 Unprocessable Entity */
-    protected function unprocessable(string $detail, string $code = 'validation_error'): ResponseInterface
+    protected function unprocessable(string $detail, string|ServiceErrorCode $code = ServiceErrorCode::VALIDATION_ERROR): ResponseInterface
     {
         return $this->response->problem(Result::fail($detail, $code), 422);
     }
 
     /** 409 Conflict */
-    protected function conflict(string $detail, string $code = 'conflict'): ResponseInterface
+    protected function conflict(string $detail, string|ServiceErrorCode $code = ServiceErrorCode::CONFLICT): ResponseInterface
     {
         return $this->response->problem(Result::fail($detail, $code), 409);
     }
 
     /** 500 Internal Server Error */
-    protected function serverError(string $detail = 'Error interno del servidor', string $code = 'server_error'): ResponseInterface
+    protected function serverError(string $detail = 'Error interno del servidor', string|ServiceErrorCode $code = ServiceErrorCode::SERVER_ERROR): ResponseInterface
     {
         return $this->response->problem(Result::fail($detail, $code), 500);
     }

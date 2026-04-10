@@ -12,7 +12,6 @@ use App\Repositories\CafeRepository;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use PDO;
 use PDOException;
-use RuntimeException;
 
 /**
  * Servicio de gestión de cafés
@@ -108,7 +107,7 @@ final class CafeService extends BaseService
 
             return Result::ok($cafeId);
         } catch (PDOException $e) {
-            throw new RuntimeException('Error al crear el café: ' . $e->getMessage());
+            return Result::fail('Error al crear el café: ' . $e->getMessage(), 'db_error');
         }
     }
 
@@ -169,7 +168,7 @@ final class CafeService extends BaseService
 
             return Result::ok(true);
         } catch (PDOException $e) {
-            throw new RuntimeException('Error al actualizar el café: ' . $e->getMessage());
+            return Result::fail('Error al actualizar el café: ' . $e->getMessage(), 'db_error');
         }
     }
 
@@ -197,7 +196,7 @@ final class CafeService extends BaseService
 
             return Result::ok(true);
         } catch (PDOException $e) {
-            throw new RuntimeException('Error al cambiar el estado del café: ' . $e->getMessage());
+            return Result::fail('Error al cambiar el estado del café: ' . $e->getMessage(), 'db_error');
         }
     }
 
@@ -223,7 +222,7 @@ final class CafeService extends BaseService
 
             return Result::ok(true);
         } catch (PDOException $e) {
-            throw new RuntimeException('Error al eliminar el café: ' . $e->getMessage());
+            return Result::fail('Error al eliminar el café: ' . $e->getMessage(), 'db_error');
         }
     }
 

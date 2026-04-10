@@ -41,7 +41,7 @@
 
         <!-- HERO -->
         <header class="cafe-hero">
-            <div class="cafe-hero__bg" style="background-image: url('<?= $cafe['image_url'] ?>');"></div>
+            <div class="cafe-hero__bg" style="background-image: url('<?= e($cafe['image_url']) ?>');"></div>
             <div class="cafe-hero__overlay"></div>
             <div class="cafe-hero__content">
                 <div class="cafe-hero__badges">
@@ -221,12 +221,12 @@
                         <!-- AL HACER CLICK: Pasamos el índice, no el objeto entero -->
                         <article class="animal-card" @click="abrirModal(<?= $index ?>)">
                             <div class="animal-card__avatar">
-                                <img src="<?= $animal['image_url'] ?>" alt="<?= $animal['name'] ?>"
+                                <img src="<?= e($animal['image_url'] ?? '') ?>" alt="<?= e($animal['name'] ?? '') ?>"
                                     class="animal-card__img" loading="lazy">
                             </div>
                             <div class="animal-card__info">
-                                <span class="animal-card__nombre"><?= $animal['name'] ?></span>
-                                <span class="animal-card__detalle"><?= $animal['age'] ?> años</span>
+                                <span class="animal-card__nombre"><?= e($animal['name'] ?? '') ?></span>
+                                <span class="animal-card__detalle"><?= e((string) ($animal['age'] ?? '')) ?> años</span>
                             </div>
                             <div class="animal-card__flecha">→</div>
                         </article>

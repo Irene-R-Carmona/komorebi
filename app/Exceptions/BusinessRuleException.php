@@ -144,45 +144,6 @@ final class BusinessRuleException extends Exception
     }
 
     /**
-     * Factory method: Capacidad insuficiente
-     *
-     * @param integer $requested Plazas solicitadas
-     * @param integer $available Plazas disponibles
-     *
-     * @return self
-     */
-    public static function insufficientCapacity(int $requested, int $available): self
-    {
-        return new self(
-            "Capacidad insuficiente. Solicitado: $requested, Disponible: $available",
-            'insufficient_capacity',
-            ['requested' => $requested, 'available' => $available]
-        );
-    }
-
-    /**
-     * Factory method: Número de personas inválido
-     *
-     * @param integer      $guests Número de personas
-     * @param integer      $min    Mínimo requerido
-     * @param integer|null $max    Máximo permitido
-     *
-     * @return self
-     */
-    public static function invalidGuestCount(int $guests, int $min, ?int $max = null): self
-    {
-        $message = $max
-            ? "Número de personas debe estar entre $min y $max"
-            : "Número de personas debe ser al menos $min";
-
-        return new self(
-            $message,
-            'invalid_guest_count',
-            ['guests' => $guests, 'min' => $min, 'max' => $max]
-        );
-    }
-
-    /**
      * Factory method: Pase requiere más personas
      *
      * @param integer $required Número mínimo requerido
@@ -228,57 +189,6 @@ final class BusinessRuleException extends Exception
         return new self(
             'Este producto no está disponible',
             'product_not_available'
-        );
-    }
-
-    /**
-     * Factory method: Stock insuficiente
-     *
-     * @param integer $requested Cantidad solicitada
-     * @param integer $available Stock disponible
-     *
-     * @return self
-     */
-    public static function insufficientStock(int $requested, int $available): self
-    {
-        return new self(
-            "Stock insuficiente. Solicitado: $requested, Disponible: $available",
-            'insufficient_stock',
-            ['requested' => $requested, 'available' => $available]
-        );
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Factory Methods - Reglas de Usuario
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Factory method: Email ya registrado
-     *
-     * @return self
-     */
-    public static function emailAlreadyExists(): self
-    {
-        return new self(
-            'El email ya está registrado',
-            'email_already_exists'
-        );
-    }
-
-    /**
-     * Factory method: Límite de recursos alcanzado
-     *
-     * @param string  $resource Tipo de recurso
-     * @param integer $limit    Límite permitido
-     *
-     * @return self
-     */
-    public static function resourceLimitReached(string $resource, int $limit): self
-    {
-        return new self(
-            "Has alcanzado el límite de $resource ($limit)",
-            'resource_limit_reached',
-            ['resource' => $resource, 'limit' => $limit]
         );
     }
 

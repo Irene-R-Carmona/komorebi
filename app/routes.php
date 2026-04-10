@@ -38,7 +38,7 @@ $router->get('/cafes', 'Public\CafeController@index');
 $router->get('/cafes/{slug}', 'Public\CafeController@show');
 $router->get('/menu', 'Public\MenuController@index');
 $router->get('/quiz', 'Public\QuizController@index');
-$router->post('/quiz/resultado', 'Public\QuizController@resultado');
+$router->post('/quiz/resultado', 'Public\QuizController@resultado', [$mw->csrf()]);
 
 // Ruta alternativa histórica para formulario de recuperación (renderiza el mismo controlador)
 $router->get('/auth/forgot-password', 'Auth\PasswordResetController@forgotPasswordForm');
@@ -74,7 +74,7 @@ $router->get('/reservas', 'Shared\ReservationController@index');
 $router->get('/api/menu/alergenos', 'Api\MenuController@allergens');
 $router->get('/api/menu/productos', 'Api\MenuController@products');
 $router->post('/api/menu/view-product', 'Api\MenuController@viewProduct');
-$router->group(['prefix' => '/api/v1', 'middleware' => [$mw->cors()]], function (Router $r) use ($mw): void {
+$router->group(['prefix' => '/api/v1', 'middleware' => [$mw->cors()]], function (Router $r): void {
     $r->get('/holidays', 'Api\V1\HolidayController@getHolidays');
     $r->get('/holidays/check', 'Api\V1\HolidayController@checkHoliday');
     $r->get('/time-slots/available', 'Api\V1\TimeSlotController@available');
@@ -364,11 +364,11 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
     /** @var array<int, MiddlewareInterface> $keeperMiddleware */
     $keeperMiddleware = [$mw->auth(), $mw->role(['admin', 'keeper'])];
     $router->group(['prefix' => '/keeper', 'middleware' => $keeperMiddleware], function (Router $r) use ($mw) {
-        $r->get('/dashboard', 'Keeper\AnimalController@dashboard');
-        $r->get('/animals', 'Keeper\AnimalController@index');
-        $r->get('/animals/{id}', 'Keeper\AnimalController@show');
-        $r->post('/animals/{id}/feeding', 'Keeper\AnimalController@recordFeeding', [$mw->csrf()]);
-        $r->post('/animals/{id}/health', 'Keeper\AnimalController@recordHealth', [$mw->csrf()]);
+        $r->get('/dashboard', 'Keeper\AnimalDashboardController@dashboard');
+        $r->get('/animals', 'Keeper\AnimalDashboardController@index');
+        $r->get('/animals/{id}', 'Keeper\AnimalDashboardController@show');
+        $r->post('/animals/{id}/feeding', 'Keeper\AnimalCareController@recordFeeding', [$mw->csrf()]);
+        $r->post('/animals/{id}/health', 'Keeper\AnimalCareController@recordHealth', [$mw->csrf()]);
 
         // Health Checks - Sistema de chequeos diarios de salud
         $r->get('/health-checks', 'Keeper\HealthCheckController@index');

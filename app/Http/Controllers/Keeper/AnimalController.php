@@ -27,6 +27,9 @@ use Random\RandomException;
 /**
  * Controlador de Bienestar Animal - Gestión y Logs de Animales
  *
+ * @deprecated Dividido en AnimalDashboardController (GET/lectura) y AnimalCareController (POST/mutación).
+ *             Mantener hasta completar la migración completa de rutas y tests.
+ *
  * Responsabilidades:
  * - Manejo de peticiones HTTP para dashboard de bienestar
  * - Validación de CSRF y permisos
@@ -41,17 +44,20 @@ final class AnimalController
     private ResponseFactory $response;
     private AnimalRepository $animalRepository;
 
-    public function __construct()
-    {
-        $this->animalCareService = new AnimalCareService();
-        $this->fileUploadService = new FileUploadService();
-
-        // Instanciar HealthCheckService
-        $db = Database::getConnection();
-        $healthCheckRepo = new HealthCheckRepository($db);
-        $this->healthCheckService = new HealthCheckService($healthCheckRepo);
-        $this->response = new ResponseFactory();
-        $this->animalRepository = new AnimalRepository($db);
+    public function __construct(
+        ?AnimalCareService $animalCareService = null,
+        ?HealthCheckService $healthCheckService = null,
+        ?ResponseFactory $response = null,
+        ?FileUploadService $fileUploadService = null,
+        ?AnimalRepository $animalRepository = null,
+    ) {
+        $this->animalCareService = $animalCareService ?? new AnimalCareService();
+        $this->fileUploadService = $fileUploadService ?? new FileUploadService();
+        $this->healthCheckService = $healthCheckService ?? new HealthCheckService(
+            new HealthCheckRepository(Database::getConnection())
+        );
+        $this->response = $response ?? new ResponseFactory();
+        $this->animalRepository = $animalRepository ?? new AnimalRepository(Database::getConnection());
     }
 
     /**
@@ -88,10 +94,10 @@ final class AnimalController
      * @throws RandomException
      * @throws ValidationException
      */
-    public function logCare(): ResponseInterface
+    public function logCare(ServerRequestInterface $request): ResponseInterface
     {
         // Validar CSRF
-        if (!Csrf::validate()) {
+        if (!Csrf::validate($request)) {
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
@@ -99,14 +105,16 @@ final class AnimalController
         $user = Session::user();
         $userId = $user ? (int) $user['id'] : null;
 
+        $body = (array) $request->getParsedBody();
+
         // Preparar datos para el servicio
         $data = [
-            'animal_id' => isset($_POST['animal_id']) ? (int) $_POST['animal_id'] : 0,
-            'activity_type' => $_POST['activity_type'] ?? '',
-            'notes' => isset($_POST['notes']) ? \trim($_POST['notes']) : null,
-            'duration_minutes' => isset($_POST['duration_minutes']) ? (int) $_POST['duration_minutes'] : null,
-            'mood_before' => $_POST['mood_before'] ?? null,
-            'mood_after' => $_POST['mood_after'] ?? null,
+            'animal_id'         => isset($body['animal_id']) ? (int) $body['animal_id'] : 0,
+            'activity_type'     => $body['activity_type'] ?? '',
+            'notes'             => isset($body['notes']) ? \trim((string) $body['notes']) : null,
+            'duration_minutes'  => isset($body['duration_minutes']) ? (int) $body['duration_minutes'] : null,
+            'mood_before'       => $body['mood_before'] ?? null,
+            'mood_after'        => $body['mood_after'] ?? null,
             'logged_by_user_id' => $userId,
         ];
 
@@ -116,7 +124,7 @@ final class AnimalController
         if ($result->ok) {
             return $this->response->json(['ok' => true, 'data' => [
                 'message' => \is_string($result->data) ? $result->data : 'Log registrado correctamente',
-                'log_id' => \is_int($result->data) ? $result->data : null,
+                'log_id'  => \is_int($result->data) ? $result->data : null,
             ]]);
         }
 
@@ -131,15 +139,16 @@ final class AnimalController
      * @throws RandomException
      * @throws ValidationException
      */
-    public function updateHealth(int $animalId): ResponseInterface
+    public function updateHealth(ServerRequestInterface $request, int $animalId): ResponseInterface
     {
         // Validar CSRF
-        if (!Csrf::validate()) {
+        if (!Csrf::validate($request)) {
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $healthStatus = $_POST['health_status'] ?? '';
-        $notes = isset($_POST['notes']) ? \trim($_POST['notes']) : null;
+        $body = (array) $request->getParsedBody();
+        $healthStatus = (string) ($body['health_status'] ?? '');
+        $notes = isset($body['notes']) ? \trim((string) $body['notes']) : null;
 
         $user = Session::user();
         $userId = $user ? (int) $user['id'] : null;
@@ -165,10 +174,10 @@ final class AnimalController
      * @throws RandomException
      * @throws ValidationException
      */
-    public function toggleActive(int $animalId): ResponseInterface
+    public function toggleActive(ServerRequestInterface $request, int $animalId): ResponseInterface
     {
         // Validar CSRF
-        if (!Csrf::validate()) {
+        if (!Csrf::validate($request)) {
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
@@ -192,10 +201,10 @@ final class AnimalController
      * @throws RandomException
      * @throws ValidationException
      */
-    public function uploadPhoto(int $animalId): ResponseInterface
+    public function uploadPhoto(ServerRequestInterface $request, int $animalId): ResponseInterface
     {
         // Validar CSRF
-        if (!Csrf::validate()) {
+        if (!Csrf::validate($request)) {
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
@@ -213,12 +222,24 @@ final class AnimalController
         }
 
         // Verificar que se subió un archivo
-        if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== 0) {
+        $files = $request->getUploadedFiles();
+        $uploadedFile = $files['photo'] ?? null;
+
+        if (!($uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface) || $uploadedFile->getError() !== UPLOAD_ERR_OK) {
             throw ValidationException::withMessage('No se recibió ningún archivo', 400);
         }
 
+        // Adapter: FileUploadService espera array con claves error/tmp_name/name/size/type (migración de servicio pendiente)
+        $fileArray = [
+            'error'    => $uploadedFile->getError(),
+            'tmp_name' => (string) ($uploadedFile->getStream()->getMetadata('uri') ?? ''),
+            'name'     => $uploadedFile->getClientFilename() ?? '',
+            'size'     => $uploadedFile->getSize() ?? 0,
+            'type'     => $uploadedFile->getClientMediaType() ?? '',
+        ];
+
         // Usar FileUploadService para subir la foto
-        $result = $this->fileUploadService->uploadAnimalPhoto($_FILES['photo'], $animalId);
+        $result = $this->fileUploadService->uploadAnimalPhoto($fileArray, $animalId);
 
         if (!$result->ok) {
             throw ValidationException::withMessage($result->error ?? 'Error al subir archivo', 400);
@@ -241,21 +262,23 @@ final class AnimalController
      * @throws RandomException
      * @throws ValidationException
      */
-    public function createIncident(): ResponseInterface
+    public function createIncident(ServerRequestInterface $request): ResponseInterface
     {
         // Validar CSRF
-        if (!Csrf::validate()) {
+        if (!Csrf::validate($request)) {
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
         $user = Session::user();
         $userId = $user ? (int) $user['id'] : null;
 
+        $body = (array) $request->getParsedBody();
+
         // Preparar datos para el servicio
         $data = [
-            'animal_id' => isset($_POST['animal_id']) ? (int) $_POST['animal_id'] : 0,
-            'severity' => $_POST['severity'] ?? '',
-            'description' => isset($_POST['description']) ? \trim($_POST['description']) : '',
+            'animal_id'           => isset($body['animal_id']) ? (int) $body['animal_id'] : 0,
+            'severity'            => $body['severity'] ?? '',
+            'description'         => isset($body['description']) ? \trim((string) $body['description']) : '',
             'reported_by_user_id' => $userId,
         ];
 
@@ -264,7 +287,7 @@ final class AnimalController
 
         if ($result->ok) {
             return $this->response->json(['ok' => true, 'data' => [
-                'message' => \is_string($result->data) ? $result->data : 'Incidente reportado correctamente',
+                'message'     => \is_string($result->data) ? $result->data : 'Incidente reportado correctamente',
                 'incident_id' => \is_int($result->data) ? $result->data : null,
             ]], 201);
         }
@@ -280,14 +303,15 @@ final class AnimalController
      * @throws RandomException
      * @throws ValidationException
      */
-    public function resolveIncident(int $incidentId): ResponseInterface
+    public function resolveIncident(ServerRequestInterface $request, int $incidentId): ResponseInterface
     {
         // Validar CSRF
-        if (!Csrf::validate()) {
+        if (!Csrf::validate($request)) {
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $resolution = isset($_POST['resolution']) ? \trim($_POST['resolution']) : null;
+        $body = (array) $request->getParsedBody();
+        $resolution = isset($body['resolution']) ? \trim((string) $body['resolution']) : null;
 
         $user = Session::user();
         $userId = $user ? (int) $user['id'] : null;
@@ -305,9 +329,9 @@ final class AnimalController
     /**
      * POST /keeper/log (mantener compatibilidad con método antiguo)
      */
-    public function update(): ResponseInterface
+    public function update(ServerRequestInterface $request): ResponseInterface
     {
-        return $this->logCare();
+        return $this->logCare($request);
     }
 
     /**
@@ -316,11 +340,12 @@ final class AnimalController
      * @throws RandomException
      * @throws ValidationException
      */
-    public function toggle(): ResponseInterface
+    public function toggle(ServerRequestInterface $request): ResponseInterface
     {
-        $animalId = isset($_POST['animal_id']) ? (int) $_POST['animal_id'] : 0;
+        $body = (array) $request->getParsedBody();
+        $animalId = isset($body['animal_id']) ? (int) $body['animal_id'] : 0;
         if ($animalId > 0) {
-            return $this->toggleActive($animalId);
+            return $this->toggleActive($request, $animalId);
         }
         throw ValidationException::withMessage('ID de animal requerido', 422);
     }

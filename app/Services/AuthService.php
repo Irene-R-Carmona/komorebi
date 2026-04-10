@@ -49,7 +49,7 @@ final class AuthService extends BaseService
         $this->userModel = $userModel ?? new User(); // Legacy
         $this->tokenService = $tokenService ?? new AuthTokenService();
         $this->sessionService = $sessionService ?? new SessionManagementService();
-        $this->rateLimiter = $rateLimiter ?? new RateLimitingService();
+        $this->rateLimiter = $rateLimiter ?? new RateLimitingService(new \App\Services\CacheService());
         $this->emailService = $emailService ?? new EmailService();
         $this->db = $db ?? Database::getConnection();
         $this->eventDispatcher = $eventDispatcher;

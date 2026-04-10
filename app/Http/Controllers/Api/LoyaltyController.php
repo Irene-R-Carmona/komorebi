@@ -32,20 +32,20 @@ final class LoyaltyController extends AbstractApiController
         $userId = Session::userId();
 
         if (!$userId) {
-            return $this->error('No autenticado', 'unauthorized', 401);
+            return $this->unauthorized('No autenticado');
         }
 
         $body = $request->getParsedBody();
         $rewardType = $body['reward_type'] ?? null;
 
         if (!$rewardType) {
-            return $this->error('Tipo de recompensa requerido', 'missing_reward_type');
+            return $this->unprocessable('Tipo de recompensa requerido', 'missing_reward_type');
         }
 
         $result = $this->loyaltyService->redeemReward((int) $userId, $rewardType);
 
         if (!$result->ok) {
-            return $this->error($result->getMessage(), 'redemption_error');
+            return $this->unprocessable($result->getMessage(), 'redemption_error');
         }
 
         return $this->success([
@@ -64,13 +64,13 @@ final class LoyaltyController extends AbstractApiController
         $code = $params['code'] ?? null;
 
         if (!$code) {
-            return $this->error('Código requerido', 'missing_code');
+            return $this->unprocessable('Código requerido', 'missing_code');
         }
 
         $result = $this->loyaltyService->validateRedemptionCode($code);
 
         if (!$result->ok) {
-            return $this->error($result->getMessage(), 'invalid_code');
+            return $this->unprocessable($result->getMessage(), 'invalid_code');
         }
 
         return $this->success($result->data);
@@ -85,13 +85,13 @@ final class LoyaltyController extends AbstractApiController
         $code = $body['code'] ?? null;
 
         if (!$code) {
-            return $this->error('Código requerido', 'missing_code');
+            return $this->unprocessable('Código requerido', 'missing_code');
         }
 
         $result = $this->loyaltyService->useReward($code);
 
         if (!$result->ok) {
-            return $this->error($result->getMessage(), 'use_error');
+            return $this->unprocessable($result->getMessage(), 'use_error');
         }
 
         return $this->success($result->data);

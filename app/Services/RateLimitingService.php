@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Core\Database;
-use App\Core\Env;
 use App\Services\Contracts\RateLimitingServiceInterface;
-use PDO;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * Servicio de Rate Limiting
+ * Servicio de Rate Limiting basado en Cache (Redis con TTL nativo).
+ *
+ * Usa PSR-6 CacheItemPoolInterface para almacenar contadores con TTL,
+ * eliminando la necesidad de limpieza manual de registros expirados.
  */
 final class RateLimitingService implements RateLimitingServiceInterface
 {
-    private PDO $db;
+    private CacheItemPoolInterface $cache;
 
     private const CONFIG = [
         'login' => ['max_attempts' => 5, 'lockout_minutes' => 15],
@@ -23,24 +24,13 @@ final class RateLimitingService implements RateLimitingServiceInterface
         'registration' => ['max_attempts' => 3, 'lockout_minutes' => 60],
     ];
 
-    public function __construct(?PDO $db = null)
+    public function __construct(CacheItemPoolInterface $cache)
     {
-        $this->db = $db ?? Database::getConnection();
-        // In test environment reset rate limits to avoid cross-test pollution
-        $appEnv = Env::get('APP_ENV');
-        if ($appEnv === 'testing') {
-            try {
-                $this->db->exec('DELETE FROM rate_limits');
-            } catch (\Throwable $e) {
-                // Silenciar: si la tabla no existe o la DB no está disponible en tests, no bloquear
-            }
-        }
+        $this->cache = $cache;
     }
 
     /**
-     * Obtener configuración de una acción
-     *
-     * @param string $action
+     * Obtener configuración de una acción.
      *
      * @return array{max_attempts: int, lockout_minutes: int}
      */
@@ -50,127 +40,97 @@ final class RateLimitingService implements RateLimitingServiceInterface
     }
 
     /**
-     * Registrar intento de una acción
-     *
-     * @param string      $action
-     * @param string      $identifier (email, IP, user_id, etc)
-     * @param string|null $ipAddress
-     *
-     * @return boolean
+     * Genera la clave de caché para un intento de rate limit.
+     */
+    private function cacheKey(string $action, string $identifier): string
+    {
+        return 'rate_limit_' . \hash('sha256', $action . ':' . $identifier);
+    }
+
+    /**
+     * Registrar intento de una acción.
+     * Devuelve true si el intento fue registrado correctamente.
      */
     #[\Override]
     public function recordAttempt(string $action, string $identifier, ?string $ipAddress = null): bool
     {
         $config = $this->getConfig($action);
+        $key = $this->cacheKey($action, $identifier);
 
-        $stmt = $this->db->prepare(
-            'SELECT id, attempt_count FROM rate_limits WHERE action = :action AND identifier = :id'
-        );
-        $stmt->execute(['action' => $action, 'id' => $identifier]);
-        $existing = $stmt->fetch();
+        $item = $this->cache->getItem($key);
 
-        if (!$existing) {
-            $stmt = $this->db->prepare(
-                'INSERT INTO rate_limits (action, identifier, attempt_count, last_attempt, ip_address)
-                 VALUES (:action, :id, 1, NOW(), :ip)'
-            );
+        /** @var array{attempts: int, locked_until: int|null} $data */
+        $data = $item->isHit()
+            ? $item->get()
+            : ['attempts' => 0, 'locked_until' => null];
 
-            return $stmt->execute(['action' => $action, 'id' => $identifier, 'ip' => $ipAddress]);
+        $data['attempts'] += 1;
+
+        if ($data['attempts'] >= $config['max_attempts']) {
+            $data['locked_until'] = \time() + ($config['lockout_minutes'] * 60);
+            $ttl = $config['lockout_minutes'] * 60;
+        } else {
+            $ttl = 86400; // 24h ventana de seguimiento
         }
 
-        $attemptCount = (int) $existing['attempt_count'] + 1;
-        $lockUntil = null;
+        $item->set($data);
+        $item->expiresAfter($ttl);
 
-        if ($attemptCount >= $config['max_attempts']) {
-            $lockUntil = \date('Y-m-d H:i:s', \time() + ($config['lockout_minutes'] * 60));
-        }
-
-        $stmt = $this->db->prepare(
-            'UPDATE rate_limits SET attempt_count = :count, last_attempt = NOW(),
-             locked_until = :lock, ip_address = :ip WHERE id = :id'
-        );
-
-        return $stmt->execute([
-            'count' => $attemptCount,
-            'lock' => $lockUntil,
-            'ip' => $ipAddress,
-            'id' => (int) $existing['id'],
-        ]);
+        return $this->cache->save($item);
     }
 
     /**
-     * Verificar si un identificador está bloqueado
-     *
-     * @param string $action
-     * @param string $identifier
+     * Verificar si un identificador está bloqueado.
      *
      * @return array{blocked: bool, minutes_remaining?: int}
      */
     #[\Override]
     public function isBlocked(string $action, string $identifier): array
     {
-        $stmt = $this->db->prepare(
-            'SELECT locked_until FROM rate_limits
-             WHERE action = :action AND identifier = :id AND locked_until > NOW()'
-        );
-        $stmt->execute(['action' => $action, 'id' => $identifier]);
-        $record = $stmt->fetch();
+        $key = $this->cacheKey($action, $identifier);
+        $item = $this->cache->getItem($key);
 
-        if (!$record) {
+        if (!$item->isHit()) {
             return ['blocked' => false];
         }
 
-        $lockedUntil = \strtotime($record['locked_until']);
-        $minutesRemaining = (int) \ceil(($lockedUntil - \time()) / 60);
+        /** @var array{attempts: int, locked_until: int|null} $data */
+        $data = $item->get();
+
+        if (empty($data['locked_until']) || $data['locked_until'] <= \time()) {
+            return ['blocked' => false];
+        }
+
+        $minutesRemaining = (int) \ceil(($data['locked_until'] - \time()) / 60);
 
         return ['blocked' => true, 'minutes_remaining' => \max(1, $minutesRemaining)];
     }
 
     /**
-     * Obtener número de intentos recientes (últimas 24h)
-     *
-     * @param string $action
-     * @param string $identifier
-     *
-     * @return integer
+     * Obtener número de intentos recientes.
      */
     public function getRecentAttempts(string $action, string $identifier): int
     {
-        $stmt = $this->db->prepare(
-            'SELECT attempt_count FROM rate_limits
-             WHERE action = :action AND identifier = :id
-             AND last_attempt > DATE_SUB(NOW(), INTERVAL 24 HOUR)'
-        );
-        $stmt->execute(['action' => $action, 'id' => $identifier]);
-        $record = $stmt->fetch();
+        $key = $this->cacheKey($action, $identifier);
+        $item = $this->cache->getItem($key);
 
-        return $record ? (int) $record['attempt_count'] : 0;
+        if (!$item->isHit()) {
+            return 0;
+        }
+
+        /** @var array{attempts: int, locked_until: int|null} $data */
+        $data = $item->get();
+
+        return $data['attempts'] ?? 0;
     }
 
     /**
-     * Limpiar intentos fallidos (después de login exitoso, etc)
-     *
-     * @param string $action
-     * @param string $identifier
-     *
-     * @return boolean
+     * Limpiar intentos fallidos (después de login exitoso, etc).
      */
     public function clearAttempts(string $action, string $identifier): bool
     {
-        $stmt = $this->db->prepare('DELETE FROM rate_limits WHERE action = :action AND identifier = :id');
+        $key = $this->cacheKey($action, $identifier);
 
-        return $stmt->execute(['action' => $action, 'id' => $identifier]);
-    }
-
-    /**
-     * Limpiar registros antiguos (mantenimiento)
-     *
-     * @return integer Registros eliminados
-     */
-    public function cleanupOldRecords(): int
-    {
-        $stmt = $this->db->query('DELETE FROM rate_limits WHERE last_attempt < DATE_SUB(NOW(), INTERVAL 30 DAY)');
-
-        return $stmt->rowCount();
+        return $this->cache->deleteItem($key);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Container;
 use App\Core\Middleware;
 
 /**
@@ -36,8 +37,19 @@ final class NavigationService
     ];
 
     /**
+     * Obtiene la instancia singleton del servicio (para inyección de dependencias).
+     *
+     * @deprecated Inyectar NavigationService directo via constructor en lugar de llamar este método.
+     */
+    public static function instance(): self
+    {
+        return Container::make(self::class);
+    }
+
+    /**
      * Obtiene el menú de navegación para un rol.
      *
+     * @deprecated Inyectar NavigationService y llamar getMenuForRole() como método de instancia.
      * @return array<string, array<int, array{icon: string, label: string, url: string, badge?: int}>>
      */
     public static function getMenuForRole(string $role): array
@@ -55,6 +67,8 @@ final class NavigationService
 
     /**
      * Obtiene el menú completo con badges dinámicos.
+     *
+     * @deprecated Inyectar NavigationService y llamar getMenuWithBadges() como método de instancia.
      */
     public static function getMenuWithBadges(string $role, array $badges = []): array
     {
@@ -75,6 +89,8 @@ final class NavigationService
 
     /**
      * Verifica si una URL pertenece a la sección activa.
+     *
+     * @deprecated Inyectar NavigationService y llamar isActive() como método de instancia.
      */
     public static function isActive(string $itemUrl, string $currentUrl): bool
     {

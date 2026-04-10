@@ -5,35 +5,51 @@ declare(strict_types=1);
 namespace App\Core;
 
 /**
- * Clase Result para respuestas estandarizadas
+ * Clase Result para respuestas estandarizadas.
  *
  * Representa el resultado de una operación que puede tener éxito o fallar.
  * Inmutable (readonly) para garantizar consistencia.
+ *
+ * @template T Tipo del dato en caso de éxito (PHPDoc genérico, sin impacto en runtime)
  */
 final readonly class Result
 {
     public bool $ok;
 
+    /** @var T|null */
     public mixed $data;
 
     public ?string $error;
 
     public ?string $code;
 
-    private function __construct(bool $ok, mixed $data = null, ?string $error = null, ?string $code = null)
-    {
-        $this->ok = $ok;
-        $this->data = $data;
-        $this->error = $error;
-        $this->code = $code;
+    /** @var array<string, mixed> Contexto adicional para Problem Details (RFC 9457 extension members) */
+    public array $context;
+
+    /**
+     * @param T|null               $data
+     * @param array<string, mixed> $context
+     */
+    private function __construct(
+        bool $ok,
+        mixed $data = null,
+        ?string $error = null,
+        ?string $code = null,
+        array $context = [],
+    ) {
+        $this->ok      = $ok;
+        $this->data    = $data;
+        $this->error   = $error;
+        $this->code    = $code;
+        $this->context = $context;
     }
 
     /**
-     * Crea un resultado exitoso
+     * Crea un resultado exitoso.
      *
-     * @param mixed $data
-     *
-     * @return self
+     * @template TData
+     * @param TData $data
+     * @return self<TData>
      */
     public static function ok(mixed $data = null): self
     {
@@ -41,17 +57,22 @@ final readonly class Result
     }
 
     /**
-     * Crea un resultado fallido
+     * Crea un resultado fallido.
      *
-     * @param string $error Mensaje de error
-     * @param string $code  Código de error
-     * @param mixed  $data  Datos opcionales
+     * @param string|ServiceErrorCode  $code    Código de error o case del enum ServiceErrorCode
+     * @param mixed                    $data    Datos opcionales (compatibilidad hacia atrás)
+     * @param array<string, mixed>     $context Contexto extra para RFC 9457 extension members
      *
-     * @return self
+     * @return self<null>
      */
-    public static function fail(string $error, string $code = 'error', mixed $data = null): self
-    {
-        return new self(false, $data, $error, $code);
+    public static function fail(
+        string $error,
+        string|ServiceErrorCode $code = 'error',
+        mixed $data = null,
+        array $context = [],
+    ): self {
+        $codeStr = $code instanceof ServiceErrorCode ? $code->value : $code;
+        return new self(false, $data, $error, $codeStr, $context);
     }
 
     // ─────────────────────────────────────────────────────────────

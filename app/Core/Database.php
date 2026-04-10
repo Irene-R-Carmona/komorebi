@@ -63,6 +63,7 @@ final class Database
 
             // Collation correcta (post-conexión)
             $collation = Env::get('DB_COLLATION', 'utf8mb4_unicode_ci');
+            self::validateCharset($charset, $collation);
             $this->connection->exec(
                 "SET NAMES $charset COLLATE $collation"
             );
@@ -120,6 +121,24 @@ final class Database
             $pdo->rollBack();
 
             throw $e;
+        }
+    }
+
+    /**
+     * Valida charset y collation contra whitelist para prevenir inyección en SET NAMES.
+     *
+     * @throws \RuntimeException si el charset o collation no son válidos
+     */
+    public static function validateCharset(string $charset, string $collation): void
+    {
+        $allowedCharsets = ['utf8mb4', 'utf8', 'latin1', 'ascii', 'binary'];
+
+        if (!\in_array($charset, $allowedCharsets, true)) {
+            throw new \RuntimeException("Charset inválido: '$charset'. Permitidos: " . \implode(', ', $allowedCharsets));
+        }
+
+        if (!\preg_match('/^[a-z0-9_]+$/i', $collation)) {
+            throw new \RuntimeException("Collation inválida: '$collation'. Solo caracteres alfanuméricos y guiones bajos.");
         }
     }
 

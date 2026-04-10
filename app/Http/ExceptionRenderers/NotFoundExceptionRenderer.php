@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\ExceptionRenderers;
 
+use App\Core\Result;
+use App\Core\ServiceErrorCode;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
 use Psr\Http\Message\ResponseInterface;
@@ -34,10 +36,10 @@ final class NotFoundExceptionRenderer extends AbstractExceptionRenderer
         assert($e instanceof NotFoundException);
 
         if ($this->isApiRequest($request)) {
-            return $this->response->json([
-                'error'         => $e->getMessage(),
-                'resource_type' => $e->getResourceType(),
-            ], 404);
+            return $this->response->problem(
+                Result::fail($e->getMessage(), ServiceErrorCode::NOT_FOUND, context: ['resource_type' => $e->getResourceType()]),
+                404
+            );
         }
 
         $html = View::renderToString('errors/404', [
