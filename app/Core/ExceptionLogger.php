@@ -15,7 +15,6 @@ use App\Exceptions\RateLimitException;
 use App\Exceptions\ValidationException;
 use App\Services\TelegramService;
 use Exception;
-use RuntimeException;
 use Throwable;
 
 /**
@@ -26,9 +25,6 @@ use Throwable;
  */
 final class ExceptionLogger
 {
-    private const string LOG_FORMAT = '[%s] %s | %s: %s | Context: %s | Trace: %s:%d';
-
-    // Niveles de severidad para diferentes tipos de excepciones
     private const array SEVERITY_MAP = [
         ValidationException::class => 'INFO',
         NotFoundException::class => 'WARNING',
@@ -52,28 +48,25 @@ final class ExceptionLogger
     public static function log(Throwable $exception, ?string $context = null): void
     {
         $severity = self::getSeverity($exception);
-        $exceptionClass = \get_class($exception);
-        $message = $exception->getMessage();
-        $contextData = self::extractContext($exception);
-        $file = $exception->getFile();
-        $line = $exception->getLine();
-
-        // Formato estructurado
-        $logMessage = \sprintf(
-            self::LOG_FORMAT,
-            $severity,
-            $context ?? 'SYSTEM',
-            $exceptionClass,
-            $message,
-            \json_encode($contextData),
-            \basename($file),
-            $line
+        $contextData = \array_merge(
+            self::extractContext($exception),
+            [
+                'context'         => $context ?? 'SYSTEM',
+                'exception_class' => \get_class($exception),
+                'file'            => \basename($exception->getFile()),
+                'line'            => $exception->getLine(),
+            ]
         );
 
-        // Escribir al log apropiado según severidad
-        self::writeToLog($severity, $logMessage, $exception);
+        $channel = Logger::channel('app');
 
-        // Si es crítico, enviar notificación (opcional)
+        match ($severity) {
+            'CRITICAL' => $channel->critical($exception->getMessage(), $contextData),
+            'ERROR'    => $channel->error($exception->getMessage(), $contextData),
+            'WARNING'  => $channel->warning($exception->getMessage(), $contextData),
+            default    => $channel->info($exception->getMessage(), $contextData),
+        };
+
         if ($severity === 'CRITICAL') {
             self::notifyCriticalError($exception, $context);
         }
@@ -269,62 +262,6 @@ final class ExceptionLogger
         }
 
         return 'INVALID_IP';
-    }
-
-    /**
-     * Escribe al archivo de log apropiado
-     */
-    private static function writeToLog(string $severity, string $message, Throwable $exception): void
-    {
-        $logFile = match ($severity) {
-            'CRITICAL' => 'critical.log',
-            'ERROR' => 'errors.log',
-            'WARNING' => 'warnings.log',
-            'INFO' => 'info.log',
-            default => 'application.log',
-        };
-
-        $logPath = __DIR__ . '/../../storage/logs/' . $logFile;
-
-        // Asegurar que el directorio existe
-        $dir = \dirname($logPath);
-
-        if (!\is_dir($dir) && !\mkdir($dir, 0o755, true) && !\is_dir($dir)) {
-            throw new RuntimeException(\sprintf('Directory "%s" was not created', $dir));
-        }
-
-        // Escribir al log con timestamp
-        $timestamp = \date('Y-m-d H:i:s');
-        $logEntry = "[$timestamp] $message\n";
-
-        // Si es ERROR o CRITICAL, agregar traza de pila
-        if (\in_array($severity, ['ERROR', 'CRITICAL'], true)) {
-            $logEntry .= "Traza de pila:\n" . $exception->getTraceAsString() . "\n";
-        }
-
-        $logEntry .= \str_repeat('-', 100) . "\n";
-
-        // Usar Logger PSR-3 con el método apropiado según severidad
-        match ($severity) {
-            'CRITICAL' => Logger::critical($logEntry),
-            'ERROR' => Logger::error($logEntry),
-            'WARNING' => Logger::warning($logEntry),
-            'INFO' => Logger::info($logEntry),
-            default => Logger::info($logEntry),
-        };
-
-        // Además, en entornos de desarrollo/local, volcar también a stderr
-        // para que las trazas sean visibles en `docker compose logs`.
-        try {
-            if (Env::get('APP_ENV') !== 'production') {
-                Logger::debug('Exception en modo desarrollo', [
-                    'message' => $message,
-                    'trace' => $exception->getTraceAsString(),
-                ]);
-            }
-        } catch (Throwable) {
-            // No hacer nada si falla el fallback de logging
-        }
     }
 
     /**
