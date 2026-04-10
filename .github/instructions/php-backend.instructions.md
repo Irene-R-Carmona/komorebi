@@ -153,14 +153,51 @@ Secrets: `SecretLoader::require('db_password')` — reads env var first, then `/
 
 ## Logging
 
-Always use the static proxy; include `[ClassName]` prefix in the message:
+Always use the static proxy. Include `[ClassName]` prefix in every message:
 
 ```php
-Logger::info('[AuthService] Usuario registrado', ['user_id' => $id]);
-Logger::error('[ReservationService] Fallo al confirmar', ['exception' => $e->getMessage()]);
+Logger::info('[UserService] Profile updated', ['user_id' => $id]);
+Logger::error('[ReservationController] Save failed', ['reason' => $result->getMessage()]);
 ```
 
-Logs go to stderr (12-Factor XI). Never use `error_log()` or `var_dump()`.
+Services extend `BaseService` — use the typed helpers:
+
+```php
+$this->logInfo('Profile updated', ['user_id' => $id]);
+$this->logWarning('Slot not available', ['slot_id' => $slotId]);
+$this->logError('External call failed', ['service' => 'stripe']);
+$this->logDebug('Cache hit', ['key' => $cacheKey]);
+$this->logCritical('DB unreachable', ['dsn' => $dsn]);
+```
+
+### Level taxonomy
+
+| Level      | When to use                                                         |
+| ---------- | ------------------------------------------------------------------- |
+| `debug`    | Development detail: SQL queries, cache hits, algorithm steps        |
+| `info`     | Normal operation: successful operations with side effects           |
+| `warning`  | Expected failures: validation errors, business rule rejections      |
+| `error`    | Unexpected failures: catch blocks, Result::fail from external deps  |
+| `critical` | System integrity: config missing, DB unreachable, unrecoverable     |
+
+### Channels
+
+```php
+Logger::channel('app')    // business logic (default — same as Logger::info/error/...)
+Logger::channel('http')   // HTTP requests and API operations
+Logger::channel('db')     // slow queries, DB errors
+Logger::channel('queue')  // job lifecycle (start, complete, fail)
+Logger::channel('auth')   // login, logout, token events
+```
+
+### Rules
+
+- Read-only methods with no side effects: do NOT log.
+- Never log passwords, tokens, or full email addresses. Use `[REDACTED]` or `hash('sha256', $value)`.
+- `Logger::error()` and above **require** a `$context` array (enforced by PHPStan rule).
+- Every request carries a `request_id` in `LogContext` — automatically added to all logs via `LogContextProcessor`.
+
+Logs go to stdout (12-Factor XI). Never use `error_log()` or `var_dump()`.
 
 ## Async jobs & events
 
