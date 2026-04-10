@@ -42,3 +42,9 @@ parameters:
     # ── Tratamiento de errores ─────────────────────────────────
     treatPhpDocTypesAsCertain: false
     reportUnmatchedIgnoredErrors: true
+
+services:
+    -
+        class: App\Tools\PHPStan\LoggerContextRule
+        tags:
+            - phpstan.rules.rule
