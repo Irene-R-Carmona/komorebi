@@ -23,4 +23,19 @@ abstract class BaseService
     {
         Logger::error('[' . static::class . '] ' . $message, $context);
     }
+
+    protected function logDebug(string $message, array $context = []): void
+    {
+        Logger::debug('[' . static::class . '] ' . $message, $context);
+    }
+
+    protected function logWarning(string $message, array $context = []): void
+    {
+        Logger::warning('[' . static::class . '] ' . $message, $context);
+    }
+
+    protected function logCritical(string $message, array $context = []): void
+    {
+        Logger::critical('[' . static::class . '] ' . $message, $context);
+    }
 }
