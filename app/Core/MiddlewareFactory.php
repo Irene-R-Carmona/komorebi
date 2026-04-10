@@ -27,6 +27,7 @@ use App\Http\Middleware\ErrorHandlerMiddleware;
 use App\Http\Middleware\GuestMiddleware;
 use App\Http\Middleware\HttpRateLimitMiddleware;
 use App\Http\Middleware\PayloadSizeMiddleware;
+use App\Http\Middleware\RequestLogMiddleware;
 use App\Http\Middleware\RoleMiddleware;
 use App\Middleware\SecurityHeadersMiddleware;
 use App\Services\RateLimitingService;
@@ -166,6 +167,16 @@ final class MiddlewareFactory
     public function rateLimit(string $action, int $max = 5, int $window = 60): HttpRateLimitMiddleware
     {
         return new HttpRateLimitMiddleware($this->response, new RateLimitingService(new \App\Services\CacheService()), $action);
+    }
+
+    /**
+     * Middleware de logging de requests.
+     * Genera request_id, popula LogContext y loguea method/path/status/duration.
+     * Colocar después de SecurityHeaders y antes de errorHandler.
+     */
+    public function requestLog(): RequestLogMiddleware
+    {
+        return new RequestLogMiddleware();
     }
 
     /**

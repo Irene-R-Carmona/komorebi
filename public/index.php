@@ -159,8 +159,10 @@ try {
     // Añadir middlewares globales (orden importante)
     // 1. Security headers — siempre en todas las respuestas
     $pipeline->pipe(new \App\Middleware\SecurityHeadersMiddleware());
-    // 2. Error handler — captura excepciones del pipeline y retorna respuestas PSR-7
+    // 2. Request logging — genera request_id, loguea method/path/status/duration
     $mwFactory = new MiddlewareFactory(new ResponseFactory());
+    $pipeline->pipe($mwFactory->requestLog());
+    // 3. Error handler — captura excepciones del pipeline y retorna respuestas PSR-7
     $pipeline->pipe($mwFactory->errorHandler());
 
     // Procesar request a través del pipeline
