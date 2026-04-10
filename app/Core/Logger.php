@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger as Monolog;
@@ -13,47 +14,66 @@ use Psr\Log\LoggerInterface;
 /**
  * Logger 12-Factor: Streams a stdout/stderr, nunca archivos en contenedores.
  *
- * En desarrollo: Formato legible
- * En producción: Preparado para JSON (si se configura LOG_FORMAT=json)
+ * Canales disponibles: app (default), http, db, queue, auth
+ * En desarrollo: LineFormatter legible con context y extra visibles
+ * En producción: JsonFormatter estructurado para ingesta por ELK/Loki
+ *
+ * Todos los logs llevan automáticamente el contexto del request (request_id,
+ * method, path) inyectado por LogContextProcessor.
  */
 final class Logger
 {
-    private static ?LoggerInterface $instance = null;
+    /** @var array<string, LoggerInterface> */
+    private static array $channels = [];
 
     public static function get(): LoggerInterface
     {
-        if (self::$instance !== null) {
-            return self::$instance;
+        return self::channel('app');
+    }
+
+    public static function channel(string $name = 'app'): LoggerInterface
+    {
+        if (isset(self::$channels[$name])) {
+            return self::$channels[$name];
         }
 
-        $level = Config::getString('logging.level', 'info');
-        $isProd = Config::getString('app.env', 'production') === 'production';
+        $level = Env::get('LOG_LEVEL', 'info');
+        $isProd = Env::get('APP_ENV', 'production') === 'production';
 
-        $log = new Monolog('komorebi');
+        $log = new Monolog($name);
 
         // 12-Factor: Siempre a stdout
         $handler = new StreamHandler('php://stdout', self::parseLevel($level));
 
         // Formato diferente según entorno
         if ($isProd) {
-            $handler->setFormatter(new LineFormatter(
-                "[%datetime%] %channel%.%level_name%: %message% %context%\n",
-                'Y-m-d H:i:s'
-            ));
+            $handler->setFormatter(new JsonFormatter());
         } else {
             $handler->setFormatter(new LineFormatter(
-                "[%datetime%] %level_name%: %message%\n",
-                'H:i:s'
+                "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n",
+                'H:i:s',
+                true,
+                true
             ));
         }
 
         $log->pushHandler($handler);
-        self::$instance = $log;
+        $log->pushProcessor(new LogContextProcessor());
+
+        self::$channels[$name] = $log;
 
         return $log;
     }
 
-    // Proxies estáticos
+    /**
+     * Borra los canales cacheados. Útil en tests para aislar configuración.
+     */
+    public static function reset(): void
+    {
+        self::$channels = [];
+    }
+
+    // Proxies estáticos (canal 'app' por defecto)
     public static function emergency(string $msg, array $ctx = []): void
     {
         self::get()->emergency($msg, $ctx);
