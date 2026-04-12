@@ -6,9 +6,9 @@ namespace App\Services;
 
 use App\Core\BaseService;
 use App\Services\Contracts\EmailServiceInterface;
-use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Queue;
+use App\Core\WideEvent;
 use App\Jobs\SendEmailJob;
 
 /**
@@ -19,15 +19,6 @@ use App\Jobs\SendEmailJob;
  */
 final class EmailService extends BaseService implements EmailServiceInterface
 {
-    private string $fromEmail;
-
-    private string $fromName;
-
-    public function __construct()
-    {
-        $this->fromEmail = Env::get('MAIL_FROM_ADDRESS', 'noreply@komorebi.local');
-        $this->fromName = Env::get('MAIL_FROM_NAME', 'Komorebi');
-    }
 
     /**
      * Enviar email de verificación
@@ -47,6 +38,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $userEmail,
             'subject' => 'Verifica tu email en Komorebi',
             'body' => $this->getVerificationEmailTemplate($userName, $verificationUrl),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
 
         if ($enqueued) {
@@ -73,6 +65,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $userEmail,
             'subject' => 'Recupera tu contraseña en Komorebi',
             'body' => $this->getPasswordResetTemplate($userName, $resetUrl),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
 
         if ($enqueued) {
@@ -88,8 +81,8 @@ final class EmailService extends BaseService implements EmailServiceInterface
      * Enviar confirmación de reserva
      *
      * @param string $userEmail
-     * @param string $userName
-     * @param array  $reservationData
+     * @param string|array $userNameOrReservationData
+     * @param array|null  $reservationData
      * @param string|null $pdfPath Ruta al PDF adjunto (opcional)
      *
      * @return boolean
@@ -114,6 +107,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $userEmail,
             'subject' => '✅ Reserva confirmada en Komorebi',
             'body' => $this->getReservationConfirmationTemplate($userName, $reservationData),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ];
 
         // Añadir PDF si existe
@@ -160,6 +154,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $userEmail,
             'subject' => 'Reserva cancelada en Komorebi',
             'body' => $this->getReservationCancellationTemplate($userName, $reservationData, $reason),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
 
         if ($enqueued) {
@@ -191,6 +186,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $recipientEmail,
             'subject' => 'Email de prueba - Komorebi Café',
             'body' => $this->getTestEmailTemplate($recipientName),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
 
         if ($enqueued) {
@@ -347,6 +343,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $userEmail,
             'subject' => '🐾 Confirmación de Lista de Espera - Komorebi Café',
             'body' => $this->getWaitlistConfirmationTemplate($userName, $token, $waitlistData),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
 
         if ($enqueued) {
@@ -433,6 +430,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $to,
             'subject' => $subject,
             'body' => $body,
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
 
         if ($enqueued) {

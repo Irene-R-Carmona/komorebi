@@ -1,0 +1,185 @@
+/app/app/Services/CacheService.php:53:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/CafeService.php:55:Method App\Repositories\Contracts\CafeRepositoryInterface::findFiltered() invoked with 3 parameters, 1 required.
+/app/app/Services/CafeService.php:77:PHPDoc tag @throws with type App\Services\RuntimeException is not subtype of Throwable
+/app/app/Services/CafeService.php:126:PHPDoc tag @throws with type App\Services\RuntimeException is not subtype of Throwable
+/app/app/Services/CafeService.php:196:PHPDoc tag @throws with type App\Services\RuntimeException is not subtype of Throwable
+/app/app/Services/CafeService.php:230:PHPDoc tag @throws with type App\Services\RuntimeException is not subtype of Throwable
+/app/app/Services/CafeService.php:239:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::softDelete().
+/app/app/Services/EmailService.php:23:Property App\Services\EmailService::$fromEmail is never read, only written.
+/app/app/Services/EmailService.php:25:Property App\Services\EmailService::$fromName is never read, only written.
+/app/app/Services/EmailService.php:100:PHPDoc tag @param references unknown parameter: $userName
+/app/app/Services/HolidayService.php:93:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/HolidayService.php:138:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/HolidayService.php:183:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/HolidayService.php:228:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/HolidayService.php:257:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/HolidayService.php:263:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/MenuService.php:37:Method App\Services\MenuService::columnExists() is unused.
+/app/app/Services/MenuService.php:169:Method App\Services\MenuService::passMatchesCriteria() is unused.
+/app/app/Services/NewsletterService.php:36:PHPDoc tag @throws with type App\Services\RandomException is not subtype of Throwable
+/app/app/Services/ReservationService.php:38:Property App\Services\ReservationService::$animalRepo is never read, only written.
+/app/app/Services/ReservationService.php:39:Property App\Services\ReservationService::$timeSlotRepo is never read, only written.
+/app/app/Services/ReservationTimeSlotService.php:104:Parameter #1 $data of method App\Models\Reservation::create() expects array{user_id: int, cafe_id: int, pass_product_id: int, pass_name: string, pass_unit_price: int, pass_duration_minutes: int, reservation_date: string, reservation_time: string, ...}, array{user_id: int, cafe_id: int, reservation_date: string, reservation_time: string, guest_count: int, contact_name?: string, contact_email?: string, contact_phone?: string, ...} given.
+/app/app/Services/ReservationTimeSlotService.php:231:Method App\Models\Waitlist::addToWaitlist() invoked with 1 parameter, 3 required.
+/app/app/Services/ReservationTimeSlotService.php:231:Parameter #1 $timeSlotId of method App\Models\Waitlist::addToWaitlist() expects int, array<string, int|string> given.
+/app/tests/Integration/AccessibilityTest.php:39:Function renderButton not found.
+/app/tests/Integration/AccessibilityTest.php:60:Function renderModal not found.
+/app/tests/Integration/AccessibilityTest.php:86:Function renderBadge not found.
+/app/tests/Integration/AccessibilityTest.php:102:Function renderBadge not found.
+/app/tests/Integration/AccessibilityTest.php:270:Function renderModal not found.
+/app/tests/Integration/AuthIntegrationTest.php:47:Class App\Services\AuthService constructor invoked with 7 parameters, 5-6 required.
+/app/tests/Integration/AuthIntegrationTest.php:50:Parameter #3 $sessionService of class App\Services\AuthService constructor expects App\Services\SessionManagementService, App\Services\AuthTokenService given.
+/app/tests/Integration/AuthIntegrationTest.php:51:Parameter #4 $rateLimiter of class App\Services\AuthService constructor expects App\Services\Contracts\RateLimitingServiceInterface, App\Services\SessionManagementService given.
+/app/tests/Integration/AuthIntegrationTest.php:52:Parameter #5 $db of class App\Services\AuthService constructor expects PDO, App\Services\Contracts\RateLimitingServiceInterface&PHPUnit\Framework\MockObject\Stub given.
+/app/tests/Integration/AuthIntegrationTest.php:53:Parameter #6 $eventDispatcher of class App\Services\AuthService constructor expects Psr\EventDispatcher\EventDispatcherInterface|null, App\Services\EmailService given.
+/app/tests/Integration/BadgeComponentTest.php:53:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:69:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:85:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:98:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:113:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:126:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:141:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:153:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:169:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:181:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:194:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:209:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:226:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:234:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:244:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:269:Function renderBadge not found.
+/app/tests/Integration/ButtonComponentTest.php:53:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:66:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:80:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:93:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:111:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:127:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:143:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:156:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:166:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:179:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:191:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:207:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:223:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:237:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:255:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:274:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:282:Function renderButton not found.
+/app/tests/Integration/CardComponentTest.php:53:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:69:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:85:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:98:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:111:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:124:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:142:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:154:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:166:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:182:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:197:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:209:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:222:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:235:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:249:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:258:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:267:Function renderCard not found.
+/app/tests/Integration/ModalComponentTest.php:53:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:73:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:87:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:99:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:115:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:130:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:145:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:163:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:176:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:191:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:205:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:218:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:232:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:245:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:264:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:280:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:294:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:309:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:318:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:347:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:361:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:375:Function renderModal not found.
+/app/tests/Integration/ReservationIntegrationTest.php:336:Call to method PHPUnit\Framework\Assert::assertSame() with arguments 0, App\Core\Result and 'No debe crear…' will always evaluate to false.
+/app/tests/Integration/ReservationIntegrationTest.php:361:Call to method PHPUnit\Framework\Assert::assertSame() with arguments 0, App\Core\Result and 'No debe crear…' will always evaluate to false.
+/app/tests/Integration/ReviewIntegrationTest.php:35:Constant Tests\Integration\ReviewIntegrationTest::TEST_REVIEW_ID_BASE is unused.
+/app/tests/Integration/ReviewIntegrationTest.php:47:Class App\Services\ReviewService constructor invoked with 4 parameters, 2 required.
+/app/tests/Integration/ReviewIntegrationTest.php:48:Parameter #1 $userModel of class App\Services\ReviewService constructor expects App\Models\User, App\Models\Review given.
+/app/tests/Integration/ReviewIntegrationTest.php:49:Parameter #2 $reviewRepository of class App\Services\ReviewService constructor expects App\Repositories\Contracts\ReviewRepositoryInterface, App\Models\User given.
+/app/tests/Integration/ReviewIntegrationTest.php:211:Call to an undefined method App\Services\ReviewService::moderateReview().
+/app/tests/Integration/ReviewIntegrationTest.php:236:Call to an undefined method App\Services\ReviewService::moderateReview().
+/app/tests/Integration/ReviewIntegrationTest.php:284:Call to an undefined method App\Services\ReviewService::moderateReview().
+/app/tests/Integration/ReviewIntegrationTest.php:287:Call to an undefined method App\Services\ReviewService::getReviewsByCafeId().
+/app/tests/Integration/ReviewIntegrationTest.php:316:Call to an undefined method App\Services\ReviewService::moderateReview().
+/app/tests/Integration/ReviewIntegrationTest.php:364:Call to an undefined method App\Services\ReviewService::moderateReview().
+/app/tests/Integration/ReviewIntegrationTest.php:367:Call to an undefined method App\Services\ReviewService::calculateAverageRating().
+/app/tests/Unit/Core/QueueRetryTest.php:45:Property class@anonymous/tests/Unit/Core/QueueRetryTest.php:43::$zaddCalls is never read, only written.
+/app/tests/Unit/Core/QueueRetryTest.php:46:Property class@anonymous/tests/Unit/Core/QueueRetryTest.php:43::$lpushCalls is never read, only written.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:37:Method Tests\Unit\Http\Controllers\Api\FavoriteControllerTest::makeController() has invalid return type App\Http\Controllers\Api\FavoriteController.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:40:Instantiated class App\Http\Controllers\Api\FavoriteController not found.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:48:Call to method toggle() on an unknown class App\Http\Controllers\Api\FavoriteController.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:59:Call to method list() on an unknown class App\Http\Controllers\Api\FavoriteController.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:68:Call to function method_exists() with 'App\\Http\\Controllers\\Api\\FavoriteController' and 'toggle' will always evaluate to false.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:68:Class App\Http\Controllers\Api\FavoriteController not found.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:69:Class App\Http\Controllers\Api\FavoriteController not found.
+/app/tests/Unit/Http/Controllers/Auth/AuthControllerTest.php:29:Constant Tests\Unit\Http\Controllers\Auth\AuthControllerTest::CSRF_TOKEN is unused.
+/app/tests/Unit/Middleware/ApiAuthMiddlewareTest.php:41:Property Middleware\ApiAuthMiddlewareTest::$handler is never read, only written.
+/app/tests/Unit/Middleware/CorsMiddlewareTest.php:38:Class App\Core\Http\ResponseFactory constructor invoked with 2 parameters, 0 required.
+/app/tests/Unit/Middleware/CorsMiddlewareTest.php:85:Access to an undefined property Psr\Http\Server\RequestHandlerInterface::$callCount.
+/app/tests/Unit/Middleware/CorsMiddlewareTest.php:124:Access to an undefined property Psr\Http\Server\RequestHandlerInterface::$callCount.
+/app/tests/Unit/Middleware/CorsMiddlewareTest.php:157:Access to an undefined property Psr\Http\Server\RequestHandlerInterface::$callCount.
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:166:Method App\Repositories\AnimalRepository::isResting() invoked with 3 parameters, 1 required.
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:182:Method App\Repositories\AnimalRepository::isResting() invoked with 3 parameters, 1 required.
+/app/tests/Unit/Services/AdminServiceTest.php:31:Property Tests\Unit\Services\AdminServiceTest::$service has unknown class App\Services\AdminService as its type.
+/app/tests/Unit/Services/AdminServiceTest.php:35:Instantiated class App\Services\AdminService not found.
+/app/tests/Unit/Services/AdminServiceTest.php:44:Call to method getDatabase() on an unknown class App\Services\AdminService.
+/app/tests/Unit/Services/AdminServiceTest.php:108:Call to method getSystemStatistics() on an unknown class App\Services\AdminService.
+/app/tests/Unit/Services/AdminServiceTest.php:121:Call to method getSystemStatistics() on an unknown class App\Services\AdminService.
+/app/tests/Unit/Services/AdminServiceTest.php:133:Call to method getRecentReservations() on an unknown class App\Services\AdminService.
+/app/tests/Unit/Services/AdminServiceTest.php:141:Call to method getUserDistributionByRole() on an unknown class App\Services\AdminService.
+/app/tests/Unit/Services/AuthServiceTest.php:31:Property AuthServiceTest::$userModelMock is never read, only written.
+/app/tests/Unit/Services/AuthServiceTest.php:50:Class App\Services\AuthService constructor invoked with 7 parameters, 5-6 required.
+/app/tests/Unit/Services/AuthServiceTest.php:53:Parameter #3 $sessionService of class App\Services\AuthService constructor expects App\Services\SessionManagementService, App\Services\AuthTokenService given.
+/app/tests/Unit/Services/AuthServiceTest.php:54:Parameter #4 $rateLimiter of class App\Services\AuthService constructor expects App\Services\Contracts\RateLimitingServiceInterface, App\Services\SessionManagementService given.
+/app/tests/Unit/Services/AuthServiceTest.php:55:Parameter #5 $db of class App\Services\AuthService constructor expects PDO, App\Services\Contracts\RateLimitingServiceInterface&PHPUnit\Framework\MockObject\Stub given.
+/app/tests/Unit/Services/AuthServiceTest.php:56:Parameter #6 $eventDispatcher of class App\Services\AuthService constructor expects Psr\EventDispatcher\EventDispatcherInterface|null, App\Services\Contracts\EmailServiceInterface&PHPUnit\Framework\MockObject\Stub given.
+/app/tests/Unit/Services/AuthServiceTest.php:181:Class App\Services\AuthService constructor invoked with 7 parameters, 5-6 required.
+/app/tests/Unit/Services/AuthServiceTest.php:184:Parameter #3 $sessionService of class App\Services\AuthService constructor expects App\Services\SessionManagementService, App\Services\AuthTokenService given.
+/app/tests/Unit/Services/AuthServiceTest.php:185:Parameter #4 $rateLimiter of class App\Services\AuthService constructor expects App\Services\Contracts\RateLimitingServiceInterface, App\Services\SessionManagementService given.
+/app/tests/Unit/Services/AuthServiceTest.php:186:Parameter #5 $db of class App\Services\AuthService constructor expects PDO, App\Services\Contracts\RateLimitingServiceInterface given.
+/app/tests/Unit/Services/AuthServiceTest.php:187:Parameter #6 $eventDispatcher of class App\Services\AuthService constructor expects Psr\EventDispatcher\EventDispatcherInterface|null, App\Services\Contracts\EmailServiceInterface given.
+/app/tests/Unit/Services/CacheServiceTest.php:73:Negated boolean expression is always true.
+/app/tests/Unit/Services/ClimaContextoServiceTest.php:254:Method Tests\Unit\Services\ClimaContextoServiceTest::condicionesProvider() should return array<string, array{string}> but returns array{array{'clear'}, array{'clouds'}, array{'rain'}, array{'snow'}, array{'fog'}, array{'thunderstorm'}}.
+/app/tests/Unit/Services/ProductServiceTest.php:24:Class App\Services\ProductService constructor invoked with 0 parameters, 1 required.
+/app/tests/Unit/Services/RateLimitingServiceTest.php:125:Result of method App\Services\RateLimitingService::clearAttempts() (void) is used.
+/app/tests/Unit/Services/RateLimitingServiceTest.php:127:Call to method PHPUnit\Framework\Assert::assertTrue() with void will always evaluate to false.
+/app/tests/Unit/Services/ReservationServiceTest.php:86:Parameter #1 $data of method App\Services\ReservationService::create() expects array{user_id: int, cafe_id: int, pass_product_id: int, date: string, time: string, guests: int, comments?: string}, array{cafe_id: 1, pass_product_id: 2, date: '2026-12-25', time: '10:00', guests: 2} given.
+/app/tests/Unit/Services/ReservationServiceTest.php:100:Parameter #1 $data of method App\Services\ReservationService::create() expects array{user_id: int, cafe_id: int, pass_product_id: int, date: string, time: string, guests: int, comments?: string}, array{user_id: 1, pass_product_id: 2, date: '2026-12-25', time: '10:00', guests: 2} given.
+/app/tests/Unit/Services/ReservationServiceTest.php:114:Parameter #1 $data of method App\Services\ReservationService::create() expects array{user_id: int, cafe_id: int, pass_product_id: int, date: string, time: string, guests: int, comments?: string}, array{user_id: 1, cafe_id: 1, date: '2026-12-25', time: '10:00', guests: 2} given.
+/app/tests/Unit/Services/ReservationServiceTest.php:1037:Call to an undefined method App\Services\ReservationService::getAvailableCafesForReservation().
+/app/tests/Unit/Services/ReservationServiceTest.php:1051:Call to an undefined method App\Services\ReservationService::getAvailableCafesById().
+/app/tests/Unit/Services/ReservationServiceTest.php:1067:Call to an undefined method App\Services\ReservationService::getAvailablePassesForReservation().
+/app/tests/Unit/Services/ReservationServiceTest.php:1080:Call to an undefined method App\Services\ReservationService::validateCafeExists().
+/app/tests/Unit/Services/ReservationServiceTest.php:1091:Call to an undefined method App\Services\ReservationService::validatePassExists().
+/app/tests/Unit/Services/ReservationServiceTest.php:1143:Parameter #1 $data of method App\Services\ReservationService::create() expects array{user_id: int, cafe_id: int, pass_product_id: int, date: string, time: string, guests: int, comments?: string}, array{user_id: 1} given.
+/app/tests/Unit/Services/ReviewServiceTest.php:48:Class App\Services\ReviewService constructor invoked with 3 parameters, 2 required.
+/app/tests/Unit/Services/ReviewServiceTest.php:48:Parameter #1 $userModel of class App\Services\ReviewService constructor expects App\Models\User, App\Models\Review&PHPUnit\Framework\MockObject\Stub given.
+/app/tests/Unit/Services/ReviewServiceTest.php:48:Parameter #2 $reviewRepository of class App\Services\ReviewService constructor expects App\Repositories\Contracts\ReviewRepositoryInterface, App\Models\User&PHPUnit\Framework\MockObject\MockObject given.
+/app/tests/Unit/Services/ReviewServiceTest.php:238:Call to an undefined method App\Services\ReviewService::getReviewsByUserId().
+/app/tests/Unit/Services/ReviewServiceTest.php:253:Call to an undefined method App\Services\ReviewService::getReviewsByCafeId().
+/app/tests/Unit/Services/ReviewServiceTest.php:265:Call to an undefined method App\Services\ReviewService::calculateAverageRating().
+/app/tests/Unit/Services/ReviewServiceTest.php:276:Call to an undefined method App\Services\ReviewService::calculateAverageRating().
+/app/tests/Unit/Services/ReviewServiceTest.php:288:Call to an undefined method App\Services\ReviewService::moderateReview().
+/app/tests/Unit/Services/ReviewServiceTest.php:308:Class App\Services\ReviewService constructor invoked with 5 parameters, 2 required.
+/app/tests/Unit/Services/ReviewServiceTest.php:309:Parameter #1 $userModel of class App\Services\ReviewService constructor expects App\Models\User, App\Models\Review given.
+/app/tests/Unit/Services/ReviewServiceTest.php:310:Parameter #2 $reviewRepository of class App\Services\ReviewService constructor expects App\Repositories\Contracts\ReviewRepositoryInterface, App\Models\User&PHPUnit\Framework\MockObject\MockObject given.
+/app/tests/Unit/Services/ReviewServiceTest.php:337:Call to an undefined method App\Services\ReviewService::approveReview().
+/app/tests/Unit/Services/ReviewServiceTest.php:347:Class App\Services\ReviewService constructor invoked with 5 parameters, 2 required.
+/app/tests/Unit/Services/ReviewServiceTest.php:348:Parameter #1 $userModel of class App\Services\ReviewService constructor expects App\Models\User, App\Models\Review given.
+/app/tests/Unit/Services/ReviewServiceTest.php:349:Parameter #2 $reviewRepository of class App\Services\ReviewService constructor expects App\Repositories\Contracts\ReviewRepositoryInterface, App\Models\User&PHPUnit\Framework\MockObject\MockObject given.
+/app/tests/Unit/Services/ReviewServiceTest.php:366:Call to an undefined method App\Services\ReviewService::approveReview().
+/app/tests/bootstrap.php:103:Anonymous function has an unused use $requiredBlock.

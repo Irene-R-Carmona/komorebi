@@ -7,6 +7,7 @@ namespace App\Workers;
 use App\Core\Config;
 use App\Core\Logger;
 use App\Core\Queue;
+use App\Core\WideEvent;
 use App\Jobs\JobInterface;
 use Throwable;
 
@@ -96,17 +97,32 @@ final class EmailWorker
         $start = microtime(true);
         $this->echoToConsole("[EmailWorker] Procesando: $jobClass");
 
+        WideEvent::reset();
+        WideEvent::set('job_class', $jobClass);
+        WideEvent::set('queue', self::QUEUE_NAME);
+        WideEvent::set('pid', getmypid());
+        WideEvent::set('request_id', ($jobData['payload'] ?? [])['_correlation_id'] ?? '');
+
         try {
             $job->handle($jobData['payload'] ?? []);
             $duration = round((microtime(true) - $start) * 1000, 2);
             $this->processed++;
 
-            Logger::info('[EmailWorker] Job OK', [
-                'job' => $jobClass,
-                'ms' => $duration,
-            ]);
+            WideEvent::set('duration_ms', $duration);
+            WideEvent::set('outcome', 'success');
+            Logger::channel('queue')->info('job.canonical', WideEvent::all());
         } catch (Throwable $e) {
             $this->errors++;
+            $duration = round((microtime(true) - $start) * 1000, 2);
+
+            WideEvent::set('duration_ms', $duration);
+            WideEvent::set('outcome', 'error');
+            WideEvent::setSection('error', [
+                'type'    => \get_class($e),
+                'message' => $e->getMessage(),
+            ]);
+            Logger::channel('queue')->info('job.canonical', WideEvent::all());
+
             Logger::error('[EmailWorker] Job falló', [
                 'job' => $jobClass,
                 'error' => $e->getMessage(),
@@ -115,6 +131,8 @@ final class EmailWorker
 
             // Reintentar si no se superó el límite
             $this->retryJob($jobData);
+        } finally {
+            WideEvent::reset();
         }
     }
 

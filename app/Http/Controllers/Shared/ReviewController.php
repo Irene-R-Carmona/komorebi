@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shared;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Middleware;
@@ -13,7 +14,9 @@ use App\Exceptions\BusinessRuleException;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Models\Cafe;
-use App\Services\ReviewService;
+use App\Services\Contracts\ReviewModerationServiceInterface;
+use App\Services\Contracts\ReviewQueryServiceInterface;
+use App\Services\Contracts\ReviewServiceInterface;
 use JsonException;
 use Random\RandomException;
 
@@ -27,7 +30,9 @@ use Random\RandomException;
  */
 final class ReviewController
 {
-    private ReviewService $reviewService;
+    private ReviewServiceInterface $reviewService;
+    private ReviewQueryServiceInterface $queryService;
+    private ReviewModerationServiceInterface $moderationService;
     private Cafe $cafeModel;
 
     // ─────────────────────────────────────────────────────────────
@@ -35,10 +40,14 @@ final class ReviewController
     // ─────────────────────────────────────────────────────────────
 
     public function __construct(
-        ?ReviewService $reviewService = null,
+        ?ReviewServiceInterface $reviewService = null,
+        ?ReviewQueryServiceInterface $queryService = null,
+        ?ReviewModerationServiceInterface $moderationService = null,
         ?Cafe $cafeModel = null
     ) {
-        $this->reviewService = $reviewService ?? new ReviewService();
+        $this->reviewService = $reviewService ?? Container::make(ReviewServiceInterface::class);
+        $this->queryService = $queryService ?? Container::make(ReviewQueryServiceInterface::class);
+        $this->moderationService = $moderationService ?? Container::make(ReviewModerationServiceInterface::class);
         $this->cafeModel = $cafeModel ?? new Cafe();
     }
 
@@ -188,7 +197,7 @@ final class ReviewController
         $reviewId = (int) ($_POST['id'] ?? 0);
 
         // [x] VALIDACIÓN CONTEXTO: Reseña existe
-        $review = $this->reviewService->getReview($reviewId);
+        $review = $this->queryService->getReview($reviewId);
         if (!$review) {
             throw NotFoundException::forResource('Reseña', $reviewId);
         }
@@ -248,7 +257,7 @@ final class ReviewController
         $reviewId = (int) ($_POST['id'] ?? 0);
 
         // [x] VALIDACIÓN CONTEXTO: Reseña existe
-        $review = $this->reviewService->getReview($reviewId);
+        $review = $this->queryService->getReview($reviewId);
         if (!$review) {
             throw NotFoundException::forResource('Reseña', $reviewId);
         }
@@ -300,7 +309,7 @@ final class ReviewController
         $page = \max(1, (int) ($_GET['page'] ?? 1));
 
         // [x] LÓGICA: Obtener reseñas pendientes
-        $pending = $this->reviewService->listPendingReviews($page);
+        $pending = $this->moderationService->listPendingReviews($page);
 
         // [x] RENDERIZAR: Vista de backoffice
         View::render('admin/reviews/pending', [
@@ -341,7 +350,7 @@ final class ReviewController
         $reviewId = (int) ($_POST['id'] ?? 0);
 
         // [x] VALIDACIÓN CONTEXTO: Reseña existe
-        $review = $this->reviewService->getReview($reviewId);
+        $review = $this->queryService->getReview($reviewId);
         if (!$review) {
             Flash::set('error', 'Reseña no encontrada.');
             \header('Location: /admin/reviews/pending');
@@ -356,7 +365,7 @@ final class ReviewController
         }
 
         // [x] LÓGICA DE NEGOCIO: Aprobar
-        $result = $this->reviewService->approveReview($reviewId);
+        $result = $this->moderationService->approveReview($reviewId);
 
         if ($result->ok) {
             Flash::set('success', 'Reseña aprobada y publicada.');
@@ -401,7 +410,7 @@ final class ReviewController
         $reason = \trim((string) ($_POST['reason'] ?? ''));
 
         // [x] VALIDACIÓN CONTEXTO: Reseña existe
-        $review = $this->reviewService->getReview($reviewId);
+        $review = $this->queryService->getReview($reviewId);
         if (!$review) {
             Flash::set('error', 'Reseña no encontrada.');
             \header('Location: /admin/reviews/pending');
@@ -421,7 +430,7 @@ final class ReviewController
         }
 
         // [x] LÓGICA DE NEGOCIO: Rechazar
-        $result = $this->reviewService->rejectReview($reviewId, $reason);
+        $result = $this->moderationService->rejectReview($reviewId, $reason);
 
         if ($result->ok) {
             Flash::set('success', 'Reseña rechazada. Se notificará al autor con el motivo.');

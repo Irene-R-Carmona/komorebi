@@ -29,6 +29,18 @@ $extraJs ??= [];
 
 <head>
     <meta charset="UTF-8">
+    <!-- FOUC prevention: preload dark theme antes de que Alpine.js hidrate (T11.3) -->
+    <script nonce="<?= $cspNonce ?>">
+        (function() {
+            try {
+                var t = localStorage.getItem('komorebi_tema');
+                if (t === 'oscuro') {
+                    document.documentElement.dataset.tema = 'oscuro';
+                }
+            } catch (e) {
+                /* localStorage bloqueado (incognito/CSP) */ }
+        })();
+    </script>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta name="csrf-token" content="<?= htmlspecialchars(Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
 
@@ -65,9 +77,16 @@ $extraJs ??= [];
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <!-- Bootstrap Icons (CDN fallback) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" integrity="" crossorigin="anonymous">
-
     <!-- Estilos del proyecto -->
     <link href="/css/global.css" rel="stylesheet">
+    <!-- Design System Components -->
+    <link href="/css/components/focus.css" rel="stylesheet">
+    <link href="/css/components/buttons.css" rel="stylesheet">
+    <link href="/css/components/cards.css" rel="stylesheet">
+    <link href="/css/components/forms.css" rel="stylesheet">
+    <link href="/css/components/toast.css" rel="stylesheet">
+    <link href="/css/components/skeleton.css" rel="stylesheet">
+    <link href="/css/components/empty-state.css" rel="stylesheet">
     <link href="/css/sections/fusuma-layout.css" rel="stylesheet">
     <link href="/css/sections/cookie-banner.css" rel="stylesheet">
 
@@ -123,9 +142,9 @@ $extraJs ??= [];
 
             <!-- Navegación centrada — simple sin dropdowns -->
             <nav aria-label="Navegación principal" class="header__nav">
-                <a class="header__link <?= ($currentPath === '/cafes') ? 'header__link--activo' : '' ?>" href="/cafes">Cafés</a>
-                <a class="header__link <?= ($currentPath === '/menu') ? 'header__link--activo' : '' ?>" href="/menu">Carta</a>
-                <a class="header__link <?= (in_array($currentPath, ['/historia', '/faq', '/quiz'], true)) ? 'header__link--activo' : '' ?>" href="/historia">Nosotros</a>
+                <a class="header__link <?= str_starts_with($currentPath, '/cafes') ? 'header__link--activo' : '' ?>" href="/cafes">Cafés</a>
+                <a class="header__link <?= str_starts_with($currentPath, '/menu') ? 'header__link--activo' : '' ?>" href="/menu">Carta</a>
+                <a class="header__link <?= (in_array($currentPath, ['/historia', '/faq'], true) || str_starts_with($currentPath, '/quiz')) ? 'header__link--activo' : '' ?>" href="/historia">Nosotros</a>
                 <a class="header__link <?= ($currentPath === '/contacto') ? 'header__link--activo' : '' ?>" href="/contacto">Contacto</a>
             </nav>
 
@@ -155,7 +174,7 @@ $extraJs ??= [];
                 </button>
 
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="/profile" class="header__icon-btn" title="Mi perfil">
+                    <a href="/profile" class="header__icon-btn" title="Mi perfil" aria-label="Mi perfil">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
@@ -172,7 +191,7 @@ $extraJs ??= [];
                         </button>
                     </form>
                 <?php else: ?>
-                    <a href="/login" class="header__icon-btn" title="Iniciar sesion">
+                    <a href="/login" class="header__icon-btn" title="Iniciar sesión" aria-label="Iniciar sesión">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                             <polyline points="10 17 15 12 10 7"></polyline>
@@ -181,7 +200,7 @@ $extraJs ??= [];
                     </a>
                 <?php endif; ?>
 
-                <a href="/reservas" class="header__cta">
+                <a href="/reservas" class="header__cta <?= str_starts_with($currentPath, '/reservas') ? 'header__cta--activo' : '' ?>">
                     Reservar mesa
                 </a>
             </div>
@@ -189,20 +208,35 @@ $extraJs ??= [];
             <!-- Hamburger menu mobile -->
             <div class="header__mobile-toggle">
                 <button class="header__mobile-btn"
+                    :class="{ 'is-open': menuMovil }"
                     @click="menuMovil = !menuMovil"
-                    aria-label="Abrir menu"
+                    :aria-expanded="menuMovil ? 'true' : 'false'"
+                    aria-label="Abrir menú de navegación"
                     type="button">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg class="icon-hamburger" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <line x1="3" y1="12" x2="21" y2="12"></line>
                         <line x1="3" y1="6" x2="21" y2="6"></line>
                         <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                    <svg class="icon-close" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
                 </button>
             </div>
         </div>
 
         <!-- Mobile menu -->
-        <div class="header__mobile-menu" x-show="menuMovil" x-cloak>
+        <div class="header__mobile-menu"
+            x-show="menuMovil"
+            x-cloak
+            @click.away="menuMovil = false"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-2"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-2">
             <nav class="header__mobile-nav" aria-label="Navegación móvil">
                 <a class="header__mobile-link" href="/cafes">Cafés</a>
                 <a class="header__mobile-link" href="/menu">Carta</a>
@@ -279,15 +313,15 @@ $extraJs ??= [];
             <!-- Badges informativos (sin decoración) -->
             <div class="footer__badges">
                 <span class="footer__badge">
-                    <span class="footer__badge-icon">☕</span>
+                    <span class="footer__badge-icon"><i class="bi bi-cup-hot" aria-hidden="true"></i></span>
                     Café de Especialidad
                 </span>
                 <span class="footer__badge">
-                    <span class="footer__badge-icon">🐾</span>
+                    <span class="footer__badge-icon"><i class="bi bi-paw" aria-hidden="true"></i></span>
                     Apto Mascotas
                 </span>
                 <span class="footer__badge">
-                    <span class="footer__badge-icon">🌱</span>
+                    <span class="footer__badge-icon"><i class="bi bi-leaf" aria-hidden="true"></i></span>
                     Sostenible
                 </span>
             </div>
@@ -301,11 +335,11 @@ $extraJs ??= [];
                 </div>
 
                 <div class="footer__social">
-                    <a href="https://instagram.com/komorebi" class="footer__social-link" title="Instagram" target="_blank" rel="noopener">
-                        📷
+                    <a href="https://instagram.com/komorebi" class="footer__social-link" title="Instagram" target="_blank" rel="noopener" aria-label="Síguenos en Instagram">
+                        <span class="bi bi-instagram" aria-hidden="true"></span>
                     </a>
-                    <a href="https://facebook.com/komorebi" class="footer__social-link" title="Facebook" target="_blank" rel="noopener">
-                        📘
+                    <a href="https://facebook.com/komorebi" class="footer__social-link" title="Facebook" target="_blank" rel="noopener" aria-label="Síguenos en Facebook">
+                        <span class="bi bi-facebook" aria-hidden="true"></span>
                     </a>
                 </div>
             </div>
@@ -326,6 +360,7 @@ $extraJs ??= [];
     <script defer src="/js/ux-enhancements.js"></script>
 
     <!-- Componentes centralizados (deben cargarse antes de los scripts de sección y del registro) -->
+    <script src="/js/components/toastManager.js"></script>
     <script src="/js/components/fallbacks.js"></script>
     <script src="/js/components/catalogo.js"></script>
     <script src="/js/components/page-data.js"></script>
@@ -352,6 +387,56 @@ $extraJs ??= [];
 
     <!-- Alpine components registry (central) -->
     <script nonce="<?= $cspNonce ?? '' ?>" src="/js/init/alpine-components.js"></script>
+
+    <!-- Sticky header scroll watcher -->
+    <script nonce="<?= $cspNonce ?? '' ?>">
+        (function() {
+            var header = document.getElementById('header');
+            if (!header) return;
+            var sentinel = document.createElement('div');
+            sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:1px;pointer-events:none';
+            document.body.prepend(sentinel);
+            new IntersectionObserver(function(entries) {
+                header.classList.toggle('header--scrolled', !entries[0].isIntersecting);
+            }).observe(sentinel);
+        })();
+    </script>
+
+    <!-- Toast Container — escucha $dispatch('toast', { message, type }) desde cualquier componente Alpine -->
+    <div
+        x-data="toastManager()"
+        class="toast-container"
+        aria-live="polite"
+        aria-label="Notificaciones"
+        role="region">
+        <template x-for="toast in toasts" :key="toast.id">
+            <div
+                class="toast-komorebi"
+                :class="'toast-komorebi--' + toast.type"
+                x-transition:enter="toast-enter-active"
+                x-transition:enter-start="toast-enter"
+                x-transition:leave="toast-leave-active"
+                x-transition:leave-end="toast-leave-to"
+                role="alert">
+                <span class="toast-komorebi__icon" :class="toast.icon" aria-hidden="true"></span>
+                <div class="toast-komorebi__body">
+                    <p x-show="toast.title" class="toast-komorebi__title" x-text="toast.title"></p>
+                    <p class="toast-komorebi__message" x-text="toast.message"></p>
+                </div>
+                <button
+                    class="toast-komorebi__close"
+                    @click="dismiss(toast.id)"
+                    :aria-label="'Cerrar notificación: ' + toast.message"
+                    type="button">
+                    <span class="bi bi-x" aria-hidden="true"></span>
+                </button>
+                <span
+                    class="toast-komorebi__progress"
+                    :style="'--toast-duration:' + toast.duration + 'ms'"
+                    aria-hidden="true"></span>
+            </div>
+        </template>
+    </div>
 
     <!-- Alpine.js debe cargarse AL FINAL para que todos los componentes se registren primero -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

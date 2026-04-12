@@ -38,13 +38,11 @@ final class ApiAuthMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;
     private ServerRequestInterface $request;
-    private RequestHandlerInterface $handler;
 
     protected function setUp(): void
     {
         $this->responseFactory = new ResponseFactory();
         $this->request         = $this->createMock(ServerRequestInterface::class);
-        $this->handler         = $this->createMock(RequestHandlerInterface::class);
     }
 
     protected function tearDown(): void

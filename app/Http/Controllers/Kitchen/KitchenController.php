@@ -65,11 +65,41 @@ final class KitchenController
             'titulo' => "KDS - $cafeName",
             'stations' => $stations,
             'cafe_name' => $cafeName,
+            'backlog_alert' => \count($itemsRaw) > 10,
             'counts' => [
                 'hot' => \count($stations['hot']),
                 'bar' => \count($stations['bar']),
                 'cold' => \count($stations['cold']),
             ],
+        ], ['workspaces/kds.css'], 'kds');
+        return null;
+    }
+
+    /**
+     * GET /ops/kitchen/history
+     * Muestra los ítems servidos hoy en este café.
+     *
+     * @throws ValidationException Si no hay contexto de sede válido
+     */
+    public function history(ServerRequestInterface $request): ?ResponseInterface
+    {
+        $cafeId = ContextService::getCafeId();
+
+        if ($cafeId === null && Session::role() === 'admin') {
+            $cafeId = 1;
+        }
+
+        if ($cafeId === null) {
+            throw ValidationException::withMessage('KDS requiere un contexto de sede. Contacta a tu administrador.');
+        }
+
+        $completed = $this->service->getCompletedToday($cafeId);
+        $cafeName  = ContextService::getCafeName();
+
+        View::render('kitchen/history', [
+            'titulo'    => "Historial de hoy - $cafeName",
+            'completed' => $completed,
+            'cafe_name' => $cafeName,
         ], ['workspaces/kds.css'], 'kds');
         return null;
     }

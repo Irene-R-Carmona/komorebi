@@ -31,20 +31,20 @@
         <!-- Badges contextuales flotantes -->
         <div class="hero__badges">
             <!-- Badge Clima Tokyo -->
-            <div class="badge badge--clima" title="<?= htmlspecialchars($clima['mensaje_poetico']) ?>">
-                <span class="badge__icon">🌤️</span>
+            <div class="badge badge--clima" title="<?= htmlspecialchars($clima['mensaje_poetico']) ?>" role="status" aria-label="Tokyo: <?= $clima['temperatura_celsius'] ?>°C, <?= htmlspecialchars($clima['descripcion']) ?>">
+                <span class="badge__icon" aria-hidden="true">🌤️</span>
                 <span class="badge__content">
-                    <span class="badge__label">Tokyo</span>
-                    <span class="badge__value"><?= $clima['temperatura_celsius'] ?>°C · <?= htmlspecialchars($clima['descripcion']) ?></span>
+                    <span class="badge__label" aria-hidden="true">Tokyo</span>
+                    <span class="badge__value" aria-hidden="true"><?= $clima['temperatura_celsius'] ?>°C · <?= htmlspecialchars($clima['descripcion']) ?></span>
                 </span>
             </div>
 
             <!-- Badge Estación Japonesa -->
-            <div class="badge badge--estacion" title="<?= htmlspecialchars($estacion['descripcion']) ?>">
-                <span class="badge__icon"><?= $estacion['icono'] ?></span>
+            <div class="badge badge--estacion" title="<?= htmlspecialchars($estacion['descripcion']) ?>" aria-label="Estación: <?= htmlspecialchars($estacion['nombre_es']) ?>">
+                <span class="badge__icon" aria-hidden="true"><?= $estacion['icono'] ?></span>
                 <span class="badge__content">
-                    <span class="badge__label"><?= htmlspecialchars($estacion['nombre_ja']) ?></span>
-                    <span class="badge__value"><?= htmlspecialchars($estacion['nombre_es']) ?></span>
+                    <span class="badge__label" aria-hidden="true"><?= htmlspecialchars($estacion['nombre_ja']) ?></span>
+                    <span class="badge__value" aria-hidden="true"><?= htmlspecialchars($estacion['nombre_es']) ?></span>
                 </span>
             </div>
         </div>
@@ -84,8 +84,8 @@
         <div class="como-funciona__pasos">
             <!-- Paso 1 -->
             <div class="paso-card">
-                <span class="paso-card__numero">01</span>
-                <span class="paso-card__icono">🔍</span>
+                <span class="paso-card__numero" aria-hidden="true">01</span>
+                <span class="paso-card__icono" aria-hidden="true">🔍</span>
                 <h3 class="paso-card__titulo">Explora</h3>
                 <p class="paso-card__texto">
                     Navega por nuestro catálogo de cafés temáticos. Desde gatos juguetones hasta búhos sabios.
@@ -94,8 +94,8 @@
 
             <!-- Paso 2 -->
             <div class="paso-card">
-                <span class="paso-card__numero">02</span>
-                <span class="paso-card__icono">📅</span>
+                <span class="paso-card__numero" aria-hidden="true">02</span>
+                <span class="paso-card__icono" aria-hidden="true">📅</span>
                 <h3 class="paso-card__titulo">Reserva</h3>
                 <p class="paso-card__texto">
                     Elige tu fecha y hora. Nuestro sistema te garantiza tu espacio para interactuar sin agobios.
@@ -104,8 +104,8 @@
 
             <!-- Paso 3 -->
             <div class="paso-card">
-                <span class="paso-card__numero">03</span>
-                <span class="paso-card__icono">☕</span>
+                <span class="paso-card__numero" aria-hidden="true">03</span>
+                <span class="paso-card__icono" aria-hidden="true">☕</span>
                 <h3 class="paso-card__titulo">Disfruta</h3>
                 <p class="paso-card__texto">
                     Relájate, toma un café premium y deja que la compañía animal haga el resto.

@@ -385,4 +385,40 @@ final class KitchenServiceTest extends TestCase
 
         $this->assertSame(0, $service->getEstimatedWaitTime(1));
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // getCompletedToday
+    // ─────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function test_getCompletedToday_returns_served_items_with_enriched_data(): void
+    {
+        $servedItem           = $this->sampleItem(Product::STATION_BAR);
+        $servedItem['status'] = 'served';
+
+        $this->pdo->method('prepare')->willReturn(
+            $this->makeStmt(fetchAllReturn: [$servedItem])
+        );
+
+        $service = new KitchenService($this->pdo);
+        $result  = $service->getCompletedToday(1);
+
+        $this->assertCount(1, $result);
+        $this->assertArrayHasKey('ingredients_list', $result[0]);
+        $this->assertArrayHasKey('waiting_minutes', $result[0]);
+        $this->assertIsArray($result[0]['ingredients_list']);
+    }
+
+    #[Test]
+    public function test_getCompletedToday_returns_empty_array_when_no_served_items(): void
+    {
+        $this->pdo->method('prepare')->willReturn(
+            $this->makeStmt(fetchAllReturn: [])
+        );
+
+        $service = new KitchenService($this->pdo);
+        $result  = $service->getCompletedToday(1);
+
+        $this->assertSame([], $result);
+    }
 }

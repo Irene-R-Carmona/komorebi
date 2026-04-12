@@ -1,0 +1,606 @@
+Note: Using configuration file /app/phpstan.neon.
+/app/app/Services/CacheService.php:53:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/CafeService.php:55:Method App\Repositories\Contracts\CafeRepositoryInterface::findFiltered() invoked with 3 parameters, 1 required.
+/app/app/Services/CafeService.php:77:PHPDoc tag @throws with type App\Services\RuntimeException is not subtype of Throwable
+/app/app/Services/CafeService.php:126:PHPDoc tag @throws with type App\Services\RuntimeException is not subtype of Throwable
+/app/app/Services/CafeService.php:196:PHPDoc tag @throws with type App\Services\RuntimeException is not subtype of Throwable
+/app/app/Services/CafeService.php:230:PHPDoc tag @throws with type App\Services\RuntimeException is not subtype of Throwable
+/app/app/Services/CafeService.php:239:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::softDelete().
+/app/app/Services/EmailService.php:23:Property App\Services\EmailService::$fromEmail is never read, only written.
+/app/app/Services/EmailService.php:25:Property App\Services\EmailService::$fromName is never read, only written.
+/app/app/Services/EmailService.php:100:PHPDoc tag @param references unknown parameter: $userName
+/app/app/Services/HolidayService.php:93:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/HolidayService.php:138:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/HolidayService.php:183:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/HolidayService.php:228:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/HolidayService.php:257:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/HolidayService.php:263:Logger::error() requires a $context array as second argument. Error-level logs without context are undiagnosable.
+/app/app/Services/MenuService.php:37:Method App\Services\MenuService::columnExists() is unused.
+/app/app/Services/MenuService.php:169:Method App\Services\MenuService::passMatchesCriteria() is unused.
+/app/app/Services/NewsletterService.php:36:PHPDoc tag @throws with type App\Services\RandomException is not subtype of Throwable
+/app/app/Services/ReservationService.php:38:Property App\Services\ReservationService::$animalRepo is never read, only written.
+/app/app/Services/ReservationService.php:39:Property App\Services\ReservationService::$timeSlotRepo is never read, only written.
+/app/app/Services/ReservationTimeSlotService.php:104:Parameter #1 $data of method App\Models\Reservation::create() expects array{user_id: int, cafe_id: int, pass_product_id: int, pass_name: string, pass_unit_price: int, pass_duration_minutes: int, reservation_date: string, reservation_time: string, ...}, array{user_id: int, cafe_id: int, reservation_date: string, reservation_time: string, guest_count: int, contact_name?: string, contact_email?: string, contact_phone?: string, ...} given.
+/app/app/Services/ReservationTimeSlotService.php:231:Method App\Models\Waitlist::addToWaitlist() invoked with 1 parameter, 3 required.
+/app/app/Services/ReservationTimeSlotService.php:231:Parameter #1 $timeSlotId of method App\Models\Waitlist::addToWaitlist() expects int, array<string, int|string> given.
+/app/tests/Integration/AccessibilityTest.php:39:Function renderButton not found.
+/app/tests/Integration/AccessibilityTest.php:60:Function renderModal not found.
+/app/tests/Integration/AccessibilityTest.php:86:Function renderBadge not found.
+/app/tests/Integration/AccessibilityTest.php:102:Function renderBadge not found.
+/app/tests/Integration/AccessibilityTest.php:270:Function renderModal not found.
+/app/tests/Integration/AuthIntegrationTest.php:47:Class App\Services\AuthService constructor invoked with 7 parameters, 5-6 required.
+/app/tests/Integration/AuthIntegrationTest.php:50:Parameter #3 $sessionService of class App\Services\AuthService constructor expects App\Services\SessionManagementService, App\Services\AuthTokenService given.
+/app/tests/Integration/AuthIntegrationTest.php:51:Parameter #4 $rateLimiter of class App\Services\AuthService constructor expects App\Services\Contracts\RateLimitingServiceInterface, App\Services\SessionManagementService given.
+/app/tests/Integration/AuthIntegrationTest.php:52:Parameter #5 $db of class App\Services\AuthService constructor expects PDO, App\Services\Contracts\RateLimitingServiceInterface&PHPUnit\Framework\MockObject\Stub given.
+/app/tests/Integration/AuthIntegrationTest.php:53:Parameter #6 $eventDispatcher of class App\Services\AuthService constructor expects Psr\EventDispatcher\EventDispatcherInterface|null, App\Services\EmailService given.
+/app/tests/Integration/BadgeComponentTest.php:53:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:69:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:85:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:98:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:113:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:126:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:141:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:153:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:169:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:181:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:194:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:209:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:226:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:234:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:244:Function renderBadge not found.
+/app/tests/Integration/BadgeComponentTest.php:269:Function renderBadge not found.
+/app/tests/Integration/ButtonComponentTest.php:53:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:66:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:80:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:93:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:111:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:127:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:143:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:156:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:166:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:179:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:191:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:207:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:223:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:237:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:255:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:274:Function renderButton not found.
+/app/tests/Integration/ButtonComponentTest.php:282:Function renderButton not found.
+/app/tests/Integration/CardComponentTest.php:53:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:69:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:85:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:98:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:111:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:124:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:142:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:154:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:166:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:182:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:197:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:209:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:222:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:235:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:249:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:258:Function renderCard not found.
+/app/tests/Integration/CardComponentTest.php:267:Function renderCard not found.
+/app/tests/Integration/ModalComponentTest.php:53:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:73:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:87:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:99:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:115:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:130:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:145:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:163:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:176:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:191:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:205:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:218:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:232:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:245:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:264:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:280:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:294:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:309:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:318:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:347:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:361:Function renderModal not found.
+/app/tests/Integration/ModalComponentTest.php:375:Function renderModal not found.
+/app/tests/Integration/ReservationIntegrationTest.php:336:Call to method PHPUnit\Framework\Assert::assertSame() with arguments 0, App\Core\Result and 'No debe crear…' will always evaluate to false.
+/app/tests/Integration/ReservationIntegrationTest.php:361:Call to method PHPUnit\Framework\Assert::assertSame() with arguments 0, App\Core\Result and 'No debe crear…' will always evaluate to false.
+/app/tests/Integration/ReviewIntegrationTest.php:35:Constant Tests\Integration\ReviewIntegrationTest::TEST_REVIEW_ID_BASE is unused.
+/app/tests/Integration/ReviewIntegrationTest.php:47:Class App\Services\ReviewService constructor invoked with 4 parameters, 2 required.
+/app/tests/Integration/ReviewIntegrationTest.php:48:Parameter #1 $userModel of class App\Services\ReviewService constructor expects App\Models\User, App\Models\Review given.
+/app/tests/Integration/ReviewIntegrationTest.php:49:Parameter #2 $reviewRepository of class App\Services\ReviewService constructor expects App\Repositories\Contracts\ReviewRepositoryInterface, App\Models\User given.
+/app/tests/Integration/ReviewIntegrationTest.php:211:Call to an undefined method App\Services\ReviewService::moderateReview().
+/app/tests/Integration/ReviewIntegrationTest.php:236:Call to an undefined method App\Services\ReviewService::moderateReview().
+/app/tests/Integration/ReviewIntegrationTest.php:284:Call to an undefined method App\Services\ReviewService::moderateReview().
+/app/tests/Integration/ReviewIntegrationTest.php:287:Call to an undefined method App\Services\ReviewService::getReviewsByCafeId().
+/app/tests/Integration/ReviewIntegrationTest.php:316:Call to an undefined method App\Services\ReviewService::moderateReview().
+/app/tests/Integration/ReviewIntegrationTest.php:364:Call to an undefined method App\Services\ReviewService::moderateReview().
+/app/tests/Integration/ReviewIntegrationTest.php:367:Call to an undefined method App\Services\ReviewService::calculateAverageRating().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:69:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:73:Call to an undefined method App\Services\Contracts\ApiTokenServiceInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:90:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:91:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:95:Call to an undefined method App\Services\Contracts\ApiTokenServiceInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:109:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:110:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:119:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:120:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:129:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:130:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:143:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:149:Call to an undefined method App\Services\Contracts\ApiTokenServiceInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:162:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Api/V1/TokenControllerTest.php:168:Call to an undefined method App\Services\Contracts\ApiTokenServiceInterface::method().
+/app/tests/Unit/Controllers/Manager/CafeControllerTest.php:104:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/CafeControllerTest.php:120:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/CafeControllerTest.php:142:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/CafeControllerTest.php:164:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/CafeControllerTest.php:189:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/CafeControllerTest.php:216:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/CafeControllerTest.php:240:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/CafeControllerTest.php:264:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/ReviewControllerTest.php:98:Call to an undefined method App\Services\Contracts\ReviewQueryServiceInterface::method().
+/app/tests/Unit/Controllers/Manager/ReviewControllerTest.php:99:Call to an undefined method App\Services\Contracts\ReviewQueryServiceInterface::method().
+/app/tests/Unit/Controllers/Manager/ReviewControllerTest.php:152:Call to an undefined method App\Services\Contracts\ReviewModerationServiceInterface::method().
+/app/tests/Unit/Controllers/Manager/ReviewControllerTest.php:176:Call to an undefined method App\Services\Contracts\ReviewModerationServiceInterface::method().
+/app/tests/Unit/Controllers/Manager/ReviewControllerTest.php:223:Call to an undefined method App\Services\Contracts\ReviewModerationServiceInterface::method().
+/app/tests/Unit/Controllers/Manager/ReviewControllerTest.php:247:Call to an undefined method App\Services\Contracts\ReviewModerationServiceInterface::method().
+/app/tests/Unit/Controllers/Manager/StaffControllerTest.php:110:Call to an undefined method PDO::method().
+/app/tests/Unit/Controllers/Manager/StaffControllerTest.php:128:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/StaffControllerTest.php:149:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/StaffControllerTest.php:176:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/StaffControllerTest.php:203:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/StaffControllerTest.php:230:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/StaffControllerTest.php:257:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Manager/StaffControllerTest.php:285:Call to an undefined method App\Repositories\UserRepository::method().
+/app/tests/Unit/Controllers/Manager/StaffControllerTest.php:294:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Controllers/Supervisor/SupervisorControllerTest.php:104:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Controllers/Supervisor/SupervisorControllerTest.php:123:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Core/QueueRetryTest.php:45:Property class@anonymous/tests/Unit/Core/QueueRetryTest.php:43::$zaddCalls is never read, only written.
+/app/tests/Unit/Core/QueueRetryTest.php:46:Property class@anonymous/tests/Unit/Core/QueueRetryTest.php:43::$lpushCalls is never read, only written.
+/app/tests/Unit/Core/TransactionalServiceTest.php:41:Call to an undefined method PDO::method().
+/app/tests/Unit/Core/TransactionalServiceTest.php:42:Call to an undefined method PDO::method().
+/app/tests/Unit/Core/TransactionalServiceTest.php:52:Call to an undefined method PDO::method().
+/app/tests/Unit/Core/TransactionalServiceTest.php:53:Call to an undefined method PDO::method().
+/app/tests/Unit/Core/TransactionalServiceTest.php:65:Call to an undefined method PDO::method().
+/app/tests/Unit/Core/TransactionalServiceTest.php:66:Call to an undefined method PDO::method().
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:37:Method Tests\Unit\Http\Controllers\Api\FavoriteControllerTest::makeController() has invalid return type App\Http\Controllers\Api\FavoriteController.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:40:Instantiated class App\Http\Controllers\Api\FavoriteController not found.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:48:Call to method toggle() on an unknown class App\Http\Controllers\Api\FavoriteController.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:59:Call to method list() on an unknown class App\Http\Controllers\Api\FavoriteController.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:68:Call to function method_exists() with 'App\\Http\\Controllers\\Api\\FavoriteController' and 'toggle' will always evaluate to false.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:68:Class App\Http\Controllers\Api\FavoriteController not found.
+/app/tests/Unit/Http/Controllers/Api/FavoriteControllerTest.php:69:Class App\Http\Controllers\Api\FavoriteController not found.
+/app/tests/Unit/Http/Controllers/Auth/AuthControllerTest.php:29:Constant Tests\Unit\Http\Controllers\Auth\AuthControllerTest::CSRF_TOKEN is unused.
+/app/tests/Unit/Http/Controllers/Keeper/AnimalCareControllerTest.php:112:Call to an undefined method PDO::method().
+/app/tests/Unit/Http/Controllers/Keeper/AnimalCareControllerTest.php:113:Call to an undefined method PDO::method().
+/app/tests/Unit/Http/Middleware/HttpRateLimitMiddlewareTest.php:51:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Http/Middleware/HttpRateLimitMiddlewareTest.php:97:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Jobs/SendTelegramNotificationJobTest.php:22:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Middleware/ApiAuthMiddlewareTest.php:41:Property Middleware\ApiAuthMiddlewareTest::$handler is never read, only written.
+/app/tests/Unit/Middleware/ApiAuthMiddlewareTest.php:94:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Middleware/ApiAuthMiddlewareTest.php:99:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Middleware/ApiAuthMiddlewareTest.php:113:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Middleware/ApiAuthMiddlewareTest.php:118:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Middleware/ApiAuthMiddlewareTest.php:128:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Middleware/ApiAuthMiddlewareTest.php:133:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Middleware/ApiAuthMiddlewareTest.php:147:Call to an undefined method Psr\Http\Message\ServerRequestInterface::method().
+/app/tests/Unit/Middleware/CorsMiddlewareTest.php:38:Class App\Core\Http\ResponseFactory constructor invoked with 2 parameters, 0 required.
+/app/tests/Unit/Middleware/CorsMiddlewareTest.php:85:Access to an undefined property Psr\Http\Server\RequestHandlerInterface::$callCount.
+/app/tests/Unit/Middleware/CorsMiddlewareTest.php:124:Access to an undefined property Psr\Http\Server\RequestHandlerInterface::$callCount.
+/app/tests/Unit/Middleware/CorsMiddlewareTest.php:157:Access to an undefined property Psr\Http\Server\RequestHandlerInterface::$callCount.
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:58:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:73:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:89:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:104:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:120:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:135:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:148:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:164:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:166:Method App\Repositories\AnimalRepository::isResting() invoked with 3 parameters, 1 required.
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:180:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/AnimalRepositoryTest.php:182:Method App\Repositories\AnimalRepository::isResting() invoked with 3 parameters, 1 required.
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:54:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:60:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:66:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:80:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:85:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:90:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:107:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:113:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:132:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:138:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:143:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:164:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:169:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:174:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:191:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:196:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:208:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:213:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:229:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:234:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:239:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:257:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:263:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:282:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:288:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:303:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:309:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:314:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:324:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:329:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/CafeRepositoryTest.php:334:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/MenuRepositoryTest.php:51:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/MenuRepositoryTest.php:77:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/MenuRepositoryTest.php:94:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/MenuRepositoryTest.php:110:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:63:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:78:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:93:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:108:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:123:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:134:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:149:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:164:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:175:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:186:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:203:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:222:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:239:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:250:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:267:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/ProductRepositoryStockTest.php:286:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/ProductRepositoryTest.php:52:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/ProductRepositoryTest.php:58:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/ProductRepositoryTest.php:75:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/ProductRepositoryTest.php:81:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/ProductRepositoryTest.php:86:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/ProductRepositoryTest.php:100:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/ProductRepositoryTest.php:105:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/ProductRepositoryTest.php:110:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/ProductRepositoryTest.php:120:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/ProductRepositoryTest.php:136:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/ProductRepositoryTest.php:142:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/ProductRepositoryTest.php:148:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:56:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:62:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:68:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:84:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:89:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:94:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:113:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:119:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:124:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:143:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:149:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:155:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:168:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:173:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:178:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:190:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:195:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:200:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:212:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:217:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:231:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:236:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReservationRepositoryTest.php:241:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Repositories/ReviewRepositoryTest.php:59:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ReviewRepositoryTest.php:77:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ReviewRepositoryTest.php:91:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ReviewRepositoryTest.php:105:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/ReviewRepositoryTest.php:118:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:55:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:61:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:67:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:81:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:86:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:91:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:109:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:115:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:120:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:133:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:138:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:143:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:155:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:160:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:165:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:177:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:182:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:187:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:205:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:210:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:215:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:232:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:237:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:249:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:254:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:269:Call to an undefined method PDOStatement::expects().
+/app/tests/Unit/Repositories/UserRepositoryTest.php:280:Call to an undefined method PDO::expects().
+/app/tests/Unit/Repositories/WaitlistRepositoryTest.php:58:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/WaitlistRepositoryTest.php:73:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/WaitlistRepositoryTest.php:87:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/WaitlistRepositoryTest.php:103:Call to an undefined method PDO::method().
+/app/tests/Unit/Repositories/WaitlistRepositoryTest.php:117:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/AdminServiceTest.php:31:Property Tests\Unit\Services\AdminServiceTest::$service has unknown class App\Services\AdminService as its type.
+/app/tests/Unit/Services/AdminServiceTest.php:35:Instantiated class App\Services\AdminService not found.
+/app/tests/Unit/Services/AdminServiceTest.php:44:Call to method getDatabase() on an unknown class App\Services\AdminService.
+/app/tests/Unit/Services/AdminServiceTest.php:108:Call to method getSystemStatistics() on an unknown class App\Services\AdminService.
+/app/tests/Unit/Services/AdminServiceTest.php:121:Call to method getSystemStatistics() on an unknown class App\Services\AdminService.
+/app/tests/Unit/Services/AdminServiceTest.php:133:Call to method getRecentReservations() on an unknown class App\Services\AdminService.
+/app/tests/Unit/Services/AdminServiceTest.php:141:Call to method getUserDistributionByRole() on an unknown class App\Services\AdminService.
+/app/tests/Unit/Services/AnimalCareServiceTest.php:48:Call to an undefined method App\Repositories\Contracts\AnimalRepositoryInterface::method().
+/app/tests/Unit/Services/AnimalCareServiceTest.php:64:Call to an undefined method App\Repositories\Contracts\AnimalRepositoryInterface::method().
+/app/tests/Unit/Services/AnimalCareServiceTest.php:75:Call to an undefined method App\Repositories\Contracts\AnimalRepositoryInterface::method().
+/app/tests/Unit/Services/AnimalCareServiceTest.php:123:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/ApiTokenServiceTest.php:43:Call to an undefined method App\Repositories\Contracts\ApiTokenRepositoryInterface::method().
+/app/tests/Unit/Services/ApiTokenServiceTest.php:53:Call to an undefined method App\Repositories\Contracts\ApiTokenRepositoryInterface::method().
+/app/tests/Unit/Services/ApiTokenServiceTest.php:64:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Services/ApiTokenServiceTest.php:84:Call to an undefined method App\Repositories\Contracts\ApiTokenRepositoryInterface::method().
+/app/tests/Unit/Services/ApiTokenServiceTest.php:98:Call to an undefined method App\Repositories\Contracts\ApiTokenRepositoryInterface::method().
+/app/tests/Unit/Services/ApiTokenServiceTest.php:108:Call to an undefined method App\Repositories\Contracts\ApiTokenRepositoryInterface::method().
+/app/tests/Unit/Services/ApiTokenServiceTest.php:121:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Services/ApiTokenServiceTest.php:141:Call to an undefined method App\Repositories\Contracts\ApiTokenRepositoryInterface::method().
+/app/tests/Unit/Services/ApiTokenServiceTest.php:155:Call to an undefined method App\Repositories\Contracts\ApiTokenRepositoryInterface::method().
+/app/tests/Unit/Services/AuthServiceTest.php:31:Property AuthServiceTest::$userModelMock is never read, only written.
+/app/tests/Unit/Services/AuthServiceTest.php:50:Class App\Services\AuthService constructor invoked with 7 parameters, 5-6 required.
+/app/tests/Unit/Services/AuthServiceTest.php:53:Parameter #3 $sessionService of class App\Services\AuthService constructor expects App\Services\SessionManagementService, App\Services\AuthTokenService given.
+/app/tests/Unit/Services/AuthServiceTest.php:54:Parameter #4 $rateLimiter of class App\Services\AuthService constructor expects App\Services\Contracts\RateLimitingServiceInterface, App\Services\SessionManagementService given.
+/app/tests/Unit/Services/AuthServiceTest.php:55:Parameter #5 $db of class App\Services\AuthService constructor expects PDO, App\Services\Contracts\RateLimitingServiceInterface&PHPUnit\Framework\MockObject\Stub given.
+/app/tests/Unit/Services/AuthServiceTest.php:56:Parameter #6 $eventDispatcher of class App\Services\AuthService constructor expects Psr\EventDispatcher\EventDispatcherInterface|null, App\Services\Contracts\EmailServiceInterface&PHPUnit\Framework\MockObject\Stub given.
+/app/tests/Unit/Services/AuthServiceTest.php:105:Call to an undefined method App\Repositories\UserRepository::method().
+/app/tests/Unit/Services/AuthServiceTest.php:124:Call to an undefined method App\Repositories\UserRepository::method().
+/app/tests/Unit/Services/AuthServiceTest.php:174:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Services/AuthServiceTest.php:181:Class App\Services\AuthService constructor invoked with 7 parameters, 5-6 required.
+/app/tests/Unit/Services/AuthServiceTest.php:184:Parameter #3 $sessionService of class App\Services\AuthService constructor expects App\Services\SessionManagementService, App\Services\AuthTokenService given.
+/app/tests/Unit/Services/AuthServiceTest.php:185:Parameter #4 $rateLimiter of class App\Services\AuthService constructor expects App\Services\Contracts\RateLimitingServiceInterface, App\Services\SessionManagementService given.
+/app/tests/Unit/Services/AuthServiceTest.php:186:Parameter #5 $db of class App\Services\AuthService constructor expects PDO, App\Services\Contracts\RateLimitingServiceInterface given.
+/app/tests/Unit/Services/AuthServiceTest.php:187:Parameter #6 $eventDispatcher of class App\Services\AuthService constructor expects Psr\EventDispatcher\EventDispatcherInterface|null, App\Services\Contracts\EmailServiceInterface given.
+/app/tests/Unit/Services/AuthServiceTest.php:201:Call to an undefined method App\Repositories\UserRepository::method().
+/app/tests/Unit/Services/AuthServiceTest.php:202:Call to an undefined method App\Repositories\UserRepository::method().
+/app/tests/Unit/Services/AuthServiceTest.php:203:Call to an undefined method App\Repositories\UserRepository::method().
+/app/tests/Unit/Services/AuthServiceTest.php:233:Call to an undefined method App\Repositories\UserRepository::method().
+/app/tests/Unit/Services/AuthServiceTest.php:257:Call to an undefined method App\Repositories\UserRepository::method().
+/app/tests/Unit/Services/AuthServiceTest.php:261:Call to an undefined method App\Repositories\UserRepository::method().
+/app/tests/Unit/Services/AuthServiceTest.php:272:Call to an undefined method App\Repositories\UserRepository::method().
+/app/tests/Unit/Services/AuthServiceTest.php:288:Call to an undefined method App\Repositories\UserRepository::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:122:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:132:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:144:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:160:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:173:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:186:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:203:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:216:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:233:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:246:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:263:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:276:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:289:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:308:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:312:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:330:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:334:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:352:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:356:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:393:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:397:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:408:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:412:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/AvailabilityServiceTest.php:422:Call to an undefined method PDOStatement::method().
+/app/tests/Unit/Services/CacheServiceTest.php:73:Negated boolean expression is always true.
+/app/tests/Unit/Services/CafeServiceTest.php:62:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::expects().
+/app/tests/Unit/Services/CafeServiceTest.php:82:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::expects().
+/app/tests/Unit/Services/CafeServiceTest.php:103:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::expects().
+/app/tests/Unit/Services/CafeServiceTest.php:124:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::expects().
+/app/tests/Unit/Services/CafeServiceTest.php:140:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::expects().
+/app/tests/Unit/Services/CafeServiceTest.php:159:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::expects().
+/app/tests/Unit/Services/CafeServiceTest.php:202:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::expects().
+/app/tests/Unit/Services/CafeServiceTest.php:207:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::expects().
+/app/tests/Unit/Services/CafeServiceTest.php:223:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::expects().
+/app/tests/Unit/Services/ClimaContextoServiceTest.php:254:Method Tests\Unit\Services\ClimaContextoServiceTest::condicionesProvider() should return array<string, array{string}> but returns array{array{'clear'}, array{'clouds'}, array{'rain'}, array{'snow'}, array{'fog'}, array{'thunderstorm'}}.
+/app/tests/Unit/Services/HealthCheckServiceTest.php:57:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:74:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:85:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:96:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:107:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:118:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:129:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:140:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:155:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:156:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:179:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:180:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:194:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:195:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::expects().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:352:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::expects().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:366:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:378:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:393:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:408:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:409:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:426:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:427:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:447:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:460:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::expects().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:480:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:493:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::expects().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:509:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/HealthCheckServiceTest.php:517:Call to an undefined method App\Repositories\Contracts\HealthCheckRepositoryInterface::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:134:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:156:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:174:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:199:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:220:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:235:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:252:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:262:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:272:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:286:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:298:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:321:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:346:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:367:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:380:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:399:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/KitchenServiceTest.php:415:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/Manager/DashboardServiceTest.php:54:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/Manager/DashboardServiceTest.php:67:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/Manager/DashboardServiceTest.php:80:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/Manager/DashboardServiceTest.php:93:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/Manager/DashboardServiceTest.php:110:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/Manager/DashboardServiceTest.php:130:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/Manager/DashboardServiceTest.php:143:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/Manager/DashboardServiceTest.php:156:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/Manager/DashboardServiceTest.php:169:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/Manager/DashboardServiceTest.php:185:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/Manager/DashboardServiceTest.php:201:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/MenuServiceTest.php:52:Call to an undefined method App\Repositories\Contracts\MenuRepositoryInterface::expects().
+/app/tests/Unit/Services/MenuServiceTest.php:73:Call to an undefined method App\Repositories\Contracts\MenuRepositoryInterface::expects().
+/app/tests/Unit/Services/MenuServiceTest.php:96:Call to an undefined method App\Repositories\Contracts\MenuRepositoryInterface::expects().
+/app/tests/Unit/Services/MenuServiceTest.php:119:Call to an undefined method App\Repositories\Contracts\MenuRepositoryInterface::expects().
+/app/tests/Unit/Services/MenuServiceTest.php:142:Call to an undefined method App\Repositories\Contracts\MenuRepositoryInterface::expects().
+/app/tests/Unit/Services/MenuServiceTest.php:166:Call to an undefined method App\Repositories\Contracts\MenuRepositoryInterface::expects().
+/app/tests/Unit/Services/MenuServiceTest.php:189:Call to an undefined method App\Repositories\Contracts\MenuRepositoryInterface::expects().
+/app/tests/Unit/Services/MenuServiceTest.php:224:Call to an undefined method App\Repositories\Contracts\MenuRepositoryInterface::method().
+/app/tests/Unit/Services/MenuServiceTest.php:227:Call to an undefined method App\Repositories\Contracts\MenuRepositoryInterface::method().
+/app/tests/Unit/Services/MenuServiceTest.php:230:Call to an undefined method App\Repositories\Contracts\MenuRepositoryInterface::method().
+/app/tests/Unit/Services/MenuServiceTest.php:233:Call to an undefined method App\Repositories\Contracts\MenuRepositoryInterface::method().
+/app/tests/Unit/Services/NewsletterServiceTest.php:44:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/NewsletterServiceTest.php:82:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/NewsletterServiceTest.php:105:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/NewsletterServiceTest.php:119:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/NewsletterServiceTest.php:135:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/ProductServiceTest.php:24:Class App\Services\ProductService constructor invoked with 0 parameters, 1 required.
+/app/tests/Unit/Services/RateLimitingServiceTest.php:43:Call to an undefined method Psr\Cache\CacheItemPoolInterface::method().
+/app/tests/Unit/Services/RateLimitingServiceTest.php:44:Call to an undefined method Psr\Cache\CacheItemPoolInterface::method().
+/app/tests/Unit/Services/RateLimitingServiceTest.php:59:Call to an undefined method Psr\Cache\CacheItemPoolInterface::method().
+/app/tests/Unit/Services/RateLimitingServiceTest.php:60:Call to an undefined method Psr\Cache\CacheItemPoolInterface::method().
+/app/tests/Unit/Services/RateLimitingServiceTest.php:72:Call to an undefined method Psr\Cache\CacheItemPoolInterface::method().
+/app/tests/Unit/Services/RateLimitingServiceTest.php:88:Call to an undefined method Psr\Cache\CacheItemPoolInterface::method().
+/app/tests/Unit/Services/RateLimitingServiceTest.php:102:Call to an undefined method Psr\Cache\CacheItemPoolInterface::method().
+/app/tests/Unit/Services/RateLimitingServiceTest.php:114:Call to an undefined method Psr\Cache\CacheItemPoolInterface::method().
+/app/tests/Unit/Services/RateLimitingServiceTest.php:123:Call to an undefined method Psr\Cache\CacheItemPoolInterface::method().
+/app/tests/Unit/Services/RateLimitingServiceTest.php:125:Result of method App\Services\RateLimitingService::clearAttempts() (void) is used.
+/app/tests/Unit/Services/RateLimitingServiceTest.php:127:Call to method PHPUnit\Framework\Assert::assertTrue() with void will always evaluate to false.
+/app/tests/Unit/Services/ReceptionServiceTest.php:188:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/ReceptionServiceTest.php:216:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/ReceptionServiceTest.php:238:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/ReceptionServiceTest.php:251:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/ReceptionServiceTest.php:265:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/ReceptionServiceTest.php:295:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/ReceptionServiceTest.php:319:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/ReceptionServiceTest.php:332:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/ReceptionServiceTest.php:355:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/ReceptionServiceTest.php:371:Call to an undefined method PDO::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:86:Parameter #1 $data of method App\Services\ReservationService::create() expects array{user_id: int, cafe_id: int, pass_product_id: int, date: string, time: string, guests: int, comments?: string}, array{cafe_id: 1, pass_product_id: 2, date: '2026-12-25', time: '10:00', guests: 2} given.
+/app/tests/Unit/Services/ReservationServiceTest.php:100:Parameter #1 $data of method App\Services\ReservationService::create() expects array{user_id: int, cafe_id: int, pass_product_id: int, date: string, time: string, guests: int, comments?: string}, array{user_id: 1, pass_product_id: 2, date: '2026-12-25', time: '10:00', guests: 2} given.
+/app/tests/Unit/Services/ReservationServiceTest.php:114:Parameter #1 $data of method App\Services\ReservationService::create() expects array{user_id: int, cafe_id: int, pass_product_id: int, date: string, time: string, guests: int, comments?: string}, array{user_id: 1, cafe_id: 1, date: '2026-12-25', time: '10:00', guests: 2} given.
+/app/tests/Unit/Services/ReservationServiceTest.php:205:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:224:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:248:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:276:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:285:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:304:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:313:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:337:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:346:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:374:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:385:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:411:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:422:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:448:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:459:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:492:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:503:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:551:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:566:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:581:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:600:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:614:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:631:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:650:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:664:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:681:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:687:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:709:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:723:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:740:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:746:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:752:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:777:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:791:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:808:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:813:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:818:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:836:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:848:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:863:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:867:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:871:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:894:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:906:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:921:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:925:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:929:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:952:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:967:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:980:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:995:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:999:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:1003:Call to an undefined method App\Repositories\Contracts\ReservationRepositoryInterface::method().
+/app/tests/Unit/Services/ReservationServiceTest.php:1032:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::expects().
+/app/tests/Unit/Services/ReservationServiceTest.php:1037:Call to an undefined method App\Services\ReservationService::getAvailableCafesForReservation().
+/app/tests/Unit/Services/ReservationServiceTest.php:1046:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::expects().
+/app/tests/Unit/Services/ReservationServiceTest.php:1051:Call to an undefined method App\Services\ReservationService::getAvailableCafesById().
+/app/tests/Unit/Services/ReservationServiceTest.php:1062:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::expects().
+/app/tests/Unit/Services/ReservationServiceTest.php:1067:Call to an undefined method App\Services\ReservationService::getAvailablePassesForReservation().
+/app/tests/Unit/Services/ReservationServiceTest.php:1074:Call to an undefined method App\Repositories\Contracts\CafeRepositoryInterface::expects().
+/app/tests/Unit/Services/ReservationServiceTest.php:1080:Call to an undefined method App\Services\ReservationService::validateCafeExists().
+/app/tests/Unit/Services/ReservationServiceTest.php:1085:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::expects().
+/app/tests/Unit/Services/ReservationServiceTest.php:1091:Call to an undefined method App\Services\ReservationService::validatePassExists().
+/app/tests/Unit/Services/ReservationServiceTest.php:1102:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::expects().
+/app/tests/Unit/Services/ReservationServiceTest.php:1115:Call to an undefined method App\Repositories\Contracts\ProductRepositoryInterface::expects().
+/app/tests/Unit/Services/ReservationServiceTest.php:1140:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Services/ReservationServiceTest.php:1143:Parameter #1 $data of method App\Services\ReservationService::create() expects array{user_id: int, cafe_id: int, pass_product_id: int, date: string, time: string, guests: int, comments?: string}, array{user_id: 1} given.
+/app/tests/Unit/Services/ReviewServiceTest.php:48:Class App\Services\ReviewService constructor invoked with 3 parameters, 2 required.
+/app/tests/Unit/Services/ReviewServiceTest.php:48:Parameter #1 $userModel of class App\Services\ReviewService constructor expects App\Models\User, App\Models\Review&PHPUnit\Framework\MockObject\Stub given.
+/app/tests/Unit/Services/ReviewServiceTest.php:48:Parameter #2 $reviewRepository of class App\Services\ReviewService constructor expects App\Repositories\Contracts\ReviewRepositoryInterface, App\Models\User&PHPUnit\Framework\MockObject\MockObject given.
+/app/tests/Unit/Services/ReviewServiceTest.php:208:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Services/ReviewServiceTest.php:238:Call to an undefined method App\Services\ReviewService::getReviewsByUserId().
+/app/tests/Unit/Services/ReviewServiceTest.php:253:Call to an undefined method App\Services\ReviewService::getReviewsByCafeId().
+/app/tests/Unit/Services/ReviewServiceTest.php:265:Call to an undefined method App\Services\ReviewService::calculateAverageRating().
+/app/tests/Unit/Services/ReviewServiceTest.php:276:Call to an undefined method App\Services\ReviewService::calculateAverageRating().
+/app/tests/Unit/Services/ReviewServiceTest.php:283:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Services/ReviewServiceTest.php:288:Call to an undefined method App\Services\ReviewService::moderateReview().
+/app/tests/Unit/Services/ReviewServiceTest.php:308:Class App\Services\ReviewService constructor invoked with 5 parameters, 2 required.
+/app/tests/Unit/Services/ReviewServiceTest.php:309:Parameter #1 $userModel of class App\Services\ReviewService constructor expects App\Models\User, App\Models\Review given.
+/app/tests/Unit/Services/ReviewServiceTest.php:310:Parameter #2 $reviewRepository of class App\Services\ReviewService constructor expects App\Repositories\Contracts\ReviewRepositoryInterface, App\Models\User&PHPUnit\Framework\MockObject\MockObject given.
+/app/tests/Unit/Services/ReviewServiceTest.php:327:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Services/ReviewServiceTest.php:337:Call to an undefined method App\Services\ReviewService::approveReview().
+/app/tests/Unit/Services/ReviewServiceTest.php:347:Class App\Services\ReviewService constructor invoked with 5 parameters, 2 required.
+/app/tests/Unit/Services/ReviewServiceTest.php:348:Parameter #1 $userModel of class App\Services\ReviewService constructor expects App\Models\User, App\Models\Review given.
+/app/tests/Unit/Services/ReviewServiceTest.php:349:Parameter #2 $reviewRepository of class App\Services\ReviewService constructor expects App\Repositories\Contracts\ReviewRepositoryInterface, App\Models\User&PHPUnit\Framework\MockObject\MockObject given.
+/app/tests/Unit/Services/ReviewServiceTest.php:366:Call to an undefined method App\Services\ReviewService::approveReview().
+/app/tests/Unit/Services/SessionManagementServiceTest.php:331:Call to method method() on an unknown class PHPUnit\Framework\MockObject\Builder\InvocationMocker.
+/app/tests/Unit/Services/StaffShiftServiceTest.php:52:Call to an undefined method App\Repositories\Contracts\StaffShiftRepositoryInterface::method().
+/app/tests/Unit/Services/StaffShiftServiceTest.php:68:Call to an undefined method App\Repositories\Contracts\StaffShiftRepositoryInterface::method().
+/app/tests/Unit/Services/StaffShiftServiceTest.php:80:Call to an undefined method App\Repositories\Contracts\StaffShiftRepositoryInterface::method().
+/app/tests/Unit/Services/StaffShiftServiceTest.php:101:Call to an undefined method App\Repositories\Contracts\StaffShiftRepositoryInterface::method().
+/app/tests/Unit/Services/StaffShiftServiceTest.php:117:Call to an undefined method App\Repositories\Contracts\StaffShiftRepositoryInterface::method().
+/app/tests/Unit/Services/StaffShiftServiceTest.php:121:Call to an undefined method App\Repositories\Contracts\StaffShiftRepositoryInterface::method().
+/app/tests/Unit/Services/StaffShiftServiceTest.php:142:Call to an undefined method App\Repositories\Contracts\StaffShiftRepositoryInterface::method().
+/app/tests/Unit/Services/StaffShiftServiceTest.php:163:Call to an undefined method App\Repositories\Contracts\StaffShiftRepositoryInterface::method().
+/app/tests/Unit/Services/StaffShiftServiceTest.php:167:Call to an undefined method App\Repositories\Contracts\StaffShiftRepositoryInterface::method().
+/app/tests/Unit/Services/StaffShiftServiceTest.php:193:Call to an undefined method App\Repositories\Contracts\StaffShiftRepositoryInterface::method().
+/app/tests/Unit/Services/SupervisorAssignmentServiceTest.php:46:Call to an undefined method App\Repositories\Contracts\SupervisorAssignmentRepositoryInterface::method().
+/app/tests/Unit/Services/SupervisorAssignmentServiceTest.php:47:Call to an undefined method App\Repositories\Contracts\SupervisorAssignmentRepositoryInterface::method().
+/app/tests/Unit/Services/SupervisorAssignmentServiceTest.php:105:Call to an undefined method App\Repositories\Contracts\SupervisorAssignmentRepositoryInterface::method().
+/app/tests/Unit/Services/SupervisorAssignmentServiceTest.php:115:Call to an undefined method App\Repositories\Contracts\SupervisorAssignmentRepositoryInterface::method().
+/app/tests/Unit/Services/WaitlistServiceTest.php:119:Call to an undefined method App\Repositories\Contracts\WaitlistRepositoryInterface::method().
+/app/tests/Unit/Services/WaitlistServiceTest.php:128:Call to an undefined method App\Repositories\Contracts\WaitlistRepositoryInterface::method().
+/app/tests/Unit/Services/WaitlistServiceTest.php:129:Call to an undefined method App\Repositories\Contracts\WaitlistRepositoryInterface::method().
+/app/tests/bootstrap.php:103:Anonymous function has an unused use $requiredBlock.

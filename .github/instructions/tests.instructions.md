@@ -46,7 +46,7 @@ Type mismatches, undefined properties, and deprecated calls will fail tests — 
 ## Test placement
 
 | Type        | Location                                                                        | DB access                                 |
-| ----------- | ------------------------------------------------------------------------------- | ----------------------------------------- |
+|-------------|---------------------------------------------------------------------------------|-------------------------------------------|
 | Unit        | `tests/Unit/` mirroring `app/` (e.g. `tests/Unit/Services/AuthServiceTest.php`) | No                                        |
 | Integration | `tests/Integration/`                                                            | Yes — real DB via ephemeral compose stack |
 

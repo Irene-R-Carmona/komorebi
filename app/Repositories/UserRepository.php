@@ -25,23 +25,17 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     protected function getSelectFields(): array
     {
         return [
-            'uuid',
-            'cafe_id',
-            'preferences',
             'id',
+            'uuid',
             'name',
             'email',
-            'password',
             'avatar',
-            'email_verified_at',
-            'is_active',
-            'login_attempts',
-            'locked_until',
-            'last_login',
-            'last_ip_address',
-            'deleted_at',
             'created_at',
-            'updated_at',
+            'is_active',
+            'deleted_at',
+            'email_verified_at',
+            'cafe_id',
+            'preferences',
         ];
     }
 
@@ -88,6 +82,46 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
             "SELECT $fields FROM users WHERE email = :email LIMIT 1"
         );
         $stmt->execute(['email' => strtolower(trim($email))]);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ?: null;
+    }
+
+    /**
+     * Buscar usuario por email incluyendo campos de credenciales de autenticación.
+     * Usar SOLO en contextos de autenticación (login, rate limiting).
+     */
+    public function findByEmailWithCredentials(string $email): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, uuid, email, password, login_attempts, locked_until,
+                    last_ip_address, is_active, email_verified_at
+             FROM users
+             WHERE email = :email
+               AND deleted_at IS NULL
+             LIMIT 1"
+        );
+        $stmt->execute(['email' => strtolower(trim($email))]);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ?: null;
+    }
+
+    /**
+     * Buscar usuario por ID incluyendo campos de seguridad.
+     * Usar SOLO en operaciones de seguridad (cambio de contraseña, bloqueo de cuenta).
+     */
+    public function findByIdForSecurity(int $id): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, uuid, email, password, login_attempts, locked_until, last_ip_address
+             FROM users
+             WHERE id = :id
+             LIMIT 1"
+        );
+        $stmt->execute(['id' => $id]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 

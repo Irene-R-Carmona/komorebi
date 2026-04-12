@@ -7,14 +7,19 @@
   // ─── Intelephense ─────────────────────────────────────────────────────────
   "intelephense.environment.phpVersion": "8.4",
   // ─── phpcs ────────────────────────────────────────────────────────────────
-  "phpcs.executablePath": "${workspaceFolder}/bin/phpcs.bat",
+  // Nota: wongjn.php-sniffer no expande ${workspaceFolder}; usa path relativo
+  // para que la extensión lo resuelva internamente via path.join(workspaceRoot, value).
+  "phpcs.executablePath": "bin/phpcs.bat",
   // ─── PHPStan ──────────────────────────────────────────────────────────────
-  "phpstan.executablePath": "${workspaceFolder}/bin/phpstan.bat",
+  "phpstan.executablePath": "bin/phpstan.bat",
   // ─── PHP CS Fixer ─────────────────────────────────────────────────────────
-  "php-cs-fixer.executablePath": "${workspaceFolder}/bin/php-cs-fixer.bat",
+  "php-cs-fixer.executablePath": "bin/php-cs-fixer.bat",
   // ─── Psalm ────────────────────────────────────────────────────────────────
-  "psalm.psalmScriptPath": "${workspaceFolder}/bin/psalm.bat",
+  "psalm.psalmScriptPath": "bin/psalm.bat",
   // ─── PHPUnit ──────────────────────────────────────────────────────────────
-  "phpunit.phpunit": "${workspaceFolder}/bin/phpunit.bat",
-  "phpunit.phpExecutablePath": "${workspaceFolder}/bin/php.bat"
+  "phpunit.phpunit": "bin/phpunit.bat",
+  "phpunit.phpExecutablePath": "bin/php.bat",
+  // ─── PHP Executable (felixfbecker.php-intellisense si está instalado) ─────
+  // Redirige php.exe → wrapper Docker para evitar "php.exe no se reconoce".
+  "php.executablePath": "bin/php.bat"
 }

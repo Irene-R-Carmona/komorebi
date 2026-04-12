@@ -9,7 +9,7 @@ declare(strict_types=1);
  * ¿Qué va a fallar en este test si se cambia el código?
  */
 /**
- * Tests de Integración de ReviewService
+ * Tests de Integración de ReviewService, ReviewQueryService y ReviewModerationService
  *
  * Valida operaciones con MySQL 8.4 real usando transacciones para aislamiento.
  * Estos tests NO usan mocks - ejecutan queries reales contra la BD.
@@ -18,19 +18,23 @@ declare(strict_types=1);
 namespace Tests\Integration;
 
 use Tests\Support\BaseIntegrationTest;
+use App\Repositories\CafeRepository;
+use App\Repositories\ReviewRepository;
 use App\Services\ReviewService;
-use App\Models\Review;
+use App\Services\ReviewQueryService;
+use App\Services\ReviewModerationService;
 use App\Models\User;
 use PDO;
 
 final class ReviewIntegrationTest extends BaseIntegrationTest
 {
     private ReviewService $service;
+    private ReviewQueryService $queryService;
+    private ReviewModerationService $moderationService;
 
     // IDs únicos para tests
     private const TEST_USER_ID = 99980;
     private const TEST_CAFE_ID = 99981;
-    private const TEST_REVIEW_ID_BASE = 99982;
     private const TEST_CATEGORY_ID = 99983;
     private const TEST_PASS_ID = 99984;
     private const TEST_RESERVATION_ID = 99985;
@@ -40,9 +44,11 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
     {
         parent::setUp();
         $this->seedTestData();
-        $reviewModel = new Review();
-        $userModel = new User();
-        $this->service = new ReviewService($reviewModel, $userModel);
+        $reviewRepo = new ReviewRepository(self::$db);
+        $cafeRepo = new CafeRepository(self::$db);
+        $this->service = new ReviewService(new User(), $reviewRepo);
+        $this->queryService = new ReviewQueryService($reviewRepo);
+        $this->moderationService = new ReviewModerationService($reviewRepo, $cafeRepo);
     }
 
     /**
@@ -201,7 +207,7 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         $reviewId = $result->data['id'];
 
         // ACT: Moderar review (aprobar)
-        $moderateResult = $this->service->moderateReview($reviewId, 'approved');
+        $moderateResult = $this->moderationService->moderateReview($reviewId, 'approved');
 
         // ASSERT: Verificar que se actualizó
         $this->assertTrue($moderateResult);
@@ -226,7 +232,7 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         );
         $this->assertTrue($result1->ok);
         // Aprobar primera review
-        $this->service->moderateReview($result1->data['id'], 'approved');
+        $this->moderationService->moderateReview($result1->data['id'], 'approved');
 
         // Crear segundo usuario con reserva completada
         self::$db->exec("
@@ -274,10 +280,10 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         );
         $this->assertTrue($result2->ok, 'Create review failed: ' . ($result2->error ??  'unknown error'));
         // Aprobar segunda review
-        $this->service->moderateReview($result2->data['id'], 'approved');
+        $this->moderationService->moderateReview($result2->data['id'], 'approved');
 
         // ACT: Obtener reviews del café
-        $reviews = $this->service->getReviewsByCafeId(self::TEST_CAFE_ID);
+        $reviews = $this->queryService->getReviewsByCafeId(self::TEST_CAFE_ID);
 
         // ASSERT: Debe retornar las 2 reviews aprobadas
         $this->assertIsArray($reviews);
@@ -306,7 +312,7 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         );
         $this->assertTrue($result1->ok, 'Create review 1 failed: ' . ($result1->error ?? 'unknown error'));
         // Aprobar review 1
-        $this->service->moderateReview($result1->data['id'], 'approved');
+        $this->moderationService->moderateReview($result1->data['id'], 'approved');
 
         // Crear usuario 2 con reserva completada
         self::$db->exec("
@@ -354,10 +360,10 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         );
         $this->assertTrue($result2->ok, 'Create review 2 failed: ' . ($result2->error ?? 'unknown error'));
         // Aprobar review 2
-        $this->service->moderateReview($result2->data['id'], 'approved');
+        $this->moderationService->moderateReview($result2->data['id'], 'approved');
 
         // ACT: Calcular promedio
-        $average = $this->service->calculateAverageRating(self::TEST_CAFE_ID);
+        $average = $this->queryService->calculateAverageRating(self::TEST_CAFE_ID);
 
         // ASSERT: Promedio debe ser 4.0 ((5 + 3) / 2)
         $this->assertIsFloat($average);

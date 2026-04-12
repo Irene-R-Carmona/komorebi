@@ -1,8 +1,9 @@
 <?php
+
 declare(strict_types=1);
 ?>
 <div class="error-card">
-    <div class="error-icon">⏳</div>
+    <div class="error-icon"><i class="bi bi-clock-history"></i></div>
     <h1 class="error-code">419</h1>
     <h2 class="error-title">Sesión expirada</h2>
     <p class="error-desc">

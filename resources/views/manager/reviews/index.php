@@ -149,8 +149,3 @@ declare(strict_types=1);
         <?php endif; ?>
     </div>
 </div>
-
-.btn--primary:hover {
-background: var(--primary-700, #1d4ed8);
-}
-</style>

@@ -33,6 +33,7 @@ echo "└───────────────────────�
 function benchmark(string $name, callable $fn, int $iterations = 10): array
 {
     $times = [];
+    $result = null;
 
     echo YELLOW . "\n🔍 Ejecutando: $name ($iterations iteraciones)\n" . RESET;
 
@@ -85,8 +86,8 @@ final class QueryCounter
 }
 
 // Inicializar servicios
-$productService = new ProductService();
-$menuService = new MenuService();
+$productService = new ProductService(new \App\Repositories\ProductRepository(Database::getConnection()));
+$menuService = new MenuService(new \App\Repositories\MenuRepository(Database::getConnection()));
 $db = Database::getConnection();
 
 echo "\n" . BLUE . "═══════════════════════════════════════════════\n";
@@ -171,7 +172,7 @@ $n1SimulationResult = benchmark('Simulación N+1 (múltiples queries)', static f
 
 // Versión optimizada con JOIN
 $optimizedResult = benchmark('Optimizado con LEFT JOIN', static function () use ($menuService) {
-    return $menuService->getProductsByCategory(1);
+    return $menuService->getProductsByCategory([]);
 }, 5);
 
 $queryImprovement = (($n1SimulationResult['average'] - $optimizedResult['average']) / $n1SimulationResult['average']) * 100;

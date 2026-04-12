@@ -13,13 +13,13 @@ use PDO;
  * Proporciona métricas en tiempo real para el panel de control del gestor.
  * Todas las consultas están scopeadas al café asignado al manager.
  */
-final class DashboardService
+class DashboardService
 {
     private PDO $db;
 
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getInstance()->getConnection();
+        $this->db = $db ?? Database::getConnection();
     }
 
     /**
@@ -269,7 +269,7 @@ final class DashboardService
                     r.id,
                     r.reservation_date  AS fecha,
                     r.status            AS estado,
-                    r.party_size        AS personas,
+                    r.guest_count       AS personas,
                     COALESCE(r.final_amount, 0) AS importe,
                     r.payment_status    AS pago
                 FROM reservations r

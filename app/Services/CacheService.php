@@ -50,7 +50,7 @@ final class CacheService implements CacheItemPoolInterface
                 }
             }
         } catch (Throwable $e) {
-            Logger::error('[CacheService] Redis no disponible: ' . $e->getMessage());
+            Logger::error('[CacheService] Redis no disponible: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
         }
 
         return new FilesystemAdapter('komorebi', 3600, __DIR__ . '/../../storage/cache');

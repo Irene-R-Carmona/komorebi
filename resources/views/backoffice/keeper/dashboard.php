@@ -1,5 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Core\View;
+
 /**
  * Dashboard de Bienestar Animal (Keeper)
  *
@@ -27,6 +31,15 @@ $getStatusLabel = function ($status) {
         default => ucfirst($status)
     };
 };
+
+$getSeverityBadgeClass = static function (string $severity): string {
+    return match ($severity) {
+        'critical' => 'danger',
+        'high'     => 'warning',
+        'medium'   => 'info',
+        default    => 'secondary',
+    };
+};
 ?>
 
 <div class="container-fluid py-4">
@@ -48,86 +61,31 @@ $getStatusLabel = function ($status) {
     </div>
 
     <!-- Estadísticas -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Animales Activos
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= $stats['active_animals'] ?? 0 ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-heart-fill fa-2x text-primary"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Logs Hoy
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= $stats['today_logs'] ?? 0 ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-journal-check fa-2x text-success"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Incidentes Activos
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= $stats['active_incidents'] ?? 0 ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-exclamation-triangle-fill fa-2x text-warning"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Promedio Interacciones
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= $stats['avg_interactions'] ?? 0 ?>/día
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-graph-up fa-2x text-info"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="stats-grid stats-grid--4 mb-4">
+        <?= View::componentToString('components/admin/stat-card', [
+            'icon'    => 'heart-fill',
+            'variant' => 'primary',
+            'label'   => 'Animales Activos',
+            'value'   => $stats['active_animals'] ?? 0,
+        ]) ?>
+        <?= View::componentToString('components/admin/stat-card', [
+            'icon'    => 'journal-check',
+            'variant' => 'success',
+            'label'   => 'Logs Hoy',
+            'value'   => $stats['today_logs'] ?? 0,
+        ]) ?>
+        <?= View::componentToString('components/admin/stat-card', [
+            'icon'    => 'exclamation-triangle-fill',
+            'variant' => 'warning',
+            'label'   => 'Incidentes Activos',
+            'value'   => $stats['active_incidents'] ?? 0,
+        ]) ?>
+        <?= View::componentToString('components/admin/stat-card', [
+            'icon'    => 'graph-up',
+            'variant' => 'info',
+            'label'   => 'Promedio Interacciones',
+            'value'   => ($stats['avg_interactions'] ?? 0) . '/día',
+        ]) ?>
     </div>
 
     <!-- Widget: Alertas de Health Checks -->
@@ -137,7 +95,7 @@ $getStatusLabel = function ($status) {
                 <div class="card shadow border-warning">
                     <div class="card-header bg-warning text-dark">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="m-0 font-weight-bold">
+                            <h6 class="m-0 fw-bold">
                                 <i class="bi bi-exclamation-triangle-fill"></i>
                                 Alertas de Salud Activas (últimos 7 días)
                             </h6>
@@ -186,7 +144,7 @@ $getStatusLabel = function ($status) {
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Animales del Café</h6>
+                    <h6 class="m-0 fw-bold text-primary">Animales del Café</h6>
                 </div>
                 <div class="card-body">
                     <div class="row" id="animals-grid">
@@ -196,17 +154,20 @@ $getStatusLabel = function ($status) {
                         ?>
                         <?php foreach ($animals as $animal): ?>
                             <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-                                <div class="card animal-card h-100 <?= in_array($animal['id'], $pendingAnimalIds, true) ? 'border-warning' : '' ?>">
+                                <div class="card animal-card h-100 <?= in_array($animal['id'], $pendingAnimalIds, true) ? 'border-warning' : '' ?>" style="overflow:hidden;">
                                     <!-- Foto del animal -->
                                     <div class="animal-photo-container position-relative">
                                         <?php if (!empty($animal['image_url'])): ?>
                                             <img src="<?= htmlspecialchars($animal['image_url']) ?>"
                                                 alt="Foto de <?= htmlspecialchars($animal['name']) ?>"
-                                                class="card-img-top animal-photo">
+                                                class="card-img-top animal-photo"
+                                                style="width:100%; height:180px; object-fit:cover;"
+                                                onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="animal-photo-placeholder d-none align-items-center justify-content-center bg-light"
+                                                style="height:180px; font-size:2.5rem;">🐾</div>
                                         <?php else: ?>
-                                            <div class="animal-photo-placeholder d-flex align-items-center justify-content-center bg-light">
-                                                <i class="bi bi-camera text-muted" style="font-size: 3rem;"></i>
-                                            </div>
+                                            <div class="animal-photo-placeholder d-flex align-items-center justify-content-center bg-light"
+                                                style="height:180px; font-size:2.5rem;">🐾</div>
                                         <?php endif; ?>
 
                                         <!-- Botón de subir foto -->
@@ -241,20 +202,7 @@ $getStatusLabel = function ($status) {
                                         </p>
 
                                         <?php if (!empty($animal['personality'])): ?>
-                                            <p class=Chequeo de Salud (Semana 6) -->
-                                                <?php if (in_array($animal['id'], $pendingAnimalIds, true)): ?>
-                                                    <a href="/keeper/health-checks/create/<?= $animal['id'] ?>"
-                                                        class="btn btn-sm btn-warning flex-fill">
-                                                        <i class="bi bi-clipboard-pulse"></i> Chequeo
-                                                    </a>
-                                                <?php else: ?>
-                                                    <a href="/keeper/health-checks/history/<?= $animal['id'] ?>"
-                                                        class="btn btn-sm btn-outline-success flex-fill">
-                                                        <i class="bi bi-check-circle"></i> Historial
-                                                    </a>
-                                                <?php endif; ?>
-
-                                                <!-- "card-text small mb-3">
+                                            <p class="card-text small mb-3">
                                                 <strong>Personalidad:</strong> <?= htmlspecialchars($animal['personality']) ?>
                                             </p>
                                         <?php endif; ?>
@@ -268,82 +216,95 @@ $getStatusLabel = function ($status) {
                                                     <i class="bi bi-journal-plus"></i> Cuidar
                                                 </button>
 
+                                                <!-- Chequeo de Salud -->
+                                                <?php if (in_array($animal['id'], $pendingAnimalIds, true)): ?>
+                                                    <a href="/keeper/health-checks/create/<?= $animal['id'] ?>"
+                                                        class="btn btn-sm btn-warning flex-fill">
+                                                        <i class="bi bi-clipboard-pulse"></i> Chequeo
+                                                    </a>
+                                                <?php else: ?>
+                                                    <a href="/keeper/health-checks/history/<?= $animal['id'] ?>"
+                                                        class="btn btn-sm btn-outline-success flex-fill">
+                                                        <i class="bi bi-check-circle"></i> Historial
+                                                    </a>
+                                                <?php endif; ?>
+
                                                 <!-- Cambiar estado -->
                                                 <button class="btn btn-sm btn-outline-warning change-status-btn"
                                                     data-animal-id="<?= $animal['id'] ?>"
                                                     data-status="<?= $animal['current_status'] ?>">
                                                     <i class="bi bi-toggle-on"></i>
                                                 </button>
-                                    </div>
+                                            </div>
 
-                                    <!-- Último check -->
-                                    <?php if (!empty($animal['last_check_at'])): ?>
-                                        <small class="text-muted">
-                                            <i class="bi bi-clock"></i>
-                                            Último check: <?= date('d/m H:i', strtotime($animal['last_check_at'])) ?>
-                                        </small>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
+                                            <!-- Último check -->
+                                            <?php if (!empty($animal['last_check_at'])): ?>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock"></i>
+                                                    Último check: <?= date('d/m H:i', strtotime($animal['last_check_at'])) ?>
+                                                </small>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div><!-- /.card-body -->
+                                </div><!-- /.card -->
+                            </div><!-- /.col -->
+                        <?php endforeach; ?>
                     </div>
                 </div>
-            <?php endforeach; ?>
             </div>
         </div>
     </div>
-</div>
-</div>
 
-<!-- Logs Recientes e Incidentes -->
-<div class="row">
-    <!-- Logs Recientes -->
-    <div class="col-lg-8 mb-4">
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Logs de Cuidado Recientes</h6>
-            </div>
-            <div class="card-body">
-                <?php if (empty($recent_logs)): ?>
-                    <p class="text-muted mb-0">No hay logs de cuidado registrados hoy.</p>
-                <?php else: ?>
-                    <div class="timeline">
-                        <?php foreach ($recent_logs as $log): ?>
-                            <div class="timeline-item">
-                                <div class="timeline-marker bg-success"></div>
-                                <div class="timeline-content">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1">
-                                                <?= htmlspecialchars($log['animal_name']) ?>
-                                                <small class="text-muted">- Chequeo de salud</small>
-                                            </h6>
-                                            <?php if (!empty($log['notes'])): ?>
-                                                <p class="mb-1 small"><?= htmlspecialchars($log['notes']) ?></p>
-                                            <?php endif; ?>
-                                            <small class="text-muted">
-                                                <i class="bi bi-clock"></i> <?= date('H:i', strtotime($log['created_at'])) ?>
-                                                <?php if (!empty($log['keeper_name'])): ?>
-                                                    por <?= htmlspecialchars($log['keeper_name']) ?>
+    <!-- Logs Recientes e Incidentes -->
+    <div class="row">
+        <!-- Logs Recientes -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 fw-bold text-primary">Logs de Cuidado Recientes</h6>
+                </div>
+                <div class="card-body">
+                    <?php if (empty($recent_logs)): ?>
+                        <p class="text-muted mb-0">No hay logs de cuidado registrados hoy.</p>
+                    <?php else: ?>
+                        <div class="timeline">
+                            <?php foreach ($recent_logs as $log): ?>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-success"></div>
+                                    <div class="timeline-content">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <?= htmlspecialchars($log['animal_name']) ?>
+                                                    <small class="text-muted">- Chequeo de salud</small>
+                                                </h6>
+                                                <?php if (!empty($log['notes'])): ?>
+                                                    <p class="mb-1 small"><?= htmlspecialchars($log['notes']) ?></p>
                                                 <?php endif; ?>
-                                            </small>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock"></i> <?= date('H:i', strtotime($log['created_at'])) ?>
+                                                    <?php if (!empty($log['keeper_name'])): ?>
+                                                        por <?= htmlspecialchars($log['keeper_name']) ?>
+                                                    <?php endif; ?>
+                                                </small>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                    </div>
+                        </div>
+                </div>
+            <?php endforeach; ?>
             </div>
-        <?php endforeach; ?>
+        <?php endif; ?>
         </div>
-    <?php endif; ?>
     </div>
-</div>
 </div>
 
 <!-- Incidentes Activos -->
 <div class="col-lg-4 mb-4">
     <div class="card shadow">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-warning">Incidentes Activos</h6>
+            <h6 class="m-0 fw-bold text-warning">Incidentes Activos</h6>
         </div>
         <div class="card-body">
             <?php if (empty($active_incidents)): ?>
@@ -355,7 +316,7 @@ $getStatusLabel = function ($status) {
                             <h6 class="mb-0 small">
                                 <?= htmlspecialchars($incident['animal_name']) ?>
                             </h6>
-                            <span class="badge bg-<?= $this->getSeverityBadgeClass($incident['severity']) ?> small">
+                            <span class="badge bg-<?= $getSeverityBadgeClass($incident['severity']) ?> small">
                                 <?= ucfirst($incident['severity']) ?>
                             </span>
                         </div>
@@ -629,4 +590,4 @@ $getStatusLabel = function ($status) {
 <script src="/js/pages/keeperHelpers.js" nonce="<?= $cspNonce ?? '' ?>"></script>
 
 <!-- JavaScript para funcionalidades -->
-<script src="/js/sections/keeper-dashboard.js"></script>
+<script src="/js/sections/keeper-dashboard.js" nonce="<?= $cspNonce ?? '' ?>"></script>

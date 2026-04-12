@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Componente: Toast Container
  *
@@ -27,9 +28,11 @@ $alpine ??= false;
         Versión Alpine.js (reactiva)
         Útil cuando se manejan toasts desde componentes Alpine
     -->
-    <div class="toast-container-admin"
-         x-data="{ toasts: [] }"
-         @toast.window="
+    <div class="toast-container"
+        x-data="{ toasts: [] }"
+        aria-live="polite"
+        aria-atomic="false"
+        @toast.window="
         const id = Date.now();
         toasts.push({ id, ...$event.detail, visible: true });
         setTimeout(() => {
@@ -43,7 +46,7 @@ $alpine ??= false;
 
         <template x-for="toast in toasts" :key="toast.id">
             <div class="toast align-items-center border-0"
-                 :class="{
+                :class="{
                  'text-bg-success': toast.type === 'success',
                  'text-bg-danger': toast.type === 'error',
                  'text-bg-warning': toast.type === 'warning',
@@ -51,12 +54,12 @@ $alpine ??= false;
                  'toast-enter': toast.visible,
                  'toast-exit': !toast.visible
              }"
-                 x-show="toast.visible"
-                 role="alert">
+                x-show="toast.visible"
+                role="alert">
                 <div class="d-flex">
                     <div class="toast-body">
                         <i class="bi me-2"
-                           :class="{
+                            :class="{
                            'bi-check-circle-fill': toast.type === 'success',
                            'bi-exclamation-circle-fill': toast.type === 'error',
                            'bi-exclamation-triangle-fill': toast.type === 'warning',
@@ -65,15 +68,15 @@ $alpine ??= false;
                         <span x-text="toast.message"></span>
                     </div>
                     <button type="button"
-                            class="btn-close btn-close-white me-2 m-auto"
-                            @click="
+                        class="btn-close btn-close-white me-2 m-auto"
+                        @click="
                             toast.visible = false;
                             setTimeout(() => {
                                 const idx = toasts.findIndex(t => t.id === toast.id);
                                 if (idx > -1) toasts.splice(idx, 1);
                             }, 300);
                         "
-                            aria-label="Cerrar">
+                        aria-label="Cerrar">
                     </button>
                 </div>
             </div>

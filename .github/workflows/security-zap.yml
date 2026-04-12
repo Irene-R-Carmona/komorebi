@@ -1,0 +1,123 @@
+name: OWASP ZAP Security Scan
+
+# DAST (Dynamic Application Security Testing) contra la app en ejecución.
+#
+# PRs y pushes a main/develop: baseline scan (pasivo + activo ligero).
+#   → fail_action: exit bloquea el PR si se detecta una alerta HIGH o CRITICAL.
+#
+# Domingos 2:00 UTC: full scan (activo completo, más intrusivo).
+#   → Resultados en GitHub Security tab (SARIF).
+#
+# Exclusiones de falsos positivos: .zap/rules.tsv
+#
+# Para desactivar temporalmente ZAP en un PR, añadir la etiqueta: skip-zap
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: "0 2 * * 0" # Domingos 2:00 UTC
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  zap-scan:
+    name: ZAP ${{ github.event_name == 'schedule' && 'Full' || 'Baseline' }} Scan
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'pull_request' ||
+      !contains(github.event.pull_request.labels.*.name, 'skip-zap')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # Preparar entorno de app para el scan (valores ficticios, sin producción)
+      # -----------------------------------------------------------------------
+      - name: Prepare .env for ZAP environment
+        run: |
+          APP_KEY="base64:$(openssl rand -base64 32)"
+          cat > .env << EOF
+          APP_ENV=testing
+          APP_KEY=${APP_KEY}
+          APP_DEBUG=false
+          DB_HOST=db
+          DB_DATABASE=komorebi_test
+          DB_USERNAME=root
+          DB_PASSWORD=zap_test_password
+          REDIS_HOST=cache
+          REDIS_PORT=6379
+          REDIS_PASSWORD=redis_password
+          MAIL_HOST=localhost
+          MAIL_PORT=1025
+          CORS_ALLOWED_ORIGINS=http://localhost:8080
+          CORS_CREDENTIALS=false
+          SKIP_MIGRATIONS=1
+          SKIP_SEEDERS=1
+          EOF
+
+      - name: Start application stack (db + cache + app)
+        run: |
+          docker compose up -d db cache
+          # Esperar a que MySQL esté listo
+          timeout 90 sh -c \
+            'until docker compose exec -T db mysqladmin ping -h 127.0.0.1 --silent 2>/dev/null; do sleep 3; done'
+          docker compose up -d app
+          # Esperar a que FrankenPHP acepte conexiones
+          timeout 60 sh -c \
+            'until curl -sf http://localhost:8080/health -o /dev/null 2>/dev/null; do sleep 3; done'
+          echo "App ready on http://localhost:8080"
+
+      # -----------------------------------------------------------------------
+      # Obtener la IP del bridge de Docker para que el contenedor ZAP pueda
+      # acceder a los servicios del host (localhost no funciona dentro del contenedor)
+      # -----------------------------------------------------------------------
+      - name: Resolve Docker bridge IP for ZAP target
+        run: |
+          BRIDGE_IP=$(ip addr show docker0 2>/dev/null \
+            | grep 'inet ' | awk '{print $2}' | cut -d/ -f1 \
+            || echo "172.17.0.1")
+          echo "ZAP_TARGET=http://${BRIDGE_IP}:8080" >> "$GITHUB_ENV"
+          echo "ZAP target: http://${BRIDGE_IP}:8080"
+
+      # -----------------------------------------------------------------------
+      # Baseline scan — PRs y pushes (bloquea si HIGH detectado)
+      # -----------------------------------------------------------------------
+      - name: ZAP Baseline Scan
+        if: github.event_name != 'schedule'
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: ${{ env.ZAP_TARGET }}
+          rules_file_name: ".zap/rules.tsv"
+          fail_action: exit
+          artifact_name: zap-baseline-report
+          issue_title: "ZAP Baseline Scan — ${{ github.ref_name }}"
+
+      # -----------------------------------------------------------------------
+      # Full scan — sólo en schedule (más intrusivo, no bloquea flujo de trabajo)
+      # -----------------------------------------------------------------------
+      - name: ZAP Full Scan
+        if: github.event_name == 'schedule'
+        uses: zaproxy/action-full-scan@v0.11.0
+        with:
+          target: ${{ env.ZAP_TARGET }}
+          rules_file_name: ".zap/rules.tsv"
+          artifact_name: zap-full-scan-report
+
+      # -----------------------------------------------------------------------
+      # Publicar resultados SARIF en GitHub Security tab
+      # -----------------------------------------------------------------------
+      - name: Upload ZAP SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: results.sarif
+
+      - name: Tear down application stack
+        if: always()
+        run: docker compose down -v --remove-orphans

@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Core\ExceptionLogger;
 use App\Core\Http\ExceptionRendererRegistry;
 use App\Core\Http\ResponseFactory;
+use App\Core\WideEvent;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -31,6 +32,14 @@ final class ErrorHandlerMiddleware implements MiddlewareInterface
         try {
             return $handler->handle($request);
         } catch (\Throwable $e) {
+            WideEvent::setSection('error', [
+                'type'    => \get_class($e),
+                'message' => $e->getMessage(),
+                'code'    => $e->getCode(),
+                'file'    => \basename($e->getFile()),
+                'line'    => $e->getLine(),
+            ]);
+
             ExceptionLogger::log($e);
 
             $renderer = $this->registry->find($e);

@@ -56,6 +56,7 @@ final class AnimalCareController
         $this->response           = $response ?? new ResponseFactory();
     }
 
+    // TODO(plan7-cleanup): método legacy sin ruta activa — eliminar en fase2-psr7-migration
     /**
      * POST /keeper/log
      * Registrar log de cuidado de animal
@@ -96,6 +97,7 @@ final class AnimalCareController
         throw ValidationException::withMessage($result->error ?? 'Error al registrar el log', 422);
     }
 
+    // TODO(plan7-cleanup): método legacy sin ruta activa — eliminar en fase2-psr7-migration
     /**
      * POST /keeper/animal/{animalId}/health
      * Actualizar estado de salud de animal
@@ -128,6 +130,7 @@ final class AnimalCareController
         throw ValidationException::withMessage($result->error ?? 'Error al actualizar el estado', 422);
     }
 
+    // TODO(plan7-cleanup): método legacy sin ruta activa — eliminar en fase2-psr7-migration
     /**
      * POST /keeper/animal/{animalId}/toggle
      * Activar/desactivar animal (disponible para interacción)
@@ -150,6 +153,7 @@ final class AnimalCareController
         throw ValidationException::withMessage($result->error ?? 'Error al actualizar el estado', 422);
     }
 
+    // TODO(plan7-cleanup): método legacy sin ruta activa — eliminar en fase2-psr7-migration
     /**
      * POST /keeper/animal/{animalId}/upload-photo
      * Subir foto de un animal
@@ -209,6 +213,7 @@ final class AnimalCareController
         ]]);
     }
 
+    // TODO(plan7-cleanup): método legacy sin ruta activa — eliminar en fase2-psr7-migration
     /**
      * POST /keeper/incident
      * Reportar incidente de un animal
@@ -246,6 +251,7 @@ final class AnimalCareController
         throw ValidationException::withMessage($result->error ?? 'Error al reportar incidente', 422);
     }
 
+    // TODO(plan7-cleanup): método legacy sin ruta activa — eliminar en fase2-psr7-migration
     /**
      * POST /keeper/incident/{incidentId}/resolve
      * Resolver incidente
@@ -274,6 +280,7 @@ final class AnimalCareController
         throw ValidationException::withMessage($result->error ?? 'Error al resolver incidente', 500);
     }
 
+    // TODO(plan7-cleanup): método legacy sin ruta activa — eliminar en fase2-psr7-migration
     /**
      * POST /keeper/log (mantener compatibilidad con método antiguo)
      * @throws JsonException
@@ -285,6 +292,7 @@ final class AnimalCareController
         return $this->logCare($request);
     }
 
+    // TODO(plan7-cleanup): método legacy sin ruta activa — eliminar en fase2-psr7-migration
     /**
      * POST /keeper/toggle (mantener compatibilidad con método antiguo)
      * @throws JsonException

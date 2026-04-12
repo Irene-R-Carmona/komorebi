@@ -22,6 +22,22 @@ interface UserRepositoryInterface extends RepositoryInterface
     public function findByEmail(string $email): ?array;
 
     /**
+     * Buscar usuario por email incluyendo credenciales de autenticación.
+     * Usar SOLO en contextos de autenticación (login, rate limiting).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findByEmailWithCredentials(string $email): ?array;
+
+    /**
+     * Buscar usuario por ID incluyendo campos de seguridad.
+     * Usar SOLO en operaciones de seguridad (cambio de contraseña, bloqueo de cuenta).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findByIdForSecurity(int $id): ?array;
+
+    /**
      * Verificar si existe un email registrado.
      */
     public function emailExists(string $email): bool;

@@ -28,7 +28,7 @@ final class MenuRetailSeeder
         $allergens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($allergens as $allergen) {
-            $this->allergenCache[\strtolower($allergen['name'])] = (int) $allergen['id'];
+            $this->allergenCache[strtolower($allergen['name'])] = (int) $allergen['id'];
         }
     }
 
@@ -51,7 +51,7 @@ final class MenuRetailSeeder
         $stmt = $this->db->prepare('INSERT IGNORE INTO product_allergens (product_id, allergen_id) VALUES (?, ?)');
 
         foreach ($allergenNames as $name) {
-            $allergenId = $this->allergenCache[\strtolower($name)] ?? null;
+            $allergenId = $this->allergenCache[strtolower($name)] ?? null;
 
             if ($allergenId) {
                 $stmt->execute([$productId, $allergenId]);
@@ -403,19 +403,19 @@ final class MenuRetailSeeder
             }
 
             $ingredJson = isset($item['ingred'])
-                ? \json_encode($item['ingred'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
+                ? json_encode($item['ingred'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
                 : null;
 
-            $targetJson = \array_key_exists('target', $item) && $item['target'] !== null
-                ? \json_encode($item['target'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
+            $targetJson = array_key_exists('target', $item) && $item['target'] !== null
+                ? json_encode($item['target'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
                 : null;
 
             $animalTargetsJson = isset($item['animal_target'])
-                ? \json_encode($item['animal_target'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
+                ? json_encode($item['animal_target'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
                 : null;
 
             $attrsJson = isset($item['attrs'])
-                ? \json_encode($item['attrs'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
+                ? json_encode($item['attrs'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
                 : null;
 
             // Convertir 'duration' (en minutos) a 'duration_minutes'

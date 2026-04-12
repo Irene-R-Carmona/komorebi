@@ -168,7 +168,7 @@ $alpineConfig = json_encode([
                         <i class="bi bi-graph-up-arrow"></i>
                         Actividad de la Semana
                     </h3>
-                    <div style="display: flex; gap: 1rem; font-size: 0.875rem; color: var(--text-secondary);">
+                    <div class="glass-card__meta">
                         <span>📊 Reservas</span>
                     </div>
                 </div>
@@ -238,7 +238,7 @@ $alpineConfig = json_encode([
                         <i class="bi bi-calendar-check"></i>
                         Reservas Recientes
                     </h3>
-                    <a href="/admin/reservations" class="btn-primary btn-sm" aria-label="Ver todas las reservas">
+                    <a href="/admin/reservations" class="btn btn-primary btn-sm" aria-label="Ver todas las reservas">
                         Ver todas
                         <i class="bi bi-arrow-right" aria-hidden="true"></i>
                     </a>
@@ -251,7 +251,7 @@ $alpineConfig = json_encode([
                             </div>
                             <h4 class="empty-state__title">No hay reservas recientes</h4>
                             <p class="empty-state__text">Las visitas aparecerán aquí cuando se confirmen</p>
-                            <a href="/admin/reservas/crear" class="btn-primary btn-sm">Crear reserva</a>
+                            <a href="/admin/reservas/crear" class="btn btn-primary btn-sm">Crear reserva</a>
                         </div>
                     <?php else: ?>
                         <table class="table-modern">

@@ -1,0 +1,113 @@
+/* ============================================================
+   Vista: Confirmar promoción de lista de espera — Komorebi Café
+   Tokens: design-tokens.css (cargado via layout 'main')
+   ============================================================ */
+
+.confirm-container {
+  max-width: 600px;
+  margin: var(--space-8) auto;
+  padding: var(--space-8);
+  background: var(--color-neutral-50);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.confirm-title {
+  text-align: center;
+  color: var(--color-neutral-900);
+  margin-bottom: var(--space-4);
+}
+
+.confirm-subtitle {
+  text-align: center;
+  color: var(--color-neutral-500);
+  margin-bottom: var(--space-8);
+}
+
+.success-icon {
+  text-align: center;
+  font-size: 4rem;
+  margin: var(--space-8) 0;
+}
+
+/* --- Countdown timer --- */
+.countdown {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: var(--font-bold);
+  color: var(--color-danger);
+  margin: var(--space-6) 0;
+}
+
+/* --- Info card con detalles de la reserva --- */
+.info-card {
+  background: var(--color-neutral-100);
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  margin: var(--space-6) 0;
+}
+
+.info-card__title {
+  margin-top: 0;
+  color: var(--color-neutral-700);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: var(--color-neutral-500);
+}
+
+/* --- Alert reutilizable (también definida en waitlist-status.css) --- */
+.alert-danger {
+  background: var(--color-danger-light);
+  color: var(--color-danger-dark);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-danger);
+  margin: var(--space-4) 0;
+}
+
+/* --- Botón de confirmación --- */
+.btn-confirm {
+  width: 100%;
+  padding: var(--space-4);
+  background: var(--color-success);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1.1rem;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-confirm:hover {
+  background: var(--color-success-dark);
+}
+
+.btn-confirm:disabled {
+  background: var(--color-neutral-400);
+  cursor: not-allowed;
+}
+
+/* --- Footer de formulario --- */
+.confirm-form {
+  margin-top: var(--space-8);
+}
+
+.confirm-footer {
+  text-align: center;
+  color: var(--color-neutral-400);
+  font-size: 0.9rem;
+  margin-top: var(--space-8);
+}

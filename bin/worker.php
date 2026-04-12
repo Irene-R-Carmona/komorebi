@@ -17,6 +17,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Core\Config;
 use App\Core\Logger;
 use App\Core\Queue;
+use App\Core\WideEvent;
 use App\Jobs\JobInterface;
 
 // ============================================================================
@@ -122,17 +123,32 @@ while (!$shouldStop) {
         $start = microtime(true);
         fwrite(STDOUT, "[Worker] Procesando: $jobClass\n");
 
+        WideEvent::reset();
+        WideEvent::set('job_class', $jobClass);
+        WideEvent::set('queue', $queueName);
+        WideEvent::set('pid', getmypid());
+        WideEvent::set('request_id', ($jobData['payload'] ?? [])['_correlation_id'] ?? '');
+
         try {
             $job->handle($jobData['payload'] ?? []);
             $duration = round((microtime(true) - $start) * 1000, 2);
             $processed++;
 
-            Logger::info('[Worker] Job OK', [
-                'job' => $jobClass,
-                'ms' => $duration
-            ]);
+            WideEvent::set('duration_ms', $duration);
+            WideEvent::set('outcome', 'success');
+            Logger::channel('queue')->info('job.canonical', WideEvent::all());
         } catch (Throwable $e) {
             $errors++;
+            $duration = round((microtime(true) - $start) * 1000, 2);
+
+            WideEvent::set('duration_ms', $duration);
+            WideEvent::set('outcome', 'error');
+            WideEvent::setSection('error', [
+                'type'    => \get_class($e),
+                'message' => $e->getMessage(),
+            ]);
+            Logger::channel('queue')->info('job.canonical', WideEvent::all());
+
             Logger::error('[Worker] Job falló', [
                 'job' => $jobClass,
                 'error' => $e->getMessage()
@@ -140,6 +156,8 @@ while (!$shouldStop) {
 
             // Reintentar si aplica
             Queue::retry($jobData, $queueName, 3);
+        } finally {
+            WideEvent::reset();
         }
     } catch (Throwable $e) {
         Logger::critical('[Worker] Error en loop', ['error' => $e->getMessage()]);

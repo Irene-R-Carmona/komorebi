@@ -8,14 +8,16 @@ use App\Core\BaseService;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Queue;
+use App\Core\WideEvent;
 use App\Jobs\SendEmailJob;
+use App\Services\Contracts\NewsletterServiceInterface;
 use PDO;
 
 /**
  * Newsletter Service - Gestión de suscripciones con double opt-in
  * GDPR compliant
  */
-final class NewsletterService extends BaseService
+class NewsletterService extends BaseService implements NewsletterServiceInterface
 {
     private PDO $db;
 
@@ -29,8 +31,9 @@ final class NewsletterService extends BaseService
 
     /**
      * Suscribir email (paso 1: enviar confirmación)
-     * @throws RandomException
+     * @throws \Random\RandomException
      */
+    #[\Override]
     public function subscribe(string $email): array
     {
         $email = \strtolower(\trim($email));
@@ -73,6 +76,7 @@ final class NewsletterService extends BaseService
             'to' => $email,
             'subject' => 'Confirma tu suscripción a Komorebi Café',
             'body' => $this->getConfirmationTemplate($confirmUrl),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ];
 
         try {
@@ -109,6 +113,7 @@ final class NewsletterService extends BaseService
     /**
      * Confirmar suscripción (paso 2: click en email)
      */
+    #[\Override]
     public function confirm(string $token): array
     {
         $stmt = $this->db->prepare('SELECT id, email, confirmed_at FROM newsletter_subscriptions WHERE token = ?');
@@ -132,6 +137,7 @@ final class NewsletterService extends BaseService
             'to' => $subscription['email'],
             'subject' => 'Bienvenido a la comunidad Komorebi',
             'body' => $this->getWelcomeTemplate(),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ];
 
         try {
@@ -159,6 +165,7 @@ final class NewsletterService extends BaseService
     /**
      * Cancelar suscripción
      */
+    #[\Override]
     public function unsubscribe(string $token): array
     {
         $stmt = $this->db->prepare('SELECT id, email FROM newsletter_subscriptions WHERE token = ?');
@@ -361,6 +368,7 @@ final class NewsletterService extends BaseService
     /**
      * Obtener lista de emails confirmados (para envío masivo)
      */
+    #[\Override]
     public function getConfirmedEmails(): array
     {
         $stmt = $this->db->query('

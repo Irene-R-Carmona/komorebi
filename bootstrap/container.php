@@ -16,19 +16,20 @@ declare(strict_types=1);
 use App\Core\Config;
 use App\Core\Container;
 use App\Core\Env;
+use App\Providers\AuthServiceProvider;
 use App\Providers\CacheServiceProvider;
+use App\Providers\CatalogServiceProvider;
 use App\Providers\DatabaseServiceProvider;
 use App\Providers\EventServiceProvider;
 use App\Providers\NewsletterServiceProvider;
 use App\Providers\ReservationServiceProvider;
+use App\Providers\SharedServiceProvider;
 use App\Providers\StaffServiceProvider;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\UserRepository;
 use App\Services\AccountDeletionService;
 use App\Services\ContextServiceInstance;
 use App\Services\NavigationService;
-use App\Repositories\CafeRepository;
-use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Jobs\RewardUnlockedJob;
 use App\Jobs\SendTelegramNotificationJob;
 use App\Repositories\ApiTokenRepository;
@@ -37,7 +38,9 @@ use App\Services\ApiTokenService;
 use App\Services\Contracts\ApiTokenServiceInterface;
 use App\Services\CacheService;
 use App\Services\ClimaContextoService;
+use App\Services\Contracts\RateLimitingServiceInterface;
 use App\Services\Contracts\TelegramServiceInterface;
+use App\Services\RateLimitingService;
 use App\Services\TelegramService;
 use App\Services\WeatherService;
 
@@ -50,11 +53,14 @@ $providers = [
     DatabaseServiceProvider::class,
     CacheServiceProvider::class,
     EventServiceProvider::class,
+    SharedServiceProvider::class,       // CafeRepositoryInterface, ReviewService, CafeService, UserService
     ReservationServiceProvider::class,
+    CatalogServiceProvider::class,      // MenuService, ProductService
+    AuthServiceProvider::class,         // AuthService, AuthTokenService, SessionManagementService
     NewsletterServiceProvider::class,
 ];
 
-if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
+if (Env::bool('FEATURE_BACKOFFICE', true)) {
     $providers[] = StaffServiceProvider::class;
 }
 
@@ -72,16 +78,15 @@ foreach ($providers as $providerClass) {
     $provider->register();
 }
 
-// Fase 2: boot() para todos los providers
-foreach ($providers as $providerClass) {
-    $provider = new $providerClass();
-    $provider->boot();
-}
+// Registros manuales — deben estar antes de boot() para que el Container
+// tenga todos los bindings cuando EventServiceProvider::boot() dispara ensureBuild().
 
 // UserRepositoryInterface → UserRepository
 Container::singleton(UserRepositoryInterface::class, fn() => new UserRepository(
     Container::make(\PDO::class)
 ));
+// Alias concreto para inyección directa (AuthService espera ?UserRepository)
+Container::singleton(UserRepository::class, fn() => Container::make(UserRepositoryInterface::class));
 
 // AccountDeletionService: eliminación atómica de cuentas (GDPR)
 Container::singleton(AccountDeletionService::class, fn() => new AccountDeletionService(
@@ -111,9 +116,6 @@ Container::singleton(ClimaContextoService::class, static function (): ClimaConte
     return new ClimaContextoService(Container::make(WeatherService::class));
 });
 
-// El Container ya está listo para usar
-// Ejemplo: Container::make(PDO::class) retornará conexión configurada
-
 // Tokens Bearer opacos para la API
 Container::singleton(ApiTokenRepositoryInterface::class, fn() => new ApiTokenRepository());
 Container::singleton(ApiTokenServiceInterface::class, fn() => new ApiTokenService(Container::make(ApiTokenRepositoryInterface::class)));
@@ -125,8 +127,8 @@ Container::singleton(ApiTokenService::class, fn() => Container::make(ApiTokenSer
 Container::bind(ContextServiceInstance::class, function (): ContextServiceInstance {
     $selectedId = \App\Core\Session::get('admin_selected_cafe_id');
     return new ContextServiceInstance(
-        new CafeRepository(\App\Core\Database::getConnection()),
-        \App\Core\Session::role() ?? '',
+        Container::make(\App\Repositories\Contracts\CafeRepositoryInterface::class),
+        \App\Core\Session::role(),
         \App\Core\Session::userCafeId(),
         $selectedId !== null ? (int) $selectedId : null
     );
@@ -134,3 +136,14 @@ Container::bind(ContextServiceInstance::class, function (): ContextServiceInstan
 
 // NavigationService: singleton inyectable (sin dependencias, lógica pura)
 Container::singleton(NavigationService::class, fn() => new NavigationService());
+
+// RateLimitingServiceInterface: rate limiting vía PSR-6 cache
+Container::singleton(RateLimitingServiceInterface::class, fn() => new RateLimitingService(
+    Container::make(CacheService::class)
+));
+
+// Fase 2: boot() para todos los providers
+foreach ($providers as $providerClass) {
+    $provider = new $providerClass();
+    $provider->boot();
+}

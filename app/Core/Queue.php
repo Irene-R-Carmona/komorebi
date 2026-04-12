@@ -222,13 +222,13 @@ final class Queue
      *
      * @param array<string, mixed> $jobData     Datos del job
      * @param string               $queue       Nombre de la cola
-     * @param integer              $maxAttempts Número máximo de reintentos (por defecto: 3)
+     * @param integer              $maxAttempts Número máximo de reintentos (por defecto: 10)
      * @return boolean True si se reencoló, false si alcanzó máximo de intentos
      */
     public static function retry(
         array $jobData,
         string $queue = self::DEFAULT_QUEUE,
-        int $maxAttempts = 3
+        int $maxAttempts = 10
     ): bool {
         $attempts = ($jobData['attempts'] ?? 0) + 1;
 
@@ -249,8 +249,8 @@ final class Queue
             $redis = self::getRedis();
             $jobData['attempts'] = $attempts;
 
-            // Delay exponencial: 2^attempts segundos
-            $delay = 2 ** $attempts;
+            // Full jitter: uniforme en [0, min(300, 2^attempts)] para evitar thundering herd
+            $delay = random_int(0, min(300, 2 ** $attempts));
 
             $serialized = \json_encode($jobData, JSON_THROW_ON_ERROR);
             $delayedKey = self::REDIS_PREFIX . $queue . ':delayed';

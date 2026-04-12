@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\CircuitBreaker;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Result;
+use App\Exceptions\CircuitOpenException;
 use App\Services\Contracts\TelegramServiceInterface;
 
 final class TelegramService implements TelegramServiceInterface
@@ -39,7 +41,7 @@ final class TelegramService implements TelegramServiceInterface
         ]);
 
         if ($payload === false) {
-            Logger::error('[TelegramService] Failed to encode payload');
+            Logger::error('[TelegramService] Failed to encode payload', ['chat_id' => $targetChat]);
             return Result::fail('No se pudo codificar el mensaje', 'telegram_encode_failed');
         }
 
@@ -52,10 +54,22 @@ final class TelegramService implements TelegramServiceInterface
             ],
         ]);
 
-        $response = @file_get_contents($url, false, $context);
+        try {
+            $response = CircuitBreaker::call('telegram', static function () use ($url, $context): string {
+                $result = @\file_get_contents($url, false, $context);
+                if ($result === false) {
+                    throw new \RuntimeException('HTTP request failed');
+                }
 
-        if ($response === false) {
+                return $result;
+            });
+        } catch (CircuitOpenException) {
+            Logger::warning('[TelegramService] Circuit breaker abierto, omitiendo notificación de Telegram');
+
+            return Result::ok(null);
+        } catch (\RuntimeException) {
             Logger::error('[TelegramService] Failed to send message', ['chat_id' => $targetChat]);
+
             return Result::fail('No se pudo enviar el mensaje de Telegram', 'telegram_send_failed');
         }
 

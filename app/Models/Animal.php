@@ -502,18 +502,16 @@ final class Animal
             if ($hasResolvedAt) {
                 $parts[] = 'resolved_at = NOW()';
             }
-            if (!empty($parts)) {
-                $sql = 'UPDATE animal_incidents SET ' . \implode(', ', $parts) . ' WHERE id = :id';
+            $sql = 'UPDATE animal_incidents SET ' . \implode(', ', $parts) . ' WHERE id = :id';
 
-                try {
-                    $stmt = $this->db->prepare($sql);
-                    $ok = $stmt->execute(['id' => $incidentId]);
-                    if ($ok) {
-                        return true;
-                    }
-                } catch (\Throwable) {
-                    // fallthrough to delete
+            try {
+                $stmt = $this->db->prepare($sql);
+                $ok = $stmt->execute(['id' => $incidentId]);
+                if ($ok) {
+                    return true;
                 }
+            } catch (\Throwable) {
+                // fallthrough to delete
             }
         }
 

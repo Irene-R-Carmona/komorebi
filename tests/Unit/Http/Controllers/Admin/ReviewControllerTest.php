@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\ReviewController;
+use App\Services\Contracts\ReviewModerationServiceInterface;
 use Tests\Support\ControllerTestCase;
 use Psr\Http\Message\ResponseInterface;
 
@@ -40,7 +41,9 @@ final class ReviewControllerTest extends ControllerTestCase
 
     private function makeController(): ReviewController
     {
-        return new ReviewController();
+        return new ReviewController(
+            $this->createStub(ReviewModerationServiceInterface::class)
+        );
     }
 
     public function test_approve_redirects_when_csrf_is_invalid(): void

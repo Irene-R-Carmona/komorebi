@@ -17,7 +17,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
-use App\Http\Controllers\Api\FavoriteController;
+use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Models\Favorite;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;

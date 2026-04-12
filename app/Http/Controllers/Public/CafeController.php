@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Core\Container;
+use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
 use App\Models\Cafe;
 use App\Models\Favorite;
-use App\Services\MenuService;
-use App\Services\ReviewService;
+use App\Http\Transformers\AnimalTransformer;
+use App\Http\Transformers\CafeTransformer;
+use App\Services\Contracts\ReviewQueryServiceInterface;
+use App\Services\Contracts\ReviewServiceInterface;
+use App\Services\Contracts\MenuServiceInterface;
 
 /**
  * Controlador de Cafés
@@ -26,16 +31,22 @@ final class CafeController
 
     private Favorite $favoriteModel;
 
-    private MenuService $menuService;
+    private MenuServiceInterface $menuService;
 
-    private ReviewService $reviewService;
+    private ReviewQueryServiceInterface $queryService;
 
-    public function __construct()
-    {
+    private ReviewServiceInterface $reviewService;
+
+    public function __construct(
+        ?MenuServiceInterface $menuService = null,
+        ?ReviewQueryServiceInterface $queryService = null,
+        ?ReviewServiceInterface $reviewService = null
+    ) {
         $this->cafeModel = new Cafe();
         $this->favoriteModel = new Favorite();
-        $this->menuService = new MenuService();
-        $this->reviewService = new ReviewService();
+        $this->menuService = $menuService ?? Container::make(MenuServiceInterface::class);
+        $this->queryService = $queryService ?? Container::make(ReviewQueryServiceInterface::class);
+        $this->reviewService = $reviewService ?? Container::make(ReviewServiceInterface::class);
     }
 
     /**
@@ -97,6 +108,12 @@ final class CafeController
             throw NotFoundException::forResource('Café', $slug);
         }
 
+        // Extraer animales antes de transformar el café
+        $rawAnimals = $cafe['animals'] ?? [];
+
+        // Aplicar CafeTransformer: presentación segura sin campos internos
+        $cafe = (new CafeTransformer())->transform($cafe);
+
         // Verificar si es favorito del usuario actual
         $isFavorite = false;
 
@@ -111,10 +128,10 @@ final class CafeController
         $zones = $this->cafeModel->getZones((int) $cafe['id']);
 
         // Obtener estadísticas de reseñas
-        $ratingStats = $this->reviewService->getCafeRatingStats((int) $cafe['id']);
+        $ratingStats = $this->queryService->getCafeRatingStats((int) $cafe['id']);
 
         // Obtener reseñas aprobadas (página 1, 5 por página para mostrar)
-        $approvedReviews = $this->reviewService->listApprovedReviews((int) $cafe['id'], 1);
+        $approvedReviews = $this->queryService->listApprovedReviews((int) $cafe['id'], 1);
 
         // Obtener experiencias disponibles para este café (filtradas por categoría y animal)
         $experiences = $this->menuService->getPassesForCafe($cafe['category'], $cafe['animal_type']);
@@ -133,18 +150,41 @@ final class CafeController
 
         // Obtener estadísticas generales
         $stats = [
-            'total_animals' => \count($cafe['animals']),
+            'total_animals' => \count($rawAnimals),
             'active_animals' => \count(\array_filter(
-                $cafe['animals'],
-                static fn ($a) => $a['current_status'] === 'active'
+                $rawAnimals,
+                static fn($a) => $a['current_status'] === 'active'
             )),
             'favorites_count' => $this->cafeModel->getFavoritesCount((int) $cafe['id']),
         ];
 
+        // Decorar animales: merge JSON attributes en el objeto
+        $animalesDecoded = \array_map(static function (array $a): array {
+            if (empty($a['attributes'])) {
+                return $a;
+            }
+            try {
+                $attrs = json_decode($a['attributes'], true, 512, \JSON_THROW_ON_ERROR) ?? [];
+            } catch (\JsonException $e) {
+                Logger::warning('[CafeController] Error decodificando atributos de animal', [
+                    'exception' => $e::class,
+                    'message' => $e->getMessage(),
+                    'animal_id' => $a['id'] ?? 'unknown',
+                ]);
+                $attrs = [];
+            }
+            return array_merge($a, $attrs);
+        }, $rawAnimals);
+
+        // Aplicar AnimalTransformer: excluye campos operativos/sensibles
+        $animalTransformer = new AnimalTransformer();
+        $animalesPrep = $animalTransformer->collection($animalesDecoded);
+
         View::render('public/cafes/show', [
             'titulo' => $cafe['name'],
             'cafe' => $cafe,
-            'animales' => $cafe['animals'],
+            'animales' => $animalTransformer->collection($rawAnimals),
+            'animalesPrep' => $animalesPrep,
             'zones' => $zones,
             'experiences' => $experiences,
             'isFavorite' => $isFavorite,

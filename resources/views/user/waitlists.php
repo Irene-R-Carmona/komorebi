@@ -14,6 +14,9 @@ function formatDate(string $date): string
 {
     $months = ['', 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
     $timestamp = strtotime($date);
+    if ($timestamp === false) {
+        return $date;
+    }
     $day = (int) date('d', $timestamp);
     $month = (int) date('m', $timestamp);
     $year = date('Y', $timestamp);

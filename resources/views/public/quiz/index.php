@@ -62,7 +62,7 @@ declare(strict_types=1);
 
             <!-- PREGUNTAS (Steps 1-5) -->
             <div x-show="step > 0 && step <= totalPreguntas" x-transition>
-                <div class="quiz-pregunta">
+                <div class="quiz-pregunta" :class="{ 'quiz-slide-in': animando }">
                     <h2 class="quiz-pregunta__texto" x-text="(preguntaActual && preguntaActual.pregunta) || ''"></h2>
 
                     <div class="quiz-opciones">

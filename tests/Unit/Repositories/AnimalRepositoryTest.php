@@ -8,6 +8,7 @@ declare(strict_types=1);
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Repositories;
 
 use App\Repositories\AnimalRepository;
@@ -163,7 +164,7 @@ final class AnimalRepositoryTest extends TestCase
 
         $this->db->method('prepare')->willReturn($stmt);
 
-        $result = $this->repository->isResting(1, '2026-02-20', '14:00:00');
+        $result = $this->repository->isResting(1);
 
         $this->assertTrue($result);
     }
@@ -179,7 +180,7 @@ final class AnimalRepositoryTest extends TestCase
 
         $this->db->method('prepare')->willReturn($stmt);
 
-        $result = $this->repository->isResting(1, '2026-02-20', '14:00:00');
+        $result = $this->repository->isResting(1);
 
         $this->assertFalse($result);
     }

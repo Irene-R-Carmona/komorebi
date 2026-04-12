@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Http;
 
 use App\Core\Result;
+use JsonException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -34,11 +35,11 @@ final class ResponseFactory
 
     /**
      * Crea una respuesta JSON.
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function json(array $data, int $status = 200, array $headers = []): ResponseInterface
     {
-        $json = \json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+        $json = json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
 
         $response = $this->createResponse($status)
             ->withHeader('Content-Type', 'application/json; charset=utf-8');
@@ -89,11 +90,11 @@ final class ResponseFactory
     /**
      * Crea una respuesta RFC 9457 Problem Details.
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function problem(Result $result, int $status): ResponseInterface
     {
-        $json = \json_encode(
+        $json = json_encode(
             ProblemDetails::fromResult($result, $status),
             JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE,
         );

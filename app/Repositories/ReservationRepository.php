@@ -33,21 +33,15 @@ final class ReservationRepository extends AbstractRepository implements Reservat
             'pass_name',
             'pass_unit_price',
             'pass_duration_minutes',
-            'tracker_id',
-            'current_zone_id',
             'reservation_date',
             'reservation_time',
             'guest_count',
             'status',
             'check_in_at',
             'check_out_at',
-            'protocol_hygiene',
-            'protocol_briefing',
-            'protocol_shoes',
             'final_amount',
             'payment_status',
             'payment_method',
-            'payment_notes',
             'notes',
             'deleted_at',
             'created_at',
@@ -73,6 +67,30 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         $stmt->execute(['user_id' => $userId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Buscar reserva con todos los datos operativos (tracker, zona, protocolos, notas de pago).
+     * Usar SOLO desde KitchenService, ReceptionService y controllers de staff.
+     */
+    public function findWithOperationalData(int $id): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, user_id, cafe_id, pass_product_id, pass_name, pass_unit_price,
+                    pass_duration_minutes, tracker_id, current_zone_id, reservation_date,
+                    reservation_time, guest_count, status, check_in_at, check_out_at,
+                    protocol_hygiene, protocol_briefing, protocol_shoes, final_amount,
+                    payment_status, payment_method, payment_notes, notes,
+                    deleted_at, created_at, updated_at
+             FROM reservations
+             WHERE id = :id
+             LIMIT 1"
+        );
+        $stmt->execute(['id' => $id]);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ?: null;
     }
 
     /**

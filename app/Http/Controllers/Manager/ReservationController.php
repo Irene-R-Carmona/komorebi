@@ -53,7 +53,7 @@ final class ReservationController
             'reservations' => $reservations,
             'filters'      => ['status' => $status, 'date' => $date],
             'csrf_token'   => Csrf::token(),
-        ], [], 'backoffice');
+        ], ['manager/manager-reservations.css'], 'backoffice');
 
         return null;
     }

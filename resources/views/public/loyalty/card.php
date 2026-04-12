@@ -24,17 +24,24 @@ $redeemedCount = count($redeemed_rewards ?? []);
 
 // Nombres de tiers
 $tierNames = [
-    'bronze' => '🥉 Bronce',
-    'silver' => '🥈 Plata',
-    'gold' => '🥇 Oro',
-    'platinum' => '💎 Platino'
+    'bronze' => 'Bronce',
+    'silver' => 'Plata',
+    'gold' => 'Oro',
+    'platinum' => 'Platino'
+];
+
+$tierIcons = [
+    'bronze' => 'bi-award',
+    'silver' => 'bi-award-fill',
+    'gold' => 'bi-trophy',
+    'platinum' => 'bi-gem'
 ];
 
 $tierEmojis = [
-    'bronze' => '🥉',
-    'silver' => '🥈',
-    'gold' => '🥇',
-    'platinum' => '💎'
+    'bronze' => 'bi-award',
+    'silver' => 'bi-award-fill',
+    'gold' => 'bi-trophy',
+    'platinum' => 'bi-gem'
 ];
 
 // Progreso
@@ -52,7 +59,7 @@ if ($nextMilestone === $stamps && $stamps > 0) {
 <!-- Encabezado de sección -->
 <div class="loyalty-header">
     <div class="loyalty-header__content">
-        <h1 class="loyalty-header__title">🎴 Mi Tarjeta de Fidelización</h1>
+        <h1 class="loyalty-header__title"><i class="bi bi-card-list" aria-hidden="true"></i> Mi Tarjeta de Fidelización</h1>
         <p class="loyalty-header__description">Acumula sellos con cada visita y canjea recompensas exclusivas</p>
     </div>
 </div>
@@ -63,11 +70,13 @@ if ($nextMilestone === $stamps && $stamps > 0) {
         <!-- Header de tarjeta -->
         <div class="loyalty-card__header">
             <div class="loyalty-card__branding">
-                <h2>🎴 Mi Tarjeta</h2>
+                <h2><i class="bi bi-card-list" aria-hidden="true"></i> Mi Tarjeta</h2>
                 <p>Komorebi Café</p>
             </div>
             <div class="tier-badge">
-                <?= htmlspecialchars($tierNames[$currentTier] ?? '🥉 Bronce', ENT_QUOTES, 'UTF-8') ?>
+                <?php $tierIcon = $tierIcons[$currentTier] ?? 'bi-award'; ?>
+                <i class="bi <?= $tierIcon ?>" aria-hidden="true"></i>
+                <?= htmlspecialchars($tierNames[$currentTier] ?? 'Bronce', ENT_QUOTES, 'UTF-8') ?>
             </div>
         </div>
 
@@ -95,7 +104,7 @@ if ($nextMilestone === $stamps && $stamps > 0) {
                     <div class="stamp <?= $i <= $stamps ? 'stamp--filled' : '' ?>">
                         <span class="stamp__number"><?= $i ?></span>
                         <?php if ($i <= $stamps): ?>
-                            <span class="stamp__icon">🐾</span>
+                            <span class="stamp__icon"><i class="bi bi-paw-fill" aria-hidden="true"></i></span>
                         <?php endif; ?>
                     </div>
                 <?php endfor; ?>
@@ -104,7 +113,11 @@ if ($nextMilestone === $stamps && $stamps > 0) {
 
         <!-- Tier Progress -->
         <div class="tier-progress">
-            <h4>Progreso a <?= htmlspecialchars($tierNames[$nextTier] ?? '🥈 Plata', ENT_QUOTES, 'UTF-8') ?></h4>
+            <h4>Progreso a
+                <?php $nextTierIcon = $tierIcons[$nextTier] ?? 'bi-award'; ?>
+                <i class="bi <?= $nextTierIcon ?>" aria-hidden="true"></i>
+                <?= htmlspecialchars($tierNames[$nextTier] ?? 'Plata', ENT_QUOTES, 'UTF-8') ?>
+            </h4>
             <div class="tier-progress__bar">
                 <div class="tier-progress__fill" style="width: <?= $progressPercent ?>%"></div>
             </div>
@@ -115,13 +128,13 @@ if ($nextMilestone === $stamps && $stamps > 0) {
 
 <!-- Recompensas Disponibles -->
 <section class="loyalty-section" x-data="loyaltyRewards()">
-    <h2 class="section-title">🎁 Recompensas Disponibles</h2>
+    <h2 class="section-title"><i class="bi bi-gift" aria-hidden="true"></i> Recompensas Disponibles</h2>
     <p class="section-subtitle">Canjea tus sellos por estas increíbles recompensas. Cada tier desbloquea nuevos beneficios.</p>
 
     <?php if (empty($available_rewards)): ?>
         <!-- Empty State -->
         <div class="empty-state">
-            <div class="empty-state__icon">🎁</div>
+            <div class="empty-state__icon"><i class="bi bi-gift" aria-hidden="true"></i></div>
             <h3 class="empty-state__title">No hay recompensas disponibles todavía</h3>
             <p class="empty-state__description">
                 Acumula más sellos visitando Komorebi Café para desbloquear increíbles recompensas.
@@ -139,13 +152,20 @@ if ($nextMilestone === $stamps && $stamps > 0) {
                 ?>
                 <div class="reward-card <?= $isLocked ? 'reward-card--locked' : '' ?>">
                     <div class="reward-card__header">
-                        <span class="reward-card__icon"><?= htmlspecialchars($reward['icon'] ?? '🎁', ENT_QUOTES, 'UTF-8') ?></span>
+                        <?php $icon = $reward['icon'] ?? '🎁'; ?>
+                        <span class="reward-card__icon">
+                            <?php if (str_starts_with($icon, 'fa-')): ?>
+                                <i class="fas <?= e($icon) ?>" aria-hidden="true"></i>
+                            <?php else: ?>
+                                <?= htmlspecialchars($icon, ENT_QUOTES, 'UTF-8') ?>
+                            <?php endif; ?>
+                        </span>
                         <?php if ($isLocked): ?>
-                            <span class="reward-badge reward-badge--locked">🔒 <?= htmlspecialchars($tierNames[$tierRequired] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
+                            <span class="reward-badge reward-badge--locked"><i class="bi bi-lock-fill" aria-hidden="true"></i> <?= htmlspecialchars($tierNames[$tierRequired] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
                         <?php elseif ($canRedeem): ?>
-                            <span class="reward-badge reward-badge--available">✅ Disponible</span>
+                            <span class="reward-badge reward-badge--available"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Disponible</span>
                         <?php else: ?>
-                            <span class="reward-badge">🕒 <?= (int)($reward['stamps_required'] ?? 0) - $stamps ?> sellos más</span>
+                            <span class="reward-badge"><i class="bi bi-clock" aria-hidden="true"></i> <?= (int)($reward['stamps_required'] ?? 0) - $stamps ?> sellos más</span>
                         <?php endif; ?>
                     </div>
 
@@ -171,19 +191,26 @@ if ($nextMilestone === $stamps && $stamps > 0) {
 <!-- Recompensas Canjeadas (si existen) -->
 <?php if (!empty($redeemed_rewards)): ?>
     <section class="loyalty-section">
-        <h2 class="section-title">📜 Historial de Canjes</h2>
+        <h2 class="section-title"><i class="bi bi-list-ul" aria-hidden="true"></i> Historial de Canjes</h2>
         <div class="history-grid">
             <?php foreach (array_slice($redeemed_rewards, 0, 6) as $item): ?>
                 <div class="history-card">
-                    <span class="history-card__icon"><?= htmlspecialchars($item['reward_icon'] ?? '🎁', ENT_QUOTES, 'UTF-8') ?></span>
+                    <?php $historyIcon = $item['reward_icon'] ?? '🎁'; ?>
+                    <span class="history-card__icon">
+                        <?php if (str_starts_with($historyIcon, 'fa-')): ?>
+                            <i class="fas <?= e($historyIcon) ?>" aria-hidden="true"></i>
+                        <?php else: ?>
+                            <?= htmlspecialchars($historyIcon, ENT_QUOTES, 'UTF-8') ?>
+                        <?php endif; ?>
+                    </span>
                     <div class="history-card__details">
                         <h4><?= htmlspecialchars($item['reward_name'] ?? '', ENT_QUOTES, 'UTF-8') ?></h4>
                         <p class="history-card__date"><?= date('d/m/Y', strtotime((string)($item['redeemed_at'] ?? ''))) ?></p>
                     </div>
                     <?php if (!empty($item['is_used'])): ?>
-                        <span class="history-card__status history-card__status--used">✅ Usado</span>
+                        <span class="history-card__status history-card__status--used"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Usado</span>
                     <?php else: ?>
-                        <span class="history-card__status">⏳ Pendiente</span>
+                        <span class="history-card__status"><i class="bi bi-hourglass-split" aria-hidden="true"></i> Pendiente</span>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>

@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
+use App\Services\Contracts\AuthServiceInterface;
+use App\Services\Contracts\EmailVerificationServiceInterface;
+use App\Services\Contracts\PasswordResetServiceInterface;
 use App\Services\AuthService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -21,13 +25,21 @@ use Random\RandomException;
  */
 final class PasswordResetController
 {
-    private AuthService $authService;
+    private AuthServiceInterface $authService;
+    private PasswordResetServiceInterface $passwordResetService;
+    private EmailVerificationServiceInterface $emailVerificationService;
     private ResponseFactory $response;
 
-    public function __construct(?AuthService $authService = null)
-    {
-        $this->authService = $authService ?? new AuthService();
-        $this->response = new ResponseFactory();
+    public function __construct(
+        ?AuthServiceInterface $authService = null,
+        ?PasswordResetServiceInterface $passwordResetService = null,
+        ?EmailVerificationServiceInterface $emailVerificationService = null,
+        ?ResponseFactory $response = null
+    ) {
+        $this->authService = $authService ?? Container::make(AuthService::class);
+        $this->passwordResetService = $passwordResetService ?? Container::make(PasswordResetServiceInterface::class);
+        $this->emailVerificationService = $emailVerificationService ?? Container::make(EmailVerificationServiceInterface::class);
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**
@@ -66,7 +78,7 @@ final class PasswordResetController
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 
         try {
-            $result = $this->authService->requestPasswordReset($email, $ipAddress, $userAgent);
+            $result = $this->passwordResetService->requestPasswordReset($email, $ipAddress, $userAgent);
 
             // Mensaje genérico por seguridad (siempre mostrar éxito por seguridad)
             Flash::success('Si el email existe, recibirás instrucciones para recuperar tu contraseña.');
@@ -101,7 +113,7 @@ final class PasswordResetController
         }
 
         // Validar token sin consumirlo
-        $validation = $this->authService->validatePasswordResetToken($token);
+        $validation = $this->passwordResetService->validatePasswordResetToken($token);
 
         if ($validation->isFail()) {
             Flash::error($validation->getMessage());
@@ -130,7 +142,7 @@ final class PasswordResetController
             return $this->response->redirect('/auth/forgot-password');
         }
 
-        $result = $this->authService->resetPasswordWithToken($token, $newPassword, $confirmPassword);
+        $result = $this->passwordResetService->resetPasswordWithToken($token, $newPassword, $confirmPassword);
 
         if ($result->ok) {
             Flash::success('Contraseña actualizada exitosamente. Por favor inicia sesión.');
@@ -154,7 +166,7 @@ final class PasswordResetController
             return $this->response->redirect('/');
         }
 
-        $result = $this->authService->verifyEmailToken($token);
+        $result = $this->emailVerificationService->verifyEmailToken($token);
 
         if ($result->ok) {
             Flash::success('Email verificado exitosamente.');
@@ -190,7 +202,7 @@ final class PasswordResetController
         $user = Session::user();
         $userId = (int) $user['id'];
 
-        $result = $this->authService->sendVerificationEmail($userId);
+        $result = $this->emailVerificationService->sendVerificationEmail($userId);
 
         if ($result->ok) {
             Flash::success('Email de verificación enviado. Revisa tu bandeja de entrada.');

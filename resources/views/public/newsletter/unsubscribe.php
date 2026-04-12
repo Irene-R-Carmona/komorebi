@@ -17,13 +17,13 @@ ob_start();
                     <?php if ($success): ?>
                         <!-- Éxito -->
                         <div class="mb-4">
-                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #6c757d;">
+                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dado de baja" style="color: #6c757d;">
                                 <circle cx="40" cy="40" r="38" stroke="currentColor" stroke-width="4" fill="none" />
                                 <path d="M30 40L50 40" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
                             </svg>
                         </div>
 
-                        <h1 class="h3 mb-3" style="color: #8b4513;">Te hemos dado de baja</h1>
+                        <h1 class="h3 mb-3" style="color: var(--color-primario);">Te hemos dado de baja</h1>
 
                         <p class="text-muted mb-4">
                             Ya no recibirás nuestras newsletters. Si cambias de opinión, siempre puedes volver a suscribirte desde nuestra página.
@@ -39,7 +39,7 @@ ob_start();
                             <a href="/" class="btn btn-outline-secondary me-2">
                                 Volver al inicio
                             </a>
-                            <a href="/contacto" class="btn btn-link" style="color: #c9a959;">
+                            <a href="/contacto" class="btn btn-link" style="color: var(--color-acento);">
                                 Enviar feedback
                             </a>
                         </div>
@@ -47,13 +47,13 @@ ob_start();
                     <?php else: ?>
                         <!-- Error -->
                         <div class="mb-4">
-                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #dc3545;">
+                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error" style="color: #dc3545;">
                                 <circle cx="40" cy="40" r="38" stroke="currentColor" stroke-width="4" fill="none" />
                                 <path d="M30 30L50 50M50 30L30 50" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
                             </svg>
                         </div>
 
-                        <h1 class="h3 mb-3" style="color: #8b4513;">Error al darse de baja</h1>
+                        <h1 class="h3 mb-3" style="color: var(--color-primario);">Error al darse de baja</h1>
 
                         <p class="text-muted mb-4">
                             <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?>

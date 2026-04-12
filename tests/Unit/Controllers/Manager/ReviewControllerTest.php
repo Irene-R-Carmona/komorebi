@@ -28,12 +28,10 @@ declare(strict_types=1);
 
 namespace Controllers\Manager;
 
+use App\Core\Result;
 use App\Http\Controllers\Manager\ReviewController;
-use App\Repositories\CafeRepository;
-use App\Repositories\Contracts\ReviewRepositoryInterface;
-use App\Services\ReviewService;
-use PDO;
-use PDOStatement;
+use App\Services\Contracts\ReviewModerationServiceInterface;
+use App\Services\Contracts\ReviewQueryServiceInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 
@@ -42,22 +40,13 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class ReviewControllerTest extends TestCase
 {
-    private ReviewRepositoryInterface $reviewRepo;
-    private ReviewService $reviewService;
-    private PDO $pdoMock;
-    private PDOStatement $stmtMock;
+    private ReviewQueryServiceInterface $queryService;
+    private ReviewModerationServiceInterface $moderationService;
 
     protected function setUp(): void
     {
-        $this->reviewRepo = $this->createStub(ReviewRepositoryInterface::class);
-        $this->pdoMock    = $this->createStub(PDO::class);
-        $this->stmtMock   = $this->createStub(PDOStatement::class);
-
-        // CafeRepository con PDO mock (para no necesitar DB real)
-        $cafeRepo = new CafeRepository($this->pdoMock);
-
-        // ReviewService es final; se construye con dependencias mockeadas
-        $this->reviewService = new ReviewService(null, null, $this->reviewRepo, $cafeRepo);
+        $this->queryService = $this->createStub(ReviewQueryServiceInterface::class);
+        $this->moderationService = $this->createStub(ReviewModerationServiceInterface::class);
     }
 
     protected function tearDown(): void
@@ -70,7 +59,7 @@ final class ReviewControllerTest extends TestCase
 
     public function testControllerCanBeInstantiated(): void
     {
-        $controller = new ReviewController($this->reviewService);
+        $controller = new ReviewController($this->queryService, $this->moderationService);
         $this->assertInstanceOf(ReviewController::class, $controller);
     }
 
@@ -86,7 +75,7 @@ final class ReviewControllerTest extends TestCase
 
         unset($_SESSION['user_cafe_id']);
 
-        $controller = new ReviewController($this->reviewService);
+        $controller = new ReviewController($this->queryService, $this->moderationService);
 
         ob_start();
         $result = $controller->index();
@@ -105,9 +94,9 @@ final class ReviewControllerTest extends TestCase
         // El layout backoffice.php necesita REQUEST_URI
         $_SERVER['REQUEST_URI'] = '/manager/reviews';
 
-        // reviewRepo devuelve datos vacíos para el manager
-        $this->reviewRepo->method('findByCafeId')->willReturn([]);
-        $this->reviewRepo->method('getRatingStats')->willReturn([
+        // queryService devuelve datos vacíos para el manager
+        $this->queryService->method('getReviewsByCafeId')->willReturn([]);
+        $this->queryService->method('getCafeRatingStats')->willReturn([
             'avg_rating' => 0.0,
             'total_reviews' => 0,
             'one_star' => 0,
@@ -117,7 +106,7 @@ final class ReviewControllerTest extends TestCase
             'five_stars' => 0,
         ]);
 
-        $controller = new ReviewController($this->reviewService);
+        $controller = new ReviewController($this->queryService, $this->moderationService);
 
         ob_start();
         $result = $controller->index();
@@ -140,7 +129,7 @@ final class ReviewControllerTest extends TestCase
         $_POST['csrf_token']     = 'wrong_token';
         $_POST['id']             = '7';
 
-        $controller = new ReviewController($this->reviewService);
+        $controller = new ReviewController($this->queryService, $this->moderationService);
         $response   = $controller->approve();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
@@ -159,10 +148,12 @@ final class ReviewControllerTest extends TestCase
         $_POST['csrf_token']     = $token;
         $_POST['id']             = '999';
 
-        // findById retorna null → el servicio devuelve Result::fail
-        $this->reviewRepo->method('findById')->willReturn(null);
+        // approveReview retorna Result::fail → el controller muestra error
+        $this->moderationService->method('approveReview')->willReturn(
+            Result::fail('Reseña no encontrada', 'not_found')
+        );
 
-        $controller = new ReviewController($this->reviewService);
+        $controller = new ReviewController($this->queryService, $this->moderationService);
         $response   = $controller->approve();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
@@ -181,19 +172,12 @@ final class ReviewControllerTest extends TestCase
         $_POST['csrf_token']     = $token;
         $_POST['id']             = '5';
 
-        // findById retorna reseña válida
-        $this->reviewRepo->method('findById')->willReturn([
-            'id' => 5,
-            'cafe_id' => 1,
-            'status' => 'pending',
-        ]);
-        $this->reviewRepo->method('updateStatus')->willReturn(true);
+        // approveReview retorna Result::ok → el controller muestra éxito
+        $this->moderationService->method('approveReview')->willReturn(
+            Result::ok(['id' => 5])
+        );
 
-        // CafeRepository::updateRating necesita PDO
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
-
-        $controller = new ReviewController($this->reviewService);
+        $controller = new ReviewController($this->queryService, $this->moderationService);
         $response   = $controller->approve();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
@@ -216,7 +200,7 @@ final class ReviewControllerTest extends TestCase
         $_POST['id']             = '7';
         $_POST['reason']         = 'Spam en la reseña';
 
-        $controller = new ReviewController($this->reviewService);
+        $controller = new ReviewController($this->queryService, $this->moderationService);
         $response   = $controller->reject();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
@@ -236,9 +220,11 @@ final class ReviewControllerTest extends TestCase
         $_POST['id']             = '42';
         $_POST['reason']         = 'Contenido inapropiado detectado';
 
-        $this->reviewRepo->method('findById')->willReturn(null);
+        $this->moderationService->method('rejectReview')->willReturn(
+            Result::fail('Reseña no encontrada', 'not_found')
+        );
 
-        $controller = new ReviewController($this->reviewService);
+        $controller = new ReviewController($this->queryService, $this->moderationService);
         $response   = $controller->reject();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
@@ -258,14 +244,11 @@ final class ReviewControllerTest extends TestCase
         $_POST['id']             = '12';
         $_POST['reason']         = 'Lenguaje inapropiado detectado en el texto';
 
-        $this->reviewRepo->method('findById')->willReturn([
-            'id' => 12,
-            'cafe_id' => 2,
-            'status' => 'pending',
-        ]);
-        $this->reviewRepo->method('updateStatus')->willReturn(true);
+        $this->moderationService->method('rejectReview')->willReturn(
+            Result::ok(['id' => 12])
+        );
 
-        $controller = new ReviewController($this->reviewService);
+        $controller = new ReviewController($this->queryService, $this->moderationService);
         $response   = $controller->reject();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);

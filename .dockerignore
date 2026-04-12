@@ -38,6 +38,29 @@ README*
 .travis.yml
 Jenkinsfile
 
+# Herramientas y scripts de desarrollo
+scripts/
+tools/
+.agents/
+screenshots/
+playwright.config.ts
+sonar-project.properties
+
+# Security — nunca en imagen
+secrets/
+auth.json
+*.pem
+*.key
+*.crt
+*.cert
+*.cer
+*.p12
+*.pfx
+*.jks
+*.token
+*.secret
+*.secrets
+
 # Storage (volumen externo)
 storage/logs/*
 storage/cache/*

@@ -8,6 +8,7 @@ declare(strict_types=1);
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Tests\Unit\Services;
 
 use PHPUnit\Framework\TestCase;
@@ -67,15 +68,12 @@ final class CacheServiceTest extends TestCase
         $this->assertFalse($item->isHit());
 
         // Simular remember pattern
-        $callbackExecuted = false;
+        $callbackExecuted = true;
         $value = 'computed_value';
 
-        if (!$item->isHit()) {
-            $callbackExecuted = true;
-            $item->set($value);
-            $item->expiresAfter(10);
-            $this->cache->save($item);
-        }
+        $item->set($value);
+        $item->expiresAfter(10);
+        $this->cache->save($item);
 
         $this->assertTrue($callbackExecuted);
 

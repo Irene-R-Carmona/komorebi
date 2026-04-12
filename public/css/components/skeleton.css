@@ -1,0 +1,131 @@
+/* ============================================================================
+   KOMOREBI — SKELETON LOADING STATES
+   Shimmer animado con fallback prefers-reduced-motion
+   ============================================================================ */
+
+:root {
+  --skeleton-base: #e8dcc4;
+  --skeleton-shine: #f4ede0;
+}
+
+[data-tema="oscuro"] {
+  --skeleton-base: #3D2E1F;
+  --skeleton-shine: #4A3828;
+}
+
+/* ----------------------------------------
+   Shimmer base
+---------------------------------------- */
+.skeleton {
+  background: var(--skeleton-base);
+  border-radius: var(--radio-sm);
+  position: relative;
+  overflow: hidden;
+  color: transparent !important;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Shimmer sweep */
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      var(--skeleton-shine) 50%,
+      transparent 100%);
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* prefers-reduced-motion: sin animación, solo color */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    display: none;
+  }
+}
+
+/* ----------------------------------------
+   Variantes de forma
+---------------------------------------- */
+.skeleton-text {
+  height: 1em;
+  width: 100%;
+  border-radius: var(--radio-sm);
+}
+
+.skeleton-text--sm {
+  height: 0.875em;
+  width: 60%;
+}
+
+.skeleton-text--heading {
+  height: 1.5em;
+  width: 80%;
+}
+
+.skeleton-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radio-full);
+  flex-shrink: 0;
+}
+
+.skeleton-avatar--lg {
+  width: 80px;
+  height: 80px;
+}
+
+.skeleton-image {
+  width: 100%;
+  border-radius: var(--radio-sm);
+}
+
+.skeleton-image--16-9 {
+  aspect-ratio: 16 / 9;
+}
+
+.skeleton-image--4-3 {
+  aspect-ratio: 4 / 3;
+}
+
+.skeleton-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  overflow: hidden;
+  padding: var(--espaciado-md);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ----------------------------------------
+   Stagger delays (para listas de skeletons)
+---------------------------------------- */
+.skeleton-list>*:nth-child(2)::after {
+  animation-delay: 0.1s;
+}
+
+.skeleton-list>*:nth-child(3)::after {
+  animation-delay: 0.2s;
+}
+
+.skeleton-list>*:nth-child(4)::after {
+  animation-delay: 0.3s;
+}
+
+.skeleton-list>*:nth-child(5)::after {
+  animation-delay: 0.4s;
+}
+
+.skeleton-list>*:nth-child(6)::after {
+  animation-delay: 0.5s;
+}

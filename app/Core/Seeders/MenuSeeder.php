@@ -95,7 +95,7 @@ final class MenuSeeder
         $result = $this->db->query('SELECT id, slug FROM menu_categories')->fetchAll(PDO::FETCH_KEY_PAIR);
 
         echo "   -> Categorías creadas.\n";
-        Logger::info('MenuSeeder: categories created', ['count' => \count($result)]);
+        Logger::info('MenuSeeder: categories created', ['count' => count($result)]);
 
         return $result;
     }

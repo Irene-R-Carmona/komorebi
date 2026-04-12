@@ -19,6 +19,7 @@ namespace Tests\Unit\Http\Controllers\Shared;
 
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Shared\ReviewController;
+use App\Services\ReviewService;
 use Tests\Support\ControllerTestCase;
 
 final class ReviewControllerTest extends ControllerTestCase
@@ -40,7 +41,7 @@ final class ReviewControllerTest extends ControllerTestCase
 
     private function makeController(): ReviewController
     {
-        return new ReviewController();
+        return new ReviewController(reviewService: $this->createStub(ReviewService::class));
     }
 
     public function test_create_throws_validation_exception_when_not_authenticated(): void

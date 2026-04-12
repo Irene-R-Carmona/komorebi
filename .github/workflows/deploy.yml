@@ -1,0 +1,131 @@
+name: Deploy
+
+# Continuous Delivery — se dispara al mergear a main.
+#
+# Siempre activo:
+#   • Build imagen de producción y push a GHCR
+#
+# Activar cuando se elija plataforma de despliegue (descomentar la variante):
+#   • Variante A: VPS via SSH (appleboy/ssh-action)
+#   • Variante B: fly.io (flyctl)
+#
+# Notificación Telegram al canal admin: descomentar último step y configurar secrets.
+#
+# Secrets necesarios según variante (Settings → Secrets and variables → Actions):
+#   GHCR (siempre):       GITHUB_TOKEN ya disponible (packages: write)
+#   Variante A (VPS):     SSH_HOST, SSH_USER, SSH_KEY, SSH_PORT (opcional, default 22)
+#   Variante B (fly.io):  FLY_API_TOKEN, FLY_APP_NAME
+#   Notificación:         TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # Build y push de imagen de producción a GHCR
+      # -----------------------------------------------------------------------
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest
+
+      - name: Build and push production image to GHCR
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/php/Dockerfile.prod
+          push: true
+          build-args: |
+            BUILD_ENV=production
+            INSTALL_DEV=false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      # -----------------------------------------------------------------------
+      # VARIANTE A — Deploy a VPS via SSH
+      # Prerrequisitos:
+      #   1. El servidor tiene Docker instalado
+      #   2. La imagen de GHCR es accesible desde el servidor (docker login ghcr.io)
+      #   3. Existe /opt/komorebi-cafe/docker-compose.prod.yml en el servidor
+      #   4. Las variables de entorno están en /opt/komorebi-cafe/.env en el servidor
+      #
+      # Activar: descomentar el bloque completo y configurar secrets SSH_HOST,
+      #          SSH_USER, SSH_KEY en GitHub → Settings → Secrets.
+      # -----------------------------------------------------------------------
+      # - name: Deploy to VPS via SSH
+      #   uses: appleboy/ssh-action@v1.2.0
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USER }}
+      #     key: ${{ secrets.SSH_KEY }}
+      #     port: ${{ secrets.SSH_PORT || 22 }}
+      #     script: |
+      #       cd /opt/komorebi-cafe
+      #       echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+      #         -u ${{ github.actor }} --password-stdin
+      #       docker compose -f docker-compose.prod.yml pull app
+      #       docker compose -f docker-compose.prod.yml up -d --remove-orphans app
+      #       docker image prune -f
+
+      # -----------------------------------------------------------------------
+      # VARIANTE B — Deploy a fly.io
+      # Prerrequisitos:
+      #   1. fly.toml configurado en la raíz del proyecto
+      #   2. App creada en fly.io: flyctl apps create komorebi-cafe
+      #   3. Secrets de producción configurados: flyctl secrets set KEY=value
+      #
+      # Activar: descomentar el bloque completo y configurar secrets FLY_API_TOKEN
+      #          y FLY_APP_NAME en GitHub → Settings → Secrets.
+      # -----------------------------------------------------------------------
+      # - name: Deploy to fly.io
+      #   uses: superfly/flyctl-actions/setup-flyctl@master
+      # - name: Launch on fly.io
+      #   run: flyctl deploy --remote-only --app ${{ secrets.FLY_APP_NAME }}
+      #   env:
+      #     FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      # -----------------------------------------------------------------------
+      # Notificación Telegram al canal admin con resultado del deploy
+      # Activar: descomentar y configurar TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID.
+      # -----------------------------------------------------------------------
+      # - name: Notify Telegram on deploy result
+      #   if: always()
+      #   uses: appleboy/telegram-action@v1.0.0
+      #   with:
+      #     to: ${{ secrets.TELEGRAM_CHAT_ID }}
+      #     token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      #     message: |
+      #       ${{ job.status == 'success' && '✅' || '❌' }} Deploy komorebi-cafe
+      #       Commit: ${{ github.sha }}
+      #       Branch: ${{ github.ref_name }}
+      #       Actor: ${{ github.actor }}
+      #       Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

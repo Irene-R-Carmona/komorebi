@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Core\Container;
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
-use App\Services\WaitlistService;
-use PDO;
+use App\Services\Contracts\WaitlistServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -20,13 +20,13 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class WaitlistController
 {
-    private WaitlistService $service;
+    private WaitlistServiceInterface $service;
 
     private ResponseFactory $response;
 
-    public function __construct(PDO $db)
+    public function __construct()
     {
-        $this->service = new WaitlistService($db);
+        $this->service = Container::make(WaitlistServiceInterface::class);
         $this->response = new ResponseFactory();
     }
 

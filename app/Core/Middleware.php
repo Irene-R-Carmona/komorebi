@@ -71,7 +71,7 @@ final class Middleware
             if (!\headers_sent()) {
                 \header('Location: /login');
             } else {
-                Logger::error('[Middleware::auth] headers already sent; cannot redirect to /login');
+                Logger::error('[Middleware::auth] headers already sent; cannot redirect to /login', ['user_id' => $userId]);
             }
             if (PHP_SAPI === 'cli') {
                 throw new \App\Exceptions\MiddlewareException('No autenticado', 'auth', 'not_authenticated');
@@ -113,7 +113,7 @@ final class Middleware
         $hasRole = \count(\array_intersect($userRoles, $allowedRoles)) > 0;
 
         if (!$hasRole) {
-            Logger::error('[Middleware::role] Acceso denegado. Requerido: ' . \implode(',', $allowedRoles) . ' | Usuario tiene: ' . \implode(',', $userRoles));
+            Logger::error('[Middleware::role] Acceso denegado', ['required' => $allowedRoles, 'actual' => $userRoles]);
             self::handleUnauthorized();
         }
     }
@@ -138,7 +138,7 @@ final class Middleware
         }
 
         if (!self::userHasPermission($permission)) {
-            Logger::error("[Middleware::can] Acceso denegado. Permiso: $permission | Roles usuario: " . \implode(',', $userRoles));
+            Logger::error('[Middleware::can] Acceso denegado', ['permission' => $permission, 'roles' => $userRoles]);
             self::handleUnauthorized();
         }
     }
@@ -163,7 +163,7 @@ final class Middleware
             }
         } catch (Throwable $e) {
             // Log del error pero no fallar
-            Logger::error('[Middleware::guest] Error: ' . $e->getMessage());
+            Logger::error('[Middleware::guest] Error', ['exception' => $e->getMessage()]);
         }
     }
 
@@ -447,7 +447,7 @@ final class Middleware
         if (!\headers_sent()) {
             \header('Location: ' . $path);
         } else {
-            Logger::error('[Middleware::redirect] headers already sent; cannot redirect to ' . $path);
+            Logger::error('[Middleware::redirect] headers already sent', ['path' => $path]);
         }
         exit;
     }
@@ -460,7 +460,7 @@ final class Middleware
         if (!\headers_sent()) {
             @\http_response_code($code);
         } else {
-            Logger::error('[Middleware::abort] headers already sent; skipping http_response_code(' . $code . ')');
+            Logger::error('[Middleware::abort] headers already sent; skipping http_response_code', ['code' => $code]);
         }
         $errorPage = match ($code) {
             403 => '/error/403',
@@ -471,7 +471,7 @@ final class Middleware
         if (!\headers_sent()) {
             \header("Location: $errorPage");
         } else {
-            Logger::error('[Middleware::abort] headers already sent; cannot redirect to ' . $errorPage);
+            Logger::error('[Middleware::abort] headers already sent; cannot redirect', ['error_page' => $errorPage]);
         }
         exit;
     }
@@ -485,7 +485,7 @@ final class Middleware
             @\http_response_code($code);
             \header('Content-Type: application/json; charset=UTF-8');
         } else {
-            Logger::error('[Middleware::abortJson] headers already sent; skipping \header() and http_response_code()');
+            Logger::error('[Middleware::abortJson] headers already sent; skipping header()', ['code' => $code, 'message' => $message]);
         }
         echo \json_encode(['error' => $message], JSON_UNESCAPED_UNICODE);
         exit;
@@ -558,7 +558,7 @@ final class Middleware
             // X-Powered-By: Ocultar información del servidor
             \header_remove('X-Powered-By');
         } else {
-            Logger::error('[Middleware::securityHeaders] headers already sent; skipping security headers');
+            Logger::error('[Middleware::securityHeaders] headers already sent; skipping security headers', ['strict' => $strict]);
         }
     }
 

@@ -23,4 +23,9 @@ interface RateLimitingServiceInterface
      * Registra un intento y bloquea si se supera el límite configurado.
      */
     public function recordAttempt(string $action, string $identifier, ?string $ipAddress = null): bool;
+
+    /**
+     * Limpia los intentos registrados para una acción e identificador dados.
+     */
+    public function clearAttempts(string $action, string $identifier): void;
 }

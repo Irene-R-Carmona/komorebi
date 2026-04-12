@@ -11,7 +11,7 @@ declare(strict_types=1);
  */
 ?>
 <div class="error-card">
-    <div class="error-icon">⚠️</div>
+    <div class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
     <h1 class="error-code">400</h1>
     <h2 class="error-title">Solicitud Incorrecta</h2>
 
@@ -20,7 +20,7 @@ declare(strict_types=1);
     </p>
 
     <?php if (!empty($message)): ?>
-        <p class="error-desc" style="opacity:.8;">
+        <p class="error-desc error-desc--detail">
             Detalle: <strong><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></strong>
         </p>
     <?php endif; ?>
@@ -29,7 +29,7 @@ declare(strict_types=1);
         <a href="<?= $_SERVER['HTTP_REFERER'] ?? '/' ?>" class="error-btn">
             Volver atrás
         </a>
-        <a href="/" class="error-btn" style="background: var(--color-secondary);">
+        <a href="/" class="error-btn error-btn--alt">
             Ir al inicio
         </a>
     </div>

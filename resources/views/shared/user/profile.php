@@ -236,7 +236,7 @@ $isCancelable = is_array($next)
                 <?php else: ?>
                     <section class="next-adventure next-adventure--empty">
                         <div class="next-adventure__label">Próxima aventura</div>
-                        <p style="margin:0;">
+                        <p class="mb-0">
                             Aún no tienes una visita programada.<br>
                             Reserva tu próximo paseo por el bosque.
                         </p>

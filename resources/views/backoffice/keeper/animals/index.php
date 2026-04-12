@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Lista de Animales - Módulo Keeper
  *
@@ -50,17 +52,17 @@ $getStatusLabel = function (string $status): string {
     </div>
 
     <!-- Flash Messages -->
-    <?php
-    $flash = \App\Core\Flash::getAll();
-    if (!empty($flash['success'])): ?>
+    <?php $flashSuccess = \App\Core\Flash::get('success'); ?>
+    <?php if ($flashSuccess !== null): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($flash['success'], ENT_QUOTES, 'UTF-8') ?>
+            <?= htmlspecialchars($flashSuccess, ENT_QUOTES, 'UTF-8') ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
-    <?php if (!empty($flash['error'])): ?>
+    <?php $flashError = \App\Core\Flash::get('error'); ?>
+    <?php if ($flashError !== null): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($flash['error'], ENT_QUOTES, 'UTF-8') ?>
+            <?= htmlspecialchars($flashError, ENT_QUOTES, 'UTF-8') ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
@@ -97,10 +99,12 @@ $getStatusLabel = function (string $status): string {
                                     <td class="fw-semibold">
                                         <?php if (!empty($animal['image_url'])): ?>
                                             <img src="<?= htmlspecialchars($animal['image_url'], ENT_QUOTES, 'UTF-8') ?>"
-                                                alt="<?= htmlspecialchars($animal['name'], ENT_QUOTES, 'UTF-8') ?>"
+                                                alt=""
+                                                aria-hidden="true"
                                                 class="rounded-circle me-2"
                                                 width="32" height="32"
-                                                style="object-fit:cover;">
+                                                style="object-fit:cover;"
+                                                onerror="this.style.display='none'">
                                         <?php else: ?>
                                             <span class="me-2 text-muted"><i class="bi bi-image"></i></span>
                                         <?php endif; ?>
@@ -108,10 +112,41 @@ $getStatusLabel = function (string $status): string {
                                     </td>
                                     <td><?= htmlspecialchars($animal['species_type'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= htmlspecialchars($animal['cafe_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td>
-                                        <span class="badge bg-<?= $getStatusBadgeClass($animal['current_status'] ?? '') ?>">
-                                            <?= $getStatusLabel($animal['current_status'] ?? '') ?>
+                                    <td x-data="{
+                                            status: '<?= htmlspecialchars($animal['current_status'] ?? 'active', ENT_QUOTES) ?>',
+                                            loading: false,
+                                            async toggle() {
+                                                this.loading = true;
+                                                try {
+                                                    const csrfToken = document.querySelector('meta[name=csrf-token]')?.content ?? '';
+                                                    const body = new FormData();
+                                                    body.append('csrf_token', csrfToken);
+                                                    const res = await fetch('/keeper/animals/<?= (int)$animal['id'] ?>/toggle', {
+                                                        method: 'POST',
+                                                        body
+                                                    });
+                                                    const json = await res.json();
+                                                    if (json.ok) {
+                                                        this.status = this.status === 'active' ? 'inactive' : 'active';
+                                                    }
+                                                } finally {
+                                                    this.loading = false;
+                                                }
+                                            }
+                                        }">
+                                        <span :class="status === 'active' ? 'badge bg-success' : 'badge bg-secondary'"
+                                            x-text="status === 'active' ? 'Activo' : 'Inactivo'">
                                         </span>
+                                        <?php if (($animal['current_status'] ?? '') !== 'retired'): ?>
+                                            <button class="btn btn-sm ms-1"
+                                                :class="status === 'active' ? 'btn-outline-secondary' : 'btn-outline-success'"
+                                                :disabled="loading"
+                                                @click.stop="toggle()"
+                                                :title="status === 'active' ? 'Desactivar' : 'Activar'">
+                                                <span x-show="loading" class="spinner-border spinner-border-sm" x-cloak></span>
+                                                <i x-show="!loading" :class="status === 'active' ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                                            </button>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="text-center">
                                         <?php $logsToday = (int) ($animal['logs_today'] ?? 0); ?>

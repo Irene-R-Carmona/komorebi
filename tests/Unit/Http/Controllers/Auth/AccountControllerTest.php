@@ -19,6 +19,7 @@ namespace Tests\Unit\Http\Controllers\Auth;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Auth\AccountController;
+use App\Services\AuthService;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -40,7 +41,10 @@ final class AccountControllerTest extends ControllerTestCase
 
     private function makeController(): AccountController
     {
-        return new AccountController(response: new ResponseFactory());
+        return new AccountController(
+            authService: $this->createStub(AuthService::class),
+            response: new ResponseFactory(),
+        );
     }
 
     public function test_class_exists_and_has_key_methods(): void

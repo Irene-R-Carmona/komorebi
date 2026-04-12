@@ -8,6 +8,7 @@ use App\Exceptions\ConfigurationException;
 use App\Exceptions\DatabaseException;
 use App\Models\AuditLog;
 use App\Models\Setting;
+use App\Services\Contracts\SettingsServiceInterface;
 use Exception;
 
 /**
@@ -18,7 +19,7 @@ use Exception;
  *
  * @package Komorebi\Services
  */
-final class SettingsService
+final class SettingsService implements SettingsServiceInterface
 {
     private Setting $settingModel;
 
@@ -32,6 +33,7 @@ final class SettingsService
      *
      * @return array Configuraciones como array asociativo [key => value]
      */
+    #[\Override]
     public function getAll(): array
     {
         $allSettings = $this->settingModel->findAll();
@@ -51,6 +53,7 @@ final class SettingsService
      * @param mixed|null $default Valor por defecto si no existe
      * @return mixed Valor de la configuración
      */
+    #[\Override]
     public function get(string $key, mixed $default = null): mixed
     {
         return Setting::get($key, $default);
@@ -65,6 +68,7 @@ final class SettingsService
      * @return boolean True si se actualizó correctamente
      * @throws DatabaseException Si falla la actualización
      */
+    #[\Override]
     public function update(string $key, mixed $value, ?int $userId = null): bool
     {
         // Obtener valor antiguo para auditoría
@@ -99,6 +103,7 @@ final class SettingsService
      * @return integer Número de configuraciones actualizadas
      * @throws DatabaseException Si falla la actualización masiva
      */
+    #[\Override]
     public function updateBulk(array $settings, ?string $group = null, ?int $userId = null): int
     {
         $updated = 0;
@@ -144,6 +149,7 @@ final class SettingsService
      * @param string $group Prefijo del grupo (ej: 'smtp_', 'app_')
      * @return array Configuraciones del grupo
      */
+    #[\Override]
     public function getByGroup(string $group): array
     {
         $allSettings = $this->getAll();
@@ -158,6 +164,7 @@ final class SettingsService
      *
      * @return boolean True si SMTP está habilitado
      */
+    #[\Override]
     public function isSmtpEnabled(): bool
     {
         return (bool) Setting::get('smtp_enabled', false);
@@ -168,6 +175,7 @@ final class SettingsService
      *
      * @return array Configuración SMTP
      */
+    #[\Override]
     public function getSmtpConfig(): array
     {
         return [
@@ -187,6 +195,7 @@ final class SettingsService
      *
      * @return array Resultados de validación
      */
+    #[\Override]
     public function validate(): array
     {
         $issues = [];
@@ -224,6 +233,7 @@ final class SettingsService
      *
      * @return array Estadísticas
      */
+    #[\Override]
     public function getStats(): array
     {
         $allSettings = $this->settingModel->findAll();
@@ -248,6 +258,7 @@ final class SettingsService
      * @return boolean
      * @throws ConfigurationException Si no existe valor por defecto
      */
+    #[\Override]
     public function resetToDefault(string $key): bool
     {
         $defaultValue = $this->getDefaults()[$key] ?? null;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use Override;
 use PDO;
 
 /**
@@ -30,11 +31,13 @@ abstract class AbstractRepository implements RepositoryInterface
     abstract protected function getTable(): string;
 
     /**
-     * Obtener los campos para SELECT (evita SELECT *).
+     * Returns ONLY presentation-safe fields: NO passwords, IPs, credentials,
+     * operational/internal fields, or recipe data.
+     * For sensitive field access, define explicit named methods in the concrete repository.
      */
     abstract protected function getSelectFields(): array;
 
-    #[\Override]
+    #[Override]
     public function findById(int $id): ?array
     {
         $fields = implode(', ', $this->getSelectFields());
@@ -49,7 +52,7 @@ abstract class AbstractRepository implements RepositoryInterface
         return $result === false ? null : (array) $result;
     }
 
-    #[\Override]
+    #[Override]
     public function findAll(): array
     {
         $fields = implode(', ', $this->getSelectFields());
@@ -58,7 +61,7 @@ abstract class AbstractRepository implements RepositoryInterface
         return $this->db->query("SELECT $fields FROM $table")->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    #[\Override]
+    #[Override]
     public function exists(int $id): bool
     {
         $table = $this->getTable();
@@ -71,7 +74,7 @@ abstract class AbstractRepository implements RepositoryInterface
         return (bool) $stmt->fetch();
     }
 
-    #[\Override]
+    #[Override]
     public function create(array $data): int
     {
         $table = $this->getTable();
@@ -91,7 +94,7 @@ abstract class AbstractRepository implements RepositoryInterface
         return (int) $this->db->lastInsertId();
     }
 
-    #[\Override]
+    #[Override]
     public function update(int $id, array $data): bool
     {
         $table = $this->getTable();
@@ -108,7 +111,7 @@ abstract class AbstractRepository implements RepositoryInterface
         return $this->db->prepare($sql)->execute($data);
     }
 
-    #[\Override]
+    #[Override]
     public function delete(int $id): bool
     {
         $table = $this->getTable();

@@ -12,10 +12,7 @@ document.addEventListener('alpine:init', () => {
 
     // Filtros
     excludedAllergens: [],
-    selectedCafeType: null, // null = todos, 'lounge' | 'playroom' | 'farm' | 'zen'
-
-    // Mensaje de error para el usuario (toast)
-    lastError: '',
+    selectedCafeType: null, // null = todos, 'lounge' | 'playroom' | 'farm' | 'zen',
 
     async init() {
       await this.fetchCart();
@@ -43,7 +40,7 @@ document.addEventListener('alpine:init', () => {
       try {
         // Si no hay cookies presentes probable usuario anónimo -> evitar solicitar /api/cart y causar 401
         if (!document.cookie || document.cookie.trim() === '') {
-          const guestRes = await fetch('/api/cart/guest');
+          const guestRes = await fetch('/api/v1/cart/guest');
           if (guestRes.ok) {
             const guestData = await guestRes.json();
             if (guestData.ok && guestData.data) {
@@ -55,15 +52,15 @@ document.addEventListener('alpine:init', () => {
           return;
         }
 
-        const res = await fetch('/api/cart');
+        const res = await fetch('/api/v1/cart');
         if (!res.ok) {
           // Si el servidor responde 401 (no autenticado), informar al usuario
           if (res.status === 401) {
-            // Mostrar mensaje amistoso en el toast para aclarar por qué no hay carrito
-            this.lastError = 'El carrito está disponible solo para usuarios registrados. Por favor, inicia sesión para acceder a tu carrito.';
+            // Mostrar mensaje amistoso para aclarar por qué no hay carrito
+            window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'El carrito está disponible solo para usuarios registrados. Por favor, inicia sesión para acceder a tu carrito.', type: 'error' } }));
             // Intentar endpoint público de guest como fallback silencioso
             try {
-              const guestRes = await fetch('/api/cart/guest');
+              const guestRes = await fetch('/api/v1/cart/guest');
               if (guestRes.ok) {
                 const guestData = await guestRes.json();
                 if (guestData.ok && guestData.data) {
@@ -77,9 +74,6 @@ document.addEventListener('alpine:init', () => {
             } catch (error_) {
               this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
             }
-
-            // Limpiar el mensaje tras unos segundos para no saturar la UI
-            setTimeout(() => { this.lastError = ''; }, 6000);
             return;
           }
 
@@ -105,12 +99,11 @@ document.addEventListener('alpine:init', () => {
       if (this.loading) return;
 
       this.loading = true;
-      this.lastError = '';
       productId = Number.parseInt(productId, 10);
       change = Number.parseInt(change, 10);
       if (!Number.isFinite(productId) || !Number.isFinite(change)) {
         this.loading = false;
-        this.lastError = 'Parámetros de cantidad inválidos';
+        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Parámetros de cantidad inválidos', type: 'error' } }));
         return;
       }
 
@@ -139,7 +132,7 @@ document.addEventListener('alpine:init', () => {
       const token = tokenEl ? tokenEl.getAttribute('content') : '';
 
       try {
-        const res = await fetch('/api/cart/update', {
+        const res = await fetch('/api/v1/cart/update', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -153,9 +146,9 @@ document.addEventListener('alpine:init', () => {
         if (!res.ok) {
           // Manejo de errores HTTP
           if (res.status === 419) {
-            this.lastError = 'Sesión expirada. Recarga la página.';
+            window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Sesión expirada. Recarga la página.', type: 'error' } }));
           } else {
-            this.lastError = responseData.error || responseData.message || 'Error al actualizar';
+            window.dispatchEvent(new CustomEvent('toast', { detail: { message: responseData.error || responseData.message || 'Error al actualizar', type: 'error' } }));
           }
           this.cart = oldCart; // Rollback
           return;
@@ -164,16 +157,15 @@ document.addEventListener('alpine:init', () => {
         // Extraer data del wrapper {ok: true, data: {...}}
         if (responseData.ok && responseData.data) {
           this.cart = responseData.data;
-          console.log('✅ Carrito sincronizado:', this.cart);
         } else {
           console.error('⚠️ Formato inesperado:', responseData);
-          this.lastError = 'Error de formato en respuesta';
+          window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Error de formato en respuesta', type: 'error' } }));
           this.cart = oldCart;
         }
 
       } catch (e) {
         console.error('❌ Error de red:', e);
-        this.lastError = 'Error de conexión';
+        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Error de conexión', type: 'error' } }));
         this.cart = oldCart;
       } finally {
         this.loading = false;
@@ -191,7 +183,6 @@ document.addEventListener('alpine:init', () => {
     setTab(id) {
       this.activeTab = id;
       this.search = '';
-      this.lastError = '';
     },
 
     /**

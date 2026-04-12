@@ -31,7 +31,8 @@ La tabla completa de skills y su contexto en el proyecto está en `AGENTS.md` �
 
 ### Vistas / UI nueva o rediseñada (`resources/views/`)
 
-- Vistas con lógica visual rica (Alpine.js, animaciones, layouts) → `frontend-design`
+- **Cualquier tarea visual** (colores, tipografía, espaciado, dark mode, accesibilidad, placeholders, iconos) → `ui-ux-pro-max` (skill primaria)
+- Vistas con lógica interactiva compleja (Alpine.js, animaciones CSS custom, micro-interacciones) → `frontend-design`
 - Dashboards y paneles admin/operativos (backoffice, KDS, recepción, keeper) → `interface-design`
 
 ### API REST (nuevas rutas o modificaciones)
@@ -41,7 +42,7 @@ La tabla completa de skills y su contexto en el proyecto está en `AGENTS.md` �
 ### Ciclo de rama
 
 | Momento                         | Skill                            |
-| ------------------------------- | -------------------------------- |
+|---------------------------------|----------------------------------|
 | Completar implementación        | `verification-before-completion` |
 | Antes de merge / PR             | `requesting-code-review`         |
 | Al recibir feedback de revisión | `receiving-code-review`          |
@@ -50,14 +51,14 @@ La tabla completa de skills y su contexto en el proyecto está en `AGENTS.md` �
 ### Tareas paralelas o desglosadas
 
 | Situación                                        | Skill                         |
-| ------------------------------------------------ | ----------------------------- |
+|--------------------------------------------------|-------------------------------|
 | Plan con 3+ tareas independientes en esta sesión | `subagent-driven-development` |
 | 2+ tareas sin estado compartido simultáneas      | `dispatching-parallel-agents` |
 
 ### Utilidades
 
 | Situación                                                  | Skill                 |
-| ---------------------------------------------------------- | --------------------- |
+|------------------------------------------------------------|-----------------------|
 | Inicio de conversación / sesión de trabajo                 | `using-superpowers`   |
 | Crear o editar `SKILL.md`                                  | `writing-skills`      |
 | Buscar una skill instalable para una necesidad nueva       | `find-skills`         |
@@ -68,7 +69,8 @@ La tabla completa de skills y su contexto en el proyecto está en `AGENTS.md` �
 
 ## Señales de alerta (STOP — estás racionalizando)
 
-- "Esto es demasiado simple para un skill" → Los proyectos simples son donde los supuestos no examinados causan más trabajo perdido.
+- "Esto es demasiado simple para un skill" → Los proyectos simples son donde los supuestos no examinados causan más
+  trabajo perdido.
 - "Solo necesito more contexto primero" → La comprobación de skills viene **antes** de buscar contexto.
 - "Ya conozco esta skill" → Las skills evolucionan. Lee la versión actual.
 - "Déjame explorar el código primero" → Las skills te dicen **cómo** explorar.
@@ -78,7 +80,7 @@ La tabla completa de skills y su contexto en el proyecto está en `AGENTS.md` �
 ## Dónde viven los archivos de skills
 
 | Tipo              | Ubicación                          | Registrado en      |
-| ----------------- | ---------------------------------- | ------------------ |
+|-------------------|------------------------------------|--------------------|
 | Proyecto          | `.agents/skills/<nombre>/SKILL.md` | `skills-lock.json` |
 | Usuario/global    | `~/.agents/skills/`                | No en el lock file |
 | Extensión VS Code | Extensión GitHub Copilot Chat      | No en el lock file |

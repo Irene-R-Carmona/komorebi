@@ -3,25 +3,6 @@
 
     <?php
 
-    use App\Core\Logger;
-
-    $animalesPrep = array_map(static function ($a) {
-        $attrs = [];
-        if (!empty($a['attributes'])) {
-            try {
-                $attrs = json_decode($a['attributes'], true, 512, JSON_THROW_ON_ERROR) ?? [];
-            } catch (Exception $e) {
-                Logger::warning('Error decodificando atributos de animal', [
-                    'exception' => get_class($e),
-                    'message' => $e->getMessage(),
-                    'animal_id' => $a['id'] ?? 'unknown',
-                ]);
-            }
-        }
-
-        return array_merge($a, $attrs);
-    }, $animales);
-
     // Preparar datos de ratings y café
     $cafeId = (int) ($cafe['id'] ?? 0);
     $ratingAvg = (float) ($ratingStats['average'] ?? 0);
@@ -52,9 +33,10 @@
                 <h1 class="cafe-hero__titulo"><?= $cafe['name'] ?></h1>
                 <p class="cafe-hero__subtitulo"><?= $cafe['japanese_name'] ?></p>
                 <div class="cafe-hero__meta">
-                    <div class="cafe-hero__meta-item"><span>📍</span> <?= $cafe['location'] ?></div>
+                    <div class="cafe-hero__meta-item"><i class="bi bi-geo-alt" aria-hidden="true"></i> <?= e($cafe['location']) ?></div>
                     <div class="cafe-hero__meta-item">
-                        <span>⭐</span>
+                        <i class="bi bi-star-fill" aria-hidden="true" style="color:var(--color-acento)"></i>
+                        <span class="visually-hidden">Valoración:</span>
                         <?= number_format($ratingAvg, 1) ?> / 5.0
                         <?php if ($ratingCount > 0): ?>
                             <span class="rating-count">(<?= $ratingCount ?> reseña<?= $ratingCount !== 1 ? 's' : '' ?>)</span>

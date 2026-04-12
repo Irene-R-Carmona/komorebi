@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Logger;
+use App\Services\Contracts\ClimaContextoServiceInterface;
 use DateTime;
 use DateTimeZone;
 
@@ -16,7 +17,7 @@ use DateTimeZone;
  *
  * Delega la obtención de datos y el caching a WeatherService.
  */
-final class ClimaContextoService
+final class ClimaContextoService implements ClimaContextoServiceInterface
 {
     private const TOKYO_LAT = 35.6762;
     private const TOKYO_LON = 139.6503;
@@ -95,6 +96,7 @@ final class ClimaContextoService
      * @return array{condicion: string, temperatura: float, temperatura_celsius: int, descripcion: string, mensaje_poetico: string, hora_tokyo: string, hora_local_tokyo: string, codigo_wmo: int, timestamp: int, desde_cache: bool}
      * @throws \DateMalformedStringException
      */
+    #[\Override]
     public function obtenerClimaActual(): array
     {
         $horaTokyoObj = new DateTime('now', new DateTimeZone('Asia/Tokyo'));
@@ -193,6 +195,7 @@ final class ClimaContextoService
      *   color_secundario: string
      * }
      */
+    #[\Override]
     public function obtenerConfiguracionEfectos(string $condicion): array
     {
         $configuraciones = [

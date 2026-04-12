@@ -37,7 +37,7 @@
        */
       async refreshData() {
         try {
-          const response = await fetch('/api/supervisor/dashboard-data');
+          const response = await fetch('/api/v1/supervisor/assignments');
           if (!response.ok) throw new Error('Network error');
 
           const data = await response.json();

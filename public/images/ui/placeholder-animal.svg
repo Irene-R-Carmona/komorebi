@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Sin foto del animal">
+    <rect width="400" height="400" fill="#F7F3EB" />
+    <!-- Cat ears -->
+    <polygon points="120,170 155,115 190,170" fill="#C9A959" opacity="0.45" />
+    <polygon points="210,170 245,115 280,170" fill="#C9A959" opacity="0.45" />
+    <polygon points="128,170 155,127 183,170" fill="#E8D5A3" opacity="0.5" />
+    <polygon points="217,170 245,127 273,170" fill="#E8D5A3" opacity="0.5" />
+    <!-- Head -->
+    <ellipse cx="200" cy="215" rx="85" ry="75" fill="#C9A959" opacity="0.4" />
+    <ellipse cx="200" cy="215" rx="76" ry="67" fill="#C9A959" opacity="0.25" />
+    <!-- Eyes -->
+    <ellipse cx="170" cy="205" rx="10" ry="12" fill="#8B6914" opacity="0.6" />
+    <ellipse cx="230" cy="205" rx="10" ry="12" fill="#8B6914" opacity="0.6" />
+    <!-- Nose -->
+    <polygon points="200,225 194,233 206,233" fill="#D2875A" opacity="0.5" />
+    <!-- Mouth -->
+    <path d="M194 234 Q200 242 206 234" stroke="#8B6914" stroke-width="2" fill="none" opacity="0.5" />
+    <!-- Whiskers left -->
+    <line x1="120" y1="228" x2="185" y2="228" stroke="#8B6914" stroke-width="1.5" opacity="0.35" />
+    <line x1="118" y1="237" x2="183" y2="233" stroke="#8B6914" stroke-width="1.5" opacity="0.35" />
+    <!-- Whiskers right -->
+    <line x1="215" y1="228" x2="280" y2="228" stroke="#8B6914" stroke-width="1.5" opacity="0.35" />
+    <line x1="217" y1="233" x2="282" y2="237" stroke="#8B6914" stroke-width="1.5" opacity="0.35" />
+    <!-- Paw print bottom -->
+    <ellipse cx="200" cy="315" rx="18" ry="13" fill="#C9A959" opacity="0.3" />
+    <ellipse cx="178" cy="302" rx="8" ry="7" fill="#C9A959" opacity="0.3" />
+    <ellipse cx="200" cy="298" rx="8" ry="7" fill="#C9A959" opacity="0.3" />
+    <ellipse cx="222" cy="302" rx="8" ry="7" fill="#C9A959" opacity="0.3" />
+    <!-- Label -->
+    <text x="200" y="365" text-anchor="middle" font-family="Georgia, serif" font-size="13" fill="#8B6914" opacity="0.6">Sin foto disponible</text>
+</svg>

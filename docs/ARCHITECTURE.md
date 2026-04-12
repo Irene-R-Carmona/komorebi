@@ -142,3 +142,89 @@ Los diagramas de referencia se encuentran en `docs/diagrams/`:
 | `reservation-flow.md`  | Flujo de creación de reserva         |
 | `auth-flow.md`         | Flujo de autenticación y RBAC        |
 | `er.puml`              | Diagrama entidad-relación (PlantUML) |
+
+---
+
+## Decisiones Arquitectónicas — v2 (Abril 2026)
+
+### Capa de Dominio
+
+Introducida en Fase 0 (streams 1–2). Los DTOs y Value Objects viven en `app/Domain/`:
+
+```
+app/Domain/
+  DTO/             → Datos de transferencia inmutables (readonly classes)
+  ValueObjects/    → Tipos de valor con validación propia
+```
+
+**Reglas obligatorias:**
+
+- DTOs son `final readonly` con constructor promocionado y métodos `fromArray(array): static` + `toViewArray(): array`.
+- Los Value Objects son `final readonly`, encapsulan validación, nunca retornan arrays crudos a la vista.
+- Ni DTOs ni VOs contienen lógica de negocio.
+- **Los DTOs no se pasan directamente a `View::render()`.** Deben llamar a `toViewArray()` primero.
+
+### Contratos de Capa (Service Interfaces)
+
+Ubicados en `app/Services/Contracts/`. Cualquier servicio con casos de uso testables debe tener una interfaz aquí.
+Los controladores inyectan la interfaz, no la implementación concreta.
+
+```
+app/Services/Contracts/
+  ProductServiceInterface.php
+  ReservationServiceInterface.php
+  ...
+```
+
+### Contrato de Repositorios (`getSelectFields`)
+
+`AbstractRepository::getSelectFields()` define exactamente qué columnas expone el repositorio a las capas superiores.
+**Campos internos** (credenciales, flags de borrado lógico, columnas de auditoría interna) **no deben listarse aquí.**
+
+Ejemplo de contrato correcto:
+
+```php
+protected function getSelectFields(): array
+{
+    return ['id', 'name', 'email', 'role', 'created_at']; // SIN: password_hash, deleted_at
+}
+```
+
+### Versionado de API
+
+Todos los endpoints públicos y privados de la API REST se sirven bajo `/api/v1/`.
+
+- Prefijo de URL: `/api/v1/`
+- Namespace PHP: `App\Http\Controllers\Api\V1\`
+- Documentación: `docs/openapi.yaml` (servidor base `url: /api/v1`)
+
+No añadir rutas `/api/` sin versión. Futuras versiones usarán `/api/v2/`, etc.
+
+### Frontera de Escape XSS
+
+`View::render()` escapa automáticamente todos los valores de `$data`.
+Para datos que no deben escaparse (HTML sanitizado, JSON para Alpine.js), usar:
+
+```php
+'jsonData' => Raw::json($array),   // JSON seguro para x-data de Alpine
+'htmlSnippet' => Raw::html($safe), // HTML pre-sanitizado
+```
+
+No pasar objetos en `$data`. Los DTOs deben llamar a `toViewArray()`.
+
+### Nomenclatura CQRS
+
+Los métodos de servicio siguen la convención:
+
+| Acción         | Prefijo    | Ejemplo                        |
+|----------------|------------|--------------------------------|
+| Consulta       | `get`, `find`, `list` | `getById()`, `findByEmail()` |
+| Mutación       | `create`, `update`, `delete` | `createReservation()` |
+| Validación     | `validate`, `check` | `validateRedemptionCode()` |
+| Operación sync | verbo directo | `redeem()`, `use()` |
+
+### Límite de Error
+
+- Los servicios retornan `Result::ok($data)` / `Result::fail($msg, $code)`. **No lanzan excepciones** para fallos esperados.
+- Los controladores traducen `Result` a respuestas HTTP (`$this->unprocessable()`, `$this->success()`, etc.).
+- Las excepciones (`\Throwable`) son para errores inesperados de infraestructura — el middleware de error las convierte en HTTP 500.

@@ -39,24 +39,18 @@ final class View
         ];
     }
 
-    private static function sendSecurityHeaders(): void
-    {
-        if (\headers_sent()) {
-            return;
-        }
-
-        foreach (self::getSecurityHeaders() as $name => $value) {
-            \header("$name: $value");
-        }
-    }
 
     /**
      * Renderiza una vista con layout opcional.
      *
-     * @param string      $view     Ej: "auth/login", "errors/404"
-     * @param array       $data     Variables para la vista (se escapan automáticamente)
-     * @param array       $extraCss CSS extra a incluir (lo consume el layout)
-     * @param string|null $layout   Nombre de layout (null = sin layout)
+     * Todos los valores de $data se escapan automáticamente (XSS). Para pasar HTML o JSON
+     * sin escapar usa {@see Raw::html()} o {@see Raw::json()}. No se admiten objetos —
+     * los DTOs deben llamar a toViewArray() antes de pasarlos.
+     *
+     * @param string                                                            $view     Ruta de la plantilla relativa a views/ (p. ej. 'public/cafes/show')
+     * @param array<string, array<mixed>|string|integer|float|boolean|null|Raw> $data     Variables de vista. Sin objetos — los DTOs deben llamar a toViewArray() antes.
+     * @param array<string>                                                     $extraCss Archivos CSS adicionales a incluir
+     * @param string|null                                                       $layout   Nombre del layout (null = sin layout, default: 'main')
      */
     public static function render(
         string $view,
@@ -64,8 +58,6 @@ final class View
         array $extraCss = [],
         ?string $layout = 'main'
     ): void {
-        self::sendSecurityHeaders();
-
         // 1) Extraer extraCss y extraJs del array de datos ANTES de escapar
         // El extraCss puede venir como parámetro o dentro de $data
         if (!empty($data['extraCss'])) {
@@ -141,7 +133,7 @@ final class View
     /**
      * Respuesta JSON.
      *
-     * @param mixed $data Datos a serializar
+     * @param mixed   $data   Datos a serializar
      * @param integer $status Código HTTP
      * @return never
      * @throws \JsonException
@@ -246,9 +238,9 @@ final class View
      * Por defecto usa loading="lazy" para mejorar performance (LCP/TTI).
      * Para imágenes críticas above-the-fold, pasar 'loading' => 'eager'.
      *
-     * @param string $src    URL de la imagen (sin escapar)
-     * @param string $alt    Texto alternativo (sin escapar, se escapará aquí)
-     * @param array  $attrs  Atributos adicionales: width, height, class, loading, etc.
+     * @param string $src   URL de la imagen (sin escapar)
+     * @param string $alt   Texto alternativo (sin escapar, se escapará aquí)
+     * @param array  $attrs Atributos adicionales: width, height, class, loading, etc.
      * @return string HTML de la etiqueta <img>
      *
      * @example

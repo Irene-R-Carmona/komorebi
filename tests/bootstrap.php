@@ -100,7 +100,7 @@ foreach ($testDirs as $dir) {
 // Para pruebas futuras: comprobación en tiempo de ejecución que fallará si el archivo
 // actual no contiene el bloque. Esto obliga a mantener la disciplina para nuevos tests.
 // Se registra como shutdown function para que lance una excepción temprana si falta.
-register_shutdown_function(function () use ($requiredBlock) {
+register_shutdown_function(function (): void {
     // Detectar el test que se está ejecutando vía debug_backtrace
     $bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
     foreach ($bt as $frame) {

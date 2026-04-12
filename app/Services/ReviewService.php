@@ -8,51 +8,34 @@ use App\Core\BaseService;
 use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Result;
-use App\Events\ReviewPublishedEvent;
-use App\Models\Review;
 use App\Models\User;
-use App\Repositories\Contracts\CafeRepositoryInterface;
-use App\Repositories\CafeRepository;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
-use App\Repositories\ReviewRepository;
-use DateTimeImmutable;
+use App\Services\Contracts\ReviewServiceInterface;
 use Exception;
 use RuntimeException;
 
 /**
  * Servicio de Reseñas
  *
- * Gestiona la lógica de negocio para reseñas.
- * Validaciones, cálculos y operaciones de moderación.
+ * Gestiona la lógica de negocio para reseñas: creación, edición y eliminación
+ * por el propietario, más verificación de elegibilidad.
  */
-final class ReviewService extends BaseService
+class ReviewService extends BaseService implements ReviewServiceInterface
 {
-    private Review $reviewModel;
-
     private User $userModel;
 
     private ReviewRepositoryInterface $reviewRepository;
 
-    private CafeRepositoryInterface $cafeRepository;
-
-    private ?\Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher;
-
     public function __construct(
-        ?Review $reviewModel = null,
-        ?User $userModel = null,
-        ?ReviewRepositoryInterface $reviewRepository = null,
-        ?CafeRepositoryInterface $cafeRepository = null,
-        ?\Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher = null
+        User $userModel,
+        ReviewRepositoryInterface $reviewRepository
     ) {
-        $this->reviewModel = $reviewModel ?? new Review();
-        $this->userModel = $userModel ?? new User();
-        $this->reviewRepository = $reviewRepository ?? new ReviewRepository();
-        $this->cafeRepository = $cafeRepository ?? new CafeRepository();
-        $this->eventDispatcher = $eventDispatcher;
+        $this->userModel = $userModel;
+        $this->reviewRepository = $reviewRepository;
     }
 
     // ─────────────────────────────────────────────────────────────
-    // Crear reseña (con validaciones completas)
+    // Crear / Editar / Eliminar reseña
     // ─────────────────────────────────────────────────────────────
 
     /**
@@ -60,6 +43,7 @@ final class ReviewService extends BaseService
      *
      * @return Result Data contiene ['id' => int] si exitoso
      */
+    #[\Override]
     public function createReview(
         int $userId,
         int $cafeId,
@@ -123,103 +107,6 @@ final class ReviewService extends BaseService
     }
 
     // ─────────────────────────────────────────────────────────────
-    // Moderación (Backoffice)
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Aprueba una reseña.
-     *
-     * @param integer $reviewId
-     *
-     * @return Result
-     */
-    public function approveReview(int $reviewId): Result
-    {
-        try {
-            $review = $this->reviewRepository->findById($reviewId);
-
-            if (!$review) {
-                return Result::fail('Reseña no encontrada');
-            }
-
-            $this->reviewRepository->updateStatus($reviewId, 'approved');
-
-            // Actualizar rating del café automáticamente
-            $cafeId = (int) $review['cafe_id'];
-            $this->cafeRepository->updateRating($cafeId);
-
-            // Log de auditoría
-            Logger::info('Reseña aprobada', [
-                'review_id' => $reviewId,
-                'cafe_id' => $cafeId,
-                'action' => 'approve',
-            ]);
-
-            if ($this->eventDispatcher !== null) {
-                $this->eventDispatcher->dispatch(new ReviewPublishedEvent(
-                    (int) $review['id'],
-                    (int) $review['user_id'],
-                    (int) $review['rating'],
-                    (string) ($review['body'] ?? ''),
-                    new DateTimeImmutable(),
-                ));
-            }
-
-            return Result::ok('Reseña aprobada exitosamente');
-        } catch (Exception $e) {
-            Logger::error('Error al aprobar reseña', [
-                'exception' => \get_class($e),
-                'message' => $e->getMessage(),
-                'review_id' => $reviewId,
-            ]);
-
-            return Result::fail('Error al aprobar reseña');
-        }
-    }
-
-    /**
-     * Rechaza una reseña con motivo.
-     *
-     * @param integer $reviewId
-     * @param string  $reason
-     *
-     * @return Result
-     */
-    public function rejectReview(int $reviewId, string $reason): Result
-    {
-        try {
-            if (\strlen(\trim($reason)) < 5 || \strlen(\trim($reason)) > 500) {
-                return Result::fail('Motivo debe tener entre 5 y 500 caracteres');
-            }
-
-            $review = $this->reviewRepository->findById($reviewId);
-
-            if (!$review) {
-                return Result::fail('Reseña no encontrada');
-            }
-
-            $reason = \htmlspecialchars($reason, ENT_QUOTES, 'UTF-8');
-            $this->reviewRepository->updateStatus($reviewId, 'rejected');
-
-            Logger::info('Reseña rechazada', [
-                'review_id' => $reviewId,
-                'action' => 'reject',
-                'reason_length' => \strlen($reason),
-            ]);
-
-            return Result::ok('Reseña rechazada');
-        } catch (Exception $e) {
-            Logger::error('Error al rechazar reseña', [
-                'exception' => \get_class($e),
-                'message' => $e->getMessage(),
-                'review_id' => $reviewId,
-            ]);
-
-            return Result::fail('Error al rechazar reseña');
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────
     // Editar/Eliminar reseña
     // ─────────────────────────────────────────────────────────────
 
@@ -234,6 +121,7 @@ final class ReviewService extends BaseService
      *
      * @return Result
      */
+    #[\Override]
     public function updateReview(
         int $reviewId,
         int $userId,
@@ -296,6 +184,7 @@ final class ReviewService extends BaseService
      *
      * @return Result|bool
      */
+    #[\Override]
     public function deleteReview(int $reviewId, ?int $userId = null): bool|Result
     {
         // Si no se pasa userId, comportamiento simple esperado por tests: devolver booleano
@@ -342,176 +231,9 @@ final class ReviewService extends BaseService
     }
 
     /**
-     * Compatibilidad para tests: eliminar reseña por id (sin userId) y devolver booleano.
-     */
-    public function deleteReviewById(int $reviewId): bool
-    {
-        try {
-            return $this->reviewRepository->delete($reviewId);
-        } catch (Exception $e) {
-            Logger::error('Error al eliminar reseña (byId)', [
-                'exception' => \get_class($e),
-                'message' => $e->getMessage(),
-                'review_id' => $reviewId,
-            ]);
-
-            return false;
-        }
-    }
-
-    /**
-     * Wrapper esperado por tests: obtener reseñas por usuario.
-     */
-    public function getReviewsByUserId(int $userId): array
-    {
-        return $this->reviewRepository->findByUserId($userId);
-    }
-
-    /**
-     * Wrapper esperado por tests: obtener reseñas por café.
-     */
-    public function getReviewsByCafeId(int $cafeId): array
-    {
-        return $this->reviewRepository->findByCafeId($cafeId, 'approved');
-    }
-
-    /**
-     * Calcula promedio simple de ratings (esperado por tests).
-     */
-    public function calculateAverageRating(int $cafeId): float
-    {
-        return $this->reviewRepository->calculateAverageRating($cafeId);
-    }
-
-    /**
-     * Moderación simplificada: intenta delegar a updateStatus del modelo.
-     * Devuelve booleano para compatibilidad con tests.
-     */
-    public function moderateReview(int $reviewId, string $status): bool
-    {
-        try {
-            $review = $this->reviewRepository->findById($reviewId);
-            $result = $this->reviewRepository->updateStatus($reviewId, $status);
-
-            // Si se aprueba o rechaza, actualizar rating del café
-            if ($result && $review && in_array($status, ['approved', 'rejected'], true)) {
-                $cafeId = (int) $review['cafe_id'];
-                $this->cafeRepository->updateRating($cafeId);
-            }
-
-            return $result;
-        } catch (Exception $e) {
-            Logger::error('Error al moderar reseña', [
-                'exception' => \get_class($e),
-                'message' => $e->getMessage(),
-                'review_id' => $reviewId,
-                'status' => $status,
-            ]);
-
-            return false;
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Listar reseñas
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Lista reseñas aprobadas de un café.
-     */
-    public function listApprovedReviews(int $cafeId, int $page = 1): array
-    {
-        try {
-            return $this->reviewRepository->findApprovedPaginated($cafeId, 10, $page);
-        } catch (Exception $e) {
-            Logger::error('Error al listar reseñas aprobadas', [
-                'exception' => \get_class($e),
-                'message' => $e->getMessage(),
-                'cafe_id' => $cafeId,
-                'page' => $page,
-            ]);
-
-            return ['data' => [], 'total' => 0, 'pages' => 0];
-        }
-    }
-
-    /**
-     * Lista reseñas del usuario.
-     */
-    public function listUserReviews(int $userId): array
-    {
-        try {
-            return $this->reviewRepository->findByUserId($userId);
-        } catch (Exception $e) {
-            Logger::error('Error al listar reseñas del usuario', [
-                'exception' => \get_class($e),
-                'message' => $e->getMessage(),
-                'user_id' => $userId,
-            ]);
-
-            return [];
-        }
-    }
-
-    /**
-     * Lista reseñas pendientes para moderación.
-     */
-    public function listPendingReviews(int $page = 1): array
-    {
-        try {
-            return $this->reviewRepository->findPendingPaginated(10, $page);
-        } catch (Exception $e) {
-            Logger::error('Error al listar reseñas pendientes', [
-                'exception' => \get_class($e),
-                'message' => $e->getMessage(),
-                'page' => $page,
-            ]);
-
-            return [];
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Estadísticas
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Obtiene estadísticas de ratings de un café.
-     */
-    public function getCafeRatingStats(int $cafeId): array
-    {
-        try {
-            $stats = $this->reviewRepository->getRatingStats($cafeId);
-
-            return [
-                'average' => $stats['avg_rating'] ?? 0.0,
-                'count' => $stats['total_reviews'] ?? 0,
-                'distribution' => [
-                    1 => $stats['one_star'] ?? 0,
-                    2 => $stats['two_stars'] ?? 0,
-                    3 => $stats['three_stars'] ?? 0,
-                    4 => $stats['four_stars'] ?? 0,
-                    5 => $stats['five_stars'] ?? 0,
-                ],
-            ];
-        } catch (Exception $e) {
-            Logger::error('Error al obtener estadísticas de ratings', [
-                'exception' => \get_class($e),
-                'message' => $e->getMessage(),
-                'cafe_id' => $cafeId,
-            ]);
-
-            return [
-                'average' => 0.0,
-                'count' => 0,
-                'distribution' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0],
-            ];
-        }
-    }
-
-    /**
      * Verifica si usuario puede dejar reseña (tiene reserva completada).
      */
+    #[\Override]
     public function canUserReview(int $userId, int $cafeId): array
     {
         try {
@@ -541,6 +263,7 @@ final class ReviewService extends BaseService
      *
      * @return boolean
      */
+    #[\Override]
     public function userHasCompletedReservation(int $userId, int $cafeId): bool
     {
         try {
@@ -575,6 +298,7 @@ final class ReviewService extends BaseService
      *
      * @return boolean
      */
+    #[\Override]
     public function userHasReviewInCafe(int $userId, int $cafeId): bool
     {
         try {
@@ -588,28 +312,6 @@ final class ReviewService extends BaseService
             ]);
 
             return false;
-        }
-    }
-
-    /**
-     * Obtiene una reseña por ID.
-     *
-     * @param integer $reviewId ID de la reseña
-     *
-     * @return array|null Datos de la reseña o null si no existe
-     */
-    public function getReview(int $reviewId): ?array
-    {
-        try {
-            return $this->reviewRepository->findById($reviewId);
-        } catch (Exception $e) {
-            Logger::error('Error al obtener reseña', [
-                'exception' => \get_class($e),
-                'message' => $e->getMessage(),
-                'review_id' => $reviewId,
-            ]);
-
-            return null;
         }
     }
 }

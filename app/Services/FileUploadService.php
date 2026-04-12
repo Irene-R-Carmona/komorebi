@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\ImageProcessor;
 use App\Core\Result;
 use App\Exceptions\ConfigurationException;
+use App\Services\Contracts\FileUploadServiceInterface;
 use Exception;
 use finfo;
 use Random\RandomException;
@@ -19,7 +20,7 @@ use Random\RandomException;
  *
  * @package Komorebi\Services
  */
-final class FileUploadService
+final class FileUploadService implements FileUploadServiceInterface
 {
     private const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2 MB
     private const MAX_ANIMAL_PHOTO_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -55,6 +56,7 @@ final class FileUploadService
      * @return Result URL relativa del avatar subido
      * @throws RandomException
      */
+    #[\Override]
     public function uploadAvatar(array $file, int $userId): Result
     {
         // Validar archivo
@@ -99,6 +101,7 @@ final class FileUploadService
      * @param integer $userId ID del usuario
      * @return Result
      */
+    #[\Override]
     public function deleteAvatar(int $userId): Result
     {
         try {
@@ -122,6 +125,7 @@ final class FileUploadService
      * @return Result URL relativa de la foto subida
      * @throws RandomException
      */
+    #[\Override]
     public function uploadAnimalPhoto(array $file, int $animalId): Result
     {
         // Validar archivo
@@ -264,6 +268,7 @@ final class FileUploadService
      * @param string $relativeUrl URL relativa del archivo
      * @return Result
      */
+    #[\Override]
     public function deleteFile(string $relativeUrl): Result
     {
         // Construir ruta absoluta desde URL relativa
@@ -319,6 +324,7 @@ final class FileUploadService
      * @param string $type Tipo de archivo ('avatar' o 'animal')
      * @return array{maxSize: int, maxSizeMB: float, allowedTypes: array, allowedExtensions: array}
      */
+    #[\Override]
     public function getUploadLimits(string $type = 'avatar'): array
     {
         if ($type === 'animal') {

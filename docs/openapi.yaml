@@ -1,0 +1,1335 @@
+openapi: 3.0.3
+
+info:
+  title: Komorebi Café API
+  description: |
+    API REST del sistema Komorebi Café. Todos los endpoints usan el envelope
+    canónico `{ok: bool, data: ...}` para éxito y `{ok: false, error: string,
+    code: string}` para errores (salvo indicación contraria).
+
+    **Cobertura actual:** 38 de 38 endpoints documentados (100%).
+    API versionada bajo `/api/v1/`. Grupos: `menu`, `cookies`, `cart`, `newsletter`,
+    `favorites`, `reservations`, `loyalty`, `holidays`, `time-slots`, `waitlist`,
+    `manager`, `supervisor`.
+  version: "1.0.0"
+  contact:
+    name: Komorebi Dev Team
+
+servers:
+  - url: /api/v1
+    description: Base URL de la API
+
+tags:
+  - name: menu
+    description: Carta del café — alérgenos y productos
+  - name: cookies
+    description: Preferencias de cookies, filtros, recientes y dietary (sesión)
+  - name: cart
+    description: Carrito de compra (sesión y autenticado)
+  - name: newsletter
+    description: Suscripción al boletín
+  - name: favorites
+    description: Cafés favoritos del usuario (requiere autenticación)
+  - name: reservations
+    description: Consulta y creación de reservas (requiere autenticación)
+  - name: loyalty
+    description: Sistema de fidelización — canje y validación de recompensas
+  - name: holidays
+    description: Festivos y disponibilidad de reservas
+  - name: time-slots
+    description: Franjas horarias disponibles
+  - name: waitlist
+    description: Lista de espera
+  - name: manager
+    description: Dashboard y métricas del manager (requiere rol manager)
+  - name: supervisor
+    description: Asignaciones de supervisores (requiere rol supervisor)
+
+paths:
+  /holidays:
+    get:
+      summary: Obtener festivos del año en curso
+      tags: [holidays]
+      responses:
+        "200":
+          description: Lista de festivos japoneses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HolidayList"
+
+  /holidays/check:
+    get:
+      summary: Verificar si una fecha es festivo
+      tags: [holidays]
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2026-05-05"
+      responses:
+        "200":
+          description: Resultado de la verificación
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HolidayCheck"
+
+  /time-slots/available:
+    get:
+      summary: Obtener franjas horarias disponibles para una fecha
+      tags: [time-slots]
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2026-05-20"
+        - name: cafe_id
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Franjas disponibles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /time-slots/stats:
+    get:
+      summary: Estadísticas de ocupación de franjas horarias
+      tags: [time-slots]
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Estadísticas de ocupación
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimeSlotStats"
+
+  /waitlist/join:
+    post:
+      summary: Unirse a la lista de espera
+      tags: [waitlist]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WaitlistJoinRequest"
+      responses:
+        "200":
+          description: Unión exitosa, retorna token y posición
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WaitlistJoinResponse"
+
+  /waitlist/position/{token}:
+    get:
+      summary: Consultar posición en la lista de espera
+      tags: [waitlist]
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Estado de la posición en la lista
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WaitlistStatus"
+
+  /waitlist/confirm/{token}:
+    post:
+      summary: Confirmar plaza desde la lista de espera
+      tags: [waitlist]
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Confirmación exitosa
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /manager/dashboard/stats:
+    get:
+      summary: Métricas en tiempo real del dashboard del manager
+      tags: [manager]
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Métricas del dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardMetrics"
+        "403":
+          description: Sin café asignado o sin permisos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /manager/dashboard/weekly-revenue:
+    get:
+      summary: Ingresos de los últimos 7 días (para gráfico)
+      tags: [manager]
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Datos de ingresos semanales en formato Chart.js
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeeklyRevenueChart"
+
+  /supervisor/assignments:
+    get:
+      summary: Listar asignaciones de supervisores
+      tags: [supervisor]
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Lista de asignaciones activas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  # ── Menu ─────────────────────────────────────────────────────────────
+
+  /menu/alergenos:
+    get:
+      summary: Obtener lista completa de alérgenos
+      tags: [menu]
+      responses:
+        "200":
+          description: Lista de alérgenos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Allergen"
+
+  /menu/productos:
+    get:
+      summary: Obtener productos agrupados por categoría
+      tags: [menu]
+      responses:
+        "200":
+          description: Productos agrupados por categoría con alérgenos embebidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /menu/view-product:
+    post:
+      summary: Registrar visualización de un producto (recently-viewed)
+      tags: [menu]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [product_id]
+              properties:
+                product_id:
+                  type: integer
+                  example: 42
+      responses:
+        "200":
+          description: Visualización registrada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Producto registrado"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  # ── Cookies / preferencias de sesión ─────────────────────────────────
+
+  /cookies/accept:
+    post:
+      summary: Aceptar todas las cookies
+      tags: [cookies]
+      responses:
+        "200":
+          description: Preferencias guardadas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /cookies/reject:
+    post:
+      summary: Rechazar cookies opcionales
+      tags: [cookies]
+      responses:
+        "200":
+          description: Preferencias guardadas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /cookies/update:
+    post:
+      summary: Actualizar consentimiento por categoría
+      tags: [cookies]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CookiePreferences"
+      responses:
+        "200":
+          description: Preferencias actualizadas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /cookies/get-filters:
+    get:
+      summary: Obtener filtros de catálogo guardados en sesión
+      tags: [cookies]
+      responses:
+        "200":
+          description: Filtros activos de la sesión
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /cookies/save-filters:
+    post:
+      summary: Guardar filtros de catálogo en sesión
+      tags: [cookies]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Objeto libre de pares filtro→valor
+              example:
+                category: "bebidas"
+                allergens: ["gluten"]
+      responses:
+        "200":
+          description: Filtros guardados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /cookies/clear-filters:
+    delete:
+      summary: Borrar filtros de catálogo de la sesión
+      tags: [cookies]
+      responses:
+        "200":
+          description: Filtros borrados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /cookies/save-dietary:
+    post:
+      summary: Guardar preferencias dietéticas en sesión
+      tags: [cookies]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Preferencias dietéticas del usuario
+              example:
+                vegetarian: true
+                vegan: false
+                gluten_free: false
+      responses:
+        "200":
+          description: Preferencias guardadas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /cookies/recently-viewed/add:
+    post:
+      summary: Añadir producto a la lista de vistos recientemente
+      tags: [cookies]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [product_id]
+              properties:
+                product_id:
+                  type: integer
+                  example: 42
+      responses:
+        "200":
+          description: Producto añadido a la lista
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /cookies/recently-viewed/data:
+    get:
+      summary: Obtener productos vistos recientemente
+      tags: [cookies]
+      responses:
+        "200":
+          description: Lista de IDs de productos vistos recientemente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /cookies/recently-viewed/clear:
+    delete:
+      summary: Limpiar lista de productos vistos recientemente
+      tags: [cookies]
+      responses:
+        "200":
+          description: Lista vaciada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /cookies/newsletter-prompted:
+    get:
+      summary: Consultar si ya se mostró el popup de newsletter
+      tags: [cookies]
+      responses:
+        "200":
+          description: Estado del flag en sesión
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          prompted:
+                            type: boolean
+    post:
+      summary: Marcar que el popup de newsletter ya se mostró
+      tags: [cookies]
+      responses:
+        "200":
+          description: Flag actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  # ── Carrito ───────────────────────────────────────────────────────────
+
+  /cart/guest:
+    get:
+      summary: Estado vacío del carrito para usuarios no autenticados
+      tags: [cart]
+      responses:
+        "200":
+          description: Carrito vacío canónico
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/CartState"
+
+  /cart:
+    get:
+      summary: Obtener estado actual del carrito con detalle de productos
+      tags: [cart]
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Estado del carrito
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/CartState"
+
+  /cart/add:
+    post:
+      summary: Añadir producto al carrito
+      tags: [cart]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CartAddRequest"
+      responses:
+        "200":
+          description: Carrito actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /cart/remove:
+    post:
+      summary: Eliminar producto del carrito
+      tags: [cart]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [product_id]
+              properties:
+                product_id:
+                  type: integer
+                  example: 42
+      responses:
+        "200":
+          description: Producto eliminado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /cart/update:
+    post:
+      summary: Modificar cantidad de un producto en el carrito
+      tags: [cart]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CartUpdateRequest"
+      responses:
+        "200":
+          description: Carrito actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /cart/clear:
+    post:
+      summary: Vaciar el carrito completo
+      tags: [cart]
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Carrito vaciado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            example: "cleared"
+
+  # ── Newsletter ────────────────────────────────────────────────────────
+
+  /newsletter/subscribe:
+    post:
+      summary: Suscribir email al boletín
+      tags: [newsletter]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "usuario@ejemplo.com"
+      responses:
+        "200":
+          description: Suscripción procesada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Te has suscrito al boletín"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  # ── Favoritos ─────────────────────────────────────────────────────────
+
+  /favorites/toggle:
+    post:
+      summary: Añadir o quitar un café de favoritos
+      tags: [favorites]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cafe_id]
+              properties:
+                cafe_id:
+                  type: integer
+                  example: 3
+      responses:
+        "200":
+          description: Estado del favorito tras la operación
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [status]
+                        properties:
+                          status:
+                            type: string
+                            enum: [added, removed]
+                            example: "added"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /favorites:
+    get:
+      summary: Listar cafés favoritos del usuario autenticado
+      tags: [favorites]
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Lista de favoritos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [items, total]
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              type: object
+                              description: Cafe favorito (campos variables según consulta)
+                          total:
+                            type: integer
+                            example: 2
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ── Reservas ──────────────────────────────────────────────────────────
+
+  /reservations/available:
+    get:
+      summary: Consultar franjas disponibles para hacer una reserva
+      tags: [reservations]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2026-06-15"
+        - name: cafe_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          example: 2
+        - name: guests
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          example: 4
+      responses:
+        "200":
+          description: Franjas con disponibilidad
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          date:
+                            type: string
+                            format: date
+                          cafe_id:
+                            type: integer
+                            nullable: true
+                          slots:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/TimeSlot"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /reservations/create:
+    post:
+      summary: Crear una nueva reserva
+      tags: [reservations]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReservationCreateRequest"
+      responses:
+        "200":
+          description: Reserva creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  # ── Fidelización ──────────────────────────────────────────────────────
+
+  /loyalty/validate/{code}:
+    get:
+      summary: Validar código de recompensa (uso desde TPV)
+      tags: [loyalty]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "REWARD-ABC123"
+      responses:
+        "200":
+          description: Código válido con detalle de la recompensa
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /loyalty/use:
+    post:
+      summary: Marcar un código de recompensa como usado
+      tags: [loyalty]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  example: "REWARD-ABC123"
+      responses:
+        "200":
+          description: Recompensa marcada como usada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /loyalty/redeem:
+    post:
+      summary: Canjear una recompensa del programa de fidelización
+      tags: [loyalty]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reward_type]
+              properties:
+                reward_type:
+                  type: string
+                  description: Tipo de recompensa a canjear
+                  example: "free_drink"
+      responses:
+        "200":
+          description: Recompensa canjeada exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Recompensa canjeada exitosamente"
+                          result:
+                            type: object
+                            description: Detalle de la recompensa canjeada (variable según tipo)
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    Unauthorized:
+      description: No autenticado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    UnprocessableEntity:
+      description: Datos de entrada inválidos
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    BadRequest:
+      description: Petición incorrecta
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+  schemas:
+    ApiResponse:
+      type: object
+      required: [ok, data]
+      properties:
+        ok:
+          type: boolean
+          example: true
+        data:
+          type: object
+          description: Payload variable según el endpoint
+
+    ApiError:
+      type: object
+      required: [ok, error, code]
+      properties:
+        ok:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "No tienes un café asignado"
+        code:
+          type: string
+          example: "cafe_not_assigned"
+
+    HolidayList:
+      description: Respuesta de formato E (sin envelope canónico — ver DT-12 del audit)
+      type: object
+      required: [holidays, count]
+      properties:
+        holidays:
+          type: array
+          items:
+            $ref: "#/components/schemas/Holiday"
+        count:
+          type: integer
+          example: 16
+
+    Holiday:
+      type: object
+      required: [date, name]
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2026-01-01"
+        name:
+          type: string
+          example: "Año Nuevo"
+
+    HolidayCheck:
+      description: Respuesta de formato E (sin envelope canónico — ver DT-12)
+      type: object
+      required: [date, is_holiday, available_for_reservations]
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2026-05-05"
+        is_holiday:
+          type: boolean
+        available_for_reservations:
+          type: boolean
+
+    TimeSlot:
+      type: object
+      required: [id, start_time, end_time, capacity, occupancy]
+      properties:
+        id:
+          type: integer
+        start_time:
+          type: string
+          format: time
+          example: "10:00"
+        end_time:
+          type: string
+          format: time
+          example: "11:00"
+        capacity:
+          type: integer
+          example: 20
+        occupancy:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Porcentaje de ocupación (0-100)
+          example: 75
+
+    TimeSlotStats:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            slots:
+              type: array
+              items:
+                $ref: "#/components/schemas/TimeSlot"
+            total_capacity:
+              type: integer
+            total_reserved:
+              type: integer
+
+    WaitlistJoinRequest:
+      type: object
+      required:
+        [cafe_id, date, time_slot_id, party_size, contact_name, contact_email]
+      properties:
+        cafe_id:
+          type: integer
+        date:
+          type: string
+          format: date
+        time_slot_id:
+          type: integer
+        party_size:
+          type: integer
+          minimum: 1
+          maximum: 10
+        contact_name:
+          type: string
+        contact_email:
+          type: string
+          format: email
+
+    WaitlistJoinResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [token, position]
+              properties:
+                token:
+                  type: string
+                  description: Token único para consultar/confirmar la posición
+                  example: "abc123xyz"
+                position:
+                  type: integer
+                  description: Posición en la lista de espera (1 = primero)
+                  example: 3
+                message:
+                  type: string
+                  example: "Te has unido a la lista de espera en posición 3"
+
+    WaitlistStatus:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [token, position, status]
+              properties:
+                token:
+                  type: string
+                position:
+                  type: integer
+                  description: Posición actual en la lista (1 = siguiente en ser llamado)
+                  example: 2
+                status:
+                  type: string
+                  enum: [waiting, called, confirmed, cancelled]
+                  example: "waiting"
+                estimated_wait_minutes:
+                  type: integer
+                  minimum: 0
+                  description: |
+                    Minutos estimados de espera basados en la posición y el
+                    tiempo medio de rotación de mesa (~15 min/turno). Puede
+                    ser null si el cálculo no está disponible (café cerrado,
+                    sin datos históricos).
+                  example: 30
+
+    DashboardMetrics:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              type: object
+              description: Métricas en tiempo real de DashboardService::getDashboardMetrics() + timestamp del controlador
+              required:
+                - reservations_today
+                - revenue_today
+                - active_staff
+                - animals_count
+                - weekly_revenue
+                - monthly_reservations
+                - avg_rating
+                - pending_reservations
+                - timestamp
+              properties:
+                reservations_today:
+                  type: integer
+                  description: Número de reservas confirmadas para el día actual
+                  example: 12
+                revenue_today:
+                  type: number
+                  format: float
+                  description: Ingresos del día actual en EUR
+                  example: 480.50
+                active_staff:
+                  type: integer
+                  description: Número de empleados con turno activo ahora mismo
+                  example: 4
+                animals_count:
+                  type: integer
+                  description: Total de animales activos del café
+                  example: 23
+                weekly_revenue:
+                  type: number
+                  format: float
+                  description: Ingresos totales de los últimos 7 días en EUR
+                  example: 3240.75
+                monthly_reservations:
+                  type: integer
+                  description: Total de reservas del mes en curso
+                  example: 187
+                avg_rating:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 5
+                  description: Valoración media de las reseñas activas del café
+                  example: 4.3
+                pending_reservations:
+                  type: integer
+                  description: Reservas en estado "pending" todavía no confirmadas
+                  example: 5
+                timestamp:
+                  type: integer
+                  description: Unix timestamp del momento de generación de las métricas
+                  example: 1744296000
+
+    WeeklyRevenueChart:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              type: object
+              description: Datos formateados para Chart.js
+              required: [labels, datasets]
+              properties:
+                labels:
+                  type: array
+                  items:
+                    type: string
+                    example: "15/04"
+                datasets:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      label:
+                        type: string
+                        example: "Ingresos (€)"
+                      data:
+                        type: array
+                        items:
+                          type: number
+                      borderColor:
+                        type: string
+                        example: "rgb(75, 192, 192)"
+                      backgroundColor:
+                        type: string
+                        example: "rgba(75, 192, 192, 0.2)"
+
+    Allergen:
+      type: object
+      required: [id, name, code, severity]
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Gluten"
+        code:
+          type: string
+          example: "gluten"
+        name_jp:
+          type: string
+          nullable: true
+          example: "グルテン"
+        icon:
+          type: string
+          nullable: true
+          example: "🌾"
+        icon_color:
+          type: string
+          nullable: true
+          example: "#e5c100"
+        severity:
+          type: string
+          description: "Nivel de severidad del alérgeno (p. ej. high, medium, low)"
+          example: "high"
+
+    CookiePreferences:
+      type: object
+      description: Categorías de consentimiento de cookies
+      properties:
+        analytics:
+          type: boolean
+          example: true
+        marketing:
+          type: boolean
+          example: false
+        preferences:
+          type: boolean
+          example: true
+
+    CartState:
+      type: object
+      description: Estado actual del carrito de compra
+      required: [items, totalQty, totalPrice]
+      properties:
+        items:
+          type: object
+          description: Mapa product_id → {id, name, price, quantity, subtotal, image_url}
+          additionalProperties:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              price:
+                type: number
+                format: float
+              quantity:
+                type: integer
+              subtotal:
+                type: number
+                format: float
+              image_url:
+                type: string
+                nullable: true
+        totalQty:
+          type: integer
+          example: 3
+        totalPrice:
+          type: number
+          format: float
+          example: 24.50
+
+    CartAddRequest:
+      type: object
+      required: [product_id]
+      properties:
+        product_id:
+          type: integer
+          example: 42
+        quantity:
+          type: integer
+          minimum: 1
+          default: 1
+          example: 2
+
+    CartUpdateRequest:
+      type: object
+      required: [product_id, change]
+      properties:
+        product_id:
+          type: integer
+          example: 42
+        change:
+          type: integer
+          minimum: -10
+          maximum: 10
+          description: Incremento o decremento de cantidad (negativo = quitar)
+          example: -1
+
+    ReservationCreateRequest:
+      type: object
+      required: [cafe_id, date, time, guests]
+      properties:
+        cafe_id:
+          type: integer
+          example: 2
+        date:
+          type: string
+          format: date
+          example: "2026-06-15"
+        time:
+          type: string
+          pattern: '^\d{2}:\d{2}$'
+          example: "14:00"
+        guests:
+          type: integer
+          minimum: 1
+          example: 3
+        special_requests:
+          type: string
+          nullable: true
+          example: "Cumpleaños, por favor traer decoración"

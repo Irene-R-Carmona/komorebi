@@ -179,7 +179,7 @@ final class Setting
             return true;
         } catch (Exception $e) {
             $this->db->rollBack();
-            Logger::error('Error updating settings batch: ' . $e->getMessage());
+            Logger::error('Error updating settings batch: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
 
             return false;
         }

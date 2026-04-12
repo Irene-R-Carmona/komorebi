@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
@@ -63,15 +63,32 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                         </div>
                     </header>
 
-                    <!-- Progreso -->
-                    <div class="booking-progress">
+                    <!-- Indicador de pasos -->
+                    <div class="booking-steps" role="progressbar" aria-valuenow="<?= 1 ?>" aria-valuemin="1" aria-valuemax="3" aria-label="Progreso de reserva">
+                        <div class="booking-steps__item" :class="{'is-active': step >= 1, 'is-done': step > 1}">
+                            <div class="booking-steps__circle" aria-hidden="true">
+                                <i class="bi bi-check-lg" x-show="step > 1"></i>
+                                <span x-show="step <= 1">1</span>
+                            </div>
+                            <span class="booking-steps__label">Café & Pase</span>
+                        </div>
+                        <div class="booking-steps__line" :class="{'is-done': step > 1}" aria-hidden="true"></div>
+                        <div class="booking-steps__item" :class="{'is-active': step >= 2, 'is-done': step > 2}">
+                            <div class="booking-steps__circle" aria-hidden="true">
+                                <i class="bi bi-check-lg" x-show="step > 2"></i>
+                                <span x-show="step <= 2">2</span>
+                            </div>
+                            <span class="booking-steps__label">Fecha & Hora</span>
+                        </div>
+                        <div class="booking-steps__line" :class="{'is-done': step > 2}" aria-hidden="true"></div>
+                        <div class="booking-steps__item" :class="{'is-active': step >= 3}">
+                            <div class="booking-steps__circle" aria-hidden="true">3</div>
+                            <span class="booking-steps__label">Confirmar</span>
+                        </div>
+                    </div>
+                    <div class="booking-progress" aria-hidden="true">
                         <div class="booking-progress__bar">
                             <div class="booking-progress__fill" :style="`width:${progressPercent}%`"></div>
-                        </div>
-                        <div class="booking-progress__labels">
-                            <span :class="{ 'is-done': step > 1 }">Café & Pase</span>
-                            <span :class="{ 'is-done': step > 2 }">Fecha & Hora</span>
-                            <span :class="{ 'is-done': step >= 3 }">Confirmar</span>
                         </div>
                     </div>
 
@@ -221,13 +238,17 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                         <!-- Hora -->
                         <div class="booking-row" style="margin-bottom: 1rem;">
                             <div class="booking-row__label">Turno</div>
-                            <select name="hora" class="form-select" x-model="hora" required
-                                aria-required="true">
-                                <option value="" disabled>Selecciona un turno...</option>
+                            <div class="booking-slot-grid" role="group" aria-label="Selecciona un turno">
                                 <template x-for="h in horariosDisponibles" :key="h">
-                                    <option :value="h" x-text="h"></option>
+                                    <button type="button" class="booking-slot"
+                                        :class="{ 'booking-slot--selected': hora === h }"
+                                        @click="hora = h"
+                                        :aria-pressed="hora === h ? 'true' : 'false'"
+                                        x-text="h">
+                                    </button>
                                 </template>
-                            </select>
+                            </div>
+                            <input type="hidden" name="hora" :value="hora">
                             <p class="booking-hint" x-show="horariosDisponibles.length === 0">
                                 No hay turnos disponibles con este pase.
                             </p>

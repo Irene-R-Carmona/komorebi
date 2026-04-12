@@ -3,95 +3,188 @@
    ============================================================================ */
 
 .error-body {
-    background-color: #f7f3eb; /* Color fondo base de la marca */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    margin: 0;
-    font-family: system-ui, -apple-system, sans-serif;
-    color: #2d2218;
+  background-color: #f7f3eb;
+  /* Color fondo base de la marca */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #2d2218;
 }
 
 .error-card {
-    background-color: white;
-    padding: 3rem 2rem;
-    border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-    text-align: center;
-    max-width: 480px;
-    width: 90%;
-    border: 1px solid #d4c4a8;
-    animation: slideUp 0.5s ease-out;
+  background-color: white;
+  padding: 3rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  max-width: 480px;
+  width: 90%;
+  border: 1px solid #d4c4a8;
+  animation: slideUp 0.5s ease-out;
 }
 
 .error-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    display: inline-block;
-    animation: float 3s ease-in-out infinite;
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+  animation: float 3s ease-in-out infinite;
 }
 
 .error-code {
-    color: #9b2335; /* Color error marca */
-    font-family: serif;
-    font-size: 5rem;
-    margin: 0;
-    line-height: 1;
-    font-weight: 700;
+  color: #9b2335;
+  /* Color error marca */
+  font-family: serif;
+  font-size: 5rem;
+  margin: 0;
+  line-height: 1;
+  font-weight: 700;
 }
 
 .error-title {
-    color: #5c3d2e; /* Color primario marca */
-    font-size: 1.5rem;
-    margin: 0.5rem 0 1rem 0;
-    font-weight: 700;
+  color: #5c3d2e;
+  /* Color primario marca */
+  font-size: 1.5rem;
+  margin: 0.5rem 0 1rem 0;
+  font-weight: 700;
 }
 
 .error-desc {
-    color: #5c4a3a;
-    line-height: 1.6;
-    margin-bottom: 2.5rem;
-    font-size: 1rem;
-    opacity: 0.9;
+  color: #5c4a3a;
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+  font-size: 1rem;
+  opacity: 0.9;
 }
 
 .error-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #5c3d2e;
-    color: white;
-    text-decoration: none;
-    padding: 0.8rem 2rem;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.2s;
-    box-shadow: 0 4px 10px rgba(92, 61, 46, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #5c3d2e;
+  color: white;
+  text-decoration: none;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: 0 4px 10px rgba(92, 61, 46, 0.2);
 }
 
 .error-btn:hover {
-    background-color: #c9a959; /* Acento */
-    transform: translateY(-2px);
-    color: white;
+  background-color: #c9a959;
+  /* Acento */
+  transform: translateY(-2px);
+  color: white;
 }
 
 @keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes float {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Acciones — contenedor de botones */
+.error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+/* Descripción secundaria levemente atenuada */
+.error-desc--detail {
+  opacity: 0.8;
+  margin-top: -1.5rem;
+  /* compensar margin-bottom del anterior */
+  margin-bottom: 2.5rem;
+}
+
+/* Botón alternativo (contorno) */
+.error-btn--alt {
+  background-color: transparent;
+  color: #5c3d2e;
+  border: 2px solid #c9a959;
+  box-shadow: none;
+}
+
+.error-btn--alt:hover {
+  background-color: #c9a959;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Bootstrap Icons dentro del icono de error */
+.error-icon .bi {
+  font-size: 4rem;
+  line-height: 1;
+}
+
+/* Bloque debug — intencionalmente oscuro para legibilidad de código */
+.error-debug {
+  background: #1a1a1a;
+  color: #f8f8f2;
+  padding: 12px;
+  border-radius: 6px;
+  overflow: auto;
+  margin-top: 1rem;
+}
+
+.error-debug pre {
+  white-space: pre-wrap;
+  color: #f8f8f2;
+  font-size: 0.9rem;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+/* ── Recovery navigation ─────────────────────────────────── */
+.error-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-borde);
+}
+
+.error-nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-texto-suave);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radio-sm);
+  border: 1px solid var(--color-borde);
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.error-nav__link:hover {
+  color: var(--color-primario);
+  border-color: var(--color-acento);
+  background: rgba(201, 169, 89, 0.08);
 }

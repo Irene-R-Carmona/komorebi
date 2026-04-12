@@ -23,6 +23,9 @@ final class WaitlistController
     /**
      * Vista principal - listado de todas las waitlists activas
      *
+     * TODO(fase2-psr7): Migrar a PSR-7 (retorna void, usa $_GET, http_response_code() y exit)
+     *                   antes de añadir tests unitarios. Ver docs/superpowers/plans/2026-04-10-fase2-psr7-migration.md
+     *
      * @return void
      */
     public function index(): void

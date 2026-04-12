@@ -15,7 +15,7 @@ use App\Core\Csrf;
 
 if (!$canReview): ?>
     <div class="review-form__blocked">
-        <div class="review-form__blocked-icon">🔒</div>
+        <div class="review-form__blocked-icon"><i class="bi bi-lock-fill" aria-hidden="true"></i></div>
         <h4>No puedes dejar reseña aún</h4>
         <p><?= e($reviewEligibility['reason'] ?? 'Debes tener una reserva completada para dejar reseña') ?></p>
         <a href="/reservas?cafe=<?= (int) $cafeId ?>" class="btn btn--pequeno btn--primario">
@@ -96,7 +96,7 @@ if (!$canReview): ?>
                 Publicar reseña
             </button>
             <p class="form-note">
-                ℹ️ Tu reseña será revisada antes de aparecer públicamente.
+                <i class="bi bi-info-circle" aria-hidden="true"></i> Tu reseña será revisada antes de aparecer públicamente.
             </p>
         </div>
     </form>

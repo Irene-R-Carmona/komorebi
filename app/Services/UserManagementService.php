@@ -8,6 +8,7 @@ use App\Core\Database;
 use App\Core\Result;
 use App\Core\TransactionalService;
 use App\Models\User;
+use App\Services\Contracts\UserManagementServiceInterface;
 use Exception;
 use PDO;
 
@@ -20,7 +21,7 @@ use PDO;
  *
  * @package Komorebi\Services
  */
-final class UserManagementService extends TransactionalService
+final class UserManagementService extends TransactionalService implements UserManagementServiceInterface
 {
     private User $userModel;
 
@@ -35,6 +36,7 @@ final class UserManagementService extends TransactionalService
      *
      * @return array Lista de usuarios con roles
      */
+    #[\Override]
     public function getUsersWithRoles(): array
     {
         try {
@@ -78,6 +80,7 @@ final class UserManagementService extends TransactionalService
      * @param boolean $isUpdate Si es actualización (password opcional)
      * @return Result Retorna errores en data['errors'] si falla
      */
+    #[\Override]
     public function validateUserData(array $data, bool $isUpdate = false): Result
     {
         $errors = [];
@@ -115,6 +118,7 @@ final class UserManagementService extends TransactionalService
      * @param array $data Datos del usuario
      * @return Result ID del usuario creado
      */
+    #[\Override]
     public function createUser(array $data): Result
     {
         // Validar datos
@@ -158,6 +162,7 @@ final class UserManagementService extends TransactionalService
      * @param array   $data   Datos actualizados
      * @return Result
      */
+    #[\Override]
     public function updateUser(int $userId, array $data): Result
     {
         // Validar datos
@@ -231,6 +236,7 @@ final class UserManagementService extends TransactionalService
      * @param integer $userId ID del usuario
      * @return Result
      */
+    #[\Override]
     public function deactivateUser(int $userId): Result
     {
         try {
@@ -249,6 +255,7 @@ final class UserManagementService extends TransactionalService
      * @param integer $userId ID del usuario
      * @return Result
      */
+    #[\Override]
     public function toggleUserStatus(int $userId): Result
     {
         try {

@@ -15,6 +15,7 @@ use App\Repositories\UserRepository;
 use App\Services\UserManagementService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -50,7 +51,7 @@ final class UserController
      * Lista de usuarios con sus roles
      * @throws RandomException
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         // Obtener usuarios con roles desde el servicio
         $users = $this->userManagementService->getUsersWithRoles();
@@ -73,6 +74,7 @@ final class UserController
             // Pasar extraJs para que el layout lo incluya
             'extraJs' => ['admin/admin-users.js'],
         ], ['admin/admin-users.css'], 'backoffice');
+        return null;
     }
 
     /**
@@ -80,7 +82,7 @@ final class UserController
      * Lista simplificada de usuarios para dropdowns/filtros
      * @throws JsonException
      */
-    public function getUsersList(): ResponseInterface
+    public function getUsersList(ServerRequestInterface $request): ResponseInterface
     {
         $users = $this->userRepo->getActiveUsersList();
         return $this->response->json(['ok' => true, 'data' => ['users' => $users]]);
@@ -92,18 +94,19 @@ final class UserController
      * @throws JsonException
      * @throws RandomException
      */
-    public function create(): ResponseInterface
+    public function create(ServerRequestInterface $request): ResponseInterface
     {
         if (!Csrf::validate()) {
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
+        $body = (array) $request->getParsedBody();
         // Preparar datos para el servicio
         $data = [
-            'name' => isset($_POST['name']) ? \trim($_POST['name']) : '',
-            'email' => isset($_POST['email']) ? \trim($_POST['email']) : '',
-            'password' => $_POST['password'] ?? '',
-            'role_id' => isset($_POST['role_id']) ? (int) $_POST['role_id'] : 2,
+            'name' => isset($body['name']) ? \trim($body['name']) : '',
+            'email' => isset($body['email']) ? \trim($body['email']) : '',
+            'password' => $body['password'] ?? '',
+            'role_id' => isset($body['role_id']) ? (int) $body['role_id'] : 2,
         ];
 
         // Delegar al servicio
@@ -138,22 +141,23 @@ final class UserController
      * @throws JsonException
      * @throws RandomException
      */
-    public function update(int $userId): ResponseInterface
+    public function update(ServerRequestInterface $request, int $userId): ResponseInterface
     {
         if (!Csrf::validate()) {
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
+        $body = (array) $request->getParsedBody();
         // Preparar datos para el servicio
         $data = [
-            'name' => isset($_POST['name']) ? \trim($_POST['name']) : '',
-            'email' => isset($_POST['email']) ? \trim($_POST['email']) : '',
-            'role_id' => isset($_POST['role_id']) ? (int) $_POST['role_id'] : null,
+            'name' => isset($body['name']) ? \trim($body['name']) : '',
+            'email' => isset($body['email']) ? \trim($body['email']) : '',
+            'role_id' => isset($body['role_id']) ? (int) $body['role_id'] : null,
         ];
 
         // Añadir password solo si se proporciona
-        if (!empty($_POST['password'])) {
-            $data['password'] = $_POST['password'];
+        if (!empty($body['password'])) {
+            $data['password'] = $body['password'];
         }
 
         // Delegar al servicio
@@ -185,7 +189,7 @@ final class UserController
      * @throws JsonException
      * @throws RandomException
      */
-    public function delete(int $userId): ResponseInterface
+    public function delete(ServerRequestInterface $request, int $userId): ResponseInterface
     {
         if (!Csrf::validate()) {
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
@@ -214,7 +218,7 @@ final class UserController
      * @throws JsonException
      * @throws RandomException
      */
-    public function toggleActive(int $userId): ResponseInterface
+    public function toggleActive(ServerRequestInterface $request, int $userId): ResponseInterface
     {
         if (!Csrf::validate()) {
             throw ValidationException::withMessage('Token de seguridad inválido', 419);

@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Database;
 use App\Models\Product;
 use App\Models\ReservationItem;
+use App\Services\Contracts\KitchenServiceInterface;
 use PDO;
 
 /**
@@ -14,7 +15,7 @@ use PDO;
  *
  * Gestiona el flujo de comandas para la cocina.
  */
-final class KitchenService
+final class KitchenService implements KitchenServiceInterface
 {
     private PDO $db;
     private ReservationItem $itemModel;
@@ -34,6 +35,7 @@ final class KitchenService
      *
      * @return array<string, array>
      */
+    #[\Override]
     public function getPendingByStation(int $cafeId): array
     {
         $stations = Product::VALID_STATIONS;
@@ -53,6 +55,7 @@ final class KitchenService
     /**
      * Obtiene comandas pendientes de una estación específica.
      */
+    #[\Override]
     public function getPendingForStation(int $cafeId, string $station): array
     {
         $items = $this->itemModel->findPendingByStation($cafeId, $station);
@@ -63,6 +66,7 @@ final class KitchenService
     /**
      * Obtiene todas las comandas pendientes (sin agrupar).
      */
+    #[\Override]
     public function getAllPending(int $cafeId): array
     {
         $sql = "
@@ -96,6 +100,7 @@ final class KitchenService
     /**
      * Marca un item como "en preparación" (kitchen).
      */
+    #[\Override]
     public function startPreparing(int $itemId): bool
     {
         return $this->itemModel->updateStatus($itemId, ReservationItem::STATUS_KITCHEN);
@@ -104,6 +109,7 @@ final class KitchenService
     /**
      * Marca un item como listo (bump).
      */
+    #[\Override]
     public function markReady(int $itemId): bool
     {
         return $this->itemModel->markReady($itemId);
@@ -112,6 +118,7 @@ final class KitchenService
     /**
      * Marca un item como servido.
      */
+    #[\Override]
     public function markServed(int $itemId): bool
     {
         return $this->itemModel->markServed($itemId);
@@ -120,6 +127,7 @@ final class KitchenService
     /**
      * Marca todos los items de una reserva como listos (bump ticket completo).
      */
+    #[\Override]
     public function bumpTicket(int $reservationId): int
     {
         $sql = "UPDATE reservation_items
@@ -143,6 +151,7 @@ final class KitchenService
     /**
      * Obtiene estadísticas de cocina para el día.
      */
+    #[\Override]
     public function getDailyStats(int $cafeId): array
     {
         $sql = "
@@ -178,6 +187,7 @@ final class KitchenService
     /**
      * Obtiene el tiempo estimado de espera actual.
      */
+    #[\Override]
     public function getEstimatedWaitTime(int $cafeId): int
     {
         $sql = "
@@ -194,6 +204,35 @@ final class KitchenService
         $stmt->execute(['cafe_id' => $cafeId]);
 
         return (int) ($stmt->fetchColumn() ?: 0);
+    }
+
+    /**
+     * Obtiene todos los items servidos hoy (historial del día).
+     */
+    #[\Override]
+    public function getCompletedToday(int $cafeId): array
+    {
+        $sql = "
+            SELECT
+                ri.id, ri.quantity, ri.status, ri.created_at, ri.reservation_id,
+                p.id AS product_id, p.name AS product_name, p.station,
+                p.prep_time, p.recipe_steps, p.ingredients_list, p.critical_check,
+                t.code AS tracker_code,
+                r.guest_count AS guests
+            FROM reservation_items ri
+            JOIN products p ON ri.product_id = p.id
+            JOIN reservations r ON ri.reservation_id = r.id
+            LEFT JOIN trackers t ON r.tracker_id = t.id
+            WHERE r.cafe_id = :cafe_id
+              AND r.reservation_date = CURDATE()
+              AND ri.status = 'served'
+            ORDER BY ri.created_at DESC
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['cafe_id' => $cafeId]);
+
+        return $this->enrichItems($stmt->fetchAll());
     }
 
     // ─────────────────────────────────────────────────────────────

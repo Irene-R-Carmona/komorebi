@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Core\Csrf;
+use App\Core\Database;
 use App\Core\Flash;
 use App\Core\View;
 use App\Core\Http\ResponseFactory;
+use App\Repositories\AnimalRepository;
 use App\Services\AnimalCareService;
-use App\Services\FileUploadService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,17 +19,21 @@ use Random\RandomException;
 /**
  * Controlador de Gestión de Animales (Admin)
  */
-final class AnimalController
+class AnimalController
 {
     private AnimalCareService $animalCareService;
-    private FileUploadService $fileUploadService;
     private ResponseFactory $response;
 
-    public function __construct()
-    {
-        $this->animalCareService = new AnimalCareService();
-        $this->fileUploadService = new FileUploadService();
-        $this->response = new ResponseFactory();
+    public function __construct(
+        ?AnimalCareService $animalCareService = null,
+        ?ResponseFactory $response = null,
+    ) {
+        if ($animalCareService === null) {
+            $db = Database::getConnection();
+            $animalCareService = new AnimalCareService($db, new AnimalRepository($db));
+        }
+        $this->animalCareService = $animalCareService;
+        $this->response          = $response ?? new ResponseFactory();
     }
 
     /**
@@ -37,11 +42,11 @@ final class AnimalController
      * @throws JsonException
      * @throws RandomException
      */
-    public function index(): ?ResponseInterface
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $animals = $this->animalCareService->getAllAnimals();
 
-        View::render('backoffice/admin/animals/index', [
+        View::render('backoffice/keeper/animals/index', [
             'titulo' => 'Gestión de Animales',
             'animals' => $animals,
             'csrf_token' => Csrf::token(),
@@ -55,9 +60,9 @@ final class AnimalController
      * @throws JsonException
      * @throws RandomException
      */
-    public function create(): ?ResponseInterface
+    public function create(ServerRequestInterface $request): ?ResponseInterface
     {
-        View::render('backoffice/admin/animals/create', [
+        View::render('backoffice/keeper/animals/create', [
             'titulo' => 'Nuevo Animal',
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
@@ -70,20 +75,21 @@ final class AnimalController
      * @throws JsonException
      * @throws RandomException
      */
-    public function store(): ResponseInterface
+    public function store(ServerRequestInterface $request): ResponseInterface
     {
         if (!Csrf::validate()) {
             Flash::error('Token de seguridad inválido');
             return $this->response->redirect('/admin/animals/create');
         }
 
+        $body = (array) $request->getParsedBody();
         $data = [
-            'name' => $_POST['name'] ?? '',
-            'species' => $_POST['species'] ?? '',
-            'breed' => $_POST['breed'] ?? null,
-            'age_years' => isset($_POST['age_years']) ? (int) $_POST['age_years'] : null,
-            'personality' => $_POST['personality'] ?? null,
-            'cafe_id' => isset($_POST['cafe_id']) ? (int) $_POST['cafe_id'] : null,
+            'name' => $body['name'] ?? '',
+            'species' => $body['species'] ?? '',
+            'breed' => $body['breed'] ?? null,
+            'age_years' => isset($body['age_years']) ? (int) $body['age_years'] : null,
+            'personality' => $body['personality'] ?? null,
+            'cafe_id' => isset($body['cafe_id']) ? (int) $body['cafe_id'] : null,
         ];
 
         $result = $this->animalCareService->createAnimal($data);
@@ -93,7 +99,7 @@ final class AnimalController
             return $this->response->redirect('/admin/animals');
         }
 
-        Flash::error($result->getMessage() ?? 'Error al crear animal');
+        Flash::error($result->getMessage());
         return $this->response->redirect('/admin/animals/create');
     }
 
@@ -103,9 +109,10 @@ final class AnimalController
      * @throws JsonException
      * @throws RandomException
      */
-    public function edit(): ?ResponseInterface
+    public function edit(ServerRequestInterface $request): ?ResponseInterface
     {
-        $id = (int) ($_GET['id'] ?? 0);
+        $query = $request->getQueryParams();
+        $id = (int) ($query['id'] ?? 0);
         $animal = null;
         $animal = $this->animalCareService->getAnimalById($id);
 
@@ -114,7 +121,7 @@ final class AnimalController
             return $this->response->redirect('/admin/animals');
         }
 
-        View::render('backoffice/admin/animals/edit', [
+        View::render('backoffice/keeper/animals/edit', [
             'titulo' => 'Editar Animal',
             'animal' => $animal,
             'csrf_token' => Csrf::token(),
@@ -128,21 +135,22 @@ final class AnimalController
      * @throws JsonException
      * @throws RandomException
      */
-    public function update(): ResponseInterface
+    public function update(ServerRequestInterface $request): ResponseInterface
     {
         if (!Csrf::validate()) {
             Flash::error('Token de seguridad inválido');
             return $this->response->redirect('/admin/animals');
         }
 
-        $id = (int) ($_POST['id'] ?? 0);
+        $body = (array) $request->getParsedBody();
+        $id = (int) ($body['id'] ?? 0);
         $data = [
-            'name' => $_POST['name'] ?? '',
-            'species' => $_POST['species'] ?? '',
-            'breed' => $_POST['breed'] ?? null,
-            'age_years' => isset($_POST['age_years']) ? (int) $_POST['age_years'] : null,
-            'personality' => $_POST['personality'] ?? null,
-            'cafe_id' => isset($_POST['cafe_id']) ? (int) $_POST['cafe_id'] : null,
+            'name' => $body['name'] ?? '',
+            'species' => $body['species'] ?? '',
+            'breed' => $body['breed'] ?? null,
+            'age_years' => isset($body['age_years']) ? (int) $body['age_years'] : null,
+            'personality' => $body['personality'] ?? null,
+            'cafe_id' => isset($body['cafe_id']) ? (int) $body['cafe_id'] : null,
         ];
 
         $result = $this->animalCareService->updateAnimal($id, $data);
@@ -150,7 +158,7 @@ final class AnimalController
         if ($result->isOk()) {
             Flash::success('Animal actualizado correctamente');
         } else {
-            Flash::error($result->getMessage() ?? 'Error al actualizar animal');
+            Flash::error($result->getMessage());
         }
 
         return $this->response->redirect('/admin/animals');
@@ -162,21 +170,22 @@ final class AnimalController
      * @throws JsonException
      * @throws RandomException
      */
-    public function delete(): ResponseInterface
+    public function delete(ServerRequestInterface $request): ResponseInterface
     {
         if (!Csrf::validate()) {
             Flash::error('Token de seguridad inválido');
             return $this->response->redirect('/admin/animals');
         }
 
-        $id = (int) ($_POST['id'] ?? 0);
+        $body = (array) $request->getParsedBody();
+        $id = (int) ($body['id'] ?? 0);
 
         $result = $this->animalCareService->deleteAnimal($id);
 
         if ($result->isOk()) {
             Flash::success('Animal eliminado');
         } else {
-            Flash::error($result->getMessage() ?? 'Error al eliminar animal');
+            Flash::error($result->getMessage());
         }
 
         return $this->response->redirect('/admin/animals');

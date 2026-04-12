@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\View;
 use App\Core\Http\ResponseFactory;
-use App\Services\ReviewService;
+use App\Services\Contracts\ReviewModerationServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -19,13 +20,13 @@ use Random\RandomException;
  */
 final class ReviewController
 {
-    private ReviewService $reviewService;
+    private ReviewModerationServiceInterface $moderationService;
     private ResponseFactory $response;
 
-    public function __construct(?ReviewService $reviewService = null)
+    public function __construct(?ReviewModerationServiceInterface $moderationService = null, ?ResponseFactory $response = null)
     {
-        $this->reviewService = $reviewService ?? new ReviewService();
-        $this->response = new ResponseFactory();
+        $this->moderationService = $moderationService ?? Container::make(ReviewModerationServiceInterface::class);
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**
@@ -36,12 +37,11 @@ final class ReviewController
      */
     public function index(): ?ResponseInterface
     {
-        $reviews = $this->reviewService->listPendingReviews();
+        $reviews = $this->moderationService->listPendingReviews();
 
-        View::render('backoffice/admin/reviews/index', [
+        View::render('admin/reviews/pending', [
             'titulo' => 'Gestión de Reseñas',
-            'reviews' => $reviews,
-            'csrf_token' => Csrf::token(),
+            'pending' => $reviews,
         ], [], 'backoffice');
         return null;
     }
@@ -61,7 +61,7 @@ final class ReviewController
 
         $id = (int) ($_POST['id'] ?? 0);
 
-        $result = $this->reviewService->approveReview($id);
+        $result = $this->moderationService->approveReview($id);
 
         if ($result->isOk()) {
             Flash::success('Reseña aprobada correctamente');
@@ -88,7 +88,7 @@ final class ReviewController
         $id = (int) ($_POST['id'] ?? 0);
         $reason = $_POST['reason'] ?? 'Contenido inapropiado';
 
-        $result = $this->reviewService->rejectReview($id, $reason);
+        $result = $this->moderationService->rejectReview($id, $reason);
 
         if ($result->isOk()) {
             Flash::success('Reseña rechazada');
@@ -114,12 +114,12 @@ final class ReviewController
 
         $id = (int) ($_POST['id'] ?? 0);
 
-        $result = $this->reviewService->deleteReview($id);
+        $deleted = $this->moderationService->deleteReviewById($id);
 
-        if ($result->isOk()) {
+        if ($deleted) {
             Flash::success('Reseña eliminada');
         } else {
-            Flash::error($result->getMessage('Error al eliminar reseña'));
+            Flash::error('Error al eliminar reseña');
         }
 
         return $this->response->redirect('/admin/reviews');

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\BaseService;
+use App\Core\Cache;
 use App\Core\Database;
 use App\Core\Result;
 use App\Models\AuditLog;
-use App\Repositories\CafeRepository;
 use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Services\Contracts\CafeServiceInterface;
 use PDO;
 use PDOException;
 
@@ -20,15 +21,15 @@ use PDOException;
  *
  * @package Komorebi\Services
  */
-final class CafeService extends BaseService
+class CafeService extends BaseService implements CafeServiceInterface
 {
     private CafeRepositoryInterface $cafeRepo;
     private PDO $db; // Mantener temporalmente para queries complejas legacy
 
-    public function __construct(?CafeRepositoryInterface $cafeRepo = null)
+    public function __construct(CafeRepositoryInterface $cafeRepo)
     {
-        $this->cafeRepo = $cafeRepo ?? new CafeRepository();
-        $this->db = Database::getConnection(); // Usar getConnection()
+        $this->cafeRepo = $cafeRepo;
+        $this->db = Database::getConnection(); // Mantener temporalmente para queries complejas legacy
     }
 
     /**
@@ -39,6 +40,7 @@ final class CafeService extends BaseService
      * @param integer $offset  Offset para paginación
      * @return array Lista de cafés
      */
+    #[\Override]
     public function getAll(array $filters = [], int $limit = 100, int $offset = 0): array
     {
         // Para filtros simples, usar métodos específicos del repositorio
@@ -59,6 +61,7 @@ final class CafeService extends BaseService
      * @param integer $id ID del café
      * @return array|null Datos del café o null si no existe
      */
+    #[\Override]
     public function getById(int $id): ?array
     {
         return $this->cafeRepo->findById($id);
@@ -69,8 +72,9 @@ final class CafeService extends BaseService
      *
      * @param array $data Datos del café
      * @return Result
-     * @throws RuntimeException Si falla la creación en base de datos
+     * @throws \RuntimeException Si falla la creación en base de datos
      */
+    #[\Override]
     public function create(array $data): Result
     {
         // Validación de campos requeridos
@@ -117,12 +121,14 @@ final class CafeService extends BaseService
      * @param integer $id   ID del café
      * @param array   $data Datos a actualizar
      * @return Result
-     * @throws RuntimeException Si falla la actualización en base de datos
+     * @throws \RuntimeException Si falla la actualización en base de datos
      */
+    #[\Override]
     public function update(int $id, array $data): Result
     {
         // Verificar que el café existe (usa repositorio)
-        if (!$this->cafeRepo->findById($id)) {
+        $existing = $this->cafeRepo->findById($id);
+        if (!$existing) {
             return Result::fail('Café no encontrado', 'not_found');
         }
 
@@ -163,6 +169,14 @@ final class CafeService extends BaseService
         try {
             $this->cafeRepo->update($id, $params);
 
+            // Invalidar caché para evitar datos obsoletos tras la escritura
+            Cache::delete("cafe:id:{$id}");
+            Cache::delete("cafe:{$existing['slug']}");
+            Cache::delete('cafes:active');
+            if (isset($params['slug']) && $params['slug'] !== $existing['slug']) {
+                Cache::delete("cafe:{$params['slug']}");
+            }
+
             // Log de auditoría
             AuditLog::log('update_cafe', 'cafe', $id, null, $data);
 
@@ -177,8 +191,9 @@ final class CafeService extends BaseService
      *
      * @param integer $id ID del café
      * @return Result
-     * @throws RuntimeException Si falla la actualización en base de datos
+     * @throws \RuntimeException Si falla la actualización en base de datos
      */
+    #[\Override]
     public function toggleActive(int $id): Result
     {
         $cafe = $this->cafeRepo->findById($id);
@@ -190,6 +205,11 @@ final class CafeService extends BaseService
 
         try {
             $this->cafeRepo->update($id, ['is_active' => $newStatus]);
+
+            // Invalidar caché para evitar datos obsoletos tras la escritura
+            Cache::delete("cafe:id:{$id}");
+            Cache::delete("cafe:{$cafe['slug']}");
+            Cache::delete('cafes:active');
 
             // Log de auditoría del cambio de estado
             AuditLog::log('toggle_cafe_status', 'cafe', $id, null, ['is_active' => $newStatus]);
@@ -205,8 +225,9 @@ final class CafeService extends BaseService
      *
      * @param integer $id ID del café
      * @return Result
-     * @throws RuntimeException Si falla la eliminación en base de datos
+     * @throws \RuntimeException Si falla la eliminación en base de datos
      */
+    #[\Override]
     public function delete(int $id): Result
     {
         $cafe = $this->cafeRepo->findById($id);
@@ -216,6 +237,11 @@ final class CafeService extends BaseService
 
         try {
             $this->cafeRepo->softDelete($id);
+
+            // Invalidar caché para evitar datos obsoletos tras la escritura
+            Cache::delete("cafe:id:{$id}");
+            Cache::delete("cafe:{$cafe['slug']}");
+            Cache::delete('cafes:active');
 
             // Log de auditoría de eliminación
             AuditLog::log('delete_cafe', 'cafe', $id, null, null);
@@ -233,6 +259,7 @@ final class CafeService extends BaseService
      * @param integer $limit Límite de resultados
      * @return array Lista de cafés encontrados
      */
+    #[\Override]
     public function search(string $query, int $limit = 20): array
     {
         $searchTerm = "%$query%";
@@ -259,6 +286,7 @@ final class CafeService extends BaseService
      *
      * @psalm-return array<string, null|scalar>|false
      */
+    #[\Override]
     public function getStats(): array|false
     {
         $sql = '

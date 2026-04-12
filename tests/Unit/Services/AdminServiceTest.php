@@ -4,41 +4,33 @@ declare(strict_types=1);
 
 /**
  * ¿Qué pruebas aquí?
- * AdminService::calculateTrend (private) vía ReflectionMethod y el método
- * getDatabase() que expone la instancia PDO del servicio.
+ * AdminStatisticsService::calculateTrend (private) vía ReflectionMethod,
+ * y los métodos públicos de dominio: getSystemStatistics()
+ * y getUserDistributionByRole().
  *
  * ¿Qué me quieres demostrar?
  * Que la lógica de cálculo de tendencias funciona correctamente en todos los
  * casos límite: sin datos previos, incremento, decremento y sin cambio.
+ * Que los métodos de dominio devuelven las claves requeridas con los tipos correctos.
  *
  * ¿Qué va a fallar en este test si se cambia el código?
  * Si cambia la fórmula de calculateTrend, si se añade/quita el prefijo '+',
- * o si getDatabase() deja de devolver la instancia PDO.
+ * o si getSystemStatistics() deja de incluir las claves obligatorias.
  */
 
 namespace Tests\Unit\Services;
 
-use App\Services\AdminService;
-use PDO;
+use App\Services\AdminStatisticsService;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
 final class AdminServiceTest extends TestCase
 {
-    private AdminService $service;
+    private AdminStatisticsService $service;
 
     protected function setUp(): void
     {
-        $this->service = new AdminService();
-    }
-
-    // ──────────────────────────────────────────────
-    // getDatabase
-    // ──────────────────────────────────────────────
-
-    public function testGetDatabaseRetornaInstanciaPDO(): void
-    {
-        $this->assertInstanceOf(PDO::class, $this->service->getDatabase());
+        $this->service = new AdminStatisticsService();
     }
 
     // ──────────────────────────────────────────────
@@ -94,5 +86,40 @@ final class AdminServiceTest extends TestCase
 
         $this->assertStringStartsWith('+', $result);
         $this->assertStringContainsString('50', $result);
+    }
+
+    // ──────────────────────────────────────────────
+    // getSystemStatistics
+    // ──────────────────────────────────────────────
+
+    public function testGetSystemStatisticsDevuelveClavesObligatorias(): void
+    {
+        $stats = $this->service->getSystemStatistics();
+
+        $this->assertArrayHasKey('users', $stats);
+        $this->assertArrayHasKey('cafes', $stats);
+        $this->assertArrayHasKey('reservations', $stats);
+        $this->assertArrayHasKey('reviews', $stats);
+        $this->assertArrayHasKey('pending_reviews', $stats);
+        $this->assertArrayHasKey('users_trend', $stats);
+        $this->assertArrayHasKey('reservations_trend', $stats);
+    }
+
+    public function testGetSystemStatisticsDevuelveContadoresNoNegativos(): void
+    {
+        $stats = $this->service->getSystemStatistics();
+
+        $this->assertGreaterThanOrEqual(0, $stats['users']);
+        $this->assertGreaterThanOrEqual(0, $stats['cafes']);
+        $this->assertGreaterThanOrEqual(0, $stats['reservations']);
+        $this->assertGreaterThanOrEqual(0, $stats['reviews']);
+        $this->assertGreaterThanOrEqual(0, $stats['pending_reviews']);
+    }
+
+    public function testGetUserDistributionByRoleDevuelveArray(): void
+    {
+        $result = $this->service->getUserDistributionByRole();
+
+        $this->assertIsArray($result);
     }
 }

@@ -127,10 +127,11 @@ final class RateLimitingService implements RateLimitingServiceInterface
     /**
      * Limpiar intentos fallidos (después de login exitoso, etc).
      */
-    public function clearAttempts(string $action, string $identifier): bool
+    #[\Override]
+    public function clearAttempts(string $action, string $identifier): void
     {
         $key = $this->cacheKey($action, $identifier);
 
-        return $this->cache->deleteItem($key);
+        $this->cache->deleteItem($key);
     }
 }

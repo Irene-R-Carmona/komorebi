@@ -54,11 +54,11 @@ final class PageController
     {
         // Validar contra whitelist con strict comparison
         if (!\in_array($page, self::ALLOWED_PAGES, true)) {
-            Logger::error("Security Warning: Intento de acceso a página no permitida: $page");
+            Logger::error("Security Warning: Intento de acceso a página no permitida: $page", ['page' => $page]);
             if (!\headers_sent()) {
                 @\http_response_code(404);
             } else {
-                Logger::error('[PageController::view] headers already sent; skipping http_response_code(404)');
+                Logger::error('[PageController::view] headers already sent; skipping http_response_code(404)', ['page' => $page]);
             }
             View::render('errors/404');
 
@@ -72,7 +72,7 @@ final class PageController
             if (!\headers_sent()) {
                 @\http_response_code(404);
             } else {
-                Logger::error('[PageController::view] headers already sent; skipping http_response_code(404)');
+                Logger::error('[PageController::view] headers already sent; skipping http_response_code(404)', ['page' => $page]);
             }
             View::render('errors/404');
 
@@ -84,11 +84,11 @@ final class PageController
 
         // Validar que el archivo retorne array válido
         if (!\is_array($data) || !isset($data['titulo'])) {
-            Logger::error("Error: Content file $page.php no retornó data válida");
+            Logger::error("Error: Content file $page.php no retornó data válida", ['page' => $page]);
             if (!\headers_sent()) {
                 @\http_response_code(500);
             } else {
-                Logger::error('[PageController::view] headers already sent; skipping http_response_code(500)');
+                Logger::error('[PageController::view] headers already sent; skipping http_response_code(500)', ['page' => $page]);
             }
             View::render('errors/500');
 

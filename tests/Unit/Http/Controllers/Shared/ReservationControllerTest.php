@@ -20,6 +20,12 @@ namespace Tests\Unit\Http\Controllers\Shared;
 use App\Core\Http\ResponseFactory;
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Shared\ReservationController;
+use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Services\ReservationService;
 use Tests\Support\ControllerTestCase;
 
 final class ReservationControllerTest extends ControllerTestCase
@@ -39,7 +45,17 @@ final class ReservationControllerTest extends ControllerTestCase
 
     private function makeController(): ReservationController
     {
-        return new ReservationController(response: new ResponseFactory());
+        $reservations = new ReservationService(
+            $this->createStub(ReservationRepositoryInterface::class),
+            $this->createStub(CafeRepositoryInterface::class),
+            $this->createStub(ProductRepositoryInterface::class),
+            $this->createStub(InvoicePDFServiceInterface::class),
+            $this->createStub(EmailServiceInterface::class),
+        );
+        return new ReservationController(
+            reservationService: $reservations,
+            response: new ResponseFactory(),
+        );
     }
 
     public function test_create_throws_validation_exception_when_not_authenticated(): void

@@ -10,6 +10,7 @@ use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Models\AuthAuditLog;
 use App\Repositories\AuthLogRepository;
+use App\Repositories\Contracts\AuthLogRepositoryInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -30,9 +31,9 @@ use Random\RandomException;
 final class AuthLogController
 {
     private ResponseFactory $response;
-    private AuthLogRepository $authLogRepo;
+    private AuthLogRepositoryInterface $authLogRepo;
 
-    public function __construct(?ResponseFactory $response = null, ?AuthLogRepository $authLogRepo = null)
+    public function __construct(?ResponseFactory $response = null, ?AuthLogRepositoryInterface $authLogRepo = null)
     {
         $this->response = $response ?? new ResponseFactory();
         $this->authLogRepo = $authLogRepo ?? new AuthLogRepository();

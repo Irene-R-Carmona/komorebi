@@ -61,7 +61,7 @@ function logMsg(string $msg, string $level = 'info'): void
     try {
         switch (strtolower($level)) {
             case 'error':
-                Logger::error($msg);
+                Logger::error($msg, ['level' => $level]);
                 break;
             case 'warning':
                 Logger::warning($msg);

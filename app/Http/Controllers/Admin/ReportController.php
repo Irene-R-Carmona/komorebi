@@ -11,7 +11,10 @@ use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Models\AuditLog;
-use App\Services\AdminService;
+use App\Services\AdminReportService;
+use App\Services\AdminStatisticsService;
+use App\Services\Contracts\AdminReportServiceInterface;
+use App\Services\Contracts\AdminStatisticsServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Random\RandomException;
@@ -23,12 +26,17 @@ use Random\RandomException;
  */
 final class ReportController
 {
-    private AdminService $adminService;
+    private AdminStatisticsServiceInterface $statisticsService;
+    private AdminReportServiceInterface $reportService;
     private ResponseFactory $response;
 
-    public function __construct(?AdminService $adminService = null, ?ResponseFactory $response = null)
-    {
-        $this->adminService = $adminService ?? new AdminService();
+    public function __construct(
+        ?AdminStatisticsServiceInterface $statisticsService = null,
+        ?AdminReportServiceInterface $reportService = null,
+        ?ResponseFactory $response = null
+    ) {
+        $this->statisticsService = $statisticsService ?? new AdminStatisticsService();
+        $this->reportService = $reportService ?? new AdminReportService();
         $this->response = $response ?? new ResponseFactory();
     }
 
@@ -74,12 +82,12 @@ final class ReportController
         $dateFrom = $_GET['date_from'] ?? \date('Y-m-d', \strtotime('-30 days'));
         $dateTo = $_GET['date_to'] ?? \date('Y-m-d');
 
-        $summary = $this->adminService->getReportsSummary($dateFrom, $dateTo);
-        $reservationTrend = $this->adminService->getReservationTrendStats($dateFrom, $dateTo);
-        $cafeTypes = $this->adminService->getReservationsByCafeType($dateFrom, $dateTo);
-        $cafePerformance = $this->adminService->getCafePerformanceStats($dateFrom, $dateTo, 10);
-        $userRoles = $this->adminService->getUserDistributionByRole();
-        $topCafes = $this->adminService->getTopCafes($dateFrom, $dateTo, 10);
+        $summary = $this->reportService->getReportsSummary($dateFrom, $dateTo);
+        $reservationTrend = $this->statisticsService->getReservationTrendStats($dateFrom, $dateTo);
+        $cafeTypes = $this->statisticsService->getReservationsByCafeType($dateFrom, $dateTo);
+        $cafePerformance = $this->statisticsService->getCafePerformanceStats($dateFrom, $dateTo, 10);
+        $userRoles = $this->statisticsService->getUserDistributionByRole();
+        $topCafes = $this->statisticsService->getTopCafes($dateFrom, $dateTo, 10);
 
         return $this->response->json(['ok' => true, 'data' => [
             'summary' => $summary,
@@ -106,9 +114,9 @@ final class ReportController
                 throw ValidationException::withMessage('Formato no soportado', 400);
             }
 
-            $topCafes = $this->adminService->getTopCafes($dateFrom, $dateTo, 50);
-            $cafePerformance = $this->adminService->getCafePerformanceStats($dateFrom, $dateTo, 50);
-            $summary = $this->adminService->getReportsSummary($dateFrom, $dateTo);
+            $topCafes = $this->statisticsService->getTopCafes($dateFrom, $dateTo, 50);
+            $cafePerformance = $this->statisticsService->getCafePerformanceStats($dateFrom, $dateTo, 50);
+            $summary = $this->reportService->getReportsSummary($dateFrom, $dateTo);
 
             // Configurar headers para descarga
             \header('Content-Type: text/csv; charset=utf-8');

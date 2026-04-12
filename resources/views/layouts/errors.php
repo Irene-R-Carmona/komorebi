@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -16,6 +17,7 @@ declare(strict_types=1);
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,6 +27,7 @@ declare(strict_types=1);
     <!-- CSS base -->
     <link href="/css/global.css" rel="stylesheet">
     <link href="/css/sections/errors.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" crossorigin="anonymous">
 
     <!-- CSS adicional opcional -->
     <?php if (!empty($extraCss)): ?>
@@ -35,6 +38,7 @@ declare(strict_types=1);
 </head>
 
 <body class="error-body">
-<?= $content ?>
+    <?= $content ?>
 </body>
+
 </html>

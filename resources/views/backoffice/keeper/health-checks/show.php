@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Vista de Detalle de Chequeo de Salud
  *
@@ -109,7 +111,7 @@
                     <table class="table table-borderless mb-0">
                         <tbody>
                             <tr>
-                                <th style="width: 50%;">Peso:</th>
+                                <th class="w-50">Peso:</th>
                                 <td>
                                     <?php if ($check['weight_kg']): ?>
                                         <strong><?= number_format((float)$check['weight_kg'], 2) ?> kg</strong>
@@ -167,7 +169,7 @@
                     <table class="table table-borderless mb-0">
                         <tbody>
                             <tr>
-                                <th style="width: 50%;">Apetito:</th>
+                                <th class="w-50">Apetito:</th>
                                 <td>
                                     <?php
                                     $appetiteColors = ['normal' => 'success', 'reduced' => 'warning', 'none' => 'danger'];

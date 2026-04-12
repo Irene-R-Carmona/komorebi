@@ -8,7 +8,9 @@ declare(strict_types=1);
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 use App\Services\ProductService;
+use App\Repositories\ProductRepository;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,7 +23,7 @@ final class ProductServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ProductService();
+        $this->service = new ProductService($this->createStub(ProductRepository::class));
     }
 
     /**

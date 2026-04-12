@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Manager;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Session;
 use App\Core\View;
-use App\Services\CafeService;
+use App\Services\Contracts\CafeServiceInterface;
 use App\Services\Manager\DashboardService;
 use Random\RandomException;
 
@@ -21,16 +22,16 @@ use Random\RandomException;
  */
 final class DashboardController
 {
-    private CafeService $cafeService;
+    private CafeServiceInterface $cafeService;
 
     private DashboardService $dashboardService;
 
     public function __construct(
-        ?CafeService $cafeService = null,
+        ?CafeServiceInterface $cafeService = null,
         ?DashboardService $dashboardService = null
     ) {
-        $this->cafeService = $cafeService ?? new CafeService();
-        $this->dashboardService = $dashboardService ?? new DashboardService();
+        $this->cafeService = $cafeService ?? Container::make(CafeServiceInterface::class);
+        $this->dashboardService = $dashboardService ?? Container::make(DashboardService::class);
     }
 
     /**

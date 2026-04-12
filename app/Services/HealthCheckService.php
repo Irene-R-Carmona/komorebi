@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Result;
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
+use App\Services\Contracts\HealthCheckServiceInterface;
 
 /**
  * Servicio de lógica de negocio para chequeos de salud animal.
@@ -13,7 +14,7 @@ use App\Repositories\Contracts\HealthCheckRepositoryInterface;
  *
  * @package App\Services
  */
-class HealthCheckService
+class HealthCheckService implements HealthCheckServiceInterface
 {
     private HealthCheckRepositoryInterface $repository;
 
@@ -36,6 +37,7 @@ class HealthCheckService
      * @param array $data Datos del chequeo
      * @return Result Success con ID del chequeo o Error con mensaje
      */
+    #[\Override]
     public function createHealthCheck(int $animalId, int $keeperId, array $data): Result
     {
         // Validar que no exista ya un chequeo HOY para este animal
@@ -87,6 +89,7 @@ class HealthCheckService
      * @param int $id ID del chequeo
      * @return array|null Datos del chequeo o null si no existe
      */
+    #[\Override]
     public function getCheckById(int $id): ?array
     {
         $check = $this->repository->findById($id);
@@ -109,6 +112,7 @@ class HealthCheckService
      * @param int|null $cafeId Filtrar por café específico
      * @return array Array con 'completed' y 'pending'
      */
+    #[\Override]
     public function getTodayDashboard(?int $cafeId = null): array
     {
         $completedChecks = $this->repository->getTodayChecks();
@@ -136,6 +140,7 @@ class HealthCheckService
      * @param int $limit Número de registros (default: 30)
      * @return array Lista de chequeos
      */
+    #[\Override]
     public function getAnimalHistory(int $animalId, int $limit = 30): array
     {
         $history = $this->repository->getCheckHistory($animalId, $limit);
@@ -156,6 +161,7 @@ class HealthCheckService
      * @param int $days Días hacia atrás (default: 7)
      * @return array Checks con alertas
      */
+    #[\Override]
     public function getActiveAlerts(int $days = 7): array
     {
         $checksWithAlerts = $this->repository->getCheckswithAlerts($days);
@@ -176,6 +182,7 @@ class HealthCheckService
      * @param int $animalId ID del animal
      * @return bool True si tiene chequeo hoy
      */
+    #[\Override]
     public function hasCheckToday(int $animalId): bool
     {
         return $this->repository->exists($animalId, date('Y-m-d'));
@@ -189,6 +196,7 @@ class HealthCheckService
      * @param string|null $endDate Fecha fin (default: hoy)
      * @return array Estadísticas del keeper
      */
+    #[\Override]
     public function getKeeperStatistics(int $keeperId, ?string $startDate = null, ?string $endDate = null): array
     {
         $count = $this->repository->countByKeeperInPeriod($keeperId, $startDate, $endDate);
@@ -207,6 +215,7 @@ class HealthCheckService
      * @param array $data Datos del chequeo
      * @return array Lista de alertas detectadas
      */
+    #[\Override]
     public function detectAlerts(array $data): array
     {
         $alerts = [];

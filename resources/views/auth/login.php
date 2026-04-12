@@ -18,14 +18,14 @@ use App\Core\Csrf;
 <section class="auth-page">
     <div class="auth-card">
         <div class="auth-header">
-            <span class="auth-header__icon">☕</span>
+            <span class="auth-header__icon"><i class="bi bi-cup-hot-fill"></i></span>
             <h1 class="auth-header__titulo">Bienvenido de nuevo</h1>
             <p class="auth-header__subtitulo">Inicia sesión para gestionar tus reservas</p>
         </div>
 
         <?php if (isset($error) && $error !== ''): ?>
             <div class="alert-error">
-                <span>⚠️</span> <?= $error ?>
+                <i class="bi bi-exclamation-triangle-fill"></i> <?= $error ?>
             </div>
         <?php endif; ?>
 
@@ -60,13 +60,13 @@ use App\Core\Csrf;
             </div>
 
             <!-- Submit -->
-            <button type="submit" class="btn btn--primario" style="width: 100%; margin-top: 0.5rem;">
+            <button type="submit" class="btn btn--primario w-100 mt-2">
                 Entrar
             </button>
 
             <!-- Forgot Password -->
-            <div style="text-align: center; margin-top: 1rem;">
-                <a href="/auth/forgot-password" class="auth-link" style="font-size: 0.9rem;">
+            <div class="text-center mt-3">
+                <a href="/auth/forgot-password" class="auth-link small">
                     ¿Olvidaste tu contraseña?
                 </a>
             </div>

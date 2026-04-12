@@ -9,15 +9,18 @@ use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Raw;
 use App\Core\Session;
+use App\Core\WideEvent;
 use App\Core\View;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
+use App\Http\Transformers\ReservationTransformer;
 use App\Models\Reservation;
 use App\Core\Container;
+use App\Services\AvailabilityService;
 use App\Services\CartService;
-use App\Services\ClimaContextoService;
+use App\Services\Contracts\ClimaContextoServiceInterface;
 use App\Services\FestivosJaponesesService;
 use App\Services\ReservationService;
 use JsonException;
@@ -34,23 +37,26 @@ final class ReservationController
 {
     private CartService $cartService;
     private ReservationService $reservationService;
+    private AvailabilityService $availabilityService;
     private Reservation $reservationModel;
-    private ClimaContextoService $climaService;
+    private ClimaContextoServiceInterface $climaService;
     private FestivosJaponesesService $festivosService;
     private ResponseFactory $response;
 
     public function __construct(
         ?CartService $cartService = null,
         ?ReservationService $reservationService = null,
+        ?AvailabilityService $availabilityService = null,
         ?Reservation $reservationModel = null,
-        ?ClimaContextoService $climaService = null,
+        ?ClimaContextoServiceInterface $climaService = null,
         ?FestivosJaponesesService $festivosService = null,
         ?ResponseFactory $response = null
     ) {
         $this->cartService = $cartService ?? new CartService();
-        $this->reservationService = $reservationService ?? new ReservationService();
+        $this->reservationService = $reservationService ?? Container::make(ReservationService::class);
+        $this->availabilityService = $availabilityService ?? new AvailabilityService();
         $this->reservationModel = $reservationModel ?? new Reservation();
-        $this->climaService = $climaService ?? Container::make(ClimaContextoService::class);
+        $this->climaService = $climaService ?? Container::make(ClimaContextoServiceInterface::class);
         $this->festivosService = $festivosService ?? new FestivosJaponesesService();
         $this->response = $response ?? new ResponseFactory();
     }
@@ -74,12 +80,12 @@ final class ReservationController
         $userId = Session::userId();
 
         $result = $this->reservationModel->findByUser($userId);
-        $misReservas = $result['data'] ?? [];
+        $misReservas = (new ReservationTransformer())->collection($result['data'] ?? []);
 
-        $cafes = $this->reservationService->getAvailableCafesForReservation();
-        $cafesById = $this->reservationService->getAvailableCafesById();
+        $cafes = $this->availabilityService->getAvailableCafesForReservation();
+        $cafesById = $this->availabilityService->getAvailableCafesById();
 
-        $passes = $this->reservationService->getAvailablePassesForReservation();
+        $passes = $this->availabilityService->getAvailablePassesForReservation();
 
         $cart = $this->cartService->get();
         $cartDetails = $this->getCartDetails($cart);
@@ -111,8 +117,6 @@ final class ReservationController
      */
     public function create(): ResponseInterface
     {
-        Logger::info('POST /reservas/crear - Inicio', ['method' => 'create']);
-
         if (!Session::isAuthenticated()) {
             throw ValidationException::withMessage('Debes iniciar sesión para hacer una reserva.', 401);
         }
@@ -144,20 +148,20 @@ final class ReservationController
             throw ValidationException::fromArray($errors);
         }
 
-        if (!$this->reservationService->validateCafeExists($cafeId)) {
-            throw NotFoundException::forResource('Café', $cafeId);
-        }
-
-        if (!$this->reservationService->validatePassExists($passProductId)) {
-            throw NotFoundException::forResource('Pase', $passProductId);
-        }
-
         Logger::debug('Validaciones OK - Llamando a ReservationService::create()', [
             'cafe_id' => $cafeId,
             'pass_id' => $passProductId,
             'fecha' => $fecha,
             'hora' => $hora,
             'personas' => $personas,
+        ]);
+
+        WideEvent::setSection('reservation', [
+            'cafe_id'         => $cafeId,
+            'pass_product_id' => $passProductId,
+            'date'            => $fecha,
+            'time'            => $hora,
+            'guests'          => $personas,
         ]);
 
         $result = $this->reservationService->create([

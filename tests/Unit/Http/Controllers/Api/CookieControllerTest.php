@@ -18,7 +18,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
-use App\Http\Controllers\Api\CookieController;
+use App\Http\Controllers\Api\V1\CookieController;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
 use Psr\Http\Message\ResponseInterface;

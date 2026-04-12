@@ -89,7 +89,7 @@ $alpineConfig = json_encode([
 
 </div>
 
-<script>
+<script nonce="<?= $cspNonce ?? '' ?>">
     // Scroll automático al ancla #permisos si está en la URL
     document.addEventListener('DOMContentLoaded', function() {
         if (window.location.hash === '#permisos') {

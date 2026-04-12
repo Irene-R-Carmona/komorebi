@@ -19,6 +19,9 @@ namespace Tests\Integration;
 
 use Tests\Support\BaseIntegrationTest;
 use App\Services\AuthService;
+use App\Services\SessionManagementService;
+use App\Services\Contracts\RateLimitingServiceInterface;
+use App\Models\User;
 use App\Repositories\UserRepository;
 use PDO;
 
@@ -37,7 +40,15 @@ final class AuthIntegrationTest extends BaseIntegrationTest
         parent::setUp();
         $this->seedTestData();
         $this->userRepo = new UserRepository(self::$db);
-        $this->service = new AuthService($this->userRepo);
+        $rateLimiter    = $this->createStub(RateLimitingServiceInterface::class);
+        $rateLimiter->method('isBlocked')->willReturn(['blocked' => false]);
+        $this->service = new AuthService(
+            $this->userRepo,
+            new User(),
+            new SessionManagementService(self::$db),
+            $rateLimiter,
+            self::$db
+        );
     }
 
     /**

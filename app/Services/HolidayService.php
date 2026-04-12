@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Logger;
 use App\Core\Result;
+use App\Services\Contracts\HolidayServiceInterface;
 use Throwable;
 
 /**
@@ -20,7 +21,7 @@ use Throwable;
  *
  * NOTA: Migrado a Result para consistencia con el resto de servicios
  */
-final class HolidayService
+final class HolidayService implements HolidayServiceInterface
 {
     private const API_URL = 'https://date.nager.at/api/v3/publicholidays';
     private const COUNTRY_CODE = 'JP';
@@ -40,6 +41,7 @@ final class HolidayService
      * @param integer $year
      * @return Result Data contiene ['holidays' => array, 'cached' => bool]
      */
+    #[\Override]
     public function getHolidaysByYear(int $year): Result
     {
         try {
@@ -88,7 +90,7 @@ final class HolidayService
 
             return Result::ok($result);
         } catch (Throwable $e) {
-            Logger::error('[HolidayService] Error: ' . $e->getMessage());
+            Logger::error('[HolidayService] Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
 
             return Result::fail('No se pudo obtener festivos');
         }
@@ -101,6 +103,7 @@ final class HolidayService
      * @param integer $endYear
      * @return Result Data contiene ['holidays' => array]
      */
+    #[\Override]
     public function getHolidaysByRange(int $startYear, int $endYear): Result
     {
         try {
@@ -132,7 +135,7 @@ final class HolidayService
 
             return Result::ok(['holidays' => $allHolidays]);
         } catch (Throwable $e) {
-            Logger::error('[HolidayService] Error en rango: ' . $e->getMessage());
+            Logger::error('[HolidayService] Error en rango: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
 
             return Result::fail('Error al obtener festivos para el rango');
         }
@@ -144,6 +147,7 @@ final class HolidayService
      * @param string $date Formato: Y-m-d
      * @return Result Data contiene ['is_holiday' => bool, 'holiday' => array|null]
      */
+    #[\Override]
     public function isHoliday(string $date): Result
     {
         try {
@@ -176,7 +180,7 @@ final class HolidayService
                 'holiday' => null,
             ]);
         } catch (Throwable $e) {
-            Logger::error('[HolidayService] Error verificando festivo: ' . $e->getMessage());
+            Logger::error('[HolidayService] Error verificando festivo: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
 
             return Result::fail('Error al verificar si es festivo');
         }
@@ -188,6 +192,7 @@ final class HolidayService
      * @param integer $limit Número máximo de festivos a retornar
      * @return Result Data contiene ['holidays' => array]
      */
+    #[\Override]
     public function getUpcomingHolidays(int $limit = 5): Result
     {
         try {
@@ -220,7 +225,7 @@ final class HolidayService
 
             return Result::ok(['holidays' => $upcomingHolidays]);
         } catch (Throwable $e) {
-            Logger::error('[HolidayService] Error obteniendo próximos festivos: ' . $e->getMessage());
+            Logger::error('[HolidayService] Error obteniendo próximos festivos: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
 
             return Result::fail('Error al obtener próximos festivos');
         }
@@ -249,13 +254,13 @@ final class HolidayService
         \curl_close($ch);
 
         if ($error) {
-            Logger::error("HolidayService API error: $error");
+            Logger::error("HolidayService API error: $error", ['error' => $error]);
 
             return Result::fail('Error de conexión con el servicio de festivos');
         }
 
         if ($httpCode !== 200) {
-            Logger::error("HolidayService API HTTP $httpCode");
+            Logger::error("HolidayService API HTTP $httpCode", ['http_code' => $httpCode]);
 
             return Result::fail('Servicio de festivos no disponible');
         }

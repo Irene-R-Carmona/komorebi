@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
@@ -11,10 +12,14 @@ use App\Core\Result;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
-use App\Services\AccountDeletionService;
 use App\Services\AuthService;
+use App\Services\Contracts\AccountDeletionServiceInterface;
+use App\Services\Contracts\AuthServiceInterface;
+use App\Services\Contracts\SessionManagementServiceInterface;
+use App\Services\Contracts\UserAccountServiceInterface;
+use App\Services\Contracts\UserProfileServiceInterface;
+use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\FileUploadService;
-use App\Services\UserService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -27,24 +32,30 @@ use Random\RandomException;
  */
 final class AccountController
 {
-    private AccountDeletionService $accountDeletionService;
-    private AuthService $authService;
-    private FileUploadService $fileUploadService;
+    private AccountDeletionServiceInterface $accountDeletionService;
+    private UserAccountServiceInterface $accountService;
+    private AuthServiceInterface $authService;
+    private FileUploadServiceInterface $fileUploadService;
+    private UserProfileServiceInterface $profileService;
     private ResponseFactory $response;
-    private UserService $userService;
+    private SessionManagementServiceInterface $sessionService;
 
     public function __construct(
-        ?AuthService $authService = null,
-        ?FileUploadService $fileUploadService = null,
-        ?UserService $userService = null,
+        ?AuthServiceInterface $authService = null,
+        ?FileUploadServiceInterface $fileUploadService = null,
+        ?UserProfileServiceInterface $profileService = null,
+        ?UserAccountServiceInterface $accountService = null,
         ?ResponseFactory $response = null,
-        ?AccountDeletionService $accountDeletionService = null
+        ?AccountDeletionServiceInterface $accountDeletionService = null,
+        ?SessionManagementServiceInterface $sessionService = null
     ) {
-        $this->accountDeletionService = $accountDeletionService ?? new AccountDeletionService();
-        $this->authService = $authService ?? new AuthService();
+        $this->accountDeletionService = $accountDeletionService ?? Container::make(AccountDeletionServiceInterface::class);
+        $this->accountService = $accountService ?? Container::make(UserAccountServiceInterface::class);
+        $this->authService = $authService ?? Container::make(AuthService::class);
         $this->fileUploadService = $fileUploadService ?? new FileUploadService();
-        $this->userService = $userService ?? new UserService();
+        $this->profileService = $profileService ?? Container::make(UserProfileServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
+        $this->sessionService = $sessionService ?? Container::make(SessionManagementServiceInterface::class);
     }
 
     /**
@@ -58,9 +69,9 @@ final class AccountController
         $user = Session::user();
         $userId = (int) $user['id'];
 
-        $sessions = $this->authService->getActiveSessions($userId);
+        $sessions = $this->sessionService->getActiveSessions($userId);
 
-        View::render('account/sessions', [
+        View::render('shared/account/sessions', [
             'sessions' => $sessions,
             'csrf_token' => Csrf::token(),
         ]);
@@ -77,7 +88,7 @@ final class AccountController
         $user = Session::user();
         $userId = (int) $user['id'];
 
-        if ($this->authService->revokeSession($userId, $sessionId)) {
+        if ($this->sessionService->revokeSessionForUser($userId, $sessionId)) {
             Flash::success('Sesión revocada exitosamente.');
         } else {
             Flash::error('No se pudo revocar la sesión.');
@@ -99,7 +110,7 @@ final class AccountController
         $userId = (int) $user['id'];
         $currentSessionId = \session_id();
 
-        $revoked = $this->authService->revokeAllOtherSessions($userId, $currentSessionId);
+        $revoked = $this->sessionService->revokeAllOtherSessions($userId, $currentSessionId, $userId);
 
         Flash::success("Se revocaron $revoked sesiones.");
 
@@ -118,9 +129,9 @@ final class AccountController
         $user = Session::user();
         $userId = (int) $user['id'];
 
-        $authHistory = $this->authService->getAuthHistory($userId, 30);
+        $authHistory = $this->sessionService->getAuthHistory($userId, 30);
 
-        View::render('account/security', [
+        View::render('shared/account/security', [
             'auth_history' => $authHistory,
         ]);
     }
@@ -133,7 +144,7 @@ final class AccountController
     {
         $this->requireAuth();
 
-        View::render('account/change-password', [
+        View::render('shared/account/change-password', [
             'csrf_token' => Csrf::token(),
         ]);
     }
@@ -156,7 +167,7 @@ final class AccountController
             exit;
         }
 
-        $result = $this->userService->changePassword(
+        $result = $this->accountService->changePassword(
             Session::userId(),
             $currentPassword,
             $newPassword,
@@ -242,11 +253,11 @@ final class AccountController
         $result = $this->fileUploadService->uploadAvatar($_FILES['avatar'], $userId);
 
         if ($result->isFail()) {
-            return $this->response->problem(Result::fail($result->getMessage() ?? 'Error', 'upload_failed'), 422);
+            return $this->response->problem(Result::fail($result->getMessage(), 'upload_failed'), 422);
         }
 
         // Actualizar URL del avatar en la base de datos
-        $updateResult = $this->userService->updateAvatar($userId, $result->data);
+        $updateResult = $this->profileService->updateAvatar($userId, $result->data);
 
         if ($updateResult->isFail()) {
             $this->fileUploadService->deleteFile($result->data);
@@ -287,7 +298,7 @@ final class AccountController
         $this->fileUploadService->deleteAvatar($userId);
 
         // Actualizar BD (eliminar referencia)
-        $updateResult = $this->userService->updateAvatar($userId, null);
+        $updateResult = $this->profileService->updateAvatar($userId, null);
 
         if ($updateResult->isFail()) {
             return $this->response->problem(Result::fail('Error al eliminar el avatar', 'server_error'), 500);

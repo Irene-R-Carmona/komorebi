@@ -7,12 +7,14 @@ namespace App\Services;
 use App\Core\Queue;
 use App\Core\Result;
 use App\Core\TransactionalService;
+use App\Core\WideEvent;
 use App\Jobs\WaitlistPromotionJob;
 use App\Models\Reservation;
 use App\Models\TimeSlot;
 use App\Models\Waitlist;
 use App\Repositories\Contracts\WaitlistRepositoryInterface;
-use App\Repositories\WaitlistRepository;
+use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\WaitlistServiceInterface;
 use PDO;
 
 /**
@@ -27,23 +29,23 @@ use PDO;
  * - Expiración automática de tokens (15 min)
  * - Reordenamiento de posiciones FIFO
  */
-final class WaitlistService extends TransactionalService
+final class WaitlistService extends TransactionalService implements WaitlistServiceInterface
 {
     private TimeSlot $timeSlotModel;
     private Reservation $reservationModel;
-    private EmailService $emailService;
+    private EmailServiceInterface $emailService;
     private WaitlistRepositoryInterface $waitlistRepository;
 
     public function __construct(
         PDO $db,
-        ?EmailService $emailService = null,
-        ?WaitlistRepositoryInterface $waitlistRepository = null
+        EmailServiceInterface $emailService,
+        WaitlistRepositoryInterface $waitlistRepository
     ) {
         parent::__construct($db);
         $this->timeSlotModel = new TimeSlot($db);
         $this->reservationModel = new Reservation($db);
-        $this->emailService = $emailService ?? new EmailService();
-        $this->waitlistRepository = $waitlistRepository ?? new WaitlistRepository($db);
+        $this->emailService = $emailService;
+        $this->waitlistRepository = $waitlistRepository;
     }
 
     /**
@@ -54,6 +56,7 @@ final class WaitlistService extends TransactionalService
      * @param array   $data       Datos adicionales (email, phone, guest_count, special_requests)
      * @return Result
      */
+    #[\Override]
     public function joinWaitlist(int $timeSlotId, int $userId, array $data): Result
     {
         // Validar que el slot existe
@@ -144,6 +147,7 @@ final class WaitlistService extends TransactionalService
      * @param integer $timeSlotId ID del time slot que se ha liberado
      * @return Result
      */
+    #[\Override]
     public function promoteNext(int $timeSlotId): Result
     {
         try {
@@ -207,6 +211,7 @@ final class WaitlistService extends TransactionalService
                 'contact_email' => $contactEmail,
                 'expires_at' => $expiresAt,
                 'guest_count' => $guestCount,
+                '_correlation_id' => WideEvent::get('request_id') ?? '',
             ], 'default');
 
             if ($startedTransaction) {
@@ -236,6 +241,7 @@ final class WaitlistService extends TransactionalService
      * @param array  $reservationData Datos adicionales para la reserva
      * @return Result
      */
+    #[\Override]
     public function confirmPromotion(string $token, array $reservationData = []): Result
     {
         try {
@@ -411,6 +417,7 @@ final class WaitlistService extends TransactionalService
      *
      * @return Result
      */
+    #[\Override]
     public function expireTokens(): Result
     {
         try {
@@ -433,6 +440,7 @@ final class WaitlistService extends TransactionalService
      * @param integer $timeSlotId
      * @return Result
      */
+    #[\Override]
     public function getPosition(int $userId, int $timeSlotId): Result
     {
         $position = $this->waitlistRepository->getPosition($timeSlotId, $userId);
@@ -460,6 +468,7 @@ final class WaitlistService extends TransactionalService
      * @param integer $userId     Usuario que cancela (para verificar ownership)
      * @return Result
      */
+    #[\Override]
     public function cancelWaitlist(int $waitlistId, int $userId): Result
     {
         return $this->transact(function () use ($waitlistId, $userId): Result {
@@ -503,6 +512,7 @@ final class WaitlistService extends TransactionalService
      * @param integer $limit
      * @return Result
      */
+    #[\Override]
     public function getUserHistory(int $userId, int $limit = 10): Result
     {
         $entries = $this->waitlistRepository->getUserHistory($userId, $limit);
@@ -521,6 +531,7 @@ final class WaitlistService extends TransactionalService
      * @param string $token
      * @return Result
      */
+    #[\Override]
     public function getWaitlistStatus(string $token): Result
     {
         $entry = $this->waitlistRepository->findByToken($token);
@@ -581,6 +592,7 @@ final class WaitlistService extends TransactionalService
      *
      * @psalm-return Result
      */
+    #[\Override]
     public function getUserWaitlists(int $userId, bool $activeOnly = true): Result
     {
         if ($activeOnly) {

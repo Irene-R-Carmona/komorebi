@@ -18,6 +18,8 @@ declare(strict_types=1);
 namespace Tests\Integration;
 
 use Tests\Support\BaseIntegrationTest;
+use App\Repositories\WaitlistRepository;
+use App\Services\EmailService;
 use App\Services\WaitlistService;
 use App\Models\Waitlist;
 use PDO;
@@ -38,7 +40,11 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
     {
         parent::setUp();
         $this->seedTestData();
-        $this->service = new WaitlistService(self::$db, null); // null para EmailService en tests
+        $this->service = new WaitlistService(
+            self::$db,
+            new EmailService(),
+            new WaitlistRepository(self::$db)
+        );
     }
 
     /**

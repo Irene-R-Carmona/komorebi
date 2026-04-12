@@ -96,4 +96,55 @@ final class AnimalDashboardControllerTest extends TestCase
 
         $this->assertInstanceOf(ResponseInterface::class, $result);
     }
+
+    public function test_dashboard_returns_null(): void
+    {
+        $request = new ServerRequest('GET', '/keeper/dashboard');
+
+        ob_start();
+        $result = $this->makeController()->dashboard($request);
+        ob_end_clean();
+
+        $this->assertNull($result);
+    }
+
+    public function test_index_returns_null(): void
+    {
+        $pdo               = $this->makePdoStub();
+        $animalCareService = new AnimalCareService($pdo, $this->createStub(AnimalRepositoryInterface::class));
+
+        ob_start();
+        $result = (new AnimalDashboardController($animalCareService))
+            ->index(new ServerRequest('GET', '/keeper/animals'));
+        ob_end_clean();
+
+        $this->assertNull($result);
+    }
+
+    public function test_show_returns_null_when_animal_found(): void
+    {
+        $animalRepository = $this->createStub(AnimalRepositoryInterface::class);
+        $animalRepository->method('findById')->willReturn([
+            'id'            => 5,
+            'name'          => 'Luna',
+            'species'       => 'gato',
+            'health_status' => 'healthy',
+        ]);
+
+        $request = (new ServerRequest('GET', '/keeper/animals/5'))
+            ->withAttribute('id', 5);
+
+        ob_start();
+        $result = $this->makeController($animalRepository)->show($request);
+        ob_end_clean();
+
+        $this->assertNull($result);
+    }
+
+    public function test_class_has_view_methods(): void
+    {
+        $this->assertTrue(method_exists(AnimalDashboardController::class, 'dashboard'));
+        $this->assertTrue(method_exists(AnimalDashboardController::class, 'index'));
+        $this->assertTrue(method_exists(AnimalDashboardController::class, 'show'));
+    }
 }

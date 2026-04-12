@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace Tests\Integration;
 
 use Tests\Support\BaseIntegrationTest;
+use App\Repositories\MenuRepository;
 use App\Services\MenuService;
 
 final class MenuIntegrationTest extends BaseIntegrationTest
@@ -35,7 +36,7 @@ final class MenuIntegrationTest extends BaseIntegrationTest
     {
         parent::setUp();
         $this->seedTestData();
-        $this->service = new MenuService(self::$db);
+        $this->service = new MenuService(new MenuRepository(self::$db));
     }
 
     /**

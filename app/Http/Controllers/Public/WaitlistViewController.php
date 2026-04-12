@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
-use App\Core\Database;
+use App\Core\Container;
 use App\Core\View;
-use App\Services\WaitlistService;
+use App\Services\Contracts\WaitlistServiceInterface;
 
 /**
  * WaitlistViewController - Vistas públicas para consultar estado de waitlist
  */
 final class WaitlistViewController
 {
-    private WaitlistService $service;
+    private WaitlistServiceInterface $service;
 
     public function __construct()
     {
-        $this->service = new WaitlistService(Database::getConnection());
+        $this->service = Container::make(WaitlistServiceInterface::class);
     }
 
     /**
@@ -40,9 +40,9 @@ final class WaitlistViewController
         }
 
         View::render('public/waitlist-status', [
-            'titulo' => 'Estado de Lista de Espera - Komorebi Café',
+            'titulo'   => 'Estado de Lista de Espera - Komorebi Café',
             'waitlist' => $result->getDataOr([]),
-        ]);
+        ], ['waitlist-status.css']);
     }
 
     /**
@@ -53,17 +53,14 @@ final class WaitlistViewController
     public function confirmView(string $token): void
     {
         if (empty($token)) {
-            http_response_code(400);
-            require __DIR__ . '/../../../resources/views/errors/400.php';
+            View::render('errors/400', [], [], 'errors');
             return;
         }
 
         $result = $this->service->getWaitlistStatus($token);
 
         if (!$result->isOk()) {
-            http_response_code(404);
-            $error = $result->getMessage();
-            require __DIR__ . '/../../../resources/views/errors/404.php';
+            View::render('errors/404', ['error' => $result->getMessage()], [], 'errors');
             return;
         }
 
@@ -71,13 +68,14 @@ final class WaitlistViewController
 
         // Solo mostrar formulario si está en estado 'notified'
         if ($waitlist['status'] !== 'notified') {
-            http_response_code(400);
-            $error = 'Esta promoción ya fue procesada o no está disponible';
-            require __DIR__ . '/../../../resources/views/errors/400.php';
+            View::render('errors/400', [], [], 'errors');
             return;
         }
 
-        require __DIR__ . '/../../../resources/views/public/waitlist-confirm.php';
+        View::render('public/waitlist-confirm', [
+            'titulo'   => 'Confirmar Reserva - Komorebi Café',
+            'waitlist' => $waitlist,
+        ], ['waitlist-confirm.css']);
     }
 
     /**

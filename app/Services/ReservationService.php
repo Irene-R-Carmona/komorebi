@@ -4,27 +4,21 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Result;
 use App\Events\ReservationConfirmedEvent;
 use App\Exceptions\BusinessRuleException;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
-use App\Repositories\AnimalRepository;
-use App\Repositories\CafeRepository;
-use App\Repositories\ProductRepository;
-use App\Repositories\ReservationRepository;
-use App\Repositories\TimeSlotRepository;
-use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
-use App\Repositories\Contracts\TimeSlotRepositoryInterface;
+use App\Core\Database;
 use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\ReservationServiceInterface;
+use App\Services\Contracts\UserProfileServiceInterface;
 use DateTimeImmutable;
-use PDO;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Throwable;
 
@@ -34,44 +28,34 @@ use Throwable;
  * Orquesta la creación de reservas validando reglas de negocio.
  * Usa interfaces Repository para mejor testabilidad (Dependency Inversion Principle).
  */
-final class ReservationService
+class ReservationService implements ReservationServiceInterface
 {
-    private PDO $db;
     private ReservationRepositoryInterface $reservationRepo;
     private CafeRepositoryInterface $cafeRepo;
     private ProductRepositoryInterface $productRepo;
-    private AnimalRepositoryInterface $animalRepo;
-    private TimeSlotRepositoryInterface $timeSlotRepo;
 
     // Servicios adicionales
     private InvoicePDFServiceInterface $invoiceService;
     private EmailServiceInterface $emailService;
     private ?EventDispatcherInterface $eventDispatcher;
+    private ?UserProfileServiceInterface $userProfileService;
 
     public function __construct(
-        ?PDO $db = null,
-        ?ReservationRepositoryInterface $reservationRepo = null,
-        ?CafeRepositoryInterface $cafeRepo = null,
-        ?ProductRepositoryInterface $productRepo = null,
-        ?AnimalRepositoryInterface $animalRepo = null,
-        ?TimeSlotRepositoryInterface $timeSlotRepo = null,
-        ?InvoicePDFServiceInterface $invoiceService = null,
-        ?EmailServiceInterface $emailService = null,
-        ?EventDispatcherInterface $eventDispatcher = null
+        ReservationRepositoryInterface $reservationRepo,
+        CafeRepositoryInterface $cafeRepo,
+        ProductRepositoryInterface $productRepo,
+        InvoicePDFServiceInterface $invoiceService,
+        EmailServiceInterface $emailService,
+        ?EventDispatcherInterface $eventDispatcher = null,
+        ?UserProfileServiceInterface $userProfileService = null
     ) {
-        $this->db = $db ?? Database::getConnection();
-
-        // Repositorios (patrón SOLID - Dependency Inversion Principle)
-        $this->reservationRepo = $reservationRepo ?? new ReservationRepository($this->db);
-        $this->cafeRepo = $cafeRepo ?? new CafeRepository($this->db);
-        $this->productRepo = $productRepo ?? new ProductRepository($this->db);
-        $this->animalRepo = $animalRepo ?? new AnimalRepository($this->db);
-        $this->timeSlotRepo = $timeSlotRepo ?? new TimeSlotRepository($this->db);
-
-        // Servicios adicionales
-        $this->invoiceService = $invoiceService ?? new InvoicePDFService();
-        $this->emailService = $emailService ?? new EmailService();
+        $this->reservationRepo = $reservationRepo;
+        $this->cafeRepo = $cafeRepo;
+        $this->productRepo = $productRepo;
+        $this->invoiceService = $invoiceService;
+        $this->emailService = $emailService;
         $this->eventDispatcher = $eventDispatcher;
+        $this->userProfileService = $userProfileService;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -93,6 +77,7 @@ final class ReservationService
      * @param CartService|null $cart Carrito para añadir items
      * @return Result Result con el ID de la reserva creada (data), o fallo con error
      */
+    #[\Override]
     public function create(array $data, ?CartService $cart = null): Result
     {
         // NOTE: Shared\ReservationController::store() no comprueba el resultado — actualizar a $result->ok
@@ -187,7 +172,8 @@ final class ReservationService
 
             if ($this->eventDispatcher !== null) {
                 try {
-                    $userProfile = (new UserService())->getProfile($userId);
+                    $profileService = $this->userProfileService ?? \App\Core\Container::make(UserProfileServiceInterface::class);
+                    $userProfile = $profileService->getProfile($userId);
                     $this->eventDispatcher->dispatch(new ReservationConfirmedEvent(
                         $reservationId,
                         $userId,
@@ -220,6 +206,7 @@ final class ReservationService
     /**
      * Cancela una reserva verificando que pertenezca al usuario.
      *     */
+    #[\Override]
     public function cancel(int $reservationId, int $userId): bool
     {
         // Usando el nuevo repositorio
@@ -242,6 +229,7 @@ final class ReservationService
     /**
      * Obtiene las reservas de un usuario.
      */
+    #[\Override]
     public function getByUser(int $userId, ?string $status = null): array
     {
         // Usar siempre el repositorio (ya no hay lógica especial por status)
@@ -251,90 +239,10 @@ final class ReservationService
     /**
      * Obtiene las próximas reservas de un usuario.
      */
+    #[\Override]
     public function getUpcoming(int $userId, int $limit = 5): array
     {
         return $this->reservationRepo->findUpcomingByUser($userId, $limit);
-    }
-
-    /**
-     * Obtiene los slots disponibles para un café en una fecha.
-     * @param integer $cafeId
-     * @param string  $date
-     * @return array
-     * @throws \DateMalformedStringException
-     */
-    public function getAvailableSlots(int $cafeId, string $date): array
-    {
-        return $this->reservationRepo->getAvailableSlots($cafeId, $date);
-    }
-
-    /**
-     * Obtiene los pases disponibles para un café.
-     *     */
-    public function getAvailablePasses(int $cafeId): array
-    {
-        $cafe = $this->cafeRepo->findById($cafeId);
-
-        if (!$cafe) {
-            return [];
-        }
-        return $this->productRepo->findPasses($cafeId);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Consultas de Catálogo (migradas desde ReservationCatalogService)
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Obtiene cafés disponibles para reserva
-     *
-     * @return array
-     */
-    public function getAvailableCafesForReservation(): array
-    {
-        return $this->cafeRepo->findAvailableForReservation();
-    }
-
-    /**
-     * Obtiene cafés indexados por ID
-     *
-     * @return array<int, array>
-     */
-    public function getAvailableCafesById(): array
-    {
-        return $this->cafeRepo->findAvailableForReservationById();
-    }
-
-    /**
-     * Obtiene pases de experiencia disponibles
-     *
-     * @return array
-     */
-    public function getAvailablePassesForReservation(): array
-    {
-        return $this->productRepo->findAvailablePasses();
-    }
-
-    /**
-     * Valida que un café existe y está activo
-     *
-     * @param integer $cafeId
-     * @return boolean
-     */
-    public function validateCafeExists(int $cafeId): bool
-    {
-        return $this->cafeRepo->existsAndActive($cafeId);
-    }
-
-    /**
-     * Valida que un pase existe y está activo
-     *
-     * @param integer $passProductId
-     * @return boolean
-     */
-    public function validatePassExists(int $passProductId): bool
-    {
-        return $this->productRepo->existsAndActivePass($passProductId);
     }
 
     /**
@@ -343,6 +251,7 @@ final class ReservationService
      * @param array $cartItems Items del carrito [product_id => quantity]
      * @return array Productos con información completa
      */
+    #[\Override]
     public function enrichCartItems(array $cartItems): array
     {
         if (empty($cartItems)) {
@@ -611,8 +520,8 @@ final class ReservationService
             }
 
             // Obtener usuario
-            $userService = new UserService();
-            $user = $userService->getProfile($userId);
+            $profileService = $this->userProfileService ?? \App\Core\Container::make(UserProfileServiceInterface::class);
+            $user = $profileService->getProfile($userId);
 
             // Generar PDF
             $pdfPath = $this->invoiceService->generateReservationInvoice($reservation, $user);

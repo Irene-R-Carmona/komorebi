@@ -39,10 +39,10 @@ use App\Core\Csrf;
                         <div class="guest-info">
                             <div class="guest-avatar"
                                 style="display:flex; align-items:center; justify-content:center; font-weight:bold; color:#666;">
-                                <?= strtoupper(substr($r['client_name'], 0, 1)) ?>
+                                <?= strtoupper(substr($r['user_name'], 0, 1)) ?>
                             </div>
                             <div class="guest-details">
-                                <h4><?= e($r['client_name']) ?></h4>
+                                <h4><?= e($r['user_name']) ?></h4>
                                 <div class="guest-meta">
                                     <span><?= $r['guest_count'] ?> Pax</span>
                                     <?php if ($r['ui_state'] === 'late'): ?>
@@ -120,7 +120,7 @@ use App\Core\Csrf;
                                 </div>
                             </div>
 
-                            <p class="table-label"><?= e($g['client_name']) ?></p>
+                            <p class="table-label"><?= e($g['user_name']) ?></p>
 
                             <form action="/ops/reception/checkout" method="POST"
                                 data-action="confirm" data-confirm="¿Finalizar visita?" style="margin-top:5px;">

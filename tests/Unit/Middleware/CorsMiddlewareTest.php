@@ -35,7 +35,7 @@ final class CorsMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         $this->factory         = new Psr17Factory();
-        $this->responseFactory = new ResponseFactory($this->factory, $this->factory);
+        $this->responseFactory = new ResponseFactory();
     }
 
     // -------------------------------------------------------------------------

@@ -8,6 +8,7 @@ use App\Core\Database;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Queue;
+use App\Core\WideEvent;
 use App\Exceptions\BusinessRuleException;
 use PDO;
 use Throwable;
@@ -97,6 +98,7 @@ final class WaitlistPromotionJob implements JobInterface
                 'to' => $userEmail,
                 'subject' => '¡Tenemos una plaza disponible! - Komorebi Café',
                 'body' => $emailBody,
+                '_correlation_id' => WideEvent::get('request_id') ?? '',
             ]);
 
             // Enviar notificación por Telegram si el usuario tiene telegram_id

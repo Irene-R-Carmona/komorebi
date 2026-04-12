@@ -49,9 +49,11 @@ interface CafeRepositoryInterface
      * Find cafes with filters
      *
      * @param array<string, mixed> $filters
+     * @param int $limit
+     * @param int $offset
      * @return array<int, array<string, mixed>>
      */
-    public function findFiltered(array $filters): array;
+    public function findFiltered(array $filters, int $limit = 100, int $offset = 0): array;
 
     /**
      * Check if cafe has available capacity
@@ -87,6 +89,14 @@ interface CafeRepositoryInterface
      * @return bool
      */
     public function delete(int $id): bool;
+
+    /**
+     * Soft delete a cafe (sets deleted_at)
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function softDelete(int $id): bool;
 
     /**
      * Buscar cafés disponibles para reserva.

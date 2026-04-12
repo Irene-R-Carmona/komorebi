@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Formulario de Chequeo de Salud Animal
  *
@@ -137,7 +139,7 @@
         <div class="row">
             <div class="col-12 mb-4">
                 <div class="card shadow">
-                    <div class="card-header bg-info text-white">
+                    <div class="card-header bg-light">
                         <h5 class="mb-0"><i class="bi bi-journal-text"></i> Notas Adicionales</h5>
                     </div>
                     <div class="card-body">
@@ -180,7 +182,7 @@
 </div>
 
 <!-- Script para validación y UX mejorada -->
-<script>
+<script nonce="<?= $cspNonce ?? '' ?>">
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('healthCheckForm');
         const temperatureInput = document.getElementById('temperature_c');

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
@@ -14,7 +15,7 @@ use App\Exceptions\ValidationException;
 use App\Models\Allergen;
 use App\Models\Product;
 use App\Repositories\ProductRepository;
-use App\Services\ProductService;
+use App\Services\Contracts\ProductServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Random\RandomException;
@@ -27,7 +28,7 @@ use Random\RandomException;
  */
 final class ProductController
 {
-    private ProductService $productService;
+    private ProductServiceInterface $productService;
     private Product $productModel;
     private Allergen $allergenModel;
     private ProductRepository $productRepo;
@@ -35,7 +36,7 @@ final class ProductController
 
     public function __construct()
     {
-        $this->productService = new ProductService();
+        $this->productService = Container::make(ProductServiceInterface::class);
         $this->productModel = new Product();
         $this->allergenModel = new Allergen();
         $this->productRepo = new ProductRepository();
@@ -89,8 +90,8 @@ final class ProductController
         // Obtener categorías para filtros
         $categories = $this->productRepo->getCategories();
 
-        View::render('management/products/index', [
-            'title' => 'Gestión de Productos | Komorebi Admin',
+        View::render('admin/products/index', [
+            'titulo' => 'Gestión de Productos | Komorebi Admin',
             'products' => $result['data'],
             'categories' => $categories,
             'pagination' => [
@@ -118,8 +119,8 @@ final class ProductController
         // Obtener alérgenos
         $allergens = $this->allergenModel->getAll(true);
 
-        View::render('management/products/create', [
-            'title' => 'Nuevo Producto | Komorebi Admin',
+        View::render('admin/products/create', [
+            'titulo' => 'Nuevo Producto | Komorebi Admin',
             'categories' => $categories,
             'allergens' => $allergens,
             'csrf_token' => Csrf::token(),
@@ -184,8 +185,8 @@ final class ProductController
         // Obtener alérgenos asignados al producto
         $product_allergens = $this->productModel->getAllergensNormalized($id);
 
-        View::render('management/products/edit', [
-            'title' => 'Editar Producto | Komorebi Admin',
+        View::render('admin/products/edit', [
+            'titulo' => 'Editar Producto | Komorebi Admin',
             'product' => $product,
             'categories' => $categories,
             'allergens' => $allergens,

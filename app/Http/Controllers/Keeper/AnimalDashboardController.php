@@ -35,12 +35,15 @@ final class AnimalDashboardController
         ?AnimalRepositoryInterface $animalRepository = null,
         ?ResponseFactory $response = null,
     ) {
-        $db = Database::getConnection();
-        $this->animalCareService  = $animalCareService ?? new AnimalCareService();
-        $this->healthCheckService = $healthCheckService ?? new HealthCheckService(
-            new HealthCheckRepository($db)
+        $db = null;
+        $this->animalCareService  = $animalCareService ?? new AnimalCareService(
+            ($db = Database::getConnection()),
+            new AnimalRepository($db)
         );
-        $this->animalRepository   = $animalRepository ?? new AnimalRepository($db);
+        $this->healthCheckService = $healthCheckService ?? new HealthCheckService(
+            new HealthCheckRepository($db ??= Database::getConnection())
+        );
+        $this->animalRepository   = $animalRepository ?? new AnimalRepository($db ??= Database::getConnection());
         $this->response           = $response ?? new ResponseFactory();
     }
 

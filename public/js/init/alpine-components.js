@@ -54,7 +54,7 @@
         if (!confirm('¿Confirmas que deseas canjear esta recompensa?')) return;
         try {
           const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-          const response = await fetch('/api/loyalty/redeem', {
+          const response = await fetch('/api/v1/loyalty/redeem', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': (csrfMeta && csrfMeta.content) || '' },
             body: JSON.stringify({ reward_type: rewardType })

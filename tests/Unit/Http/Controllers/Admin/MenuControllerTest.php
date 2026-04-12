@@ -19,6 +19,7 @@ namespace Tests\Unit\Http\Controllers\Admin;
 use App\Core\Http\ResponseFactory;
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Admin\MenuController;
+use App\Services\ProductService;
 use Tests\Support\ControllerTestCase;
 
 final class MenuControllerTest extends ControllerTestCase
@@ -40,7 +41,10 @@ final class MenuControllerTest extends ControllerTestCase
 
     private function makeController(): MenuController
     {
-        return new MenuController(response: new ResponseFactory());
+        return new MenuController(
+            productService: $this->createStub(ProductService::class),
+            response: new ResponseFactory(),
+        );
     }
 
     public function test_create_throws_validation_exception_when_csrf_is_invalid(): void

@@ -46,8 +46,8 @@
   margin-bottom: 2rem;
   flex-wrap: wrap;
   position: sticky;
-  top: 70px;
-  z-index: 90;
+  top: calc(64px + 0.75rem);
+  z-index: var(--z-dropdown);
   background: rgba(247, 243, 235, 0.95);
   padding: 1rem 0;
   backdrop-filter: blur(8px);

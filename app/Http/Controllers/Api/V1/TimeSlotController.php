@@ -22,6 +22,9 @@ final class TimeSlotController
 
     public function __construct()
     {
+        // TODO(plan6-controller-di): Eliminar Database::getConnection() directo para poder testear.
+        //                            Inyectar TimeSlotRepositoryInterface vía constructor requerido.
+        //                            Ver docs/superpowers/plans/2026-04-10-plan6-controller-di.md
         $this->timeSlotModel = new TimeSlot(Database::getConnection());
         $this->response = new ResponseFactory();
     }

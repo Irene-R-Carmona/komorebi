@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Shared;
 
 use App\Core\Flash;
+use App\Core\Container;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
+use App\Services\Contracts\UserAccountServiceInterface;
+use App\Services\Contracts\ReviewQueryServiceInterface;
+use App\Services\Contracts\UserProfileServiceInterface;
 use App\Services\GamificationService;
 use App\Services\ReservationService;
-use App\Services\ReviewService;
-use App\Services\UserService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -22,22 +24,25 @@ use Random\RandomException;
 
 final class UserController
 {
-    private UserService $users;
+    private UserProfileServiceInterface $profileService;
+    private UserAccountServiceInterface $accountService;
     private ReservationService $reservations;
-    private ReviewService $reviews;
+    private ReviewQueryServiceInterface $reviews;
     private GamificationService $gamification;
     private ResponseFactory $response;
 
     public function __construct(
-        ?UserService $users = null,
+        ?UserProfileServiceInterface $profileService = null,
+        ?UserAccountServiceInterface $accountService = null,
         ?ReservationService $reservations = null,
-        ?ReviewService $reviews = null,
+        ?ReviewQueryServiceInterface $reviews = null,
         ?GamificationService $gamification = null,
         ?ResponseFactory $response = null
     ) {
-        $this->users = $users ?? new UserService();
-        $this->reservations = $reservations ?? new ReservationService();
-        $this->reviews = $reviews ?? new ReviewService();
+        $this->profileService = $profileService ?? Container::make(UserProfileServiceInterface::class);
+        $this->accountService = $accountService ?? Container::make(UserAccountServiceInterface::class);
+        $this->reservations = $reservations ?? Container::make(ReservationService::class);
+        $this->reviews = $reviews ?? Container::make(ReviewQueryServiceInterface::class);
         $this->gamification = $gamification ?? new GamificationService();
         $this->response = $response ?? new ResponseFactory();
     }
@@ -58,7 +63,7 @@ final class UserController
             return $this->response->redirect('/login');
         }
 
-        $profile = $this->users->getProfile($userId);
+        $profile = $this->profileService->getProfile($userId);
 
         // Obtener próxima reserva activa (puede lanzar si falla la BD)
         $reservas = $this->reservations->getByUser($userId, 'active');
@@ -100,14 +105,14 @@ final class UserController
         $name = \trim((string) ($body['name'] ?? ''));
         $email = \strtolower(\trim((string) ($body['email'] ?? '')));
 
-        $result = $this->users->updateProfile($userId, $name, $email);
+        $result = $this->profileService->updateProfile($userId, $name, $email);
 
         if (!$result->ok) {
             throw ValidationException::fromArray($result->data ?? ['error' => $result->error ?? 'No se pudo actualizar el perfil.']);
         }
 
         // Actualizar sesión
-        $profile = $this->users->getProfile($userId);
+        $profile = $this->profileService->getProfile($userId);
         Session::set('user', $profile);
 
         Flash::success('Tu perfil se ha actualizado con éxito.');
@@ -135,7 +140,7 @@ final class UserController
         $new = \trim((string) ($body['new_password'] ?? ''));
         $confirm = \trim((string) ($body['new_password_confirm'] ?? ''));
 
-        $result = $this->users->changePassword($userId, $current, $new, $confirm);
+        $result = $this->accountService->changePassword($userId, $current, $new, $confirm);
 
         if (!$result->ok) {
             // Error en validación: mostrar genérico (no revelar si current es válida)
@@ -214,7 +219,7 @@ final class UserController
 
         // Actualizar en base de datos
         $avatarUrl = '/storage/uploads/avatars/' . $filename;
-        $result = $this->users->updateAvatar($userId, $avatarUrl);
+        $result = $this->profileService->updateAvatar($userId, $avatarUrl);
 
         if (!$result->ok) {
             // Eliminar archivo si falla la actualización en BD
@@ -225,7 +230,7 @@ final class UserController
         }
 
         // Actualizar sesión
-        $profile = $this->users->getProfile($userId);
+        $profile = $this->profileService->getProfile($userId);
         Session::set('user', $profile);
 
         return $this->response->json([
@@ -249,11 +254,11 @@ final class UserController
         }
 
         // Obtener avatar actual
-        $profile = $this->users->getProfile($userId);
+        $profile = $this->profileService->getProfile($userId);
         $currentAvatar = $profile['avatar'] ?? null;
 
         // Eliminar de base de datos
-        $result = $this->users->updateAvatar($userId, null);
+        $result = $this->profileService->updateAvatar($userId, null);
 
         if (!$result->ok) {
             return $this->response->json(['success' => false, 'message' => $result->error ?? 'Error al eliminar el avatar.'], 500);
@@ -268,7 +273,7 @@ final class UserController
         }
 
         // Actualizar sesión
-        $profile = $this->users->getProfile($userId);
+        $profile = $this->profileService->getProfile($userId);
         Session::set('user', $profile);
 
         return $this->response->json([
@@ -294,7 +299,7 @@ final class UserController
         }
 
         // Recopilar todos los datos personales
-        $profile = $this->users->getProfile($userId);
+        $profile = $this->profileService->getProfile($userId);
         $reservations = $this->reservations->getByUser($userId, 'all');
         $reviews = $this->reviews->listUserReviews($userId);
 

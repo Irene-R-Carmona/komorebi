@@ -13,7 +13,6 @@ namespace Tests\Unit\Services;
 
 use App\Services\MenuService;
 use App\Repositories\Contracts\MenuRepositoryInterface;
-use PDO;
 use PDOStatement;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
@@ -27,19 +26,17 @@ use PHPUnit\Framework\TestCase;
 final class MenuServiceTest extends TestCase
 {
     private MenuService $service;
-    private PDO $mockDb;
     private MenuRepositoryInterface $mockMenuRepo;
 
     protected function setUp(): void
     {
-        $this->mockDb = $this->createStub(PDO::class);
         $this->mockMenuRepo = $this->createMock(MenuRepositoryInterface::class);
-        $this->service = new MenuService($this->mockDb, $this->mockMenuRepo);
+        $this->service = new MenuService($this->mockMenuRepo);
     }
 
     protected function tearDown(): void
     {
-        unset($this->service, $this->mockDb, $this->mockMenuRepo);
+        unset($this->service, $this->mockMenuRepo);
     }
 
     // ─────────────────────────────────────────────────────────────

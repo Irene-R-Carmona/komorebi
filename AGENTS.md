@@ -142,6 +142,42 @@ Container::singleton(MyService::class, fn() => new MyService(Container::make(PDO
 
 **`#[\Override]`** attribute is required on every method that overrides a parent or implements an interface.
 
+**DTOs** — live in `app/Domain/DTO/`, are `final readonly` classes. Always implement `fromArray()` + `toViewArray()`:
+
+```php
+final readonly class ProductDTO
+{
+    public static function fromArray(array $data): self { /* … */ }
+    public function toViewArray(): array { return ['id' => $this->id, 'name' => $this->name]; }
+}
+```
+
+**View contract** — `View::render()` accepts only scalar/array/Raw values in `$data`. No objects allowed:
+
+```php
+// CORRECT — call toViewArray() before render
+View::render('public/menu/show', ['product' => $dto->toViewArray()]);
+// WRONG — passing a DTO object directly (PHPStan will catch this)
+View::render('public/menu/show', ['product' => $dto]);
+```
+
+**Service interfaces** — controllers inject the interface from `app/Services/Contracts/`, not the concrete class:
+
+```php
+// In ServiceProvider:
+Container::singleton(ProductServiceInterface::class, fn() => new ProductService(…));
+// In Controller constructor:
+public function __construct(private readonly ProductServiceInterface $service) {}
+```
+
+**API versioning** — all REST API routes use the `/api/v1/` prefix and `App\Http\Controllers\Api\V1\` namespace:
+
+```php
+$router->group(['prefix' => '/api/v1', 'middleware' => [$mw->cors()]], function (Router $r) {
+    $r->get('/menu/alergenos', 'Api\V1\MenuController@allergens');
+});
+```
+
 ## Developer Workflows
 
 ```bash
@@ -223,16 +259,42 @@ Every test file **must** include this docblock (enforced by `tests/bootstrap.php
 
 ## Reference Docs
 
-| Doc                             | Topic                                           |
-|---------------------------------|-------------------------------------------------|
-| `README.md`                     | Quick-start, env vars, local Docker setup       |
-| `CONTRIBUTING.md`               | Branch naming, PR process, local workflow       |
-| `DEFINITION_OF_DONE.md`         | Acceptance criteria by change type              |
-| `docs/ARCHITECTURE.md`          | 12-Factor layers, RBAC, dependencies, patterns  |
-| `docs/DEPLOYMENT.md`            | Production secrets, scaling, ops guide          |
-| `docs/openapi.yaml`             | REST API specification                          |
-| `docs/diagrams/`                | C4, request lifecycle, auth flow, ER diagrams   |
-| `SECURITY.md`                   | Vulnerability reporting policy                  |
+| Doc                     | Topic                                          |
+|-------------------------|------------------------------------------------|
+| `README.md`             | Quick-start, env vars, local Docker setup      |
+| `CONTRIBUTING.md`       | Branch naming, PR process, local workflow      |
+| `DEFINITION_OF_DONE.md` | Acceptance criteria by change type             |
+| `docs/ARCHITECTURE.md`  | 12-Factor layers, RBAC, dependencies, patterns |
+| `docs/DEPLOYMENT.md`    | Production secrets, scaling, ops guide         |
+| `docs/openapi.yaml`     | REST API specification                         |
+| `docs/diagrams/`        | C4, request lifecycle, auth flow, ER diagrams  |
+| `SECURITY.md`           | Vulnerability reporting policy                 |
+
+## MCP Servers Configurados
+
+Los servidores MCP amplían las capacidades del agente con acceso a herramientas externas.
+Configurados en `.vscode/mcp.json` (compatible con VS Code ≥ 1.99 y JetBrains + GitHub Copilot plugin).
+Requieren **Node.js ≥ 20 en el host** (no dentro de Docker).
+
+### Configurados en `.vscode/mcp.json`
+
+| Servidor              | Paquete                                            | Cuándo es útil                                                                             |
+|-----------------------|----------------------------------------------------|---------------------------------------------------------------------------------------------|
+| `sequential-thinking` | `@modelcontextprotocol/server-sequential-thinking` | Razonamiento encadenado para tareas complejas. Skills: `writing-plans`, `executing-plans`.  |
+| `filesystem`          | `@modelcontextprotocol/server-filesystem`          | Lectura estructurada del workspace (docs/plans/, .agents/skills/, migrations/, views/).     |
+
+### Disponibles vía extensión GitHub Copilot Chat (no requieren mcp.json)
+
+| Herramienta                   | Cuándo es útil                                                                                                                          |
+|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `github` (`git_*`)            | Crear PRs, listar issues, revisar diffs. Skills: `requesting-code-review`, `finishing-a-development-branch`.                            |
+| `playwright` (`pla_browser_*`)| Screenshots, árbol de accesibilidad, acciones de navegador. Skills: `ui-ux-pro-max`, `frontend-design`, `interface-design`, `systematic-debugging`. |
+
+> **Figma MCP eliminado** — superó el límite de llamadas a la API. Las referencias visuales
+> se gestionan ahora en `docs/design-system/` y via screenshots de Playwright.
+
+**Variable de entorno requerida:** `GITHUB_TOKEN` (PAT con scopes `repo`, `read:org`).
+Añádela a `.env` (no se compromete al repositorio — ver `.gitignore`).
 
 ## Skills de IA Disponibles
 
@@ -246,39 +308,40 @@ en el perfil de usuario o extensión — no se registran en el lock file del pro
 
 ### Planificación y Diseño
 
-| Skill                        | Cuándo invocarla en Komorebi Café                                         |
-|------------------------------|---------------------------------------------------------------------------|
-| `brainstorming`              | ANTES de cualquier feature, componente nuevo o cambio de comportamiento. Explora requisitos y diseño antes de tocar código. |
-| `writing-plans`              | Tras brainstorming aprobado, para crear el plan de implementación paso a paso en `docs/plans/`. |
-| `executing-plans`            | Para ejecutar un plan ya escrito en `docs/plans/` con checkpoints de revisión. |
-| `subagent-driven-development`| Cuando el plan del proyecto tiene 3+ tareas independientes dentro de la misma sesión. |
-| `dispatching-parallel-agents`| Cuando hay 2+ tareas completamente independientes (sin estado compartido) ejecutables en paralelo. |
+| Skill                         | Cuándo invocarla en Komorebi Café                                                                                           |
+|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| `brainstorming`               | ANTES de cualquier feature, componente nuevo o cambio de comportamiento. Explora requisitos y diseño antes de tocar código. |
+| `writing-plans`               | Tras brainstorming aprobado, para crear el plan de implementación paso a paso en `docs/plans/`.                             |
+| `executing-plans`             | Para ejecutar un plan ya escrito en `docs/plans/` con checkpoints de revisión.                                              |
+| `subagent-driven-development` | Cuando el plan del proyecto tiene 3+ tareas independientes dentro de la misma sesión.                                       |
+| `dispatching-parallel-agents` | Cuando hay 2+ tareas completamente independientes (sin estado compartido) ejecutables en paralelo.                          |
 
 ### Desarrollo
 
-| Skill                    | Cuándo invocarla en Komorebi Café                                         |
-|--------------------------|---------------------------------------------------------------------------|
-| `test-driven-development`| Al implementar cualquier feature o bugfix — escribe el test antes del código. Todos los tests en `tests/Unit/` o `tests/Integration/`. |
-| `systematic-debugging`   | Ante cualquier bug, test fallido o comportamiento inesperado. ANTES de proponer un fix. |
-| `frontend-design`        | Al crear o rediseñar vistas en `resources/views/` con interfaz de usuario rica (CSS, Alpine.js). |
-| `interface-design`       | Para dashboards y paneles admin/operativos: backoffice, KDS, recepción, keeper. |
-| `api-design-principles`  | Al modificar o añadir rutas en la API REST — revisar `docs/openapi.yaml` y seguir convenciones PSR-7. |
+| Skill                     | Cuándo invocarla en Komorebi Café                                                                                                      |
+|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| `test-driven-development` | Al implementar cualquier feature o bugfix — escribe el test antes del código. Todos los tests en `tests/Unit/` o `tests/Integration/`. |
+| `systematic-debugging`    | Ante cualquier bug, test fallido o comportamiento inesperado. ANTES de proponer un fix.                                                |
+| `ui-ux-pro-max`           | **Skill primaria para TODO trabajo visual**: componentes, layouts, dark mode, accesibilidad, colores, tipografía, animaciones, formularios, placeholders. Incluye 99 guías UX, 50+ estilos y checklists de accesibilidad WCAG 2.1. |
+| `frontend-design`         | Vistas con lógica interactiva compleja (Alpine.js, animaciones CSS custom, micro-interacciones).                                       |
+| `interface-design`        | Dashboards y paneles admin/operativos con alta densidad de información: backoffice, KDS, recepción, keeper.                            |
+| `api-design-principles`   | Al modificar o añadir rutas en la API REST — revisar `docs/openapi.yaml` y seguir convenciones PSR-7.                                  |
 
 ### Calidad y Revisión
 
-| Skill                        | Cuándo invocarla en Komorebi Café                                         |
-|------------------------------|---------------------------------------------------------------------------|
+| Skill                            | Cuándo invocarla en Komorebi Café                                                                                                 |
+|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | `verification-before-completion` | ANTES de afirmar que algo está hecho, arreglado o que los tests pasan. Requiere evidencia real (`make test-unit`, PHPStan, etc.). |
-| `requesting-code-review`     | Tras completar la implementación y antes de hacer merge — verifica que el trabajo cumple la Definition of Done. |
-| `receiving-code-review`      | Al recibir feedback en una PR — exige rigor técnico antes de aceptar o rechazar cambios. |
-| `finishing-a-development-branch` | Cuando la implementación está completa y todos los tests pasan — guía el proceso de integración o PR. |
+| `requesting-code-review`         | Tras completar la implementación y antes de hacer merge — verifica que el trabajo cumple la Definition of Done.                   |
+| `receiving-code-review`          | Al recibir feedback en una PR — exige rigor técnico antes de aceptar o rechazar cambios.                                          |
+| `finishing-a-development-branch` | Cuando la implementación está completa y todos los tests pasan — guía el proceso de integración o PR.                             |
 
 ### Utilidades
 
-| Skill                   | Cuándo invocarla en Komorebi Café                                          |
-|-------------------------|----------------------------------------------------------------------------|
-| `using-superpowers`     | Al iniciar cada sesión de trabajo — establece qué skills están disponibles y cuándo usarlas. |
-| `writing-skills`        | Al crear o editar archivos `SKILL.md` en `.agents/skills/`. Aplica TDD a documentación de procesos. |
-| `find-skills`           | Cuando se identifica una necesidad que podría tener una skill instalable (`npx skills find`). |
-| `troubleshoot`          | Cuando el comportamiento del agente es inesperado (tools ignoradas, skills no cargadas, instrucciones omitidas). |
-| `agent-customization`   | Al crear o editar archivos de configuración del agente: `.instructions.md`, `.prompt.md`, `AGENTS.md`, `SKILL.md`. |
+| Skill                 | Cuándo invocarla en Komorebi Café                                                                                  |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------|
+| `using-superpowers`   | Al iniciar cada sesión de trabajo — establece qué skills están disponibles y cuándo usarlas.                       |
+| `writing-skills`      | Al crear o editar archivos `SKILL.md` en `.agents/skills/`. Aplica TDD a documentación de procesos.                |
+| `find-skills`         | Cuando se identifica una necesidad que podría tener una skill instalable (`npx skills find`).                      |
+| `troubleshoot`        | Cuando el comportamiento del agente es inesperado (tools ignoradas, skills no cargadas, instrucciones omitidas).   |
+| `agent-customization` | Al crear o editar archivos de configuración del agente: `.instructions.md`, `.prompt.md`, `AGENTS.md`, `SKILL.md`. |

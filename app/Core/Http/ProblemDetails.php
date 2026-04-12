@@ -6,6 +6,7 @@ namespace App\Core\Http;
 
 use App\Core\Result;
 use App\Core\ServiceErrorCode;
+use InvalidArgumentException;
 
 /**
  * Genera estructuras RFC 9457 Problem Details for HTTP APIs.
@@ -92,7 +93,7 @@ final readonly class ProblemDetails
     public static function fromResult(Result $result, int $status): array
     {
         if ($result->ok) {
-            throw new \InvalidArgumentException('ProblemDetails::fromResult() requires a failed Result');
+            throw new InvalidArgumentException('ProblemDetails::fromResult() requires a failed Result');
         }
 
         $enumCase = $result->code !== null ? ServiceErrorCode::tryFrom($result->code) : null;
@@ -110,7 +111,7 @@ final readonly class ProblemDetails
 
         // RFC 9457 extension members: context fields are merged at top level
         if ($result->context !== []) {
-            $body = \array_merge($body, $result->context);
+            $body = array_merge($body, $result->context);
         }
 
         return $body;

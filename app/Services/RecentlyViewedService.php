@@ -10,7 +10,7 @@ use App\Core\CookieManager;
  * Servicio para gestionar el historial de cafés vistos recientemente
  * Almacena hasta 10 cafés en orden FIFO (primero en entrar, primero en salir)
  */
-final class RecentlyViewedService
+class RecentlyViewedService
 {
     private const MAX_ITEMS = 10;
     private const COOKIE_DURATION = 30 * 24 * 3600; // 30 días

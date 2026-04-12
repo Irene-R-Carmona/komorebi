@@ -12,6 +12,7 @@ use App\Exceptions\DatabaseException;
 use App\Exceptions\ValidationException;
 use App\Models\AuditLog;
 use App\Repositories\ProductRepository;
+use App\Services\Contracts\ProductServiceInterface;
 use PDO;
 use PDOException;
 
@@ -21,14 +22,14 @@ use PDOException;
  * Encapsula la lógica de negocio relacionada con productos del menú.
  * Maneja validación, persistencia y consultas.
  */
-final class ProductService extends TransactionalService
+class ProductService extends TransactionalService implements ProductServiceInterface
 {
     private ProductRepository $productRepo;
 
-    public function __construct(?ProductRepository $productRepo = null)
+    public function __construct(ProductRepository $productRepo)
     {
         parent::__construct(Database::getConnection());
-        $this->productRepo = $productRepo ?? new ProductRepository();
+        $this->productRepo = $productRepo;
     }
 
     /**
@@ -36,6 +37,7 @@ final class ProductService extends TransactionalService
      *
      * @return array
      */
+    #[\Override]
     public function getAll(): array
     {
         $cacheKey = 'products:all';
@@ -70,6 +72,7 @@ final class ProductService extends TransactionalService
      * @param array   $filters Filtros opcionales: category_id, product_type, is_active, search
      * @return array{data: array, total: int, page: int, perPage: int, totalPages: int}
      */
+    #[\Override]
     public function getAllPaginated(int $page = 1, int $perPage = 20, array $filters = []): array
     {
         return $this->productRepo->findFiltered($filters, $page, $perPage);
@@ -81,6 +84,7 @@ final class ProductService extends TransactionalService
      * @param integer $id
      * @return array|null
      */
+    #[\Override]
     public function getById(int $id): ?array
     {
         return $this->productRepo->findById($id);
@@ -93,6 +97,7 @@ final class ProductService extends TransactionalService
      * @throws ValidationException Si faltan campos obligatorios
      * @throws DatabaseException Si falla la creación
      */
+    #[\Override]
     public function create(array $data): int
     {
         // Validación de campos obligatorios
@@ -152,6 +157,7 @@ final class ProductService extends TransactionalService
      * @throws ValidationException Si faltan campos obligatorios
      * @throws DatabaseException Si falla la actualización
      */
+    #[\Override]
     public function update(int $id, array $data): bool
     {
         // Validación de campos obligatorios
@@ -211,6 +217,7 @@ final class ProductService extends TransactionalService
      * @return boolean
      * @throws DatabaseException Si falla la eliminación
      */
+    #[\Override]
     public function delete(int $id): bool
     {
         try {
@@ -225,6 +232,9 @@ final class ProductService extends TransactionalService
                     null,
                     ['id' => $id]
                 );
+
+                // Invalidar cache
+                $this->invalidateCache();
             }
 
             return $success;
@@ -239,14 +249,22 @@ final class ProductService extends TransactionalService
      * @param integer $id
      * @return boolean
      */
+    #[\Override]
     public function toggleActive(int $id): bool
     {
         try {
             $sql = 'UPDATE products SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP WHERE id = :id';
 
-            return $this->db->prepare($sql)->execute(['id' => $id]);
+            $success = $this->db->prepare($sql)->execute(['id' => $id]);
+
+            if ($success) {
+                $this->invalidateCache();
+            }
+
+            return $success;
         } catch (PDOException $e) {
             Logger::error('[ProductService] Error al cambiar estado del producto', ['exception' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -257,6 +275,7 @@ final class ProductService extends TransactionalService
      * @param integer $categoryId
      * @return array
      */
+    #[\Override]
     public function getByCategory(int $categoryId): array
     {
         $stmt = $this->db->prepare('
@@ -277,6 +296,7 @@ final class ProductService extends TransactionalService
      * @param string $query
      * @return array
      */
+    #[\Override]
     public function search(string $query): array
     {
         $stmt = $this->db->prepare('
@@ -306,6 +326,7 @@ final class ProductService extends TransactionalService
      * @return boolean
      * @throws DatabaseException Si falla la sincronización
      */
+    #[\Override]
     public function syncAllergens(int $productId, array $allergenIds): bool
     {
         try {
@@ -364,6 +385,7 @@ final class ProductService extends TransactionalService
      * @param integer|null $categoryId
      * @return array
      */
+    #[\Override]
     public function getWithoutAllergens(array $excludeAllergenIds, ?int $categoryId = null): array
     {
         if (empty($excludeAllergenIds)) {
@@ -403,6 +425,7 @@ final class ProductService extends TransactionalService
      * @param integer|null $categoryId
      * @return array
      */
+    #[\Override]
     public function getAllWithAllergens(?int $categoryId = null): array
     {
         $sql = 'SELECT p.*, c.name as category_name
@@ -437,6 +460,7 @@ final class ProductService extends TransactionalService
      * @param integer $productId
      * @return array
      */
+    #[\Override]
     public function getAllergensByProduct(int $productId): array
     {
         $stmt = $this->db->prepare('

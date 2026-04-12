@@ -12,6 +12,8 @@ declare(strict_types=1);
 use App\Models\User;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
+use App\Services\Contracts\RateLimitingServiceInterface;
+use App\Services\SessionManagementService;
 use PHPUnit\Framework\TestCase;
 use Random\RandomException;
 
@@ -24,16 +26,26 @@ final class AuthServiceTest extends TestCase
 {
     private AuthService $service;
     private UserRepository $userRepoMock;
-    private User $userModelMock;
+    private RateLimitingServiceInterface $rateLimiterStub;
+    private SessionManagementService $sessionService;
 
     protected function setUp(): void
     {
         // Mock del repositorio UserRepository
-        $this->userRepoMock = $this->createStub(UserRepository::class);
-        $this->service = new AuthService($this->userRepoMock);
+        $this->userRepoMock    = $this->createStub(UserRepository::class);
+        $this->rateLimiterStub = $this->createStub(RateLimitingServiceInterface::class);
 
-        // Mock del modelo User utilizado por algunos tests
-        $this->userModelMock = $this->createStub(User::class);
+        // SessionManagementService es final → se usa instancia real
+        $pdo = \App\Core\Database::getConnection();
+        $this->sessionService = new SessionManagementService($pdo);
+
+        $this->service = new AuthService(
+            $this->userRepoMock,
+            new User(),
+            $this->sessionService,
+            $this->rateLimiterStub,
+            $pdo
+        );
 
         // Simular superglobales (usar IP única por test para evitar rate-limits acumulados)
         $_SERVER['REMOTE_ADDR'] = '127.0.0.' . (string) random_int(2, 254);
@@ -151,8 +163,15 @@ final class AuthServiceTest extends TestCase
             ->with($this->equalTo('test@example.com'))
             ->willReturn(null);
 
-        // Usar un servicio construido con el mock que verifica el argumento
-        $service = new AuthService($mock);
+        $pdo = \App\Core\Database::getConnection();
+        // Usar servicio construido con el mock que verifica el argumento
+        $service = new AuthService(
+            $mock,
+            new User(),
+            $this->sessionService,
+            $this->rateLimiterStub,
+            $pdo
+        );
         $service->login('TEST@EXAMPLE.COM', 'password123');
 
         $this->assertTrue(true);
@@ -162,8 +181,20 @@ final class AuthServiceTest extends TestCase
     // Register - Validaciones y éxito
     // ─────────────────────────────────────────────────────────────
 
-    // Test comentado: requiere integration test con sesiones reales
-    // public function testRegisterWithValidDataSuccess(): void
+    public function testRegisterWithValidDataSuccess(): void
+    {
+        $this->userRepoMock->method('emailExists')->willReturn(false);
+        $this->userRepoMock->method('create')->willReturn(1);
+        $this->userRepoMock->method('findById')->willReturn([
+            'id' => 1,
+            'email' => 'user@example.com',
+            'name' => 'Test User',
+        ]);
+
+        $result = $this->service->register('Test User', 'user@example.com', 'SecurePass123!', 'SecurePass123!');
+
+        $this->assertTrue($result->ok);
+    }
 
     public function testRegisterValidatesNameLength(): void
     {
@@ -236,8 +267,23 @@ final class AuthServiceTest extends TestCase
     // Login - Tests que requieren integration (sesiones/auditoría)
     // ─────────────────────────────────────────────────────────────
 
-    // Test comentado: requiere integration test con audit logs
-    // public function testLoginWithWrongPasswordFails(): void
+    public function testLoginWithWrongPasswordFails(): void
+    {
+        $hash = password_hash('correct_password123!', PASSWORD_ARGON2ID);
+        $this->userRepoMock->method('findByEmail')->willReturn([
+            'id'             => 1,
+            'email'          => 'user@example.com',
+            'password'       => $hash,
+            'is_active'      => 1,
+            'locked_until'   => null,
+            'name'           => 'Test User',
+            'login_attempts' => 0,
+        ]);
+
+        $result = $this->service->login('user@example.com', 'wrong_password');
+
+        $this->assertFalse($result->ok);
+    }
 
     public function testRegisterValidatesPasswordMinLength(): void
     {

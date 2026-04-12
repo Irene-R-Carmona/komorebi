@@ -58,7 +58,13 @@ $excludeAllergens ??= [];
             <p class="seccion__subtitulo">Sabores tradicionales con un toque animal</p>
 
             <div class="menu-search-wrapper">
-                <input type="text" x-model="search" placeholder="Buscar en el menú..." class="menu-search-input">
+                <label for="menu-busqueda" class="visually-hidden">Buscar productos en el menú</label>
+                <input type="search"
+                    id="menu-busqueda"
+                    x-model="search"
+                    placeholder="Buscar en el menú..."
+                    class="menu-search-input"
+                    autocomplete="off">
             </div>
 
             <!-- Filtro de Tipos de Café -->
@@ -116,8 +122,16 @@ $excludeAllergens ??= [];
                                         x-model="excludedAllergens"
                                         @change="applyAllergenFilter()">
                                     <span class="allergen-filter-label">
-                                        <i class="<?= e($allergen['icon']) ?>"
-                                            style="color: <?= e($allergen['icon_color']) ?>; font-size: 1.5rem;"></i>
+                                        <?php if (!empty($allergen['icon'])): ?>
+                                            <i class="<?= e($allergen['icon']) ?>"
+                                                style="color: <?= e($allergen['icon_color'] ?? '') ?>; font-size: 1.5rem;"
+                                                aria-hidden="true"></i>
+                                        <?php else: ?>
+                                            <span class="allergen-code-badge" aria-hidden="true"
+                                                style="display:inline-flex;align-items:center;justify-content:center;width:1.5rem;height:1.5rem;border-radius:50%;background:<?= e($allergen['icon_color'] ?? 'var(--color-borde)') ?>;color:#fff;font-size:0.55rem;font-weight:700;line-height:1;">
+                                                <?= e($allergen['code']) ?>
+                                            </span>
+                                        <?php endif; ?>
                                         <span><?= e($allergen['name']) ?></span>
                                     </span>
                                 </label>
@@ -133,14 +147,6 @@ $excludeAllergens ??= [];
                 </div>
             <?php endif; ?>
 
-            <!-- Toast error (carrito/AJAX) -->
-            <div class="toast toast--error mb-lg"
-                x-show="lastError"
-                x-transition
-                style="display:none;">
-                <span class="toast__icono">⚠️</span>
-                <span class="toast__mensaje" x-text="lastError"></span>
-            </div>
         </header>
 
         <!-- TABS -->
@@ -157,7 +163,7 @@ $excludeAllergens ??= [];
         </div>
 
         <!-- GRID -->
-        <div class="menu__container">
+        <div class="menu__container" aria-live="polite" aria-atomic="false">
             <?php foreach ($categorias as $cat): ?>
                 <?php
                 $catId = (int) $cat['id'];
@@ -186,7 +192,7 @@ $excludeAllergens ??= [];
 
                     <?php if (empty($prods)): ?>
                         <div class="menu-empty-msg">
-                            <p>Próximamente nuevos productos en esta sección. 🍵</p>
+                            <p>Próximamente nuevos productos en esta sección. <i class="bi bi-cup" aria-hidden="true"></i></p>
                         </div>
                     <?php else: ?>
 

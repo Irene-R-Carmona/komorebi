@@ -18,9 +18,9 @@ declare(strict_types=1);
     </p>
     <!-- Mostrar detalles sólo en entornos de desarrollo/debug -->
     <?php if (!empty($show_details) && isset($exception)): ?>
-        <div class="error-details mt-3" style="background:#222;color:#f8f8f2;padding:12px;border-radius:6px;overflow:auto;">
+        <div class="error-debug">
             <strong>Detalle (debug):</strong>
-            <pre style="white-space:pre-wrap;color:#f8f8f2;font-size:0.9rem;margin-top:8px;">
+            <pre>
 <?= htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8') ?>
 
 Archivo: <?= htmlspecialchars($exception->getFile() . ':' . $exception->getLine(), ENT_QUOTES, 'UTF-8') ?>

@@ -157,8 +157,8 @@ final class AnimalSeeder
                 // Separamos columnas SQL de atributos JSON
                 $sqlFields = ['nombre', 'tipo', 'edad', 'personalidad', 'biografia', 'nivelInteractividad', 'imagen'];
 
-                $attributes = \array_filter($a, static function ($key) use ($sqlFields) {
-                    return !\in_array($key, $sqlFields, true);
+                $attributes = array_filter($a, static function ($key) use ($sqlFields) {
+                    return !in_array($key, $sqlFields, true);
                 }, ARRAY_FILTER_USE_KEY);
 
                 try {
@@ -171,7 +171,7 @@ final class AnimalSeeder
                         ':pers' => $a['personalidad'],
                         ':desc' => $a['biografia'], // La biografía va al campo description
                         ':level' => $a['nivelInteractividad'],
-                        ':attrs' => \json_encode($attributes, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+                        ':attrs' => json_encode($attributes, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
                         ':img' => $a['imagen'],
                     ]);
                     $inserted++;

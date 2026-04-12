@@ -81,6 +81,14 @@ interface AnimalRepositoryInterface
     public function getActiveIncidents(): array;
 
     /**
+     * Obtener un incidente por su ID
+     *
+     * @param int $id ID del incidente
+     * @return array<string, mixed>|null
+     */
+    public function findIncidentById(int $id): ?array;
+
+    /**
      * Actualizar la URL de imagen de un animal.
      *
      * @param integer $animalId ID del animal

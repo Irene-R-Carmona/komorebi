@@ -1,0 +1,64 @@
+# .gitleaks.toml
+# Configuración de Gitleaks para Komorebi Café
+# Doc: https://github.com/gitleaks/gitleaks#configuration
+#
+# Uso:
+#   gitleaks detect --source . --no-git                      # HEAD actual
+#   gitleaks detect --source . --log-opts="--all"            # historial completo
+#   gitleaks protect --staged                                 # pre-commit hook
+
+title = "gitleaks config — Komorebi Café"
+
+# Extender reglas oficiales mantenidas por el proyecto gitleaks
+[extend]
+useDefault = true
+
+# =============================================================================
+# ALLOWLIST GLOBAL
+# Patrones, rutas y commits que se sabe son falsos positivos o credenciales
+# intencionales de entorno de desarrollo/prueba.
+# =============================================================================
+
+[allowlist]
+description = "Falsos positivos y credenciales de dev/test conocidas"
+
+# Archivos completos que se deben ignorar
+paths = [
+  # Deps de terceros — jamás analizar
+  '''vendor/''',
+  '''node_modules/''',
+
+  # Plantilla de entorno — sin valores reales
+  '''^\.env\.example$''',
+
+  # Tests: credenciales intencionales (root/root para MySQL de test aislado)
+  '''^docker-compose\.test\.yml$''',
+
+  # Dev local: sonar/sonar intencional para SonarQube local (profile: sonar)
+  '''^docker-compose\.override\.yml$''',
+
+  # Utilidad de auditoría de hashes: contiene hashes Argon2id de prueba,
+  # no contraseñas reales. Solo se usa para verificar el algoritmo de hashing.
+  '''^scripts/check_pass\.php$''',
+
+  # Snapshots de tests E2E: pueden contener tokens simulados de fixtures
+  '''tests/e2e/''',
+
+  # Reportes de calidad: artefactos de análisis estático, no código fuente
+  '''tests/reports/''',
+]
+
+# Regexes globales de valores que se sabe son placeholders seguros
+regexes = [
+  # Placeholder estándar de dev ("changeme", "your_*_here", etc.)
+  '''(?i)(changeme|your[_-].+[_-]here|replace[_-]me|placeholder|example|localhost)''',
+
+  # Contraseñas de SonarQube local (sonar/sonar — perfil solo en override)
+  '''^sonar$''',
+
+  # Credencial root de MySQL en docker-compose.test.yml
+  '''^root$''',
+
+  # Clave de app para tests: prefijo "base64:dGVzdGtleW" en APP_KEY de test
+  '''base64:dGVzdGtleWZvcnVuaXR0ZXN0c29ubHk''',
+]

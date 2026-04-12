@@ -19,14 +19,13 @@ namespace Tests\Unit\Http\Controllers\Auth;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Auth\AuthController;
+use App\Services\AuthService;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
 use Psr\Http\Message\ResponseInterface;
 
 final class AuthControllerTest extends ControllerTestCase
 {
-    private const CSRF_TOKEN = 'test-csrf-auth-1234';
-
     protected function setUp(): void
     {
         if (session_status() === \PHP_SESSION_NONE) {
@@ -44,7 +43,10 @@ final class AuthControllerTest extends ControllerTestCase
 
     private function makeController(): AuthController
     {
-        return new AuthController(response: new ResponseFactory());
+        return new AuthController(
+            authService: $this->createStub(AuthService::class),
+            response: new ResponseFactory(),
+        );
     }
 
     // ─── showLogin ────────────────────────────────────────────────

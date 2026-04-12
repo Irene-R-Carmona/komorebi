@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\User;
 
+use App\Core\Container;
 use App\Core\Database;
 use App\Core\Session;
 use App\Core\View;
-use App\Services\WaitlistService;
+use App\Services\Contracts\WaitlistServiceInterface;
 
 /**
  * WaitlistController - Gestión de listas de espera del usuario
  */
 final class WaitlistController
 {
-    private WaitlistService $service;
+    private WaitlistServiceInterface $service;
 
     public function __construct()
     {
-        $this->service = new WaitlistService(Database::getConnection());
+        $this->service = Container::make(WaitlistServiceInterface::class);
     }
 
     /**

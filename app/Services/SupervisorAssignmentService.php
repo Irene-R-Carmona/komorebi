@@ -8,6 +8,7 @@ use App\Core\Logger;
 use App\Core\Result;
 use App\Core\Session;
 use App\Repositories\Contracts\SupervisorAssignmentRepositoryInterface;
+use App\Services\Contracts\SupervisorAssignmentServiceInterface;
 
 /**
  * Servicio que encapsula la lógica de creación y consulta de asignaciones
@@ -20,7 +21,7 @@ use App\Repositories\Contracts\SupervisorAssignmentRepositoryInterface;
  *
  * La validación CSRF es responsabilidad exclusiva del middleware PSR-15.
  */
-final class SupervisorAssignmentService
+class SupervisorAssignmentService implements SupervisorAssignmentServiceInterface
 {
     public function __construct(
         private readonly SupervisorAssignmentRepositoryInterface $repo,
@@ -29,6 +30,7 @@ final class SupervisorAssignmentService
     /**
      * Crea una asignación leyendo el cuerpo JSON de la petición HTTP.
      */
+    #[\Override]
     public function createFromRequest(): Result
     {
         $raw = (string) file_get_contents('php://input');
@@ -54,6 +56,7 @@ final class SupervisorAssignmentService
      *
      * @param array<string, mixed> $input
      */
+    #[\Override]
     public function createFromArray(array $input): Result
     {
         $reservationId = isset($input['reservation_id']) ? (int) $input['reservation_id'] : 0;
@@ -110,6 +113,7 @@ final class SupervisorAssignmentService
     /**
      * Devuelve todas las asignaciones registradas.
      */
+    #[\Override]
     public function listAssignments(): Result
     {
         try {

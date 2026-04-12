@@ -8,9 +8,9 @@ declare(strict_types=1);
  *
  * Datos esperados del controlador:
  * @var string $titulo
- * @var array $reservations - Reservas del día
- * @var array $tables - Estado de mesas
- * @var array $orders - Órdenes activas
+ * @var array $reservations   - Reservas del día
+ * @var array $activeTables   - Reservas con status=checked_in (mesas ocupadas ahora)
+ * @var array $activeOrders   - Órdenes en curso del KitchenService::getAllPending()
  */
 
 use App\Core\Session;
@@ -101,28 +101,38 @@ $greeting = match (true) {
                 <div class="glass-card__header">
                     <h3 class="glass-card__title">
                         <i class="bi bi-grid-3x3"></i>
-                        Estado de Mesas
+                        Mesas Ocupadas (<?= count($activeTables ?? []) ?>)
                     </h3>
                 </div>
                 <div class="glass-card__body">
-                    <div class="table-grid">
-                        <?php foreach ($tables as $table): ?>
-                            <div class="table-cell table-cell--<?= e($table['status']) ?>">
-                                <div class="table-cell__code"><?= e($table['code']) ?></div>
-                                <div class="table-cell__capacity">
-                                    <i class="bi bi-person"></i> <?= $table['capacity'] ?>
-                                </div>
-                                <?php
-                                echo renderBadge([
-                                    'label' => $table['status'] === 'free' ? 'Libre' : 'Ocupada',
-                                    'variant' => $table['status'] === 'free' ? 'success' : 'warning',
-                                    'size' => 'sm',
-                                    'class' => 'table-cell__status'
-                                ]);
-                                ?>
+                    <?php if (empty($activeTables ?? [])): ?>
+                        <div class="empty-state">
+                            <div class="empty-state__icon">
+                                <i class="bi bi-door-open"></i>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
+                            <p class="empty-state__message">No hay mesas ocupadas en este momento</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="table-grid">
+                            <?php foreach ($activeTables as $table): ?>
+                                <div class="table-cell table-cell--occupied">
+                                    <div class="table-cell__code"><?= e($table['customer_name']) ?></div>
+                                    <div class="table-cell__capacity">
+                                        <i class="bi bi-person"></i> <?= (int) $table['guests'] ?>
+                                        &nbsp;&middot;&nbsp;<?= e($table['time']) ?>
+                                    </div>
+                                    <?php
+                                    echo renderBadge([
+                                        'label'   => 'En local',
+                                        'variant' => 'success',
+                                        'size'    => 'sm',
+                                        'class'   => 'table-cell__status',
+                                    ]);
+                                    ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -133,11 +143,11 @@ $greeting = match (true) {
                 <div class="glass-card__header">
                     <h3 class="glass-card__title">
                         <i class="bi bi-receipt"></i>
-                        Órdenes Activas (<?= count($orders) ?>)
+                        Órdenes Activas (<?= count($activeOrders ?? []) ?>)
                     </h3>
                 </div>
                 <div class="glass-card__body">
-                    <?php if (empty($orders)): ?>
+                    <?php if (empty($activeOrders ?? [])): ?>
                         <div class="empty-state">
                             <div class="empty-state__icon">
                                 <i class="bi bi-check-circle"></i>
@@ -146,32 +156,32 @@ $greeting = match (true) {
                         </div>
                     <?php else: ?>
                         <div class="order-list">
-                            <?php foreach ($orders as $order): ?>
+                            <?php foreach ($activeOrders as $order): ?>
                                 <div class="order-card" data-status="<?= e($order['status']) ?>">
                                     <div class="order-card__header">
-                                        <span class="order-card__id">#<?= $order['id'] ?></span>
-                                        <span class="order-card__table">Mesa <?= e($order['table']) ?></span>
+                                        <span class="order-card__id">#<?= e($order['tracker_code'] ?? (string) $order['id']) ?></span>
+                                        <span class="order-card__table"><?= e($order['station'] ?? '—') ?></span>
                                     </div>
-                                    <div class="order-card__items"><?= e($order['itemsSummary']) ?></div>
+                                    <div class="order-card__items">
+                                        <?= e($order['quantity'] . 'x ' . ($order['product_name'] ?? '')) ?>
+                                    </div>
                                     <?php
-                                    $statusLabel = match ($order['status']) {
-                                        'preparing' => 'Preparando',
+                                    $statusLabel = match ($order['status'] ?? '') {
+                                        'kitchen' => 'En cocina',
                                         'pending' => 'Pendiente',
-                                        'ready' => 'Listo',
-                                        'served' => 'Servido',
-                                        default => 'Desconocido'
+                                        'ready'   => 'Listo',
+                                        default   => ucfirst((string) ($order['status'] ?? ''))
                                     };
-                                    $statusVariant = match ($order['status']) {
-                                        'preparing' => 'warning',
+                                    $statusVariant = match ($order['status'] ?? '') {
+                                        'kitchen' => 'warning',
                                         'pending' => 'neutral',
-                                        'ready' => 'info',
-                                        'served' => 'success',
-                                        default => 'neutral'
+                                        'ready'   => 'info',
+                                        default   => 'neutral'
                                     };
                                     echo renderBadge([
-                                        'label' => $statusLabel,
+                                        'label'   => $statusLabel,
                                         'variant' => $statusVariant,
-                                        'size' => 'sm'
+                                        'size'    => 'sm',
                                     ]);
                                     ?>
                                 </div>

@@ -15,7 +15,7 @@ $categorias = $datos['categorias'] ?? [];
 <div class="static-page static-page--narrow">
     <!-- Hero -->
     <header class="static-hero">
-        <span class="static-hero__icon"><?= $hero['icono'] ?? '❓' ?></span>
+        <span class="static-hero__icon" aria-hidden="true"><i class="bi bi-question-circle"></i></span>
         <h1 class="static-hero__title"><?= htmlspecialchars($hero['titulo'] ?? 'Preguntas Frecuentes', ENT_QUOTES, 'UTF-8') ?></h1>
         <p class="static-hero__subtitle"><?= htmlspecialchars($hero['subtitulo'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
     </header>
@@ -27,10 +27,10 @@ $categorias = $datos['categorias'] ?? [];
                 <h2 class="static-faq__section-title"><?= htmlspecialchars($categoria['titulo'], ENT_QUOTES, 'UTF-8') ?></h2>
 
                 <?php foreach ($categoria['preguntas'] as $item): ?>
-                    <article class="static-faq__item">
-                        <h3 class="static-faq__question">
+                    <details class="static-faq__item">
+                        <summary class="static-faq__question">
                             <?= htmlspecialchars($item['pregunta'], ENT_QUOTES, 'UTF-8') ?>
-                        </h3>
+                        </summary>
                         <div class="static-faq__answer">
                             <?php if (is_array($item['respuesta'])): ?>
                                 <?php foreach ($item['respuesta'] as $parrafo): ?>
@@ -40,7 +40,7 @@ $categorias = $datos['categorias'] ?? [];
                                 <p><?= htmlspecialchars($item['respuesta'], ENT_QUOTES, 'UTF-8') ?></p>
                             <?php endif; ?>
                         </div>
-                    </article>
+                    </details>
                 <?php endforeach; ?>
             </section>
         <?php endforeach; ?>

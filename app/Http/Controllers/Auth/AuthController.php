@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
@@ -38,7 +39,7 @@ final class AuthController
 
     public function __construct(?AuthService $authService = null, ?ResponseFactory $response = null)
     {
-        $this->authService = $authService ?? new AuthService();
+        $this->authService = $authService ?? Container::make(AuthService::class);
         $this->response = $response ?? new ResponseFactory();
     }
 

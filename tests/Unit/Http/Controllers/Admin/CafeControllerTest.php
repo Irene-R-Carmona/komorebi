@@ -19,6 +19,7 @@ namespace Tests\Unit\Http\Controllers\Admin;
 use App\Core\Http\ResponseFactory;
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Admin\CafeController;
+use App\Services\CafeService;
 use Tests\Support\ControllerTestCase;
 
 final class CafeControllerTest extends ControllerTestCase
@@ -40,7 +41,10 @@ final class CafeControllerTest extends ControllerTestCase
 
     private function makeController(): CafeController
     {
-        return new CafeController(response: new ResponseFactory());
+        return new CafeController(
+            cafeService: $this->createStub(CafeService::class),
+            response: new ResponseFactory(),
+        );
     }
 
     public function test_create_throws_validation_exception_when_csrf_is_invalid(): void

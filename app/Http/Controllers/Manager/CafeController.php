@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Manager;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
-use App\Services\CafeService;
+use App\Services\Contracts\CafeServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -20,15 +21,15 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class CafeController
 {
-    private CafeService $cafeService;
+    private CafeServiceInterface $cafeService;
 
     private ResponseFactory $response;
 
     public function __construct(
-        ?CafeService $cafeService = null,
+        ?CafeServiceInterface $cafeService = null,
         ?ResponseFactory $response = null
     ) {
-        $this->cafeService = $cafeService ?? new CafeService();
+        $this->cafeService = $cafeService ?? Container::make(CafeServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
     }
 

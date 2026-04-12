@@ -2,6 +2,10 @@
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
+.env.development
+.env.test
 
 # Dependencies
 vendor/
@@ -39,6 +43,12 @@ desktop.ini
 .phpunit.cache/
 tests/reports/
 coverage/
+playwright-report/
+test-results/
+screenshots/
+.lighthouseci/
+.playwright/
+.playwright-mcp/
 
 # Build artifacts
 public/build/
@@ -48,3 +58,26 @@ public/hot
 .php-cs-fixer.cache
 .psalm/cache/
 .sonarqube/
+
+# Security — Keys & Certs
+secrets/
+*.pem
+*.key
+*.crt
+*.cert
+*.cer
+*.p12
+*.pfx
+*.jks
+auth.json
+*.token
+*.secret
+*.secrets
+
+# Database dumps
+backups/
+*.sql.gz
+*.dump
+*.bak
+docker/mysql/data/
+docker/redis/data/

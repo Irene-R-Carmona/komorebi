@@ -252,12 +252,12 @@ final class ClimaContextoServiceTest extends TestCase
     public static function condicionesProvider(): array
     {
         return [
-            ['clear'],
-            ['clouds'],
-            ['rain'],
-            ['snow'],
-            ['fog'],
-            ['thunderstorm'],
+            'clear' => ['clear'],
+            'clouds' => ['clouds'],
+            'rain' => ['rain'],
+            'snow' => ['snow'],
+            'fog' => ['fog'],
+            'thunderstorm' => ['thunderstorm'],
         ];
     }
 

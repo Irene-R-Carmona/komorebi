@@ -18,6 +18,7 @@ namespace Tests\Unit\Http\Controllers\Manager;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Manager\CafeController;
+use App\Services\CafeService;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
 
@@ -35,7 +36,10 @@ final class CafeControllerTest extends ControllerTestCase
 
     private function makeController(): CafeController
     {
-        return new CafeController(response: new ResponseFactory());
+        return new CafeController(
+            cafeService: $this->createStub(CafeService::class),
+            response: new ResponseFactory(),
+        );
     }
 
     public function test_update_capacity_returns_403_when_no_cafe_assigned(): void

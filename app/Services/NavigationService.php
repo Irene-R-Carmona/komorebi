@@ -135,7 +135,7 @@ final class NavigationService
         return [
             'Gestión' => [
                 self::item('dashboard', 'Dashboard', '/manager/dashboard'),
-                self::item('stock', 'Catálogo', '/admin/menu'),
+                self::item('stock', 'Productos', '/manager/products'),
                 self::item('staff', 'Personal', '/manager/staff'),
                 self::item('reports', 'Reportes', '/manager/reports'),
             ],
@@ -151,7 +151,10 @@ final class NavigationService
     {
         return [
             'Bienestar Animal' => [
-                self::item('animals', 'Estado Diario', '/keeper/dashboard'),
+                self::item('dashboard',  'Estado Diario',      '/keeper/dashboard'),
+                self::item('animals',    'Animales',           '/keeper/animals'),
+                self::item('health',     'Chequeos de Salud',  '/keeper/health-checks'),
+                self::item('incidents',  'Incidentes',         '/keeper/incidents'),
             ],
         ];
     }

@@ -8,10 +8,11 @@ use App\Core\Database;
 use App\Core\Env;
 use App\Core\Result;
 use App\Core\Time;
+use App\Services\Contracts\AvailabilityServiceInterface;
 use JsonException;
 use PDO;
 
-final class AvailabilityService
+final class AvailabilityService implements AvailabilityServiceInterface
 {
     private PDO $db;
     private int $maxDaysAhead;
@@ -32,6 +33,7 @@ final class AvailabilityService
      * @return Result
      * @throws \DateMalformedStringException
      */
+    #[\Override]
     public function getAvailableSlots(int $cafeId, int $passId, string $dateYmd, int $guests): Result
     {
         // Validación básica
@@ -187,6 +189,7 @@ final class AvailabilityService
      * @return Result
      * @throws \DateMalformedStringException
      */
+    #[\Override]
     public function assertSlotAvailable(int $cafeId, int $passId, string $dateYmd, string $timeHHMM, int $guests): Result
     {
         if (!\preg_match('/^\d{2}:\d{2}$/', $timeHHMM)) {
@@ -204,6 +207,64 @@ final class AvailabilityService
         }
 
         return Result::ok();
+    }
+
+    /**
+     * Obtiene cafés disponibles para reserva.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    #[\Override]
+    public function getAvailableCafesForReservation(): array
+    {
+        $stmt = $this->db->query(
+            'SELECT id, name, slug, location, category, animal_type, price_per_hour,
+                    opening_time, closing_time, capacity_max, image_url,
+                    latitude, longitude, timezone
+             FROM cafes WHERE has_reservations = 1 AND is_active = 1'
+        );
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Obtiene cafés disponibles para reserva, indexados por ID.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    #[\Override]
+    public function getAvailableCafesById(): array
+    {
+        $cafes = $this->getAvailableCafesForReservation();
+        $byId = [];
+
+        foreach ($cafes as $cafe) {
+            $byId[(int) $cafe['id']] = $cafe;
+        }
+
+        return $byId;
+    }
+
+    /**
+     * Obtiene pases de experiencia disponibles para reserva.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    #[\Override]
+    public function getAvailablePassesForReservation(): array
+    {
+        $stmt = $this->db->query(
+            "SELECT id, name, japanese_name, description, price,
+                    duration_minutes, min_pax, max_pax,
+                    target_cafe_types, target_animal_types,
+                    attributes, image_url
+             FROM products
+             WHERE product_type = 'pass'
+               AND is_active = 1
+             ORDER BY price, duration_minutes"
+        );
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     private function getCafe(int $id): ?array

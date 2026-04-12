@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Core\Container;
 use App\Core\View;
-use App\Services\MenuService;
+use App\Services\Contracts\MenuServiceInterface;
 
 final class MenuController
 {
-    private MenuService $menuService;
+    private MenuServiceInterface $menuService;
 
-    public function __construct()
+    public function __construct(?MenuServiceInterface $menuService = null)
     {
-        $this->menuService = new MenuService();
+        $this->menuService = $menuService ?? Container::make(MenuServiceInterface::class);
     }
 
     public function index(): void

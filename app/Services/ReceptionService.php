@@ -14,13 +14,14 @@ use PDO;
 use Throwable;
 use App\Core\Logger;
 use App\Core\Result;
+use App\Services\Contracts\ReceptionServiceInterface;
 
 /**
  * Servicio de Recepción
  *
  * Gestiona el flujo operativo de llegada y salida de clientes.
  */
-final class ReceptionService
+final class ReceptionService implements ReceptionServiceInterface
 {
     private PDO $db;
     private Reservation $reservationModel;
@@ -42,6 +43,7 @@ final class ReceptionService
     /**
      * Obtiene todos los datos necesarios para el dashboard de recepción.
      */
+    #[\Override]
     public function getDashboard(int $cafeId): array
     {
         $today = \date('Y-m-d');
@@ -58,6 +60,7 @@ final class ReceptionService
     /**
      * Obtiene las reservas confirmadas pendientes de llegada (hoy).
      */
+    #[\Override]
     public function getPendingArrivals(int $cafeId): array
     {
         $reservations = $this->reservationModel->findByCafeAndDate($cafeId, \date('Y-m-d'));
@@ -69,6 +72,7 @@ final class ReceptionService
     /**
      * Obtiene los grupos actualmente en el café.
      */
+    #[\Override]
     public function getActiveGroups(int $cafeId): array
     {
         $groups = $this->reservationModel->findActiveByCafe($cafeId);
@@ -88,6 +92,7 @@ final class ReceptionService
     /**
      * Procesa el check-in de un cliente.
      */
+    #[\Override]
     public function processCheckin(int $reservationId, int $trackerId): Result
     {
         try {
@@ -145,6 +150,7 @@ final class ReceptionService
     /**
      * Procesa el check-out de un cliente.
      */
+    #[\Override]
     public function processCheckout(int $reservationId): Result
     {
         try {
@@ -208,6 +214,7 @@ final class ReceptionService
     /**
      * Asigna un tracker a una reserva activa.
      */
+    #[\Override]
     public function assignTracker(int $reservationId, int $trackerId): bool
     {
         return $this->reservationModel->assignTracker($reservationId, $trackerId);
@@ -216,6 +223,7 @@ final class ReceptionService
     /**
      * Obtiene trackers disponibles para un café.
      */
+    #[\Override]
     public function getAvailableTrackers(int $cafeId): array
     {
         return $this->trackerModel->findAvailable($cafeId);
@@ -228,6 +236,7 @@ final class ReceptionService
     /**
      * Marca un protocolo como completado.
      */
+    #[\Override]
     public function completeProtocol(int $reservationId, string $protocol): bool
     {
         return $this->reservationModel->completeProtocol($reservationId, $protocol);
@@ -236,6 +245,7 @@ final class ReceptionService
     /**
      * Obtiene el estado de los protocolos de una reserva.
      */
+    #[\Override]
     public function getProtocolStatus(int $reservationId): Result
     {
         $reservation = $this->reservationModel->findById($reservationId);
@@ -259,6 +269,7 @@ final class ReceptionService
     /**
      * Obtiene información de capacidad del café.
      */
+    #[\Override]
     public function getCapacityInfo(int $cafeId): array
     {
         $cafe = $this->cafeModel->findById($cafeId);
@@ -284,6 +295,7 @@ final class ReceptionService
     /**
      * Obtiene estadísticas diarias.
      */
+    #[\Override]
     public function getDailyStats(int $cafeId, string $date): array
     {
         return $this->reservationModel->getDailyStats($cafeId, $date);

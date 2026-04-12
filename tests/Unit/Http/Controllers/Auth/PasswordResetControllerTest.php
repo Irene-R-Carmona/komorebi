@@ -18,6 +18,7 @@ namespace Tests\Unit\Http\Controllers\Auth;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Services\AuthService;
 use Tests\Support\ControllerTestCase;
 
 final class PasswordResetControllerTest extends ControllerTestCase
@@ -37,7 +38,7 @@ final class PasswordResetControllerTest extends ControllerTestCase
 
     private function makeController(): PasswordResetController
     {
-        return new PasswordResetController();
+        return new PasswordResetController(authService: $this->createStub(AuthService::class));
     }
 
     public function test_class_exists_and_has_key_methods(): void
@@ -57,14 +58,14 @@ final class PasswordResetControllerTest extends ControllerTestCase
 
     public function test_forgot_password_form_redirects_when_authenticated(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
-        }
-        $_SESSION['user_id'] = 1;
+        $authStub = $this->createStub(AuthService::class);
+        $authStub->method('check')->willReturn(true);
+        $controller = new PasswordResetController(
+            authService: $authStub,
+            response: new ResponseFactory()
+        );
 
-        $result = $this->makeController()->forgotPasswordForm();
-
-        $_SESSION = [];
+        $result = $controller->forgotPasswordForm();
 
         $this->assertNotNull($result);
         $this->assertSame(302, $result->getStatusCode());

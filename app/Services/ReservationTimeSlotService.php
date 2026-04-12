@@ -7,10 +7,12 @@ namespace App\Services;
 use App\Core\Queue;
 use App\Core\Result;
 use App\Core\TransactionalService;
+use App\Core\WideEvent;
 use App\Jobs\WaitlistPromotionJob;
 use App\Models\Reservation;
 use App\Models\TimeSlot;
 use App\Models\Waitlist;
+use App\Services\Contracts\ReservationTimeSlotServiceInterface;
 use PDO;
 use PDOException;
 
@@ -18,7 +20,7 @@ use PDOException;
  * Servicio de integración entre Reservations y TimeSlots
  * Coordina la gestión atómica de capacidad y promoción de waitlist
  */
-final class ReservationTimeSlotService extends TransactionalService
+final class ReservationTimeSlotService extends TransactionalService implements ReservationTimeSlotServiceInterface
 {
     private Reservation $reservation;
     private TimeSlot $timeSlot;
@@ -53,6 +55,7 @@ final class ReservationTimeSlotService extends TransactionalService
      * } $data
      * @return Result{reservation_id: int, time_slot_id: int}
      */
+    #[\Override]
     public function createReservationWithSlot(array $data): Result
     {
         return $this->transact(function () use ($data): Result {
@@ -120,6 +123,7 @@ final class ReservationTimeSlotService extends TransactionalService
      * @param integer $reservationId
      * @return Result{promoted_users: int}
      */
+    #[\Override]
     public function cancelReservationAndPromote(int $reservationId): Result
     {
         return $this->transact(function () use ($reservationId): Result {
@@ -198,7 +202,10 @@ final class ReservationTimeSlotService extends TransactionalService
         $notifyResult = $this->waitlist->markAsNotified((int) $waitlistEntry['id']);
 
         if ($notifyResult->isOk()) {
-            Queue::push(WaitlistPromotionJob::class, ['waitlist_entry_id' => (int) $waitlistEntry['id']]);
+            Queue::push(WaitlistPromotionJob::class, [
+                'waitlist_entry_id' => (int) $waitlistEntry['id'],
+                '_correlation_id' => WideEvent::get('request_id') ?? '',
+            ]);
             return 1;
         }
 
@@ -218,9 +225,10 @@ final class ReservationTimeSlotService extends TransactionalService
      * } $data
      * @return Result{waitlist_id: int, position: int, token: string}
      */
+    #[\Override]
     public function addToWaitlist(array $data): Result
     {
-        return $this->waitlist->addToWaitlist($data);
+        return $this->waitlist->addToWaitlist((int) $data['time_slot_id'], (int) $data['user_id'], $data);
     }
 
     /**
@@ -229,6 +237,7 @@ final class ReservationTimeSlotService extends TransactionalService
      * @param string $token
      * @return Result{waitlist_id: int, time_slot_id: int}
      */
+    #[\Override]
     public function confirmWaitlistEntry(string $token): Result
     {
         return $this->transact(function () use ($token): Result {

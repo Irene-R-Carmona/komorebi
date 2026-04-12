@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Session;
 use App\Models\Product;
 use App\Models\ReservationItem;
+use App\Services\Contracts\CartServiceInterface;
 
 /**
  * Servicio de Carrito de Compras
@@ -14,7 +15,7 @@ use App\Models\ReservationItem;
  * Gestiona el carrito en sesión para pedidos durante la visita.
  * Solo permite productos tipo 'item' (no pases).
  */
-final class CartService
+class CartService implements CartServiceInterface
 {
     private const string SESSION_KEY = 'cart';
     private const int MAX_QTY_PER_ITEM = 99;
@@ -24,6 +25,9 @@ final class CartService
 
     public function __construct(?Product $productModel = null)
     {
+        // NOTE: Product es un modelo-entidad sin repositorio propio.
+        // Inyección directa aceptable (no hace queries complejas — solo lookup por ID).
+        // Ver Plan 3 D1: decisión explícita de mantener este patrón hasta extraer ProductRepository.
         $this->productModel = $productModel ?? new Product();
     }
 
@@ -36,6 +40,7 @@ final class CartService
      *
      * @return array{items: array<int, int>, totalQty: int, totalPrice: float}
      */
+    #[\Override]
     public function get(): array
     {
         $cart = Session::get(self::SESSION_KEY);
@@ -57,6 +62,7 @@ final class CartService
      *
      * @return array{items: array, totalQty: int, totalPrice: float}
      */
+    #[\Override]
     public function getWithDetails(): array
     {
         $cart = $this->get();
@@ -101,6 +107,7 @@ final class CartService
     /**
      * Verifica si el carrito está vacío.
      */
+    #[\Override]
     public function isEmpty(): bool
     {
         $cart = $this->get();
@@ -111,6 +118,7 @@ final class CartService
     /**
      * Obtiene la cantidad de un producto específico.
      */
+    #[\Override]
     public function getQuantity(int $productId): int
     {
         $cart = $this->get();
@@ -125,6 +133,7 @@ final class CartService
     /**
      * Añade un producto al carrito.
      */
+    #[\Override]
     public function add(int $productId, int $quantity = 1): array
     {
         return $this->updateItem($productId, $quantity);
@@ -133,6 +142,7 @@ final class CartService
     /**
      * Establece la cantidad exacta de un producto.
      */
+    #[\Override]
     public function setQuantity(int $productId, int $quantity): array
     {
         $cart = $this->get();
@@ -145,6 +155,7 @@ final class CartService
     /**
      * Elimina un producto del carrito.
      */
+    #[\Override]
     public function remove(int $productId): array
     {
         $cart = $this->get();
@@ -163,6 +174,7 @@ final class CartService
      *
      * @param integer $change Cambio en cantidad (+/-)
      */
+    #[\Override]
     public function updateItem(int $productId, int $change): array
     {
         if ($productId <= 0 || $change === 0) {
@@ -201,6 +213,7 @@ final class CartService
     /**
      * Vacía el carrito.
      */
+    #[\Override]
     public function clear(): void
     {
         Session::remove(self::SESSION_KEY);
@@ -215,6 +228,7 @@ final class CartService
      *
      * @return array<int, array{product_id: int, quantity: int, unit_price: float}>
      */
+    #[\Override]
     public function getItemsForReservation(): array
     {
         $cart = $this->getWithDetails();
@@ -234,6 +248,7 @@ final class CartService
     /**
      * Transfiere el carrito a una reserva y lo vacía.
      */
+    #[\Override]
     public function transferToReservation(int $reservationId): bool
     {
         $items = $this->getItemsForReservation();

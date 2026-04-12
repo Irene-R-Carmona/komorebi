@@ -8,78 +8,7 @@
  * @author TFC DAW - Komorebi Café
  */
 
-/* ============================================================================
-   VARIABLES CSS - Tema Backoffice
-   ============================================================================ */
-
-:root {
-  /* Paleta Komorebi - Admin Theme */
-  --admin-primary: #5C3D2E;
-  --admin-primary-hover: #4a2f23;
-  --admin-accent: #C9A959;
-  --admin-accent-hover: #b8963d;
-
-  --admin-bg: #F7F3EB;
-  --admin-bg-alt: #E8DCC4;
-  --admin-surface: #FFFFFF;
-
-  --admin-text: #2D2218;
-  --admin-text-muted: #5C4A3A;
-  --admin-text-light: #FFFFFF;
-
-  --admin-border: #D4C4A8;
-  --admin-border-hover: #B8A890;
-
-  /* Estados */
-  --admin-success: #5E6F64;
-  --admin-warning: #E69500;
-  --admin-error: #9B2335;
-  --admin-info: #3B82F6;
-
-  /* Sidebar */
-  --sidebar-bg: #212529;
-  --sidebar-text: #FFFFFF;
-  --sidebar-hover: rgba(255, 255, 255, 0.1);
-  --sidebar-active: var(--admin-accent);
-  --sidebar-width: 260px;
-
-  /* Sombras & Efectos */
-  --shadow-sm: 0 2px 8px rgba(45, 34, 24, 0.08);
-  --shadow-md: 0 4px 16px rgba(45, 34, 24, 0.12);
-  --shadow-lg: 0 8px 32px rgba(45, 34, 24, 0.16);
-  --shadow-hover: 0 6px 20px rgba(45, 34, 24, 0.14);
-
-  /* Transiciones */
-  --transition: 0.3s ease;
-  --transition-fast: 0.15s ease;
-
-  /* Espaciado */
-  --space-xs: 0.5rem;
-  --space-sm: 1rem;
-  --space-md: 1.5rem;
-  --space-lg: 2.5rem;
-  --space-xl: 4rem;
-
-  /* Radios */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-full: 50%;
-
-  /* Touch Targets (Ley de Fitts) */
-  --touch-min: 44px;
-}
-
-/* ============================================================================
-   LAYOUT MEJORADO
-   ============================================================================ */
-
-body {
-  background: var(--admin-bg);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* Variables: definidas en backoffice-modern.css y admin-common.css (fuentes autoritativas) */
 
 /* Skip Link (Accesibilidad) */
 .skip-link {

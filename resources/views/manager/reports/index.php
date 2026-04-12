@@ -127,9 +127,19 @@ declare(strict_types=1);
                             </tr>
                         </thead>
                         <tbody>
+                            <?php
+                            $statusLabels = [
+                                'pending'   => 'Pendiente',
+                                'confirmed' => 'Confirmada',
+                                'active'    => 'Activa',
+                                'completed' => 'Completada',
+                                'cancelled' => 'Cancelada',
+                                'no_show'   => 'No Show',
+                            ];
+                            ?>
                             <?php foreach ($statusDistribution as $row): ?>
                                 <tr>
-                                    <td><?= $row['status'] ?></td>
+                                    <td><?= htmlspecialchars($statusLabels[$row['status']] ?? ucfirst($row['status']), ENT_QUOTES, 'UTF-8') ?></td>
                                     <td class="text-end fw-bold"><?= (int) $row['count'] ?></td>
                                 </tr>
                             <?php endforeach; ?>

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Database;
+use App\Services\Contracts\SessionManagementServiceInterface;
 use PDO;
 
 /**
  * Servicio de Gestión de Sesiones
  */
-final class SessionManagementService
+final class SessionManagementService implements SessionManagementServiceInterface
 {
     private PDO $db;
 
@@ -75,6 +76,7 @@ final class SessionManagementService
      *
      * @return array[]
      */
+    #[\Override]
     public function getActiveSessions(int $userId): array
     {
         $stmt = $this->db->prepare(
@@ -145,6 +147,29 @@ final class SessionManagementService
     }
 
     /**
+     * Revocar una sesión verificando que pertenece al usuario indicado.
+     *
+     * Incluye comprobación de propiedad: la sesión debe pertenecer a $userId.
+     *
+     * @param integer $userId           ID del usuario propietario
+     * @param integer $sessionRecordId  ID de registro de sesión a revocar
+     * @param string  $reason           Motivo de revocación
+     *
+     * @return boolean
+     */
+    #[\Override]
+    public function revokeSessionForUser(int $userId, int $sessionRecordId, string $reason = 'user_requested'): bool
+    {
+        $session = $this->getSessionById($sessionRecordId);
+
+        if (!$session || (int) $session['user_id'] !== $userId) {
+            return false;
+        }
+
+        return $this->revokeSession($sessionRecordId, $userId, $reason);
+    }
+
+    /**
      * Revocar todas las sesiones de un usuario (excepto la actual)
      *
      * @param integer $userId
@@ -153,6 +178,7 @@ final class SessionManagementService
      *
      * @return integer Número de sesiones revocadas
      */
+    #[\Override]
     public function revokeAllOtherSessions(int $userId, string $currentSessionId, int $revokedBy): int
     {
         $stmt = $this->db->prepare(
@@ -222,6 +248,7 @@ final class SessionManagementService
      *
      * @return array[]
      */
+    #[\Override]
     public function getAuthHistory(int $userId, int $limit = 20): array
     {
         $stmt = $this->db->prepare(

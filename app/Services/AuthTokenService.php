@@ -6,13 +6,14 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Core\Result;
+use App\Services\Contracts\AuthTokenServiceInterface;
 use PDO;
 use Random\RandomException;
 
 /**
  * Servicio de Tokens de Autenticación
  */
-final class AuthTokenService
+final class AuthTokenService implements AuthTokenServiceInterface
 {
     private PDO $db;
     private int $emailTokenTtl = 3600;
@@ -35,6 +36,7 @@ final class AuthTokenService
     }
 
     /** @throws RandomException */
+    #[\Override]
     public function createEmailVerificationToken(int $userId): string
     {
         $stmt = $this->db->prepare(
@@ -61,6 +63,7 @@ final class AuthTokenService
      * @param string $token
      * @return Result Data contiene ['user_id' => int] si exitoso
      */
+    #[\Override]
     public function verifyEmail(string $token): Result
     {
         $tokenHash = $this->hashToken($token);
@@ -87,6 +90,7 @@ final class AuthTokenService
         return Result::ok(['user_id' => $userId]);
     }
 
+    #[\Override]
     public function isEmailVerified(int $userId): bool
     {
         $stmt = $this->db->prepare('SELECT email_verified_at FROM users WHERE id = :id');
@@ -97,6 +101,7 @@ final class AuthTokenService
     }
 
     /** @throws RandomException */
+    #[\Override]
     public function createPasswordResetToken(int $userId, string $ipAddress, ?string $userAgent = null): string
     {
         $stmt = $this->db->prepare(
@@ -129,6 +134,7 @@ final class AuthTokenService
      * @param string $token
      * @return Result Data contiene ['user_id' => int] si válido
      */
+    #[\Override]
     public function validatePasswordResetToken(string $token): Result
     {
         $tokenHash = $this->hashToken($token);
@@ -147,6 +153,7 @@ final class AuthTokenService
         return Result::ok(['user_id' => (int) $result['user_id']]);
     }
 
+    #[\Override]
     public function consumePasswordResetToken(string $token): bool
     {
         $tokenHash = $this->hashToken($token);
@@ -157,6 +164,7 @@ final class AuthTokenService
         return $stmt->execute(['hash' => $tokenHash]);
     }
 
+    #[\Override]
     public function cleanupExpiredTokens(): int
     {
         $stmt = $this->db->query('DELETE FROM email_verification_tokens WHERE expires_at < NOW()');

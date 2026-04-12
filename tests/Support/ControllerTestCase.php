@@ -60,6 +60,36 @@ abstract class ControllerTestCase extends TestCase
         );
     }
 
+    protected function asUser(int $userId = 1, string $role = 'user', ?int $cafeId = null): void
+    {
+        if (session_status() === \PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['user_id']      = $userId;
+        $_SESSION['user_role']    = $role;
+        $_SESSION['user_cafe_id'] = $cafeId;
+    }
+
+    /**
+     * Decora un request PSR-7 con atributos de usuario autenticado.
+     * Útil para controladores que leen el usuario desde request attributes.
+     */
+    protected function withAuthUser(
+        ServerRequestInterface $request,
+        int $userId = 1,
+        string $role = 'user'
+    ): ServerRequestInterface {
+        return $request->withAttribute('user', ['id' => $userId, 'role' => $role]);
+    }
+
+    /**
+     * Afirma que la respuesta es null (controlador usa View::render que hace echo).
+     */
+    protected function assertResponseIsOk(?ResponseInterface $response): void
+    {
+        $this->assertNull($response, 'Los controladores que llaman a View::render() deben retornar null');
+    }
+
     protected function assertResponseIsRedirect(ResponseInterface $response, ?string $expectedPath = null): void
     {
         $this->assertContains($response->getStatusCode(), [301, 302, 303]);

@@ -88,21 +88,21 @@ abstract class FormRequest
     {
         if ($rule === 'required') {
             if ($value === null || $value === '') {
-                return "El campo {$field} es obligatorio.";
+                return "El campo $field es obligatorio.";
             }
             return null;
         }
 
         if ($rule === 'email') {
             if ($value !== null && $value !== '' && filter_var($value, FILTER_VALIDATE_EMAIL) === false) {
-                return "El campo {$field} debe ser un correo válido.";
+                return "El campo $field debe ser un correo válido.";
             }
             return null;
         }
 
         if ($rule === 'integer') {
             if ($value !== null && $value !== '' && !ctype_digit((string) $value)) {
-                return "El campo {$field} debe ser un número entero.";
+                return "El campo $field debe ser un número entero.";
             }
             return null;
         }
@@ -111,7 +111,7 @@ abstract class FormRequest
             if ($value !== null && $value !== '') {
                 $allowed = ['1', '0', 'true', 'false', true, false, 1, 0];
                 if (!in_array($value, $allowed, true)) {
-                    return "El campo {$field} debe ser un valor booleano.";
+                    return "El campo $field debe ser un valor booleano.";
                 }
             }
             return null;
@@ -120,7 +120,7 @@ abstract class FormRequest
         if (str_starts_with($rule, 'min:')) {
             $min = (int) substr($rule, 4);
             if ($value !== null && $value !== '' && mb_strlen((string) $value) < $min) {
-                return "El campo {$field} debe tener al menos {$min} caracteres.";
+                return "El campo $field debe tener al menos $min caracteres.";
             }
             return null;
         }
@@ -128,7 +128,7 @@ abstract class FormRequest
         if (str_starts_with($rule, 'max:')) {
             $max = (int) substr($rule, 4);
             if ($value !== null && $value !== '' && mb_strlen((string) $value) > $max) {
-                return "El campo {$field} no debe superar los {$max} caracteres.";
+                return "El campo $field no debe superar los $max caracteres.";
             }
             return null;
         }
@@ -137,7 +137,7 @@ abstract class FormRequest
             $allowed = explode(',', substr($rule, 3));
             if ($value !== null && $value !== '' && !in_array((string) $value, $allowed, true)) {
                 $list = implode(', ', $allowed);
-                return "El campo {$field} debe ser uno de: {$list}.";
+                return "El campo $field debe ser uno de: $list.";
             }
             return null;
         }
@@ -145,7 +145,7 @@ abstract class FormRequest
         if (str_starts_with($rule, 'regex:')) {
             $pattern = '/' . substr($rule, 6) . '/';
             if ($value !== null && $value !== '' && !preg_match($pattern, (string) $value)) {
-                return "El campo {$field} no tiene el formato esperado.";
+                return "El campo $field no tiene el formato esperado.";
             }
             return null;
         }

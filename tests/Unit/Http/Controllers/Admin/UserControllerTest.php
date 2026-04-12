@@ -52,7 +52,7 @@ final class UserControllerTest extends ControllerTestCase
             response: new ResponseFactory()
         );
 
-        $result = $controller->getUsersList();
+        $result = $controller->getUsersList($this->makeGetRequest('/admin/users/list'));
 
         $this->assertInstanceOf(ResponseInterface::class, $result);
         $this->assertResponseIsJson($result, 200);
@@ -73,7 +73,7 @@ final class UserControllerTest extends ControllerTestCase
             response: new ResponseFactory()
         );
 
-        $result = $controller->getUsersList();
+        $result = $controller->getUsersList($this->makeGetRequest('/admin/users/list'));
 
         $this->assertInstanceOf(ResponseInterface::class, $result);
         $body = json_decode((string) $result->getBody(), true);

@@ -223,6 +223,26 @@ final class AnimalRepository implements AnimalRepositoryInterface
     /**
      * {@inheritDoc}
      */
+    public function findIncidentById(int $id): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                ai.*,
+                a.name as animal_name,
+                a.species_type as species
+            FROM animal_incidents ai
+            JOIN animals a ON ai.animal_id = a.id
+            WHERE ai.id = :id
+        ");
+        $stmt->execute(['id' => $id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ?: null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function updateImageUrl(int $animalId, string $imageUrl): bool
     {
         $stmt = $this->db->prepare(

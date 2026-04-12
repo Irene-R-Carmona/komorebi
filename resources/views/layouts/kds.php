@@ -30,7 +30,8 @@
                     if (link.crossOrigin) ss.crossOrigin = link.crossOrigin;
                     document.head.appendChild(ss);
                 } catch (e) {
-                    /* noop */ }
+                    /* noop */
+                }
             });
         })();
     </script>
@@ -87,7 +88,10 @@
 
         <div style="display:flex; gap:1.5rem; align-items:center;">
             <div class="kds-clock-box" id="kdsClock">--:--</div>
-            <a href="/logout" class="btn-out"><span class="material-symbols-outlined">power_settings_new</span></a>
+            <form method="POST" action="/logout" style="margin:0;">
+                <?= \App\Core\Csrf::field() ?>
+                <button type="submit" class="btn-out" title="Cerrar sesión" aria-label="Cerrar sesión"><span class="material-symbols-outlined">power_settings_new</span></button>
+            </form>
         </div>
     </header>
 

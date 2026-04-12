@@ -1,18 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
-FROM composer:2.8 AS vendor-build
-
-WORKDIR /app
-
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-
-COPY . /app
-RUN composer dump-autoload --optimize
-
-FROM dunglas/frankenphp:1.11.1-php8.4-alpine
-
-WORKDIR /app
+# Stage 1: Build PHP extensions and dependencies in a builder image
+FROM dunglas/frankenphp:1.11.1-php8.4-alpine AS builder
 
 RUN install-php-extensions \
     pdo_mysql \
@@ -25,33 +14,71 @@ RUN install-php-extensions \
     redis \
     pcntl
 
+# Stage 2: Composer dependency resolution (separate for caching)
+FROM composer:2.8 AS vendor-build
+
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader \
+    --no-scripts
+
+# Copy application code and generate optimized autoloader
+COPY . /app
+RUN composer dump-autoload --optimize --no-scripts
+
+# Stage 3: Final production image
+FROM dunglas/frankenphp:1.11.1-php8.4-alpine
+
+WORKDIR /app
+
+# Install PHP extensions from builder stage if using builder pattern
+# Or install directly as shown:
+RUN install-php-extensions \
+    pdo_mysql \
+    mbstring \
+    intl \
+    gd \
+    zip \
+    bcmath \
+    exif \
+    redis \
+    pcntl
+
+# Copy PHP configuration files
 COPY docker/php/ini/php.ini /usr/local/etc/php/conf.d/00-php.ini
 COPY docker/php/ini/error-prod.ini /usr/local/etc/php/conf.d/01-error.ini
 COPY docker/php/ini/uploads.ini /usr/local/etc/php/conf.d/02-uploads.ini
 COPY docker/php/ini/opcache.ini /usr/local/etc/php/conf.d/04-opcache.ini
 
+# Copy Caddy config and vendor from composer stage
 COPY frankenphp.Caddyfile /app/frankenphp.Caddyfile
-COPY --from=vendor-build /app /app
+COPY --from=vendor-build /app/vendor /app/vendor
+COPY --from=vendor-build /app/public/vendor /app/public/vendor
 
-# Normalizar entrypoint, crear public/vendor y establecer permisos en una única capa
-RUN apk add --no-cache dos2unix \
-    && dos2unix /app/docker/php/docker-entrypoint.sh || true \
-    && mkdir -p /app/public/vendor \
-    && chmod +x /app/docker/php/docker-entrypoint.sh || true
+# Production security: enforce HTTPS session cookies
+RUN echo 'session.cookie_secure = 1' >> /usr/local/etc/php/conf.d/00-php.ini
 
-# Publicar assets públicos desde la etapa vendor-build a public/vendor (ej.: bootstrap-icons)
-COPY --from=vendor-build /app/vendor/twbs /app/public/vendor/twbs
+# Setup entrypoint script and remove build tools in one layer
+RUN apk add --no-cache dos2unix && \
+    dos2unix /app/docker/php/docker-entrypoint.sh || true && \
+    chmod +x /app/docker/php/docker-entrypoint.sh && \
+    mkdir -p /app/public/vendor /app/storage/logs /app/storage/cache /app/storage/uploads && \
+    apk del dos2unix
 
+# Copy entrypoint to system path
 COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
 
-# session.cookie_secure = 1 en producción (HTTPS obligatorio)
-RUN echo 'session.cookie_secure = 1' >> /usr/local/etc/php/conf.d/00-php.ini
-
-# Seguridad: usuario no-root en producción
-RUN addgroup -S appgroup \
-    && adduser -S appuser -G appgroup \
-    && chown -R appuser:appgroup /app
+# Security: run as non-root user with minimal privileges
+RUN addgroup -S appgroup && \
+    adduser -S appuser -G appgroup && \
+    chown -R appuser:appgroup /app && \
+    chmod -R u+rw /app/storage
 
 USER appuser
 

@@ -11,7 +11,8 @@ use App\Core\View;
 use App\Exceptions\BusinessRuleException;
 use App\Models\AuditLog;
 use App\Models\Reservation;
-use App\Services\AdminService;
+use App\Services\AdminActivityService;
+use App\Services\Contracts\AdminActivityServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -28,12 +29,12 @@ use Random\RandomException;
  */
 final class ReservationController
 {
-    private AdminService $adminService;
+    private AdminActivityServiceInterface $activityService;
     private ResponseFactory $response;
 
-    public function __construct(?AdminService $adminService = null, ?ResponseFactory $response = null)
+    public function __construct(?AdminActivityServiceInterface $activityService = null, ?ResponseFactory $response = null)
     {
-        $this->adminService = $adminService ?? new AdminService();
+        $this->activityService = $activityService ?? new AdminActivityService();
         $this->response = $response ?? new ResponseFactory();
     }
 
@@ -46,7 +47,7 @@ final class ReservationController
     public function index(): ?ResponseInterface
     {
         // Obtener reservas desde el servicio
-        $reservations = $this->adminService->getReservationsWithDetails(100);
+        $reservations = $this->activityService->getReservationsWithDetails(100);
 
         View::render('admin/reservations/index', [
             'titulo' => 'Gestión de Reservas',

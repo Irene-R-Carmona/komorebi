@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Core\Result;
+use App\Services\Contracts\AccountDeletionServiceInterface;
 use PDO;
 
 /**
@@ -14,7 +15,7 @@ use PDO;
  * Garantiza que el soft-delete y la anonimización se aplican
  * de forma atómica (una sola transacción).
  */
-final class AccountDeletionService
+final class AccountDeletionService implements AccountDeletionServiceInterface
 {
     private PDO $db;
 
@@ -30,6 +31,7 @@ final class AccountDeletionService
      * 1. Soft delete (deleted_at + is_active = 0)
      * 2. Anonimización GDPR (name, email, phone)
      */
+    #[\Override]
     public function deleteAndAnonymize(int $userId): Result
     {
         try {

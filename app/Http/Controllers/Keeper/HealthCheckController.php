@@ -112,7 +112,7 @@ final class HealthCheckController
         }
 
         $user = Session::user();
-        if ($user === null) {
+        if ($user['id'] === null) {
             throw ValidationException::withMessage('Usuario no autenticado', 401);
         }
 

@@ -70,11 +70,12 @@ $router->get('/newsletter/unsubscribe', 'Public\NewsletterController@unsubscribe
 $router->get('/reservar', 'Shared\ReservationController@index');
 $router->get('/reservas', 'Shared\ReservationController@index');
 
-// API pública
-$router->get('/api/menu/alergenos', 'Api\MenuController@allergens');
-$router->get('/api/menu/productos', 'Api\MenuController@products');
-$router->post('/api/menu/view-product', 'Api\MenuController@viewProduct');
+// API pública — todas bajo /api/v1/
 $router->group(['prefix' => '/api/v1', 'middleware' => [$mw->cors()]], function (Router $r): void {
+    $r->get('/menu/alergenos', 'Api\V1\MenuController@allergens');
+    $r->get('/menu/productos', 'Api\V1\MenuController@products');
+    $r->post('/menu/view-product', 'Api\V1\MenuController@viewProduct');
+
     $r->get('/holidays', 'Api\V1\HolidayController@getHolidays');
     $r->get('/holidays/check', 'Api\V1\HolidayController@checkHoliday');
     $r->get('/time-slots/available', 'Api\V1\TimeSlotController@available');
@@ -91,16 +92,23 @@ $router->get('/waitlist/status/{token}', 'Public\WaitlistViewController@status')
 $router->get('/waitlist/confirm/{token}', 'Public\WaitlistViewController@confirmView');
 $router->post('/waitlist/confirm/{token}', 'Public\WaitlistViewController@confirmSubmit');
 
-// Cookies API
-$router->post('/api/cookies/accept', 'Api\CookieController@accept');
-$router->post('/api/cookies/reject', 'Api\CookieController@reject');
-$router->post('/api/cookies/update', 'Api\CookieController@update');
-
-$router->get('/api/cart/guest', 'Api\CartController@guest');
-$router->get('/api/cookies/newsletter-prompted', 'Api\CookieController@newsletterPrompted');
-$router->post('/api/cookies/newsletter-prompted', 'Api\CookieController@markNewsletterPrompted');
-
-$router->post('/api/newsletter/subscribe', 'Api\NewsletterApiController@subscribe');
+// Cookies API, cart guest y newsletter — todos bajo /api/v1/
+$router->group(['prefix' => '/api/v1'], function (Router $r): void {
+    $r->post('/cookies/accept', 'Api\V1\CookieController@accept');
+    $r->post('/cookies/reject', 'Api\V1\CookieController@reject');
+    $r->post('/cookies/update', 'Api\V1\CookieController@update');
+    $r->post('/cookies/save-filters', 'Api\V1\CookieController@saveFilters');
+    $r->get('/cookies/get-filters', 'Api\V1\CookieController@getFilters');
+    $r->post('/cookies/clear-filters', 'Api\V1\CookieController@clearFilters');
+    $r->post('/cookies/save-dietary', 'Api\V1\CookieController@saveDietary');
+    $r->post('/cookies/recently-viewed/add', 'Api\V1\CookieController@addRecentlyViewed');
+    $r->get('/cookies/recently-viewed/data', 'Api\V1\CookieController@getRecentlyViewedData');
+    $r->delete('/cookies/recently-viewed/clear', 'Api\V1\CookieController@clearRecentlyViewed');
+    $r->get('/cookies/newsletter-prompted', 'Api\V1\CookieController@newsletterPrompted');
+    $r->post('/cookies/newsletter-prompted', 'Api\V1\CookieController@markNewsletterPrompted');
+    $r->get('/cart/guest', 'Api\V1\CartController@guest');
+    $r->post('/newsletter/subscribe', 'Api\V1\NewsletterApiController@subscribe');
+});
 
 // ============================================================================
 // AUTENTICACIÓN (Middleware Guest)
@@ -150,6 +158,8 @@ $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw)
     $r->get('/reservas/mis-reservas', 'Shared\ReservationController@userReservations');
     $r->post('/reservas/{id}/cancelar', 'Shared\ReservationController@cancel', [$mw->csrf()]);
     $r->get('/user/waitlists', 'User\WaitlistController@index');
+    $r->get('/mis-favoritos', 'User\FavoriteController@index');
+    $r->get('/carrito', 'User\CartController@index');
     $r->get('/loyalty/card', 'Public\LoyaltyController@card');
     $r->get('/reviews', 'Shared\ReviewController@index');
     $r->post('/reviews', 'Shared\ReviewController@create', [$mw->csrf()]);
@@ -163,19 +173,19 @@ $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw)
 
 /** @var array<int, MiddlewareInterface> $apiAuthMiddleware */
 $apiAuthMiddleware = [$mw->apiAuth()];
-$router->group(['prefix' => '/api', 'middleware' => $apiAuthMiddleware], function (Router $r) use ($mw) {
-    $r->post('/favorites/toggle', 'Api\FavoriteController@toggle', [$mw->csrf()]);
-    $r->get('/favorites', 'Api\FavoriteController@list');
-    $r->post('/cart/add', 'Api\CartController@add', [$mw->csrf()]);
-    $r->post('/cart/remove', 'Api\CartController@remove', [$mw->csrf()]);
-    $r->post('/cart/update', 'Api\CartController@update', [$mw->csrf()]);
-    $r->get('/cart', 'Api\CartController@get');
-    $r->post('/cart/clear', 'Api\CartController@clear', [$mw->csrf()]);
-    $r->get('/reservations/available', 'Api\ReservationController@getAvailableSlots');
-    $r->post('/reservations/create', 'Api\ReservationController@create', [$mw->csrf()]);
-    $r->get('/loyalty/validate/{code}', 'Api\LoyaltyController@validateCode');
-    $r->post('/loyalty/use', 'Api\LoyaltyController@use', [$mw->csrf()]);
-    $r->post('/loyalty/redeem', 'Api\LoyaltyController@redeem', [$mw->csrf()]);
+$router->group(['prefix' => '/api/v1', 'middleware' => $apiAuthMiddleware], function (Router $r) use ($mw) {
+    $r->post('/favorites/toggle', 'Api\V1\FavoriteController@toggle', [$mw->csrf()]);
+    $r->get('/favorites', 'Api\V1\FavoriteController@list');
+    $r->post('/cart/add', 'Api\V1\CartController@add', [$mw->csrf()]);
+    $r->post('/cart/remove', 'Api\V1\CartController@remove', [$mw->csrf()]);
+    $r->post('/cart/update', 'Api\V1\CartController@update', [$mw->csrf()]);
+    $r->get('/cart', 'Api\V1\CartController@get');
+    $r->post('/cart/clear', 'Api\V1\CartController@clear', [$mw->csrf()]);
+    $r->get('/reservations/available', 'Api\V1\ReservationController@getAvailableSlots');
+    $r->post('/reservations/create', 'Api\V1\ReservationController@create', [$mw->csrf()]);
+    $r->get('/loyalty/validate/{code}', 'Api\V1\LoyaltyController@validateCode');
+    $r->post('/loyalty/use', 'Api\V1\LoyaltyController@use', [$mw->csrf()]);
+    $r->post('/loyalty/redeem', 'Api\V1\LoyaltyController@redeem', [$mw->csrf()]);
 });
 
 // ============================================================================
@@ -288,6 +298,13 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->post('/cafe/capacity', 'Manager\CafeController@updateCapacity', [$mw->ownsCafe(), $mw->csrf()]);
         $r->post('/cafe/schedule', 'Manager\CafeController@updateSchedule', [$mw->ownsCafe(), $mw->csrf()]);
         $r->post('/cafe/settings', 'Manager\CafeController@updateSettings', [$mw->ownsCafe(), $mw->csrf()]);
+
+        // Gestión de productos del café
+        $r->get('/products', 'Manager\ProductController@index', [$mw->ownsCafe()]);
+        $r->post('/products/create', 'Manager\ProductController@create', [$mw->ownsCafe(), $mw->csrf()]);
+        $r->post('/products/{id:\d+}/update', 'Manager\ProductController@update', [$mw->ownsCafe(), $mw->csrf()]);
+        $r->post('/products/{id:\d+}/toggle', 'Manager\ProductController@toggleAvailability', [$mw->ownsCafe(), $mw->csrf()]);
+        $r->post('/products/{id:\d+}/delete', 'Manager\ProductController@delete', [$mw->ownsCafe(), $mw->csrf()]);
     });
 
 // ============================================================================
@@ -347,9 +364,10 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
 // ============================================================================
 
     /** @var array<int, MiddlewareInterface> $kitchenMiddleware */
-    $kitchenMiddleware = [$mw->auth(), $mw->role(['admin', 'manager', 'kitchen'])];
+    $kitchenMiddleware = [$mw->auth(), $mw->role(['admin', 'manager', 'kitchen', 'supervisor'])];
     $router->group(['prefix' => '/ops/kitchen', 'middleware' => $kitchenMiddleware], function (Router $r) use ($mw) {
         $r->get('', 'Kitchen\KitchenController@index');
+        $r->get('/history', 'Kitchen\KitchenController@history');
         $r->get('/orders', 'Kitchen\KitchenController@activeOrders');
         $r->post('/orders/{id}/complete', 'Kitchen\KitchenController@completeOrder', [$mw->csrf()]);
     });
@@ -362,9 +380,15 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
 if (Env::get('FEATURE_KEEPER', '1') === '1') {
 
     /** @var array<int, MiddlewareInterface> $keeperMiddleware */
-    $keeperMiddleware = [$mw->auth(), $mw->role(['admin', 'keeper'])];
+    $keeperMiddleware = [$mw->auth(), $mw->role(['admin', 'keeper']), $mw->ownsCafe()];
+
+    // Dashboard del keeper: accesible a manager y supervisor sin restricción de café
+    $router->get('/keeper/dashboard', 'Keeper\AnimalDashboardController@dashboard', [
+        $mw->auth(),
+        $mw->role(['admin', 'keeper', 'manager', 'supervisor']),
+    ]);
+
     $router->group(['prefix' => '/keeper', 'middleware' => $keeperMiddleware], function (Router $r) use ($mw) {
-        $r->get('/dashboard', 'Keeper\AnimalDashboardController@dashboard');
         $r->get('/animals', 'Keeper\AnimalDashboardController@index');
         $r->get('/animals/{id}', 'Keeper\AnimalDashboardController@show');
         $r->post('/animals/{id}/feeding', 'Keeper\AnimalCareController@recordFeeding', [$mw->csrf()]);
@@ -376,6 +400,16 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
         $r->post('/health-checks', 'Keeper\HealthCheckController@store', [$mw->csrf()]);
         $r->get('/health-checks/{checkId}', 'Keeper\HealthCheckController@show');
         $r->get('/health-checks/history/{animalId}', 'Keeper\HealthCheckController@history');
+
+        // Toggle de estado activo/descansando de un animal
+        $r->post('/animals/{id}/toggle', 'Keeper\AnimalCareController@toggleActive', [$mw->csrf()]);
+
+        // Incidentes de animales - flujo web
+        $r->get('/incidents', 'Keeper\AnimalIncidentController@index');
+        $r->get('/incidents/create', 'Keeper\AnimalIncidentController@create');
+        $r->post('/incidents', 'Keeper\AnimalIncidentController@store', [$mw->csrf()]);
+        $r->get('/incidents/{id}', 'Keeper\AnimalIncidentController@show');
+        $r->post('/incidents/{id}/resolve', 'Keeper\AnimalIncidentController@resolve', [$mw->csrf()]);
     });
 } // end FEATURE_KEEPER
 
@@ -439,8 +473,16 @@ $router->get('/error/404', 'Shared\ErrorController@notFound');
 $router->get('/error/403', 'Shared\ErrorController@forbidden');
 $router->get('/error/500', 'Shared\ErrorController@serverError');
 
-$router->setNotFoundHandler(function () use ($responseFactory) {
-    return $responseFactory->html('<h1>404 - Página no encontrada</h1><p>La página solicitada no existe.</p>', 404);
+$router->setNotFoundHandler(function () use ($responseFactory): ResponseInterface {
+    $requestedPath = \strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/';
+    \ob_start();
+    View::render('errors/404', [
+        'titulo'        => '404 - Página no encontrada',
+        'requestedPath' => $requestedPath,
+        'suggestedLink' => ['href' => '/', 'label' => 'Volver al inicio'],
+    ], [], 'errors');
+    $html = \ob_get_clean();
+    return $responseFactory->html($html ?: '', 404);
 });
 
 return $router;

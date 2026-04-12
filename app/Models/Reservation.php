@@ -886,6 +886,10 @@ final class Reservation
      * @param string $time
      * @throws \DateMalformedStringException
      */
+    /**
+     * Valida fecha y hora de reserva.
+     * @throws RuntimeException
+     */
     private function validateDateTime(string $date, string $time): void
     {
         $reservationDateTime = new DateTimeImmutable("$date $time");
@@ -910,6 +914,7 @@ final class Reservation
 
     /**
      * Valida campos requeridos.
+     * @throws RuntimeException
      */
     private function validateRequired(array $data, array $fields): void
     {

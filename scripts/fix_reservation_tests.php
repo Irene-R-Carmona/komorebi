@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 $file = file_get_contents('/app/tests/Unit/Services/ReservationServiceTest.php');
@@ -83,6 +84,7 @@ $output_lines = [];
 $in_test_method = false;
 $method_body = [];
 $method_start = -1;
+$brace_depth = 0;
 
 $i = 0;
 $n = count($lines);

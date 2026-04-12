@@ -2,26 +2,28 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
+ * ReviewService: creación, edición y eliminación de reseñas por el propietario.
+ *
  * ¿Qué me quieres demostrar?
+ * Que la lógica de validación de reseñas (rating, título, body, usuario activo)
+ * funciona correctamente y que el sanitizado HTML se aplica.
+ *
  * ¿Qué va a fallar en este test si se cambia el código?
+ * Si se relajan validaciones de rating, longitud de título/body, o se elimina
+ * la sanitización XSS en createReview.
  */
 
 namespace Tests\Unit\Services;
 
 use App\Core\Result;
-use App\Models\Review;
 use App\Models\User;
 use App\Services\ReviewService;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
-use App\Events\ReviewPublishedEvent;
-use App\Repositories\Contracts\CafeRepositoryInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
-use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Tests para ReviewService
@@ -30,22 +32,20 @@ use Psr\EventDispatcher\EventDispatcherInterface;
  * - Creación de reseñas con validaciones
  * - Validación de ratings
  * - Sanitización de contenido
- * - Moderación de reseñas
+ * - Eliminación de reseñas
  */
 #[AllowMockObjectsWithoutExpectations]
 final class ReviewServiceTest extends TestCase
 {
     private ReviewService $service;
-    private Review $reviewModelMock;
     private User&MockObject $userModelMock;
     private ReviewRepositoryInterface&MockObject $reviewRepoMock;
 
     protected function setUp(): void
     {
-        $this->reviewModelMock = $this->createStub(Review::class);
         $this->userModelMock = $this->createMock(User::class);
         $this->reviewRepoMock = $this->createMock(ReviewRepositoryInterface::class);
-        $this->service = new ReviewService($this->reviewModelMock, $this->userModelMock, $this->reviewRepoMock);
+        $this->service = new ReviewService($this->userModelMock, $this->reviewRepoMock);
     }
 
     public function testCreateReviewWithValidDataReturnsSuccess(): void
@@ -226,70 +226,6 @@ final class ReviewServiceTest extends TestCase
         $this->assertStringContainsString('&lt;script&gt;', $capturedData['body'] ?? '');
     }
 
-    public function testGetReviewsByUserIdReturnsArray(): void
-    {
-        $expectedReviews = [
-            ['id' => 1, 'rating' => 5, 'title' => 'Great'],
-            ['id' => 2, 'rating' => 4, 'title' => 'Good']
-        ];
-
-        $this->reviewRepoMock->method('findByUserId')->willReturn($expectedReviews);
-
-        $reviews = $this->service->getReviewsByUserId(1);
-
-        $this->assertIsArray($reviews);
-        $this->assertCount(2, $reviews);
-    }
-
-    public function testGetReviewsByCafeIdReturnsArray(): void
-    {
-        $expectedReviews = [
-            ['id' => 1, 'rating' => 5],
-            ['id' => 2, 'rating' => 3]
-        ];
-
-        $this->reviewRepoMock->method('findByCafeId')->willReturn($expectedReviews);
-
-        $reviews = $this->service->getReviewsByCafeId(5);
-
-        $this->assertIsArray($reviews);
-        $this->assertCount(2, $reviews);
-    }
-
-    public function testCalculateAverageRatingReturnsCorrectValue(): void
-    {
-        $this->reviewRepoMock->method('calculateAverageRating')
-            ->with(5)
-            ->willReturn(4.0);
-
-        $average = $this->service->calculateAverageRating(5);
-
-        $this->assertEquals(4.0, $average);
-    }
-
-    public function testCalculateAverageRatingWithNoReviewsReturnsZero(): void
-    {
-        $this->reviewRepoMock->method('calculateAverageRating')
-            ->with(5)
-            ->willReturn(0.0);
-
-        $average = $this->service->calculateAverageRating(5);
-
-        $this->assertEquals(0, $average);
-    }
-
-    public function testModerateReviewUpdatesStatus(): void
-    {
-        $this->reviewRepoMock->expects($this->once())
-            ->method('updateStatus')
-            ->with(123, 'approved')
-            ->willReturn(true);
-
-        $result = $this->service->moderateReview(123, 'approved');
-
-        $this->assertTrue($result);
-    }
-
     public function testDeleteReviewReturnsBoolean(): void
     {
         $this->reviewRepoMock->method('delete')->willReturn(true);
@@ -297,75 +233,5 @@ final class ReviewServiceTest extends TestCase
         $result = $this->service->deleteReview(123);
 
         $this->assertTrue($result);
-    }
-
-    public function testApproveReviewDispatchesReviewPublishedEvent(): void
-    {
-        // ARRANGE: Construir servicio con CafeRepository stub y EventDispatcher mock
-        $cafeRepoStub = $this->createStub(CafeRepositoryInterface::class);
-        $dispatcherMock = $this->createMock(EventDispatcherInterface::class);
-
-        $service = new ReviewService(
-            $this->reviewModelMock,
-            $this->userModelMock,
-            $this->reviewRepoMock,
-            $cafeRepoStub,
-            $dispatcherMock
-        );
-
-        $this->reviewRepoMock->method('findById')->willReturn([
-            'id' => 42,
-            'user_id' => 7,
-            'cafe_id' => 3,
-            'rating' => 4,
-            'body' => 'Muy buena experiencia',
-            'status' => 'pending',
-        ]);
-        $this->reviewRepoMock->method('updateStatus')->willReturn(true);
-
-        // ASSERT: dispatch() debe ser llamado con ReviewPublishedEvent
-        $dispatcherMock->expects($this->once())
-            ->method('dispatch')
-            ->with($this->callback(function (ReviewPublishedEvent $event): bool {
-                return $event->reviewId === 42
-                    && $event->userId === 7
-                    && $event->rating === 4
-                    && $event->comment === 'Muy buena experiencia';
-            }));
-
-        // ACT
-        $result = $service->approveReview(42);
-
-        $this->assertTrue($result->ok);
-    }
-
-    public function testApproveReviewDoesNotDispatchWhenNullDispatcher(): void
-    {
-        // ARRANGE: Servicio sin EventDispatcher (por defecto)
-        $cafeRepoStub = $this->createStub(CafeRepositoryInterface::class);
-
-        $service = new ReviewService(
-            $this->reviewModelMock,
-            $this->userModelMock,
-            $this->reviewRepoMock,
-            $cafeRepoStub,
-            null
-        );
-
-        $this->reviewRepoMock->method('findById')->willReturn([
-            'id' => 42,
-            'user_id' => 7,
-            'cafe_id' => 3,
-            'rating' => 4,
-            'body' => 'OK',
-            'status' => 'pending',
-        ]);
-        $this->reviewRepoMock->method('updateStatus')->willReturn(true);
-
-        // ACT: sin dispatcher, no debe lanzar error
-        $result = $service->approveReview(42);
-
-        // ASSERT
-        $this->assertTrue($result->ok);
     }
 }

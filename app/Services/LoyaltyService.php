@@ -7,10 +7,12 @@ namespace App\Services;
 use App\Core\Database;
 use App\Core\Result;
 use App\Core\Queue;
+use App\Core\WideEvent;
 use App\Models\LoyaltyCard;
 use App\Models\LoyaltyReward;
 use App\Models\LoyaltyRewardCatalog;
 use App\Jobs\RewardUnlockedJob;
+use App\Services\Contracts\LoyaltyServiceInterface;
 use PDO;
 
 /**
@@ -22,7 +24,7 @@ use PDO;
  * - Recompensas: 3-10 sellos según tipo
  * - Expiración: 30 días desde canje
  */
-final class LoyaltyService
+final class LoyaltyService implements LoyaltyServiceInterface
 {
     private PDO $db;
     private LoyaltyCard $loyaltyCardModel;
@@ -45,6 +47,7 @@ final class LoyaltyService
      * @param int|null $reservationId ID de la reserva que genera el sello
      * @return Result
      */
+    #[\Override]
     public function addStamp(int $userId, int $stamps = 1, ?int $reservationId = null): Result
     {
         try {
@@ -83,7 +86,8 @@ final class LoyaltyService
                     'user_id' => $userId,
                     'stamps' => $newStamps,
                     'tier' => $newTier,
-                    'milestone' => $newMilestone
+                    'milestone' => $newMilestone,
+                    '_correlation_id' => WideEvent::get('request_id') ?? '',
                 ]);
             }
 
@@ -104,6 +108,7 @@ final class LoyaltyService
      * @param int $visitsCount Total de visitas completadas
      * @return string 'bronze', 'silver', 'gold', 'platinum'
      */
+    #[\Override]
     public function calculateTier(int $visitsCount): string
     {
         if ($visitsCount >= 50) {
@@ -125,6 +130,7 @@ final class LoyaltyService
      * @param string $rewardType Tipo de recompensa (ej: 'drink_free')
      * @return Result
      */
+    #[\Override]
     public function redeemReward(int $userId, string $rewardType): Result
     {
         try {
@@ -214,6 +220,7 @@ final class LoyaltyService
      * @param int $userId ID del usuario
      * @return Result
      */
+    #[\Override]
     public function getCardStatus(int $userId): Result
     {
         try {
@@ -249,6 +256,7 @@ final class LoyaltyService
      * @param int $currentStamps Sellos actuales
      * @return array
      */
+    #[\Override]
     public function getAvailableRewards(string $tier, int $currentStamps): array
     {
         $allRewards = $this->catalogModel->getRewardsForTier($tier);
@@ -323,6 +331,7 @@ final class LoyaltyService
      * @param string $code Código de canje
      * @return Result
      */
+    #[\Override]
     public function validateRedemptionCode(string $code): Result
     {
         try {
@@ -354,6 +363,7 @@ final class LoyaltyService
      * @param string $code Código de canje
      * @return Result
      */
+    #[\Override]
     public function useReward(string $code): Result
     {
         try {

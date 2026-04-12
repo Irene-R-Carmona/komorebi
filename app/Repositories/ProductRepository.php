@@ -33,11 +33,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             'slug',
             'description',
             'price',
-            'station',
             'prep_time',
-            'recipe_steps',
-            'ingredients_list',
-            'critical_check',
             'calories',
             'attributes',
             'target_cafe_types',
@@ -54,6 +50,29 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             'created_at',
             'updated_at',
         ];
+    }
+
+    /**
+     * Buscar producto por ID incluyendo datos de receta y producción.
+     * Usar SOLO desde KitchenService y controllers KDS.
+     */
+    public function findWithRecipe(int $id): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, category_id, product_type, name, japanese_name, slug, description,
+                    price, station, prep_time, recipe_steps, ingredients_list, critical_check,
+                    calories, attributes, target_cafe_types, target_animal_types,
+                    duration_minutes, min_pax, max_pax, pass_duration_minutes,
+                    image_url, is_active, is_seasonal, sort_order, deleted_at, created_at, updated_at
+             FROM products
+             WHERE id = :id
+             LIMIT 1"
+        );
+        $stmt->execute(['id' => $id]);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ?: null;
     }
 
     /**

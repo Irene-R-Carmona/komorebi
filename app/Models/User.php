@@ -207,7 +207,7 @@ class User
         try {
             $this->assignDefaultRole($userId);
         } catch (Exception $e) {
-            Logger::error("Error asignando rol default a usuario $userId: " . $e->getMessage());
+            Logger::error("Error asignando rol default a usuario $userId: " . $e->getMessage(), ['user_id' => $userId, 'exception' => $e->getMessage()]);
             // No fallar si no se asigna rol, continuar
         }
 
@@ -587,7 +587,7 @@ class User
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (Exception $e) {
-            Logger::error("[User::getRoles] Error obteniendo roles para user $userId: " . $e->getMessage());
+            Logger::error("[User::getRoles] Error obteniendo roles para user $userId: " . $e->getMessage(), ['user_id' => $userId, 'exception' => $e->getMessage()]);
 
             return [];
         }
@@ -614,7 +614,7 @@ class User
 
             return (int) $stmt->fetchColumn();
         } catch (Exception $e) {
-            Logger::error("[User::countByRole] Error contando usuarios con rol $roleCode: " . $e->getMessage());
+            Logger::error("[User::countByRole] Error contando usuarios con rol $roleCode: " . $e->getMessage(), ['role_code' => $roleCode, 'exception' => $e->getMessage()]);
 
             return 0;
         }
@@ -643,7 +643,7 @@ class User
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (Exception $e) {
-            Logger::error("[User::findByRole] Error obteniendo usuarios con rol $roleCode: " . $e->getMessage());
+            Logger::error("[User::findByRole] Error obteniendo usuarios con rol $roleCode: " . $e->getMessage(), ['role_code' => $roleCode, 'exception' => $e->getMessage()]);
 
             return [];
         }

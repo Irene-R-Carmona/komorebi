@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\CircuitBreaker;
 use App\Core\Logger;
 use App\Core\Result;
+use App\Exceptions\CircuitOpenException;
+use App\Services\Contracts\WeatherServiceInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Throwable;
 
@@ -21,7 +24,7 @@ use Throwable;
  *
  * NOTA: Migrado a Result para consistencia con el resto de servicios
  */
-final class WeatherService
+final class WeatherService implements WeatherServiceInterface
 {
     private const API_URL = 'https://api.open-meteo.com/v1/forecast';
     private const CACHE_TTL = 3600; // 1 hora
@@ -44,6 +47,7 @@ final class WeatherService
      *
      * @return Result Data contiene ['current' => array, 'hourly' => array|null, 'cached' => bool]
      */
+    #[\Override]
     public function getWeather(
         float $latitude,
         float $longitude,
@@ -234,6 +238,7 @@ final class WeatherService
      *
      * @return Result Data contiene ['forecast' => array, 'cached' => bool]
      */
+    #[\Override]
     public function getForecast(
         float $latitude,
         float $longitude,
@@ -383,34 +388,41 @@ final class WeatherService
     {
         $url = self::API_URL . '?' . \http_build_query($params);
 
-        $ch = \curl_init($url);
-        \curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => self::TIMEOUT,
-            CURLOPT_HTTPHEADER => ['Accept: application/json'],
-        ]);
+        try {
+            $response = CircuitBreaker::call('weather', function () use ($url): string {
+                $ch = \curl_init($url);
+                \curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT        => self::TIMEOUT,
+                    CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+                ]);
 
-        $response = \curl_exec($ch);
-        $httpCode = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = \curl_error($ch);
-        \curl_close($ch);
+                $result   = \curl_exec($ch);
+                $error    = \curl_error($ch);
+                $httpCode = (int) \curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                \curl_close($ch);
 
-        if ($error) {
+                if ($error) {
+                    throw new \RuntimeException("cURL: {$error}");
+                }
+
+                if ($httpCode !== 200) {
+                    throw new \RuntimeException("HTTP {$httpCode}");
+                }
+
+                return (string) $result;
+            });
+        } catch (CircuitOpenException) {
+            Logger::warning('[WeatherService] Circuit breaker abierto, servicio meteorológico no disponible');
+
+            return Result::fail('Servicio meteorológico temporalmente no disponible');
+        } catch (\RuntimeException $e) {
             Logger::warning('Error de conexión con API meteorológica', [
-                'error' => $error,
-                'url' => $url,
+                'error' => $e->getMessage(),
+                'url'   => $url,
             ]);
 
             return Result::fail('Error de conexión con el servicio meteorológico');
-        }
-
-        if ($httpCode !== 200) {
-            Logger::warning('API meteorológica retornó código HTTP no exitoso', [
-                'http_code' => $httpCode,
-                'url' => $url,
-            ]);
-
-            return Result::fail('Servicio meteorológico no disponible');
         }
 
         $data = \json_decode((string) $response, true);

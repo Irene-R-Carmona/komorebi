@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Manager;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
@@ -34,9 +35,9 @@ final class StaffController
         ?ResponseFactory $response = null,
         ?StaffShiftServiceInterface $shiftService = null,
     ) {
-        $this->userRepo = $userRepo ?? new UserRepository();
+        $this->userRepo = $userRepo ?? Container::make(UserRepository::class);
         $this->response = $response ?? new ResponseFactory();
-        $this->shiftService = $shiftService ?? new StaffShiftService(new StaffShiftRepository());
+        $this->shiftService = $shiftService ?? Container::make(StaffShiftService::class);
     }
 
     /**

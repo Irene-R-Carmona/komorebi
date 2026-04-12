@@ -4,19 +4,30 @@ set -eu
 APP_DIR="/app"
 STORAGE_DIR="$APP_DIR/storage"
 LOG_FILE="$STORAGE_DIR/logs/init-migrations.log"
+TMP_LOG="/tmp/init-migrations.log"
 
 printf '[INIT] Preparando entorno...\n'
 
 mkdir -p "$STORAGE_DIR/uploads" "$STORAGE_DIR/logs" "$STORAGE_DIR/cache"
-chmod -R 775 "$STORAGE_DIR" || true
-chown -R www-data:www-data "$STORAGE_DIR" || true
+chmod -R 775 "$STORAGE_DIR" 2>/dev/null || true
+chown -R www-data:www-data "$STORAGE_DIR" 2>/dev/null || true
+
+# En volúmenes bind-mount de Windows/WSL2 chown puede fallar.
+# Verificamos si podemos escribir en el log de storage; si no, usamos /tmp.
+if touch "$LOG_FILE" 2>/dev/null; then
+    ACTIVE_LOG="$LOG_FILE"
+else
+    ACTIVE_LOG="$TMP_LOG"
+    printf '[WARN] Sin acceso de escritura a %s — logs de init en %s (siempre visible en docker logs)\n' "$LOG_FILE" "$ACTIVE_LOG"
+fi
+: > "$ACTIVE_LOG"  # truncar/crear en blanco al inicio
 
 if [ "${SKIP_COMPOSER:-0}" != "1" ]; then
     if [ ! -f "$APP_DIR/vendor/autoload.php" ]; then
         if command -v composer >/dev/null 2>&1; then
             printf '[INIT] vendor/autoload.php no encontrado. Ejecutando composer install...\n'
-            composer install --no-interaction --prefer-dist --optimize-autoloader >> "$LOG_FILE" 2>&1 || {
-                printf '[ERROR] composer install falló. Ver %s\n' "$LOG_FILE" >&2
+            composer install --no-interaction --prefer-dist --optimize-autoloader >> "$ACTIVE_LOG" 2>&1 || {
+                printf '[ERROR] composer install falló. Ver %s\n' "$ACTIVE_LOG" >&2
                 exit 1
             }
         else
@@ -60,14 +71,21 @@ if [ "${SKIP_MIGRATIONS:-0}" = "0" ]; then
             attempts=$((attempts + 1))
             printf '[INIT] Ejecutando %s (intento %d/%d)...\n' "$MIGRATE_SCRIPT" "$attempts" "$max_attempts"
 
-            # Ejecutar y registrar salida
-            mkdir -p "$(dirname "$LOG_FILE")"
-            if php "$MIGRATE_SCRIPT" --force >> "$LOG_FILE" 2>&1; then
+            # Ejecutar y registrar salida en /tmp (siempre escribible), luego persistir
+            if php "$MIGRATE_SCRIPT" --force > /tmp/migrate-attempt.log 2>&1; then
+                cat /tmp/migrate-attempt.log >> "$ACTIVE_LOG" 2>/dev/null || true
+                cat /tmp/migrate-attempt.log  # stdout → docker logs
+                # Si usamos /tmp, intentar copiar al log permanente para trazabilidad
+                if [ "$ACTIVE_LOG" = "$TMP_LOG" ]; then
+                    cp "$TMP_LOG" "$LOG_FILE" 2>/dev/null || true
+                fi
                 printf '[INIT] Migraciones y seeders ejecutados correctamente.\n'
                 break
             else
                 rc=$?
-                printf '[ERROR] Falló la ejecución del script (código %d). Ver: %s\n' "$rc" "$LOG_FILE" >&2
+                cat /tmp/migrate-attempt.log >> "$ACTIVE_LOG" 2>/dev/null || true
+                cat /tmp/migrate-attempt.log >&2  # stderr → docker logs
+                printf '[ERROR] Falló la ejecución del script (código %d). Ver: %s\n' "$rc" "$ACTIVE_LOG" >&2
 
                 if [ "$attempts" -ge "$max_attempts" ]; then
                     printf '[ERROR] Alcanzado máximo de intentos (%d). Puede omitir con SKIP_MIGRATIONS=1 si es intencional.\n' "$max_attempts" >&2

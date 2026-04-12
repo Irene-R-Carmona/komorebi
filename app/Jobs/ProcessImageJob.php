@@ -88,7 +88,7 @@ final class ProcessImageJob implements JobInterface
             }
 
             // getimagesize garantiza 'mime' cuando devuelve array
-            $mime = (string) ($imageInfo['mime'] ?? '');
+            $mime = (string) $imageInfo['mime'];
 
             if (!\in_array($mime, self::SUPPORTED_TYPES, true)) {
                 throw FilesystemException::withMessage(

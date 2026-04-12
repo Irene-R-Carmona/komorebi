@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Core\Database;
 use App\Core\Result;
 use App\Core\TransactionalService;
-use App\Repositories\AnimalRepository;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
+use App\Services\Contracts\AnimalCareServiceInterface;
 use Exception;
 use PDO;
 
@@ -20,14 +19,14 @@ use PDO;
  *
  * @package Komorebi\Services
  */
-final class AnimalCareService extends TransactionalService
+class AnimalCareService extends TransactionalService implements AnimalCareServiceInterface
 {
     private AnimalRepositoryInterface $animalRepository;
 
-    public function __construct(?PDO $db = null, ?AnimalRepositoryInterface $animalRepository = null)
+    public function __construct(PDO $db, AnimalRepositoryInterface $animalRepository)
     {
-        parent::__construct($db ?? Database::getConnection());
-        $this->animalRepository = $animalRepository ?? new AnimalRepository($this->db);
+        parent::__construct($db);
+        $this->animalRepository = $animalRepository;
     }
 
     /**
@@ -35,6 +34,7 @@ final class AnimalCareService extends TransactionalService
      *
      * @return array
      */
+    #[\Override]
     public function getAllAnimals(): array
     {
         return $this->animalRepository->getAnimalsWithCafeInfoOptimized();
@@ -46,6 +46,7 @@ final class AnimalCareService extends TransactionalService
      * @param integer $id
      * @return array|null
      */
+    #[\Override]
     public function getAnimalById(int $id): ?array
     {
         return $this->animalRepository->findById($id);
@@ -57,6 +58,7 @@ final class AnimalCareService extends TransactionalService
      * @param array $data Datos del animal (name, species, breed, age_years, personality, cafe_id)
      * @return Result ID del animal creado
      */
+    #[\Override]
     public function createAnimal(array $data): Result
     {
         if (empty($data['name']) || empty($data['species'])) {
@@ -90,6 +92,7 @@ final class AnimalCareService extends TransactionalService
      * @param array   $data Datos a actualizar
      * @return Result
      */
+    #[\Override]
     public function updateAnimal(int $id, array $data): Result
     {
         try {
@@ -125,6 +128,7 @@ final class AnimalCareService extends TransactionalService
      * @param integer $id ID del animal
      * @return Result
      */
+    #[\Override]
     public function deleteAnimal(int $id): Result
     {
         try {
@@ -148,6 +152,7 @@ final class AnimalCareService extends TransactionalService
      *
      * @return array{animals: array, stats: array, recent_logs: array, active_incidents: array}
      */
+    #[\Override]
     public function getDashboardData(): array
     {
         return [
@@ -163,6 +168,7 @@ final class AnimalCareService extends TransactionalService
      *
      * @return array
      */
+    #[\Override]
     public function getAnimalsWithCafeInfo(): array
     {
         return $this->animalRepository->getAnimalsWithCafeInfoOptimized();
@@ -173,6 +179,7 @@ final class AnimalCareService extends TransactionalService
      *
      * @return array{total_animals: int, healthy: int, monitoring: int, sick: int, logs_today: int}
      */
+    #[\Override]
     public function getStatistics(): array
     {
         return $this->animalRepository->getHealthStatistics();
@@ -184,6 +191,7 @@ final class AnimalCareService extends TransactionalService
      * @param integer $limit Número máximo de logs
      * @return array
      */
+    #[\Override]
     public function getRecentLogs(int $limit = 20): array
     {
         return $this->animalRepository->getRecentLogs($limit);
@@ -194,9 +202,22 @@ final class AnimalCareService extends TransactionalService
      *
      * @return array
      */
+    #[\Override]
     public function getActiveIncidents(): array
     {
         return $this->animalRepository->getActiveIncidents();
+    }
+
+    /**
+     * Obtener un incidente por su ID.
+     *
+     * @param int $id ID del incidente
+     * @return array<string, mixed>|null
+     */
+    #[\Override]
+    public function getIncidentById(int $id): ?array
+    {
+        return $this->animalRepository->findIncidentById($id);
     }
 
     /**
@@ -205,6 +226,7 @@ final class AnimalCareService extends TransactionalService
      * @param array $data Datos del log
      * @return Result ID del log creado
      */
+    #[\Override]
     public function createCareLog(array $data): Result
     {
         // Validaciones de negocio
@@ -266,6 +288,7 @@ final class AnimalCareService extends TransactionalService
      * @param integer|null $userId       ID del usuario que realiza la actualización
      * @return Result
      */
+    #[\Override]
     public function updateHealth(int $animalId, string $healthStatus, ?string $notes = null, ?int $userId = null): Result
     {
         // Validación de estado
@@ -316,6 +339,7 @@ final class AnimalCareService extends TransactionalService
      * @param integer $animalId ID del animal
      * @return Result
      */
+    #[\Override]
     public function toggleActive(int $animalId): Result
     {
         try {
@@ -354,6 +378,7 @@ final class AnimalCareService extends TransactionalService
      * @param array $data Datos del incidente
      * @return Result ID del incidente creado
      */
+    #[\Override]
     public function createIncident(array $data): Result
     {
         // Validaciones
@@ -396,6 +421,7 @@ final class AnimalCareService extends TransactionalService
      * @param integer|null $userId     ID del usuario que resuelve
      * @return Result
      */
+    #[\Override]
     public function resolveIncident(int $incidentId, ?string $resolution = null, ?int $userId = null): Result
     {
         try {

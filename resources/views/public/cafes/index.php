@@ -1,23 +1,33 @@
 <section class="seccion seccion--activa">
-    <div class="seccion__container" x-data="catalogoApp(<?= json_encode($favoritos, JSON_THROW_ON_ERROR) ?>)" x-cloak>
+    <?php
+    $cafesSimple = array_map(fn($c) => [
+        'tipo' => $c['animal_type'],
+        'nombre' => $c['name'],
+        'ubicacion' => $c['location'],
+    ], $cafes);
+    ?>
+    <div class="seccion__container" x-data="catalogoApp(<?= json_encode($favoritos, JSON_THROW_ON_ERROR) ?>, <?= json_encode($cafesSimple, JSON_THROW_ON_ERROR) ?>)" x-cloak>
         <header class="seccion__header">
             <h2 class="seccion__titulo">Nuestros Cafés</h2>
             <p class="seccion__subtitulo">Encuentra tu lugar perfecto para relajarte</p>
 
             <p class="seccion__hora">
-                <span aria-hidden="true" class="seccion__hora-icon">🕐</span>
+                <i class="bi bi-clock seccion__hora-icon" aria-hidden="true"></i>
                 Hora local: <span><?= date('H:i') ?></span>
             </p>
         </header>
 
         <!-- FILTROS -->
-        <div class="filtros">
+        <div class="filtros" role="search">
             <div class="filtros__busqueda">
-                <input class="filtros__input"
+                <label for="busqueda-cafes" class="visually-hidden">Buscar café por nombre o ubicación</label>
+                <input id="busqueda-cafes"
+                    class="filtros__input"
                     x-model="busqueda"
                     @input="watchBusqueda()"
-                    type="text"
-                    placeholder="Buscar café por nombre o ubicación...">
+                    type="search"
+                    placeholder="Buscar café por nombre o ubicación..."
+                    autocomplete="off">
             </div>
 
             <div class="filtros__tipos">
@@ -61,25 +71,26 @@
         </div>
 
         <!-- GRID DE CAFÉS -->
-        <div class="catalogo__grid">
+        <div class="catalogo__grid" aria-live="polite" aria-atomic="false">
             <?php foreach ($cafes as $cafe):
                 // Objeto JSON mínimo para el filtro JS
-                $cafeJs = e(json_encode([
+                $cafeJs = json_encode([
                     'tipo' => $cafe['animal_type'],
                     'nombre' => $cafe['name'],
                     'ubicacion' => $cafe['location'],
-                ], JSON_THROW_ON_ERROR));
-                ?>
+                ], JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT);
+            ?>
                 <!-- Card -->
                 <article class="card"
                     x-show="filtrar(<?= $cafeJs ?>)"
                     x-transition.duration.300ms>
 
                     <div class="card__imagen">
-                        <img src="<?= e($cafe['image_url'] ?? '/images/ui/placeholder.jpg') ?>"
+                        <img src="<?= e($cafe['image_url'] ?? '/images/ui/placeholder-cafe.svg') ?>"
                             alt="<?= e($cafe['name']) ?>"
                             class="card__img"
-                            loading="lazy">
+                            loading="lazy"
+                            onerror="this.onerror=null; this.src='/images/ui/placeholder-cafe.svg'">
                         <div class="card__tipo-badge"><?= ucfirst(e($cafe['animal_type'])) ?></div>
                     </div>
 
@@ -94,7 +105,7 @@
                         <div class="card__ubicacion"><?= e($cafe['location']) ?></div>
 
                         <div class="card__horario">
-                            <span class="card__horario-icon">🕒</span>
+                            <i class="bi bi-clock card__horario-icon" aria-hidden="true"></i>
                             <?= substr($cafe['opening_time'], 0, 5) ?> - <?= substr($cafe['closing_time'], 0, 5) ?>
                         </div>
 
@@ -102,7 +113,8 @@
 
                         <div class="card__footer">
                             <div class="card__rating">
-                                <span class="star--filled">★</span> <?= $cafe['rating_avg'] ?? '—' ?>
+                                <span class="star--filled" aria-hidden="true">★</span>
+                                <span class="visually-hidden">Valoración:</span> <?= $cafe['rating_avg'] ?? '—' ?>
                             </div>
                         </div>
 
@@ -120,14 +132,14 @@
         </div>
 
         <!-- Mensaje Vacío -->
-        <div class="catalogo__vacio"
-            x-show="$el.previousElementSibling.children.length > 0 && $el.previousElementSibling.querySelectorAll('article[style*=\'display: none\']').length === <?= count($cafes) ?>"
+        <div class="empty-state"
+            x-show="!hayResultados"
+            x-transition
             style="display: none;">
-
-            <span class="catalogo__vacio-icon">🍵</span>
-            <h3 class="catalogo__vacio-titulo">No hemos encontrado coincidencias</h3>
-            <p class="catalogo__vacio-texto">Intenta buscar con otro nombre o cambia el tipo de animal seleccionado.</p>
-            <button @click="limpiarFiltros()" class="btn btn--primario">🔄 Limpiar filtros</button>
+            <i class="bi bi-cup-hot empty-state__icon" aria-hidden="true"></i>
+            <h3 class="empty-state__title">Sin coincidencias</h3>
+            <p class="empty-state__body">Intenta buscar con otro nombre o cambia el tipo de animal seleccionado.</p>
+            <button @click="limpiarFiltros()" class="btn-komorebi btn-komorebi--secondary" type="button">Limpiar filtros</button>
         </div>
     </div>
 </section>

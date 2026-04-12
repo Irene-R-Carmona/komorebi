@@ -15,6 +15,7 @@ use App\Repositories\StaffShiftRepository;
 use App\Repositories\SupervisorAssignmentRepository;
 use App\Services\StaffShiftService;
 use App\Services\SupervisorAssignmentService;
+use App\Services\Contracts\SupervisorAssignmentServiceInterface;
 
 /**
  * Service Provider para el módulo de gestión de staff.
@@ -50,6 +51,11 @@ final class StaffServiceProvider extends ServiceProvider
         Container::singleton(
             SupervisorAssignmentService::class,
             fn() => new SupervisorAssignmentService(Container::make(SupervisorAssignmentRepository::class))
+        );
+
+        Container::singleton(
+            SupervisorAssignmentServiceInterface::class,
+            fn() => Container::make(SupervisorAssignmentService::class)
         );
 
         Container::singleton(

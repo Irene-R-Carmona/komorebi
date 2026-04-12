@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Core\Container;
 use App\Core\ServiceProvider;
 use App\Services\NewsletterService;
+use App\Services\Contracts\NewsletterServiceInterface;
 use PDO;
 
 /**
@@ -23,6 +24,8 @@ final class NewsletterServiceProvider extends ServiceProvider
             $pdo = Container::make(PDO::class);
             return new NewsletterService($pdo);
         });
+
+        Container::singleton(NewsletterServiceInterface::class, fn() => Container::make(NewsletterService::class));
     }
 
     #[\Override]

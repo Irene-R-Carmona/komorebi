@@ -19,6 +19,13 @@ namespace Tests\Unit\Http\Controllers\Shared;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Shared\UserController;
+use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Services\Contracts\ReviewQueryServiceInterface;
+use App\Services\ReservationService;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -34,14 +41,25 @@ final class UserControllerTest extends TestCase
     }
 
     /**
-     * Construye un UserController con dependencias reales por defecto.
-     * Todos los servicios son final y no se pueden doblar; se dejan null
-     * para que el constructor use sus propios new Service() internos.
-     * Solo inyectamos ResponseFactory para controlar la instancia.
+     * Construye un UserController con dependencias mínimas.
+     * ReservationService es final; se instancia con stubs para que el
+     * constructor no falle, aunque estos tests no llegan a usar el servicio
+     * (redirigen por falta de sesión antes de llamarlo).
      */
     private function makeController(): UserController
     {
-        return new UserController(response: new ResponseFactory());
+        $reservations = new ReservationService(
+            $this->createStub(ReservationRepositoryInterface::class),
+            $this->createStub(CafeRepositoryInterface::class),
+            $this->createStub(ProductRepositoryInterface::class),
+            $this->createStub(InvoicePDFServiceInterface::class),
+            $this->createStub(EmailServiceInterface::class),
+        );
+        return new UserController(
+            reservations: $reservations,
+            reviews: $this->createStub(ReviewQueryServiceInterface::class),
+            response: new ResponseFactory(),
+        );
     }
 
     public function test_update_method_accepts_psr7_request_and_returns_response_interface(): void

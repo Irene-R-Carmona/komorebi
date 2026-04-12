@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
@@ -11,7 +12,7 @@ use App\Exceptions\DatabaseException;
 use App\Exceptions\ValidationException;
 use App\Models\MenuCategory;
 use App\Models\Product;
-use App\Services\ProductService;
+use App\Services\Contracts\ProductServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Random\RandomException;
@@ -23,12 +24,12 @@ use Random\RandomException;
  */
 final class MenuController
 {
-    private ProductService $productService;
+    private ProductServiceInterface $productService;
     private ResponseFactory $response;
 
-    public function __construct(?ProductService $productService = null, ?ResponseFactory $response = null)
+    public function __construct(?ProductServiceInterface $productService = null, ?ResponseFactory $response = null)
     {
-        $this->productService = $productService ?? new ProductService();
+        $this->productService = $productService ?? Container::make(ProductServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
     }
 

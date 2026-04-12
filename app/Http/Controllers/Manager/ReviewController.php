@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Manager;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
-use App\Services\ReviewService;
+use App\Services\Contracts\ReviewModerationServiceInterface;
+use App\Services\Contracts\ReviewQueryServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -20,12 +22,16 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class ReviewController
 {
-    private ReviewService $reviewService;
+    private ReviewQueryServiceInterface $queryService;
+    private ReviewModerationServiceInterface $moderationService;
     private ResponseFactory $response;
 
-    public function __construct(?ReviewService $reviewService = null)
-    {
-        $this->reviewService = $reviewService ?? new ReviewService();
+    public function __construct(
+        ?ReviewQueryServiceInterface $queryService = null,
+        ?ReviewModerationServiceInterface $moderationService = null
+    ) {
+        $this->queryService = $queryService ?? Container::make(ReviewQueryServiceInterface::class);
+        $this->moderationService = $moderationService ?? Container::make(ReviewModerationServiceInterface::class);
         $this->response = new ResponseFactory();
     }
 
@@ -45,8 +51,8 @@ final class ReviewController
             return null;
         }
 
-        $reviews = $this->reviewService->getReviewsByCafeId($cafeId);
-        $stats   = $this->reviewService->getCafeRatingStats($cafeId);
+        $reviews = $this->queryService->getReviewsByCafeId($cafeId);
+        $stats   = $this->queryService->getCafeRatingStats($cafeId);
 
         View::render('manager/reviews/index', [
             'titulo'     => 'Gestión de Reseñas',
@@ -69,7 +75,7 @@ final class ReviewController
         }
 
         $id     = (int) ($_POST['id'] ?? 0);
-        $result = $this->reviewService->approveReview($id);
+        $result = $this->moderationService->approveReview($id);
 
         if ($result->isOk()) {
             Flash::success('Reseña aprobada correctamente');
@@ -93,7 +99,7 @@ final class ReviewController
 
         $id     = (int) ($_POST['id'] ?? 0);
         $reason = $_POST['reason'] ?? 'Contenido inapropiado';
-        $result = $this->reviewService->rejectReview($id, $reason);
+        $result = $this->moderationService->rejectReview($id, $reason);
 
         if ($result->isOk()) {
             Flash::success('Reseña rechazada');

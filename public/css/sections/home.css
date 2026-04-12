@@ -270,7 +270,7 @@
 }
 
 .paso-card {
-  background: var(--color-superficie);
+  background: var(--color-fondo-alt);
   padding: 3rem 2rem;
   border-radius: var(--radio-lg);
   text-align: center;
@@ -363,6 +363,29 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   opacity: 0.8;
+}
+
+/* --- ACCESIBILIDAD: Reducir movimiento --- */
+@media (prefers-reduced-motion: reduce) {
+  .hero::before {
+    animation: none;
+  }
+
+  .hero__content {
+    animation: none;
+  }
+
+  .hero__scroll {
+    animation: none;
+  }
+
+  .badge:hover {
+    transform: none;
+  }
+
+  .paso-card:hover {
+    transform: none;
+  }
 }
 
 /* Responsive */

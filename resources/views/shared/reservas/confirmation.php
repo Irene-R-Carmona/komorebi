@@ -1,0 +1,98 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Vista: Confirmación de Reserva
+ * Ruta: GET /reservas/confirmacion
+ *
+ * Variables esperadas:
+ * @var string $titulo
+ * @var array  $reservation  {id, cafe_name, pass_name, pass_duration_minutes, reservation_date, reservation_time, guest_count, status, comments}
+ */
+
+$reservation ??= [];
+
+$formattedDate = isset($reservation['reservation_date'])
+    ? date('d/m/Y', strtotime($reservation['reservation_date']))
+    : '—';
+
+$formattedTime = isset($reservation['reservation_time'])
+    ? substr($reservation['reservation_time'], 0, 5)
+    : '—';
+
+$statusLabels = [
+    'confirmed' => 'Confirmada',
+    'pending'   => 'Pendiente',
+    'cancelled' => 'Cancelada',
+];
+$statusLabel = $statusLabels[$reservation['status'] ?? ''] ?? ucfirst($reservation['status'] ?? '—');
+?>
+
+<section class="seccion seccion--activa">
+    <div class="seccion__container rsv2-confirmation">
+
+        <!-- Cabecera de confirmación -->
+        <div class="rsv2-confirmation__header">
+            <i class="bi bi-patch-check-fill rsv2-confirmation__icon" aria-hidden="true"></i>
+            <h1 class="rsv2-confirmation__title">¡Reserva confirmada!</h1>
+            <p class="rsv2-confirmation__subtitle">Tu experiencia en Komorebi Café está lista.</p>
+        </div>
+
+        <!-- Código de reserva -->
+        <div class="rsv2-confirmation__code-card">
+            <p class="rsv2-confirmation__code-label">Número de reserva</p>
+            <p class="rsv2-confirmation__code-number">#<?= e((string) ($reservation['id'] ?? '—')) ?></p>
+            <p class="rsv2-confirmation__code-hint">Guarda este número para identificar tu reserva</p>
+        </div>
+
+        <!-- Detalle de la reserva -->
+        <div class="rsv2-confirmation__detail-card">
+            <h2 class="rsv2-confirmation__detail-heading">Detalle de la reserva</h2>
+            <dl class="rsv2-confirmation__dl">
+                <dt class="rsv2-confirmation__dt">Café</dt>
+                <dd class="rsv2-confirmation__dd"><?= e($reservation['cafe_name'] ?? '—') ?></dd>
+
+                <dt class="rsv2-confirmation__dt">Pase</dt>
+                <dd class="rsv2-confirmation__dd">
+                    <?= e($reservation['pass_name'] ?? '—') ?>
+                    <?php if (!empty($reservation['pass_duration_minutes'])): ?>
+                        <span class="rsv2-confirmation__dd-note">(<?= (int) $reservation['pass_duration_minutes'] ?> min)</span>
+                    <?php endif; ?>
+                </dd>
+
+                <dt class="rsv2-confirmation__dt">Fecha</dt>
+                <dd class="rsv2-confirmation__dd"><?= e($formattedDate) ?></dd>
+
+                <dt class="rsv2-confirmation__dt">Hora</dt>
+                <dd class="rsv2-confirmation__dd"><?= e($formattedTime) ?></dd>
+
+                <dt class="rsv2-confirmation__dt">Personas</dt>
+                <dd class="rsv2-confirmation__dd"><?= (int) ($reservation['guest_count'] ?? 0) ?></dd>
+
+                <dt class="rsv2-confirmation__dt">Estado</dt>
+                <dd class="rsv2-confirmation__dd">
+                    <span class="rsv2-pill <?= ($reservation['status'] ?? '') === 'confirmed' ? 'rsv2-pill--confirmed' : 'rsv2-pill--pending' ?>">
+                        <?= e($statusLabel) ?>
+                    </span>
+                </dd>
+
+                <?php if (!empty($reservation['comments'])): ?>
+                    <dt class="col-5 text-muted fw-normal">Comentarios</dt>
+                    <dd class="col-7 mb-0"><?= e($reservation['comments']) ?></dd>
+                <?php endif; ?>
+            </dl>
+        </div>
+
+        <!-- Acciones -->
+        <div class="rsv2-confirmation__actions">
+            <a href="/mis-reservas" class="btn-komorebi btn-komorebi-primary">
+                Ver mis reservas
+            </a>
+            <a href="/" class="btn-komorebi btn-komorebi-ghost">
+                Volver al inicio
+            </a>
+        </div>
+
+    </div>
+</section>

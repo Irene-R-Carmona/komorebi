@@ -10,7 +10,7 @@
         <div class="quiz-resultado__contenido">
             <p class="quiz-resultado__etiqueta">Tu Café del Alma es...</p>
             <h1 class="quiz-resultado__titulo"><?= htmlspecialchars($cafe['nombre']) ?></h1>
-            <p class="quiz-resultado__subtitulo"><?= htmlspecialchars($cafe['nombre']) ?></p>
+            <p class="quiz-resultado__subtitulo"><?= htmlspecialchars($cafe['personalidad_guia']) ?></p>
         </div>
     </div>
 
@@ -83,17 +83,17 @@
                     <p><?= htmlspecialchars($cafeData['descripcion']) ?></p>
 
                     <div class="cafe-destino__meta">
-                        <span>📍 <?= htmlspecialchars($cafeData['ubicacion'] ?? 'Tokyo, Japón') ?></span>
-                        <span>⭐ <?= number_format($cafeData['rating'] ?? 4.5, 1) ?></span>
+                        <span><i class="bi bi-geo-alt" aria-hidden="true"></i> <?= htmlspecialchars($cafeData['ubicacion'] ?? 'Tokyo, Japón') ?></span>
+                        <span><i class="bi bi-star-fill" aria-hidden="true" style="color:var(--color-acento)"></i> <span class="visually-hidden">Valoración:</span><?= number_format($cafeData['rating'] ?? 4.5, 1) ?></span>
                     </div>
                 </div>
             </div>
 
             <div class="cafe-destino__acciones">
-                <a href="/cafes/<?= htmlspecialchars($cafe['slug']) ?>" class="btn btn--primary">
+                <a href="/cafes/<?= htmlspecialchars($cafe['slug']) ?>" class="btn-komorebi btn-komorebi-primary">
                     Ver el café
                 </a>
-                <a href="/reservar" class="btn btn--secondary">
+                <a href="/reservas" class="btn-komorebi btn-komorebi-secondary">
                     Reservar experiencia
                 </a>
             </div>
@@ -102,14 +102,14 @@
 
     <!-- Acciones finales -->
     <div class="quiz-acciones">
-        <a href="/quiz" class="btn btn--outline">
-            🔄 Repetir quiz
+        <a href="/quiz" class="btn-komorebi btn-komorebi-ghost">
+            <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Repetir quiz
         </a>
-        <a href="/cafes" class="btn btn--outline">
-            🔍 Descubrir otros refugios
+        <a href="/cafes" class="btn-komorebi btn-komorebi-ghost">
+            <i class="bi bi-search" aria-hidden="true"></i> Descubrir otros refugios
         </a>
-        <button class="btn btn--outline" @click="window.print()">
-            📄 Guardar resultado
+        <button class="btn-komorebi btn-komorebi-ghost" @click="window.print()">
+            <i class="bi bi-file-earmark" aria-hidden="true"></i> Guardar resultado
         </button>
     </div>
 
@@ -121,248 +121,18 @@
                 data-action="openWindow"
                 data-url="<?= 'https://twitter.com/intent/tweet?text=' . urlencode('Mi café del alma es ' . $cafe['nombre'] . ' en Komorebi Café') ?>"
                 data-features="width=550,height=420">
-                🐦 Twitter
+                <i class="bi bi-twitter-x" aria-hidden="true"></i> Twitter
             </button>
             <button class="compartir-btn compartir-btn--facebook"
                 data-action="openWindow"
                 data-url="<?= 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode('https://' . $_SERVER['HTTP_HOST'] . '/quiz') ?>"
                 data-features="width=550,height=420">
-                📘 Facebook
+                <i class="bi bi-facebook" aria-hidden="true"></i> Facebook
             </button>
             <button class="compartir-btn compartir-btn--copiar"
-                @click="navigator.clipboard.writeText('Mi café del alma es <?= htmlspecialchars($cafe['nombre']) ?> - Descubre el tuyo en Komorebi Café'); alert('¡Copiado!')">
-                📋 Copiar
+                @click="navigator.clipboard.writeText('Mi café del alma es <?= htmlspecialchars($cafe['nombre']) ?> - Descubre el tuyo en Komorebi Café'); window.dispatchEvent(new CustomEvent('toast', {detail:{message:'¡Enlace copiado!',type:'success'}}))">
+                <i class="bi bi-clipboard" aria-hidden="true"></i> Copiar
             </button>
         </div>
     </div>
 </div>
-
-<!-- Estilos específicos del resultado -->
-<style>
-    .quiz-resultado {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: var(--espaciado-lg);
-    }
-
-    .quiz-resultado__hero {
-        position: relative;
-        text-align: center;
-        padding: var(--espaciado-xl) var(--espaciado-md);
-        background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-acento) 100%);
-        color: white;
-        border-radius: var(--radio-lg);
-        margin-bottom: var(--espaciado-lg);
-        overflow: hidden;
-    }
-
-    .quiz-resultado__particulas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        font-size: 2rem;
-        opacity: 0.2;
-        animation: float 20s infinite linear;
-        pointer-events: none;
-    }
-
-    @keyframes float {
-        from {
-            transform: translateY(0);
-        }
-
-        to {
-            transform: translateY(-100%);
-        }
-    }
-
-    .quiz-resultado__etiqueta {
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        margin-bottom: var(--espaciado-xs);
-        opacity: 0.9;
-    }
-
-    .quiz-resultado__titulo {
-        font-size: 2.5rem;
-        font-family: var(--fuente-titulo);
-        margin: var(--espaciado-sm) 0;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    .quiz-resultado__subtitulo {
-        font-size: 1.25rem;
-        font-family: var(--fuente-acento);
-        opacity: 0.95;
-    }
-
-    .animal-guia {
-        display: flex;
-        align-items: center;
-        gap: var(--espaciado-md);
-        background: var(--color-superficie);
-        padding: var(--espaciado-md);
-        border-radius: var(--radio-md);
-        margin-bottom: var(--espaciado-lg);
-        box-shadow: var(--sombra-md);
-    }
-
-    .animal-guia__icono {
-        font-size: 4rem;
-        flex-shrink: 0;
-    }
-
-    .animal-guia__titulo {
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        color: var(--color-texto-suave);
-        margin-bottom: var(--espaciado-xs);
-    }
-
-    .animal-guia__nombre {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: var(--espaciado-xs);
-    }
-
-    .animal-guia__personalidad {
-        font-style: italic;
-        color: var(--color-texto-suave);
-    }
-
-    .quiz-descripcion {
-        background: var(--color-fondo-alt);
-        padding: var(--espaciado-lg);
-        border-left: 4px solid var(--color-acento);
-        border-radius: var(--radio-md);
-        margin-bottom: var(--espaciado-lg);
-    }
-
-    .quiz-descripcion__titulo {
-        font-family: var(--fuente-titulo);
-        margin-bottom: var(--espaciado-md);
-    }
-
-    .quiz-descripcion__texto {
-        font-size: 1.125rem;
-        line-height: 1.7;
-        color: var(--color-texto-suave);
-    }
-
-    .quiz-caracteristicas {
-        margin-bottom: var(--espaciado-lg);
-    }
-
-    .caracteristicas-grid {
-        display: grid;
-        gap: var(--espaciado-sm);
-    }
-
-    .caracteristica-item {
-        display: grid;
-        grid-template-columns: 100px 1fr 40px;
-        align-items: center;
-        gap: var(--espaciado-sm);
-    }
-
-    .caracteristica-item__barra {
-        height: 8px;
-        background: var(--color-fondo-alt);
-        border-radius: var(--radio-full);
-        overflow: hidden;
-    }
-
-    .caracteristica-item__relleno {
-        height: 100%;
-        background: linear-gradient(90deg, var(--color-acento) 0%, var(--color-primario) 100%);
-        transition: width 1s ease;
-    }
-
-    .cafe-destino {
-        background: var(--color-superficie);
-        padding: var(--espaciado-lg);
-        border-radius: var(--radio-lg);
-        margin-bottom: var(--espaciado-lg);
-        box-shadow: var(--sombra-md);
-    }
-
-    .cafe-destino__card {
-        display: grid;
-        grid-template-columns: 200px 1fr;
-        gap: var(--espaciado-md);
-        margin: var(--espaciado-md) 0;
-    }
-
-    .cafe-destino__imagen {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-        border-radius: var(--radio-md);
-    }
-
-    .cafe-destino__acciones {
-        display: flex;
-        gap: var(--espaciado-sm);
-        flex-wrap: wrap;
-    }
-
-    .quiz-acciones {
-        display: flex;
-        gap: var(--espaciado-sm);
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-bottom: var(--espaciado-lg);
-    }
-
-    .quiz-compartir {
-        text-align: center;
-        padding-top: var(--espaciado-lg);
-        border-top: 1px solid var(--color-borde);
-    }
-
-    .compartir-botones {
-        display: flex;
-        gap: var(--espaciado-sm);
-        justify-content: center;
-        margin-top: var(--espaciado-md);
-        flex-wrap: wrap;
-    }
-
-    .compartir-btn {
-        padding: var(--espaciado-sm) var(--espaciado-md);
-        border: none;
-        border-radius: var(--radio-md);
-        cursor: pointer;
-        transition: transform var(--transicion);
-    }
-
-    .compartir-btn:hover {
-        transform: translateY(-2px);
-    }
-
-    @media (max-width: 48em) {
-        .quiz-resultado__titulo {
-            font-size: 2rem;
-        }
-
-        .animal-guia {
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .cafe-destino__card {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media print {
-
-        .quiz-acciones,
-        .quiz-compartir {
-            display: none;
-        }
-    }
-</style>

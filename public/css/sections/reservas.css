@@ -748,6 +748,486 @@
   font-family: var(--fuente-titulo);
 }
 
+/* ============================================================================
+   CONFIRMACIÓN DE RESERVA (T7.2 cleanup)
+   ============================================================================ */
+.rsv2-confirmation {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.rsv2-confirmation__header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.rsv2-confirmation__icon {
+  font-size: 3rem;
+  color: var(--color-acento);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.rsv2-confirmation__title {
+  font-size: clamp(1.375rem, 3vw, 1.75rem);
+  color: var(--color-primario);
+  margin-bottom: 0.375rem;
+}
+
+.rsv2-confirmation__subtitle {
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+
+.rsv2-confirmation__code-card {
+  background: var(--color-fondo-alt);
+  border-radius: var(--radio-md);
+  padding: 1.5rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.rsv2-confirmation__code-label {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  margin-bottom: 0.5rem;
+}
+
+.rsv2-confirmation__code-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primario);
+  letter-spacing: 0.1em;
+  font-family: var(--fuente-titulo);
+  margin-bottom: 0.375rem;
+}
+
+.rsv2-confirmation__code-hint {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+
+.rsv2-confirmation__detail-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--sombra-sm);
+}
+
+.rsv2-confirmation__detail-heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+}
+
+.rsv2-confirmation__dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.rsv2-confirmation__dt {
+  color: var(--color-texto-suave);
+  font-weight: 400;
+}
+
+.rsv2-confirmation__dd {
+  font-weight: 500;
+  margin: 0;
+}
+
+.rsv2-confirmation__dd-note {
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  margin-left: 0.375rem;
+}
+
+.rsv2-confirmation__actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ============================================================================
+   CONFIRMACIÓN DE RESERVA (T7.2 cleanup)
+   ============================================================================ */
+.rsv2-confirmation {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.rsv2-confirmation__header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.rsv2-confirmation__icon {
+  font-size: 3rem;
+  color: var(--color-acento);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.rsv2-confirmation__title {
+  font-size: clamp(1.375rem, 3vw, 1.75rem);
+  color: var(--color-primario);
+  margin-bottom: 0.375rem;
+}
+
+.rsv2-confirmation__subtitle {
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+
+.rsv2-confirmation__code-card {
+  background: var(--color-fondo-alt);
+  border-radius: var(--radio-md);
+  padding: 1.5rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.rsv2-confirmation__code-label {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  margin-bottom: 0.5rem;
+}
+
+.rsv2-confirmation__code-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primario);
+  letter-spacing: 0.1em;
+  font-family: var(--fuente-titulo);
+  margin-bottom: 0.375rem;
+}
+
+.rsv2-confirmation__code-hint {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+
+.rsv2-confirmation__detail-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--sombra-sm);
+}
+
+.rsv2-confirmation__detail-heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+}
+
+.rsv2-confirmation__dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.rsv2-confirmation__dt {
+  color: var(--color-texto-suave);
+  font-weight: 400;
+}
+
+.rsv2-confirmation__dd {
+  font-weight: 500;
+  margin: 0;
+}
+
+.rsv2-confirmation__dd-note {
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  margin-left: 0.375rem;
+}
+
+.rsv2-confirmation__actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ============================================================================
+   LISTA DE RESERVAS (T7.2 cleanup)
+   ============================================================================ */
+.rsv2-lista {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.rsv2-lista__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.rsv2-lista__title {
+  font-size: clamp(1.375rem, 3vw, 1.75rem);
+  color: var(--color-primario);
+  margin-bottom: 0.25rem;
+}
+
+.rsv2-lista__subtitle {
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+
+.rsv2-lista__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rsv2-empty {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: var(--sombra-sm);
+}
+
+.rsv2-empty__icon {
+  font-size: 2.5rem;
+  color: var(--color-texto-suave);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.rsv2-empty__title {
+  font-size: 1.125rem;
+  color: var(--color-primario);
+  margin-bottom: 0.5rem;
+}
+
+.rsv2-empty__text {
+  color: var(--color-texto-suave);
+  margin-bottom: 1.5rem;
+}
+
+.rsv2-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  box-shadow: var(--sombra-sm);
+  overflow: hidden;
+}
+
+.rsv2-card__body {
+  padding: 1.25rem;
+}
+
+.rsv2-card__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.rsv2-card__ref {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  margin-bottom: 0.25rem;
+}
+
+.rsv2-card__name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  margin-bottom: 0.25rem;
+}
+
+.rsv2-card__pass {
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+
+.rsv2-card__meta {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-borde);
+}
+
+.rsv2-card__meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.rsv2-card__actions {
+  margin-top: 0.75rem;
+  text-align: right;
+}
+
+.rsv2-card__cancel {
+  font-size: 0.8125rem;
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.rsv2-card__cancel:hover:not(:disabled) {
+  background-color: rgba(220, 53, 69, 0.08);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+/* ============================================================================
+   SLOT PICKER — Rejilla de turnos (T7.2)
+   ============================================================================ */
+.booking-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.booking-slot {
+  min-height: 44px;
+  padding: 0.5rem 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1.5px solid var(--color-borde);
+  border-radius: var(--radio-sm);
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-out);
+  font-family: var(--fuente-cuerpo);
+  text-align: center;
+}
+
+.booking-slot:hover:not(.booking-slot--selected) {
+  border-color: var(--color-acento);
+  background: color-mix(in srgb, var(--color-acento) 8%, transparent);
+}
+
+.booking-slot--selected {
+  background: linear-gradient(135deg, var(--color-primario), var(--color-acento));
+  color: white;
+  border-color: transparent;
+  box-shadow: var(--sombra-sm);
+}
+
+.booking-slot:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   INDICADOR DE PASOS — Visual progreso (T7.3)
+   ============================================================================ */
+.booking-steps {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: var(--espaciado-md);
+}
+
+.booking-steps__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  flex: 0 0 auto;
+}
+
+.booking-steps__circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--color-borde);
+  background: var(--color-superficie);
+  color: var(--color-texto-suave);
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-normal) var(--easing-out);
+  line-height: 1;
+}
+
+.booking-steps__item.is-active .booking-steps__circle {
+  border-color: var(--color-acento);
+  color: var(--color-primario);
+  background: color-mix(in srgb, var(--color-acento) 12%, var(--color-superficie));
+}
+
+.booking-steps__item.is-done .booking-steps__circle {
+  background: linear-gradient(135deg, var(--color-primario), var(--color-acento));
+  border-color: transparent;
+  color: white;
+}
+
+.booking-steps__label {
+  font-size: 0.7rem;
+  color: var(--color-texto-suave);
+  white-space: nowrap;
+  text-align: center;
+  transition: color var(--duration-fast);
+  line-height: 1.2;
+}
+
+.booking-steps__item.is-active .booking-steps__label {
+  color: var(--color-primario);
+  font-weight: 600;
+}
+
+.booking-steps__line {
+  flex: 1;
+  height: 2px;
+  background: var(--color-borde);
+  margin: 0 0.25rem;
+  align-self: flex-start;
+  margin-top: 1rem;
+  margin-bottom: 1.4rem;
+  transition: background var(--duration-normal);
+}
+
+.booking-steps__line.is-done {
+  background: var(--color-acento);
+}
+
+@media (max-width: 400px) {
+  .booking-steps__label {
+    font-size: 0.6rem;
+  }
+
+  .booking-slot-grid {
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+  }
+}
+
 .booking-summary__line {
   display: flex;
   justify-content: space-between;

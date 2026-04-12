@@ -10,7 +10,7 @@ $role = $_SESSION['user_role'] ?? 'user';
 $userName = $_SESSION['user_name'] ?? 'Usuario';
 $cafeName = $_SESSION['user_cafe_name'] ?? null;
 $menu = NavigationService::getMenuForRole($role);
-$currentUri = $_SERVER['REQUEST_URI'];
+$currentUri = $_SERVER['REQUEST_URI'] ?? '/';
 
 $content ??= '';
 $extraCss ??= [];
@@ -28,6 +28,8 @@ $extraJs ??= [];
     <!-- Preconnect to CDNs for faster resource loading -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
@@ -43,10 +45,12 @@ $extraJs ??= [];
         <script defer src="/js/charts.min.js"></script>
     <?php endif; ?>
 
+    <!-- Tipografía Komorebi OS —— Zen Kaku Gothic New -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;600&display=swap" rel="stylesheet">
+
     <!-- Modern Design System -->
     <link href="/css/design-tokens.css" rel="stylesheet">
     <link href="/css/backoffice-modern.css" rel="stylesheet">
-    <link href="/css/backoffice-bootstrap.css" rel="stylesheet">
     <link href="/css/backoffice-ux.css" rel="stylesheet">
     <link href="/css/sections/admin/admin-common.css" rel="stylesheet">
 
@@ -72,7 +76,7 @@ $extraJs ??= [];
     <?php endforeach; ?>
 </head>
 
-<body class="d-flex" style="min-height: 100vh; background: var(--bg-primary);">
+<body class="d-flex">
 
     <!-- Skip Link (Accesibilidad) -->
     <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
@@ -82,14 +86,14 @@ $extraJs ??= [];
         <!-- Brand -->
         <div class="sidebar-brand">
             <h4>
-                <span style="font-size: 1.5rem;">☕</span> Komorebi<span class="text-warning">OS</span>
+                <span class="sidebar-brand__icon">☕</span> Komorebi<span class="text-warning">OS</span>
             </h4>
         </div>
 
         <!-- Navigation -->
         <nav class="sidebar-nav" aria-label="Navegación principal">
             <?php foreach ($menu as $group => $items): ?>
-                <h6 class="sidebar-heading" style="margin-top: <?= $group !== 'Sistema' ? '1.5rem' : '0' ?>; padding-top: <?= $group !== 'Sistema' ? '1rem' : '0' ?>; border-top: <?= $group !== 'Sistema' ? '1px solid var(--sidebar-border)' : 'none' ?>">
+                <h6 class="sidebar-heading <?= $group !== 'Sistema' ? 'sidebar-heading--spaced' : '' ?>">
                     <?= $group ?>
                 </h6>
                 <ul class="nav flex-column">
@@ -115,11 +119,11 @@ $extraJs ??= [];
                 </div>
                 <div class="flex-grow-1 ms-3">
                     <div class="fw-semibold"><?= e($userName) ?></div>
-                    <small class="text-uppercase" style="font-size: 0.7rem;"><?= $role ?></small>
+                    <small class="text-uppercase"><?= $role ?></small>
                 </div>
                 <form method="POST" action="/logout" class="d-inline">
                     <?= Csrf::field() ?>
-                    <button type="submit" class="btn btn-sm btn-outline-light btn-logout" title="Cerrar sesión" style="opacity: 0.9; border-color: rgba(240, 232, 217, 0.3); color: var(--sidebar-text); padding: 0.375rem 0.75rem;">
+                    <button type="submit" class="btn btn-sm btn-outline-light btn-logout" title="Cerrar sesión">
                         <i class="bi bi-box-arrow-right me-1"></i>
                         <span class="d-none d-md-inline">Salir</span>
                     </button>
@@ -131,20 +135,20 @@ $extraJs ??= [];
     <!-- Main Content Area -->
     <div class="main-content flex-grow-1 d-flex flex-column">
         <!-- Header -->
-        <header class="navbar navbar-light bg-white border-bottom px-4 py-3" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <header class="navbar navbar-light bg-white border-bottom px-4 py-3 navbar-main">
             <div class="d-flex align-items-center">
                 <!-- Mobile menu toggle -->
-                <button class="btn btn-link d-lg-none me-3 p-0" type="button" data-bs-toggle="offcanvas"
-                    data-bs-target="#mobileNav" aria-label="Abrir menú" style="color: var(--coffee-700);">
+                <button class="btn btn-link d-lg-none me-3 p-0 navbar-mobile-toggle" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#mobileNav" aria-label="Abrir menú">
                     <i class="bi bi-list fs-3"></i>
                 </button>
 
-                <h1 class="h5 mb-0" style="color: var(--coffee-700); font-weight: 600;"><?= $title ?? $titulo ?? 'Komorebi OS' ?></h1>
+                <h1 class="h5 mb-0 navbar-page-title"><?= $title ?? $titulo ?? 'Komorebi OS' ?></h1>
             </div>
 
             <div class="d-flex align-items-center gap-3">
                 <?php if ($cafeName): ?>
-                    <span class="badge" style="background: var(--gradient-warmth); color: white; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); font-weight: 500; font-size: 0.875rem;">
+                    <span class="badge-cafe">
                         <i class="bi bi-geo-alt-fill"></i> <?= e($cafeName) ?>
                     </span>
                 <?php endif; ?>
@@ -166,7 +170,7 @@ $extraJs ??= [];
         </header>
 
         <!-- Content -->
-        <main id="main-content" class="flex-grow-1 overflow-auto p-4" role="main" style="background: var(--bg-primary);">
+        <main id="main-content" class="flex-grow-1 overflow-auto p-4" role="main">
             <div class="container-fluid">
                 <?= $content ?>
             </div>
@@ -182,16 +186,16 @@ $extraJs ??= [];
     ?>
 
     <!-- Mobile Offcanvas Menu -->
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileNav"
-        aria-labelledby="mobileNavLabel" style="background: var(--sidebar-bg); color: var(--sidebar-text); width: var(--sidebar-width);">
-        <div class="offcanvas-header" style="border-bottom: 1px solid var(--sidebar-border); padding: var(--space-6);">
-            <h5 class="offcanvas-title" id="mobileNavLabel" style="color: var(--sidebar-text);">
-                <span style="font-size: 1.5rem;">☕</span> Komorebi<span style="background: var(--gradient-warmth); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">OS</span>
+    <div class="offcanvas offcanvas-start offcanvas-sidebar" tabindex="-1" id="mobileNav"
+        aria-labelledby="mobileNavLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="mobileNavLabel">
+                <span class="sidebar-brand__icon">☕</span> Komorebi<span class="text-warning">OS</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
-                aria-label="Cerrar" style="filter: invert(1);"></button>
+                aria-label="Cerrar"></button>
         </div>
-        <div class="offcanvas-body" style="padding: var(--space-4);">
+        <div class="offcanvas-body">
             <nav aria-label="Navegación móvil">
                 <?php foreach ($menu as $group => $items): ?>
                     <h6 class="sidebar-heading">
@@ -202,7 +206,7 @@ $extraJs ??= [];
                             $isActive = ($currentUri === $item['url']) ? 'active' : '';
                         ?>
                             <li class="nav-item">
-                                <a href="<?= $item['url'] ?>" class="nav-link <?= $isActive ?>" style="color: var(--sidebar-text);">
+                                <a href="<?= $item['url'] ?>" class="nav-link <?= $isActive ?>">
                                     <i class="bi bi-<?= $item['icon'] ?>"></i>
                                     <span><?= $item['label'] ?></span>
                                 </a>

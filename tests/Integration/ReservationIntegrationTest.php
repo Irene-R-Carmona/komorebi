@@ -19,9 +19,9 @@ namespace Tests\Integration;
 
 use Tests\Support\BaseIntegrationTest;
 use App\Services\ReservationService;
-use App\Repositories\ReservationRepository;
 use App\Repositories\CafeRepository;
 use App\Repositories\ProductRepository;
+use App\Repositories\ReservationRepository;
 use App\Services\InvoicePDFService;
 use App\Services\EmailService;
 use PDO;
@@ -41,17 +41,14 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
         parent::setUp();
         $this->seedTestData();
         $reservationRepo = new ReservationRepository(self::$db);
-        $cafeRepo = new CafeRepository(self::$db);
-        $productRepo = new ProductRepository(self::$db);
-        $invoiceService = new InvoicePDFService();
-        $emailService = new EmailService();
+        $cafeRepo        = new CafeRepository(self::$db);
+        $productRepo     = new ProductRepository(self::$db);
+        $invoiceService  = new InvoicePDFService();
+        $emailService    = new EmailService();
         $this->service = new ReservationService(
-            self::$db,
             $reservationRepo,
             $cafeRepo,
             $productRepo,
-            null,  // AnimalRepo not needed for basic tests
-            null,  // TimeSlotRepo not needed for basic tests
             $invoiceService,
             $emailService
         );
@@ -320,7 +317,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
 
         // ACT & ASSERT: Intentar crear reserva debe fallar o retornar 0
         try {
-            $reservationId = $this->service->create([
+            $result = $this->service->create([
                 'user_id' => self::TEST_USER_ID,
                 'cafe_id' => 99996, // Café inactivo
                 'pass_product_id' => self::TEST_PRODUCT_ID,
@@ -330,7 +327,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
             ]);
 
             // Si no lanza excepción, al menos no debe insertar
-            $this->assertSame(0, $reservationId, 'No debe crear reserva en café inactivo');
+            $this->assertFalse($result->ok, 'No debe crear reserva en café inactivo');
         } catch (\Exception $e) {
             // Es válido que lance excepción (mensaje puede ser "no acepta reservas")
             $message = strtolower($e->getMessage());
@@ -345,7 +342,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
     {
         // ACT & ASSERT: Crear reserva con fecha pasada debe fallar
         try {
-            $reservationId = $this->service->create([
+            $result = $this->service->create([
                 'user_id' => self::TEST_USER_ID,
                 'cafe_id' => self::TEST_CAFE_ID,
                 'pass_product_id' => self::TEST_PRODUCT_ID,
@@ -355,7 +352,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
             ]);
 
             // Si no lanza excepción, al menos no debe insertar
-            $this->assertSame(0, $reservationId, 'No debe crear reserva con fecha pasada');
+            $this->assertFalse($result->ok, 'No debe crear reserva con fecha pasada');
         } catch (\Exception $e) {
             // Es válido que lance excepción
             $this->assertStringContainsString('fecha', strtolower($e->getMessage()));

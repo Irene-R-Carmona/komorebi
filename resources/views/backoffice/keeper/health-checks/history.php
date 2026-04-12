@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Timeline / Historial de Chequeos de un Animal
  *
@@ -47,7 +49,7 @@
         <div class="col-md-4 mb-3">
             <div class="card shadow-sm h-100">
                 <div class="card-body text-center">
-                    <i class="bi bi-clipboard-data fa-3x text-primary mb-2"></i>
+                    <i class="bi bi-clipboard-data fs-1 text-primary mb-2"></i>
                     <h4 class="mb-0"><?= count($history) ?></h4>
                     <p class="text-muted mb-0">Chequeos Registrados</p>
                 </div>
@@ -56,7 +58,7 @@
         <div class="col-md-4 mb-3">
             <div class="card shadow-sm h-100">
                 <div class="card-body text-center">
-                    <i class="bi bi-calendar-check fa-3x text-success mb-2"></i>
+                    <i class="bi bi-calendar-check fs-1 text-success mb-2"></i>
                     <h4 class="mb-0">
                         <?php if (!empty($history)): ?>
                             <?= date('d/m/Y', strtotime($history[0]['check_date'])) ?>
@@ -71,7 +73,7 @@
         <div class="col-md-4 mb-3">
             <div class="card shadow-sm h-100">
                 <div class="card-body text-center">
-                    <i class="bi bi-exclamation-triangle fa-3x text-warning mb-2"></i>
+                    <i class="bi bi-exclamation-triangle fs-1 text-warning mb-2"></i>
                     <h4 class="mb-0">
                         <?php
                         $alertCount = 0;

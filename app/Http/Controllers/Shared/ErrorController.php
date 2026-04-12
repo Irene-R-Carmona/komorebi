@@ -70,7 +70,7 @@ final class ErrorController
     public function serverError(): void
     {
         $exception = new Exception();
-        Logger::error('[ErrorController] serverError() CALLED - Stack trace: ' . $exception->getTraceAsString());
+        Logger::error('[ErrorController] serverError() CALLED - Stack trace: ' . $exception->getTraceAsString(), ['trace' => $exception->getTraceAsString()]);
 
         if (!\headers_sent()) {
             @\http_response_code(500);
@@ -143,6 +143,6 @@ final class ErrorController
     {
         $backofficePrefix = ['/admin', '/manager', '/ops', '/keeper'];
 
-        return \array_any($backofficePrefix, static fn ($prefix) => \str_starts_with($path, $prefix));
+        return \array_any($backofficePrefix, static fn($prefix) => \str_starts_with($path, $prefix));
     }
 }

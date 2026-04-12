@@ -30,8 +30,11 @@ use App\Http\Middleware\PayloadSizeMiddleware;
 use App\Http\Middleware\RequestLogMiddleware;
 use App\Http\Middleware\RoleMiddleware;
 use App\Middleware\SecurityHeadersMiddleware;
-use App\Services\RateLimitingService;
+use App\Services\Contracts\RateLimitingServiceInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * Factory para crear middlewares PSR-15 con sintaxis simplificada.
@@ -164,9 +167,25 @@ final class MiddlewareFactory
      * @param int    $max     Máximo de intentos (no usado — ver CONFIG en servicio)
      * @param int    $window  Ventana en segundos (no usado — ver CONFIG en servicio)
      */
-    public function rateLimit(string $action, int $max = 5, int $window = 60): HttpRateLimitMiddleware
+    public function rateLimit(string $action, int $max = 5, int $window = 60): MiddlewareInterface
     {
-        return new HttpRateLimitMiddleware($this->response, new RateLimitingService(new \App\Services\CacheService()), $action);
+        $response = $this->response;
+        return new class($response, $action) implements MiddlewareInterface {
+            public function __construct(
+                private readonly ResponseFactory $response,
+                private readonly string $action,
+            ) {}
+
+            #[\Override]
+            public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+            {
+                return (new HttpRateLimitMiddleware(
+                    $this->response,
+                    Container::make(RateLimitingServiceInterface::class),
+                    $this->action,
+                ))->process($request, $handler);
+            }
+        };
     }
 
     /**

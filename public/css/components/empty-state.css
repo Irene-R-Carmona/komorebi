@@ -1,0 +1,87 @@
+/* ============================================================================
+   KOMOREBI — EMPTY STATE COMPONENT
+   Para feedback cuando no hay resultados o contenido
+   ============================================================================ */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--espaciado-xl) var(--espaciado-lg);
+  gap: var(--espaciado-sm);
+}
+
+/* Ícono */
+.empty-state__icon {
+  font-size: 64px;
+  line-height: 1;
+  color: var(--color-acento);
+  opacity: 0.6;
+  margin-bottom: 0.5rem;
+}
+
+/* Cuando se usa Bootstrap Icons (::before) */
+.empty-state__icon.bi::before {
+  font-size: 64px;
+}
+
+/* Título */
+.empty-state__title {
+  font-family: var(--fuente-titulo);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-texto);
+  line-height: 1.3;
+  margin: 0;
+}
+
+/* Descripción */
+.empty-state__body {
+  font-size: var(--text-sm);
+  color: var(--color-texto-suave);
+  line-height: 1.6;
+  max-width: 360px;
+  margin: 0;
+}
+
+/* Acción */
+.empty-state__action {
+  margin-top: var(--espaciado-sm);
+}
+
+/* ----------------------------------------
+   Variante compacta (para listas inline)
+---------------------------------------- */
+.empty-state--compact {
+  padding: var(--espaciado-lg) var(--espaciado-md);
+}
+
+.empty-state--compact .empty-state__icon {
+  font-size: 40px;
+}
+
+.empty-state--compact .empty-state__icon.bi::before {
+  font-size: 40px;
+}
+
+/* ----------------------------------------
+   Variante con fondo sutil
+---------------------------------------- */
+.empty-state--surface {
+  background: var(--color-fondo-alt);
+  border-radius: var(--radio-lg);
+  border: 1px dashed var(--color-borde);
+}
+
+/* ----------------------------------------
+   Dark mode
+---------------------------------------- */
+[data-tema="oscuro"] .empty-state__icon {
+  opacity: 0.5;
+}
+
+[data-tema="oscuro"] .empty-state--surface {
+  background: var(--color-superficie);
+}

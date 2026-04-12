@@ -2,11 +2,24 @@
 	# Compression (gzip, zstd, brotli) para todos los responses
 	encode gzip zstd
 
-	# Cache control headers para assets estáticos (DESHABILITADO EN DEV)
-	# @static {
-	# 	path *.css *.js *.jpg *.jpeg *.png *.gif *.svg *.woff *.woff2 *.ttf *.eot *.ico
-	# }
-	# header @static Cache-Control "public, max-age=31536000, immutable"
+	# Cache-Control headers para assets estáticos propios
+	# Fuentes e imágenes: larga vida útil (no cambian sin renombrado)
+	@staticImmutable {
+		path *.woff *.woff2 *.ttf *.eot *.ico
+	}
+	header @staticImmutable Cache-Control "public, max-age=31536000, immutable"
+
+	# CSS y JS: revalidación obligatoria (sin cache-fingerprint en URLs)
+	@staticRevalidate {
+		path *.css *.js
+	}
+	header @staticRevalidate Cache-Control "public, max-age=0, must-revalidate"
+
+	# Imágenes: caché razonable sin immutable
+	@staticImages {
+		path *.jpg *.jpeg *.png *.gif *.svg *.webp
+	}
+	header @staticImages Cache-Control "public, max-age=86400"
 
 	# Cabeceras de seguridad (CSP, HSTS, etc.) manejadas por SecurityHeadersMiddleware en PHP
 

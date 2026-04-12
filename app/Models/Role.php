@@ -179,8 +179,8 @@ final class Role
     {
         $sql = "
             SELECT r.*,
-                   GROUP_CONCAT(p.id   ORDER BY p.code SEPARATOR ',') AS permission_ids,
-                   GROUP_CONCAT(p.name ORDER BY p.code SEPARATOR ',') AS permission_names
+                   GROUP_CONCAT(p.id                  ORDER BY p.code SEPARATOR ',') AS permission_ids,
+                   GROUP_CONCAT(COALESCE(p.name, '') ORDER BY p.code SEPARATOR ',') AS permission_names
             FROM roles r
             LEFT JOIN role_permissions rp ON rp.role_id = r.id
             LEFT JOIN permissions p ON p.id = rp.permission_id
@@ -197,9 +197,9 @@ final class Role
                 $names = explode(',', (string) $row['permission_names']);
 
                 $row['permissions'] = array_map(
-                    static fn(string $id, string $name): array => [
+                    static fn(string $id, ?string $name): array => [
                         'id'   => (int) $id,
-                        'name' => $name,
+                        'name' => $name ?? '',
                     ],
                     $ids,
                     $names
