@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" width="320" height="120" role="img" aria-labelledby="kc-hz-title">
+    <title id="kc-hz-title">Komorebi Café — Logo Horizontal</title>
+    <!--
+    Lockup HORIZONTAL — símbolo a escala natural (100×120, reducido a 1×) a la izquierda,
+    separador ámbar en x=114, wordmark a la derecha centrado en x=218.
+    Uso: cabeceras web, tarjetas de visita, señalética interior en línea.
+    Según §3.7: viewBox 320×120.
+  -->
+    <defs>
+        <style>
+            .kch-fill {
+                fill: #5C3D2E;
+            }
+
+            .kch-eda {
+                fill: none;
+                stroke: #5C3D2E;
+                stroke-width: 1.8;
+                stroke-linecap: butt;
+            }
+
+            .kch-hik {
+                fill: none;
+                stroke: #C9A959;
+                stroke-width: 1.0;
+                stroke-linecap: butt;
+            }
+        </style>
+    </defs>
+
+    <!-- SÍMBOLO — escala natural 1:1, canvas 100×120, centrado verticalmente en 320×120 -->
+    <!-- El símbolo se recorta abajo (roots pasan de y=100): translate(0,0) sin escala -->
+    <g transform="translate(7, 0)">
+
+        <!-- Copa + búho en negativo -->
+        <path class="kch-fill" fill-rule="evenodd" d="
+      M 50,13 Q 45,22 20,61 L 80,61 Q 54,22 50,13 Z
+
+      M 50,30
+      C 41,30 40,35 40,40
+      C 40,45 43,50 50,50
+      C 57,50 60,45 60,40
+      C 60,35 59,30 50,30
+      Z
+
+      M 45,39 m -2.5,0
+      a 2.5,2.5 0 1,0 5,0
+      a 2.5,2.5 0 1,0 -5,0
+
+      M 55,39 m -2.5,0
+      a 2.5,2.5 0 1,0 5,0
+      a 2.5,2.5 0 1,0 -5,0
+    " />
+
+        <!-- Tronco — Chikara (力) -->
+        <rect class="kch-fill" x="47.5" y="61" width="5" height="39" />
+
+        <!-- Rama horizontal — Eda (枝) -->
+        <line class="kch-eda" x1="23" y1="72" x2="77" y2="72" />
+
+        <!-- Raíces — Eda (枝) — contenidas dentro de 120px de alto -->
+        <line class="kch-eda" x1="50" y1="100" x2="38" y2="114" />
+        <line class="kch-eda" x1="50" y1="100" x2="62" y2="114" />
+
+        <!-- Rayos de luz — Hikari (光) — ámbar -->
+        <line class="kch-hik" x1="50" y1="61" x2="30" y2="41" />
+        <line class="kch-hik" x1="50" y1="61" x2="70" y2="41" />
+        <line class="kch-hik" x1="50" y1="61" x2="23" y2="58" />
+        <line class="kch-hik" x1="50" y1="61" x2="77" y2="58" />
+
+    </g>
+
+    <!-- Separador vertical ámbar -->
+    <line x1="114" y1="22" x2="114" y2="98" stroke="#C9A959" stroke-width="0.75" stroke-linecap="butt" />
+
+    <!-- Wordmark — centrado en x=218, alineado con la mitad del símbolo -->
+    <text x="218" y="53" font-family="'Shippori Mincho', 'Noto Serif JP', Georgia, serif" font-weight="300" font-size="15.5" letter-spacing="5" text-anchor="middle" fill="#5C3D2E">KOMOREBI</text>
+
+    <text x="220" y="71" font-family="'Shippori Mincho', 'Noto Serif JP', Georgia, serif" font-weight="300" font-size="9.5" letter-spacing="5.5" text-anchor="middle" fill="#5C3D2E">CAF&#201;</text>
+
+</svg>

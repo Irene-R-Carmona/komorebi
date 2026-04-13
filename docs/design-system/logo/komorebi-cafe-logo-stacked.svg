@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260" width="200" height="260" role="img" aria-labelledby="kc-stacked-title">
+    <title id="kc-stacked-title">Komorebi Café — Logo Principal (Stacked)</title>
+    <!--
+    Layout STACKED — símbolo arriba, wordmark debajo.
+    Canvas: 200×260
+    Símbolo: translate(25,12) scale(1.5) → x:25-175, y:12-192
+    Separador ámbar: y=203, x:68-132
+    Wordmark: "KOMOREBI" y=220 | "CAFÉ" y=236
+    Fondo: transparente (fondo de la aplicación se ve a través del búho)
+  -->
+    <defs>
+        <style>
+            .kc-fill {
+                fill: #5C3D2E;
+            }
+
+            .kc-eda {
+                fill: none;
+                stroke: #5C3D2E;
+                stroke-width: 1.8;
+                stroke-linecap: butt;
+            }
+
+            .kc-hikari {
+                fill: none;
+                stroke: #C9A959;
+                stroke-width: 1.0;
+                stroke-linecap: butt;
+            }
+        </style>
+    </defs>
+
+    <!-- ══════════════════════════════════════════════
+       SÍMBOLO — referencia 100×120 escalado 1.5×
+       translate(25,12) scale(1.5):
+         punto (x,y) → (1.5x + 25, 1.5y + 12)
+  ══════════════════════════════════════════════ -->
+    <g transform="translate(25, 12) scale(1.5)">
+
+        <!-- Copa + búho en negativo (fill-rule=evenodd) -->
+        <path class="kc-fill" fill-rule="evenodd" d="
+      M 50,13 Q 45,22 20,61 L 80,61 Q 54,22 50,13 Z
+
+      M 50,30
+      C 41,30 40,35 40,40
+      C 40,45 43,50 50,50
+      C 57,50 60,45 60,40
+      C 60,35 59,30 50,30
+      Z
+
+      M 45,39 m -2.5,0
+      a 2.5,2.5 0 1,0 5,0
+      a 2.5,2.5 0 1,0 -5,0
+
+      M 55,39 m -2.5,0
+      a 2.5,2.5 0 1,0 5,0
+      a 2.5,2.5 0 1,0 -5,0
+    " />
+
+        <!-- Tronco — Chikara (力) -->
+        <rect class="kc-fill" x="47.5" y="61" width="5" height="39" />
+
+        <!-- Rama horizontal — Eda (枝) -->
+        <line class="kc-eda" x1="23" y1="72" x2="77" y2="72" />
+
+        <!-- Raíces — Eda (枝) -->
+        <line class="kc-eda" x1="50" y1="100" x2="34" y2="116" />
+        <line class="kc-eda" x1="50" y1="100" x2="66" y2="116" />
+
+        <!-- Rayos de luz — Hikari (光) -->
+        <line class="kc-hikari" x1="50" y1="61" x2="30" y2="41" />
+        <line class="kc-hikari" x1="50" y1="61" x2="70" y2="41" />
+        <line class="kc-hikari" x1="50" y1="61" x2="23" y2="58" />
+        <line class="kc-hikari" x1="50" y1="61" x2="77" y2="58" />
+
+    </g>
+
+    <!-- ══════════════════════════════════════════════
+       SEPARADOR ÁMBAR
+  ══════════════════════════════════════════════ -->
+    <line x1="68" y1="203" x2="132" y2="203" stroke="#C9A959" stroke-width="0.75" stroke-linecap="butt" />
+
+    <!-- ══════════════════════════════════════════════
+       WORDMARK
+       Fuente: Shippori Mincho weight 300
+       Todo en mayúsculas, tracking generoso (+50 equiv = letter-spacing 4.8)
+       Acento de CAFÉ: é → usar entidad HTML &#233;
+  ══════════════════════════════════════════════ -->
+    <text x="100" y="220" font-family="'Shippori Mincho', 'Noto Serif JP', Georgia, serif" font-weight="300" font-size="13.5" letter-spacing="4.8" text-anchor="middle" fill="#5C3D2E">KOMOREBI</text>
+
+    <text x="102" y="236" font-family="'Shippori Mincho', 'Noto Serif JP', Georgia, serif" font-weight="300" font-size="8.5" letter-spacing="5" text-anchor="middle" fill="#5C3D2E">CAF&#201;</text>
+
+</svg>

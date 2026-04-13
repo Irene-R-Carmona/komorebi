@@ -327,6 +327,15 @@ en el perfil de usuario o extensión — no se registran en el lock file del pro
 | `interface-design`        | Dashboards y paneles admin/operativos con alta densidad de información: backoffice, KDS, recepción, keeper.                            |
 | `api-design-principles`   | Al modificar o añadir rutas en la API REST — revisar `docs/openapi.yaml` y seguir convenciones PSR-7.                                  |
 
+### Marca e Identidad Visual
+
+| Skill                    | Cuándo invocarla en Komorebi Café                                                                                              |
+|--------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| `branding`               | Al definir o auditar la estrategia de marca: propósito, valores, posicionamiento, storytelling, voz y narrativa de Komorebi.   |
+| `brand-visual-generator` | Al crear o actualizar la identidad visual: paleta de colores, tipografía, tokens de diseño o guía de estilos del proyecto.     |
+| `logo-generator`         | Al colocar o ajustar el logo en vistas web: posición, tamaño, alt text, enlace, favicon y variantes responsivas.               |
+| `svg-logo-designer`      | Al crear el logo del café o iconos de marca como SVG escalables: variaciones de layout, estilos y marcas visuales.             |
+
 ### Calidad y Revisión
 
 | Skill                            | Cuándo invocarla en Komorebi Café                                                                                                 |

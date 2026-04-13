@@ -17,6 +17,9 @@
 1. [La Marca: Fundamentos Estratégicos](#1-la-marca-fundamentos-estratégicos)
 2. [Identidad Verbal](#2-identidad-verbal)
 3. [Brief de Logo — Para Diseñador Externo](#3-brief-de-logo--para-diseñador-externo)
+   - [3.8 Principios Estéticos Japoneses](#38-principios-estéticos-japoneses--marco-filosófico-del-símbolo)
+   - [3.9 Sistema de Pesos del Trazo](#39-sistema-de-pesos-del-trazo--lenguaje-shōdō)
+   - [3.10 Mecánica del Espacio Negativo](#310-mecánica-del-espacio-negativo--el-animal-que-no-se-dibuja)
 4. [Sistema Visual](#4-sistema-visual)
 5. [Aplicaciones y Marco Estacional](#5-aplicaciones-y-marco-estacional)
 6. [Uso Incorrecto de la Marca](#6-uso-incorrecto-de-la-marca)
@@ -278,6 +281,59 @@ Se proponen tres caminos conceptuales. **Nuestra recomendación es la Dirección
 - El animal en negativo debe ser reconocible a 40px de ancho como máximo
 - El kanji no debe ser un kanji literario — debe ser una abstracción. Un calígrafo japonés no lo reconocería como escritura convencional.
 
+##### §3.3.1 Sistema de Proporciones de Construcción — Dirección A
+
+Este grid es la guía numérica para construir el símbolo. No es una receta rígida, sino el andamiaje proporcional que garantiza que cualquier ejecución —SVG, bordado, grabado— mantenga coherencia.
+
+**Canvas de referencia:** viewBox `0 0 100 120`
+
+```
+        0         100
+   0    ┌─────────────┐
+        │      │      │
+        │  copa del   │
+        │   árbol 木  │
+  60    ├──────┼──────┤  ← Punto de intersección (tronco x rama)
+        │      │      │
+        │   tronco    │
+ 100    ├──────┼──────┤
+        │raíces izq / der
+ 120    └─────────────┘
+```
+
+**Proporciones clave:**
+
+| Elemento | Coordenadas | Medida relativa |
+|---|---|---|
+| **Tronco** — trazo ancla | `x=50`, de `y=15` a `y=100` | Altura = 85% del canvas |
+| **Rama horizontal** | de `x=22` a `x=78`, en `y=60` | Anchura = 56% del canvas |
+| **Copa exterior** — borde izquierdo | de `(50,15)` a `(22,60)` | Ángulo ≈ 30° desde vertical |
+| **Copa exterior** — borde derecho | de `(50,15)` a `(78,60)` | Ángulo ≈ 30° desde vertical (puede ser 28° si se aplica Fukinsei) |
+| **Punto de vértice** | `(50, 15)` | Eje de simetría principal |
+| **Punto de intersección** | `(50, 60)` | Donde tronco cruza rama |
+| **Raíz izquierda** | de `(50,100)` a `(34,116)` | Ángulo 45° |
+| **Raíz derecha** | de `(50,100)` a `(66,116)` | Ángulo 45° |
+
+**Proporciones de los rayos de luz (*hikari*):**
+
+Los rayos emergen del punto de intersección `(50,60)`, not de la copa entera. Son 4-6 trazos finos.
+
+| Rayo | De | Hasta | Ángulo |
+|---|---|---|---|
+| Rayo izquierdo superior | `(50,60)` | `(27,37)` | 45° |
+| Rayo izquierdo medio | `(50,60)` | `(20,55)` | 15° |
+| Rayo derecho superior | `(50,60)` | `(73,37)` | 45° |
+| Rayo derecho medio | `(50,60)` | `(80,55)` | 15° |
+| Rayo vertical superior | `(50,60)` | `(50,30)` | 90° (vertical, dentro del tronco) |
+
+**El espacio negativo del animal:**
+
+El animal ocupa el interior de la copa. El área disponible es aproximadamente el triángulo `(22,60)–(78,60)–(50,15)`, que es ≈ 1,400 unidades cuadradas. El animal debe ocupar entre el 40% y el 55% de esa área — suficiente para que sea reconocible, ni tan grande que pierda el aire de *ma*.
+
+- Cabeza del animal: centrada en x=50, y≈32
+- Anchura máxima de la cabeza/cuerpo: no superar x=36–x=64 (28 unidades)
+- Orejas, cuernos o plumas: pueden llegar hasta y=18 (próximas al vértice)
+
 ---
 
 #### Dirección B: Dappled Light Geométrico Abstracto
@@ -396,26 +452,117 @@ komorebi-cafe-brand/
     └── logo-guia-uso.pdf       ← Documento de 2-4 páginas con reglas básicas
 ```
 
-#### SVGs de Referencia — Dirección A (Versión 2.0)
+#### SVGs de Referencia — Dirección A (Versión 3.0)
 
-Los siguientes archivos implementan la Dirección A recomendada como borrador vectorial
-de referencia para el diseñador externo. Están en `docs/design-system/logo/`.
+Los archivos SVG de referencia, construidos bajo los principios de las secciones §3.8–10,
+se encuentran en `docs/design-system/logo/`. Cada archivo implementa:
+
+- Sistema de tres pesos de trazo (Shōdō: Chikara / Eda / Hikari)
+- Animal en espacio negativo verdadero (no superposición)
+- Proporciones del grid `0 0 100 120` escalado al viewBox de cada variante
+- Fukinsei: asimetría leve en los bordes de la copa
 
 | Archivo | Descripción | viewBox |
 |---|---|---|
-| `komorebi-cafe-logo-stacked.svg` | Logo principal — símbolo + wordmark apilado, fondo claro | `0 0 200 175` |
-| `komorebi-cafe-logo-dark.svg` | Versión oscura — fondo Café Oscuro `#5C3D2E` | `0 0 200 175` |
-| `komorebi-cafe-logo-horizontal.svg` | Layout horizontal — símbolo izquierda + nombre derecha | `0 0 285 95` |
-| `komorebi-cafe-logo-icon.svg` | Símbolo solo — para favicon, app icon, bordado | `56 3 88 102` |
-
-**Geometría verificada:**
-
-- Triángulo de copa: lados a ≈ 30° desde la vertical (`arctan(35/60)`)
-- Rayos de luz: exactamente ±45° (`Δx = Δy` verificado en cada rayo)
-- Raíces del kanji: exactamente 45° (`Δx = Δy = 16`)
+| `komorebi-cafe-logo-stacked.svg` | Logo principal — símbolo + wordmark apilado, fondo claro | `0 0 200 260` |
+| `komorebi-cafe-logo-dark.svg` | Versión oscura — fondo Café Oscuro `#5C3D2E` | `0 0 200 260` |
+| `komorebi-cafe-logo-horizontal.svg` | Layout horizontal — símbolo izquierda + nombre derecha | `0 0 320 120` |
+| `komorebi-cafe-logo-icon.svg` | Símbolo solo — para favicon, app icon, bordado | `0 0 100 120` |
 
 **Nota de producción:** El texto está como texto vivo (`<text>`). Antes de entregar al impresor,
 convertir a curvas: Illustrator `Objeto › Expandir` · Inkscape `Trayecto › Objeto a trayecto`.
+
+---
+
+### 3.8 Principios Estéticos Japoneses — Marco Filosófico del Símbolo
+
+El símbolo de Komorebi no es un icono de árbol. Es una síntesis de cinco principios estéticos japoneses que mapean directamente a los cinco pilares de la marca. El diseñador debe interiorizarlos antes de trazar la primera línea.
+
+| Principio | Japonés | Pilar de marca | Aplicación al símbolo |
+|---|---|---|---|
+| **Ma** | 間 | SERENA | El vacío entre trazos es tan importante como los trazos. El espacio negativo donde vive el animal no es «lo que falta»: es la parte más diseñada de la composición. |
+| **Kanso** | 簡素 | PRECISA | Simplicidad entendida como eliminación de todo lo no esencial. Cada línea del símbolo debe ganarse su presencia. Si puede quitarse sin perder el concepto, se quita. |
+| **Fukinsei** | 不均整 | AUTÉNTICA | Asimetría intencional. La copa del árbol NO debe ser un triángulo isósceles perfecto. Una leve diferencia entre el lado izquierdo y el derecho — un ángulo que varía 1-2° — evoca la naturaleza real frente a la ilustración infantil. |
+| **Yūgen** | 幽玄 | DISCRETA | Profundidad sutil. El animal en negativo no debe ser inmediatamente obvio: el ojo debe *encontrarlo*, no recibirlo. Un logo que revela algo en la segunda mirada tiene más carácter que uno que lo dice todo en la primera. |
+| **Seijaku** | 静寂 | CÁLIDA | Quietud que no es vacío, sino plenitud tranquila. La composición debe comunicar reposo por su equilibrio, no por ausencia de elementos. |
+
+**Checklist filosófico antes de aprobar el símbolo:**
+
+- [ ] ¿El espacio negativo está *diseñado*, o es simplemente el fondo?
+- [ ] ¿Puede quitarse algún trazo sin perder el concepto? Si sí: quitarlo.
+- [ ] ¿La copa tiene una ligera asimetría natural (*Fukinsei*)?
+- [ ] ¿El animal tarda 2-3 segundos en descubrirse (*Yūgen*)?
+- [ ] ¿La composición global transmite quietud, no decoración (*Seijaku*)?
+
+---
+
+### 3.9 Sistema de Pesos del Trazo — Lenguaje *Shōdō*
+
+La diferencia entre un símbolo genérico y una marca premium está en el **contraste de grosor de trazo**. En la caligrafía japonesa (*shōdō*), el mismo pincel produce trazos gruesos y finos según la presión. Esta dualidad es el lenguaje visual del artesanato japonés. El símbolo de Komorebi debe hablar ese lenguaje.
+
+Si el símbolo tiene todos sus elementos con el mismo grosor de trazo, el diseño ha fallado.
+
+#### Sistema de tres pesos
+
+| Peso | Nombre interno | Proporción | Elemento | Nota |
+|---|---|---|---|---|
+| **Trazo Ancla** | *Chikara* 力 | 1× | Tronco vertical | Único trazo grueso. Puede ser shape relleno, no stroke. |
+| **Trazo Brazo** | *Eda* 枝 | 0.35× | Rama horizontal del 木 | Trazo confiado. De un solo movimiento. |
+| **Trazo Vuelo** | *Hikari* 光 | 0.2× | Rayos de luz, raíces menores | El más fino. Aporta dinamismo y ligereza. |
+
+**Ejemplo con valores absolutos** (símbolo a 100px de altura):
+
+| Elemento | Grosor | px a 100px | px a 32px (favicon) |
+|---|---|---|---|
+| Tronco | 1× | 5px | 2px (mínimo viable) |
+| Rama horizontal | 0.35× | 1.75px | simplificado a 1px |
+| Rayos de luz | 0.2× | 1px | omitidos en favicon |
+
+**Reglas de aplicación del sistema Shōdō:**
+
+1. El tronco es el único elemento que puede definirse como shape relleno (polígono). El resto son trazos (`stroke`).
+2. Los trazos finos no se cruzan entre sí. Solo cruzan el trazo ancla.
+3. Terminación de cada trazo fino: afilada, no redondeada (`stroke-linecap="square"` o `"butt"`).
+4. Los rayos de luz **divergen desde el punto de intersección del kanji** (donde tronco y rama se cruzan), no desde la copa completa.
+5. La versión favicon omite los rayos Hikari y simplifica a una sola forma reconocible: tronco + rama + silueta del animal en negativo.
+
+---
+
+### 3.10 Mecánica del Espacio Negativo — El Animal que No Se Dibuja
+
+El error de las versiones anteriores del símbolo fue el mismo: se dibujó un animal y se colocó encima de la copa. Eso no es espacio negativo. Eso es superposición.
+
+**El espacio negativo real** existe cuando la forma positiva está geometricamente construida PARA que sus vacíos internos sean, irreductiblemente, el animal. No hay dos capas: hay una sola composición donde el mismo contorno es a la vez el borde interior de la copa y el contorno del animal.
+
+#### Proceso de construcción correcto — tres pasos
+
+**Paso 1: Dibujar primero el animal (el molde).**
+Trazar la silueta del animal de forma esquemática y minimalista: solo las formas más reconocibles de esa especie. Para un búho: dos círculos de ojos + silueta ovalada + plumas auriculares triangulares. Para un gato: orejas triangulares agudas + cabeza circular. Para un zorro: orejas puntiagudas asimétricas + hocico triangular. Esta silueta es temporal — es el patrón.
+
+**Paso 2: Construir la copa alrededor del animal.**
+La copa se construye como una carcasa que envuelve la silueta del animal. Los bordes *interiores* de la copa siguen, con pequeñas márgenes de separación (2-3 unidades en el canvas de referencia), los contornos del animal. La silueta del animal desaparece como objeto separado y se convierte en el hueco.
+
+**Paso 3: Eliminar la silueta del animal.**
+Queda la copa con una forma de vacío en su interior que es reconociblemente el animal. El ojo humano la descubre porque el cerebro es un experto en reconocer siluetas de criaturas conocidas.
+
+#### Referentes de espacio negativo para contextualizar al diseñador
+
+| Logo | Figura en negativo | Forma positiva que la rodea | Lección |
+|---|---|---|---|
+| **WWF** | Oso panda | Manchas negras angulares | El blanco del papel *es* el animal |
+| **FedEx** | Flecha (→) | Letras E y x | El kerning intencional crea la forma |
+| **Toblerone** | Oso en la montaña | El pico triangular de la montaña | Una forma secundaria inesperada |
+| **Carrefour** | Flecha doble | Las formas C roja y azul | Dos formas positivas crean un negativo |
+| **Komorebi (objetivo)** | Animal de cada sede | La copa del árbol 木 | El hueco interno de la copa es el animal |
+
+#### Test de validación del espacio negativo
+
+**La prueba de la segunda mirada:**
+Mostrar el símbolo a alguien durante 1 segundo, cubrirlo, y preguntar qué vio.
+
+- ✅ «Vi un árbol» → Primera lectura correcta. Preguntar si vio algo más. Si en 3 segundos adicionales descubren el animal: **el espacio negativo funciona**.
+- ⚠️ «Vi un búho en un árbol» → El animal es demasiado prominente. El negativo no es genuino; es superposición.
+- ❌ «Vi un triángulo con un círculo» → La forma no lleva significado. Rediseñar.
 
 ---
 
