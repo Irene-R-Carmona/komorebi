@@ -9,6 +9,8 @@ use PDOException;
 use RuntimeException;
 use Throwable;
 
+// LoggingPDO is autoloaded from App\Core\LoggingPDO
+
 /**
  * Singleton para conexión PDO.
  *
@@ -59,7 +61,7 @@ final class Database
         ];
 
         try {
-            $this->connection = new PDO($dsn, $user, $pass, $options);
+            $this->connection = new LoggingPDO($dsn, $user, $pass, $options);
 
             // Collation correcta (post-conexión)
             $collation = Env::get('DB_COLLATION', 'utf8mb4_unicode_ci');

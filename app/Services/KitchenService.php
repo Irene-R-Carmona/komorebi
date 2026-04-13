@@ -17,13 +17,22 @@ use PDO;
  */
 final class KitchenService implements KitchenServiceInterface
 {
-    private PDO $db;
-    private ReservationItem $itemModel;
+    private ?PDO $db = null;
+    private ?ReservationItem $itemModel = null;
 
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
-        $this->itemModel = new ReservationItem($this->db);
+        $this->db = $db;
+    }
+
+    private function getDb(): PDO
+    {
+        return $this->db ??= Database::getConnection();
+    }
+
+    private function getItemModel(): ReservationItem
+    {
+        return $this->itemModel ??= new ReservationItem($this->getDb());
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -42,7 +51,7 @@ final class KitchenService implements KitchenServiceInterface
         $result = [];
 
         foreach ($stations as $station) {
-            $items = $this->itemModel->findPendingByStation($cafeId, $station);
+            $items = $this->getItemModel()->findPendingByStation($cafeId, $station);
 
             if (!empty($items)) {
                 $result[$station] = $this->enrichItems($items);
@@ -58,7 +67,7 @@ final class KitchenService implements KitchenServiceInterface
     #[\Override]
     public function getPendingForStation(int $cafeId, string $station): array
     {
-        $items = $this->itemModel->findPendingByStation($cafeId, $station);
+        $items = $this->getItemModel()->findPendingByStation($cafeId, $station);
 
         return $this->enrichItems($items);
     }
@@ -87,7 +96,7 @@ final class KitchenService implements KitchenServiceInterface
             ORDER BY ri.created_at
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId]);
 
         return $this->enrichItems($stmt->fetchAll());
@@ -103,7 +112,7 @@ final class KitchenService implements KitchenServiceInterface
     #[\Override]
     public function startPreparing(int $itemId): bool
     {
-        return $this->itemModel->updateStatus($itemId, ReservationItem::STATUS_KITCHEN);
+        return $this->getItemModel()->updateStatus($itemId, ReservationItem::STATUS_KITCHEN);
     }
 
     /**
@@ -112,7 +121,7 @@ final class KitchenService implements KitchenServiceInterface
     #[\Override]
     public function markReady(int $itemId): bool
     {
-        return $this->itemModel->markReady($itemId);
+        return $this->getItemModel()->markReady($itemId);
     }
 
     /**
@@ -121,7 +130,7 @@ final class KitchenService implements KitchenServiceInterface
     #[\Override]
     public function markServed(int $itemId): bool
     {
-        return $this->itemModel->markServed($itemId);
+        return $this->getItemModel()->markServed($itemId);
     }
 
     /**
@@ -135,7 +144,7 @@ final class KitchenService implements KitchenServiceInterface
                 WHERE reservation_id = :reservation_id
                   AND status IN ('pending', 'kitchen')";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute([
             'reservation_id' => $reservationId,
             'status' => ReservationItem::STATUS_READY,
@@ -171,7 +180,7 @@ final class KitchenService implements KitchenServiceInterface
               AND r.reservation_date = CURDATE()
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId]);
         $stats = $stmt->fetch();
 
@@ -200,7 +209,7 @@ final class KitchenService implements KitchenServiceInterface
               AND ri.status IN ('pending', 'kitchen')
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId]);
 
         return (int) ($stmt->fetchColumn() ?: 0);
@@ -229,7 +238,7 @@ final class KitchenService implements KitchenServiceInterface
             ORDER BY ri.created_at DESC
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId]);
 
         return $this->enrichItems($stmt->fetchAll());

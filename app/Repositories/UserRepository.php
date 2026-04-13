@@ -78,7 +78,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     {
         $fields = implode(', ', $this->getSelectFields());
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT $fields FROM users WHERE email = :email LIMIT 1"
         );
         $stmt->execute(['email' => strtolower(trim($email))]);
@@ -94,7 +94,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function findByEmailWithCredentials(string $email): ?array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id, uuid, email, password, login_attempts, locked_until,
                     last_ip_address, is_active, email_verified_at
              FROM users
@@ -115,7 +115,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function findByIdForSecurity(int $id): ?array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id, uuid, email, password, login_attempts, locked_until, last_ip_address
              FROM users
              WHERE id = :id
@@ -133,7 +133,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function emailExists(string $email): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT 1 FROM users WHERE email = :email LIMIT 1"
         );
         $stmt->execute(['email' => strtolower(trim($email))]);
@@ -146,7 +146,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function getRoles(int $userId): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT r.name, r.code AS slug, r.description
              FROM roles r
              INNER JOIN user_roles ur ON r.id = ur.role_id
@@ -162,7 +162,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function getPermissions(int $userId): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT DISTINCT p.name, p.code AS slug, p.resource, p.action
              FROM permissions p
              INNER JOIN role_permissions rp ON p.id = rp.permission_id
@@ -179,7 +179,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function hasPermission(int $userId, string $permission): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT 1
              FROM permissions p
              INNER JOIN role_permissions rp ON rp.permission_id = p.id
@@ -210,7 +210,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function assignRole(int $userId, int $roleId): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "INSERT IGNORE INTO user_roles (user_id, role_id, assigned_at)
              VALUES (:user_id, :role_id, NOW())"
         );
@@ -226,7 +226,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function removeRole(int $userId, int $roleId): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "DELETE FROM user_roles WHERE user_id = :user_id AND role_id = :role_id"
         );
 
@@ -254,7 +254,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function incrementFailedAttempts(int $id): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "UPDATE users
              SET login_attempts = login_attempts + 1,
                  updated_at = NOW()
@@ -334,7 +334,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     {
         $fields = implode(', u.', $this->getSelectFields());
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT u.{$fields}
              FROM users u
              INNER JOIN user_roles ur ON u.id = ur.user_id
@@ -370,7 +370,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     {
         $json = json_encode($preferences, JSON_UNESCAPED_UNICODE);
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "UPDATE users
              SET preferences = :prefs,
                  updated_at = NOW()
@@ -391,7 +391,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     {
         $anonymousEmail = 'deleted_' . $id . '@anonymous.local';
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "UPDATE users SET
                 name = 'Usuario Eliminado',
                 email = :email,
@@ -414,7 +414,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function getActiveUsersList(): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id, name, email FROM users WHERE is_active = 1 AND deleted_at IS NULL ORDER BY name"
         );
         $stmt->execute();
@@ -429,7 +429,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function getStaffByCafe(int $cafeId): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT u.id, u.name, u.email, u.is_active, u.created_at,
                     GROUP_CONCAT(DISTINCT r.name SEPARATOR ', ') as roles
              FROM users u
@@ -453,7 +453,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function getStaffById(int $userId, int $cafeId): ?array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT u.*, GROUP_CONCAT(DISTINCT r.name SEPARATOR ', ') as roles
              FROM users u
              LEFT JOIN user_roles ur ON u.id = ur.user_id
@@ -475,7 +475,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function existsInCafe(int $userId, int $cafeId): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id FROM users WHERE id = :user_id AND cafe_id = :cafe_id AND deleted_at IS NULL LIMIT 1"
         );
         $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
@@ -491,7 +491,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function getStaffBasicById(int $userId, int $cafeId): ?array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id, name FROM users WHERE id = :user_id AND cafe_id = :cafe_id AND deleted_at IS NULL LIMIT 1"
         );
         $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);

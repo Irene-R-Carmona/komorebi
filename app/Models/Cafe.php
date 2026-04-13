@@ -18,7 +18,7 @@ final class Cafe
 {
     use ValidatesData;
 
-    private PDO $db;
+    private ?PDO $db = null;
 
     // ─────────────────────────────────────────────────────────────
     // Constantes
@@ -68,7 +68,12 @@ final class Cafe
 
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        $this->db = $db;
+    }
+
+    private function getDb(): PDO
+    {
+        return $this->db ??= Database::getConnection();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -84,7 +89,7 @@ final class Cafe
     {
         $fields = \implode(', ', self::SELECT_FIELDS);
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT $fields FROM cafes WHERE id = :id LIMIT 1"
         );
         $stmt->execute(['id' => $id]);
@@ -103,7 +108,7 @@ final class Cafe
         $slug = $this->sanitizeSlug($slug);
         $fields = \implode(', ', self::SELECT_FIELDS);
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT $fields FROM cafes WHERE slug = :slug AND is_active = 1 LIMIT 1"
         );
         $stmt->execute(['slug' => $slug]);
@@ -130,7 +135,7 @@ final class Cafe
         $placeholders = \implode(',', \array_fill(0, \count($ids), '?'));
         $fields = \implode(', ', self::SELECT_FIELDS);
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT $fields FROM cafes WHERE id IN ($placeholders) AND is_active = 1"
         );
         $stmt->execute($ids);
@@ -166,7 +171,7 @@ final class Cafe
             $params['exclude_id'] = $excludeId;
         }
 
-        $stmt = $this->db->prepare($sql . ' LIMIT 1');
+        $stmt = $this->getDb()->prepare($sql . ' LIMIT 1');
         $stmt->execute($params);
 
         return (bool) $stmt->fetch();
@@ -218,7 +223,7 @@ final class Cafe
         $whereClause = \implode(' AND ', $where);
         $sql = "SELECT $fields FROM cafes WHERE $whereClause ORDER BY $orderBy $order";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -231,7 +236,7 @@ final class Cafe
     {
         $fields = \implode(', ', self::SELECT_FIELDS);
 
-        $stmt = $this->db->query(
+        $stmt = $this->getDb()->query(
             "SELECT $fields FROM cafes
              WHERE is_active = 1 AND has_reservations = 1
              ORDER BY name "
@@ -262,7 +267,7 @@ final class Cafe
                 ORDER BY rating DESC
                 LIMIT :limit";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue('q', $query);
         $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
@@ -285,7 +290,7 @@ final class Cafe
             return null;
         }
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id, name, species_type, age, personality, description,
                     interaction_level, image_url, current_status
              FROM animals
@@ -304,7 +309,7 @@ final class Cafe
      */
     public function getZones(int $cafeId): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT id, name, type, status, capacity, requires_briefing, requires_shoes_off
              FROM cafe_zones
              WHERE cafe_id = :cafe_id
@@ -330,7 +335,7 @@ final class Cafe
 
         $sql .= ' ORDER BY code ASC';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -354,7 +359,7 @@ final class Cafe
     public function getStats(int $cafeId): array
     {
         // Conteo de animales por estado
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT current_status, COUNT(*) as count
              FROM animals WHERE cafe_id = :cafe_id
              GROUP BY current_status'
@@ -367,7 +372,7 @@ final class Cafe
         }
 
         // Reservas de hoy
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT
                 COUNT(*) as total_today,
                 SUM(IF(status = 'active', guests, 0)) as current_guests
@@ -378,7 +383,7 @@ final class Cafe
         $reservationStats = $stmt->fetch();
 
         // Staff asignado
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT COUNT(*) FROM users WHERE cafe_id = :cafe_id AND is_active = 1'
         );
         $stmt->execute(['cafe_id' => $cafeId]);
@@ -398,7 +403,7 @@ final class Cafe
      */
     public function getFavoritesCount(int $cafeId): int
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT COUNT(*) FROM favorites WHERE cafe_id = :cafe_id'
         );
         $stmt->execute(['cafe_id' => $cafeId]);
@@ -448,7 +453,7 @@ final class Cafe
                     :capacity_max, :image_url
                 )';
 
-        $this->db->prepare($sql)->execute([
+        $this->getDb()->prepare($sql)->execute([
             'name' => $this->sanitizeString($data['name'], 100),
             'japanese_name' => isset($data['japanese_name']) ? $this->sanitizeString($data['japanese_name'], 100) : null,
             'slug' => $slug,
@@ -463,7 +468,7 @@ final class Cafe
             'image_url' => $data['image_url'] ?? null,
         ]);
 
-        return (int) $this->db->lastInsertId();
+        return (int) $this->getDb()->lastInsertId();
     }
 
     /**
@@ -516,7 +521,7 @@ final class Cafe
 
         $sql = 'UPDATE cafes SET ' . \implode(', ', $sets) . ' WHERE id = :id';
 
-        return $this->db->prepare($sql)->execute($params);
+        return $this->getDb()->prepare($sql)->execute($params);
     }
 
     /**
@@ -524,7 +529,7 @@ final class Cafe
      */
     public function toggleActive(int $id): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE cafes SET is_active = NOT is_active WHERE id = :id'
         );
 
@@ -536,7 +541,7 @@ final class Cafe
      */
     public function toggleReservations(int $id): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE cafes SET has_reservations = NOT has_reservations WHERE id = :id'
         );
 
@@ -550,7 +555,7 @@ final class Cafe
     {
         $rating = \max(0, \min(5, $rating)); // Limitar entre 0 y 5
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE cafes SET rating_avg = :rating WHERE id = :id'
         );
 

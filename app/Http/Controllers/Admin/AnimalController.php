@@ -9,6 +9,7 @@ use App\Core\Database;
 use App\Core\Flash;
 use App\Core\View;
 use App\Core\Http\ResponseFactory;
+use App\Http\Transformers\AnimalTransformer;
 use App\Repositories\AnimalRepository;
 use App\Services\AnimalCareService;
 use JsonException;
@@ -23,10 +24,15 @@ class AnimalController
 {
     private AnimalCareService $animalCareService;
     private ResponseFactory $response;
+    private AnimalTransformer $animalTransformer;
+
+    private const CSRF_INVALID = 'Token de seguridad inválido';
+    private const ADMIN_ANIMALS_URL = '/admin/animals';
 
     public function __construct(
         ?AnimalCareService $animalCareService = null,
         ?ResponseFactory $response = null,
+        ?AnimalTransformer $animalTransformer = null,
     ) {
         if ($animalCareService === null) {
             $db = Database::getConnection();
@@ -34,6 +40,7 @@ class AnimalController
         }
         $this->animalCareService = $animalCareService;
         $this->response          = $response ?? new ResponseFactory();
+        $this->animalTransformer = $animalTransformer ?? new AnimalTransformer();
     }
 
     /**
@@ -42,9 +49,11 @@ class AnimalController
      * @throws JsonException
      * @throws RandomException
      */
-    public function index(ServerRequestInterface $request): ?ResponseInterface
+    public function index(): ?ResponseInterface
     {
-        $animals = $this->animalCareService->getAllAnimals();
+        $animals = $this->animalTransformer->collection(
+            $this->animalCareService->getAllAnimals()
+        );
 
         View::render('backoffice/keeper/animals/index', [
             'titulo' => 'Gestión de Animales',
@@ -60,7 +69,7 @@ class AnimalController
      * @throws JsonException
      * @throws RandomException
      */
-    public function create(ServerRequestInterface $request): ?ResponseInterface
+    public function create(): ?ResponseInterface
     {
         View::render('backoffice/keeper/animals/create', [
             'titulo' => 'Nuevo Animal',
@@ -78,7 +87,7 @@ class AnimalController
     public function store(ServerRequestInterface $request): ResponseInterface
     {
         if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
+            Flash::error(self::CSRF_INVALID);
             return $this->response->redirect('/admin/animals/create');
         }
 
@@ -96,7 +105,7 @@ class AnimalController
 
         if ($result->isOk()) {
             Flash::success('Animal creado correctamente');
-            return $this->response->redirect('/admin/animals');
+            return $this->response->redirect(self::ADMIN_ANIMALS_URL);
         }
 
         Flash::error($result->getMessage());
@@ -118,7 +127,7 @@ class AnimalController
 
         if (!$animal) {
             Flash::error('Animal no encontrado');
-            return $this->response->redirect('/admin/animals');
+            return $this->response->redirect(self::ADMIN_ANIMALS_URL);
         }
 
         View::render('backoffice/keeper/animals/edit', [
@@ -138,8 +147,8 @@ class AnimalController
     public function update(ServerRequestInterface $request): ResponseInterface
     {
         if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/admin/animals');
+            Flash::error(self::CSRF_INVALID);
+            return $this->response->redirect(self::ADMIN_ANIMALS_URL);
         }
 
         $body = (array) $request->getParsedBody();
@@ -161,7 +170,7 @@ class AnimalController
             Flash::error($result->getMessage());
         }
 
-        return $this->response->redirect('/admin/animals');
+        return $this->response->redirect(self::ADMIN_ANIMALS_URL);
     }
 
     /**
@@ -173,8 +182,8 @@ class AnimalController
     public function delete(ServerRequestInterface $request): ResponseInterface
     {
         if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/admin/animals');
+            Flash::error(self::CSRF_INVALID);
+            return $this->response->redirect(self::ADMIN_ANIMALS_URL);
         }
 
         $body = (array) $request->getParsedBody();
@@ -188,6 +197,6 @@ class AnimalController
             Flash::error($result->getMessage());
         }
 
-        return $this->response->redirect('/admin/animals');
+        return $this->response->redirect(self::ADMIN_ANIMALS_URL);
     }
 }

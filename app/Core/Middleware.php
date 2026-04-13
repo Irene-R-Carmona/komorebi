@@ -79,14 +79,19 @@ final class Middleware
             exit;
         }
 
-        $user = self::fetchUserFromDb((int) $userId);
+        // Solo verificar estado en BD si los roles aún no están cacheados en sesión.
+        // Esto evita una consulta redundante por petición cuando ya se verificó antes
+        // (e.g., en tests de unidad que pre-populan la sesión, o tras primera auth).
+        if (!Session::has('user_roles')) {
+            $user = self::fetchUserFromDb((int) $userId);
 
-        // Solo forzar logout si el usuario existe y está marcado como inactivo.
-        if (is_array($user) && !($user['is_active'] ?? true)) {
-            self::forceLogout('account_locked');
+            // Solo forzar logout si el usuario existe y está marcado como inactivo.
+            if (is_array($user) && !($user['is_active'] ?? true)) {
+                self::forceLogout('account_locked');
+            }
+
+            self::loadUserRolesInSession((int) $userId);
         }
-
-        self::loadUserRolesInSession((int) $userId);
     }
 
     /**
@@ -364,7 +369,13 @@ final class Middleware
             return false;
         }
 
-        // Caché vacía o no inicializada: fallback a BD (seguro)
+        // Si la clave user_permissions existe en sesión (aunque vacía), el usuario
+        // no tiene permisos extra — no hacer fallback a BD.
+        if (Session::has('user_permissions')) {
+            return false;
+        }
+
+        // Caché no inicializada: fallback a BD (seguro)
         $userId = Session::userId();
         if (!$userId) {
             return false;

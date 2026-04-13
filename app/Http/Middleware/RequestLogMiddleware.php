@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Core\Cache;
 use App\Core\LogContext;
 use App\Core\Logger;
 use App\Core\Session;
@@ -59,6 +60,7 @@ final class RequestLogMiddleware implements MiddlewareInterface
         LogContext::set('path', $request->getUri()->getPath());
 
         $start = hrtime(true);
+        $parsedBody = $request->getParsedBody();
 
         try {
             $response = $handler->handle($request);
@@ -68,7 +70,19 @@ final class RequestLogMiddleware implements MiddlewareInterface
 
             return $response;
         } finally {
+            $status = isset($response) ? $response->getStatusCode() : 500;
             WideEvent::set('duration_ms', (int) ((hrtime(true) - $start) / 1_000_000));
+
+            // Incluir body sanitizado solo en errores 4xx (útil para debug sin exponer PII)
+            if ($status >= 400 && $status < 500 && is_array($parsedBody)) {
+                WideEvent::setSection('request_body', self::sanitizeBody($parsedBody));
+            }
+
+            // Métricas de cache del request actual
+            $cacheStats = Cache::getStats();
+            if ($cacheStats['hits'] > 0 || $cacheStats['misses'] > 0) {
+                WideEvent::setSection('cache', $cacheStats);
+            }
 
             // Contexto de usuario (si está autenticado en este request)
             if (Session::isAuthenticated()) {
@@ -82,7 +96,40 @@ final class RequestLogMiddleware implements MiddlewareInterface
 
             WideEvent::reset();
             LogContext::reset();
+            Cache::resetStats();
         }
+    }
+
+    /**
+     * Elimina campos sensibles del body para evitar filtrar PII/credenciales en logs.
+     *
+     * @param array<string, mixed> $body
+     * @return array<string, mixed>
+     */
+    private static function sanitizeBody(array $body): array
+    {
+        $sensitiveKeys = [
+            'password',
+            'password_confirmation',
+            'current_password',
+            'new_password',
+            'token',
+            '_token',
+            'cvv',
+            'secret',
+            'authorization',
+        ];
+
+        $sanitized = [];
+        foreach ($body as $key => $value) {
+            $lowerKey = strtolower((string) $key);
+            $isSensitive = in_array($lowerKey, $sensitiveKeys, true)
+                || str_starts_with($lowerKey, 'card_');
+
+            $sanitized[$key] = $isSensitive ? '[REDACTED]' : $value;
+        }
+
+        return $sanitized;
     }
 
     /**

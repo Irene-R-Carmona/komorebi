@@ -27,7 +27,7 @@ final class UserManagementServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->service = new UserManagementService();
+        $this->service = new UserManagementService($this->createStub(\PDO::class));
     }
 
     // ──────────────────────────────────────────────

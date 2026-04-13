@@ -8,6 +8,7 @@ declare(strict_types=1);
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Controllers\Manager;
 
 use App\Core\Http\ResponseFactory;
@@ -48,7 +49,7 @@ final class StaffControllerTest extends TestCase
         $this->responseFactory = new ResponseFactory();
         $this->request = $this->createStub(ServerRequestInterface::class);
 
-        $this->controller = new StaffController($this->userRepo, $this->responseFactory, null);
+        $this->controller = new StaffController($this->userRepo, $this->responseFactory, $this->createStub(StaffShiftServiceInterface::class));
     }
 
     protected function tearDown(): void

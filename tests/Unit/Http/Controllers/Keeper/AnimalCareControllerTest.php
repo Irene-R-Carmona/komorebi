@@ -23,7 +23,7 @@ use App\Http\Controllers\Keeper\AnimalCareController;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use App\Services\AnimalCareService;
-use App\Services\FileUploadService;
+use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\HealthCheckService;
 use Nyholm\Psr7\ServerRequest;
 use PDO;
@@ -79,7 +79,7 @@ final class AnimalCareControllerTest extends TestCase
 
         return new AnimalCareController(
             $animalCareService,
-            new FileUploadService(),
+            $this->createStub(FileUploadServiceInterface::class),
             $healthCheckService ?? new HealthCheckService($healthCheckRepo),
             $this->createStub(AnimalRepositoryInterface::class),
             new ResponseFactory(),

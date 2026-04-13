@@ -20,6 +20,7 @@ namespace Tests\Unit\Http\Controllers\Kitchen;
 use App\Core\Http\ResponseFactory;
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Kitchen\KitchenController;
+use App\Services\KitchenService;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
 
@@ -33,6 +34,7 @@ final class KitchenControllerTest extends ControllerTestCase
         // KitchenController llama Middleware::auth() en constructor
         $_SESSION['user_id'] = 1;
         $_SESSION['user'] = ['id' => 1, 'name' => 'Chef', 'roles' => ['kitchen']];
+        $_SESSION['user_roles'] = ['kitchen'];
     }
 
     protected function tearDown(): void
@@ -42,7 +44,10 @@ final class KitchenControllerTest extends ControllerTestCase
 
     private function makeController(): KitchenController
     {
-        return new KitchenController(response: new ResponseFactory());
+        return new KitchenController(
+            service: new KitchenService($this->createStub(\PDO::class)),
+            response: new ResponseFactory(),
+        );
     }
 
     public function test_ready_throws_validation_exception_when_item_id_is_missing(): void

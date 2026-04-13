@@ -40,7 +40,7 @@ final class StaffShiftRepository extends AbstractRepository implements StaffShif
     #[\Override]
     public function findByCafeAndDateRange(int $cafeId, string $from, string $to): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT ss.id, ss.user_id, ss.cafe_id, ss.shift_date,
                     ss.shift_start, ss.shift_end, ss.notes, ss.created_at,
                     u.name AS staff_name
@@ -59,7 +59,7 @@ final class StaffShiftRepository extends AbstractRepository implements StaffShif
     #[\Override]
     public function findRecentByUserAndCafe(int $userId, int $cafeId, int $limit = 50): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id, user_id, cafe_id, shift_date, shift_start,
                     shift_end, notes, created_at
              FROM staff_shifts
@@ -81,7 +81,7 @@ final class StaffShiftRepository extends AbstractRepository implements StaffShif
     #[\Override]
     public function hasOverlap(int $userId, string $date, string $start, string $end): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id FROM staff_shifts
              WHERE user_id = :user_id
                AND shift_date = :date
@@ -106,7 +106,7 @@ final class StaffShiftRepository extends AbstractRepository implements StaffShif
     #[\Override]
     public function getPerformanceMetrics(int $userId, int $cafeId): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT COUNT(*) AS total_shifts,
                     COALESCE(SUM(TIMESTAMPDIFF(HOUR, shift_start, shift_end)), 0) AS total_hours
              FROM staff_shifts
@@ -118,7 +118,7 @@ final class StaffShiftRepository extends AbstractRepository implements StaffShif
         $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $stmt2 = $this->db->prepare(
+        $stmt2 = $this->getDb()->prepare(
             "SELECT COUNT(*) AS shifts_this_month
              FROM staff_shifts
              WHERE user_id = :user_id

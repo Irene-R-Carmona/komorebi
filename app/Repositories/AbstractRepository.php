@@ -16,13 +16,18 @@ use PDO;
  */
 abstract class AbstractRepository implements RepositoryInterface
 {
-    protected PDO $db;
+    protected ?PDO $db = null;
     protected string $table;
     protected string $primaryKey = 'id';
 
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        $this->db = $db;
+    }
+
+    protected function getDb(): PDO
+    {
+        return $this->db ??= Database::getConnection();
     }
 
     /**
@@ -43,7 +48,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $fields = implode(', ', $this->getSelectFields());
         $table = $this->getTable();
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT $fields FROM $table WHERE $this->primaryKey = :id LIMIT 1"
         );
         $stmt->execute(['id' => $id]);
@@ -58,7 +63,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $fields = implode(', ', $this->getSelectFields());
         $table = $this->getTable();
 
-        return $this->db->query("SELECT $fields FROM $table")->fetchAll(PDO::FETCH_ASSOC);
+        return $this->getDb()->query("SELECT $fields FROM $table")->fetchAll(PDO::FETCH_ASSOC);
     }
 
     #[Override]
@@ -66,7 +71,7 @@ abstract class AbstractRepository implements RepositoryInterface
     {
         $table = $this->getTable();
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT 1 FROM $table WHERE $this->primaryKey = :id LIMIT 1"
         );
         $stmt->execute(['id' => $id]);
@@ -88,10 +93,10 @@ abstract class AbstractRepository implements RepositoryInterface
             implode(', ', $placeholders)
         );
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($data);
 
-        return (int) $this->db->lastInsertId();
+        return (int) $this->getDb()->lastInsertId();
     }
 
     #[Override]
@@ -108,7 +113,7 @@ abstract class AbstractRepository implements RepositoryInterface
         );
 
         $data['id'] = $id;
-        return $this->db->prepare($sql)->execute($data);
+        return $this->getDb()->prepare($sql)->execute($data);
     }
 
     #[Override]
@@ -116,7 +121,7 @@ abstract class AbstractRepository implements RepositoryInterface
     {
         $table = $this->getTable();
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "DELETE FROM $table WHERE $this->primaryKey = :id"
         );
 
@@ -144,7 +149,7 @@ abstract class AbstractRepository implements RepositoryInterface
             $sql .= ' WHERE ' . implode(' AND ', $whereParts);
         }
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($conditions);
 
         return (int) $stmt->fetchColumn();

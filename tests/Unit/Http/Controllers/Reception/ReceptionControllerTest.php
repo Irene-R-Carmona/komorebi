@@ -19,6 +19,7 @@ namespace Tests\Unit\Http\Controllers\Reception;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Reception\ReceptionController;
+use App\Services\ReceptionService;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
 
@@ -32,6 +33,7 @@ final class ReceptionControllerTest extends ControllerTestCase
         // ReceptionController llama Middleware::auth() en constructor
         $_SESSION['user_id'] = 1;
         $_SESSION['user'] = ['id' => 1, 'roles' => ['reception']];
+        $_SESSION['user_roles'] = ['reception'];
     }
 
     protected function tearDown(): void
@@ -41,7 +43,10 @@ final class ReceptionControllerTest extends ControllerTestCase
 
     private function makeController(): ReceptionController
     {
-        return new ReceptionController(response: new ResponseFactory());
+        return new ReceptionController(
+            service: new ReceptionService(),
+            response: new ResponseFactory(),
+        );
     }
 
     public function test_check_in_redirects_when_id_is_zero(): void

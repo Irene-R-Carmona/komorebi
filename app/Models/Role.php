@@ -16,11 +16,16 @@ use RuntimeException;
  */
 final class Role
 {
-    private PDO $db;
+    private ?PDO $db = null;
 
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        $this->db = $db;
+    }
+
+    private function getDb(): PDO
+    {
+        return $this->db ??= Database::getConnection();
     }
 
     /**
@@ -30,7 +35,7 @@ final class Role
      */
     public function all(): array
     {
-        $stmt = $this->db->query('SELECT id, code, name, description FROM roles ORDER BY name');
+        $stmt = $this->getDb()->query('SELECT id, code, name, description FROM roles ORDER BY name');
 
         return $stmt->fetchAll();
     }
@@ -40,7 +45,7 @@ final class Role
      */
     public function findById(int $id): ?array
     {
-        $stmt = $this->db->prepare('SELECT id, code, name, description FROM roles WHERE id = :id');
+        $stmt = $this->getDb()->prepare('SELECT id, code, name, description FROM roles WHERE id = :id');
         $stmt->execute(['id' => $id]);
 
         return $stmt->fetch() ?: null;
@@ -51,7 +56,7 @@ final class Role
      */
     public function findByKey(string $code): ?array
     {
-        $stmt = $this->db->prepare('SELECT id, code, name, description FROM roles WHERE code = :code');
+        $stmt = $this->getDb()->prepare('SELECT id, code, name, description FROM roles WHERE code = :code');
         $stmt->execute(['code' => $code]);
 
         return $stmt->fetch() ?: null;
@@ -67,7 +72,7 @@ final class Role
             throw new RuntimeException("El rol '$code' ya existe.");
         }
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'INSERT INTO roles (code, name, description) VALUES (:code, :name, :description)'
         );
 
@@ -77,7 +82,7 @@ final class Role
             'description' => $description,
         ]);
 
-        return (int) $this->db->lastInsertId();
+        return (int) $this->getDb()->lastInsertId();
     }
 
     /**
@@ -104,7 +109,7 @@ final class Role
 
         $sql = 'UPDATE roles SET ' . \implode(', ', $fields) . ', updated_at = NOW() WHERE id = :id';
 
-        return $this->db->prepare($sql)->execute($params);
+        return $this->getDb()->prepare($sql)->execute($params);
     }
 
     /**
@@ -112,7 +117,7 @@ final class Role
      */
     public function delete(int $id): bool
     {
-        return $this->db->prepare('DELETE FROM roles WHERE id = :id')->execute(['id' => $id]);
+        return $this->getDb()->prepare('DELETE FROM roles WHERE id = :id')->execute(['id' => $id]);
     }
 
     /**
@@ -122,7 +127,7 @@ final class Role
      */
     public function getPermissions(int $roleId): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT p.id, p.code, p.name FROM permissions p
              JOIN role_permissions rp ON p.id = rp.permission_id
              WHERE rp.role_id = :role_id
@@ -139,7 +144,7 @@ final class Role
     public function grantPermission(int $roleId, int $permissionId): bool
     {
         // Verificar que no exista ya
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT 1 FROM role_permissions WHERE role_id = :role_id AND permission_id = :permission_id'
         );
         $stmt->execute(['role_id' => $roleId, 'permission_id' => $permissionId]);
@@ -148,7 +153,7 @@ final class Role
             return true; // Ya existe
         }
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'INSERT INTO role_permissions (role_id, permission_id) VALUES (:role_id, :permission_id)'
         );
 
@@ -160,7 +165,7 @@ final class Role
      */
     public function revokePermission(int $roleId, int $permissionId): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'DELETE FROM role_permissions WHERE role_id = :role_id AND permission_id = :permission_id'
         );
 
@@ -188,7 +193,7 @@ final class Role
             ORDER BY r.name
         ";
 
-        $stmt = $this->db->query($sql);
+        $stmt = $this->getDb()->query($sql);
         $rows = $stmt->fetchAll();
 
         return array_map(static function (array $row): array {
@@ -236,7 +241,7 @@ final class Role
             ORDER BY r.name
         ';
 
-        $stmt = $this->db->query($sql);
+        $stmt = $this->getDb()->query($sql);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -259,7 +264,7 @@ final class Role
             LEFT JOIN permissions p ON rp.permission_id = p.id
         ';
 
-        $stmt = $this->db->query($sql);
+        $stmt = $this->getDb()->query($sql);
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -269,7 +274,7 @@ final class Role
      */
     public function countUsers(int $roleId): int
     {
-        $stmt = $this->db->prepare('SELECT COUNT(*) as count FROM user_roles WHERE role_id = :role_id');
+        $stmt = $this->getDb()->prepare('SELECT COUNT(*) as count FROM user_roles WHERE role_id = :role_id');
         $stmt->bindValue(':role_id', $roleId, PDO::PARAM_INT);
         $stmt->execute();
 

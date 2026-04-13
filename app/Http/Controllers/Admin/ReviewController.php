@@ -9,6 +9,7 @@ use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\View;
 use App\Core\Http\ResponseFactory;
+use App\Http\Transformers\ReviewTransformer;
 use App\Services\Contracts\ReviewModerationServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -22,11 +23,16 @@ final class ReviewController
 {
     private ReviewModerationServiceInterface $moderationService;
     private ResponseFactory $response;
+    private ReviewTransformer $reviewTransformer;
 
-    public function __construct(?ReviewModerationServiceInterface $moderationService = null, ?ResponseFactory $response = null)
+    private const CSRF_INVALID = 'Token de seguridad inválido';
+    private const ADMIN_REVIEWS_URL = '/admin/reviews';
+
+    public function __construct(?ReviewModerationServiceInterface $moderationService = null, ?ResponseFactory $response = null, ?ReviewTransformer $reviewTransformer = null)
     {
         $this->moderationService = $moderationService ?? Container::make(ReviewModerationServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
+        $this->reviewTransformer = $reviewTransformer ?? new ReviewTransformer();
     }
 
     /**
@@ -37,7 +43,9 @@ final class ReviewController
      */
     public function index(): ?ResponseInterface
     {
-        $reviews = $this->moderationService->listPendingReviews();
+        $reviews = $this->reviewTransformer->collection(
+            $this->moderationService->listPendingReviews()
+        );
 
         View::render('admin/reviews/pending', [
             'titulo' => 'Gestión de Reseñas',
@@ -55,8 +63,8 @@ final class ReviewController
     public function approve(): ResponseInterface
     {
         if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/admin/reviews');
+            Flash::error(self::CSRF_INVALID);
+            return $this->response->redirect(self::ADMIN_REVIEWS_URL);
         }
 
         $id = (int) ($_POST['id'] ?? 0);
@@ -69,7 +77,7 @@ final class ReviewController
             Flash::error($result->getMessage('Error al aprobar reseña'));
         }
 
-        return $this->response->redirect('/admin/reviews');
+        return $this->response->redirect(self::ADMIN_REVIEWS_URL);
     }
 
     /**
@@ -81,8 +89,8 @@ final class ReviewController
     public function reject(): ResponseInterface
     {
         if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/admin/reviews');
+            Flash::error(self::CSRF_INVALID);
+            return $this->response->redirect(self::ADMIN_REVIEWS_URL);
         }
 
         $id = (int) ($_POST['id'] ?? 0);
@@ -96,7 +104,7 @@ final class ReviewController
             Flash::error($result->getMessage('Error al rechazar reseña'));
         }
 
-        return $this->response->redirect('/admin/reviews');
+        return $this->response->redirect(self::ADMIN_REVIEWS_URL);
     }
 
     /**
@@ -108,8 +116,8 @@ final class ReviewController
     public function delete(): ResponseInterface
     {
         if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/admin/reviews');
+            Flash::error(self::CSRF_INVALID);
+            return $this->response->redirect(self::ADMIN_REVIEWS_URL);
         }
 
         $id = (int) ($_POST['id'] ?? 0);
@@ -122,6 +130,6 @@ final class ReviewController
             Flash::error('Error al eliminar reseña');
         }
 
-        return $this->response->redirect('/admin/reviews');
+        return $this->response->redirect(self::ADMIN_REVIEWS_URL);
     }
 }

@@ -46,10 +46,11 @@
     <!-- PHP Settings -->
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="testing-key-for-phpunit-32chars!!" force="true"/>
         <env name="DB_HOST" value="127.0.0.1"/>
-        <env name="DB_NAME" value="komorebi_test"/>
-        <env name="DB_USER" value="root"/>
-        <env name="DB_PASSWORD" value="root"/>
+        <env name="DB_DATABASE" value="komorebi_test" force="true"/>
+        <env name="DB_USERNAME" value="root" force="true"/>
+        <env name="DB_PASSWORD" value="root" force="true"/>
         <env name="RUN_INTEGRATION_TESTS" value="1"/>
         <env name="REDIS_HOST" value="127.0.0.1"/>
         <env name="REDIS_PORT" value="6379"/>

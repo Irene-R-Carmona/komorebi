@@ -110,11 +110,8 @@ final class AnimalDashboardControllerTest extends TestCase
 
     public function test_index_returns_null(): void
     {
-        $pdo               = $this->makePdoStub();
-        $animalCareService = new AnimalCareService($pdo, $this->createStub(AnimalRepositoryInterface::class));
-
         ob_start();
-        $result = (new AnimalDashboardController($animalCareService))
+        $result = $this->makeController()
             ->index(new ServerRequest('GET', '/keeper/animals'));
         ob_end_clean();
 

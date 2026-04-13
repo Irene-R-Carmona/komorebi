@@ -8,11 +8,11 @@ use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
+use App\Http\Transformers\ReservationTransformer;
 use App\Services\AdminActivityService;
 use App\Services\AdminStatisticsService;
 use App\Services\Contracts\AdminActivityServiceInterface;
 use App\Services\Contracts\AdminStatisticsServiceInterface;
-use Throwable;
 
 /**
  * Controlador de Dashboard Administrativo
@@ -24,13 +24,16 @@ final class DashboardController
 {
     private AdminStatisticsServiceInterface $statisticsService;
     private AdminActivityServiceInterface $activityService;
+    private ReservationTransformer $reservationTransformer;
 
     public function __construct(
         ?AdminStatisticsServiceInterface $statisticsService = null,
-        ?AdminActivityServiceInterface $activityService = null
+        ?AdminActivityServiceInterface $activityService = null,
+        ?ReservationTransformer $reservationTransformer = null
     ) {
         $this->statisticsService = $statisticsService ?? new AdminStatisticsService();
         $this->activityService = $activityService ?? new AdminActivityService();
+        $this->reservationTransformer = $reservationTransformer ?? new ReservationTransformer();
     }
 
     /**
@@ -54,7 +57,9 @@ final class DashboardController
                 Logger::debug('[DashboardController::index] Stats loaded: ' . \json_encode($stats));
             }
 
-            $recentReservations = $this->activityService->getRecentReservations(10);
+            $recentReservations = $this->reservationTransformer->collection(
+                $this->activityService->getRecentReservations(10)
+            );
 
             if (Env::get('APP_ENV') === 'local') {
                 Logger::debug('[DashboardController::index] Reservations loaded: ' . \count($recentReservations));
@@ -88,7 +93,7 @@ final class DashboardController
                 'system_status' => $systemStatus,
                 'extraJs' => ['admin/admin-dashboard.js'],
             ], ['admin/admin-dashboard.css'], 'backoffice');
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) { // NOSONAR
             if (Env::get('APP_ENV') === 'local') {
                 Logger::error('[DashboardController::index] FATAL ERROR: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
                 Logger::error('[DashboardController::index] Stack trace: ' . $e->getTraceAsString(), ['trace' => $e->getTraceAsString()]);

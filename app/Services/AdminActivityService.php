@@ -13,18 +13,23 @@ use PDOException;
 
 final class AdminActivityService implements AdminActivityServiceInterface
 {
-    private PDO $db;
+    private ?PDO $db = null;
 
-    public function __construct()
+    public function __construct(?PDO $db = null)
     {
-        $this->db = Database::getConnection();
+        $this->db = $db;
+    }
+
+    private function getDb(): PDO
+    {
+        return $this->db ??= Database::getConnection();
     }
 
     #[\Override]
     public function getRecentReservations(int $limit = 10): array
     {
         try {
-            $stmt = $this->db->prepare('
+            $stmt = $this->getDb()->prepare('
                 SELECT r.id, r.reservation_date as date, r.reservation_time as time_slot,
                        r.status, r.guest_count as guests,
                        c.name as cafe_name,
@@ -50,7 +55,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
     #[\Override]
     public function getUsersWithRoles(): array
     {
-        $stmt = $this->db->query('
+        $stmt = $this->getDb()->query('
             SELECT u.id, u.name, u.email, u.is_active, u.created_at,
                    r.id as role_id, r.name as role_name
             FROM users u
@@ -91,7 +96,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
     #[\Override]
     public function getProductsWithCategories(): array
     {
-        $stmt = $this->db->query('
+        $stmt = $this->getDb()->query('
             SELECT p.*, c.name as category_name
             FROM products p
             LEFT JOIN menu_categories c ON p.category_id = c.id
@@ -104,7 +109,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
     #[\Override]
     public function getReservationsWithDetails(int $limit = 100): array
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT r.*,
                    c.name as cafe_name,
                    c.image_url as cafe_image,
@@ -128,7 +133,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
         try {
             $activities = [];
 
-            $stmt = $this->db->query("
+            $stmt = $this->getDb()->query("
                 SELECT 'reservation_confirmed' as type, r.created_at, c.name as cafe_name, u.name as user_name
                 FROM reservations r
                 LEFT JOIN cafes c ON r.cafe_id = c.id
@@ -148,7 +153,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
                 ];
             }
 
-            $stmt = $this->db->query('
+            $stmt = $this->getDb()->query('
                 SELECT name, email, created_at FROM users
                 WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
                 ORDER BY created_at DESC LIMIT 3
@@ -165,7 +170,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
                 ];
             }
 
-            $stmt = $this->db->query("
+            $stmt = $this->getDb()->query("
                 SELECT r.created_at, c.name as cafe_name FROM reviews r
                 LEFT JOIN cafes c ON r.cafe_id = c.id
                 WHERE r.status = 'pending'
@@ -204,7 +209,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
         $status = [];
 
         try {
-            $this->db->query('SELECT 1')->execute();
+            $this->getDb()->query('SELECT 1')->execute();
             $status['database'] = 'online';
         } catch (PDOException $e) {
             Logger::error('[AdminActivityService] Database check failed: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
@@ -270,7 +275,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
                 $dayOfWeek = (int) \date('w', \strtotime($date));
                 $labels[] = $daysEs[$dayOfWeek];
 
-                $stmt = $this->db->prepare('SELECT COUNT(*) FROM reservations WHERE DATE(created_at) = :date');
+                $stmt = $this->getDb()->prepare('SELECT COUNT(*) FROM reservations WHERE DATE(created_at) = :date');
                 $stmt->execute(['date' => $date]);
                 $values[] = (int) $stmt->fetchColumn();
             }

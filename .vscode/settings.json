@@ -21,5 +21,78 @@
   "phpunit.phpExecutablePath": "bin/php.bat",
   // ─── PHP Executable (felixfbecker.php-intellisense si está instalado) ─────
   // Redirige php.exe → wrapper Docker para evitar "php.exe no se reconoce".
-  "php.executablePath": "bin/php.bat"
+  "php.executablePath": "bin/php.bat",
+  // ─── Intelephense stubs (PHP 8.4 built-ins explícitos) ────────────────────
+  // Los stubs por defecto DEBERÍAN incluirlos, pero se declaran explícitamente
+  // para garantizar que Core, superglobals y Reflection estén disponibles.
+  "intelephense.stubs": [
+    "Core",
+    "standard",
+    "superglobals",
+    "Reflection",
+    "apache",
+    "bcmath",
+    "bz2",
+    "calendar",
+    "ctype",
+    "curl",
+    "date",
+    "dom",
+    "enchant",
+    "exif",
+    "FFI",
+    "fileinfo",
+    "filter",
+    "fpm",
+    "ftp",
+    "gd",
+    "gettext",
+    "gmp",
+    "hash",
+    "iconv",
+    "intl",
+    "json",
+    "ldap",
+    "libxml",
+    "mbstring",
+    "meta",
+    "mysqli",
+    "openssl",
+    "pcntl",
+    "pcre",
+    "PDO",
+    "pgsql",
+    "Phar",
+    "posix",
+    "readline",
+    "regex",
+    "session",
+    "SimpleXML",
+    "snmp",
+    "soap",
+    "sockets",
+    "sodium",
+    "SPL",
+    "sqlite3",
+    "sysvmsg",
+    "sysvsem",
+    "sysvshm",
+    "tokenizer",
+    "xml",
+    "xmlreader",
+    "xmlwriter",
+    "xsl",
+    "Zend OPcache",
+    "zip",
+    "zlib"
+  ],
+  // ─── SonarLint PHP: desactivar reglas con falsos positivos en PHP 8.4 ──────
+  // php:S3827 ("Undefined types"): SonarPHP con stubs desactualizados reporta
+  // Throwable (PHP 7.0+), Override (PHP 8.3), ReflectionClass, method_exists,
+  // $_POST/$_SERVER como "undefined" aunque son PHP built-ins válidos en 8.4.
+  "sonarlint.rules": {
+    "php:S3827": {
+      "level": "off"
+    }
+  }
 }

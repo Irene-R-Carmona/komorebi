@@ -146,7 +146,7 @@ final class Csrf
                 $_SERVER['REQUEST_URI'] ?? 'N/A'
             );
 
-            @error_log($msg . "\n", 3, __DIR__ . '/../../storage/logs/php-error.log');
+            error_log($msg . "\n");
         }
 
         return $ok;

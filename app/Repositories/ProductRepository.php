@@ -58,7 +58,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      */
     public function findWithRecipe(int $id): ?array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id, category_id, product_type, name, japanese_name, slug, description,
                     price, station, prep_time, recipe_steps, ingredients_list, critical_check,
                     calories, attributes, target_cafe_types, target_animal_types,
@@ -108,7 +108,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             ORDER BY mc.display_order, p.sort_order, p.name
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -163,7 +163,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             $params = ['category_id' => $categoryId, 'cafe_id' => $cafeId];
         }
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -217,7 +217,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             $params = ['product_type' => $productType, 'cafe_id' => $cafeId];
         }
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -244,7 +244,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      */
     public function findAvailablePasses(): array
     {
-        $stmt = $this->db->query(
+        $stmt = $this->getDb()->query(
             "SELECT id, name, japanese_name, description, price,
                     duration_minutes, min_pax, max_pax,
                     target_cafe_types, target_animal_types,
@@ -263,7 +263,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      */
     public function existsAndActivePass(int $productId): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id FROM products WHERE id = :id AND product_type = 'pass' AND is_active = 1"
         );
         $stmt->execute(['id' => $productId]);
@@ -286,7 +286,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
 
         $placeholders = \implode(',', \array_fill(0, \count($ids), '?'));
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id, name, price FROM products
              WHERE id IN ($placeholders)
              AND product_type = 'item'
@@ -348,7 +348,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      */
     public function hasStock(int $id, int $quantity = 1): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT stock_quantity, is_active, deleted_at
              FROM products
              WHERE id = :id'
@@ -381,7 +381,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     public function decrementStock(int $id, int $quantity = 1): bool
     {
         // Leer con lock pesimista para evitar race conditions
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT stock_quantity
              FROM products
              WHERE id = :id
@@ -405,7 +405,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             return false;
         }
 
-        $update = $this->db->prepare(
+        $update = $this->getDb()->prepare(
             'UPDATE products
              SET stock_quantity = stock_quantity - :quantity,
                  updated_at     = NOW()
@@ -429,7 +429,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     public function incrementStock(int $id, int $quantity = 1): bool
     {
         // Verificar que el producto existe y tiene stock controlado
-        $check = $this->db->prepare(
+        $check = $this->getDb()->prepare(
             'SELECT stock_quantity
              FROM products
              WHERE id = :id
@@ -448,7 +448,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             return true;
         }
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE products
              SET stock_quantity = stock_quantity + :quantity,
                  updated_at     = NOW()
@@ -481,7 +481,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      */
     public function getAllergens(int $productId): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT a.id, a.name, a.icon, a.severity
              FROM allergens a
              INNER JOIN product_allergens pa ON a.id = pa.allergen_id
@@ -542,7 +542,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             $params = array_merge($allergenIds, [$cafeId]);
         }
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -594,7 +594,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
 
         // Contar total
         $countSql = "SELECT COUNT(*) FROM products p WHERE $whereClause";
-        $stmt = $this->db->prepare($countSql);
+        $stmt = $this->getDb()->prepare($countSql);
         $stmt->execute($params);
         $total = (int) $stmt->fetchColumn();
 
@@ -607,7 +607,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
                 ORDER BY mc.display_order, p.name
                 LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
 
         foreach ($params as $key => $value) {
             $stmt->bindValue(":$key", $value);
@@ -634,7 +634,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     {
         $fields = implode(', ', $this->getSelectFields());
 
-        $stmt = $this->db->query(
+        $stmt = $this->getDb()->query(
             "SELECT {$fields}
              FROM products
              WHERE is_active = 1
@@ -652,7 +652,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     {
         $fields = 'p.' . implode(', p.', $this->getSelectFields());
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT {$fields}, mc.name as category_name, mc.slug as category_slug
              FROM products p
              INNER JOIN menu_categories mc ON p.category_id = mc.id
@@ -691,7 +691,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             ORDER BY p.name
         ";
 
-        $stmt = $this->db->query($sql);
+        $stmt = $this->getDb()->query($sql);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(static function (array $row): array {
@@ -730,7 +730,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      */
     public function getCategories(): array
     {
-        $stmt = $this->db->query('SELECT * FROM menu_categories ORDER BY display_order');
+        $stmt = $this->getDb()->query('SELECT * FROM menu_categories ORDER BY display_order');
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

@@ -51,6 +51,18 @@ logs: ## Ver logs en tiempo real
 logs-app: ## Ver logs solo del contenedor app
 	docker compose logs -f app
 
+logs-errors: ## Filtrar solo errores y críticos del contenedor app
+	docker compose logs app | grep -E '"level":(4[0-9]{2}|"ERROR"|"CRITICAL"|ERROR|CRITICAL)'
+
+logs-slow: ## Filtrar queries lentas (slow queries detectadas por LoggingPDO)
+	docker compose logs app | grep -i "Slow query"
+
+logs-http: ## Filtrar líneas canónicas HTTP (RequestLogMiddleware canonical events)
+	docker compose logs app | grep '"canonical"'
+
+logs-trace: ## Filtrar trazas de un request específico (uso: make logs-trace REQUEST_ID=abc123)
+	docker compose logs app | grep "$(REQUEST_ID)"
+
 bash: ## Acceder al shell del contenedor app
 	docker compose exec app bash
 

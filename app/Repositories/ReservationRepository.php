@@ -56,7 +56,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     {
         $fields = implode(', ', $this->getSelectFields());
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
              FROM reservations
              WHERE user_id = :user_id
@@ -75,7 +75,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findWithOperationalData(int $id): ?array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id, user_id, cafe_id, pass_product_id, pass_name, pass_unit_price,
                     pass_duration_minutes, tracker_id, current_zone_id, reservation_date,
                     reservation_time, guest_count, status, check_in_at, check_out_at,
@@ -100,7 +100,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     {
         $fields = implode(', ', $this->getSelectFields());
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT $fields FROM reservations WHERE uuid = :uuid LIMIT 1"
         );
         $stmt->execute(['uuid' => $uuid]);
@@ -121,7 +121,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         );
         $fields = implode(', ', $reservationFields);
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT {$fields},
                     c.name AS cafe_name,
                     c.location AS cafe_location,
@@ -147,7 +147,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     {
         $fields = implode(', ', $this->getSelectFields());
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
              FROM reservations
              WHERE cafe_id = :cafe_id
@@ -192,7 +192,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
         $whereClause = implode(' AND ', $where);
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
              FROM reservations
              WHERE {$whereClause}
@@ -209,7 +209,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function isSlotAvailable(int $cafeId, string $date, string $time): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT COUNT(*)
              FROM reservations
              WHERE cafe_id = :cafe_id
@@ -349,7 +349,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function getStatsForCafe(int $cafeId, string $startDate, string $endDate): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT
                 status,
                 COUNT(*) as count,
@@ -387,7 +387,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
         // Contar total
         $countSql = "SELECT COUNT(*) FROM reservations r WHERE $whereClause";
-        $stmt = $this->db->prepare($countSql);
+        $stmt = $this->getDb()->prepare($countSql);
         $stmt->execute($params);
         $total = (int) $stmt->fetchColumn();
 
@@ -401,7 +401,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
                 ORDER BY r.reservation_date DESC, r.reservation_time DESC
                 LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value);
         }
@@ -433,7 +433,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
                 ORDER BY r.reservation_date, r.reservation_time
                 LIMIT :limit";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue('user_id', $userId, PDO::PARAM_INT);
         $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
@@ -447,7 +447,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     public function getAvailableSlots(int $cafeId, string $date): array
     {
         // Obtener info del café
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT capacity_max, opening_time, closing_time
              FROM cafes WHERE id = :id AND is_active = 1 AND has_reservations = 1'
         );
@@ -466,7 +466,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
                   AND status IN ('pending', 'confirmed', 'active')
                 GROUP BY reservation_time";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId, 'date' => $date]);
 
         $bookings = [];
@@ -502,7 +502,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function existsForUserAndDateTime(int $userId, int $cafeId, string $date, string $time): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT 1
              FROM reservations
              WHERE user_id = :user_id
@@ -531,7 +531,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     {
         $fields = implode(', ', $this->getSelectFields());
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
              FROM reservations
              WHERE user_id = :user_id

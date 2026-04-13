@@ -58,7 +58,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
     {
         $fields = implode(', ', $this->getSelectFields());
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT $fields FROM cafes WHERE slug = :slug AND deleted_at IS NULL LIMIT 1"
         );
         $stmt->execute(['slug' => $slug]);
@@ -75,7 +75,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
     {
         $fields = implode(', ', $this->getSelectFields());
 
-        $stmt = $this->db->query(
+        $stmt = $this->getDb()->query(
             "SELECT {$fields}
              FROM cafes
              WHERE is_active = 1
@@ -91,7 +91,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
      */
     public function findAvailableForReservation(): array
     {
-        $stmt = $this->db->query(
+        $stmt = $this->getDb()->query(
             'SELECT id, name, slug, location, category, animal_type, price_per_hour,
                     opening_time, closing_time, capacity_max, image_url,
                     latitude, longitude, timezone
@@ -123,7 +123,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
      */
     public function existsAndActive(int $cafeId): bool
     {
-        $stmt = $this->db->prepare('SELECT id FROM cafes WHERE id = :id AND is_active = 1');
+        $stmt = $this->getDb()->prepare('SELECT id FROM cafes WHERE id = :id AND is_active = 1');
         $stmt->execute(['id' => $cafeId]);
 
         return $stmt->fetch() !== false;
@@ -136,7 +136,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
     {
         $fields = implode(', ', $this->getSelectFields());
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
              FROM cafes
              WHERE category = :category
@@ -156,7 +156,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
     {
         $fields = implode(', ', $this->getSelectFields());
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
              FROM cafes
              WHERE animal_type = :animal_type
@@ -177,7 +177,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
         $fields = implode(', ', $this->getSelectFields());
 
         // Fórmula Haversine para distancia
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT $fields,
              (6371 * acos(cos(radians(:lat)) * cos(radians(latitude))
              * cos(radians(longitude) - radians(:lng))
@@ -204,7 +204,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
      */
     public function updateRating(int $id): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "UPDATE cafes c
              SET rating_avg = (
                  SELECT COALESCE(AVG(r.rating), 0)
@@ -232,7 +232,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
     {
         $fields = implode(', ', $this->getSelectFields());
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
              FROM cafes
              WHERE is_active = 1
@@ -273,7 +273,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
         }
 
         // Contar reservas activas en ese momento
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT COALESCE(SUM(guest_count), 0) as occupied
              FROM reservations
              WHERE cafe_id = :cafe_id
@@ -331,7 +331,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
                 ORDER BY name
                 LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
 
         foreach ($params as $key => $value) {
             $stmt->bindValue(":$key", $value);
@@ -350,7 +350,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
     public function hasAvailableCapacity(int $cafeId, string $date, string $time): bool
     {
         // Obtener capacidad del café
-        $cafeStmt = $this->db->prepare("SELECT capacity_max FROM cafes WHERE id = :id LIMIT 1");
+        $cafeStmt = $this->getDb()->prepare("SELECT capacity_max FROM cafes WHERE id = :id LIMIT 1");
         $cafeStmt->execute(['id' => $cafeId]);
         $cafe = $cafeStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -361,7 +361,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
         $capacity = (int) $cafe['capacity_max'];
 
         // Count current bookings
-        $bookingStmt = $this->db->prepare(
+        $bookingStmt = $this->getDb()->prepare(
             "SELECT COALESCE(SUM(guest_count), 0) as booked
              FROM reservations
              WHERE cafe_id = :cafe_id
@@ -432,7 +432,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
 
         $sql = "UPDATE cafes SET " . implode(', ', $updates) . ", updated_at = NOW() WHERE id = :id";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
 
         return $stmt->execute($params);
     }

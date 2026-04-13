@@ -77,6 +77,8 @@ if (getenv('REDIS_HOST')) {
 
 // 3. Espacio en disco (básico)
 $freeSpace = disk_free_space(__DIR__);
+// 3. Espacio en disco (básico)
+$freeSpace = disk_free_space(__DIR__);
 $totalSpace = disk_total_space(__DIR__);
 $usagePercent = $totalSpace > 0 ? round((1 - $freeSpace / $totalSpace) * 100, 2) : 0;
 
@@ -86,11 +88,50 @@ if ($usagePercent > 90) {
     $checks['disk'] = ['status' => 'ok', 'usage_percent' => $usagePercent];
 }
 
+// 4. Verificar queues de workers (Redis debe estar disponible)
+if (getenv('REDIS_HOST') && isset($redis)) {
+    try {
+        $emailPending        = (int) ($redis->lLen('queue:emails') ?: 0);
+        $notificationPending = (int) ($redis->lLen('queue:notifications') ?: 0);
+
+        $queueStatus = static function (int $pending): string {
+            if ($pending >= 5000) {
+                return 'unhealthy';
+            }
+            if ($pending >= 1000) {
+                return 'warning';
+            }
+            return 'ok';
+        };
+
+        $emailStatus        = $queueStatus($emailPending);
+        $notificationStatus = $queueStatus($notificationPending);
+
+        $checks['workers'] = [
+            'emails' => [
+                'status'  => $emailStatus,
+                'pending' => $emailPending,
+            ],
+            'notifications' => [
+                'status'  => $notificationStatus,
+                'pending' => $notificationPending,
+            ],
+        ];
+
+        if ($emailStatus === 'unhealthy' || $notificationStatus === 'unhealthy') {
+            $healthy    = false;
+            $statusCode = 503;
+        }
+    } catch (Throwable $e) {
+        $checks['workers'] = ['status' => 'error', 'message' => 'Queue check failed'];
+    }
+}
+
 // Respuesta
 http_response_code($statusCode);
 echo json_encode([
-    'status' => $healthy ? 'healthy' : 'unhealthy',
+    'status'    => $healthy ? 'healthy' : 'unhealthy',
     'timestamp' => date('c'),
-    'version' => '1.0.0',
-    'checks' => $checks
+    'version'   => getenv('APP_VERSION') ?: 'unknown',
+    'checks'    => $checks,
 ], JSON_PRETTY_PRINT);

@@ -33,7 +33,7 @@ final class AuthLogRepository extends AbstractRepository implements AuthLogRepos
      */
     public function findSuspiciousActivity(int $minutesBack = 15, int $threshold = 5): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT
                 ip_address,
                 COUNT(*) as failed_attempts,

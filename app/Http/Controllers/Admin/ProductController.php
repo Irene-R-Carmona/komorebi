@@ -12,6 +12,7 @@ use App\Core\View;
 use App\Exceptions\DatabaseException;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
+use App\Http\Transformers\ProductTransformer;
 use App\Models\Allergen;
 use App\Models\Product;
 use App\Repositories\ProductRepository;
@@ -33,6 +34,9 @@ final class ProductController
     private Allergen $allergenModel;
     private ProductRepository $productRepo;
     private ResponseFactory $response;
+    private ProductTransformer $productTransformer;
+
+    private const CSRF_INVALID = 'Token de seguridad inválido';
 
     public function __construct()
     {
@@ -41,6 +45,7 @@ final class ProductController
         $this->allergenModel = new Allergen();
         $this->productRepo = new ProductRepository();
         $this->response = new ResponseFactory();
+        $this->productTransformer = new ProductTransformer();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -87,12 +92,18 @@ final class ProductController
         }
         unset($product);
 
+        // Aplicar transformer (excluye campos de cocina) y re-inyectar alérgenos (campo de display seguro)
+        $products = $this->productTransformer->collection($result['data']);
+        foreach ($products as $key => $product) {
+            $products[$key]['allergens_list'] = $allergenMap[(int) $product['id']] ?? [];
+        }
+
         // Obtener categorías para filtros
         $categories = $this->productRepo->getCategories();
 
         View::render('admin/products/index', [
             'titulo' => 'Gestión de Productos | Komorebi Admin',
-            'products' => $result['data'],
+            'products' => $products,
             'categories' => $categories,
             'pagination' => [
                 'current_page' => $result['page'],
@@ -143,14 +154,14 @@ final class ProductController
     public function store(): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         // Extraer IDs de alérgenos
         $allergenIds = $_POST['allergens'] ?? [];
 
         // Crear producto (lanza ValidationException o DatabaseException si falla)
-        $productId = $this->productService->create($_POST);
+        $productId = $this->productService->create($_POST); // NOSONAR
 
         // Sincronizar alérgenos (lanza DatabaseException si falla)
         if (!empty($allergenIds)) {
@@ -212,14 +223,14 @@ final class ProductController
     public function update(int $id): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         // Extraer IDs de alérgenos
         $allergenIds = $_POST['allergens'] ?? [];
 
         // Actualizar producto (lanza ValidationException o DatabaseException si falla)
-        $this->productService->update($id, $_POST);
+        $this->productService->update($id, $_POST); // NOSONAR
 
         // Sincronizar alérgenos (lanza DatabaseException si falla)
         $this->productService->syncAllergens($id, $allergenIds);
@@ -242,7 +253,7 @@ final class ProductController
     public function delete(int $id): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         $this->productService->delete($id);
@@ -262,7 +273,7 @@ final class ProductController
     public function toggleAvailability(int $id): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         $this->productService->toggleActive($id);

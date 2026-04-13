@@ -38,7 +38,7 @@ final class RequestLogMiddlewareTest extends TestCase
         WideEvent::reset();
     }
 
-    private function makeRequest(string $method = 'GET', string $path = '/test'): ServerRequestInterface
+    private function makeRequest(string $method = 'GET', string $path = '/test', ?array $parsedBody = null): ServerRequestInterface
     {
         $uri = $this->createStub(UriInterface::class);
         $uri->method('getPath')->willReturn($path);
@@ -47,6 +47,7 @@ final class RequestLogMiddlewareTest extends TestCase
         $request->method('getMethod')->willReturn($method);
         $request->method('getUri')->willReturn($uri);
         $request->method('getServerParams')->willReturn([]);
+        $request->method('getParsedBody')->willReturn($parsedBody);
 
         return $request;
     }
@@ -175,5 +176,72 @@ final class RequestLogMiddlewareTest extends TestCase
         $this->assertSame(['id' => 99, 'cafe_id' => 3], $capturedSection);
         // Y el WideEvent queda vacío al final (reset)
         $this->assertSame([], WideEvent::all());
+    }
+
+    public function testSensitiveFieldsRedactedIn4xxBody(): void
+    {
+        // Accedemos al método privado estático via Reflection (PHP 8.1+ no requiere setAccessible)
+        $ref = new \ReflectionMethod(RequestLogMiddleware::class, 'sanitizeBody');
+
+        $body = [
+            'email'       => 'user@example.com',
+            'password'    => 'secret123',
+            'token'       => 'abc',
+            '_token'      => 'xyz',
+            'cvv'         => '123',
+            'card_number' => '4111111111111111',
+            'card_expiry' => '12/26',
+            'secret'      => 'mysecret',
+            'authorization' => 'Bearer xyz',
+            'current_password' => 'old',
+            'new_password' => 'new',
+            'name'        => 'Ana García',
+        ];
+
+        /** @var array<string,mixed> $result */
+        $result = $ref->invoke(null, $body);
+
+        $this->assertSame('[REDACTED]', $result['password']);
+        $this->assertSame('[REDACTED]', $result['token']);
+        $this->assertSame('[REDACTED]', $result['_token']);
+        $this->assertSame('[REDACTED]', $result['cvv']);
+        $this->assertSame('[REDACTED]', $result['card_number']);
+        $this->assertSame('[REDACTED]', $result['card_expiry']);
+        $this->assertSame('[REDACTED]', $result['secret']);
+        $this->assertSame('[REDACTED]', $result['authorization']);
+        $this->assertSame('[REDACTED]', $result['current_password']);
+        $this->assertSame('[REDACTED]', $result['new_password']);
+        // Campo no sensible permanece intacto
+        $this->assertSame('user@example.com', $result['email']);
+        $this->assertSame('Ana García', $result['name']);
+    }
+
+    public function testBodyNotIncludedFor2xxResponses(): void
+    {
+        $body = ['password' => 'secret'];
+
+        $capturedEvent = null;
+        $handler = $this->makeHandler(200, function () use (&$capturedEvent) {
+            $capturedEvent = WideEvent::all();
+        });
+
+        $middleware = new RequestLogMiddleware();
+        $middleware->process($this->makeRequest('POST', '/login', $body), $handler);
+
+        // Durante el handler (2xx), request_body NO debe estar en WideEvent todavía
+        $this->assertArrayNotHasKey('request_body', $capturedEvent ?? []);
+    }
+
+    public function testNonArrayBodyDoesNotCauseErrorOn4xx(): void
+    {
+        // getParsedBody() puede retornar null para content-types no-form
+        $middleware = new RequestLogMiddleware();
+
+        $this->expectNotToPerformAssertions();
+
+        $middleware->process(
+            $this->makeRequest('POST', '/api/data', null),
+            $this->makeHandler(400)
+        );
     }
 }

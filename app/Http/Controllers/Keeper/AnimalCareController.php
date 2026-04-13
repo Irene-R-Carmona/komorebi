@@ -17,6 +17,7 @@ use App\Repositories\AnimalRepository;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\HealthCheckRepository;
 use App\Services\AnimalCareService;
+use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\FileUploadService;
 use App\Services\HealthCheckService;
 use JsonException;
@@ -34,26 +35,31 @@ use Random\RandomException;
 final class AnimalCareController
 {
     private AnimalCareService $animalCareService;
-    private FileUploadService $fileUploadService;
+    private FileUploadServiceInterface $fileUploadService;
     private HealthCheckService $healthCheckService;
     private AnimalRepositoryInterface $animalRepository;
     private ResponseFactory $response;
 
     public function __construct(
         ?AnimalCareService $animalCareService = null,
-        ?FileUploadService $fileUploadService = null,
+        ?FileUploadServiceInterface $fileUploadService = null,
         ?HealthCheckService $healthCheckService = null,
         ?AnimalRepositoryInterface $animalRepository = null,
         ?ResponseFactory $response = null,
     ) {
-        $db = Database::getConnection();
         $this->animalCareService  = $animalCareService ?? new AnimalCareService();
         $this->fileUploadService  = $fileUploadService ?? new FileUploadService();
-        $this->healthCheckService = $healthCheckService ?? new HealthCheckService(
-            new HealthCheckRepository($db)
-        );
-        $this->animalRepository   = $animalRepository ?? new AnimalRepository($db);
-        $this->response           = $response ?? new ResponseFactory();
+        if ($healthCheckService === null || $animalRepository === null) {
+            $db = Database::getConnection();
+            $this->healthCheckService = $healthCheckService ?? new HealthCheckService(
+                new HealthCheckRepository($db)
+            );
+            $this->animalRepository = $animalRepository ?? new AnimalRepository($db);
+        } else {
+            $this->healthCheckService = $healthCheckService;
+            $this->animalRepository   = $animalRepository;
+        }
+        $this->response = $response ?? new ResponseFactory();
     }
 
     // TODO(plan7-cleanup): método legacy sin ruta activa — eliminar en fase2-psr7-migration

@@ -43,7 +43,7 @@ final class SupervisorAssignmentRepository extends AbstractRepository implements
     public function findBySupervisor(int $supervisorId): array
     {
         $fields = implode(', ', $this->getSelectFields());
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT {$fields} FROM supervisor_assignments
              WHERE supervisor_id = :supervisor_id
              ORDER BY assigned_at DESC"
@@ -61,7 +61,7 @@ final class SupervisorAssignmentRepository extends AbstractRepository implements
     public function findActiveByCafe(int $cafeId): array
     {
         $fields = implode(', ', $this->getSelectFields());
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT {$fields} FROM supervisor_assignments
              WHERE cafe_id = :cafe_id AND is_active = 1
              ORDER BY assigned_at DESC"
@@ -86,7 +86,7 @@ final class SupervisorAssignmentRepository extends AbstractRepository implements
      */
     public function deactivate(int $id): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE supervisor_assignments SET is_active = 0 WHERE id = :id'
         );
         $stmt->execute(['id' => $id]);

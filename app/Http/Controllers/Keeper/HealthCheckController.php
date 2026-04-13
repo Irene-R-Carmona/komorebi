@@ -39,11 +39,15 @@ final class HealthCheckController
         ?AnimalRepositoryInterface $animalRepo = null,
         ?ResponseFactory $response = null,
     ) {
-        $db = Database::getConnection();
-        $healthCheckRepo = new HealthCheckRepository($db);
-        $this->healthCheckService = $healthCheckService ?? new HealthCheckService($healthCheckRepo);
-        $this->animalRepo         = $animalRepo ?? new AnimalRepository($db);
-        $this->response           = $response ?? new ResponseFactory();
+        if ($healthCheckService === null || $animalRepo === null) {
+            $db = Database::getConnection();
+            $this->healthCheckService = $healthCheckService ?? new HealthCheckService(new HealthCheckRepository($db));
+            $this->animalRepo         = $animalRepo ?? new AnimalRepository($db);
+        } else {
+            $this->healthCheckService = $healthCheckService;
+            $this->animalRepo         = $animalRepo;
+        }
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**

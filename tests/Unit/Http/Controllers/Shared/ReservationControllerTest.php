@@ -25,6 +25,11 @@ use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Models\Reservation;
+use App\Services\AvailabilityService;
+use App\Services\CartService;
+use App\Services\Contracts\ClimaContextoServiceInterface;
+use App\Services\FestivosJaponesesService;
 use App\Services\ReservationService;
 use Tests\Support\ControllerTestCase;
 
@@ -45,6 +50,7 @@ final class ReservationControllerTest extends ControllerTestCase
 
     private function makeController(): ReservationController
     {
+        $pdoStub = $this->createStub(\PDO::class);
         $reservations = new ReservationService(
             $this->createStub(ReservationRepositoryInterface::class),
             $this->createStub(CafeRepositoryInterface::class),
@@ -53,7 +59,12 @@ final class ReservationControllerTest extends ControllerTestCase
             $this->createStub(EmailServiceInterface::class),
         );
         return new ReservationController(
+            cartService: $this->createStub(CartService::class),
             reservationService: $reservations,
+            availabilityService: new AvailabilityService($pdoStub),
+            reservationModel: new Reservation($pdoStub),
+            climaService: $this->createStub(ClimaContextoServiceInterface::class),
+            festivosService: new FestivosJaponesesService(),
             response: new ResponseFactory(),
         );
     }

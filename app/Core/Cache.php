@@ -21,6 +21,12 @@ final class Cache
     private static ?Psr16Cache $pool = null;
     private static bool $initialized = false;
 
+    /** Número de accesos que encontraron el valor en cache en este ciclo de request. */
+    private static int $hits = 0;
+
+    /** Número de accesos que NO encontraron el valor en cache en este ciclo de request. */
+    private static int $misses = 0;
+
     private static function init(): void
     {
         if (self::$initialized) {
@@ -73,9 +79,16 @@ final class Cache
     {
         self::init();
         if (self::$pool === null) {
+            self::$misses++;
             return $default;
         }
-        return self::$pool->get(self::sanitizeKey($key), $default);
+        $value = self::$pool->get(self::sanitizeKey($key), $default);
+        if ($value !== $default) {
+            self::$hits++;
+        } else {
+            self::$misses++;
+        }
+        return $value;
     }
 
     /**
@@ -161,6 +174,7 @@ final class Cache
      */
     public static function remember(string $key, callable $callback, int $ttl = 3600): mixed
     {
+        // get() already increments hit/miss internally
         $value = self::get($key);
         if ($value !== null) {
             return $value;
@@ -238,6 +252,26 @@ final class Cache
     }
 
     /**
+     * Retorna las estadísticas de hit/miss acumuladas desde el último resetStats().
+     *
+     * @return array{hits: int, misses: int}
+     */
+    public static function getStats(): array
+    {
+        return ['hits' => self::$hits, 'misses' => self::$misses];
+    }
+
+    /**
+     * Reinicia los contadores de hit/miss.
+     * Llamado por RequestLogMiddleware en el bloque finally de cada request.
+     */
+    public static function resetStats(): void
+    {
+        self::$hits   = 0;
+        self::$misses = 0;
+    }
+
+    /**
      * Reinicia el estado interno (útil para tests y reconfiguración)
      */
     public static function reset(): void
@@ -245,5 +279,7 @@ final class Cache
         self::$redis       = null;
         self::$pool        = null;
         self::$initialized = false;
+        self::$hits        = 0;
+        self::$misses      = 0;
     }
 }

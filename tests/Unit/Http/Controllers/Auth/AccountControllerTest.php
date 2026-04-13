@@ -20,6 +20,11 @@ namespace Tests\Unit\Http\Controllers\Auth;
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Auth\AccountController;
 use App\Services\AuthService;
+use App\Services\Contracts\AccountDeletionServiceInterface;
+use App\Services\Contracts\FileUploadServiceInterface;
+use App\Services\Contracts\SessionManagementServiceInterface;
+use App\Services\Contracts\UserAccountServiceInterface;
+use App\Services\Contracts\UserProfileServiceInterface;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -43,7 +48,12 @@ final class AccountControllerTest extends ControllerTestCase
     {
         return new AccountController(
             authService: $this->createStub(AuthService::class),
+            fileUploadService: $this->createStub(FileUploadServiceInterface::class),
+            profileService: $this->createStub(UserProfileServiceInterface::class),
+            accountService: $this->createStub(UserAccountServiceInterface::class),
             response: new ResponseFactory(),
+            accountDeletionService: $this->createStub(AccountDeletionServiceInterface::class),
+            sessionService: $this->createStub(SessionManagementServiceInterface::class),
         );
     }
 

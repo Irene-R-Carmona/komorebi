@@ -19,6 +19,9 @@ namespace Tests\Unit\Http\Controllers\Shared;
 
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Shared\ReviewController;
+use App\Models\Cafe;
+use App\Services\Contracts\ReviewModerationServiceInterface;
+use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\ReviewService;
 use Tests\Support\ControllerTestCase;
 
@@ -41,7 +44,12 @@ final class ReviewControllerTest extends ControllerTestCase
 
     private function makeController(): ReviewController
     {
-        return new ReviewController(reviewService: $this->createStub(ReviewService::class));
+        return new ReviewController(
+            reviewService: $this->createStub(ReviewService::class),
+            queryService: $this->createStub(ReviewQueryServiceInterface::class),
+            moderationService: $this->createStub(ReviewModerationServiceInterface::class),
+            cafeModel: new Cafe(),
+        );
     }
 
     public function test_create_throws_validation_exception_when_not_authenticated(): void

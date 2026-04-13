@@ -26,6 +26,10 @@ final class NotificationWorker
     private bool $shouldStop = false;
     private int $processed = 0;
     private int $errors = 0;
+    private float $lastHeartbeat = 0.0;
+    private float $startTime = 0.0;
+
+    private const int HEARTBEAT_INTERVAL = 60; // segundos
 
     public function __construct()
     {
@@ -45,6 +49,9 @@ final class NotificationWorker
 
         $this->echoToConsole('[NotificationWorker] Escuchando cola de notificaciones...');
 
+        $this->startTime     = microtime(true);
+        $this->lastHeartbeat = microtime(true);
+
         while (!$this->shouldStop) {
             try {
                 $this->processSignals();
@@ -52,6 +59,8 @@ final class NotificationWorker
                 if ($this->shouldStop) {
                     break;
                 }
+
+                $this->emitHeartbeatIfDue();
 
                 $jobData = Queue::pop(self::QUEUE_NAME);
 
@@ -69,6 +78,29 @@ final class NotificationWorker
         }
 
         $this->shutdown();
+    }
+
+    /**
+     * Emite un heartbeat si han pasado más de HEARTBEAT_INTERVAL segundos.
+     * Incluye métricas de la cola y contadores del worker.
+     */
+    private function emitHeartbeatIfDue(): void
+    {
+        $now = microtime(true);
+        if (($now - $this->lastHeartbeat) < self::HEARTBEAT_INTERVAL) {
+            return;
+        }
+
+        $this->lastHeartbeat = $now;
+
+        Logger::info('[NotificationWorker] Heartbeat', [
+            'queue'      => self::QUEUE_NAME,
+            'pending'    => Queue::size(self::QUEUE_NAME),
+            'processed'  => $this->processed,
+            'errors'     => $this->errors,
+            'uptime_s'   => (int) ($now - $this->startTime),
+            'pid'        => getmypid(),
+        ]);
     }
 
     /**

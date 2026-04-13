@@ -20,6 +20,7 @@ namespace Tests\Unit\Http\Controllers\Keeper;
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Http\Controllers\Keeper\AnimalIncidentController;
+use App\Repositories\AnimalRepository;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Services\AnimalCareService;
 use Nyholm\Psr7\ServerRequest;
@@ -66,11 +67,13 @@ final class AnimalIncidentControllerTest extends TestCase
     private function makeController(?AnimalCareService $service = null): AnimalIncidentController
     {
         $pdo     = $this->makePdoStub();
-        $service = $service ?? new AnimalCareService($pdo, $this->createStub(AnimalRepositoryInterface::class));
+        $animalRepo = new AnimalRepository($pdo);
+        $service = $service ?? new AnimalCareService($pdo, $animalRepo);
 
         return new AnimalIncidentController(
             $service,
-            new ResponseFactory()
+            new ResponseFactory(),
+            $animalRepo,
         );
     }
 

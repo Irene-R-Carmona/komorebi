@@ -23,17 +23,34 @@ use App\Services\Contracts\ReceptionServiceInterface;
  */
 final class ReceptionService implements ReceptionServiceInterface
 {
-    private PDO $db;
-    private Reservation $reservationModel;
-    private Tracker $trackerModel;
-    private Cafe $cafeModel;
+    private ?PDO $db = null;
+    private ?Reservation $reservationModel = null;
+    private ?Tracker $trackerModel = null;
+    private ?Cafe $cafeModel = null;
 
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
-        $this->reservationModel = new Reservation($this->db);
-        $this->trackerModel = new Tracker($this->db);
-        $this->cafeModel = new Cafe($this->db);
+        $this->db = $db;
+    }
+
+    private function getDb(): PDO
+    {
+        return $this->db ??= Database::getConnection();
+    }
+
+    private function getReservationModel(): Reservation
+    {
+        return $this->reservationModel ??= new Reservation($this->getDb());
+    }
+
+    private function getTrackerModel(): Tracker
+    {
+        return $this->trackerModel ??= new Tracker($this->getDb());
+    }
+
+    private function getCafeModel(): Cafe
+    {
+        return $this->cafeModel ??= new Cafe($this->getDb());
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -51,7 +68,7 @@ final class ReceptionService implements ReceptionServiceInterface
         return [
             'pending_arrivals' => $this->getPendingArrivals($cafeId),
             'active_groups' => $this->getActiveGroups($cafeId),
-            'available_trackers' => $this->trackerModel->findAvailable($cafeId),
+            'available_trackers' => $this->getTrackerModel()->findAvailable($cafeId),
             'capacity' => $this->getCapacityInfo($cafeId),
             'stats' => $this->getDailyStats($cafeId, $today),
         ];
@@ -63,7 +80,7 @@ final class ReceptionService implements ReceptionServiceInterface
     #[\Override]
     public function getPendingArrivals(int $cafeId): array
     {
-        $reservations = $this->reservationModel->findByCafeAndDate($cafeId, \date('Y-m-d'));
+        $reservations = $this->getReservationModel()->findByCafeAndDate($cafeId, \date('Y-m-d'));
 
         // Filtrar solo confirmadas
         return \array_filter($reservations, static fn($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
@@ -75,7 +92,7 @@ final class ReceptionService implements ReceptionServiceInterface
     #[\Override]
     public function getActiveGroups(int $cafeId): array
     {
-        $groups = $this->reservationModel->findActiveByCafe($cafeId);
+        $groups = $this->getReservationModel()->findActiveByCafe($cafeId);
 
         // Enriquecer con tiempo transcurrido y tiempo restante
         foreach ($groups as &$group) {
@@ -98,7 +115,7 @@ final class ReceptionService implements ReceptionServiceInterface
         try {
             $success = Database::transaction(function () use ($reservationId, $trackerId) {
                 // Verificar reserva
-                $reservation = $this->reservationModel->findById($reservationId);
+                $reservation = $this->getReservationModel()->findById($reservationId);
 
                 if (!$reservation) {
                     throw NotFoundException::reservation($reservationId);
@@ -112,7 +129,7 @@ final class ReceptionService implements ReceptionServiceInterface
                 }
 
                 // Verificar tracker disponible
-                $tracker = $this->trackerModel->findById($trackerId);
+                $tracker = $this->getTrackerModel()->findById($trackerId);
 
                 if (!$tracker || $tracker['status'] !== Tracker::STATUS_AVAILABLE) {
                     throw new BusinessRuleException(
@@ -131,7 +148,7 @@ final class ReceptionService implements ReceptionServiceInterface
                 }
 
                 // Realizar check-in
-                $this->reservationModel->checkIn($reservationId, $trackerId);
+                $this->getReservationModel()->checkIn($reservationId, $trackerId);
 
                 return true;
             });
@@ -155,7 +172,7 @@ final class ReceptionService implements ReceptionServiceInterface
     {
         try {
             $checkoutData = Database::transaction(function () use ($reservationId) {
-                $reservation = $this->reservationModel->findById($reservationId);
+                $reservation = $this->getReservationModel()->findById($reservationId);
 
                 if (!$reservation) {
                     throw NotFoundException::reservation($reservationId);
@@ -169,10 +186,10 @@ final class ReceptionService implements ReceptionServiceInterface
                 }
 
                 // Realizar check-out (el modelo libera el tracker automáticamente)
-                $this->reservationModel->checkOut($reservationId);
+                $this->getReservationModel()->checkOut($reservationId);
 
                 // Obtener reserva actualizada con precio final
-                $updated = $this->reservationModel->findById($reservationId);
+                $updated = $this->getReservationModel()->findById($reservationId);
 
                 // 🎴 LOYALTY: Añadir sello al completar la visita
                 if ($updated['status'] === Reservation::STATUS_COMPLETED && $updated['user_id']) {
@@ -217,7 +234,7 @@ final class ReceptionService implements ReceptionServiceInterface
     #[\Override]
     public function assignTracker(int $reservationId, int $trackerId): bool
     {
-        return $this->reservationModel->assignTracker($reservationId, $trackerId);
+        return $this->getReservationModel()->assignTracker($reservationId, $trackerId);
     }
 
     /**
@@ -226,7 +243,7 @@ final class ReceptionService implements ReceptionServiceInterface
     #[\Override]
     public function getAvailableTrackers(int $cafeId): array
     {
-        return $this->trackerModel->findAvailable($cafeId);
+        return $this->getTrackerModel()->findAvailable($cafeId);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -239,7 +256,7 @@ final class ReceptionService implements ReceptionServiceInterface
     #[\Override]
     public function completeProtocol(int $reservationId, string $protocol): bool
     {
-        return $this->reservationModel->completeProtocol($reservationId, $protocol);
+        return $this->getReservationModel()->completeProtocol($reservationId, $protocol);
     }
 
     /**
@@ -248,7 +265,7 @@ final class ReceptionService implements ReceptionServiceInterface
     #[\Override]
     public function getProtocolStatus(int $reservationId): Result
     {
-        $reservation = $this->reservationModel->findById($reservationId);
+        $reservation = $this->getReservationModel()->findById($reservationId);
 
         if (!$reservation) {
             return Result::fail('Reserva no encontrada', 'not_found');
@@ -258,7 +275,7 @@ final class ReceptionService implements ReceptionServiceInterface
             'hygiene' => (bool) $reservation['protocol_hygiene'],
             'briefing' => (bool) $reservation['protocol_briefing'],
             'shoes' => (bool) $reservation['protocol_shoes'],
-            'all_complete' => $this->reservationModel->allProtocolsCompleted($reservation),
+            'all_complete' => $this->getReservationModel()->allProtocolsCompleted($reservation),
         ]);
     }
 
@@ -272,11 +289,11 @@ final class ReceptionService implements ReceptionServiceInterface
     #[\Override]
     public function getCapacityInfo(int $cafeId): array
     {
-        $cafe = $this->cafeModel->findById($cafeId);
+        $cafe = $this->getCafeModel()->findById($cafeId);
         $maxCapacity = (int) ($cafe['capacity_max'] ?? 0);
 
         // Contar guests activos
-        $activeGroups = $this->reservationModel->findActiveByCafe($cafeId);
+        $activeGroups = $this->getReservationModel()->findActiveByCafe($cafeId);
         $currentGuests = \array_sum(\array_column($activeGroups, 'guests'));
 
         return [
@@ -298,7 +315,7 @@ final class ReceptionService implements ReceptionServiceInterface
     #[\Override]
     public function getDailyStats(int $cafeId, string $date): array
     {
-        return $this->reservationModel->getDailyStats($cafeId, $date);
+        return $this->getReservationModel()->getDailyStats($cafeId, $date);
     }
 
     // ─────────────────────────────────────────────────────────────

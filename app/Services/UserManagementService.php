@@ -25,10 +25,10 @@ final class UserManagementService extends TransactionalService implements UserMa
 {
     private User $userModel;
 
-    public function __construct()
+    public function __construct(?PDO $db = null)
     {
-        parent::__construct(Database::getConnection());
-        $this->userModel = new User();
+        parent::__construct($db ?? Database::getConnection());
+        $this->userModel = new User($db);
     }
 
     /**

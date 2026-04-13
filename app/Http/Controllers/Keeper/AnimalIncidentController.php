@@ -33,10 +33,15 @@ final class AnimalIncidentController
         ?ResponseFactory $response = null,
         ?AnimalRepository $animalRepository = null,
     ) {
-        $db                     = Database::getConnection();
-        $this->animalRepository = $animalRepository ?? new AnimalRepository($db);
-        $this->service          = $service ?? new AnimalCareService($db, $this->animalRepository);
-        $this->response         = $response ?? new ResponseFactory();
+        if ($service === null || $animalRepository === null) {
+            $db                     = Database::getConnection();
+            $this->animalRepository = $animalRepository ?? new AnimalRepository($db);
+            $this->service          = $service ?? new AnimalCareService($db, $this->animalRepository);
+        } else {
+            $this->animalRepository = $animalRepository;
+            $this->service          = $service;
+        }
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**

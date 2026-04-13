@@ -19,6 +19,8 @@ namespace Tests\Unit\Http\Controllers\Auth;
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Services\AuthService;
+use App\Services\Contracts\EmailVerificationServiceInterface;
+use App\Services\Contracts\PasswordResetServiceInterface;
 use Tests\Support\ControllerTestCase;
 
 final class PasswordResetControllerTest extends ControllerTestCase
@@ -38,7 +40,11 @@ final class PasswordResetControllerTest extends ControllerTestCase
 
     private function makeController(): PasswordResetController
     {
-        return new PasswordResetController(authService: $this->createStub(AuthService::class));
+        return new PasswordResetController(
+            authService: $this->createStub(AuthService::class),
+            passwordResetService: $this->createStub(PasswordResetServiceInterface::class),
+            emailVerificationService: $this->createStub(EmailVerificationServiceInterface::class),
+        );
     }
 
     public function test_class_exists_and_has_key_methods(): void
@@ -62,6 +68,8 @@ final class PasswordResetControllerTest extends ControllerTestCase
         $authStub->method('check')->willReturn(true);
         $controller = new PasswordResetController(
             authService: $authStub,
+            passwordResetService: $this->createStub(PasswordResetServiceInterface::class),
+            emailVerificationService: $this->createStub(EmailVerificationServiceInterface::class),
             response: new ResponseFactory()
         );
 

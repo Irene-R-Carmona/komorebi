@@ -9,6 +9,7 @@ use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Core\View;
 use App\Exceptions\ValidationException;
+use App\Http\Transformers\UserTransformer;
 use App\Models\AuditLog;
 use App\Models\Role;
 use App\Repositories\UserRepository;
@@ -37,13 +38,17 @@ final class UserController
     private UserManagementService $userManagementService;
     private UserRepository $userRepo;
     private ResponseFactory $response;
+    private UserTransformer $userTransformer;
 
-    public function __construct(?UserManagementService $userManagementService = null, ?UserRepository $userRepo = null, ?ResponseFactory $response = null)
+    private const CSRF_INVALID = 'Token de seguridad inválido';
+
+    public function __construct(?UserManagementService $userManagementService = null, ?UserRepository $userRepo = null, ?ResponseFactory $response = null, ?UserTransformer $userTransformer = null)
     {
         $this->roleModel = new Role();
         $this->userManagementService = $userManagementService ?? new UserManagementService();
         $this->userRepo = $userRepo ?? new UserRepository();
         $this->response = $response ?? new ResponseFactory();
+        $this->userTransformer = $userTransformer ?? new UserTransformer();
     }
 
     /**
@@ -51,23 +56,23 @@ final class UserController
      * Lista de usuarios con sus roles
      * @throws RandomException
      */
-    public function index(ServerRequestInterface $request): ?ResponseInterface
+    public function index(): ?ResponseInterface
     {
         // Obtener usuarios con roles desde el servicio
-        $users = $this->userManagementService->getUsersWithRoles();
+        $rawUsers = $this->userManagementService->getUsersWithRoles();
         $roles = $this->roleModel->all();
 
-        // Calcular estadísticas para las stat-cards
+        // Calcular estadísticas desde datos crudos (antes de transformar)
         $stats = [
-            'total_users' => \count($users),
-            'active_users' => \count(\array_filter($users, static fn($u) => !empty($u['is_active']))),
-            'admin_users' => \count(\array_filter($users, static fn($u) => \stripos($u['roles'] ?? '', 'admin') !== false)),
-            'inactive_users' => \count(\array_filter($users, static fn($u) => empty($u['is_active']))),
+            'total_users' => \count($rawUsers),
+            'active_users' => \count(\array_filter($rawUsers, static fn($u) => !empty($u['is_active']))),
+            'admin_users' => \count(\array_filter($rawUsers, static fn($u) => \stripos($u['roles'] ?? '', 'admin') !== false)),
+            'inactive_users' => \count(\array_filter($rawUsers, static fn($u) => empty($u['is_active']))),
         ];
 
         View::render('admin/users/index', [
             'titulo' => 'Gestión de Usuarios',
-            'users' => $users,
+            'users' => $this->userTransformer->collection($rawUsers),
             'roles' => $roles,
             'stats' => $stats,
             'csrf_token' => Csrf::token(),
@@ -82,7 +87,7 @@ final class UserController
      * Lista simplificada de usuarios para dropdowns/filtros
      * @throws JsonException
      */
-    public function getUsersList(ServerRequestInterface $request): ResponseInterface
+    public function getUsersList(): ResponseInterface
     {
         $users = $this->userRepo->getActiveUsersList();
         return $this->response->json(['ok' => true, 'data' => ['users' => $users]]);
@@ -97,7 +102,7 @@ final class UserController
     public function create(ServerRequestInterface $request): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         $body = (array) $request->getParsedBody();
@@ -144,7 +149,7 @@ final class UserController
     public function update(ServerRequestInterface $request, int $userId): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         $body = (array) $request->getParsedBody();
@@ -189,10 +194,10 @@ final class UserController
      * @throws JsonException
      * @throws RandomException
      */
-    public function delete(ServerRequestInterface $request, int $userId): ResponseInterface
+    public function delete(int $userId): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         // Delegar al servicio
@@ -218,10 +223,10 @@ final class UserController
      * @throws JsonException
      * @throws RandomException
      */
-    public function toggleActive(ServerRequestInterface $request, int $userId): ResponseInterface
+    public function toggleActive(int $userId): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         // Delegar al servicio

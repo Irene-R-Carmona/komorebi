@@ -17,13 +17,18 @@ use PDO;
  */
 final class Setting
 {
-    private PDO $db;
+    private ?PDO $db = null;
     private static array $cache = [];
     private static bool $cacheLoaded = false;
 
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        $this->db = $db;
+    }
+
+    private function getDb(): PDO
+    {
+        return $this->db ??= Database::getConnection();
     }
 
     /**
@@ -125,7 +130,7 @@ final class Setting
      */
     public function findAll(): array
     {
-        return $this->db->query('SELECT * FROM settings ORDER BY group_name, `key`')->fetchAll(PDO::FETCH_ASSOC);
+        return $this->getDb()->query('SELECT * FROM settings ORDER BY group_name, `key`')->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -136,7 +141,7 @@ final class Setting
      */
     public function findByGroup(string $group): array
     {
-        $stmt = $this->db->prepare('SELECT * FROM settings WHERE group_name = :group ORDER BY `key`');
+        $stmt = $this->getDb()->prepare('SELECT * FROM settings WHERE group_name = :group ORDER BY `key`');
         $stmt->execute(['group' => $group]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -150,14 +155,14 @@ final class Setting
      */
     public function updateBatch(array $settings): bool
     {
-        $this->db->beginTransaction();
+        $this->getDb()->beginTransaction();
 
         try {
-            $stmt = $this->db->prepare('UPDATE settings SET `value` = :value WHERE `key` = :key');
+            $stmt = $this->getDb()->prepare('UPDATE settings SET `value` = :value WHERE `key` = :key');
 
             foreach ($settings as $key => $value) {
                 // Obtener tipo actual
-                $typeStmt = $this->db->prepare('SELECT `type` FROM settings WHERE `key` = :key');
+                $typeStmt = $this->getDb()->prepare('SELECT `type` FROM settings WHERE `key` = :key');
                 $typeStmt->execute(['key' => $key]);
                 $type = $typeStmt->fetchColumn();
 
@@ -173,12 +178,12 @@ final class Setting
                 ]);
             }
 
-            $this->db->commit();
+            $this->getDb()->commit();
             self::clearCache();
 
             return true;
         } catch (Exception $e) {
-            $this->db->rollBack();
+            $this->getDb()->rollBack();
             Logger::error('Error updating settings batch: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
 
             return false;
@@ -193,7 +198,7 @@ final class Setting
      */
     public function delete(string $key): bool
     {
-        $stmt = $this->db->prepare('DELETE FROM settings WHERE `key` = :key');
+        $stmt = $this->getDb()->prepare('DELETE FROM settings WHERE `key` = :key');
         $result = $stmt->execute(['key' => $key]);
 
         if ($result) {

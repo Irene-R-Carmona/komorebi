@@ -25,6 +25,8 @@ use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
+use App\Services\Contracts\UserAccountServiceInterface;
+use App\Services\Contracts\UserProfileServiceInterface;
 use App\Services\ReservationService;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
@@ -56,6 +58,8 @@ final class UserControllerTest extends TestCase
             $this->createStub(EmailServiceInterface::class),
         );
         return new UserController(
+            profileService: $this->createStub(UserProfileServiceInterface::class),
+            accountService: $this->createStub(UserAccountServiceInterface::class),
             reservations: $reservations,
             reviews: $this->createStub(ReviewQueryServiceInterface::class),
             response: new ResponseFactory(),

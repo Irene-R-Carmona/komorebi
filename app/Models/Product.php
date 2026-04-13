@@ -19,7 +19,7 @@ final class Product
 {
     use ValidatesData;
 
-    private PDO $db;
+    private ?PDO $db = null;
 
     // ─────────────────────────────────────────────────────────────
     // Constantes
@@ -81,7 +81,12 @@ final class Product
 
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        $this->db = $db;
+    }
+
+    private function getDb(): PDO
+    {
+        return $this->db ??= Database::getConnection();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -100,7 +105,7 @@ final class Product
                 JOIN menu_categories c ON c.id = p.category_id
                 WHERE p.id = :id LIMIT 1";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['id' => $id]);
         $product = $stmt->fetch();
 
@@ -131,7 +136,7 @@ final class Product
             FROM products
             WHERE id IN ($placeholders)";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($ids);
 
         $products = [];
@@ -149,7 +154,7 @@ final class Product
     {
         $fields = \implode(', ', self::KDS_FIELDS);
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT $fields FROM products p WHERE p.id = :id LIMIT 1"
         );
         $stmt->execute(['id' => $id]);
@@ -188,7 +193,7 @@ final class Product
                 WHERE {$whereClause}
                 ORDER BY c.display_order , p.name ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($params);
 
         return \array_map([$this, 'decodeJsonFields'], $stmt->fetchAll());
@@ -207,7 +212,7 @@ final class Product
                 WHERE p.is_active = 1 AND p.product_type = 'item'
                 ORDER BY c.display_order , p.name ";
 
-        $stmt = $this->db->query($sql);
+        $stmt = $this->getDb()->query($sql);
         $products = $stmt->fetchAll();
 
         // Agrupar por categoría
@@ -242,7 +247,7 @@ final class Product
                 WHERE p.is_active = 1 AND p.product_type = 'pass'
                 ORDER BY p.price ";
 
-        $stmt = $this->db->query($sql);
+        $stmt = $this->getDb()->query($sql);
         $passes = \array_map([$this, 'decodeJsonFields'], $stmt->fetchAll());
 
         // Filtrar por compatibilidad (si se especifica)
@@ -273,7 +278,7 @@ final class Product
     {
         $this->validateInArray($station, self::VALID_STATIONS, 'station');
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT id, name, prep_time, recipe_steps, critical_check
              FROM products
              WHERE station = :station AND is_active = 1 AND product_type = 'item'
@@ -300,7 +305,7 @@ final class Product
                 ORDER BY p.name
                 LIMIT :limit";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue('q', $query);
         $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
@@ -324,7 +329,7 @@ final class Product
         return \array_filter($products, static function ($product) use ($excludeAllergens) {
             $productAllergens = $product['allergens'] ?? [];
 
-            return \array_all($excludeAllergens, static fn ($allergen) => !\in_array($allergen, $productAllergens, true));
+            return \array_all($excludeAllergens, static fn($allergen) => !\in_array($allergen, $productAllergens, true));
         });
     }
 
@@ -375,7 +380,7 @@ final class Product
 
         // Contar total
         $countSql = "SELECT COUNT(*) FROM products p WHERE $whereClause";
-        $stmt = $this->db->prepare($countSql);
+        $stmt = $this->getDb()->prepare($countSql);
         $stmt->execute($params);
         $total = (int) $stmt->fetchColumn();
 
@@ -387,7 +392,7 @@ final class Product
                 ORDER BY c.display_order , p.name
                 LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value);
         }
@@ -406,7 +411,7 @@ final class Product
      */
     public function toggleAvailability(int $id): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE products SET is_active = NOT is_active WHERE id = :id'
         );
 
@@ -422,7 +427,7 @@ final class Product
             throw new RuntimeException('El precio no puede ser negativo.');
         }
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE products SET price = :price WHERE id = :id'
         );
 
@@ -461,7 +466,7 @@ final class Product
      */
     public function getAllergensNormalized(int $productId): array
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT a.*
             FROM allergens a
             JOIN product_allergens pa ON a.id = pa.allergen_id
@@ -488,12 +493,12 @@ final class Product
     public function syncAllergens(int $productId, array $allergenIds): void
     {
         // Eliminar asociaciones actuales
-        $stmt = $this->db->prepare('DELETE FROM product_allergens WHERE product_id = :product_id');
+        $stmt = $this->getDb()->prepare('DELETE FROM product_allergens WHERE product_id = :product_id');
         $stmt->execute(['product_id' => $productId]);
 
         // Insertar nuevas asociaciones
         if (!empty($allergenIds)) {
-            $stmt = $this->db->prepare('
+            $stmt = $this->getDb()->prepare('
                 INSERT INTO product_allergens (product_id, allergen_id)
                 VALUES (:product_id, :allergen_id)
             ');
@@ -513,7 +518,7 @@ final class Product
     public function addAllergen(int $productId, int $allergenId): bool
     {
         try {
-            $stmt = $this->db->prepare('
+            $stmt = $this->getDb()->prepare('
                 INSERT IGNORE INTO product_allergens (product_id, allergen_id)
                 VALUES (:product_id, :allergen_id)
             ');
@@ -532,7 +537,7 @@ final class Product
      */
     public function removeAllergen(int $productId, int $allergenId): bool
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             DELETE FROM product_allergens
             WHERE product_id = :product_id AND allergen_id = :allergen_id
         ');
@@ -579,7 +584,7 @@ final class Product
 
         $sql .= ' ORDER BY c.display_order, p.name';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($params);
 
         return \array_map([$this, 'decodeJsonFields'], $stmt->fetchAll());
@@ -592,7 +597,7 @@ final class Product
      */
     public function getAllergenStatistics(): array
     {
-        $stmt = $this->db->query('
+        $stmt = $this->getDb()->query('
             SELECT
                 p.id,
                 p.name,

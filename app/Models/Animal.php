@@ -17,7 +17,7 @@ final class Animal
 {
     use ValidatesData;
 
-    private PDO $db;
+    private ?PDO $db = null;
 
     // ─────────────────────────────────────────────────────────────
     // Constantes
@@ -70,7 +70,12 @@ final class Animal
 
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        $this->db = $db;
+    }
+
+    private function getDb(): PDO
+    {
+        return $this->db ??= Database::getConnection();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -92,7 +97,7 @@ final class Animal
                 LEFT JOIN cafe_zones z ON z.id = a.current_zone_id
                 WHERE a.id = :id LIMIT 1";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue('id', $id, PDO::PARAM_INT);
         $stmt->execute();
         $animal = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -131,7 +136,7 @@ final class Animal
                 WHERE {$whereClause}
                 ORDER BY a.name ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($params);
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -169,7 +174,7 @@ final class Animal
                   AND TIMESTAMPDIFF(MINUTE, COALESCE(s.last_end, a.last_check_at), NOW()) > sr.max_consecutive_minutes
                 ORDER BY minutes_since_rest DESC";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue('cafe_id', $cafeId, PDO::PARAM_INT);
         $stmt->execute();
 
@@ -181,7 +186,7 @@ final class Animal
      */
     public function countDistinctSpecies(): int
     {
-        $stmt = $this->db->query(
+        $stmt = $this->getDb()->query(
             "SELECT COUNT(DISTINCT species_type) FROM animals WHERE current_status IN ('active', 'resting')"
         );
 
@@ -203,7 +208,7 @@ final class Animal
                   AND c.is_active = 1
                 ORDER BY c.name , a.name ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue('species', $speciesType, PDO::PARAM_STR);
         $stmt->execute();
 
@@ -221,7 +226,7 @@ final class Animal
     {
         $this->validateInArray($status, self::VALID_STATUSES, 'status');
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE animals SET current_status = :status, last_check_at = NOW() WHERE id = :id'
         );
 
@@ -233,7 +238,7 @@ final class Animal
      */
     public function sendToRest(int $id, ?int $restZoneId = null): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE animals
              SET current_status = :status,
                  current_zone_id = :zone_id,
@@ -253,7 +258,7 @@ final class Animal
      */
     public function activateFromRest(int $id, ?int $interactionZoneId = null): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE animals
              SET current_status = :status,
                  current_zone_id = :zone_id,
@@ -273,7 +278,7 @@ final class Animal
      */
     public function updateZone(int $id, ?int $zoneId): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE animals SET current_zone_id = :zone_id WHERE id = :id'
         );
 
@@ -300,7 +305,7 @@ final class Animal
         $healthScore = \max(1, \min(10, $healthScore));
 
         // Obtener estado anterior del animal para registrar old_status/new_status
-        $stmt = $this->db->prepare('SELECT current_status FROM animals WHERE id = :id');
+        $stmt = $this->getDb()->prepare('SELECT current_status FROM animals WHERE id = :id');
         $stmt->execute(['id' => $animalId]);
         $oldStatus = $stmt->fetchColumn() ?: null;
         $newStatus = $oldStatus; // este método no cambia el estado por sí mismo
@@ -316,14 +321,14 @@ final class Animal
         }
 
         // Usar transacción para mantener coherencia entre log y last_check_at
-        $this->db->beginTransaction();
+        $this->getDb()->beginTransaction();
 
         try {
             $sql = 'INSERT INTO animal_status_log
                 (animal_id, old_status, new_status, reason, logged_by)
                 VALUES (:animal_id, :old_status, :new_status, :reason, :logged_by)';
 
-            $insert = $this->db->prepare($sql);
+            $insert = $this->getDb()->prepare($sql);
             $insert->execute([
                 'animal_id' => $animalId,
                 'old_status' => $oldStatus,
@@ -332,17 +337,17 @@ final class Animal
                 'logged_by' => $keeperId,
             ]);
 
-            $logId = (int) $this->db->lastInsertId();
+            $logId = (int) $this->getDb()->lastInsertId();
 
             // Actualizar last_check_at del animal
-            $up = $this->db->prepare('UPDATE animals SET last_check_at = NOW() WHERE id = :id');
+            $up = $this->getDb()->prepare('UPDATE animals SET last_check_at = NOW() WHERE id = :id');
             $up->execute(['id' => $animalId]);
 
-            $this->db->commit();
+            $this->getDb()->commit();
 
             return $logId;
         } catch (\Throwable $e) {
-            $this->db->rollBack();
+            $this->getDb()->rollBack();
             throw $e;
         }
     }
@@ -352,7 +357,7 @@ final class Animal
      */
     public function getStatusLogs(int $animalId, int $days = 7): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT l.id, l.animal_id, l.old_status, l.new_status, l.reason, l.logged_by, l.created_at,
                     u.name AS keeper_name
              FROM animal_status_log l
@@ -398,7 +403,7 @@ final class Animal
                 WHERE a.cafe_id = :cafe_id
                 ORDER BY a.name';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue('cafe_id', $cafeId, PDO::PARAM_INT);
         $stmt->execute();
 
@@ -435,7 +440,7 @@ final class Animal
                 (animal_id, reported_by, incident_type, severity, description)
                 VALUES (:animal_id, :reported_by, :incident_type, :severity, :description)';
 
-        $this->db->prepare($sql)->execute([
+        $this->getDb()->prepare($sql)->execute([
             'animal_id' => $animalId,
             'reported_by' => $reportedBy,
             'incident_type' => $incidentType,
@@ -443,7 +448,7 @@ final class Animal
             'description' => $description,
         ]);
 
-        return (int) $this->db->lastInsertId();
+        return (int) $this->getDb()->lastInsertId();
     }
 
     /**
@@ -460,7 +465,7 @@ final class Animal
                 WHERE a.cafe_id = :cafe_id
                 ORDER BY i.severity DESC, i.created_at DESC';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue('cafe_id', $cafeId, PDO::PARAM_INT);
         $stmt->execute();
 
@@ -484,7 +489,7 @@ final class Animal
         $hasResolvedAt = false;
 
         try {
-            $check = $this->db->query(
+            $check = $this->getDb()->query(
                 "SELECT COLUMN_NAME FROM information_schema.COLUMNS
                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'animal_incidents'
                  AND COLUMN_NAME IN ('status','resolved_at')"
@@ -505,7 +510,7 @@ final class Animal
             $sql = 'UPDATE animal_incidents SET ' . \implode(', ', $parts) . ' WHERE id = :id';
 
             try {
-                $stmt = $this->db->prepare($sql);
+                $stmt = $this->getDb()->prepare($sql);
                 $ok = $stmt->execute(['id' => $incidentId]);
                 if ($ok) {
                     return true;
@@ -516,7 +521,7 @@ final class Animal
         }
 
         // Fallback: eliminar el incidente (temporal)
-        $stmt = $this->db->prepare('DELETE FROM animal_incidents WHERE id = :id');
+        $stmt = $this->getDb()->prepare('DELETE FROM animal_incidents WHERE id = :id');
         $stmt->bindValue('id', $incidentId, PDO::PARAM_INT);
 
         return $stmt->execute();
@@ -539,7 +544,7 @@ final class Animal
                 JOIN animals a ON a.id = IF(r.animal_a = :id, r.animal_b, r.animal_a)
                 WHERE r.animal_a = :id OR r.animal_b = :id';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue('id', $animalId, PDO::PARAM_INT);
         $stmt->execute();
 
@@ -566,7 +571,7 @@ final class Animal
     public function getWelfareStats(int $cafeId): array
     {
         // Conteo por estado
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT current_status, COUNT(*) as count
              FROM animals WHERE cafe_id = :cafe_id
              GROUP BY current_status'
@@ -593,7 +598,7 @@ final class Animal
              ) l ON l.animal_id = a.id
              WHERE a.cafe_id = :cafe_id";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue('cafe_id', $cafeId, PDO::PARAM_INT);
         $stmt->execute();
         $avgHealth = (float) ($stmt->fetchColumn() ?: 0);
@@ -603,7 +608,7 @@ final class Animal
 
         try {
             // Intentar contar solo abiertos si la columna existe
-            $check = $this->db->prepare(
+            $check = $this->getDb()->prepare(
                 "SELECT COUNT(*) FROM animal_incidents i
                  JOIN animals a ON a.id = i.animal_id
                  WHERE a.cafe_id = :cafe_id AND i.status = 'open'"
@@ -613,7 +618,7 @@ final class Animal
             $openIncidents = (int) $check->fetchColumn();
         } catch (\Throwable) {
             // Fallback
-            $stmt = $this->db->prepare(
+            $stmt = $this->getDb()->prepare(
                 'SELECT COUNT(*) FROM animal_incidents i
                  JOIN animals a ON a.id = i.animal_id
                  WHERE a.cafe_id = :cafe_id'

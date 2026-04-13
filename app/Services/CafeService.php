@@ -24,12 +24,16 @@ use PDOException;
 class CafeService extends BaseService implements CafeServiceInterface
 {
     private CafeRepositoryInterface $cafeRepo;
-    private PDO $db; // Mantener temporalmente para queries complejas legacy
+    private ?PDO $db = null; // Inicialización lazy: se obtiene solo cuando se necesita
 
     public function __construct(CafeRepositoryInterface $cafeRepo)
     {
         $this->cafeRepo = $cafeRepo;
-        $this->db = Database::getConnection(); // Mantener temporalmente para queries complejas legacy
+    }
+
+    private function getDb(): PDO
+    {
+        return $this->db ??= Database::getConnection();
     }
 
     /**
@@ -273,7 +277,7 @@ class CafeService extends BaseService implements CafeServiceInterface
             LIMIT ?
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute([$searchTerm, $searchTerm, $searchTerm, $limit]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -299,6 +303,6 @@ class CafeService extends BaseService implements CafeServiceInterface
             FROM cafes
         ';
 
-        return $this->db->query($sql)->fetch(PDO::FETCH_ASSOC);
+        return $this->getDb()->query($sql)->fetch(PDO::FETCH_ASSOC);
     }
 }

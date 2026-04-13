@@ -12,11 +12,16 @@ use PDOException;
 
 final class AdminStatisticsService implements AdminStatisticsServiceInterface
 {
-    private PDO $db;
+    private ?PDO $db = null;
 
-    public function __construct()
+    public function __construct(?PDO $db = null)
     {
-        $this->db = Database::getConnection();
+        $this->db = $db;
+    }
+
+    private function getDb(): PDO
+    {
+        return $this->db ??= Database::getConnection();
     }
 
     /**
@@ -26,25 +31,25 @@ final class AdminStatisticsService implements AdminStatisticsServiceInterface
     public function getSystemStatistics(): array
     {
         $stats = [
-            'users' => (int) $this->db->query('SELECT COUNT(*) FROM users')->fetchColumn(),
-            'cafes' => (int) $this->db->query('SELECT COUNT(*) FROM cafes')->fetchColumn(),
-            'reservations' => (int) $this->db->query('SELECT COUNT(*) FROM reservations')->fetchColumn(),
-            'reviews' => (int) $this->db->query('SELECT COUNT(*) FROM reviews')->fetchColumn(),
-            'pending_reviews' => (int) $this->db->query('SELECT COUNT(*) FROM reviews WHERE status = "pending"')->fetchColumn(),
+            'users' => (int) $this->getDb()->query('SELECT COUNT(*) FROM users')->fetchColumn(),
+            'cafes' => (int) $this->getDb()->query('SELECT COUNT(*) FROM cafes')->fetchColumn(),
+            'reservations' => (int) $this->getDb()->query('SELECT COUNT(*) FROM reservations')->fetchColumn(),
+            'reviews' => (int) $this->getDb()->query('SELECT COUNT(*) FROM reviews')->fetchColumn(),
+            'pending_reviews' => (int) $this->getDb()->query('SELECT COUNT(*) FROM reviews WHERE status = "pending"')->fetchColumn(),
         ];
 
         try {
-            $usersCurrentWeek = (int) $this->db->query(
+            $usersCurrentWeek = (int) $this->getDb()->query(
                 'SELECT COUNT(*) FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
             )->fetchColumn();
-            $usersPreviousWeek = (int) $this->db->query(
+            $usersPreviousWeek = (int) $this->getDb()->query(
                 'SELECT COUNT(*) FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)'
             )->fetchColumn();
 
-            $reservationsCurrentWeek = (int) $this->db->query(
+            $reservationsCurrentWeek = (int) $this->getDb()->query(
                 'SELECT COUNT(*) FROM reservations WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
             )->fetchColumn();
-            $reservationsPreviousWeek = (int) $this->db->query(
+            $reservationsPreviousWeek = (int) $this->getDb()->query(
                 'SELECT COUNT(*) FROM reservations WHERE created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)'
             )->fetchColumn();
 
@@ -62,7 +67,7 @@ final class AdminStatisticsService implements AdminStatisticsServiceInterface
     #[\Override]
     public function getMonthlyStats(int $month, int $year): array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->getDb()->prepare("
             SELECT
                 COUNT(DISTINCT r.id) as total_reservations,
                 COALESCE(SUM(r.guest_count), 0) as total_guests,
@@ -77,11 +82,11 @@ final class AdminStatisticsService implements AdminStatisticsServiceInterface
         $stmt->execute(['month' => $month, 'year' => $year]);
         $reservationStats = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $stmt = $this->db->prepare('SELECT COUNT(*) as new_users FROM users WHERE MONTH(created_at) = :month AND YEAR(created_at) = :year');
+        $stmt = $this->getDb()->prepare('SELECT COUNT(*) as new_users FROM users WHERE MONTH(created_at) = :month AND YEAR(created_at) = :year');
         $stmt->execute(['month' => $month, 'year' => $year]);
         $userStats = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $stmt = $this->db->prepare("SELECT COUNT(*) as total_reviews, COALESCE(AVG(rating), 0) as avg_rating FROM reviews WHERE MONTH(created_at) = :month AND YEAR(created_at) = :year AND status = 'approved'");
+        $stmt = $this->getDb()->prepare("SELECT COUNT(*) as total_reviews, COALESCE(AVG(rating), 0) as avg_rating FROM reviews WHERE MONTH(created_at) = :month AND YEAR(created_at) = :year AND status = 'approved'");
         $stmt->execute(['month' => $month, 'year' => $year]);
         $reviewStats = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -101,7 +106,7 @@ final class AdminStatisticsService implements AdminStatisticsServiceInterface
     #[\Override]
     public function getCafePerformanceStats(string $dateFrom, string $dateTo, int $limit = 10): array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->getDb()->prepare("
             SELECT
                 c.id, c.name, c.category as type,
                 COUNT(DISTINCT r.id) as total_reservations,
@@ -131,7 +136,7 @@ final class AdminStatisticsService implements AdminStatisticsServiceInterface
     #[\Override]
     public function getReservationTrendStats(string $dateFrom, string $dateTo): array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->getDb()->prepare("
             SELECT
                 r.reservation_date as date,
                 COUNT(DISTINCT r.id) as total_reservations,
@@ -151,7 +156,7 @@ final class AdminStatisticsService implements AdminStatisticsServiceInterface
     #[\Override]
     public function getReservationsByCafeType(string $dateFrom, string $dateTo): array
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT
                 c.category as type,
                 COUNT(DISTINCT r.id) as total_reservations,
@@ -180,7 +185,7 @@ final class AdminStatisticsService implements AdminStatisticsServiceInterface
     #[\Override]
     public function getUserDistributionByRole(): array
     {
-        $stmt = $this->db->query('
+        $stmt = $this->getDb()->query('
             SELECT r.name as role_name, r.code as role_code, COUNT(DISTINCT ur.user_id) as user_count
             FROM roles r
             LEFT JOIN user_roles ur ON r.id = ur.role_id
@@ -194,7 +199,7 @@ final class AdminStatisticsService implements AdminStatisticsServiceInterface
     #[\Override]
     public function getTopCafes(string $dateFrom, string $dateTo, int $limit = 10): array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->getDb()->prepare("
             SELECT
                 c.id, c.name, c.category as type, c.location,
                 COUNT(DISTINCT r.id) as total_reservations,

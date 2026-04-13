@@ -24,6 +24,7 @@ namespace Controllers\Supervisor;
 use App\Http\Controllers\Supervisor\SupervisorController;
 use App\Repositories\ReservationRepository;
 use App\Repositories\SupervisorAssignmentRepository;
+use App\Services\KitchenService;
 use App\Services\SupervisorAssignmentService;
 use PDO;
 use PDOStatement;
@@ -81,6 +82,18 @@ final class SupervisorControllerTest extends TestCase
         }
     }
 
+    private function makeKitchenService(): KitchenService
+    {
+        $stmt = $this->createStub(PDOStatement::class);
+        $stmt->method('execute')->willReturn(true);
+        $stmt->method('fetchAll')->willReturn([]);
+
+        $pdo = $this->createStub(PDO::class);
+        $pdo->method('prepare')->willReturn($stmt);
+
+        return new KitchenService($pdo);
+    }
+
     // ─────────────────────────────────────────────────────────────
     // Instanciación
     // ─────────────────────────────────────────────────────────────
@@ -124,7 +137,7 @@ final class SupervisorControllerTest extends TestCase
             ->method('prepare')
             ->willReturn($this->stmtMock);
 
-        $controller = new SupervisorController($this->assignmentService, $this->reservationRepo);
+        $controller = new SupervisorController($this->assignmentService, $this->reservationRepo, $this->makeKitchenService());
 
         ob_start();
         $result = $controller->index($this->makeRequest());
@@ -174,7 +187,7 @@ final class SupervisorControllerTest extends TestCase
         $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
 
         // Capturar el output de la vista para inspeccionar los datos pasados
-        $controller = new SupervisorController($this->assignmentService, $this->reservationRepo);
+        $controller = new SupervisorController($this->assignmentService, $this->reservationRepo, $this->makeKitchenService());
 
         ob_start();
         $result = $controller->index($this->makeRequest());
@@ -225,7 +238,7 @@ final class SupervisorControllerTest extends TestCase
         ]);
         $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
 
-        $controller = new SupervisorController($this->assignmentService, $this->reservationRepo);
+        $controller = new SupervisorController($this->assignmentService, $this->reservationRepo, $this->makeKitchenService());
 
         ob_start();
         $result = $controller->index($this->makeRequest());

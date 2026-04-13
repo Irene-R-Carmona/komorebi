@@ -20,6 +20,7 @@ namespace Tests\Unit\Http\Controllers\Admin;
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\UserController;
 use App\Repositories\UserRepository;
+use App\Services\UserManagementService;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -48,6 +49,7 @@ final class UserControllerTest extends ControllerTestCase
         ]);
 
         $controller = new UserController(
+            userManagementService: new UserManagementService($this->createStub(\PDO::class)),
             userRepo: $repoStub,
             response: new ResponseFactory()
         );
@@ -69,6 +71,7 @@ final class UserControllerTest extends ControllerTestCase
         $repoStub->method('getActiveUsersList')->willReturn([]);
 
         $controller = new UserController(
+            userManagementService: new UserManagementService($this->createStub(\PDO::class)),
             userRepo: $repoStub,
             response: new ResponseFactory()
         );

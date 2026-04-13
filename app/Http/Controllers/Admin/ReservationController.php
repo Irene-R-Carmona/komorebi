@@ -9,6 +9,7 @@ use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Exceptions\BusinessRuleException;
+use App\Http\Transformers\ReservationTransformer;
 use App\Models\AuditLog;
 use App\Models\Reservation;
 use App\Services\AdminActivityService;
@@ -31,11 +32,15 @@ final class ReservationController
 {
     private AdminActivityServiceInterface $activityService;
     private ResponseFactory $response;
+    private ReservationTransformer $reservationTransformer;
 
-    public function __construct(?AdminActivityServiceInterface $activityService = null, ?ResponseFactory $response = null)
+    private const ADMIN_RESERVATIONS_URL = '/admin/reservations';
+
+    public function __construct(?AdminActivityServiceInterface $activityService = null, ?ResponseFactory $response = null, ?ReservationTransformer $reservationTransformer = null)
     {
         $this->activityService = $activityService ?? new AdminActivityService();
         $this->response = $response ?? new ResponseFactory();
+        $this->reservationTransformer = $reservationTransformer ?? new ReservationTransformer();
     }
 
     /**
@@ -47,7 +52,9 @@ final class ReservationController
     public function index(): ?ResponseInterface
     {
         // Obtener reservas desde el servicio
-        $reservations = $this->activityService->getReservationsWithDetails(100);
+        $reservations = $this->reservationTransformer->collection(
+            $this->activityService->getReservationsWithDetails(100)
+        );
 
         View::render('admin/reservations/index', [
             'titulo' => 'Gestión de Reservas',
@@ -72,7 +79,7 @@ final class ReservationController
     {
         if (!Csrf::validate()) {
             Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/admin/reservations');
+            return $this->response->redirect(self::ADMIN_RESERVATIONS_URL);
         }
 
         // Normalizar parámetro que puede venir como int o como array desde el Router
@@ -84,7 +91,7 @@ final class ReservationController
 
         if ($id <= 0) {
             Flash::error('Identificador de reserva inválido');
-            return $this->response->redirect('/admin/reservations');
+            return $this->response->redirect(self::ADMIN_RESERVATIONS_URL);
         }
 
         $reservationModel = new Reservation();
@@ -100,7 +107,7 @@ final class ReservationController
 
         Flash::success('Reserva cancelada correctamente');
 
-        return $this->response->redirect('/admin/reservations');
+        return $this->response->redirect(self::ADMIN_RESERVATIONS_URL);
     }
 
     /**
@@ -117,7 +124,7 @@ final class ReservationController
     {
         if (!Csrf::validate()) {
             Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/admin/reservations');
+            return $this->response->redirect(self::ADMIN_RESERVATIONS_URL);
         }
 
         // Normalizar parámetro
@@ -129,7 +136,7 @@ final class ReservationController
 
         if ($id <= 0) {
             Flash::error('Identificador de reserva inválido');
-            return $this->response->redirect('/admin/reservations');
+            return $this->response->redirect(self::ADMIN_RESERVATIONS_URL);
         }
 
         $reservationModel = new Reservation();
@@ -145,6 +152,6 @@ final class ReservationController
 
         Flash::success('Reserva confirmada correctamente');
 
-        return $this->response->redirect('/admin/reservations');
+        return $this->response->redirect(self::ADMIN_RESERVATIONS_URL);
     }
 }

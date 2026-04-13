@@ -26,17 +26,34 @@ use PDO;
  */
 final class LoyaltyService implements LoyaltyServiceInterface
 {
-    private PDO $db;
-    private LoyaltyCard $loyaltyCardModel;
-    private LoyaltyReward $loyaltyRewardModel;
-    private LoyaltyRewardCatalog $catalogModel;
+    private ?PDO $db = null;
+    private ?LoyaltyCard $loyaltyCardModel = null;
+    private ?LoyaltyReward $loyaltyRewardModel = null;
+    private ?LoyaltyRewardCatalog $catalogModel = null;
 
-    public function __construct()
+    public function __construct(?PDO $db = null)
     {
-        $this->db = Database::getConnection();
-        $this->loyaltyCardModel = new LoyaltyCard($this->db);
-        $this->loyaltyRewardModel = new LoyaltyReward($this->db);
-        $this->catalogModel = new LoyaltyRewardCatalog($this->db);
+        $this->db = $db;
+    }
+
+    private function getDb(): PDO
+    {
+        return $this->db ??= Database::getConnection();
+    }
+
+    private function getCardModel(): LoyaltyCard
+    {
+        return $this->loyaltyCardModel ??= new LoyaltyCard($this->getDb());
+    }
+
+    private function getRewardModel(): LoyaltyReward
+    {
+        return $this->loyaltyRewardModel ??= new LoyaltyReward($this->getDb());
+    }
+
+    private function getCatalogModel(): LoyaltyRewardCatalog
+    {
+        return $this->catalogModel ??= new LoyaltyRewardCatalog($this->getDb());
     }
 
     /**
@@ -52,13 +69,13 @@ final class LoyaltyService implements LoyaltyServiceInterface
     {
         try {
             // Obtener o crear tarjeta
-            $card = $this->loyaltyCardModel->findOrCreateByUserId($userId);
+            $card = $this->getCardModel()->findOrCreateByUserId($userId);
             if (!$card) {
                 return Result::fail('No se pudo obtener la tarjeta de fidelización');
             }
 
             // Añadir sellos
-            $added = $this->loyaltyCardModel->addStamps((int)$card['id'], $stamps);
+            $added = $this->getCardModel()->addStamps((int)$card['id'], $stamps);
             if (!$added) {
                 return Result::fail('Error al añadir sellos');
             }
@@ -67,11 +84,11 @@ final class LoyaltyService implements LoyaltyServiceInterface
             $newVisitsCount = (int)$card['visits_count'] + $stamps;
             $newTier = $this->calculateTier($newVisitsCount);
             if ($newTier !== $card['current_tier']) {
-                $this->loyaltyCardModel->updateTier((int)$card['id'], $newTier);
+                $this->getCardModel()->updateTier((int)$card['id'], $newTier);
             }
 
             // Obtener tarjeta actualizada
-            $updatedCard = $this->loyaltyCardModel->findById((int)$card['id']);
+            $updatedCard = $this->getCardModel()->findById((int)$card['id']);
 
             // Verificar si desbloqueó nueva recompensa (cada 5 sellos)
             $prevStamps = (int)$card['stamps'];
@@ -136,13 +153,13 @@ final class LoyaltyService implements LoyaltyServiceInterface
         try {
             return Database::transaction(function () use ($userId, $rewardType) {
                 // Obtener tarjeta
-                $card = $this->loyaltyCardModel->findByUserId($userId);
+                $card = $this->getCardModel()->findByUserId($userId);
                 if (!$card) {
                     return Result::fail('No tienes tarjeta de fidelización');
                 }
 
                 // Obtener información de la recompensa del catálogo
-                $rewardInfo = $this->catalogModel->findByType($rewardType);
+                $rewardInfo = $this->getCatalogModel()->findByType($rewardType);
                 if (!$rewardInfo) {
                     return Result::fail('Recompensa no encontrada');
                 }
@@ -174,7 +191,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
                 }
 
                 // Consumir sellos
-                $consumed = $this->loyaltyCardModel->consumeStamps(
+                $consumed = $this->getCardModel()->consumeStamps(
                     (int)$card['id'],
                     (int)$rewardInfo['stamps_required']
                 );
@@ -191,7 +208,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
                 $expiresAt = date('Y-m-d H:i:s', strtotime("+{$validityDays} days"));
 
                 // Crear registro de recompensa canjeada
-                $rewardId = $this->loyaltyRewardModel->create([
+                $rewardId = $this->getRewardModel()->create([
                     'user_id' => $userId,
                     'loyalty_card_id' => $card['id'],
                     'reward_type' => $rewardType,
@@ -224,7 +241,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
     public function getCardStatus(int $userId): Result
     {
         try {
-            $card = $this->loyaltyCardModel->findOrCreateByUserId($userId);
+            $card = $this->getCardModel()->findOrCreateByUserId($userId);
             if (!$card) {
                 return Result::fail('Error al obtener tarjeta');
             }
@@ -233,7 +250,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
             $availableRewards = $this->getAvailableRewards($card['current_tier'], (int)$card['stamps']);
 
             // Obtener historial de recompensas canjeadas
-            $redeemedRewards = $this->loyaltyRewardModel->findByUserId($userId);
+            $redeemedRewards = $this->getRewardModel()->findByUserId($userId);
 
             // Calcular progreso al siguiente tier
             $tierProgress = $this->getTierProgress((int)$card['visits_count']);
@@ -259,7 +276,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
     #[\Override]
     public function getAvailableRewards(string $tier, int $currentStamps): array
     {
-        $allRewards = $this->catalogModel->getRewardsForTier($tier);
+        $allRewards = $this->getCatalogModel()->getRewardsForTier($tier);
 
         // Añadir información de disponibilidad
         return array_map(function ($reward) use ($currentStamps) {
@@ -335,7 +352,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
     public function validateRedemptionCode(string $code): Result
     {
         try {
-            $reward = $this->loyaltyRewardModel->findByRedemptionCode($code);
+            $reward = $this->getRewardModel()->findByRedemptionCode($code);
 
             if (!$reward) {
                 return Result::fail('Código de canje no válido');
@@ -347,7 +364,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
 
             // Verificar expiración
             if (strtotime($reward['expires_at']) < time()) {
-                $this->loyaltyRewardModel->markExpired([(int)$reward['id']]);
+                $this->getRewardModel()->markExpired([(int)$reward['id']]);
                 return Result::fail('Este código expiró el ' . date('d/m/Y', strtotime($reward['expires_at'])));
             }
 
@@ -367,13 +384,13 @@ final class LoyaltyService implements LoyaltyServiceInterface
     public function useReward(string $code): Result
     {
         try {
-            $reward = $this->loyaltyRewardModel->findByRedemptionCode($code);
+            $reward = $this->getRewardModel()->findByRedemptionCode($code);
 
             if (!$reward || $reward['status'] !== 'pending') {
                 return Result::fail('Código no válido');
             }
 
-            $used = $this->loyaltyRewardModel->markAsUsed((int)$reward['id']);
+            $used = $this->getRewardModel()->markAsUsed((int)$reward['id']);
 
             if (!$used) {
                 return Result::fail('Error al marcar recompensa como usada');

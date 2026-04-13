@@ -24,6 +24,11 @@ if (is_dir($supportDir)) {
 
 // Elevar E_NOTICE y E_WARNING a ErrorException para forzar correcciones
 set_error_handler(function (int $errno, string $errstr, string $errfile, int $errline) {
+    // Respetar el operador @ (error_reporting() devuelve 0 cuando @ está activo)
+    if (error_reporting() === 0) {
+        return false;
+    }
+
     // Elevar notices/warnings y deprecations a excepción para que PHPUnit las capture
     if (($errno & E_NOTICE)
         || ($errno & E_WARNING)

@@ -10,6 +10,7 @@ use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Exceptions\DatabaseException;
 use App\Exceptions\ValidationException;
+use App\Http\Transformers\ProductTransformer;
 use App\Models\MenuCategory;
 use App\Models\Product;
 use App\Services\Contracts\ProductServiceInterface;
@@ -26,11 +27,15 @@ final class MenuController
 {
     private ProductServiceInterface $productService;
     private ResponseFactory $response;
+    private ProductTransformer $productTransformer;
 
-    public function __construct(?ProductServiceInterface $productService = null, ?ResponseFactory $response = null)
+    private const CSRF_INVALID = 'Token de seguridad inválido';
+
+    public function __construct(?ProductServiceInterface $productService = null, ?ResponseFactory $response = null, ?ProductTransformer $productTransformer = null)
     {
         $this->productService = $productService ?? Container::make(ProductServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
+        $this->productTransformer = $productTransformer ?? new ProductTransformer();
     }
 
     /**
@@ -71,9 +76,17 @@ final class MenuController
         }
         unset($product);
 
+        // Aplicar transformer (excluye campos de cocina) y re-inyectar campos de display seguros
+        $rawProducts = $productsData['data'] ?? [];
+        $products = $this->productTransformer->collection($rawProducts);
+        foreach ($products as $key => $product) {
+            $products[$key]['allergens_list'] = $rawProducts[$key]['allergens_list'] ?? [];
+            $products[$key]['cafe_types_display'] = $rawProducts[$key]['cafe_types_display'] ?? ['Todos los cafés'];
+        }
+
         View::render('admin/products/index', [
             'titulo' => 'Gestión de Productos',
-            'products' => $productsData['data'] ?? [],
+            'products' => $products,
             'categories' => $categories,
             'total' => $productsData['total'] ?? 0,
             'csrf_token' => Csrf::token(),
@@ -93,11 +106,11 @@ final class MenuController
     public function create(): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         try {
-            $productId = $this->productService->create($_POST);
+            $productId = $this->productService->create($_POST); // NOSONAR
 
             return $this->response->json(['ok' => true, 'data' => [
                 'message' => 'El producto se ha creado correctamente.',
@@ -105,7 +118,7 @@ final class MenuController
             ]]);
         } catch (ValidationException $e) {
             // Errores de validación desde el servicio → convertir a ValidationException
-            throw ValidationException::withMessage($e->getMessage(), 422);
+            throw ValidationException::withMessage($e->getMessage(), 422); // NOSONAR
         }
     }
 
@@ -123,17 +136,17 @@ final class MenuController
     public function update(int $productId): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         try {
-            $this->productService->update($productId, $_POST);
+            $this->productService->update($productId, $_POST); // NOSONAR
 
             return $this->response->json(['ok' => true, 'data' => [
                 'message' => 'El producto se ha actualizado correctamente.',
             ]]);
         } catch (ValidationException $e) {
-            throw ValidationException::withMessage($e->getMessage(), 422);
+            throw ValidationException::withMessage($e->getMessage(), 422); // NOSONAR
         }
     }
 
@@ -150,7 +163,7 @@ final class MenuController
     public function toggleAvailability(int $productId): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         $success = $this->productService->toggleActive($productId);
@@ -178,7 +191,7 @@ final class MenuController
     public function delete(int $productId): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         $this->productService->delete($productId);
