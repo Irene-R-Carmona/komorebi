@@ -34,6 +34,8 @@ final class ReceptionControllerTest extends ControllerTestCase
         $_SESSION['user_id'] = 1;
         $_SESSION['user'] = ['id' => 1, 'roles' => ['reception']];
         $_SESSION['user_roles'] = ['reception'];
+        // Evita que el TTL check dispare fetchUserFromDb() en tests unitarios
+        $_SESSION['_user_verified_at'] = time();
     }
 
     protected function tearDown(): void

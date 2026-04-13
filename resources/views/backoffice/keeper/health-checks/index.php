@@ -111,15 +111,23 @@ use App\Core\View;
                                                     <td>
                                                         <?php
                                                         $statusColors = [
-                                                            'active' => 'success',
+                                                            'active'     => 'success',
                                                             'monitoring' => 'warning',
-                                                            'resting' => 'secondary',
-                                                            'sick' => 'danger',
+                                                            'resting'    => 'secondary',
+                                                            'sick'       => 'danger',
+                                                        ];
+                                                        $statusLabels = [
+                                                            'active'     => 'Activo',
+                                                            'monitoring' => 'En observación',
+                                                            'resting'    => 'Descansando',
+                                                            'sick'       => 'Enfermo',
+                                                            'retired'    => 'Retirado',
                                                         ];
                                                         $statusColor = $statusColors[$animal['current_status']] ?? 'secondary';
+                                                        $statusLabel = $statusLabels[$animal['current_status']] ?? ucfirst($animal['current_status']);
                                                         ?>
                                                         <span class="badge bg-<?= $statusColor ?>">
-                                                            <?= htmlspecialchars($animal['current_status'], ENT_QUOTES, 'UTF-8') ?>
+                                                            <?= htmlspecialchars($statusLabel, ENT_QUOTES, 'UTF-8') ?>
                                                         </span>
                                                     </td>
                                                     <td>

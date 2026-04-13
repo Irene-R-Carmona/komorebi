@@ -79,10 +79,13 @@ final class Middleware
             exit;
         }
 
-        // Solo verificar estado en BD si los roles aún no están cacheados en sesión.
-        // Esto evita una consulta redundante por petición cuando ya se verificó antes
-        // (e.g., en tests de unidad que pre-populan la sesión, o tras primera auth).
-        if (!Session::has('user_roles')) {
+        // Verificar estado en BD si los roles aún no están cacheados en sesión,
+        // o si han pasado más de 5 minutos desde la última verificación (TTL).
+        // Esto garantiza que usuarios eliminados/desactivados pierden acceso en ≤5 min.
+        $verifiedAt = (int) Session::get('_user_verified_at', 0);
+        $needsVerification = !Session::has('user_roles') || (\time() - $verifiedAt) > 300;
+
+        if ($needsVerification) {
             $user = self::fetchUserFromDb((int) $userId);
 
             // Solo forzar logout si el usuario existe y está marcado como inactivo.
@@ -90,6 +93,7 @@ final class Middleware
                 self::forceLogout('account_locked');
             }
 
+            Session::set('_user_verified_at', \time());
             self::loadUserRolesInSession((int) $userId);
         }
     }

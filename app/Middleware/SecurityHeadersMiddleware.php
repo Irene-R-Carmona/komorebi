@@ -42,8 +42,10 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
         // Content Security Policy con nonce dinámico
         $csp = implode('; ', [
             "default-src 'self'",
-            // Scripts: self, CDN Bootstrap/Alpine, nonce para inline, unsafe-eval para Alpine.js
-            // Usamos nonce dinámico para permitir scripts inline legítimos y mantenemos CSP estricta.
+            // Scripts: self, CDN Bootstrap/Alpine, nonce para inline.
+            // 'unsafe-eval' es requerido por Alpine.js v3 (usa new Function() para evaluar
+            // expresiones en directivas x-data/x-on). No puede eliminarse sin migrar a
+            // @alpinejs/csp (build sin eval). Ver: https://alpinejs.dev/advanced/csp
             "script-src 'self' https://cdn.jsdelivr.net 'nonce-{$this->nonce}' 'unsafe-eval'",
             // Estilos: self, CDNs, unsafe-inline necesario para estilos inline en SVG/componentes
             "style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'",

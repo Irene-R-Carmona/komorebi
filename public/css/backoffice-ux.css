@@ -961,8 +961,8 @@
 
 .empty-state__icon {
   font-size: 4rem;
-  opacity: 0.3;
   margin-bottom: var(--space-md);
+  opacity: 0.3;
   display: block;
 }
 

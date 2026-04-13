@@ -47,19 +47,24 @@ final class AnimalCareController
         ?AnimalRepositoryInterface $animalRepository = null,
         ?ResponseFactory $response = null,
     ) {
-        $this->animalCareService  = $animalCareService ?? new AnimalCareService();
-        $this->fileUploadService  = $fileUploadService ?? new FileUploadService();
-        if ($healthCheckService === null || $animalRepository === null) {
-            $db = Database::getConnection();
-            $this->healthCheckService = $healthCheckService ?? new HealthCheckService(
-                new HealthCheckRepository($db)
-            );
-            $this->animalRepository = $animalRepository ?? new AnimalRepository($db);
-        } else {
+        $this->fileUploadService = $fileUploadService ?? new FileUploadService();
+        $this->response = $response ?? new ResponseFactory();
+
+        if ($animalCareService !== null && $healthCheckService !== null && $animalRepository !== null) {
+            $this->animalCareService  = $animalCareService;
             $this->healthCheckService = $healthCheckService;
             $this->animalRepository   = $animalRepository;
+            return;
         }
-        $this->response = $response ?? new ResponseFactory();
+
+        $db         = Database::getConnection();
+        $animalRepo = $animalRepository ?? new AnimalRepository($db);
+
+        $this->animalCareService  = $animalCareService ?? new AnimalCareService($db, $animalRepo);
+        $this->healthCheckService = $healthCheckService ?? new HealthCheckService(
+            new HealthCheckRepository($db)
+        );
+        $this->animalRepository = $animalRepo;
     }
 
     // TODO(plan7-cleanup): método legacy sin ruta activa — eliminar en fase2-psr7-migration

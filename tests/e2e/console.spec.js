@@ -1,7 +1,4 @@
-/* Playwright E2E: comprobar que no hay errores en consola en páginas críticas
-
-  El test asume que la app está disponible en http://localhost:8080
-*/
+/* Playwright E2E: comprobar que no hay errores en consola en páginas críticas */
 const { test, expect } = require('@playwright/test');
 
 const PATHS = ['/', '/cafes', '/menu', '/historia', '/contacto', '/quiz', '/cafes/alpaca-hill', '/cafes/mipig-cafe'];
@@ -14,7 +11,7 @@ for (const path of PATHS) {
     });
     page.on('pageerror', err => { errors.push(String(err)); });
 
-    await page.goto(`http://localhost:8080${path}`);
+    await page.goto(path);
 
     expect(errors).toHaveLength(0);
   });

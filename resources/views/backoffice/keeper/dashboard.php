@@ -66,19 +66,19 @@ $getSeverityBadgeClass = static function (string $severity): string {
             'icon'    => 'heart-fill',
             'variant' => 'primary',
             'label'   => 'Animales Activos',
-            'value'   => $stats['active_animals'] ?? 0,
+            'value'   => $stats['total_animals'] ?? 0,
         ]) ?>
         <?= View::componentToString('components/admin/stat-card', [
             'icon'    => 'journal-check',
             'variant' => 'success',
             'label'   => 'Logs Hoy',
-            'value'   => $stats['today_logs'] ?? 0,
+            'value'   => $stats['logs_today'] ?? 0,
         ]) ?>
         <?= View::componentToString('components/admin/stat-card', [
             'icon'    => 'exclamation-triangle-fill',
             'variant' => 'warning',
             'label'   => 'Incidentes Activos',
-            'value'   => $stats['active_incidents'] ?? 0,
+            'value'   => count($active_incidents),
         ]) ?>
         <?= View::componentToString('components/admin/stat-card', [
             'icon'    => 'graph-up',

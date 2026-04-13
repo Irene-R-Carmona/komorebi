@@ -60,7 +60,7 @@ use App\Core\Csrf;
             </div>
 
             <!-- Submit -->
-            <button type="submit" class="btn btn--primario w-100 mt-2">
+            <button type="submit" class="btn btn--primario w-100 mt-2" aria-label="Entrar">
                 Entrar
             </button>
 

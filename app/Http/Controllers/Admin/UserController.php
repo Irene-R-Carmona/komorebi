@@ -87,7 +87,7 @@ final class UserController
      * Lista simplificada de usuarios para dropdowns/filtros
      * @throws JsonException
      */
-    public function getUsersList(): ResponseInterface
+    public function getUsersList(ServerRequestInterface $request): ResponseInterface
     {
         $users = $this->userRepo->getActiveUsersList();
         return $this->response->json(['ok' => true, 'data' => ['users' => $users]]);

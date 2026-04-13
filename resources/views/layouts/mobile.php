@@ -19,7 +19,7 @@
     <?php endforeach;
     endif; ?>
 
-    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web" defer></script>
     <!-- Componentes centralizados -->
     <script src="/js/components/fallbacks.js"></script>
     <script src="/js/components/catalogo.js"></script>
@@ -59,10 +59,13 @@
         <?php endforeach;
         endif; ?>
 
-        <a href="/logout" class="nav-icon logout">
-            <i class="ph ph-sign-out"></i>
-            <span>Salir</span>
-        </a>
+        <form method="POST" action="/logout" style="margin:0;">
+            <?= \App\Core\Csrf::field() ?>
+            <button type="submit" class="nav-icon logout" style="background:none;border:none;cursor:pointer;width:100%;">
+                <i class="ph ph-sign-out"></i>
+                <span>Salir</span>
+            </button>
+        </form>
     </nav>
 
 </body>

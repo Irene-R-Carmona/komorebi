@@ -67,7 +67,7 @@ final class AuthController
 
             return null;
         } catch (Throwable $e) {
-            Logger::error('AuthController::showLogin ERROR: ' . $e->getMessage());
+            Logger::error('[AuthController::showLogin] Error', ['exception' => $e->getMessage()]);
             throw $e;
         }
     }

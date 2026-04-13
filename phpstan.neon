@@ -33,6 +33,7 @@ parameters:
     # ── Carga de stubs / bootstrap ─────────────────────────────
     bootstrapFiles:
         - vendor/autoload.php
+        - tools/phpstan-bootstrap.php
 
     # scanFiles:
     #     - config/constants.php

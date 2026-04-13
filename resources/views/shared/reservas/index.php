@@ -309,6 +309,14 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                             $past = $ts !== false && $ts < time();
                             $status = (string) ($res['status'] ?? '');
                             $cancelable = in_array($status, ['pending', 'confirmed'], true) && !$past;
+                            $statusLabels = [
+                                'pending'   => 'Pendiente',
+                                'confirmed' => 'Confirmada',
+                                'cancelled' => 'Cancelada',
+                                'completed' => 'Completada',
+                                'active'    => 'Activa',
+                                'no_show'   => 'No presentado',
+                            ];
                             $fechaFmt = date('d/m/Y', strtotime((string) $res['reservation_date']));
                             $horaFmt = substr((string) $res['reservation_time'], 0, 5);
                             ?>
@@ -322,7 +330,7 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                                         Pase: <strong><?= $res['pass_name'] ?? '—' ?></strong>
                                         (<?= (int) ($res['pass_duration_minutes'] ?? 0) ?>m)
                                     </p>
-                                    <div class="rsv2-pill rsv2-pill--<?= $status ?>"><?= strtoupper($status) ?></div>
+                                    <div class="rsv2-pill rsv2-pill--<?= $status ?>"><?= htmlspecialchars($statusLabels[$status] ?? strtoupper($status), ENT_QUOTES, 'UTF-8') ?></div>
                                 </div>
 
                                 <div class="rsv2-item__actions">

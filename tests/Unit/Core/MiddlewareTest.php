@@ -24,6 +24,8 @@ final class MiddlewareTest extends TestCase
         // Asegurar que la sesión está iniciada y limpia para tests
         Session::start();
         $_SESSION = [];
+        // Evita que el TTL check dispare fetchUserFromDb() en tests unitarios
+        $_SESSION['_user_verified_at'] = time();
     }
 
     protected function tearDown(): void
