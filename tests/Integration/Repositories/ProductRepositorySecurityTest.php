@@ -24,6 +24,9 @@ use Tests\Support\BaseIntegrationTest;
 
 final class ProductRepositorySecurityTest extends BaseIntegrationTest
 {
+    private const int TEST_PRODUCT_ID  = 79002;
+    private const int TEST_CATEGORY_ID = 1;
+
     private ProductRepository $repo;
 
     #[Override]
@@ -52,5 +55,55 @@ final class ProductRepositorySecurityTest extends BaseIntegrationTest
             method_exists($this->repo, 'findWithRecipe'),
             'ProductRepository debe exponer findWithRecipe() para contextos de cocina/KDS'
         );
+    }
+
+    public function testFindWithRecipeReturnsKitchenFields(): void
+    {
+        $this->seedTestProduct();
+
+        $result = $this->repo->findWithRecipe(self::TEST_PRODUCT_ID);
+
+        $this->assertIsArray($result, 'findWithRecipe() debe retornar un array para un ID existente');
+
+        // Campos de cocina/KDS que DEBEN estar presentes
+        $this->assertArrayHasKey('station', $result);
+        $this->assertArrayHasKey('recipe_steps', $result);
+        $this->assertArrayHasKey('ingredients_list', $result);
+        $this->assertArrayHasKey('critical_check', $result);
+
+        // Verificar valores sembrados
+        $this->assertSame('bar', $result['station']);
+        $this->assertStringContainsString('Tamizar matcha', $result['recipe_steps']);
+        $this->assertSame('Temperatura agua: 80°C ±5°C (no hervir)', $result['critical_check']);
+        // ingredients_list puede volver como JSON string o array según el driver
+        $this->assertNotEmpty($result['ingredients_list']);
+    }
+
+    private function seedTestProduct(): void
+    {
+        self::$db->exec('SET FOREIGN_KEY_CHECKS = 0');
+        self::$db->exec('
+            INSERT INTO products (
+                id, category_id, product_type, name, japanese_name, slug, description,
+                price, station, prep_time, recipe_steps, ingredients_list, critical_check,
+                is_active, sort_order, created_at, updated_at
+            ) VALUES (
+                ' . self::TEST_PRODUCT_ID . ',
+                ' . self::TEST_CATEGORY_ID . ',
+                "item",
+                "Matcha Latte Test",
+                "抹茶ラテ テスト",
+                "matcha-latte-test-79002",
+                "Versión de prueba para test de seguridad",
+                750.00,
+                "bar",
+                5,
+                "1. Tamizar matcha\n2. Añadir agua caliente\n3. Batir\n4. Añadir leche vaporizada",
+                \'[{"nombre":"matcha","gramos":3},{"nombre":"leche","ml":200}]\',
+                "Temperatura agua: 80°C ±5°C (no hervir)",
+                1, 99, NOW(), NOW()
+            )
+        ');
+        self::$db->exec('SET FOREIGN_KEY_CHECKS = 1');
     }
 }

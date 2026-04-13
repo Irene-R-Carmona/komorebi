@@ -262,7 +262,11 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->get('/data-viewer', 'Admin\DataViewerController@index');
 
         $r->get('/logs/audit', 'Admin\AuditLogController@index');
+        $r->get('/logs/audit/export', 'Admin\AuditLogController@export');
         $r->get('/logs/auth', 'Admin\AuthLogController@index');
+        $r->get('/logs/auth/suspicious-count', 'Admin\AuthLogController@suspiciousCount');
+        $r->get('/logs/auth/export', 'Admin\AuthLogController@export');
+        $r->post('/security/block-ip', 'Admin\AuthLogController@blockIpStub', [$mw->csrf()]);
 
         $r->get('/reports', 'Admin\ReportController@index');
         $r->get('/reports/export', 'Admin\ReportController@exportReportes');

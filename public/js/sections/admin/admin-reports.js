@@ -137,17 +137,15 @@
       async exportPDF() {
         this.loading = true;
         try {
-          const response = await fetch('/api/admin/reports/export/pdf', {
-            method: 'POST',
+          const params = new URLSearchParams({
+            format: 'pdf',
+            date_from: this.dateFrom,
+            date_to: this.dateTo
+          });
+          const response = await fetch(`/admin/reports/export?${params}`, {
             headers: {
-              'Content-Type': 'application/json',
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            },
-            body: JSON.stringify({
-              type: this.reportType,
-              dateFrom: this.dateFrom,
-              dateTo: this.dateTo
-            })
+            }
           });
 
           if (response.ok) {
@@ -176,17 +174,15 @@
       async exportExcel() {
         this.loading = true;
         try {
-          const response = await fetch('/api/admin/reports/export/excel', {
-            method: 'POST',
+          const params = new URLSearchParams({
+            format: 'excel',
+            date_from: this.dateFrom,
+            date_to: this.dateTo
+          });
+          const response = await fetch(`/admin/reports/export?${params}`, {
             headers: {
-              'Content-Type': 'application/json',
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            },
-            body: JSON.stringify({
-              type: this.reportType,
-              dateFrom: this.dateFrom,
-              dateTo: this.dateTo
-            })
+            }
           });
 
           if (response.ok) {
@@ -215,17 +211,15 @@
       async exportCSV() {
         this.loading = true;
         try {
-          const response = await fetch('/api/admin/reports/export/csv', {
-            method: 'POST',
+          const params = new URLSearchParams({
+            format: 'csv',
+            date_from: this.dateFrom,
+            date_to: this.dateTo
+          });
+          const response = await fetch(`/admin/reports/export?${params}`, {
             headers: {
-              'Content-Type': 'application/json',
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            },
-            body: JSON.stringify({
-              type: this.reportType,
-              dateFrom: this.dateFrom,
-              dateTo: this.dateTo
-            })
+            }
           });
 
           if (response.ok) {

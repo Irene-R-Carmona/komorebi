@@ -227,6 +227,8 @@ $excludeAllergens ??= [];
                                         <img src="<?= $img ?>"
                                             alt="<?= $prod['name'] ?>"
                                             class="producto-card__img"
+                                            width="280"
+                                            height="210"
                                             loading="lazy">
 
                                         <div class="producto-card__badges">
@@ -240,7 +242,7 @@ $excludeAllergens ??= [];
                                     <div class="producto-card__body">
                                         <span class="producto-card__jp"><?= $prod['japanese_name'] ?? '' ?></span>
                                         <h3 class="producto-card__titulo"><?= $prod['name'] ?></h3>
-                                        <p class="producto-card__desc"><?= $prod['description'] ?></p>
+                                        <p class="producto-card__desc line-clamp-2"><?= $prod['description'] ?></p>
 
                                         <div class="producto-card__footer">
                                             <div class="producto-info-row">
@@ -277,6 +279,8 @@ $excludeAllergens ??= [];
                                         <img src="<?= $img ?>"
                                             alt="<?= $prod['name'] ?>"
                                             class="producto-card__img"
+                                            width="280"
+                                            height="210"
                                             loading="lazy">
 
                                         <div class="producto-card__badges">
@@ -292,7 +296,7 @@ $excludeAllergens ??= [];
                                     <div class="producto-card__body">
                                         <span class="producto-card__jp"><?= $prod['japanese_name'] ?? '' ?></span>
                                         <h3 class="producto-card__titulo"><?= $prod['name'] ?></h3>
-                                        <p class="producto-card__desc"><?= $prod['description'] ?></p>
+                                        <p class="producto-card__desc line-clamp-2"><?= $prod['description'] ?></p>
 
                                         <div class="producto-card__footer">
                                             <div class="producto-info-row">
@@ -413,9 +417,10 @@ $excludeAllergens ??= [];
                         <?php endforeach; ?>
 
                         <div class="menu-empty-msg"
-                            x-show="search !== '' && visibleCount($refs.grid<?= $catId ?>) === 0"
+                            x-show="(search !== '' || selectedCafeType !== null) && visibleCount($refs.grid<?= $catId ?>) === 0"
                             style="display:none;">
-                            <p>No se encontraron productos con "<span x-text="search"></span>" en esta categoría.</p>
+                            <p x-show="search !== ''" x-cloak>No se encontraron productos con "<span x-text="search"></span>" en esta categoría.</p>
+                            <p x-show="selectedCafeType !== null && search === ''" x-cloak>No hay productos disponibles para este tipo de café en esta categoría.</p>
                         </div>
 
                     <?php endif; ?>

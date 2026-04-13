@@ -42,6 +42,7 @@ use App\Services\Contracts\RateLimitingServiceInterface;
 use App\Services\Contracts\TelegramServiceInterface;
 use App\Services\RateLimitingService;
 use App\Services\TelegramService;
+use App\Services\Contracts\WeatherServiceInterface;
 use App\Services\WeatherService;
 
 // Asegurar que Config está inicializado
@@ -113,7 +114,7 @@ Container::singleton(WeatherService::class, static function (): WeatherService {
 });
 
 Container::singleton(ClimaContextoService::class, static function (): ClimaContextoService {
-    return new ClimaContextoService(Container::make(WeatherService::class));
+    return new ClimaContextoService(Container::make(WeatherServiceInterface::class));
 });
 
 // Tokens Bearer opacos para la API

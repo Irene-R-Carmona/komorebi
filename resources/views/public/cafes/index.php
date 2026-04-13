@@ -6,7 +6,23 @@
         'ubicacion' => $c['location'],
     ], $cafes);
     ?>
-    <div class="seccion__container" x-data="catalogoApp(<?= json_encode($favoritos, JSON_THROW_ON_ERROR) ?>, <?= json_encode($cafesSimple, JSON_THROW_ON_ERROR) ?>)" x-cloak>
+    <!-- Skeleton: visible antes de Alpine.js (x-cloak oculta el contenido real) -->
+    <div id="catalogo-skeleton" class="seccion__container" aria-hidden="true">
+        <div class="catalogo__grid skeleton-list">
+            <?php for ($i = 0; $i < 6; $i++): ?>
+                <div class="skeleton-card">
+                    <div class="skeleton skeleton-image skeleton-image--4-3"></div>
+                    <div class="skeleton skeleton-text skeleton-text--heading"></div>
+                    <div class="skeleton skeleton-text skeleton-text--sm"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text skeleton-text--sm"></div>
+                </div>
+            <?php endfor; ?>
+        </div>
+    </div>
+
+    <div class="seccion__container" x-data="catalogoApp(<?= json_encode($favoritos, JSON_THROW_ON_ERROR) ?>, <?= json_encode($cafesSimple, JSON_THROW_ON_ERROR) ?>)" x-cloak x-init="document.getElementById('catalogo-skeleton')?.remove()">
         <header class="seccion__header">
             <h2 class="seccion__titulo">Nuestros Cafés</h2>
             <p class="seccion__subtitulo">Encuentra tu lugar perfecto para relajarte</p>
@@ -89,6 +105,8 @@
                         <img src="<?= e($cafe['image_url'] ?? '/images/ui/placeholder-cafe.svg') ?>"
                             alt="<?= e($cafe['name']) ?>"
                             class="card__img"
+                            width="400"
+                            height="266"
                             loading="lazy"
                             onerror="this.onerror=null; this.src='/images/ui/placeholder-cafe.svg'">
                         <div class="card__tipo-badge"><?= ucfirst(e($cafe['animal_type'])) ?></div>
@@ -109,7 +127,7 @@
                             <?= substr($cafe['opening_time'], 0, 5) ?> - <?= substr($cafe['closing_time'], 0, 5) ?>
                         </div>
 
-                        <p class="card__descripcion"><?= e($cafe['description']) ?></p>
+                        <p class="card__descripcion line-clamp-3"><?= e($cafe['description']) ?></p>
 
                         <div class="card__footer">
                             <div class="card__rating">

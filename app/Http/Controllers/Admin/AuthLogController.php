@@ -131,6 +131,30 @@ final class AuthLogController
     }
 
     /**
+     * GET /admin/logs/auth/suspicious-count
+     * Número de IPs con actividad sospechosa (para badge en el panel)
+     * @throws JsonException
+     */
+    public function suspiciousCount(): ResponseInterface
+    {
+        $suspicious = $this->authLogRepo->findSuspiciousActivity(15, 5);
+        return $this->response->json(['ok' => true, 'count' => \count($suspicious)]);
+    }
+
+    /**
+     * POST /admin/security/block-ip
+     * Stub — funcionalidad de bloqueo IP pendiente de implementar
+     * @throws JsonException
+     */
+    public function blockIpStub(): ResponseInterface
+    {
+        return $this->response->json(
+            ['ok' => false, 'message' => 'El bloqueo de IP no está disponible todavía.'],
+            501
+        );
+    }
+
+    /**
      * Helper: escribir una fila CSV en el handler dado (quita el escape deprecated)
      *
      * @param false|resource $output

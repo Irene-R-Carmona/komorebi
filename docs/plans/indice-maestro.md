@@ -123,19 +123,19 @@ de `app/Core/AbstractRepository.php` con la convención de métodos de selecció
 
 **Corto plazo (alto impacto en dev):**
 
-- [ ] **Slow Query Detection** — Decorator `LoggingPDO` en `app/Core/Database.php`
+- [x] **Slow Query Detection** — Decorator `LoggingPDO` en `app/Core/Database.php`
   Umbral: `DB_SLOW_QUERY_MS` (env var, default 100ms). Dev: loguea todas en debug.
-- [ ] **Request Body sanitizado en errores 4xx** — En `RequestLogMiddleware`, loguear body
+- [x] **Request Body sanitizado en errores 4xx** — En `RequestLogMiddleware`, loguear body
   sin campos PII (`password`, `token`, `cvv`, `card_*`).
-- [ ] **Make targets dev** — `make logs-errors`, `make logs-slow`, `make logs-trace REQUEST_ID=xxx`,
+- [x] **Make targets dev** — `make logs-errors`, `make logs-slow`, `make logs-trace REQUEST_ID=xxx`,
   `make logs-http` — todos via `docker compose logs app | jq '...'`
-- [ ] **Health endpoint completo** — `public/health.php` existe pero puede ser básico.
+- [x] **Health endpoint completo** — `public/health.php` existe pero puede ser básico.
   Expandir: `{status, db, redis, workers: {email, notifications}, version}`
 
 **Largo plazo (observabilidad en producción):**
 
-- [ ] **Cache hit/miss en WideEvent** — Contadores en `app/Core/Cache.php` → sección `cache: {hits, misses}`
-- [ ] **Worker heartbeat + queue size** — Cada 60s: `[Worker] Heartbeat {queue, pending, processed, errors}`
+- [x] **Cache hit/miss en WideEvent** — Contadores en `app/Core/Cache.php` → sección `cache: {hits, misses}`
+- [x] **Worker heartbeat + queue size** — Cada 60s: `[Worker] Heartbeat {queue, pending, processed, errors}`
   - `Queue::size()` logueado. Dead-letter log cuando job supera `max_retries`.
 - [ ] **OpenTelemetry / Sentry** — Instrumentación externa. Es decisión de infraestructura, no de código.
   Preparar hooks (el request_id ya existe, facilita correlación con Sentry).
@@ -170,26 +170,26 @@ de `app/Core/AbstractRepository.php` con la convención de métodos de selecció
 **Performance Web Vitals (corto plazo, alto impacto):**
 
 - [ ] `fetchpriority="high"` en imagen hero del home (LCP)
-- [ ] `loading="lazy"` + `width`/`height` explícitos en tarjetas del catálogo (CLS = 0)
+- [x] `loading="lazy"` + `width`/`height` explícitos en tarjetas del catálogo (CLS = 0)
 - [ ] `font-display: swap` en `@font-face` de fuentes japonesas (FOUT prevention)
 - [ ] Verificar WebP/AVIF en imágenes servidas (o añadir `<picture>` con fallback)
 
 **Dark mode — inconsistencias (corto plazo):**
 
-- [ ] Imágenes sin filtro en dark → `[data-tema="oscuro"] img { filter: brightness(0.85) }`
+- [x] Imágenes sin filtro en dark → `[data-tema="oscuro"] img { filter: brightness(0.82) saturate(0.9) }`
 - [ ] Sombras usan `rgba(marrón,...)` — en dark deberían ser casi transparentes o neutras
 - [ ] Focus outlines en dark (verificar contraste sobre fondos oscuros)
 
 **Estados faltantes (corto plazo):**
 
-- [ ] Skeleton loaders en catálogo y menú mientras Alpine inicializa
-- [ ] Empty states con SVG + CTA cuando filtros no dan resultados
+- [x] Skeleton loaders en catálogo y menú mientras Alpine inicializa
+- [x] Empty states con SVG + CTA cuando filtros no dan resultados
 - [ ] Estado de carga optimista en formularios (botón submit con spinner)
 
 **Tipografía (corto plazo):**
 
-- [ ] `text-wrap: balance` en H1/H2 grandes
-- [ ] Line-clamp en descriptions de tarjetas de café
+- [x] `text-wrap: balance` en H1/H2 grandes
+- [x] Line-clamp en descriptions de tarjetas de café
 
 **Micro-interacciones (largo plazo, decorativo):**
 
@@ -199,7 +199,7 @@ de `app/Core/AbstractRepository.php` con la convención de métodos de selecció
 
 **Accesibilidad avanzada (largo plazo):**
 
-- [ ] `role="status"` en contador "X cafés encontrados"
+- [x] `role="status"` en contador "X cafés encontrados"
 - [ ] `aria-label` en step indicator del quiz
 - [ ] Revisar contraste de `--color-texto-suave` (#5C4A3A) sobre `--color-fondo-alt` (#E8DCC4)
 
@@ -235,6 +235,6 @@ FASE 3 (independiente, puede empezar en cualquier momento)
 | Fase | Plan | Estado |
 |---|---|---|
 | Fase 0 | `docs/plans/2026-04-12-principios-arquitectonicos.md` | ✅ Plan definitivo creado |
-| Fase 1 | `docs/plans/YYYY-MM-DD-seguridad-datos-dto.md` | ⏳ No creado |
-| Fase 2 | `docs/plans/YYYY-MM-DD-observabilidad-logging.md` | ⏳ No creado |
-| Fase 3 | `docs/plans/YYYY-MM-DD-uiux-vistas-publicas.md` | ⏳ No creado |
+| Fase 1 | `docs/plans/2026-04-13-seguridad-datos-dto.md` | ✅ Plan creado — en implementación |
+| Fase 2 | `docs/plans/2026-04-13-observabilidad-logging.md` | ✅ Plan creado — implementación completa |
+| Fase 3 | `docs/plans/2026-04-13-uiux-vistas-publicas.md` | ✅ Plan creado — en implementación |

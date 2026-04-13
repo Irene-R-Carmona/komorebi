@@ -226,12 +226,13 @@ final class ReviewServiceTest extends TestCase
         $this->assertStringContainsString('&lt;script&gt;', $capturedData['body'] ?? '');
     }
 
-    public function testDeleteReviewReturnsBoolean(): void
+    public function testDeleteReviewReturnsResult(): void
     {
         $this->reviewRepoMock->method('delete')->willReturn(true);
 
         $result = $this->service->deleteReview(123);
 
-        $this->assertTrue($result);
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertTrue($result->ok);
     }
 }

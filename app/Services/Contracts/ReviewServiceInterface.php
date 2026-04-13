@@ -12,7 +12,7 @@ interface ReviewServiceInterface
 
     public function updateReview(int $reviewId, int $userId, int $rating, string $title, string $body): Result;
 
-    public function deleteReview(int $reviewId, ?int $userId = null): bool|Result;
+    public function deleteReview(int $reviewId, ?int $userId = null): Result;
 
     public function canUserReview(int $userId, int $cafeId): array;
 

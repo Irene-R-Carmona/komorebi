@@ -182,15 +182,17 @@ class ReviewService extends BaseService implements ReviewServiceInterface
     /**
      * Elimina una reseña (solo propietario).
      *
-     * @return Result|bool
+     * @return Result
      */
     #[\Override]
-    public function deleteReview(int $reviewId, ?int $userId = null): bool|Result
+    public function deleteReview(int $reviewId, ?int $userId = null): Result
     {
-        // Si no se pasa userId, comportamiento simple esperado por tests: devolver booleano
+        // Si no se pasa userId, eliminar directamente sin verificar propiedad
         if ($userId === null) {
             try {
-                return $this->reviewRepository->delete($reviewId);
+                $deleted = $this->reviewRepository->delete($reviewId);
+
+                return $deleted ? Result::ok(null) : Result::fail('No se pudo eliminar la reseña', 'delete_failed');
             } catch (Exception $e) {
                 Logger::error('Error al eliminar reseña (byId)', [
                     'exception' => \get_class($e),
@@ -198,7 +200,7 @@ class ReviewService extends BaseService implements ReviewServiceInterface
                     'review_id' => $reviewId,
                 ]);
 
-                return false;
+                return Result::fail('Error al eliminar reseña', 'delete_error');
             }
         }
 

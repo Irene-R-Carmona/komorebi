@@ -25,6 +25,8 @@ use Tests\Support\BaseIntegrationTest;
 
 final class ReservationRepositorySecurityTest extends BaseIntegrationTest
 {
+    private const int TEST_RESERVATION_ID = 79001;
+
     private ReservationRepository $repo;
 
     #[Override]
@@ -55,5 +57,54 @@ final class ReservationRepositorySecurityTest extends BaseIntegrationTest
             method_exists($this->repo, 'findWithOperationalData'),
             'ReservationRepository debe exponer findWithOperationalData() para contextos de staff'
         );
+    }
+
+    public function testFindWithOperationalDataReturnsOperationalFields(): void
+    {
+        $this->seedTestReservation();
+
+        $result = $this->repo->findWithOperationalData(self::TEST_RESERVATION_ID);
+
+        $this->assertIsArray($result, 'findWithOperationalData() debe retornar un array para un ID existente');
+
+        // Campos operativos que DEBEN estar presentes
+        $this->assertArrayHasKey('tracker_id', $result);
+        $this->assertArrayHasKey('current_zone_id', $result);
+        $this->assertArrayHasKey('protocol_hygiene', $result);
+        $this->assertArrayHasKey('protocol_briefing', $result);
+        $this->assertArrayHasKey('protocol_shoes', $result);
+        $this->assertArrayHasKey('payment_notes', $result);
+
+        // Verificar valores sembrados
+        $this->assertNull($result['tracker_id']);         // BIGINT, sembrado como NULL
+        $this->assertNull($result['current_zone_id']);    // BIGINT, sembrado como NULL
+        $this->assertSame('Nota de pago de prueba de seguridad', $result['payment_notes']);
+        $this->assertSame(1, (int) $result['protocol_hygiene']);
+        $this->assertSame(1, (int) $result['protocol_shoes']);
+    }
+
+    private function seedTestReservation(): void
+    {
+        self::$db->exec('DELETE FROM reservations WHERE id = ' . self::TEST_RESERVATION_ID);
+        self::$db->exec('SET FOREIGN_KEY_CHECKS = 0');
+        self::$db->exec('
+            INSERT INTO reservations (
+                id, user_id, cafe_id, pass_product_id, pass_name, pass_unit_price,
+                pass_duration_minutes, tracker_id, current_zone_id,
+                reservation_date, reservation_time, guest_count, status,
+                protocol_hygiene, protocol_briefing, protocol_shoes,
+                payment_notes, final_amount, payment_status, payment_method,
+                notes, created_at, updated_at
+            ) VALUES (
+                ' . self::TEST_RESERVATION_ID . ',
+                1, 1, 1, "Pase test seguridad", 3000,
+                90, NULL, NULL,
+                CURDATE(), "10:00:00", 2, "confirmed",
+                1, 0, 1,
+                "Nota de pago de prueba de seguridad", 3000, "pending", "cash",
+                NULL, NOW(), NOW()
+            )
+        ');
+        self::$db->exec('SET FOREIGN_KEY_CHECKS = 1');
     }
 }

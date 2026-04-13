@@ -8,7 +8,7 @@ document.addEventListener('alpine:init', () => {
 
     // Estado carrito
     cart: { items: {}, totalQty: 0, totalPrice: 0 },
-    loading: false,
+    loading: true,
 
     // Filtros
     excludedAllergens: [],
@@ -31,6 +31,8 @@ document.addEventListener('alpine:init', () => {
       if (Array.isArray(this.excludedAllergens) && this.excludedAllergens.length > 0) {
         this.applyAllergenFilter();
       }
+
+      this.loading = false;
     },
 
     // ----------------------------

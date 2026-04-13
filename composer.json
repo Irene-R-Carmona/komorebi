@@ -54,7 +54,7 @@
     "vimeo/psalm": "^6.15",
     "squizlabs/php_codesniffer": "^4.0",
     "brianium/paratest": "^7.19",
-    "phpstan/phpstan-phpunit": "^1.4"
+    "phpstan/phpstan-phpunit": "*"
   },
   "scripts": {
     "test": "vendor/bin/phpunit --testdox",
