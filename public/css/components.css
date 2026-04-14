@@ -107,12 +107,12 @@
 }
 
 .badge--warning {
-  background-color: #F59E0B;
-  color: white;
+  background-color: var(--color-warning, #C9A959);
+  color: var(--color-texto, #2D2218);
 }
 
 .badge--info {
-  background-color: #3B82F6;
+  background-color: var(--color-info, #5A9FD4);
   color: white;
 }
 
@@ -299,15 +299,15 @@
 }
 
 .alert--warning {
-  background-color: rgba(245, 158, 11, 0.1);
-  border-left-color: #F59E0B;
-  color: #D97706;
+  background-color: rgba(201, 169, 89, 0.1);
+  border-left-color: var(--color-warning, #C9A959);
+  color: var(--color-warning-dark, #927009);
 }
 
 .alert--info {
-  background-color: rgba(59, 130, 246, 0.1);
-  border-left-color: #3B82F6;
-  color: #2563EB;
+  background-color: rgba(90, 159, 212, 0.1);
+  border-left-color: var(--color-info, #5A9FD4);
+  color: var(--color-info-dark, #1E5F8C);
 }
 
 /* ----------------------------------------

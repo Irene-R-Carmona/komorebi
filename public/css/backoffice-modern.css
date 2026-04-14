@@ -106,7 +106,7 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-glow: 0 0 20px rgba(201, 169, 89, 0.3);
 
   /* Spacing (1.5 ratio - tailwind inspired) */
   --space-1: 0.25rem;
@@ -196,7 +196,7 @@
 }
 
 body {
-  font-family: 'Zen Kaku Gothic New', system-ui, -apple-system, sans-serif;
+  font-family: 'Zen Maru Gothic', 'Noto Sans JP', system-ui, sans-serif;
   font-size: var(--font-base);
   line-height: var(--line-height-normal);
   color: var(--text-primary);

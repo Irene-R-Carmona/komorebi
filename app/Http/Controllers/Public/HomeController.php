@@ -9,6 +9,8 @@ use App\Core\View;
 use App\Models\Animal;
 use App\Models\Cafe;
 use App\Models\Favorite;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Controlador de la Página Principal
@@ -27,7 +29,7 @@ final class HomeController
     /**
      * GET /
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         // Estadísticas generales
         $cafes = $this->cafeModel->findAll();
@@ -60,6 +62,7 @@ final class HomeController
             'userData' => $userData,
             'categories' => $this->getCategoryStats($cafes),
         ], ['home.css']);
+        return null;
     }
 
     // ─────────────────────────────────────────────────────────────

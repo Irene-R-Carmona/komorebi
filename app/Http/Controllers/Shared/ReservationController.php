@@ -67,14 +67,14 @@ final class ReservationController
      * @throws JsonException
      * @throws \DateMalformedStringException
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         if (!Session::isAuthenticated()) {
             View::render('shared/reservas/guest', [
                 'titulo' => 'Reservas',
             ], ['reservas.css']);
 
-            return;
+            return null;
         }
 
         $userId = Session::userId();
@@ -107,6 +107,7 @@ final class ReservationController
             'clima' => $clima,
             'festivos' => $festivosDelMes,
         ], ['reservas.css']);
+        return null;
     }
 
     /**
@@ -115,7 +116,7 @@ final class ReservationController
      *
      * @throws Throwable
      */
-    public function create(): ResponseInterface
+    public function create(ServerRequestInterface $request): ResponseInterface
     {
         if (!Session::isAuthenticated()) {
             throw ValidationException::withMessage('Debes iniciar sesión para hacer una reserva.', 401);
@@ -123,12 +124,13 @@ final class ReservationController
 
         $userId = Session::userId();
 
-        $cafeId = \filter_input(INPUT_POST, 'cafe_id', FILTER_VALIDATE_INT);
-        $passProductId = \filter_input(INPUT_POST, 'pass_product_id', FILTER_VALIDATE_INT);
-        $fecha = \trim((string) ($_POST['fecha'] ?? ''));
-        $hora = \trim((string) ($_POST['hora'] ?? ''));
-        $personas = \filter_input(INPUT_POST, 'personas', FILTER_VALIDATE_INT);
-        $comentarios = \trim(\strip_tags((string) ($_POST['comentarios'] ?? '')));
+        $body = (array) $request->getParsedBody();
+        $cafeId = isset($body['cafe_id']) ? filter_var($body['cafe_id'], FILTER_VALIDATE_INT) : false;
+        $passProductId = isset($body['pass_product_id']) ? filter_var($body['pass_product_id'], FILTER_VALIDATE_INT) : false;
+        $fecha = \trim((string) ($body['fecha'] ?? ''));
+        $hora = \trim((string) ($body['hora'] ?? ''));
+        $personas = isset($body['personas']) ? filter_var($body['personas'], FILTER_VALIDATE_INT) : false;
+        $comentarios = \trim(\strip_tags((string) ($body['comentarios'] ?? '')));
 
         $errors = [];
         if (!$cafeId) {
@@ -194,14 +196,15 @@ final class ReservationController
      * @throws ValidationException
      * @throws RandomException
      */
-    public function cancel(): void
+    public function cancel(ServerRequestInterface $request): ResponseInterface
     {
         if (!Session::isAuthenticated()) {
             throw ValidationException::withMessage('Debes iniciar sesión.', 401);
         }
 
         $userId = Session::userId();
-        $reservationId = \filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+        $body = (array) $request->getParsedBody();
+        $reservationId = isset($body['id']) ? filter_var($body['id'], FILTER_VALIDATE_INT) : false;
 
         if (!$reservationId || $reservationId <= 0) {
             throw ValidationException::withMessage('Reserva inválida');
@@ -223,13 +226,12 @@ final class ReservationController
 
         try {
             $this->reservationService->cancel($reservationId, $userId);
-            Flash::set('success', 'Reserva cancelada correctamente. Se procesará el reembolso en 3-5 días hábiles.');
+            Flash::success('Reserva cancelada correctamente. Se procesará el reembolso en 3-5 días hábiles.');
         } catch (\RuntimeException $e) {
-            Flash::set('error', $e->getMessage());
+            Flash::error($e->getMessage());
         }
 
-        \header('Location: /reservas');
-        exit;
+        return $this->response->redirect('/reservas');
     }
 
     /**

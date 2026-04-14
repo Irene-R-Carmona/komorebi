@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Logger;
 use App\Core\Queue;
 use App\Core\Result;
 use App\Core\TransactionalService;
@@ -128,7 +129,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             }
         } catch (\Exception $e) {
             // Log error but don't fail the waitlist join
-            \error_log('Error enviando email de waitlist: ' . $e->getMessage());
+            Logger::warning('[WaitlistService] Error enviando email de waitlist', ['error' => $e->getMessage()]);
         }
 
         return Result::ok([

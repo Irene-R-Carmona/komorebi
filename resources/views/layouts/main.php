@@ -38,7 +38,8 @@ $extraJs ??= [];
                     document.documentElement.dataset.tema = 'oscuro';
                 }
             } catch (e) {
-                /* localStorage bloqueado (incognito/CSP) */ }
+                /* localStorage bloqueado (incognito/CSP) */
+            }
         })();
     </script>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
@@ -46,8 +47,8 @@ $extraJs ??= [];
 
     <title><?= $titulo ?? 'Komorebi Café' ?> | 木漏れ日カフェ</title>
 
-    <link href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍵</text></svg>"
-        rel="icon">
+    <link rel="icon" type="image/svg+xml" href="/images/logos/komorebi-logo-icon.svg">
+    <link rel="alternate icon" href="/favicon.ico">
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -130,12 +131,10 @@ $extraJs ??= [];
     <header class="header" id="header">
         <div class="header__container">
             <!-- Logo izquierda -->
+            <!-- TODO: reemplazar src con /images/logos/komorebi-logo-horizontal.svg cuando esté listo -->
             <a class="header__logo" href="/" aria-label="Komorebi Café - Ir a inicio">
                 <span class="header__logo-icon" aria-hidden="true">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M2 21h20v-2H2v2zm2-10h4V9H4v2zm6 0h4V9h-4v2zm6 0h4V9h-4v2zM2 3v2h20V3H2z" />
-                        <circle cx="12" cy="16" r="1.5" />
-                    </svg>
+                    <img src="/images/logos/komorebi-logo-icon.svg" width="32" height="32" alt="">
                 </span>
                 <span class="header__logo-text">Komorebi</span>
             </a>

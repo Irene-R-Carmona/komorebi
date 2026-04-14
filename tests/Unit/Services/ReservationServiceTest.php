@@ -48,8 +48,8 @@ final class ReservationServiceTest extends TestCase
     protected function setUp(): void
     {
         // Mock interfaces (not concrete classes)
-        $this->mockReservationRepo = $this->createMock(ReservationRepositoryInterface::class);
-        $this->mockCafeRepo = $this->createMock(CafeRepositoryInterface::class);
+        $this->mockReservationRepo = $this->createStub(ReservationRepositoryInterface::class);
+        $this->mockCafeRepo = $this->createStub(CafeRepositoryInterface::class);
         $this->mockProductRepo = $this->createMock(ProductRepositoryInterface::class);
         $this->mockInvoiceService = $this->createStub(InvoicePDFServiceInterface::class);
         $this->mockEmailService = $this->createStub(EmailServiceInterface::class);

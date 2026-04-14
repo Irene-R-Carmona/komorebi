@@ -41,7 +41,7 @@ final class AuthMiddleware implements MiddlewareInterface
         $userId = Session::get('user_id');
 
         if (empty($userId)) {
-            Flash::set('error', 'Debes iniciar sesión para acceder a esta página.');
+            Flash::error('Debes iniciar sesión para acceder a esta página.');
 
             return $this->response->redirect('/login', 302);
         }
@@ -62,7 +62,7 @@ final class AuthMiddleware implements MiddlewareInterface
         if (!$user || !$user['is_active']) {
             Session::destroy();
 
-            Flash::set('error', 'Tu cuenta ha sido desactivada.');
+            Flash::error('Tu cuenta ha sido desactivada.');
 
             return $this->response->redirect('/login', 302);
         }

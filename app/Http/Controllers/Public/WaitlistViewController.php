@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Public;
 use App\Core\Container;
 use App\Core\View;
 use App\Services\Contracts\WaitlistServiceInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * WaitlistViewController - Vistas públicas para consultar estado de waitlist
@@ -25,24 +27,25 @@ final class WaitlistViewController
      *
      * Vista HTML para que el usuario consulte su posición en la lista de espera
      */
-    public function status(string $token): void
+    public function status(ServerRequestInterface $request, string $token): ?ResponseInterface
     {
         if (empty($token)) {
             View::render('errors/400', [], [], 'errors');
-            return;
+            return null;
         }
 
         $result = $this->service->getWaitlistStatus($token);
 
         if (!$result->isOk()) {
             View::render('errors/404', ['error' => $result->getMessage()], [], 'errors');
-            return;
+            return null;
         }
 
         View::render('public/waitlist-status', [
             'titulo'   => 'Estado de Lista de Espera - Komorebi Café',
             'waitlist' => $result->getDataOr([]),
         ], ['waitlist-status.css']);
+        return null;
     }
 
     /**
@@ -50,18 +53,18 @@ final class WaitlistViewController
      *
      * Vista HTML con formulario para confirmar promoción desde waitlist
      */
-    public function confirmView(string $token): void
+    public function confirmView(ServerRequestInterface $request, string $token): ?ResponseInterface
     {
         if (empty($token)) {
             View::render('errors/400', [], [], 'errors');
-            return;
+            return null;
         }
 
         $result = $this->service->getWaitlistStatus($token);
 
         if (!$result->isOk()) {
             View::render('errors/404', ['error' => $result->getMessage()], [], 'errors');
-            return;
+            return null;
         }
 
         $waitlist = $result->getDataOr([]);
@@ -69,13 +72,14 @@ final class WaitlistViewController
         // Solo mostrar formulario si está en estado 'notified'
         if ($waitlist['status'] !== 'notified') {
             View::render('errors/400', [], [], 'errors');
-            return;
+            return null;
         }
 
         View::render('public/waitlist-confirm', [
             'titulo'   => 'Confirmar Reserva - Komorebi Café',
             'waitlist' => $waitlist,
         ], ['waitlist-confirm.css']);
+        return null;
     }
 
     /**
@@ -83,21 +87,18 @@ final class WaitlistViewController
      *
      * Procesar confirmación de promoción
      */
-    public function confirmSubmit(string $token): void
+    public function confirmSubmit(ServerRequestInterface $request, string $token): ?ResponseInterface
     {
         if (empty($token)) {
-            http_response_code(400);
-            require __DIR__ . '/../../../resources/views/errors/400.php';
-            return;
+            View::render('errors/400', [], [], 'errors');
+            return null;
         }
 
         $result = $this->service->confirmPromotion($token, []);
 
         if (!$result->isOk()) {
-            http_response_code(400);
-            $error = $result->getMessage();
-            require __DIR__ . '/../../../resources/views/errors/400.php';
-            return;
+            View::render('errors/400', ['error' => $result->getMessage()], [], 'errors');
+            return null;
         }
 
         $data = $result->getDataOr([]);
@@ -106,6 +107,10 @@ final class WaitlistViewController
         $message = 'Tu reserva ha sido confirmada exitosamente';
         $reservationId = $data['reservation_id'];
 
-        require __DIR__ . '/../../../resources/views/public/waitlist-success.php';
+        View::render('public/waitlist-success', [
+            'message'       => $message,
+            'reservationId' => $reservationId,
+        ]);
+        return null;
     }
 }

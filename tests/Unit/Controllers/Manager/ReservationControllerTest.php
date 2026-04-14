@@ -26,25 +26,23 @@ use App\Http\Controllers\Manager\ReservationController;
 use App\Repositories\ReservationRepository;
 use PDO;
 use PDOStatement;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Tests para Manager\ReservationController
  */
-#[AllowMockObjectsWithoutExpectations]
 final class ReservationControllerTest extends TestCase
 {
-    private PDO&MockObject $pdoMock;
-    private PDOStatement&MockObject $stmtMock;
+    private PDO&Stub $pdoMock;
+    private PDOStatement&Stub $stmtMock;
     private ReservationRepository $reservationRepo;
 
     protected function setUp(): void
     {
-        $this->pdoMock  = $this->createMock(PDO::class);
-        $this->stmtMock = $this->createMock(PDOStatement::class);
+        $this->pdoMock  = $this->createStub(PDO::class);
+        $this->stmtMock = $this->createStub(PDOStatement::class);
 
         // ReservationRepository es final; se construye con PDO mockeado
         $this->reservationRepo = new ReservationRepository($this->pdoMock);
@@ -66,7 +64,7 @@ final class ReservationControllerTest extends TestCase
      */
     private function makeRequest(array $queryParams = []): ServerRequestInterface
     {
-        $request = $this->createMock(ServerRequestInterface::class);
+        $request = $this->createStub(ServerRequestInterface::class);
         $request->method('getQueryParams')->willReturn($queryParams);
         return $request;
     }

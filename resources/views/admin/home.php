@@ -187,7 +187,7 @@ $alpineConfig = json_encode([
                             <div class="empty-state__icon" aria-hidden="true">
                                 <i class="bi bi-exclamation-triangle"></i>
                             </div>
-                            <p style="color: var(--danger-500); font-weight: 500;">Error al cargar el gráfico</p>
+                            <p class="text-danger fw-medium">Error al cargar el gráfico</p>
                         </div>
                     </div>
                 </div>
@@ -243,7 +243,7 @@ $alpineConfig = json_encode([
                         <i class="bi bi-arrow-right" aria-hidden="true"></i>
                     </a>
                 </div>
-                <div class="glass-card__body" style="padding: 0;">
+                <div class="glass-card__body p-0">
                     <?php if (empty($recent_reservations)): ?>
                         <div class="empty-state">
                             <div class="empty-state__icon" aria-hidden="true">

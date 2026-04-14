@@ -146,7 +146,7 @@ final class Csrf
                 $_SERVER['REQUEST_URI'] ?? 'N/A'
             );
 
-            error_log($msg . "\n");
+            Logger::warning($msg);
         }
 
         return $ok;
@@ -288,7 +288,7 @@ final class Csrf
                 \header('Location: /error/419');
             }
         } else {
-            Logger::error('[Csrf::abort419] headers already sent; cannot set response or redirect');
+            Logger::error('[Csrf::abort419] headers already sent; cannot set response or redirect', []);
         }
 
         exit;

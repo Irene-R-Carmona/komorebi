@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Public;
 use App\Core\Container;
 use App\Core\View;
 use App\Services\Contracts\MenuServiceInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 final class MenuController
 {
@@ -17,12 +19,13 @@ final class MenuController
         $this->menuService = $menuService ?? Container::make(MenuServiceInterface::class);
     }
 
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         // Leer parámetros de alérgenos a excluir desde la querystring
+        $queryParams = $request->getQueryParams();
         $excludeAllergens = [];
-        if (!empty($_GET['exclude_allergens']) && \is_array($_GET['exclude_allergens'])) {
-            $excludeAllergens = \array_values(\array_filter(\array_map('intval', $_GET['exclude_allergens']), static fn($v) => $v > 0));
+        if (!empty($queryParams['exclude_allergens']) && \is_array($queryParams['exclude_allergens'])) {
+            $excludeAllergens = \array_values(\array_filter(\array_map('intval', $queryParams['exclude_allergens']), static fn($v) => $v > 0));
         }
 
         $data = $this->menuService->getMenuForView($excludeAllergens);
@@ -31,5 +34,6 @@ final class MenuController
 
         // Render with the standard layout so CSS/JS are included
         View::render('public/menu/index', $data, ['menu.css']);
+        return null;
     }
 }

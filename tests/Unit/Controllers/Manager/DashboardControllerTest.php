@@ -8,6 +8,7 @@ declare(strict_types=1);
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Controllers\Manager;
 
 use App\Http\Controllers\Manager\DashboardController;
@@ -16,6 +17,7 @@ use App\Services\CafeService;
 use App\Services\Manager\DashboardService;
 use PDO;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Tests para Manager\DashboardController
@@ -30,6 +32,8 @@ final class DashboardControllerTest extends TestCase
 
     private DashboardService $dashboardService;
 
+    private ServerRequestInterface $request;
+
     protected function setUp(): void
     {
         // Mockear dependencias de CafeService
@@ -41,6 +45,7 @@ final class DashboardControllerTest extends TestCase
         $this->dashboardService = new DashboardService($db);
 
         $this->controller = new DashboardController($this->cafeService, $this->dashboardService);
+        $this->request = $this->createStub(ServerRequestInterface::class);
     }
 
     protected function tearDown(): void
@@ -63,7 +68,7 @@ final class DashboardControllerTest extends TestCase
         $_SESSION = [];
 
         ob_start();
-        $this->controller->index();
+        $this->controller->index($this->request);
         $output = ob_get_clean();
 
         // Verificar que renderiza error 403 cuando no hay café asignado

@@ -42,14 +42,14 @@ final class ProductController
      * GET /manager/products
      * Lista de productos con categorías para el café del manager.
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $user   = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
 
         if (!$cafeId) {
             View::render('errors/403', ['message' => 'No tienes un café asignado.']);
-            return;
+            return null;
         }
 
         $productModel  = new Product();
@@ -70,6 +70,7 @@ final class ProductController
             'alpineConfig' => $alpineConfig,
             'total'        => $productsData['total'] ?? 0,
         ], ['admin/admin-products.css'], 'backoffice');
+        return null;
     }
 
     /**

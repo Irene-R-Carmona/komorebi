@@ -226,6 +226,10 @@ FASE 1 + FASE 2 (pueden ir en paralelo)
 
 FASE 3 (independiente, puede empezar en cualquier momento)
   → Recomendado: después de Fase 1 para no mezclar PRs de seguridad con PRs visuales
+
+FASE 4 (independiente de Fases 0-3)
+  → Puede ejecutarse en paralelo con cualquier fase técnica
+  → No afecta a lógica de negocio ni a tests unitarios
 ```
 
 ---
@@ -238,3 +242,4 @@ FASE 3 (independiente, puede empezar en cualquier momento)
 | Fase 1 | `docs/plans/2026-04-13-seguridad-datos-dto.md` | ✅ Plan creado — en implementación |
 | Fase 2 | `docs/plans/2026-04-13-observabilidad-logging.md` | ✅ Plan creado — implementación completa |
 | Fase 3 | `docs/plans/2026-04-13-uiux-vistas-publicas.md` | ✅ Plan creado — en implementación |
+| Fase 4 | `docs/plans/2026-04-14-brand-visual-unification.md` | � En implementación — A✅ B✅(B4 pendiente) D(parcial)✅ E1+E2✅ — C y resto D pendientes || Sprint QoL | `docs/plans/2026-04-14-qol-holistic-sprint.md` | 🔵 Plan creado — pendiente inicio |

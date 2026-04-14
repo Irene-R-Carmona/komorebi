@@ -52,7 +52,7 @@ final class ProductRepositoryStockTest extends TestCase
 
     public function testHasStockReturnsTrueForUnlimitedProduct(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'stock_quantity' => null,
@@ -67,7 +67,7 @@ final class ProductRepositoryStockTest extends TestCase
 
     public function testHasStockReturnsTrueWhenEnoughStock(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'stock_quantity' => 10,
@@ -82,7 +82,7 @@ final class ProductRepositoryStockTest extends TestCase
 
     public function testHasStockReturnsFalseWhenInsufficientStock(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'stock_quantity' => 2,
@@ -97,7 +97,7 @@ final class ProductRepositoryStockTest extends TestCase
 
     public function testHasStockReturnsFalseForInactiveProduct(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'stock_quantity' => 100,
@@ -112,7 +112,7 @@ final class ProductRepositoryStockTest extends TestCase
 
     public function testHasStockReturnsFalseForDeletedProduct(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'stock_quantity' => 100,
@@ -127,7 +127,7 @@ final class ProductRepositoryStockTest extends TestCase
 
     public function testHasStockReturnsFalseWhenProductNotFound(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(false);
 
@@ -138,7 +138,7 @@ final class ProductRepositoryStockTest extends TestCase
 
     public function testHasStockReturnsTrueWhenStockExactlyEqualsQuantity(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'stock_quantity' => 3,
@@ -157,7 +157,7 @@ final class ProductRepositoryStockTest extends TestCase
 
     public function testDecrementStockReturnsTrueForUnlimitedProduct(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['stock_quantity' => null]);
 
@@ -168,7 +168,7 @@ final class ProductRepositoryStockTest extends TestCase
 
     public function testDecrementStockReturnsFalseWhenProductNotFound(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(false);
 
@@ -179,7 +179,7 @@ final class ProductRepositoryStockTest extends TestCase
 
     public function testDecrementStockReturnsFalseWhenInsufficientStock(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['stock_quantity' => 2]);
 
@@ -191,12 +191,12 @@ final class ProductRepositoryStockTest extends TestCase
     public function testDecrementStockReturnsTrueOnSuccessfulUpdate(): void
     {
         // Primer prepare → SELECT FOR UPDATE
-        $selectStmt = $this->createMock(PDOStatement::class);
+        $selectStmt = $this->createStub(PDOStatement::class);
         $selectStmt->method('execute')->willReturn(true);
         $selectStmt->method('fetch')->willReturn(['stock_quantity' => 10]);
 
         // Segundo prepare → UPDATE
-        $updateStmt = $this->createMock(PDOStatement::class);
+        $updateStmt = $this->createStub(PDOStatement::class);
         $updateStmt->method('execute')->willReturn(true);
         $updateStmt->method('rowCount')->willReturn(1);
 
@@ -210,12 +210,12 @@ final class ProductRepositoryStockTest extends TestCase
     public function testDecrementStockReturnsFalseWhenUpdateAffectsNoRows(): void
     {
         // Primer prepare → SELECT FOR UPDATE
-        $selectStmt = $this->createMock(PDOStatement::class);
+        $selectStmt = $this->createStub(PDOStatement::class);
         $selectStmt->method('execute')->willReturn(true);
         $selectStmt->method('fetch')->willReturn(['stock_quantity' => 5]);
 
         // Segundo prepare → UPDATE (rowCount=0 por race condition)
-        $updateStmt = $this->createMock(PDOStatement::class);
+        $updateStmt = $this->createStub(PDOStatement::class);
         $updateStmt->method('execute')->willReturn(true);
         $updateStmt->method('rowCount')->willReturn(0);
 
@@ -232,7 +232,7 @@ final class ProductRepositoryStockTest extends TestCase
 
     public function testIncrementStockReturnsTrueForUnlimitedProduct(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['stock_quantity' => null]);
 
@@ -243,7 +243,7 @@ final class ProductRepositoryStockTest extends TestCase
 
     public function testIncrementStockReturnsFalseWhenProductNotFound(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(false);
 
@@ -255,12 +255,12 @@ final class ProductRepositoryStockTest extends TestCase
     public function testIncrementStockReturnsTrueOnSuccessfulUpdate(): void
     {
         // Primer prepare → SELECT de verificación
-        $checkStmt = $this->createMock(PDOStatement::class);
+        $checkStmt = $this->createStub(PDOStatement::class);
         $checkStmt->method('execute')->willReturn(true);
         $checkStmt->method('fetch')->willReturn(['stock_quantity' => 5]);
 
         // Segundo prepare → UPDATE
-        $updateStmt = $this->createMock(PDOStatement::class);
+        $updateStmt = $this->createStub(PDOStatement::class);
         $updateStmt->method('execute')->willReturn(true);
         $updateStmt->method('rowCount')->willReturn(1);
 
@@ -274,12 +274,12 @@ final class ProductRepositoryStockTest extends TestCase
     public function testIncrementStockReturnsFalseWhenUpdateAffectsNoRows(): void
     {
         // Primer prepare → SELECT de verificación
-        $checkStmt = $this->createMock(PDOStatement::class);
+        $checkStmt = $this->createStub(PDOStatement::class);
         $checkStmt->method('execute')->willReturn(true);
         $checkStmt->method('fetch')->willReturn(['stock_quantity' => 5]);
 
         // Segundo prepare → UPDATE falla (e.g. producto eliminado entre las dos queries)
-        $updateStmt = $this->createMock(PDOStatement::class);
+        $updateStmt = $this->createStub(PDOStatement::class);
         $updateStmt->method('execute')->willReturn(true);
         $updateStmt->method('rowCount')->willReturn(0);
 

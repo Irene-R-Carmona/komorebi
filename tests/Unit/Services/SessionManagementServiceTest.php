@@ -27,18 +27,19 @@ use PDO;
 use PDOStatement;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 #[AllowMockObjectsWithoutExpectations]
 final class SessionManagementServiceTest extends TestCase
 {
     private SessionManagementService $service;
-    private PDO&MockObject $pdoMock;
+    private PDO&Stub $pdoMock;
     private PDOStatement&MockObject $stmtMock;
 
     protected function setUp(): void
     {
-        $this->pdoMock  = $this->createMock(PDO::class);
+        $this->pdoMock  = $this->createStub(PDO::class);
         $this->stmtMock = $this->createMock(PDOStatement::class);
         $this->service  = new SessionManagementService($this->pdoMock);
     }

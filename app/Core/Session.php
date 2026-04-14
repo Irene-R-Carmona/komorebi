@@ -16,8 +16,6 @@ use Exception;
  */
 final class Session
 {
-    private static bool $started = false;
-
     // ─────────────────────────────────────────────────────────────
     // Inicio y destrucción
     // ─────────────────────────────────────────────────────────────
@@ -38,7 +36,6 @@ final class Session
 
         // Si la sesión ya está activa en este proceso, nada que hacer
         if (\session_status() === PHP_SESSION_ACTIVE) {
-            self::$started = true;
             return;
         }
 
@@ -66,11 +63,6 @@ final class Session
             ]);
 
             \session_start();
-        }
-
-        // Si la sesión fue realmente iniciada, marcar flag
-        if (\session_status() === PHP_SESSION_ACTIVE) {
-            self::$started = true;
         }
     }
 
@@ -101,17 +93,17 @@ final class Session
         // Destruir cookie de sesión
         if (\ini_get('session.use_cookies')) {
             $params = \session_get_cookie_params();
-            $samesite = isset($params['samesite']) ? (string) $params['samesite'] : 'Lax';
+            $samesite = (string) $params['samesite'];
             if (!in_array($samesite, ['Lax', 'lax', 'None', 'none', 'Strict', 'strict'], true)) {
                 $samesite = 'Lax';
             }
 
             $cookieOptions = [
                 'expires' => \time() - 42000,
-                'path' => isset($params['path']) ? (string) $params['path'] : '/',
-                'domain' => isset($params['domain']) ? (string) $params['domain'] : '',
-                'secure' => isset($params['secure']) ? (bool) $params['secure'] : false,
-                'httponly' => isset($params['httponly']) ? (bool) $params['httponly'] : true,
+                'path' => (string) $params['path'],
+                'domain' => (string) $params['domain'],
+                'secure' => (bool) $params['secure'],
+                'httponly' => (bool) $params['httponly'],
                 'samesite' => $samesite,
             ];
 
@@ -119,7 +111,6 @@ final class Session
         }
 
         \session_destroy();
-        self::$started = false;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -232,7 +223,7 @@ final class Session
      * Establece la sesión del usuario tras login/registro.
      * Regenera el ID de sesión automáticamente (seguridad).
      *
-     * @param array{id: int, name?: string, email?: string, role?: string, cafe_id?: int|null} $user
+     * @param array{id: int, name?: string, email?: string, role?: string|array<string>, cafe_id?: int|null} $user
      * @return void
      */
     public static function setUser(array $user): void
@@ -273,7 +264,7 @@ final class Session
         $_SESSION['user_cafe_id'] = $user['cafe_id'] ?? null;
 
         // Nota: Evitar cerrar y reabrir la sesión aquí (puede causar race conditions)
-        Logger::error('[Session::setUser] Datos de sesión establecidos para user_id: ' . $_SESSION['user_id']);
+        Logger::info('[Session::setUser] Datos de sesión establecidos para user_id: ' . (string) $_SESSION['user_id']);
     }
 
     /**
@@ -307,7 +298,7 @@ final class Session
             $_SESSION['user_permissions'] = $permissions;
             $_SESSION['permissions_cached_at'] = \time();
         } catch (Exception $e) {
-            Logger::error('[Session] Error cacheando permisos: ' . $e->getMessage());
+            Logger::error('[Session] Error cacheando permisos', ['exception' => $e->getMessage()]);
             $_SESSION['user_permissions'] = [];
         }
     }

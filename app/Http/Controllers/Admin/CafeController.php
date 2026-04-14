@@ -18,6 +18,7 @@ use App\Services\Contracts\CafeServiceInterface;
 use InvalidArgumentException;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -53,7 +54,7 @@ final class CafeController
      *
      * @throws RandomException
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         // Obtener todos los cafés desde el modelo
         $cafeModel = new Cafe();
@@ -65,6 +66,7 @@ final class CafeController
             'csrf_token' => Csrf::token(),
             'extraJs' => ['admin/admin-cafes.js'],
         ], ['admin/admin-cafes.css'], 'backoffice');
+        return null;
     }
 
     /**

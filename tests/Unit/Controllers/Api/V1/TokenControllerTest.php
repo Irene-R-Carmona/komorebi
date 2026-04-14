@@ -24,14 +24,12 @@ use App\Core\Result;
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Api\V1\TokenController;
 use App\Services\Contracts\ApiTokenServiceInterface;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Tests para Api\V1\TokenController
  */
-#[AllowMockObjectsWithoutExpectations]
 final class TokenControllerTest extends TestCase
 {
     private ApiTokenServiceInterface $tokenService;
@@ -41,9 +39,9 @@ final class TokenControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->tokenService    = $this->createMock(ApiTokenServiceInterface::class);
+        $this->tokenService    = $this->createStub(ApiTokenServiceInterface::class);
         $this->responseFactory = new ResponseFactory();
-        $this->request         = $this->createMock(ServerRequestInterface::class);
+        $this->request         = $this->createStub(ServerRequestInterface::class);
 
         $this->controller = new TokenController(
             $this->responseFactory,

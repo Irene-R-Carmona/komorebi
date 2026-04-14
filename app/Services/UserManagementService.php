@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Database;
+use App\Core\Logger;
 use App\Core\Result;
 use App\Core\TransactionalService;
 use App\Models\User;
@@ -65,9 +66,7 @@ final class UserManagementService extends TransactionalService implements UserMa
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) {
             // Registrar el error para diagnóstico y devolver lista vacía para evitar 500
-            if (function_exists('error_log')) {
-                error_log('[UserManagementService] getUsersWithRoles failed: ' . $e->getMessage());
-            }
+            Logger::error('[UserManagementService] getUsersWithRoles', ['error' => $e->getMessage()]);
 
             return [];
         }

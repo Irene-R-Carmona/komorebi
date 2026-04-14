@@ -8,7 +8,7 @@ use App\Core\Middleware;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
-use App\Services\ContextService;
+use App\Services\ContextServiceInstance;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Services\KitchenService;
@@ -27,11 +27,22 @@ final class KitchenController
 
     private ResponseFactory $response;
 
-    public function __construct(?KitchenService $service = null, ?ResponseFactory $response = null)
-    {
+    private ?ContextServiceInstance $context;
+
+    public function __construct(
+        ?KitchenService $service = null,
+        ?ResponseFactory $response = null,
+        ?ContextServiceInstance $context = null,
+    ) {
         Middleware::auth();
         $this->service = $service ?? new KitchenService();
         $this->response = $response ?? new ResponseFactory();
+        $this->context = $context;
+    }
+
+    private function context(): ContextServiceInstance
+    {
+        return $this->context ??= \App\Core\Container::make(ContextServiceInstance::class);
     }
 
     /**
@@ -42,7 +53,7 @@ final class KitchenController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $cafeId = ContextService::getCafeId();
+        $cafeId = $this->context()->getCafeId();
 
         // Fallback: admin sin contexto puede ver café 1
         if ($cafeId === null && Session::role() === 'admin') {
@@ -55,7 +66,7 @@ final class KitchenController
 
         // Obtener órdenes pendientes
         $itemsRaw = $this->service->getAllPending($cafeId);
-        $cafeName = ContextService::getCafeName();
+        $cafeName = $this->context()->getCafeName();
 
         // Procesar y agrupar por estación
         $stations = $this->processOrdersForDisplay($itemsRaw);
@@ -83,7 +94,7 @@ final class KitchenController
      */
     public function history(ServerRequestInterface $request): ?ResponseInterface
     {
-        $cafeId = ContextService::getCafeId();
+        $cafeId = $this->context()->getCafeId();
 
         if ($cafeId === null && Session::role() === 'admin') {
             $cafeId = 1;
@@ -94,7 +105,7 @@ final class KitchenController
         }
 
         $completed = $this->service->getCompletedToday($cafeId);
-        $cafeName  = ContextService::getCafeName();
+        $cafeName  = $this->context->getCafeName();
 
         View::render('kitchen/history', [
             'titulo'    => "Historial de hoy - $cafeName",
@@ -130,7 +141,7 @@ final class KitchenController
      */
     public function activeOrders(ServerRequestInterface $request): ?ResponseInterface
     {
-        $cafeId = ContextService::getCafeId();
+        $cafeId = $this->context()->getCafeId();
 
         if ($cafeId === null && Session::role() === 'admin') {
             $cafeId = 1;

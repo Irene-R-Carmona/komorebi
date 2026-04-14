@@ -10,7 +10,7 @@ use App\Core\Middleware;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
-use App\Services\ContextService;
+use App\Services\ContextServiceInstance;
 use App\Services\ReceptionService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -27,13 +27,22 @@ final class ReceptionController
 
     private ResponseFactory $response;
 
+    private ?ContextServiceInstance $context = null;
+
     public function __construct(
         ?ReceptionService $service = null,
         ?ResponseFactory $response = null,
+        ?ContextServiceInstance $context = null,
     ) {
         Middleware::auth();
         $this->service = $service ?? new ReceptionService();
         $this->response = $response ?? new ResponseFactory();
+        $this->context = $context;
+    }
+
+    private function context(): ContextServiceInstance
+    {
+        return $this->context ??= \App\Core\Container::make(ContextServiceInstance::class);
     }
 
     /**
@@ -42,9 +51,9 @@ final class ReceptionController
      *
      * @throws ValidationException Si falta contexto de sede
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $cafeId = ContextService::getCafeId();
+        $cafeId = $this->context()->getCafeId();
 
         if ($cafeId === null) {
             throw ValidationException::withMessage('Recepción requiere un contexto de sede');
@@ -63,17 +72,20 @@ final class ReceptionController
         $ocupacion = \array_sum(\array_column($activeGroups, 'guests'));
 
         // Guardar nombre de sede en sesión para el layout
-        Session::set('user_cafe_name', ContextService::getCafeName());
+        $cafeName = $this->context()->getCafeName();
+        Session::set('user_cafe_name', $cafeName);
 
         // Renderizar vista
         View::render('reception/index', [
-            'titulo' => 'Recepción - ' . ContextService::getCafeName(),
+            'titulo' => 'Recepción - ' . $cafeName,
             'reservas' => $reservasUI,
             'active_groups' => $activeGroups,
             'free_trackers' => $freeTrackers,
             'ocupacion' => $ocupacion,
             'cap_max' => $capInfo['capacity_max'] ?? 0,
+            'extraJs' => ['sections/reception.js'],
         ], ['workspaces/reception.css'], 'reception');
+        return null;
     }
 
     /**
@@ -84,7 +96,7 @@ final class ReceptionController
      */
     public function todayReservations(ServerRequestInterface $request): ?ResponseInterface
     {
-        $cafeId = ContextService::getCafeId();
+        $cafeId = $this->context()->getCafeId();
 
         if ($cafeId === null) {
             throw ValidationException::withMessage('Recepción requiere un contexto de sede');
@@ -93,7 +105,7 @@ final class ReceptionController
         $reservations = $this->service->getPendingArrivals($cafeId);
 
         View::render('reception/index', [
-            'titulo' => 'Reservas de hoy - ' . ContextService::getCafeName(),
+            'titulo' => 'Reservas de hoy - ' . $this->context()->getCafeName(),
             'reservations' => $reservations,
         ], [], 'reception');
 

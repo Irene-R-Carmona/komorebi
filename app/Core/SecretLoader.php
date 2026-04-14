@@ -46,7 +46,7 @@ final class SecretLoader
         if ($default !== null) {
             // Advertencia en logs si usa default en "producción"
             if (self::isProduction()) {
-                error_log("WARNING: Usando default para secret {$name} en producción");
+                Logger::warning('Usando default para secret en producción', ['secret' => $name]);
             }
             return $default;
         }
@@ -68,8 +68,8 @@ final class SecretLoader
         if (empty($value)) {
             throw new \RuntimeException(
                 "Secret requerido no encontrado: $name. " .
-                "Configura la variable de entorno " . strtoupper($name) . " " .
-                "o monta el archivo en /run/secrets/$name"
+                    "Configura la variable de entorno " . strtoupper($name) . " " .
+                    "o monta el archivo en /run/secrets/$name"
             );
         }
 

@@ -17,6 +17,7 @@ use App\Services\EmailService;
 use App\Services\SettingsService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -66,12 +67,13 @@ final class SystemController
      * @throws JsonException
      * @throws RandomException
      */
-    public function logs(): void
+    public function logs(ServerRequestInterface $request): ?ResponseInterface
     {
         View::render('admin/logs/index', [
             'titulo' => 'Logs del Sistema',
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+        return null;
     }
 
     /**

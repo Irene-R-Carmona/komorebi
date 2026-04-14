@@ -3,13 +3,15 @@
 use App\Core\Csrf;
 use App\Services\NavigationService;
 
+use App\Core\Container;
+
 // CSP Nonce para scripts inline
 $cspNonce = $GLOBALS['cspNonce'] ?? '';
 
 $role = $_SESSION['user_role'] ?? 'user';
 $userName = $_SESSION['user_name'] ?? 'Usuario';
 $cafeName = $_SESSION['user_cafe_name'] ?? null;
-$menu = NavigationService::getMenuForRole($role);
+$menu = Container::make(NavigationService::class)->getMenu($role);
 $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
 
 $content ??= '';
@@ -17,7 +19,7 @@ $extraCss ??= [];
 $extraJs ??= [];
 ?>
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="light">
+<html lang="es" data-bs-theme="light" data-tema="light">
 
 <head>
     <meta charset="UTF-8">
@@ -35,8 +37,7 @@ $extraJs ??= [];
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- FontAwesome (para iconos de alérgenos) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <!-- FontAwesome eliminado: Bootstrap Icons cubre todos los casos de uso -->
 
     <?php
     // Chart.js - Solo cargar en dashboards (tree-shaked bundle, -55% size)
@@ -45,8 +46,8 @@ $extraJs ??= [];
         <script defer src="/js/charts.min.js"></script>
     <?php endif; ?>
 
-    <!-- Tipografía Komorebi OS —— Zen Kaku Gothic New -->
-    <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Tipografía Komorebi OS —— Zen Maru Gothic (fuente-cuerpo oficial) -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 
     <!-- Modern Design System -->
     <link href="/css/design-tokens.css" rel="stylesheet">

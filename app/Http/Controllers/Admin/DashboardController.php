@@ -13,6 +13,8 @@ use App\Services\AdminActivityService;
 use App\Services\AdminStatisticsService;
 use App\Services\Contracts\AdminActivityServiceInterface;
 use App\Services\Contracts\AdminStatisticsServiceInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Controlador de Dashboard Administrativo
@@ -40,7 +42,7 @@ final class DashboardController
      * GET /admin/dashboard
      * Dashboard principal del administrador
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         try {
             // Logging informativo solo en entorno local
@@ -107,5 +109,6 @@ final class DashboardController
                 'details' => Env::get('APP_ENV') === 'local' ? $e->getMessage() : null,
             ]);
         }
+        return null;
     }
 }

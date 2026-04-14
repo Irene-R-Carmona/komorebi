@@ -263,6 +263,14 @@ h3 {
   font-size: 1.5rem;
 }
 
+.header__logo-icon img {
+  display: block;
+}
+
+[data-tema="oscuro"] .header__logo-icon img {
+  filter: brightness(0) invert(1);
+}
+
 /* Nav Desktop */
 .header__nav {
   display: flex;
@@ -854,11 +862,11 @@ h3 {
 }
 
 .toast--warning {
-  border-left-color: #F59E0B;
+  border-left-color: var(--color-warning, #C9A959);
 }
 
 .toast--info {
-  border-left-color: #3B82F6;
+  border-left-color: var(--color-info, #5A9FD4);
 }
 
 /* Responsive toast */

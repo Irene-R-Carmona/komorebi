@@ -73,7 +73,7 @@ final class ReservationControllerTest extends ControllerTestCase
     {
         $this->expectException(ValidationException::class);
 
-        $this->makeController()->create();
+        $this->makeController()->create($this->makeGetRequest());
     }
 
     public function test_class_has_expected_methods(): void

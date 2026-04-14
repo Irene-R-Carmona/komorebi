@@ -97,9 +97,9 @@
   font-size: 0.875rem;
   text-transform: uppercase;
   flex-shrink: 0;
-  background: linear-gradient(135deg, var(--admin-primary), #0066CC);
+  background: var(--gradient-coffee);
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+  box-shadow: var(--admin-shadow-sm);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -120,7 +120,7 @@
 
 .user-row:hover .user-avatar {
   transform: scale(1.1) rotate(-5deg);
-  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+  box-shadow: var(--admin-shadow-md);
 }
 
 .user-avatar--sm {
@@ -149,23 +149,23 @@
 
 /* Variantes de color basadas en rol */
 .user-avatar--admin {
-  background: linear-gradient(135deg, #DC2626, #B91C1C);
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+  background: linear-gradient(135deg, var(--admin-error), #7B1D2A);
+  box-shadow: 0 2px 8px var(--admin-error-light);
 }
 
 .user-avatar--manager {
-  background: linear-gradient(135deg, #F59E0B, #D97706);
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+  background: linear-gradient(135deg, var(--admin-accent), var(--admin-accent-hover));
+  box-shadow: 0 2px 8px var(--admin-accent-light);
 }
 
 .user-avatar--supervisor {
-  background: linear-gradient(135deg, #3B82F6, #2563EB);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+  background: linear-gradient(135deg, var(--admin-info), #3A7FA0);
+  box-shadow: 0 2px 8px var(--admin-info-light);
 }
 
 .user-avatar--staff {
-  background: linear-gradient(135deg, #10B981, #059669);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+  background: linear-gradient(135deg, var(--admin-success), #3D4F42);
+  box-shadow: 0 2px 8px var(--admin-success-light);
 }
 
 /* ============================================================================
@@ -198,45 +198,45 @@
 }
 
 .role-badge--admin {
-  background: #FEE2E2;
-  color: #991B1B;
-  border-color: #FCA5A5;
+  background: var(--admin-error-light);
+  color: var(--admin-error);
+  border-color: rgba(155, 35, 53, 0.3);
 }
 
 .role-badge--manager {
-  background: #FEF3C7;
-  color: #92400E;
-  border-color: #FCD34D;
+  background: var(--admin-warning-light);
+  color: var(--admin-warning);
+  border-color: rgba(230, 149, 0, 0.3);
 }
 
 .role-badge--supervisor {
-  background: #DBEAFE;
-  color: #1E40AF;
-  border-color: #93C5FD;
+  background: var(--admin-info-light);
+  color: var(--admin-info);
+  border-color: rgba(90, 159, 212, 0.3);
 }
 
 .role-badge--reception {
-  background: #E0E7FF;
-  color: #3730A3;
-  border-color: #A5B4FC;
+  background: var(--admin-primary-light);
+  color: var(--admin-primary);
+  border-color: rgba(92, 61, 46, 0.2);
 }
 
 .role-badge--kitchen {
-  background: #D1FAE5;
-  color: #065F46;
-  border-color: #6EE7B7;
+  background: var(--admin-success-light);
+  color: var(--admin-success);
+  border-color: rgba(94, 111, 100, 0.3);
 }
 
 .role-badge--keeper {
-  background: #EDE9FE;
-  color: #5B21B6;
-  border-color: #C4B5FD;
+  background: var(--admin-accent-light);
+  color: var(--admin-accent-hover);
+  border-color: rgba(201, 169, 89, 0.3);
 }
 
 .role-badge--user {
-  background: #F3F4F6;
-  color: #374151;
-  border-color: #D1D5DB;
+  background: var(--admin-bg-alt);
+  color: var(--admin-text-muted);
+  border-color: var(--admin-border);
 }
 
 /* ============================================================================
@@ -261,15 +261,15 @@
 }
 
 .user-status--active {
-  background: #D1FAE5;
-  color: #065F46;
-  border: 1px solid #6EE7B7;
+  background: var(--admin-success-light);
+  color: var(--admin-success);
+  border: 1px solid rgba(94, 111, 100, 0.3);
 }
 
 .user-status--inactive {
-  background: #FEE2E2;
-  color: #991B1B;
-  border: 1px solid #FCA5A5;
+  background: var(--admin-error-light);
+  color: var(--admin-error);
+  border: 1px solid rgba(155, 35, 53, 0.3);
 }
 
 .user-status__dot {

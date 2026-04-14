@@ -147,7 +147,7 @@ $getSeverityBadgeClass = static function (string $severity): string {
                     <h6 class="m-0 fw-bold text-primary">Animales del Café</h6>
                 </div>
                 <div class="card-body">
-                    <div class="row" id="animals-grid">
+                    <div class="row" id="animals-grid" style="overflow-x:hidden; max-width:100%;">
                         <?php
                         // Crear array de IDs de animales pendientes de chequeo (Semana 6)
                         $pendingAnimalIds = array_column($pending_animals ?? [], 'animal_id');

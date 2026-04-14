@@ -22,6 +22,7 @@ use App\Models\User;
 use App\Services\ReviewService;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
@@ -38,12 +39,12 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 final class ReviewServiceTest extends TestCase
 {
     private ReviewService $service;
-    private User&MockObject $userModelMock;
+    private User&Stub $userModelMock;
     private ReviewRepositoryInterface&MockObject $reviewRepoMock;
 
     protected function setUp(): void
     {
-        $this->userModelMock = $this->createMock(User::class);
+        $this->userModelMock = $this->createStub(User::class);
         $this->reviewRepoMock = $this->createMock(ReviewRepositoryInterface::class);
         $this->service = new ReviewService($this->userModelMock, $this->reviewRepoMock);
     }

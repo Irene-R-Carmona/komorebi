@@ -257,6 +257,32 @@ Every test file **must** include this docblock (enforced by `tests/bootstrap.php
 | `bootstrap/container.php`                 | Service Provider boot order                     |
 | `Makefile`                                | All dev commands                                |
 
+## Gestión del Ciclo de Vida de los Planes
+
+Los planes viven en `docs/plans/`. El índice maestro es `docs/plans/indice-maestro.md`.
+
+### Reglas obligatorias al completar trabajo planificado
+
+**Al terminar una fase o tarea de un plan:**
+
+1. Marcar la tarea con `[x]` en el archivo del plan.
+2. Actualizar el estado de la fase en el encabezado del plan (`En implementación` → `Implementación completa` → `Verificado`).
+3. Actualizar la fila correspondiente en `docs/plans/indice-maestro.md` con el nuevo estado y emoji:
+   - 🔵 Plan creado — pendiente inicio
+   - 🟡 En implementación
+   - 🟢 Implementación completa — pendiente verificación
+   - ✅ Verificado y cerrado
+
+**Al completar todas las fases de un plan:**
+
+1. Verificar que todas las tareas estén marcadas con `[x]` y la verificación final ejecutada.
+2. **Eliminar el archivo del plan** (`docs/plans/YYYY-MM-DD-nombre.md`) — no acumular planes obsoletos.
+3. Actualizar `docs/plans/indice-maestro.md`: cambiar la fila a `✅ Completado y eliminado (YYYY-MM-DD)`.
+
+> **Razón:** Los planes completados no aportan valor como documentación persistente; ese rol
+> lo cumplen `docs/ARCHITECTURE.md`, `CHANGELOG.md` y los commits. Mantener planes terminados
+> genera ruido y confunde el estado real del proyecto.
+
 ## Reference Docs
 
 | Doc                     | Topic                                          |

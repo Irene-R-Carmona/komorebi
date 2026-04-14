@@ -73,7 +73,7 @@ final class PasswordResetControllerTest extends ControllerTestCase
             response: new ResponseFactory()
         );
 
-        $result = $controller->forgotPasswordForm();
+        $result = $controller->forgotPasswordForm($this->makeGetRequest());
 
         $this->assertNotNull($result);
         $this->assertSame(302, $result->getStatusCode());

@@ -112,27 +112,27 @@ $alpineConfig = json_encode([
                 </div>
             </div>
 
-            <div class="filter-bar__filters" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                <select class="form-select" x-model="filterCategory" @change="currentPage = 1" style="min-width: 180px; flex: 0 1 auto;">
+            <div class="filter-bar__filters">
+                <select class="form-select select-filter-lg" x-model="filterCategory" @change="currentPage = 1">
                     <option value="">Todas las categorías</option>
                     <?php foreach ($categories as $cat): ?>
                         <option value="<?= htmlspecialchars($cat['id'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?></option>
                     <?php endforeach; ?>
                 </select>
 
-                <select class="form-select" x-model="filterAvailable" @change="currentPage = 1" style="min-width: 150px; flex: 0 1 auto;">
+                <select class="form-select select-filter-md" x-model="filterAvailable" @change="currentPage = 1">
                     <option value="">Todos los estados</option>
                     <option value="1">Disponibles</option>
                     <option value="0">No disponibles</option>
                 </select>
 
-                <select class="form-select" x-model="filterAllergen" @change="currentPage = 1" style="min-width: 180px; flex: 0 1 auto;">
+                <select class="form-select select-filter-lg" x-model="filterAllergen" @change="currentPage = 1">
                     <option value="">Todos los alérgenos</option>
                     <option value="with">Con alérgenos</option>
                     <option value="without">Sin alérgenos</option>
                 </select>
 
-                <select class="form-select" x-model="filterPriceRange" @change="currentPage = 1" style="min-width: 150px; flex: 0 1 auto;">
+                <select class="form-select select-filter-md" x-model="filterPriceRange" @change="currentPage = 1">
                     <option value="">Cualquier precio</option>
                     <option value="0-500">¥0 - ¥500</option>
                     <option value="500-1000">¥500 - ¥1000</option>
@@ -276,7 +276,7 @@ $alpineConfig = json_encode([
                                                         'bg-info': allergen.severity === 'low'
                                                     }"
                                                     :title="`${allergen.name} - Severidad: ${allergen.severity}`">
-                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
                                                     <span x-text="allergen.code || allergen.name"></span>
                                                 </span>
                                             </template>

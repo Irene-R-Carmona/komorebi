@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Componente: Badges de Alérgenos
  *
@@ -23,13 +24,12 @@ $allergens ??= [];
     <div class="allergen-badges">
         <?php foreach ($allergens as $allergen): ?>
             <span
-                    class="allergen-badge"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="<?= e($allergen['name'] ?? 'Alérgeno') ?>"
-            >
-                <i class="fa-solid <?= e($allergen['icon'] ?? 'fa-question') ?>"
-                   style="color: <?= e($allergen['icon_color'] ?? '#666') ?>"></i>
+                class="allergen-badge"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="<?= e($allergen['name'] ?? 'Alérgeno') ?>">
+                <i class="<?= e($allergen['icon'] ?? 'bi bi-question-circle') ?>"
+                    style="color: <?= e($allergen['icon_color'] ?? 'currentColor') ?>"></i>
             </span>
         <?php endforeach; ?>
     </div>

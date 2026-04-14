@@ -305,14 +305,14 @@ $pageTitle = 'Gestión de Staff';
         }
 
         .calendar-day {
-            border: 1px solid #ddd;
+            border: 1px solid var(--admin-border);
             border-radius: 4px;
             padding: 10px;
             min-height: 120px;
         }
 
         .day-header {
-            background: #f5f5f5;
+            background: var(--admin-bg-alt);
             padding: 5px;
             border-radius: 3px;
             margin-bottom: 8px;
@@ -320,7 +320,7 @@ $pageTitle = 'Gestión de Staff';
         }
 
         .shift-item {
-            background: #e3f2fd;
+            background: var(--admin-info-light);
             padding: 6px;
             margin: 4px 0;
             border-radius: 3px;
@@ -328,7 +328,7 @@ $pageTitle = 'Gestión de Staff';
         }
 
         .no-shifts {
-            color: #999;
+            color: var(--admin-text-muted);
             font-size: 0.85em;
             text-align: center;
             padding: 10px 0;

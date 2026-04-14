@@ -10,6 +10,8 @@ use App\Core\Session;
 use App\Core\View;
 use App\Services\Contracts\CafeServiceInterface;
 use App\Services\Manager\DashboardService;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -40,7 +42,7 @@ final class DashboardController
      *
      * @throws RandomException
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
@@ -50,7 +52,7 @@ final class DashboardController
                 'message' => 'No tienes un café asignado. Contacta con el administrador.',
             ]);
 
-            return;
+            return null;
         }
 
         // Obtener datos del café asignado
@@ -75,6 +77,7 @@ final class DashboardController
             'chartData' => $chartData,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+        return null;
     }
 
     /**

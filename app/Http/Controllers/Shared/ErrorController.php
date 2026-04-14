@@ -8,6 +8,8 @@ use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
 use Exception;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Controlador de Errores HTTP
@@ -19,7 +21,7 @@ final class ErrorController
     /**
      * 404 - Not Found
      */
-    public function notFound(): void
+    public function notFound(ServerRequestInterface $request): ?ResponseInterface
     {
         if (!\headers_sent()) {
             @\http_response_code(404);
@@ -32,12 +34,13 @@ final class ErrorController
             'requestedPath' => $path,
             'suggestedLink' => $this->getSuggestedLink($path),
         ], [], 'errors');
+        return null;
     }
 
     /**
      * 403 - Forbidden
      */
-    public function forbidden(): void
+    public function forbidden(ServerRequestInterface $request): ?ResponseInterface
     {
         if (!\headers_sent()) {
             @\http_response_code(403);
@@ -47,12 +50,13 @@ final class ErrorController
             'titulo' => '403 - Acceso denegado',
             'suggestedLink' => $this->getSuggestedLink('/'),
         ], [], 'errors');
+        return null;
     }
 
     /**
      * 419 - Page Expired (CSRF)
      */
-    public function pageExpired(): void
+    public function pageExpired(ServerRequestInterface $request): ?ResponseInterface
     {
         if (!\headers_sent()) {
             @\http_response_code(419);
@@ -62,12 +66,13 @@ final class ErrorController
             'titulo' => '419 - Sesión expirada',
             'suggestion' => 'Por favor, recarga la página e intenta de nuevo.',
         ], [], 'errors');
+        return null;
     }
 
     /**
      * 500 - Internal Server Error
      */
-    public function serverError(): void
+    public function serverError(ServerRequestInterface $request): ?ResponseInterface
     {
         $exception = new Exception();
         Logger::error('[ErrorController] serverError() CALLED - Stack trace: ' . $exception->getTraceAsString(), ['trace' => $exception->getTraceAsString()]);
@@ -80,19 +85,21 @@ final class ErrorController
             'titulo' => '500 - Error interno',
             'suggestedLink' => $this->getSuggestedLink('/'),
         ], [], 'errors');
+        return null;
     }
 
     /**
      * Método genérico para cualquier código de error.
      */
-    public function show(int $code): void
+    public function show(ServerRequestInterface $request, int $code): ?ResponseInterface
     {
         match ($code) {
-            403 => $this->forbidden(),
-            404 => $this->notFound(),
-            419 => $this->pageExpired(),
-            default => $this->serverError(),
+            403 => $this->forbidden($request),
+            404 => $this->notFound($request),
+            419 => $this->pageExpired($request),
+            default => $this->serverError($request),
         };
+        return null;
     }
 
     // ─────────────────────────────────────────────────────────────

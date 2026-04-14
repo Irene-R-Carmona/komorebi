@@ -18,19 +18,19 @@
    ============================================================================ */
 
 :root {
-  /* --- PRIMARY (Bamboo Green - Komorebi Brand) --- */
-  --color-primary-50: #f0f9f4;
-  --color-primary-100: #dbf0e3;
-  --color-primary-200: #b9e1ca;
-  --color-primary-300: #8bcba8;
-  --color-primary-400: #5aad82;
-  --color-primary-500: #3a9263;
-  /* Base */
-  --color-primary-600: #2a7550;
-  --color-primary-700: #225d41;
-  --color-primary-800: #4d3a2e;
-  /* Adjusted for brand */
-  --color-primary-900: #3d2e1f;
+  /* --- PRIMARY (Café Oscuro — Komorebi Brand) --- */
+  --color-primary-50: #faf7f4;
+  --color-primary-100: #f2ebe2;
+  --color-primary-200: #e2d0bf;
+  --color-primary-300: #cdb09a;
+  --color-primary-400: #a07860;
+  --color-primary-500: #5C3D2E;
+  /* Base — Café Oscuro */
+  --color-primary-600: #4a2f23;
+  --color-primary-700: #3d261c;
+  --color-primary-800: #2D2218;
+  /* Marrón Oscuro */
+  --color-primary-900: #1e170f;
 
   /* --- SECONDARY (Cherry Blossom Accent) --- */
   --color-secondary-50: #fef2f3;
@@ -71,21 +71,21 @@
   --color-neutral-900: #1c1917;
 
   /* --- SEMANTIC COLORS --- */
-  --color-success: #22c55e;
-  --color-success-light: #dcfce7;
-  --color-success-dark: #166534;
+  --color-success: #5E6F64;
+  --color-success-light: #EBF2EC;
+  --color-success-dark: #3D5441;
 
-  --color-warning: #f59e0b;
-  --color-warning-light: #fef3c7;
-  --color-warning-dark: #92400e;
+  --color-warning: #C9A959;
+  --color-warning-light: #FAF3DC;
+  --color-warning-dark: #927009;
 
-  --color-danger: #ef4444;
-  --color-danger-light: #fee2e2;
-  --color-danger-dark: #991b1b;
+  --color-danger: #9B2335;
+  --color-danger-light: #F5E0E4;
+  --color-danger-dark: #6B1824;
 
-  --color-info: #3b82f6;
-  --color-info-light: #dbeafe;
-  --color-info-dark: #1e40af;
+  --color-info: #5A9FD4;
+  --color-info-light: #DCF0FA;
+  --color-info-dark: #1E5F8C;
 
   /* --- WORKSPACE SPECIFIC COLORS --- */
   /* KDS - Kitchen Display System */
@@ -102,8 +102,8 @@
 
   /* --- COMPATIBILITY ALIASES (Existing Variables) --- */
   /* Para global.css (público) */
-  --color-primario: var(--color-primary-800);
-  /* #5C3D2E existing */
+  --color-primario: var(--color-primary-500);
+  /* #5C3D2E Café Oscuro */
   --color-acento: var(--color-accent-500);
   /* #C9A959 existing */
   --color-fondo: #F7F3EB;
@@ -134,12 +134,11 @@
 
 :root {
   /* --- FONT FAMILIES --- */
-  --font-sans: 'Space Grotesk', 'Noto Sans', system-ui, -apple-system, sans-serif;
-  --font-display: 'Epilogue', 'Noto Sans', sans-serif;
-  /* Reception zen titles */
+  --font-sans: 'Zen Maru Gothic', 'Noto Sans JP', system-ui, sans-serif;
+  --font-display: 'Shippori Mincho', 'Noto Serif JP', serif;
   --font-mono: 'Roboto Mono', 'Courier New', monospace;
   /* KDS times/codes */
-  --font-japanese: 'Noto Sans JP', sans-serif;
+  --font-japanese: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
 
   /* Existing fonts (compatibility) */
   --fuente-titulo: 'Shippori Mincho', serif;
@@ -261,17 +260,17 @@
    ============================================================================ */
 
 :root {
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
-    0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  --shadow-xs: 0 1px 2px 0 rgba(45, 34, 24, 0.06);
+  --shadow-sm: 0 1px 3px 0 rgba(45, 34, 24, 0.10),
+    0 1px 2px -1px rgba(45, 34, 24, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(45, 34, 24, 0.10),
+    0 2px 4px -2px rgba(45, 34, 24, 0.07);
+  --shadow-lg: 0 10px 15px -3px rgba(45, 34, 24, 0.10),
+    0 4px 6px -4px rgba(45, 34, 24, 0.06);
+  --shadow-xl: 0 20px 25px -5px rgba(45, 34, 24, 0.10),
+    0 8px 10px -6px rgba(45, 34, 24, 0.05);
+  --shadow-2xl: 0 25px 50px -12px rgba(45, 34, 24, 0.18);
+  --shadow-inner: inset 0 2px 4px 0 rgba(45, 34, 24, 0.06);
 
   /* Compatibility aliases */
   --sombra-sm: var(--shadow-sm);

@@ -179,7 +179,7 @@ $pageTitle = 'Detalle de Staff - ' . htmlspecialchars($staff['name'], ENT_QUOTES
         }
 
         .info-item {
-            background: #f9f9f9;
+            background: var(--admin-bg-alt);
             padding: 15px;
             border-radius: 4px;
             display: flex;
@@ -188,7 +188,7 @@ $pageTitle = 'Detalle de Staff - ' . htmlspecialchars($staff['name'], ENT_QUOTES
         }
 
         .info-item strong {
-            color: #555;
+            color: var(--admin-text-muted);
             font-size: 0.9em;
         }
 
@@ -200,7 +200,7 @@ $pageTitle = 'Detalle de Staff - ' . htmlspecialchars($staff['name'], ENT_QUOTES
         }
 
         .metric-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-coffee);
             color: white;
             padding: 20px;
             border-radius: 8px;
@@ -222,7 +222,7 @@ $pageTitle = 'Detalle de Staff - ' . htmlspecialchars($staff['name'], ENT_QUOTES
         .loading {
             text-align: center;
             padding: 40px;
-            color: #999;
+            color: var(--admin-text-muted);
         }
     </style>
 </body>

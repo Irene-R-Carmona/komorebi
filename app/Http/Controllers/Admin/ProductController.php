@@ -19,6 +19,7 @@ use App\Repositories\ProductRepository;
 use App\Services\Contracts\ProductServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -56,28 +57,30 @@ final class ProductController
      * GET /admin/productos
      * Lista de productos con filtros y paginación
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
+        $queryParams = $request->getQueryParams();
+
         // Obtener parámetros de paginación
-        $page = \filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?: 1;
-        $perPage = \filter_input(INPUT_GET, 'per_page', FILTER_VALIDATE_INT) ?: 20;
+        $page = \filter_var($queryParams['page'] ?? null, FILTER_VALIDATE_INT) ?: 1;
+        $perPage = \filter_var($queryParams['per_page'] ?? null, FILTER_VALIDATE_INT) ?: 20;
 
         // Obtener filtros
         $filters = [];
 
-        if ($categoryId = \filter_input(INPUT_GET, 'category', FILTER_VALIDATE_INT)) {
+        if ($categoryId = \filter_var($queryParams['category'] ?? null, FILTER_VALIDATE_INT)) {
             $filters['category_id'] = $categoryId;
         }
 
-        if (isset($_GET['is_active'])) {
-            $filters['is_active'] = $_GET['is_active'] === '1' ? 1 : 0;
+        if (isset($queryParams['is_active'])) {
+            $filters['is_active'] = $queryParams['is_active'] === '1' ? 1 : 0;
         }
 
-        if ($search = \filter_input(INPUT_GET, 'search', FILTER_SANITIZE_SPECIAL_CHARS)) {
+        if ($search = \filter_var($queryParams['search'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS)) {
             $filters['search'] = $search;
         }
 
-        if ($type = \filter_input(INPUT_GET, 'type', FILTER_SANITIZE_SPECIAL_CHARS)) {
+        if ($type = \filter_var($queryParams['type'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS)) {
             $filters['product_type'] = $type;
         }
 
@@ -115,6 +118,7 @@ final class ProductController
             ],
             'filters' => $filters,
         ], [], 'backoffice');
+        return null;
     }
 
     /**
@@ -122,7 +126,7 @@ final class ProductController
      * Formulario de creación
      * @throws RandomException
      */
-    public function create(): void
+    public function create(ServerRequestInterface $request): ?ResponseInterface
     {
         // Obtener categorías
         $categories = $this->productRepo->getCategories();
@@ -136,6 +140,7 @@ final class ProductController
             'allergens' => $allergens,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+        return null;
     }
 
     /**
@@ -179,7 +184,7 @@ final class ProductController
      * @throws RandomException
      * @throws NotFoundException Si el producto no existe (manejado por ExceptionHandler)
      */
-    public function edit(int $id): void
+    public function edit(ServerRequestInterface $request, int $id): ?ResponseInterface
     {
         $product = $this->productModel->findById($id);
 
@@ -204,6 +209,7 @@ final class ProductController
             'product_allergens' => $product_allergens,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+        return null;
     }
 
     /**

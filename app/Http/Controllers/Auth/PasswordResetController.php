@@ -16,6 +16,7 @@ use App\Services\Contracts\PasswordResetServiceInterface;
 use App\Services\AuthService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -46,7 +47,7 @@ final class PasswordResetController
      * GET /auth/forgot-password
      * Mostrar formulario de olvido de contraseña
      */
-    public function forgotPasswordForm(): ?ResponseInterface
+    public function forgotPasswordForm(ServerRequestInterface $request): ?ResponseInterface
     {
         if ($this->authService->check()) {
             return $this->response->redirect('/');
@@ -65,17 +66,19 @@ final class PasswordResetController
      * @throws RandomException
      * @throws JsonException
      */
-    public function sendResetEmail(): ResponseInterface
+    public function sendResetEmail(ServerRequestInterface $request): ResponseInterface
     {
-        $email = $_POST['email'] ?? '';
+        $body = (array) $request->getParsedBody();
+        $email = $body['email'] ?? '';
 
         if (!$email) {
             Flash::error('Email es requerido.');
             return $this->response->redirect('/auth/forgot-password');
         }
 
-        $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+        $serverParams = $request->getServerParams();
+        $ipAddress = $serverParams['REMOTE_ADDR'] ?? '0.0.0.0';
+        $userAgent = $serverParams['HTTP_USER_AGENT'] ?? null;
 
         try {
             $result = $this->passwordResetService->requestPasswordReset($email, $ipAddress, $userAgent);
@@ -87,8 +90,6 @@ final class PasswordResetController
         } catch (\Throwable $e) {
             // Loguear para diagnóstico y evitar que una excepción externa provoque 500 no gestionado
             \App\Core\Logger::error('[PasswordReset] ' . $e->getMessage(), ['exception' => (string) $e]);
-            // También volcar a php-error.log para trazas históricas
-            @error_log("[PasswordReset] " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n", 3, __DIR__ . '/../../storage/logs/php-error.log');
 
             Flash::error('Ocurrió un error procesando la solicitud. Por favor intenta más tarde.');
             return $this->response->redirect('/auth/forgot-password');
@@ -99,13 +100,13 @@ final class PasswordResetController
      * GET /auth/reset-password
      * Mostrar formulario de reset con token
      */
-    public function resetPasswordForm(): ?ResponseInterface
+    public function resetPasswordForm(ServerRequestInterface $request): ?ResponseInterface
     {
         if ($this->authService->check()) {
             return $this->response->redirect('/');
         }
 
-        $token = $_GET['token'] ?? '';
+        $token = $request->getQueryParams()['token'] ?? '';
 
         if (!$token) {
             Flash::error('Token inválido o expirado.');
@@ -131,11 +132,12 @@ final class PasswordResetController
      * POST /auth/reset-password
      * Procesar cambio de contraseña
      */
-    public function processReset(): ResponseInterface
+    public function processReset(ServerRequestInterface $request): ResponseInterface
     {
-        $token = $_POST['token'] ?? '';
-        $newPassword = $_POST['new_password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
+        $body = (array) $request->getParsedBody();
+        $token = $body['token'] ?? '';
+        $newPassword = $body['new_password'] ?? '';
+        $confirmPassword = $body['confirm_password'] ?? '';
 
         if (!$token) {
             Flash::error('Token inválido.');
@@ -157,9 +159,9 @@ final class PasswordResetController
      * GET /auth/verify-email
      * Verificar email con token
      */
-    public function verifyEmail(): ResponseInterface
+    public function verifyEmail(ServerRequestInterface $request): ResponseInterface
     {
-        $token = $_GET['token'] ?? '';
+        $token = $request->getQueryParams()['token'] ?? '';
 
         if (!$token) {
             Flash::error('Token de verificación inválido.');
@@ -191,7 +193,7 @@ final class PasswordResetController
      * @throws JsonException
      * @throws RandomException
      */
-    public function resendVerificationEmail(): ResponseInterface
+    public function resendVerificationEmail(ServerRequestInterface $request): ResponseInterface
     {
         $redirect = $this->requireAuth();
         if ($redirect !== null) {

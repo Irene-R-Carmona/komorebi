@@ -4,55 +4,60 @@ declare(strict_types=1);
 
 /**
  * ¿Qué pruebas aquí?
- * Tests de todos los métodos públicos de ContextService.
+ * Tests de todos los métodos públicos de ContextServiceInstance y los métodos
+ * estáticos no-deprecated de ContextService (selectCafe, clearSelection).
  *
  * ¿Qué me quieres demostrar?
- * Que la lógica de contexto (admin vs staff, vista global, caché, acceso)
- * es correcta y que los cambios en reglas de rol o claves de sesión se detectan.
+ * Que la lógica de contexto (admin vs staff, vista global, acceso, getViewData)
+ * es correcta y que los cambios en reglas de rol se detectan.
  *
  * ¿Qué va a fallar en este test si se cambia el código?
- * - Si se cambia ADMIN_CAFE_KEY, los tests de selección de admin fallan.
  * - Si se modifica la lógica de rol en getCafeId(), fallan los tests de contexto.
  * - Si se elimina la clave 'Vista Global', testGetCafeNameReturnsVistaGlobalWhenNoContext falla.
  * - Si se cambia quién puede ver isGlobalView, los tests de vista global fallan.
+ * - Si se cambia ADMIN_CAFE_KEY en clearSelection, los tests de selección admin fallan.
  */
 
 namespace Tests\Unit\Services;
 
 use App\Core\Middleware;
 use App\Core\Session;
+use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\ContextService;
+use App\Services\ContextServiceInstance;
 use PHPUnit\Framework\TestCase;
-use ReflectionProperty;
 use RuntimeException;
 
 final class ContextServiceTest extends TestCase
 {
-    private ReflectionProperty $cacheProperty;
-
     protected function setUp(): void
     {
         Session::start();
         $_SESSION = [];
-        ContextService::clearCache();
-
-        $this->cacheProperty = new ReflectionProperty(ContextService::class, 'cafeCache');
-        $this->cacheProperty->setAccessible(true);
     }
 
     protected function tearDown(): void
     {
         $_SESSION = [];
-        ContextService::clearCache();
     }
 
     // ─────────────────────────────────────────────────────────────
     // Helper
     // ─────────────────────────────────────────────────────────────
 
-    private function setCafeCache(?array $data): void
-    {
-        $this->cacheProperty->setValue(null, $data);
+    private function makeContext(
+        string $role,
+        ?int $userCafeId = null,
+        ?int $adminSelectedCafeId = null,
+        ?array $cafeData = null,
+    ): ContextServiceInstance {
+        $repo = $this->createStub(CafeRepositoryInterface::class);
+
+        if ($cafeData !== null) {
+            $repo->method('findById')->willReturn($cafeData);
+        }
+
+        return new ContextServiceInstance($repo, $role, $userCafeId, $adminSelectedCafeId);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -61,42 +66,31 @@ final class ContextServiceTest extends TestCase
 
     public function testGetCafeIdReturnsNullForAdminWithNoSelection(): void
     {
-        // ARRANGE: Admin sin café seleccionado
-        $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN);
 
-        // ACT + ASSERT
-        $this->assertNull(ContextService::getCafeId());
+        $this->assertNull($ctx->getCafeId());
     }
 
     public function testGetCafeIdReturnsSelectedCafeIdForAdmin(): void
     {
-        // ARRANGE: Admin con café seleccionado vía sesión
-        $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
-        $_SESSION['admin_selected_cafe_id'] = 5;
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN, null, 5);
 
-        // ACT + ASSERT
-        $this->assertSame(5, ContextService::getCafeId());
+        $this->assertSame(5, $ctx->getCafeId());
     }
 
     public function testGetCafeIdReturnsAssignedCafeIdForNonAdmin(): void
     {
-        // ARRANGE: Manager con café asignado por el sistema
-        $_SESSION['user_role'] = Middleware::ROLE_MANAGER;
-        $_SESSION['user_cafe_id'] = 3;
+        $ctx = $this->makeContext(Middleware::ROLE_MANAGER, 3);
 
-        // ACT + ASSERT
-        $this->assertSame(3, ContextService::getCafeId());
+        $this->assertSame(3, $ctx->getCafeId());
     }
 
     public function testGetCafeIdIgnoresAdminSelectionKeyForNonAdmin(): void
     {
-        // ARRANGE: Kitchen staff con café asignado; la clave de admin no debe usarse
-        $_SESSION['user_role'] = Middleware::ROLE_KITCHEN;
-        $_SESSION['user_cafe_id'] = 2;
-        $_SESSION['admin_selected_cafe_id'] = 99;
+        // Kitchen staff con café asignado; la clave de admin no debe usarse
+        $ctx = $this->makeContext(Middleware::ROLE_KITCHEN, 2, 99);
 
-        // ACT + ASSERT
-        $this->assertSame(2, ContextService::getCafeId());
+        $this->assertSame(2, $ctx->getCafeId());
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -105,17 +99,16 @@ final class ContextServiceTest extends TestCase
 
     public function testHasCafeContextReturnsFalseWhenAdminHasNoSelection(): void
     {
-        $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN);
 
-        $this->assertFalse(ContextService::hasCafeContext());
+        $this->assertFalse($ctx->hasCafeContext());
     }
 
     public function testHasCafeContextReturnsTrueWhenManagerHasCafe(): void
     {
-        $_SESSION['user_role'] = Middleware::ROLE_MANAGER;
-        $_SESSION['user_cafe_id'] = 1;
+        $ctx = $this->makeContext(Middleware::ROLE_MANAGER, 1);
 
-        $this->assertTrue(ContextService::hasCafeContext());
+        $this->assertTrue($ctx->hasCafeContext());
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -124,25 +117,23 @@ final class ContextServiceTest extends TestCase
 
     public function testIsGlobalViewReturnsTrueForAdminWithNoSelection(): void
     {
-        $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN);
 
-        $this->assertTrue(ContextService::isGlobalView());
+        $this->assertTrue($ctx->isGlobalView());
     }
 
     public function testIsGlobalViewReturnsFalseForAdminWithCafeSelected(): void
     {
-        $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
-        $_SESSION['admin_selected_cafe_id'] = 1;
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN, null, 1);
 
-        $this->assertFalse(ContextService::isGlobalView());
+        $this->assertFalse($ctx->isGlobalView());
     }
 
     public function testIsGlobalViewReturnsFalseForNonAdmin(): void
     {
-        $_SESSION['user_role'] = Middleware::ROLE_MANAGER;
-        $_SESSION['user_cafe_id'] = 1;
+        $ctx = $this->makeContext(Middleware::ROLE_MANAGER, 1);
 
-        $this->assertFalse(ContextService::isGlobalView());
+        $this->assertFalse($ctx->isGlobalView());
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -151,24 +142,20 @@ final class ContextServiceTest extends TestCase
 
     public function testGetCafeReturnsNullWhenNoCafeId(): void
     {
-        // ARRANGE: Admin sin café — no intenta consultar BD
-        $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
+        // Admin sin café — no intenta consultar BD
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN);
 
-        $this->assertNull(ContextService::getCafe());
+        $this->assertNull($ctx->getCafe());
     }
 
-    public function testGetCafeReturnsCachedValueWhenCacheMatches(): void
+    public function testGetCafeReturnsCafeDataFromRepository(): void
     {
-        // ARRANGE: Admin con café ID 1; cache pre-poblada con ese mismo ID
-        $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
-        $_SESSION['admin_selected_cafe_id'] = 1;
-        $cached = ['id' => 1, 'name' => 'Café Neko', 'slug' => 'cafe-neko'];
-        $this->setCafeCache($cached);
+        $cafeData = ['id' => 1, 'name' => 'Café Neko', 'slug' => 'cafe-neko'];
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN, null, 1, $cafeData);
 
-        // ACT: Debe devolver el cache sin tocar la BD
-        $result = ContextService::getCafe();
+        $result = $ctx->getCafe();
 
-        $this->assertSame($cached, $result);
+        $this->assertSame($cafeData, $result);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -177,18 +164,21 @@ final class ContextServiceTest extends TestCase
 
     public function testGetCafeNameReturnsVistaGlobalWhenNoContext(): void
     {
-        $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN);
 
-        $this->assertSame('Vista Global', ContextService::getCafeName());
+        $this->assertSame('Vista Global', $ctx->getCafeName());
     }
 
-    public function testGetCafeNameReturnsCafeNameFromCache(): void
+    public function testGetCafeNameReturnsCafeNameFromRepository(): void
     {
-        $_SESSION['user_role'] = Middleware::ROLE_MANAGER;
-        $_SESSION['user_cafe_id'] = 2;
-        $this->setCafeCache(['id' => 2, 'name' => 'Café Shiba', 'slug' => 'cafe-shiba']);
+        $ctx = $this->makeContext(
+            Middleware::ROLE_MANAGER,
+            2,
+            null,
+            ['id' => 2, 'name' => 'Café Shiba', 'slug' => 'cafe-shiba'],
+        );
 
-        $this->assertSame('Café Shiba', ContextService::getCafeName());
+        $this->assertSame('Café Shiba', $ctx->getCafeName());
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -197,18 +187,21 @@ final class ContextServiceTest extends TestCase
 
     public function testGetCafeSlugReturnsNullWhenNoContext(): void
     {
-        $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN);
 
-        $this->assertNull(ContextService::getCafeSlug());
+        $this->assertNull($ctx->getCafeSlug());
     }
 
-    public function testGetCafeSlugReturnsCachedSlug(): void
+    public function testGetCafeSlugReturnsCafeSlugFromRepository(): void
     {
-        $_SESSION['user_role'] = Middleware::ROLE_MANAGER;
-        $_SESSION['user_cafe_id'] = 3;
-        $this->setCafeCache(['id' => 3, 'name' => 'Café Kitsune', 'slug' => 'cafe-kitsune']);
+        $ctx = $this->makeContext(
+            Middleware::ROLE_MANAGER,
+            3,
+            null,
+            ['id' => 3, 'name' => 'Café Kitsune', 'slug' => 'cafe-kitsune'],
+        );
 
-        $this->assertSame('cafe-kitsune', ContextService::getCafeSlug());
+        $this->assertSame('cafe-kitsune', $ctx->getCafeSlug());
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -217,28 +210,24 @@ final class ContextServiceTest extends TestCase
 
     public function testCanAccessCafeReturnsTrueForAdminOnAnyCafe(): void
     {
-        // ARRANGE: Admin siempre puede acceder
-        $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN);
 
-        $this->assertTrue(ContextService::canAccessCafe(1));
-        $this->assertTrue(ContextService::canAccessCafe(999));
+        $this->assertTrue($ctx->canAccessCafe(1));
+        $this->assertTrue($ctx->canAccessCafe(999));
     }
 
     public function testCanAccessCafeReturnsTrueWhenCafeMatchesAssigned(): void
     {
-        $_SESSION['user_role'] = Middleware::ROLE_MANAGER;
-        $_SESSION['user_cafe_id'] = 2;
+        $ctx = $this->makeContext(Middleware::ROLE_MANAGER, 2);
 
-        $this->assertTrue(ContextService::canAccessCafe(2));
+        $this->assertTrue($ctx->canAccessCafe(2));
     }
 
     public function testCanAccessCafeReturnsFalseForWrongCafe(): void
     {
-        // ARRANGE: Kitchen staff con café 1 intenta acceder al café 5
-        $_SESSION['user_role'] = Middleware::ROLE_KITCHEN;
-        $_SESSION['user_cafe_id'] = 1;
+        $ctx = $this->makeContext(Middleware::ROLE_KITCHEN, 1);
 
-        $this->assertFalse(ContextService::canAccessCafe(5));
+        $this->assertFalse($ctx->canAccessCafe(5));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -247,54 +236,48 @@ final class ContextServiceTest extends TestCase
 
     public function testRequireCafeContextReturnsCafeIdWhenExists(): void
     {
-        $_SESSION['user_role'] = Middleware::ROLE_MANAGER;
-        $_SESSION['user_cafe_id'] = 4;
+        $ctx = $this->makeContext(Middleware::ROLE_MANAGER, 4);
 
-        $this->assertSame(4, ContextService::requireCafeContext());
+        $this->assertSame(4, $ctx->requireCafeContext());
     }
 
     public function testRequireCafeContextThrowsRuntimeExceptionWhenNoContext(): void
     {
-        // ARRANGE: Admin sin selección → sin contexto de café
-        $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Se requiere seleccionar un café para esta operación.');
 
-        ContextService::requireCafeContext();
+        $ctx->requireCafeContext();
     }
 
     // ─────────────────────────────────────────────────────────────
-    // clearSelection()
+    // clearSelection() — método estático no-deprecated de ContextService
     // ─────────────────────────────────────────────────────────────
 
-    public function testClearSelectionRemovesAdminCafeKeyAndResetsCache(): void
+    public function testClearSelectionRemovesAdminCafeKeyFromSession(): void
     {
-        // ARRANGE: Admin con café seleccionado y cache poblada
         $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
         $_SESSION['admin_selected_cafe_id'] = 7;
-        $this->setCafeCache(['id' => 7, 'name' => 'Café Test', 'slug' => 'cafe-test']);
 
-        // ACT
         ContextService::clearSelection();
 
-        // ASSERT: Sin contexto, vista global activa, cache vacía
-        $this->assertNull(ContextService::getCafeId());
-        $this->assertTrue(ContextService::isGlobalView());
-        $this->assertNull($this->cacheProperty->getValue(null));
+        $this->assertArrayNotHasKey('admin_selected_cafe_id', $_SESSION);
+        // Un nuevo contexto construido sin la clave de selección refleja vista global
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN, null, null);
+        $this->assertNull($ctx->getCafeId());
+        $this->assertTrue($ctx->isGlobalView());
     }
 
     public function testClearSelectionDoesNothingForNonAdmin(): void
     {
-        // ARRANGE: Manager con café asignado
         $_SESSION['user_role'] = Middleware::ROLE_MANAGER;
         $_SESSION['user_cafe_id'] = 1;
 
-        // ACT: clearSelection no debe afectar a roles no-admin
         ContextService::clearSelection();
 
-        // ASSERT: El café sigue asignado
-        $this->assertSame(1, ContextService::getCafeId());
+        // La clave de café asignado permanece intacta
+        $this->assertSame(1, $_SESSION['user_cafe_id']);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -303,13 +286,10 @@ final class ContextServiceTest extends TestCase
 
     public function testGetViewDataReturnsCorrectStructureForGlobalAdmin(): void
     {
-        // ARRANGE: Admin sin selección
-        $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
+        $ctx = $this->makeContext(Middleware::ROLE_ADMIN);
 
-        // ACT
-        $data = ContextService::getViewData();
+        $data = $ctx->getViewData();
 
-        // ASSERT: Todas las claves presentes y valores de vista global
         $this->assertArrayHasKey('cafe_id', $data);
         $this->assertArrayHasKey('cafe_name', $data);
         $this->assertArrayHasKey('cafe', $data);
@@ -324,16 +304,11 @@ final class ContextServiceTest extends TestCase
 
     public function testGetViewDataReturnsCorrectStructureForManagerWithCafe(): void
     {
-        // ARRANGE: Manager con café asignado y cacheado
-        $_SESSION['user_role'] = Middleware::ROLE_MANAGER;
-        $_SESSION['user_cafe_id'] = 1;
         $cafeData = ['id' => 1, 'name' => 'Café Mochi', 'slug' => 'cafe-mochi'];
-        $this->setCafeCache($cafeData);
+        $ctx = $this->makeContext(Middleware::ROLE_MANAGER, 1, null, $cafeData);
 
-        // ACT
-        $data = ContextService::getViewData();
+        $data = $ctx->getViewData();
 
-        // ASSERT: Contexto de café activo, sin permisos de cambio
         $this->assertSame(1, $data['cafe_id']);
         $this->assertSame('Café Mochi', $data['cafe_name']);
         $this->assertSame($cafeData, $data['cafe']);

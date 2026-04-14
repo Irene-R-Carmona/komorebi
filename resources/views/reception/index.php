@@ -9,7 +9,7 @@ use App\Core\Csrf;
     <aside class="zen-sidebar">
         <div class="zen-brand">
             <div class="brand-logo">
-                <div class="brand-icon"><span class="material-symbols-outlined">spa</span></div>
+                <img src="/images/logos/komorebi-logo-icon.svg" class="brand-icon-img" width="40" height="40" alt="">
                 <div class="brand-text">
                     <h1>Komorebi</h1>
                     <p>Reception</p>

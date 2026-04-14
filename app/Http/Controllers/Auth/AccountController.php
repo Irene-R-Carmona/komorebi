@@ -62,9 +62,11 @@ final class AccountController
      * GET /account/sessions
      * Listar sesiones activas del usuario
      */
-    public function sessions(): void
+    public function sessions(ServerRequestInterface $request): ?ResponseInterface
     {
-        $this->requireAuth();
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
 
         $user = Session::user();
         $userId = (int) $user['id'];
@@ -75,15 +77,18 @@ final class AccountController
             'sessions' => $sessions,
             'csrf_token' => Csrf::token(),
         ]);
+        return null;
     }
 
     /**
      * POST /account/sessions/revoke/:sessionId
      * Revocar una sesión específica
      */
-    public function revokeSession(int $sessionId): void
+    public function revokeSession(ServerRequestInterface $request, int $sessionId): ResponseInterface
     {
-        $this->requireAuth();
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
 
         $user = Session::user();
         $userId = (int) $user['id'];
@@ -94,17 +99,18 @@ final class AccountController
             Flash::error('No se pudo revocar la sesión.');
         }
 
-        \header('Location: /account/sessions');
-        exit;
+        return $this->response->redirect('/account/sessions');
     }
 
     /**
      * POST /account/sessions/revoke-all
      * Revocar todas las demás sesiones
      */
-    public function revokeAllOther(): void
+    public function revokeAllOther(ServerRequestInterface $request): ResponseInterface
     {
-        $this->requireAuth();
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
 
         $user = Session::user();
         $userId = (int) $user['id'];
@@ -114,17 +120,18 @@ final class AccountController
 
         Flash::success("Se revocaron $revoked sesiones.");
 
-        \header('Location: /account/sessions');
-        exit;
+        return $this->response->redirect('/account/sessions');
     }
 
     /**
      * GET /account/security
      * Ver historial de seguridad y login
      */
-    public function security(): void
+    public function security(ServerRequestInterface $request): ?ResponseInterface
     {
-        $this->requireAuth();
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
 
         $user = Session::user();
         $userId = (int) $user['id'];
@@ -134,37 +141,43 @@ final class AccountController
         View::render('shared/account/security', [
             'auth_history' => $authHistory,
         ]);
+        return null;
     }
 
     /**
      * GET /account/change-password
      * Mostrar formulario de cambio de contraseña
      */
-    public function changePasswordForm(): void
+    public function changePasswordForm(ServerRequestInterface $request): ?ResponseInterface
     {
-        $this->requireAuth();
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
 
         View::render('shared/account/change-password', [
             'csrf_token' => Csrf::token(),
         ]);
+        return null;
     }
 
     /**
      * POST /account/change-password
      * Procesar cambio de contraseña
      */
-    public function changePassword(): void
+    public function changePassword(ServerRequestInterface $request): ResponseInterface
     {
-        $this->requireAuth();
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
 
-        $currentPassword = $_POST['current_password'] ?? '';
-        $newPassword = $_POST['new_password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
+        $body = (array) $request->getParsedBody();
+        $currentPassword = $body['current_password'] ?? '';
+        $newPassword = $body['new_password'] ?? '';
+        $confirmPassword = $body['confirm_password'] ?? '';
 
         if (!$currentPassword || !$newPassword || !$confirmPassword) {
             Flash::error('Todos los campos son requeridos.');
-            \header('Location: /account/change-password');
-            exit;
+            return $this->response->redirect('/account/change-password');
         }
 
         $result = $this->accountService->changePassword(
@@ -178,24 +191,22 @@ final class AccountController
             Flash::success('Contraseña actualizada exitosamente. Por seguridad, se revocaron otras sesiones.');
         } else {
             Flash::error($result->error);
-            \header('Location: /account/change-password');
-            exit;
+            return $this->response->redirect('/account/change-password');
         }
 
-        \header('Location: /account/security');
-        exit;
+        return $this->response->redirect('/account/security');
     }
 
     /**
      * Verificar que el usuario esté autenticado
      */
-    private function requireAuth(): void
+    private function requireAuth(): ?ResponseInterface
     {
         if (!$this->authService->check()) {
             Flash::error('Debes iniciar sesión.');
-            \header('Location: /auth/login');
-            exit;
+            return $this->response->redirect('/auth/login');
         }
+        return null;
     }
 
     /**

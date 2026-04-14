@@ -39,7 +39,7 @@ final class CafeController
      * Vista de configuración del café asignado al manager
      * Tabs: Info General, Horarios, Zonas, Configuración
      */
-    public function show(): void
+    public function show(ServerRequestInterface $request): ?ResponseInterface
     {
         $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
@@ -49,7 +49,7 @@ final class CafeController
                 'message' => 'No tienes un café asignado.',
             ]);
 
-            return;
+            return null;
         }
 
         $cafe = $this->cafeService->getById($cafeId);
@@ -59,7 +59,7 @@ final class CafeController
                 'message' => 'Café no encontrado.',
             ]);
 
-            return;
+            return null;
         }
 
         View::render('manager/cafe/show', [
@@ -67,6 +67,7 @@ final class CafeController
             'cafe' => $cafe,
             'csrf_token' => Csrf::token(),
         ], ['manager/cafe-management.css'], 'backoffice');
+        return null;
     }
 
     /**

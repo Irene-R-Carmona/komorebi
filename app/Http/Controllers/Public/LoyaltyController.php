@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
-use App\Services\LoyaltyService;
+use App\Core\Flash;
+use App\Core\Http\ResponseFactory;
+use App\Core\Session;
 use App\Core\View;
+use App\Services\LoyaltyService;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Controlador público de fidelización
@@ -14,7 +19,7 @@ final class LoyaltyController
 {
     private LoyaltyService $loyaltyService;
 
-    public function __construct()
+    public function __construct(private readonly ResponseFactory $response)
     {
         $this->loyaltyService = new LoyaltyService();
     }
@@ -23,22 +28,20 @@ final class LoyaltyController
      * Vista de tarjeta de fidelización
      * GET /loyalty/card
      */
-    public function card(): void
+    public function card(ServerRequestInterface $request): ?ResponseInterface
     {
-        $userId = $_SESSION['user_id'] ?? null;
+        $userId = Session::get('user_id');
 
         if (!$userId) {
-            $_SESSION['flash_error'] = 'Debes iniciar sesión para ver tu tarjeta';
-            header('Location: /login');
-            exit;
+            Flash::error('Debes iniciar sesión para ver tu tarjeta');
+            return $this->response->redirect('/login');
         }
 
-        $result = $this->loyaltyService->getCardStatus((int)$userId);
+        $result = $this->loyaltyService->getCardStatus((int) $userId);
 
         if (!$result->ok) {
-            $_SESSION['flash_error'] = $result->error;
-            header('Location: /');
-            exit;
+            Flash::error($result->error);
+            return $this->response->redirect('/');
         }
 
         View::render('public/loyalty/card', [
@@ -49,5 +52,6 @@ final class LoyaltyController
             'page_title' => '🎴 Mi Tarjeta de Fidelización - Komorebi Café',
             'extraCss' => ['loyalty.css']
         ]);
+        return null;
     }
 }

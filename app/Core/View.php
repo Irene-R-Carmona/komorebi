@@ -144,7 +144,7 @@ final class View
             @\http_response_code($status);
             \header('Content-Type: application/json; charset=UTF-8');
         } else {
-            Logger::error('[View::json] headers already sent; skipping \header() and http_response_code()');
+            Logger::error('[View::json] headers already sent; skipping \header() and http_response_code()', []);
         }
         echo \json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
         exit;
@@ -192,7 +192,7 @@ final class View
             @\http_response_code($status);
             \header("Location: $url");
         } else {
-            Logger::error('[View::redirect] headers already sent; cannot redirect to ' . $url);
+            Logger::error('[View::redirect] headers already sent; cannot redirect to ' . $url, []);
         }
         exit;
     }

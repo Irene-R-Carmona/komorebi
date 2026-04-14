@@ -16,6 +16,8 @@ use App\Http\Transformers\CafeTransformer;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\ReviewServiceInterface;
 use App\Services\Contracts\MenuServiceInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Controlador de Cafés
@@ -53,12 +55,13 @@ final class CafeController
      * GET /cafes
      * Lista todos los cafés activos.
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         // Obtener filtros de query string
-        $category = $this->getQueryParam('categoria');
-        $animalType = $this->getQueryParam('animal');
-        $orderBy = $this->getQueryParam('orden', 'name');
+        $queryParams = $request->getQueryParams();
+        $category = $this->getQueryParam($queryParams, 'categoria');
+        $animalType = $this->getQueryParam($queryParams, 'animal');
+        $orderBy = $this->getQueryParam($queryParams, 'orden', 'name');
 
         // Obtener cafés
         $cafes = $this->cafeModel->findAll(
@@ -88,6 +91,7 @@ final class CafeController
                 'orden' => $orderBy,
             ],
         ], ['catalogo.css']);
+        return null;
     }
 
     /**
@@ -96,7 +100,7 @@ final class CafeController
      *
      * @throws NotFoundException Si el café no existe (manejado por ExceptionHandler)
      */
-    public function show(string $slug): void
+    public function show(ServerRequestInterface $request, string $slug): ?ResponseInterface
     {
 
         // Obtener café con sus animales
@@ -194,6 +198,7 @@ final class CafeController
             'canReview' => $canReview,
             'reviewEligibility' => $reviewEligibility,
         ], ['catalogo.css', 'reviews.css']);
+        return null;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -203,9 +208,9 @@ final class CafeController
     /**
      * Obtiene un parámetro de query string sanitizado.
      */
-    private function getQueryParam(string $key, ?string $default = null): ?string
+    private function getQueryParam(array $queryParams, string $key, ?string $default = null): ?string
     {
-        $value = $_GET[$key] ?? null;
+        $value = $queryParams[$key] ?? null;
 
         if ($value === null || $value === '') {
             return $default;

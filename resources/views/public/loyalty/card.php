@@ -154,8 +154,8 @@ if ($nextMilestone === $stamps && $stamps > 0) {
                     <div class="reward-card__header">
                         <?php $icon = $reward['icon'] ?? '🎁'; ?>
                         <span class="reward-card__icon">
-                            <?php if (str_starts_with($icon, 'fa-')): ?>
-                                <i class="fas <?= e($icon) ?>" aria-hidden="true"></i>
+                            <?php if (str_starts_with($icon, 'bi-')): ?>
+                                <i class="bi <?= e($icon) ?>" aria-hidden="true"></i>
                             <?php else: ?>
                                 <?= htmlspecialchars($icon, ENT_QUOTES, 'UTF-8') ?>
                             <?php endif; ?>
@@ -197,8 +197,8 @@ if ($nextMilestone === $stamps && $stamps > 0) {
                 <div class="history-card">
                     <?php $historyIcon = $item['reward_icon'] ?? '🎁'; ?>
                     <span class="history-card__icon">
-                        <?php if (str_starts_with($historyIcon, 'fa-')): ?>
-                            <i class="fas <?= e($historyIcon) ?>" aria-hidden="true"></i>
+                        <?php if (str_starts_with($historyIcon, 'bi-')): ?>
+                            <i class="bi <?= e($historyIcon) ?>" aria-hidden="true"></i>
                         <?php else: ?>
                             <?= htmlspecialchars($historyIcon, ENT_QUOTES, 'UTF-8') ?>
                         <?php endif; ?>

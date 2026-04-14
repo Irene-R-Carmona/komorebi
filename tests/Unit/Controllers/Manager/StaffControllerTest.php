@@ -72,7 +72,7 @@ final class StaffControllerTest extends TestCase
         unset($_SESSION['user_id'], $_SESSION['user_name'], $_SESSION['user_email'], $_SESSION['user_role'], $_SESSION['user_cafe_id']);
 
         ob_start();
-        $this->controller->index();
+        $this->controller->index($this->request);
         $output = ob_get_clean();
 
         // Debe renderizar 403 cuando no hay café asignado
@@ -88,7 +88,7 @@ final class StaffControllerTest extends TestCase
         unset($_SESSION['user_id'], $_SESSION['user_name'], $_SESSION['user_email'], $_SESSION['user_role'], $_SESSION['user_cafe_id']);
 
         ob_start();
-        $this->controller->show(1);
+        $this->controller->show($this->request, 1);
         $output = ob_get_clean();
 
         $this->assertIsString($output);
@@ -111,7 +111,7 @@ final class StaffControllerTest extends TestCase
         $this->db->method('prepare')->willReturn($stmt);
 
         ob_start();
-        $this->controller->show(999);
+        $this->controller->show($this->request, 999);
         $output = ob_get_clean();
 
         // Debe renderizar 404

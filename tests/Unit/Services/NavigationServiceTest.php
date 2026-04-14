@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 /**
  * ¿Qué pruebas aquí?
- * Los métodos estáticos de NavigationService: getMenuForRole, getMenuWithBadges
- * e isActive, que generan menús de navegación según el rol del usuario.
+ * Los métodos de instancia de NavigationService: getMenu, getMenuBadged
+ * y checkIsActive, que generan menús de navegación según el rol del usuario.
  *
  * ¿Qué me quieres demostrar?
  * Que el enrutamiento de menú es correcto para cada rol, que isActive funciona
  * con coincidencia exacta y de prefijo, y que los badges se aplican correctamente.
  *
  * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina un rol del switch/match de getMenuForRole, si se cambia la URL
- * de algún ítem de menú, o si se modifica la lógica de prefijo en isActive.
+ * Si se elimina un rol del switch/match de getMenu, si se cambia la URL
+ * de algún ítem de menú, o si se modifica la lógica de prefijo en checkIsActive.
  */
 
 namespace Tests\Unit\Services;
@@ -25,45 +25,45 @@ use PHPUnit\Framework\TestCase;
 final class NavigationServiceTest extends TestCase
 {
     // ──────────────────────────────────────────────
-    // getMenuForRole
+    // getMenu
     // ──────────────────────────────────────────────
 
-    public function testGetMenuForRoleAdminDevuelveSecciones(): void
+    public function testGetMenuAdminDevuelveSecciones(): void
     {
-        $menu = NavigationService::getMenuForRole(Middleware::ROLE_ADMIN);
+        $menu = (new NavigationService())->getMenu(Middleware::ROLE_ADMIN);
 
         $this->assertIsArray($menu);
         $this->assertNotEmpty($menu);
         $this->assertArrayHasKey('Sistema', $menu);
     }
 
-    public function testGetMenuForRoleManagerDevuelveMenuNoVacio(): void
+    public function testGetMenuManagerDevuelveMenuNoVacio(): void
     {
-        $menu = NavigationService::getMenuForRole(Middleware::ROLE_MANAGER);
+        $menu = (new NavigationService())->getMenu(Middleware::ROLE_MANAGER);
 
         $this->assertIsArray($menu);
         $this->assertNotEmpty($menu);
     }
 
-    public function testGetMenuForRoleKeeperDevuelveMenuAnimal(): void
+    public function testGetMenuKeeperDevuelveMenuAnimal(): void
     {
-        $menu = NavigationService::getMenuForRole(Middleware::ROLE_KEEPER);
+        $menu = (new NavigationService())->getMenu(Middleware::ROLE_KEEPER);
 
         $this->assertIsArray($menu);
         $this->assertArrayHasKey('Bienestar Animal', $menu);
     }
 
-    public function testGetMenuForRoleDesconocidoDevuelveArrayVacio(): void
+    public function testGetMenuDesconocidoDevuelveArrayVacio(): void
     {
-        $menu = NavigationService::getMenuForRole('rol_inexistente');
+        $menu = (new NavigationService())->getMenu('rol_inexistente');
 
         $this->assertIsArray($menu);
         $this->assertEmpty($menu);
     }
 
-    public function testGetMenuForRoleAdminContieneItemConUrl(): void
+    public function testGetMenuAdminContieneItemConUrl(): void
     {
-        $menu = NavigationService::getMenuForRole(Middleware::ROLE_ADMIN);
+        $menu = (new NavigationService())->getMenu(Middleware::ROLE_ADMIN);
 
         $items = $menu['Sistema'];
         $this->assertIsArray($items);
@@ -76,39 +76,39 @@ final class NavigationServiceTest extends TestCase
     }
 
     // ──────────────────────────────────────────────
-    // isActive
+    // checkIsActive
     // ──────────────────────────────────────────────
 
-    public function testIsActiveConIncidenciaExacta(): void
+    public function testCheckIsActiveConIncidenciaExacta(): void
     {
-        $this->assertTrue(NavigationService::isActive('/admin/dashboard', '/admin/dashboard'));
+        $this->assertTrue((new NavigationService())->checkIsActive('/admin/dashboard', '/admin/dashboard'));
     }
 
-    public function testIsActiveConPrefijoCoincidente(): void
+    public function testCheckIsActiveConPrefijoCoincidente(): void
     {
         // /admin/users debería ser "activo" cuando la URL actual es /admin/users/1
-        $this->assertTrue(NavigationService::isActive('/admin/users', '/admin/users/1'));
+        $this->assertTrue((new NavigationService())->checkIsActive('/admin/users', '/admin/users/1'));
     }
 
-    public function testIsActiveRetornaFalseCuandoNoCoincide(): void
+    public function testCheckIsActiveRetornaFalseCuandoNoCoincide(): void
     {
-        $this->assertFalse(NavigationService::isActive('/admin/users', '/admin/settings'));
+        $this->assertFalse((new NavigationService())->checkIsActive('/admin/users', '/admin/settings'));
     }
 
-    public function testIsActiveConSlashRaizNoEsPrefijoUniversal(): void
+    public function testCheckIsActiveConSlashRaizNoEsPrefijoUniversal(): void
     {
         // La raíz '/' no debe marcar como activo cualquier página
-        $this->assertFalse(NavigationService::isActive('/', '/admin/dashboard'));
+        $this->assertFalse((new NavigationService())->checkIsActive('/', '/admin/dashboard'));
     }
 
     // ──────────────────────────────────────────────
-    // getMenuWithBadges
+    // getMenuBadged
     // ──────────────────────────────────────────────
 
-    public function testGetMenuWithBadgesAplicaBadgeAItemEspecifico(): void
+    public function testGetMenuBadgedAplicaBadgeAItemEspecifico(): void
     {
         $badges = ['ops/reception' => 3];
-        $menu = NavigationService::getMenuWithBadges(Middleware::ROLE_SUPERVISOR, $badges);
+        $menu = (new NavigationService())->getMenuBadged(Middleware::ROLE_SUPERVISOR, $badges);
 
         $this->assertIsArray($menu);
         $this->assertNotEmpty($menu);
@@ -127,9 +127,9 @@ final class NavigationServiceTest extends TestCase
         $this->assertTrue($badgeFound, 'Badge no encontrado en ítem de recepción');
     }
 
-    public function testGetMenuWithBadgesSinBadgesNoAgregaPropiedadBadge(): void
+    public function testGetMenuBadgedSinBadgesNoAgregaPropiedadBadge(): void
     {
-        $menu = NavigationService::getMenuWithBadges(Middleware::ROLE_ADMIN, []);
+        $menu = (new NavigationService())->getMenuBadged(Middleware::ROLE_ADMIN, []);
 
         foreach ($menu as $items) {
             foreach ($items as $item) {

@@ -29,6 +29,7 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\UserRepository;
 use App\Services\AccountDeletionService;
 use App\Services\ContextServiceInstance;
+use App\Services\Contracts\ContextServiceInterface;
 use App\Services\NavigationService;
 use App\Jobs\RewardUnlockedJob;
 use App\Jobs\SendTelegramNotificationJob;
@@ -125,6 +126,16 @@ Container::singleton(ApiTokenRepository::class, fn() => Container::make(ApiToken
 Container::singleton(ApiTokenService::class, fn() => Container::make(ApiTokenServiceInterface::class));
 
 // ContextServiceInstance: versión inyectable de ContextService (per-request)
+// El bind de la interfaz permite inyectar por contrato (no por clase concreta)
+Container::bind(ContextServiceInterface::class, function (): ContextServiceInstance {
+    $selectedId = \App\Core\Session::get('admin_selected_cafe_id');
+    return new ContextServiceInstance(
+        Container::make(\App\Repositories\Contracts\CafeRepositoryInterface::class),
+        \App\Core\Session::role(),
+        \App\Core\Session::userCafeId(),
+        $selectedId !== null ? (int) $selectedId : null
+    );
+});
 Container::bind(ContextServiceInstance::class, function (): ContextServiceInstance {
     $selectedId = \App\Core\Session::get('admin_selected_cafe_id');
     return new ContextServiceInstance(

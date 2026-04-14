@@ -12,6 +12,7 @@ use App\Core\View;
 use App\Models\AuditLog;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -120,16 +121,17 @@ final class AuditLogController
      * GET /admin/logs/audit/export
      * Exportar logs de auditoría a CSV
      */
-    public function export(): void
+    public function export(ServerRequestInterface $request): ResponseInterface
     {
         try {
+            $queryParams = $request->getQueryParams();
             $filters = [
-                'user_id' => !empty($_GET['user_id']) ? (int) $_GET['user_id'] : null,
-                'action' => $_GET['action'] ?? null,
-                'resource_type' => $_GET['resource_type'] ?? null,
-                'date_from' => $_GET['date_from'] ?? null,
-                'date_to' => $_GET['date_to'] ?? null,
-                'ip_address' => $_GET['ip_address'] ?? null,
+                'user_id' => !empty($queryParams['user_id']) ? (int) $queryParams['user_id'] : null,
+                'action' => $queryParams['action'] ?? null,
+                'resource_type' => $queryParams['resource_type'] ?? null,
+                'date_from' => $queryParams['date_from'] ?? null,
+                'date_to' => $queryParams['date_to'] ?? null,
+                'ip_address' => $queryParams['ip_address'] ?? null,
             ];
 
             $filters = \array_filter($filters, static fn($v) => $v !== null && $v !== '');
@@ -137,21 +139,17 @@ final class AuditLogController
             $auditLogModel = new AuditLog();
             $result = $auditLogModel->findAll($filters, 10000, 0);
 
-            // Headers para descarga CSV
-            \header('Content-Type: text/csv; charset=utf-8');
-            \header('Content-Disposition: attachment; filename="audit_logs_' . \date('Y-m-d_His') . '.csv"');
-
-            $output = \fopen('php://output', 'wb');
+            $tmp = \fopen('php://temp', 'rw+');
 
             // BOM para UTF-8
-            \fprintf($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));
+            \fprintf($tmp, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));
 
             // Encabezados
-            \fputcsv($output, ['ID', 'Timestamp', 'Usuario', 'Acción', 'Tipo Recurso', 'ID Recurso', 'IP', 'User Agent'], ',', '"');
+            \fputcsv($tmp, ['ID', 'Timestamp', 'Usuario', 'Acción', 'Tipo Recurso', 'ID Recurso', 'IP', 'User Agent'], ',', '"');
 
             // Datos
             foreach ($result['data'] as $log) {
-                \fputcsv($output, [
+                \fputcsv($tmp, [
                     $log['id'],
                     $log['created_at'],
                     $log['user_name'] ?? 'Sistema',
@@ -163,26 +161,34 @@ final class AuditLogController
                 ], ',', '"');
             }
 
-            \fclose($output);
-            exit;
+            \rewind($tmp);
+            $csvContent = \stream_get_contents($tmp);
+            \fclose($tmp);
+
+            $response = $this->response->createResponse(200)
+                ->withHeader('Content-Type', 'text/csv; charset=utf-8')
+                ->withHeader('Content-Disposition', 'attachment; filename="audit_logs_' . \date('Y-m-d_His') . '.csv"');
+            $response->getBody()->write((string) $csvContent);
+
+            return $response;
         } catch (\Exception $e) {
             ExceptionLogger::log($e, 'Admin\\AuditLogController::export');
             $isDebug = Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production');
-            @\http_response_code(500);
+            $response = $this->response->createResponse(500);
             View::render('errors/500', [
                 'message' => $isDebug ? $e->getMessage() : 'Error al generar el archivo de exportación',
                 'show_details' => $isDebug,
             ]);
-            exit;
+            return $response;
         } catch (\Error $e) {
             ExceptionLogger::log($e, 'Admin\\AuditLogController::export');
             $isDebug = Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production');
-            @\http_response_code(500);
+            $response = $this->response->createResponse(500);
             View::render('errors/500', [
                 'message' => $isDebug ? $e->getMessage() : 'Error al generar el archivo de exportación',
                 'show_details' => $isDebug,
             ]);
-            exit;
+            return $response;
         }
     }
 }

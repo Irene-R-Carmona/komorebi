@@ -67,7 +67,7 @@ final class Middleware
         $userId = Session::get('user_id');
 
         if (empty($userId)) {
-            Flash::set('error', 'Debes iniciar sesión para acceder a esta página.');
+            Flash::error('Debes iniciar sesión para acceder a esta página.');
             if (!\headers_sent()) {
                 \header('Location: /login');
             } else {

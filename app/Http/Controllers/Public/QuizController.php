@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Core\View;
+use App\Core\Http\ResponseFactory;
 use App\Exceptions\ValidationException;
 use App\Models\Cafe;
 use JsonException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Controlador del Quiz "Tu Café del Alma"
@@ -16,6 +19,8 @@ use JsonException;
  */
 final class QuizController
 {
+    public function __construct(private readonly ResponseFactory $response) {}
+
     /**
      * Preguntas filosóficas del quiz
      * Cada respuesta tiene pesos hacia diferentes características de café
@@ -110,12 +115,13 @@ final class QuizController
     /**
      * GET /quiz
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         View::render('public/quiz/index', [
             'titulo' => 'Tu Café del Alma | Quiz',
             'preguntas' => self::PREGUNTAS,
         ], ['quiz.css']);
+        return null;
     }
 
     /**
@@ -123,16 +129,15 @@ final class QuizController
      * Calcula el resultado del quiz con algoritmo ponderado
      * @throws JsonException
      */
-    public function resultado(): void
+    public function resultado(ServerRequestInterface $request): ?ResponseInterface
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            \header('Location: /quiz');
-            exit;
+        if ($request->getMethod() !== 'POST') {
+            return $this->response->redirect('/quiz');
         }
 
         // Obtener respuestas desde JSON body
-        $json = \file_get_contents('php://input');
-        $data = \json_decode((string) $json, true);
+        $json = (string) $request->getBody();
+        $data = \json_decode($json, true);
         $respuestas = $data['respuestas'] ?? [];
 
         if (empty($respuestas) || \count($respuestas) < \count(self::PREGUNTAS)) {
@@ -176,6 +181,7 @@ final class QuizController
             'cafeData' => $cafeData,
             'puntuaciones' => $puntuaciones,
         ], ['quiz.css']);
+        return null;
     }
 
     /**

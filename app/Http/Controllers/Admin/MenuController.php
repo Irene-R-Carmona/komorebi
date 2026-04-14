@@ -16,6 +16,7 @@ use App\Models\Product;
 use App\Services\Contracts\ProductServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -44,7 +45,7 @@ final class MenuController
      *
      * @throws RandomException
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $productModel = new Product();
         $categoryModel = new MenuCategory();
@@ -92,6 +93,7 @@ final class MenuController
             'csrf_token' => Csrf::token(),
             'extraJs' => ['admin/admin-products.js'],
         ], ['admin/admin-products.css'], 'backoffice');
+        return null;
     }
 
     /**

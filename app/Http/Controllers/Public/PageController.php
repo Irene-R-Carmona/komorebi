@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Public;
 
 use App\Core\Logger;
 use App\Core\View;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Controlador de Páginas Estáticas
@@ -22,27 +24,30 @@ final class PageController
      * GET /historia
      * Página de Historia y Cultura
      */
-    public function historia(): void
+    public function historia(ServerRequestInterface $request): ?ResponseInterface
     {
         $this->view('historia');
+        return null;
     }
 
     /**
      * GET /faq
      * Página de Preguntas Frecuentes
      */
-    public function faq(): void
+    public function faq(ServerRequestInterface $request): ?ResponseInterface
     {
         $this->view('faq');
+        return null;
     }
 
     /**
      * GET /contacto
      * Página de Contacto
      */
-    public function contacto(): void
+    public function contacto(ServerRequestInterface $request): ?ResponseInterface
     {
         $this->view('contacto');
+        return null;
     }
 
     /**

@@ -8,6 +8,7 @@ declare(strict_types=1);
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Controllers\Manager;
 
 use App\Core\Http\ResponseFactory;
@@ -85,7 +86,7 @@ final class CafeControllerTest extends TestCase
         unset($_SESSION['user_id'], $_SESSION['user_name'], $_SESSION['user_email'], $_SESSION['user_role'], $_SESSION['user_cafe_id']);
 
         ob_start();
-        $this->controller->show();
+        $this->controller->show($this->request);
         $output = ob_get_clean();
 
         // Debe renderizar 403 cuando no hay café asignado

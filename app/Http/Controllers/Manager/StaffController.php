@@ -46,7 +46,7 @@ final class StaffController
      * Listado de staff del café con filtros
      * Vista con tabs: Staff Activo, Turnos, Historial
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
@@ -56,7 +56,7 @@ final class StaffController
                 'message' => 'No tienes un café asignado.',
             ]);
 
-            return;
+            return null;
         }
 
         // Obtener staff del café (users con cafe_id y role staff)
@@ -73,6 +73,7 @@ final class StaffController
             'cafe_id' => $cafeId,
             'csrf_token' => Csrf::token(),
         ], ['manager/staff.css'], 'backoffice');
+        return null;
     }
 
     /**
@@ -80,7 +81,7 @@ final class StaffController
      *
      * Detalle de un staff member + historial de turnos
      */
-    public function show(int $userId): void
+    public function show(ServerRequestInterface $request, int $userId): ?ResponseInterface
     {
         $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
@@ -90,7 +91,7 @@ final class StaffController
                 'message' => 'No tienes un café asignado.',
             ]);
 
-            return;
+            return null;
         }
 
         // Obtener datos del staff member
@@ -101,7 +102,7 @@ final class StaffController
                 'message' => 'Staff member no encontrado o no pertenece a tu café.',
             ]);
 
-            return;
+            return null;
         }
 
         // Historial de turnos (últimos 30 días)
@@ -114,6 +115,7 @@ final class StaffController
             'shift_history' => $shiftHistory,
             'csrf_token' => Csrf::token(),
         ], ['manager/staff.css'], 'backoffice');
+        return null;
     }
 
     /**

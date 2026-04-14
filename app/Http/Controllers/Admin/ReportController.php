@@ -17,6 +17,7 @@ use App\Services\Contracts\AdminReportServiceInterface;
 use App\Services\Contracts\AdminStatisticsServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -103,12 +104,13 @@ final class ReportController
      * GET /admin/reportes/export
      * Exporta datos de reportes en CSV
      */
-    public function exportReportes(): void
+    public function exportReportes(ServerRequestInterface $request): ResponseInterface
     {
         try {
-            $dateFrom = $_GET['date_from'] ?? \date('Y-m-d', \strtotime('-30 days'));
-            $dateTo = $_GET['date_to'] ?? \date('Y-m-d');
-            $format = $_GET['format'] ?? 'csv';
+            $queryParams = $request->getQueryParams();
+            $dateFrom = $queryParams['date_from'] ?? \date('Y-m-d', \strtotime('-30 days'));
+            $dateTo = $queryParams['date_to'] ?? \date('Y-m-d');
+            $format = $queryParams['format'] ?? 'csv';
 
             if ($format !== 'csv') {
                 throw ValidationException::withMessage('Formato no soportado', 400);
@@ -118,39 +120,33 @@ final class ReportController
             $cafePerformance = $this->statisticsService->getCafePerformanceStats($dateFrom, $dateTo, 50);
             $summary = $this->reportService->getReportsSummary($dateFrom, $dateTo);
 
-            // Configurar headers para descarga
-            \header('Content-Type: text/csv; charset=utf-8');
-            \header('Content-Disposition: attachment; filename="reporte_' . \date('Y-m-d') . '.csv"');
-            \header('Pragma: no-cache');
-            \header('Expires: 0');
+            $tmp = \fopen('php://temp', 'rw+');
 
-            $output = \fopen('php://output', 'wb');
-
-            if ($output === false) {
-                throw ValidationException::withMessage('No se pudo abrir el stream de salida', 500);
+            if ($tmp === false) {
+                throw ValidationException::withMessage('No se pudo abrir el stream temporal', 500);
             }
 
-            /** @var resource $output */
+            /** @var resource $tmp */
 
             // BOM para UTF-8
-            \fwrite($output, "\xEF\xBB\xBF");
+            \fwrite($tmp, "\xEF\xBB\xBF");
 
             // Sección: Resumen
-            \fputcsv($output, ['RESUMEN DEL PERÍODO'], ',', '"');
-            \fputcsv($output, ['Fecha Desde', $dateFrom], ',', '"');
-            \fputcsv($output, ['Fecha Hasta', $dateTo], ',', '"');
-            \fputcsv($output, ['Total Reservas', $summary['total_reservations']], ',', '"');
-            \fputcsv($output, ['Total Invitados', $summary['total_guests']], ',', '"');
-            \fputcsv($output, ['Rating Promedio', $summary['avg_rating']], ',', '"');
-            \fputcsv($output, ['Usuarios Activos', $summary['active_users']], ',', '"');
-            \fputcsv($output, []);
+            \fputcsv($tmp, ['RESUMEN DEL PERÍODO'], ',', '"');
+            \fputcsv($tmp, ['Fecha Desde', $dateFrom], ',', '"');
+            \fputcsv($tmp, ['Fecha Hasta', $dateTo], ',', '"');
+            \fputcsv($tmp, ['Total Reservas', $summary['total_reservations']], ',', '"');
+            \fputcsv($tmp, ['Total Invitados', $summary['total_guests']], ',', '"');
+            \fputcsv($tmp, ['Rating Promedio', $summary['avg_rating']], ',', '"');
+            \fputcsv($tmp, ['Usuarios Activos', $summary['active_users']], ',', '"');
+            \fputcsv($tmp, []);
 
             // Sección: Top Cafés
-            \fputcsv($output, ['TOP CAFÉS'], ',', '"');
-            \fputcsv($output, ['#', 'Nombre', 'Tipo', 'Ubicación', 'Reservas', 'Invitados', 'Rating', 'Reviews'], ',', '"');
+            \fputcsv($tmp, ['TOP CAFÉS'], ',', '"');
+            \fputcsv($tmp, ['#', 'Nombre', 'Tipo', 'Ubicación', 'Reservas', 'Invitados', 'Rating', 'Reviews'], ',', '"');
 
             foreach ($topCafes as $index => $cafe) {
-                \fputcsv($output, [
+                \fputcsv($tmp, [
                     $index + 1,
                     $cafe['name'],
                     $cafe['type'],
@@ -162,14 +158,14 @@ final class ReportController
                 ], ',', '"');
             }
 
-            \fputcsv($output, [], ',', '"');
+            \fputcsv($tmp, [], ',', '"');
 
             // Sección: Rendimiento por Café
-            \fputcsv($output, ['RENDIMIENTO POR CAFÉS'], ',', '"');
-            \fputcsv($output, ['Café', 'Tipo', 'Reservas', 'Invitados', 'Completadas', 'Canceladas', 'Tasa Completitud %'], ',', '"');
+            \fputcsv($tmp, ['RENDIMIENTO POR CAFÉS'], ',', '"');
+            \fputcsv($tmp, ['Café', 'Tipo', 'Reservas', 'Invitados', 'Completadas', 'Canceladas', 'Tasa Completitud %'], ',', '"');
 
             foreach ($cafePerformance as $cafe) {
-                \fputcsv($output, [
+                \fputcsv($tmp, [
                     $cafe['name'],
                     $cafe['type'],
                     $cafe['total_reservations'],
@@ -180,7 +176,9 @@ final class ReportController
                 ], ',', '"');
             }
 
-            \fclose($output);
+            \rewind($tmp);
+            $csvContent = \stream_get_contents($tmp);
+            \fclose($tmp);
 
             AuditLog::log(
                 'export_reports',
@@ -194,25 +192,32 @@ final class ReportController
                 ]
             );
 
-            exit;
+            $response = $this->response->createResponse(200)
+                ->withHeader('Content-Type', 'text/csv; charset=utf-8')
+                ->withHeader('Content-Disposition', 'attachment; filename="reporte_' . \date('Y-m-d') . '.csv"')
+                ->withHeader('Pragma', 'no-cache')
+                ->withHeader('Expires', '0');
+            $response->getBody()->write((string) $csvContent);
+
+            return $response;
         } catch (\Exception $e) {
             ExceptionLogger::log($e, 'Admin\\ReportController::exportReportes');
             $isDebug = Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production');
-            @\http_response_code(500);
+            $response = $this->response->createResponse(500);
             View::render('errors/500', [
                 'message' => $isDebug ? $e->getMessage() : 'Error al generar el reporte',
                 'show_details' => $isDebug,
             ]);
-            exit;
+            return $response;
         } catch (\Error $e) {
             ExceptionLogger::log($e, 'Admin\\ReportController::exportReportes');
             $isDebug = Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production');
-            @\http_response_code(500);
+            $response = $this->response->createResponse(500);
             View::render('errors/500', [
                 'message' => $isDebug ? $e->getMessage() : 'Error al generar el reporte',
                 'show_details' => $isDebug,
             ]);
-            exit;
+            return $response;
         }
     }
 }

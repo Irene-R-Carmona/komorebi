@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Componente: Checkbox de Alérgeno
  *
@@ -42,18 +43,17 @@ $severityLabel = $severityLabels[$severity] ?? 'N/A';
 
 <div class="allergen-card">
     <input
-            type="checkbox"
-            class="allergen-card__input"
-            name="allergens[]"
-            value="<?= $id ?>"
-            id="allergen_<?= $id ?>"
-            @click="toggleAllergen(<?= $id ?>)"
-            :checked="hasAllergen(<?= $id ?>)"
-    >
+        type="checkbox"
+        class="allergen-card__input"
+        name="allergens[]"
+        value="<?= $id ?>"
+        id="allergen_<?= $id ?>"
+        @click="toggleAllergen(<?= $id ?>)"
+        :checked="hasAllergen(<?= $id ?>)">
     <label class="allergen-card__label" for="allergen_<?= $id ?>">
         <!-- Icono -->
         <span class="allergen-card__icon">
-            <i class="fa-solid <?= e($icon) ?>" style="color: <?= e($iconColor) ?>"></i>
+            <i class="<?= e($icon !== '' ? $icon : 'bi bi-question-circle') ?>" style="color: <?= e($iconColor) ?>"></i>
         </span>
 
         <!-- Contenido -->
