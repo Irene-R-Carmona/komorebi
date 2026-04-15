@@ -211,8 +211,13 @@ e2e: ## Ejecutar tests end-to-end con Playwright
 e2e-a11y: ## Ejecutar solo tests de accesibilidad (WCAG 2.1 AA)
 	docker compose exec app npx playwright test tests/e2e/accessibility/
 
-lighthouse: ## Auditoría Lighthouse CI (performance + a11y + best-practices)
-	npx lhci autorun
+lighthouse: ## Auditoría Lighthouse (performance + a11y + best-practices)
+	mkdir -p lighthouse-reports
+	npx lighthouse http://localhost:8080/ --chrome-flags="--no-sandbox --disable-dev-shm-usage" --output=html --output-path=./lighthouse-reports/home.html --quiet
+	npx lighthouse http://localhost:8080/manager/dashboard --chrome-flags="--no-sandbox --disable-dev-shm-usage" --output=html --output-path=./lighthouse-reports/manager-dashboard.html --quiet
+	npx lighthouse http://localhost:8080/supervisor/dashboard --chrome-flags="--no-sandbox --disable-dev-shm-usage" --output=html --output-path=./lighthouse-reports/supervisor-dashboard.html --quiet
+	npx lighthouse http://localhost:8080/manager/productos --chrome-flags="--no-sandbox --disable-dev-shm-usage" --output=html --output-path=./lighthouse-reports/manager-productos.html --quiet
+	@echo "Informes Lighthouse disponibles en ./lighthouse-reports/"
 
 playwright-install: ## Instalar Playwright y sus dependencias de navegadores
 	docker compose exec app npx playwright install --with-deps
