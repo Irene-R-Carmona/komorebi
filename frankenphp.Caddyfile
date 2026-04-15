@@ -1,6 +1,6 @@
 :80 {
 	# Compression (gzip, zstd, brotli) para todos los responses
-	encode gzip zstd
+	encode br gzip zstd
 
 	# Cache-Control headers para assets estáticos propios
 	# Fuentes e imágenes: larga vida útil (no cambian sin renombrado)

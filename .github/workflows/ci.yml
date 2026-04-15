@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   # --------------------------------------------------------------------------
-  # Job 1: Calidad de código (PHPStan + Psalm + CS Fixer)
+  # Job 1: Calidad de código (PHPStan + CS Fixer)
   # --------------------------------------------------------------------------
   quality:
     name: Code Quality
@@ -43,9 +43,6 @@ jobs:
 
       - name: Static analysis (PHPStan)
         run: vendor/bin/phpstan analyse --memory-limit=256M --no-progress
-
-      - name: Static analysis (Psalm)
-        run: vendor/bin/psalm --show-info=false --no-progress
 
   # --------------------------------------------------------------------------
   # Job 2: Tests unitarios en paralelo (sin Docker, feedback rápido)

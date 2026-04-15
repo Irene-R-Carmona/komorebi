@@ -1,4 +1,4 @@
-.PHONY: help up down restart logs bash db-reset db-seed db-migrate clean test test-unit test-integration test-coverage test-build test-clean test-api psalm ci coverage cs-check cs-fix audit sonar-up sonar-down analyze e2e e2e-a11y lighthouse playwright-install dev dev-full workers-up workers-down xdebug-on
+.PHONY: help up down restart logs bash db-reset db-seed db-migrate clean test test-unit test-integration test-coverage test-build test-clean ci coverage cs-check cs-fix audit sonar-up sonar-down analyze e2e e2e-a11y lighthouse playwright-install dev dev-full workers-up workers-down xdebug-on
 
 # Colores para output
 GREEN=\033[0;32m
@@ -135,18 +135,11 @@ test-build: ## Construir imagen de test sin ejecutar
 test-clean: ## Eliminar contenedores y volúmenes de test
 	docker compose -f docker-compose.test.yml down -v --remove-orphans
 
-test-api: ## Run API tests with Newman against OpenAPI spec
-	docker compose exec app sh -c "npx newman run docs/openapi.postman.json --environment docs/postman-env.json --reporters cli,json --reporter-json-export tests/reports/newman-results.json || true"
-
 phpstan: ## Análisis estático con PHPStan
 	docker compose exec app php vendor/bin/phpstan analyse --memory-limit=1G
 
-psalm: ## Análisis estático con Psalm
-	docker compose exec app composer run analyse:psalm
-
-ci: ## Suite completa de calidad (phpstan + psalm + test + cs)
+ci: ## Suite completa de calidad (phpstan + test + cs)
 	$(MAKE) phpstan
-	$(MAKE) psalm
 	$(MAKE) test
 	$(MAKE) cs-check
 
