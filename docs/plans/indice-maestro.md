@@ -242,4 +242,7 @@ FASE 4 (independiente de Fases 0-3)
 | Fase 1 | `docs/plans/2026-04-13-seguridad-datos-dto.md` | ✅ Plan creado — en implementación |
 | Fase 2 | `docs/plans/2026-04-13-observabilidad-logging.md` | ✅ Plan creado — implementación completa |
 | Fase 3 | `docs/plans/2026-04-13-uiux-vistas-publicas.md` | ✅ Plan creado — en implementación |
-| Fase 4 | `docs/plans/2026-04-14-brand-visual-unification.md` | � En implementación — A✅ B✅(B4 pendiente) D(parcial)✅ E1+E2✅ — C y resto D pendientes || Sprint QoL | `docs/plans/2026-04-14-qol-holistic-sprint.md` | 🔵 Plan creado — pendiente inicio |
+| Fase 4 | `docs/plans/2026-04-14-brand-visual-unification.md` | 🟡 En implementación — A✅ B✅(B4 pendiente) D(parcial)✅ E1+E2✅ — C y resto D pendientes |
+| Sprint QoL | `docs/plans/2026-04-14-qol-holistic-sprint.md` | 🔵 Plan creado — pendiente inicio |
+| Pre-defensa TFG | `docs/plans/2026-04-15-refuerzo-predefensa-tfg.md` | 🟡 En implementación — F1 ✅, F2 omitida (suite ya verde), F3 pendiente |
+| Ecosystem Cleanup | `docs/plans/2026-04-15-ecosystem-cleanup.md` | 🔵 Plan creado — pendiente inicio (gates F1 primero) |

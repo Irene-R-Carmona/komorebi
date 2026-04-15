@@ -27,6 +27,7 @@ use InvalidArgumentException;
 final class CafeServiceTest extends TestCase
 {
     private CafeService $service;
+    /** @var \PHPUnit\Framework\MockObject\MockObject&CafeRepositoryInterface */
     private CafeRepositoryInterface $mockRepo;
 
     protected function setUp(): void

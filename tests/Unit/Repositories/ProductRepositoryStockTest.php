@@ -33,6 +33,7 @@ use PHPUnit\Framework\TestCase;
 final class ProductRepositoryStockTest extends TestCase
 {
     private ProductRepository $repository;
+    /** @var \PHPUnit\Framework\MockObject\MockObject&\PDO */
     private PDO $db;
 
     protected function setUp(): void

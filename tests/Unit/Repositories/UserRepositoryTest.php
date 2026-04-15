@@ -24,7 +24,9 @@ use PHPUnit\Framework\TestCase;
  */
 final class UserRepositoryTest extends TestCase
 {
+    /** @var \PHPUnit\Framework\MockObject\MockObject&\PDO */
     private PDO $pdoMock;
+    /** @var \PHPUnit\Framework\MockObject\MockObject&\PDOStatement */
     private PDOStatement $stmtMock;
     private UserRepository $repository;
 

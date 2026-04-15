@@ -31,8 +31,10 @@ final class AvailabilityServiceTest extends TestCase
     /** Fecha futura bien dentro de maxDaysAhead=999 para tests normales. */
     private const FUTURE_DATE = '2027-06-15';
 
-    private \PDO $mockPdo;
-    private \PDOStatement $mockStmt;
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    private PDO $mockPdo;
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDOStatement */
+    private PDOStatement $mockStmt;
     private AvailabilityService $service;
 
     protected function setUp(): void

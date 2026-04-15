@@ -22,6 +22,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Core\Result;
+use App\Models\Reservation;
+use App\Models\TimeSlot;
 use App\Repositories\Contracts\WaitlistRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\WaitlistService;
@@ -30,15 +32,22 @@ use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\TestDox;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(WaitlistService::class)]
+#[UsesClass(Result::class)]
+#[UsesClass(Reservation::class)]
+#[UsesClass(TimeSlot::class)]
 #[Group('unit')]
 final class WaitlistServiceTest extends TestCase
 {
     private WaitlistService $service;
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
     private PDO $dbMock;
+    /** @var \PHPUnit\Framework\MockObject\Stub&WaitlistRepositoryInterface */
     private WaitlistRepositoryInterface $waitlistMock;
+    /** @var \PHPUnit\Framework\MockObject\Stub&EmailServiceInterface */
     private EmailServiceInterface $emailServiceStub;
 
     protected function setUp(): void

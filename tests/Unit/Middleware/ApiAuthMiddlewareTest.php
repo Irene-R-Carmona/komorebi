@@ -35,6 +35,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 final class ApiAuthMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;
+    /** @var \PHPUnit\Framework\MockObject\Stub&ServerRequestInterface */
     private ServerRequestInterface $request;
 
     protected function setUp(): void
@@ -88,7 +89,6 @@ final class ApiAuthMiddlewareTest extends TestCase
             ->willReturn(Result::ok($tokenData));
 
         $this->request->method('getHeaderLine')
-            ->with('Authorization')
             ->willReturn('Bearer abc123');
 
         // withAttribute() retorna la misma instancia (fluent)
@@ -107,7 +107,6 @@ final class ApiAuthMiddlewareTest extends TestCase
             ->willReturn(Result::fail('Token expirado.', 'invalid_token'));
 
         $this->request->method('getHeaderLine')
-            ->with('Authorization')
             ->willReturn('Bearer badtoken');
 
         $handler = $this->createMock(RequestHandlerInterface::class);
@@ -122,7 +121,6 @@ final class ApiAuthMiddlewareTest extends TestCase
     {
         // Si no hay ApiTokenService inyectado y llega un Bearer header, 401.
         $this->request->method('getHeaderLine')
-            ->with('Authorization')
             ->willReturn('Bearer sometoken');
 
         $handler = $this->createMock(RequestHandlerInterface::class);
@@ -141,7 +139,6 @@ final class ApiAuthMiddlewareTest extends TestCase
     public function testWithoutBearerAndNoSessionReturns401(): void
     {
         $this->request->method('getHeaderLine')
-            ->with('Authorization')
             ->willReturn('');
 
         if (session_status() !== PHP_SESSION_ACTIVE) {

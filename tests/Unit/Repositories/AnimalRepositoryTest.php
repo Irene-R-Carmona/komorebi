@@ -25,6 +25,7 @@ final class AnimalRepositoryTest extends TestCase
 {
     private AnimalRepository $repository;
 
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
     private PDO $db;
 
     protected function setUp(): void

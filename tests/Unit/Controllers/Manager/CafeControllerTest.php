@@ -32,6 +32,7 @@ final class CafeControllerTest extends TestCase
 
     private ResponseFactory $responseFactory;
 
+    /** @var \PHPUnit\Framework\MockObject\Stub&ServerRequestInterface */
     private ServerRequestInterface $request;
 
     protected function setUp(): void

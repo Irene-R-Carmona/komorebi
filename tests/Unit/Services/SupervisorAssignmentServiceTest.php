@@ -21,6 +21,7 @@ use PHPUnit\Framework\TestCase;
 
 final class SupervisorAssignmentServiceTest extends TestCase
 {
+    /** @var \PHPUnit\Framework\MockObject\Stub&SupervisorAssignmentRepositoryInterface */
     private SupervisorAssignmentRepositoryInterface $repo;
     private SupervisorAssignmentService $service;
 

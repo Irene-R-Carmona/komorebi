@@ -22,6 +22,7 @@ final class WaitlistRepositoryTest extends TestCase
 {
     private WaitlistRepository $repository;
 
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
     private PDO $db;
 
     protected function setUp(): void

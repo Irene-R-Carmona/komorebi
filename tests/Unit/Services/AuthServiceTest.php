@@ -25,7 +25,9 @@ use Random\RandomException;
 final class AuthServiceTest extends TestCase
 {
     private AuthService $service;
+    /** @var \PHPUnit\Framework\MockObject\Stub&UserRepository */
     private UserRepository $userRepoMock;
+    /** @var \PHPUnit\Framework\MockObject\Stub&RateLimitingServiceInterface */
     private RateLimitingServiceInterface $rateLimiterStub;
     private SessionManagementService $sessionService;
 

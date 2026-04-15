@@ -27,7 +27,8 @@ final class ConcreteTransactionalService extends TransactionalService
 
 final class TransactionalServiceTest extends TestCase
 {
-    private \PDO $pdoMock;
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    private PDO $pdoMock;
     private ConcreteTransactionalService $service;
 
     protected function setUp(): void

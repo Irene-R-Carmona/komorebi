@@ -54,6 +54,9 @@ final class CorsMiddlewareTest extends TestCase
         return $request;
     }
 
+    /**
+     * @phpstan-return RequestHandlerInterface&object{callCount: int}
+     */
     private function makeHandler(int $status = 200): RequestHandlerInterface
     {
         return new class($status, $this->factory) implements RequestHandlerInterface {

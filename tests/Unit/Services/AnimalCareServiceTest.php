@@ -26,7 +26,9 @@ use PHPUnit\Framework\TestCase;
 
 final class AnimalCareServiceTest extends TestCase
 {
+    /** @var \PHPUnit\Framework\MockObject\Stub&AnimalRepositoryInterface */
     private AnimalRepositoryInterface $repoStub;
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
     private PDO $pdoStub;
 
     protected function setUp(): void

@@ -22,6 +22,7 @@ final class ReviewRepositoryTest extends TestCase
 {
     private ReviewRepository $repository;
 
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
     private PDO $db;
 
     protected function setUp(): void

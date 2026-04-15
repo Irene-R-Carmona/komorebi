@@ -172,8 +172,25 @@ final class AccessibilityTest extends TestCase
      */
     public function testFormsHaveProperLabels(): void
     {
-        // Este test es un placeholder para cuando se implementen formularios
-        $this->markTestIncomplete('Pendiente: validar formularios cuando se implementen');
+        $cssFile = __DIR__ . '/../../public/css/components/forms.css';
+        $this->assertFileExists($cssFile, 'forms.css debe existir en public/css/components/');
+
+        $css = file_get_contents($cssFile);
+        $this->assertIsString($css);
+
+        // WCAG 1.3.1: label elements must be present and styled
+        $this->assertMatchesRegularExpression(
+            '/\.form[_-]komorebi__label|label\s*\{|\.label\b/',
+            $css,
+            'forms.css debe contener estilos para etiquetas de formulario (WCAG 1.3.1)'
+        );
+
+        // Los inputs deben tener estilos definidos
+        $this->assertMatchesRegularExpression(
+            '/input\b/',
+            $css,
+            'forms.css debe incluir estilos para elementos input'
+        );
     }
 
     /**
@@ -181,8 +198,30 @@ final class AccessibilityTest extends TestCase
      */
     public function testImagesHaveAltText(): void
     {
-        // Este test es un placeholder
-        $this->markTestIncomplete('Pendiente: validar imágenes cuando se implementen helpers');
+        $componentDir = __DIR__ . '/../../resources/views/components';
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($componentDir, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        $violations = [];
+        foreach ($iterator as $file) {
+            if ($file->getExtension() !== 'php') {
+                continue;
+            }
+            $content = file_get_contents($file->getPathname());
+            // Elimina bloques PHP inline para que > de cierre no corte el regex HTML
+            $stripped = preg_replace('/<\?.*?\?>/s', 'PHPEXPR', $content);
+            // Busca <img tags sin atributo alt= ni :alt= (Alpine.js)
+            if (preg_match_all('/<img\b(?![^>]*\s:?alt=)[^>]*>/is', $stripped, $matches)) {
+                $relative = str_replace($componentDir . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                $violations[] = $relative . ': ' . implode(', ', $matches[0]);
+            }
+        }
+
+        $this->assertEmpty(
+            $violations,
+            'Imágenes sin atributo alt encontradas (WCAG 1.1.1): ' . implode('; ', $violations)
+        );
     }
 
     /**

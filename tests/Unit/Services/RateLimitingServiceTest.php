@@ -25,6 +25,7 @@ use Psr\Cache\CacheItemPoolInterface;
 final class RateLimitingServiceTest extends TestCase
 {
     private RateLimitingService $service;
+    /** @var \PHPUnit\Framework\MockObject\Stub&CacheItemPoolInterface */
     private CacheItemPoolInterface $cacheMock;
 
     protected function setUp(): void

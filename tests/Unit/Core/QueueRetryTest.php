@@ -42,7 +42,9 @@ final class QueueRetryTest extends TestCase
 
         $fakeRedis = new class($zaddRef, $lpushRef) {
             public function __construct(
+                /** @phpstan-ignore property.onlyWritten */
                 private array &$zaddCalls,
+                /** @phpstan-ignore property.onlyWritten */
                 private array &$lpushCalls,
             ) {}
 

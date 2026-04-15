@@ -38,6 +38,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(\App\Services\HealthCheckService::class)]
 final class HealthCheckServiceTest extends TestCase
 {
+    /** @var \PHPUnit\Framework\MockObject\MockObject&HealthCheckRepositoryInterface */
     private HealthCheckRepositoryInterface $repo;
     private HealthCheckService $service;
 

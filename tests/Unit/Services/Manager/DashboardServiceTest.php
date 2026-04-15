@@ -8,6 +8,7 @@ declare(strict_types=1);
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Services\Manager;
 
 use App\Services\Manager\DashboardService;
@@ -23,6 +24,7 @@ final class DashboardServiceTest extends TestCase
 {
     private DashboardService $service;
 
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
     private PDO $db;
 
     protected function setUp(): void

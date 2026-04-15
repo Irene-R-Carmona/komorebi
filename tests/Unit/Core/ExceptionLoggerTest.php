@@ -25,13 +25,27 @@ namespace Tests\Unit\Core;
 
 use App\Core\ExceptionLogger;
 use App\Core\Env;
+use App\Core\LogContext;
+use App\Core\LogContextProcessor;
+use App\Core\Logger;
+use App\Core\Result;
+use App\Core\Session;
 use App\Exceptions\ConfigurationException;
 use App\Exceptions\ValidationException;
+use App\Services\TelegramService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestDox;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(\App\Core\ExceptionLogger::class)]
+#[CoversClass(ExceptionLogger::class)]
+#[UsesClass(Env::class)]
+#[UsesClass(LogContext::class)]
+#[UsesClass(LogContextProcessor::class)]
+#[UsesClass(Logger::class)]
+#[UsesClass(Result::class)]
+#[UsesClass(Session::class)]
+#[UsesClass(TelegramService::class)]
 final class ExceptionLoggerTest extends TestCase
 {
     // ─────────────────────────────────────────────────────────────

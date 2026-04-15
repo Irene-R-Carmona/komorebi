@@ -26,7 +26,9 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations]
 final class ProductRepositoryTest extends TestCase
 {
+    /** @var \PHPUnit\Framework\MockObject\MockObject&\PDO */
     private PDO $pdoMock;
+    /** @var \PHPUnit\Framework\MockObject\MockObject&\PDOStatement */
     private PDOStatement $stmtMock;
     private ProductRepository $repository;
 

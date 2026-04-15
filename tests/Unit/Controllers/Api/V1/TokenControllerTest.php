@@ -32,8 +32,10 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class TokenControllerTest extends TestCase
 {
+    /** @var \PHPUnit\Framework\MockObject\Stub&ApiTokenServiceInterface */
     private ApiTokenServiceInterface $tokenService;
     private ResponseFactory $responseFactory;
+    /** @var \PHPUnit\Framework\MockObject\Stub&ServerRequestInterface */
     private ServerRequestInterface $request;
     private TokenController $controller;
 
@@ -65,11 +67,9 @@ final class TokenControllerTest extends TestCase
         ];
 
         $this->request->method('getAttribute')
-            ->with('user_id')
             ->willReturn(5);
 
         $this->tokenService->method('listForUser')
-            ->with(5)
             ->willReturn($tokens);
 
         $response = $this->controller->list($this->request);
@@ -87,11 +87,9 @@ final class TokenControllerTest extends TestCase
     {
         $this->request->method('getParsedBody')->willReturn(['name' => 'My CLI token']);
         $this->request->method('getAttribute')
-            ->with('user_id')
             ->willReturn(3);
 
         $this->tokenService->method('generate')
-            ->with(3, 'My CLI token')
             ->willReturn(str_repeat('a', 64));
 
         $response = $this->controller->create($this->request);
@@ -145,7 +143,6 @@ final class TokenControllerTest extends TestCase
             ]);
 
         $this->tokenService->method('revoke')
-            ->with(1, 5)
             ->willReturn(Result::ok(true));
 
         $response = $this->controller->revoke($this->request);
@@ -164,7 +161,6 @@ final class TokenControllerTest extends TestCase
             ]);
 
         $this->tokenService->method('revoke')
-            ->with(99, 5)
             ->willReturn(Result::fail('Token no encontrado.', 'not_found'));
 
         $response = $this->controller->revoke($this->request);

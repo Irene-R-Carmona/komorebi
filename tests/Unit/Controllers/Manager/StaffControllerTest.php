@@ -30,12 +30,15 @@ final class StaffControllerTest extends TestCase
 {
     private StaffController $controller;
 
+    /** @var \PHPUnit\Framework\MockObject\Stub&UserRepository */
     private UserRepository $userRepo;
 
     private ResponseFactory $responseFactory;
 
+    /** @var \PHPUnit\Framework\MockObject\Stub&ServerRequestInterface */
     private ServerRequestInterface $request;
 
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
     private PDO $db;
 
     protected function setUp(): void

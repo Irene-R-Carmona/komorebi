@@ -39,8 +39,11 @@ final class ReservationServiceTest extends TestCase
     private const VALID_GUESTS = 2;
 
     private ReservationService $service;
+    /** @var \PHPUnit\Framework\MockObject\Stub&ReservationRepositoryInterface */
     private ReservationRepositoryInterface $mockReservationRepo;
+    /** @var \PHPUnit\Framework\MockObject\Stub&CafeRepositoryInterface */
     private CafeRepositoryInterface $mockCafeRepo;
+    /** @var \PHPUnit\Framework\MockObject\MockObject&ProductRepositoryInterface */
     private ProductRepositoryInterface $mockProductRepo;
     private InvoicePDFServiceInterface $mockInvoiceService;
     private EmailServiceInterface $mockEmailService;
@@ -75,6 +78,7 @@ final class ReservationServiceTest extends TestCase
     public function testCreateReturnsFailWhenUserIdMissing(): void
     {
 
+        /** @phpstan-ignore argument.type */
         $result = $this->service->create([
             // 'user_id' => self::VALID_USER_ID,  ← Missing
             'cafe_id' => self::VALID_CAFE_ID,
@@ -89,6 +93,7 @@ final class ReservationServiceTest extends TestCase
     public function testCreateReturnsFailWhenCafeIdMissing(): void
     {
 
+        /** @phpstan-ignore argument.type */
         $result = $this->service->create([
             'user_id' => self::VALID_USER_ID,
             // 'cafe_id' => self::VALID_CAFE_ID,  ← Missing
@@ -103,6 +108,7 @@ final class ReservationServiceTest extends TestCase
     public function testCreateReturnsFailWhenPassProductIdMissing(): void
     {
 
+        /** @phpstan-ignore argument.type */
         $result = $this->service->create([
             'user_id' => self::VALID_USER_ID,
             'cafe_id' => self::VALID_CAFE_ID,
@@ -1062,6 +1068,7 @@ final class ReservationServiceTest extends TestCase
         $dispatcherMock->expects($this->never())->method('dispatch');
 
         // ACT: datos incompletos provocan fallo antes de llegar a la transacción
+        /** @phpstan-ignore argument.type */
         $result = $service->create([
             'user_id' => 1,
             // cafe_id falta → falla validateRequired()

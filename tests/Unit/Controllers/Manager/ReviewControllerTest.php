@@ -40,7 +40,9 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class ReviewControllerTest extends TestCase
 {
+    /** @var \PHPUnit\Framework\MockObject\Stub&ReviewQueryServiceInterface */
     private ReviewQueryServiceInterface $queryService;
+    /** @var \PHPUnit\Framework\MockObject\Stub&ReviewModerationServiceInterface */
     private ReviewModerationServiceInterface $moderationService;
 
     protected function setUp(): void

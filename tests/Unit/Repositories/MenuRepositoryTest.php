@@ -22,6 +22,7 @@ final class MenuRepositoryTest extends TestCase
 {
     private MenuRepository $repository;
 
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
     private PDO $db;
 
     protected function setUp(): void

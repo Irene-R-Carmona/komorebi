@@ -39,7 +39,8 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(\App\Services\KitchenService::class)]
 final class KitchenServiceTest extends TestCase
 {
-    private \PDO $pdo;
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    private PDO $pdo;
 
     // ─────────────────────────────────────────────────────────────
     // setUp / tearDown

@@ -22,12 +22,21 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Jobs;
 
+use App\Core\Env;
+use App\Core\LogContext;
+use App\Core\LogContextProcessor;
+use App\Core\Logger;
 use App\Jobs\WaitlistPromotionJob;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestDox;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(\App\Jobs\WaitlistPromotionJob::class)]
+#[CoversClass(WaitlistPromotionJob::class)]
+#[UsesClass(Env::class)]
+#[UsesClass(LogContext::class)]
+#[UsesClass(LogContextProcessor::class)]
+#[UsesClass(Logger::class)]
 final class WaitlistPromotionJobTest extends TestCase
 {
     // ─────────────────────────────────────────────────────────────

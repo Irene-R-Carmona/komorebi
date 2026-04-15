@@ -25,6 +25,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ApiTokenServiceTest extends TestCase
 {
+    /** @var \PHPUnit\Framework\MockObject\Stub&ApiTokenRepositoryInterface */
     private ApiTokenRepositoryInterface $repository;
     private ApiTokenService $service;
 

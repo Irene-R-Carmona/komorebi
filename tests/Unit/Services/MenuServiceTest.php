@@ -26,6 +26,7 @@ use PHPUnit\Framework\TestCase;
 final class MenuServiceTest extends TestCase
 {
     private MenuService $service;
+    /** @var \PHPUnit\Framework\MockObject\MockObject&MenuRepositoryInterface */
     private MenuRepositoryInterface $mockMenuRepo;
 
     protected function setUp(): void

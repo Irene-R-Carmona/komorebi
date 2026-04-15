@@ -27,6 +27,7 @@ use PHPUnit\Framework\TestCase;
 final class NewsletterServiceTest extends TestCase
 {
     private NewsletterService $service;
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
     private PDO $dbMock;
 
     protected function setUp(): void

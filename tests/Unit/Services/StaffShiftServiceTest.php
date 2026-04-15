@@ -30,6 +30,7 @@ use PHPUnit\Framework\TestCase;
 final class StaffShiftServiceTest extends TestCase
 {
     private StaffShiftService $service;
+    /** @var \PHPUnit\Framework\MockObject\Stub&StaffShiftRepositoryInterface */
     private StaffShiftRepositoryInterface $repoStub;
 
     protected function setUp(): void

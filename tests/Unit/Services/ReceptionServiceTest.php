@@ -34,7 +34,8 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(\App\Services\ReceptionService::class)]
 final class ReceptionServiceTest extends TestCase
 {
-    private \PDO $pdoStub;
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    private PDO $pdoStub;
 
     // ─────────────────────────────────────────────────────────────
     // setUp / tearDown
