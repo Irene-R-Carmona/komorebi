@@ -40,7 +40,7 @@ services:
   # PHPMYADMIN - Gestor web de MySQL (solo desarrollo)
   # ==========================================================================
   pma:
-    image: phpmyadmin:latest
+    image: phpmyadmin:5.2.3
     container_name: komorebi_pma
     restart: unless-stopped
     environment:
@@ -59,13 +59,15 @@ services:
   # REDIS COMMANDER - Visor web de Redis (solo desarrollo)
   # ==========================================================================
   redis_commander:
-    image: redis/redisinsight:latest
+    image: redis/redisinsight:3.2.0
     container_name: komorebi_redis_commander
     restart: unless-stopped
     environment:
-      REDIS_HOSTS: local:cache:6379:0:${REDIS_PASSWORD:-redis_password}
+      RI_REDIS_HOST: cache
+      RI_REDIS_PORT: 6379
+      RI_REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
     ports:
-      - "8082:8081"
+      - "8082:5540"
     depends_on:
       - cache
     networks:
