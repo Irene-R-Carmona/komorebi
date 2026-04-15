@@ -41,21 +41,21 @@ COPY docker/php/ini/error-prod.ini /usr/local/etc/php/conf.d/01-error.ini
 COPY docker/php/ini/uploads.ini /usr/local/etc/php/conf.d/02-uploads.ini
 COPY docker/php/ini/opcache.ini /usr/local/etc/php/conf.d/04-opcache.ini
 
-# Copy Caddy config and vendor from composer stage
-COPY frankenphp.Caddyfile /app/frankenphp.Caddyfile
+# Copy application code from build context (.dockerignore excludes vendor, tests, .env, etc.)
+COPY . /app
+
+# Overlay production vendor from Stage 1 (optimized autoloader — overwrites any vendor in context)
 COPY --from=vendor-build /app/vendor /app/vendor
 COPY --from=vendor-build /app/public/vendor /app/public/vendor
 
-# Setup entrypoint script and remove build tools in one layer
-RUN apk add --no-cache dos2unix && \
-    dos2unix /app/docker/php/docker-entrypoint.sh || true && \
-    chmod +x /app/docker/php/docker-entrypoint.sh && \
-    mkdir -p /app/public/vendor /app/storage/logs /app/storage/cache /app/storage/uploads && \
-    apk del dos2unix
-
-# Copy entrypoint to system path
+# Copy entrypoint and convert CRLF→LF (Windows host compatibility) in single layer
 COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-RUN chmod +x /usr/local/bin/docker-entrypoint
+RUN apk add --no-cache dos2unix && \
+    dos2unix /usr/local/bin/docker-entrypoint && \
+    chmod +x /usr/local/bin/docker-entrypoint && \
+    mkdir -p /app/public/vendor /app/storage/logs /app/storage/cache /app/storage/uploads && \
+    rm -rf /app/docker && \
+    apk del dos2unix
 
 # Security: run as non-root user with minimal privileges
 RUN addgroup -S appgroup && \
