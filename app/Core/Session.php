@@ -48,9 +48,7 @@ final class Session
         // warnings/excepciones); en ese caso nos quedamos con la superglobal
         // inicializada y seguimos.
         if (headers_sent()) {
-            if (!\array_key_exists('_SESSION', $GLOBALS) || !\is_array($GLOBALS['_SESSION'])) {
-                $GLOBALS['_SESSION'] = [];
-            }
+            // La superglobal ya fue inicializada al inicio de start()
         } else {
             // En entornos normales (web/server) configuramos cookies y arrancamos
             \session_set_cookie_params([

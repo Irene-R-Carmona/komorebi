@@ -75,7 +75,7 @@ final class ReservationController extends AbstractApiController
         }
 
         $body     = $request->getParsedBody() ?? [];
-        $required = ['cafe_id', 'date', 'time', 'guests'];
+        $required = ['cafe_id', 'date', 'time', 'guests', 'pass_product_id'];
 
         foreach ($required as $field) {
             if (empty($body[$field])) {
@@ -86,11 +86,11 @@ final class ReservationController extends AbstractApiController
         $data = [
             'user_id'          => $userId,
             'cafe_id'          => (int) $body['cafe_id'],
-            'reservation_date' => $body['date'],
-            'reservation_time' => $body['time'],
+            'pass_product_id'  => (int) $body['pass_product_id'],
+            'date'             => (string) $body['date'],
+            'time'             => (string) $body['time'],
             'guests'           => (int) $body['guests'],
-            'special_requests' => $body['special_requests'] ?? null,
-            'status'           => 'pending',
+            'comments'         => (string) ($body['special_requests'] ?? ''),
         ];
 
         $result = $this->reservationService->create($data);

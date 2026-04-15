@@ -83,7 +83,7 @@ final class ProcessImageJob implements JobInterface
 
             // Verificar tipo de imagen
             $imageInfo = \getimagesize($sourcePath);
-            if ($imageInfo === false || !is_array($imageInfo)) {
+            if ($imageInfo === false) {
                 throw new FilesystemException("No se pudo leer la información de la imagen: {$sourcePath}");
             }
 

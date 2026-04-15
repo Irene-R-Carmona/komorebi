@@ -337,9 +337,7 @@ final class View
         };
 
         $renderer = function () use ($viewFile, $data) {
-            if (\is_array($data)) {
-                \extract($data, EXTR_SKIP);
-            }
+            \extract($data, EXTR_SKIP);
             require $viewFile;
         };
 

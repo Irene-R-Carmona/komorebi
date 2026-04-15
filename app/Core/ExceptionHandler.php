@@ -430,7 +430,7 @@ final class ExceptionHandler
                 'message' => $message,
                 'error_id' => $errorId,
                 'show_details' => $isDebug,
-                'exception' => $isDebug ? $exception : null,
+                'exception' => $isDebug ? (string) $exception : null,
             ]);
         }
     }

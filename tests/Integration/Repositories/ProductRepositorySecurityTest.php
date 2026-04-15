@@ -52,7 +52,7 @@ final class ProductRepositorySecurityTest extends BaseIntegrationTest
     public function testFindWithRecipeMethodExists(): void
     {
         $this->assertTrue(
-            method_exists($this->repo, 'findWithRecipe'),
+            method_exists($this->repo, 'findWithRecipe'), // @phpstan-ignore function.alreadyNarrowedType
             'ProductRepository debe exponer findWithRecipe() para contextos de cocina/KDS'
         );
     }

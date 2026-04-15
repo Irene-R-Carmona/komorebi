@@ -44,16 +44,19 @@ final class ReservationTimeSlotService extends TransactionalService implements R
      * @param array{
      *   user_id: int,
      *   cafe_id: int,
+     *   pass_product_id: int,
+     *   pass_name: string,
+     *   pass_unit_price: int,
+     *   pass_duration_minutes: int,
      *   reservation_date: string,
      *   reservation_time: string,
      *   guest_count: int,
      *   contact_name?: string,
      *   contact_email?: string,
      *   contact_phone?: string,
-     *   special_requests?: string,
-     *   pass_duration_minutes?: int
+     *   special_requests?: string
      * } $data
-     * @return Result{reservation_id: int, time_slot_id: int}
+     * @return Result
      */
     #[\Override]
     public function createReservationWithSlot(array $data): Result
@@ -100,6 +103,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
             // 3. Crear reserva
             $data['time_slot_id'] = (int) $slot['id'];
             $data['status'] = 'confirmed'; // Auto-confirmar si hay slot
+            $data['guests'] = $guestCount; // Mapear guest_count -> guests para Reservation::create()
 
             $reservationResult = $this->reservation->create($data);
             if (!$reservationResult->isOk()) {
@@ -121,7 +125,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
      * Cancelar reserva y liberar slot + promover waitlist
      *
      * @param integer $reservationId
-     * @return Result{promoted_users: int}
+     * @return Result
      */
     #[\Override]
     public function cancelReservationAndPromote(int $reservationId): Result
@@ -223,7 +227,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
      *   contact_phone?: string,
      *   notes?: string
      * } $data
-     * @return Result{waitlist_id: int, position: int, token: string}
+     * @return Result
      */
     #[\Override]
     public function addToWaitlist(array $data): Result
@@ -235,7 +239,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
      * Confirmar entrada de waitlist con token
      *
      * @param string $token
-     * @return Result{waitlist_id: int, time_slot_id: int}
+     * @return Result
      */
     #[\Override]
     public function confirmWaitlistEntry(string $token): Result
