@@ -57,8 +57,8 @@ final class ProductRepositoryStockTest extends TestCase
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'stock_quantity' => null,
-            'is_active'      => 1,
-            'deleted_at'     => null,
+            'is_active' => 1,
+            'deleted_at' => null,
         ]);
 
         $this->db->method('prepare')->willReturn($stmt);
@@ -72,8 +72,8 @@ final class ProductRepositoryStockTest extends TestCase
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'stock_quantity' => 10,
-            'is_active'      => 1,
-            'deleted_at'     => null,
+            'is_active' => 1,
+            'deleted_at' => null,
         ]);
 
         $this->db->method('prepare')->willReturn($stmt);
@@ -87,8 +87,8 @@ final class ProductRepositoryStockTest extends TestCase
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'stock_quantity' => 2,
-            'is_active'      => 1,
-            'deleted_at'     => null,
+            'is_active' => 1,
+            'deleted_at' => null,
         ]);
 
         $this->db->method('prepare')->willReturn($stmt);
@@ -102,8 +102,8 @@ final class ProductRepositoryStockTest extends TestCase
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'stock_quantity' => 100,
-            'is_active'      => 0,
-            'deleted_at'     => null,
+            'is_active' => 0,
+            'deleted_at' => null,
         ]);
 
         $this->db->method('prepare')->willReturn($stmt);
@@ -117,8 +117,8 @@ final class ProductRepositoryStockTest extends TestCase
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'stock_quantity' => 100,
-            'is_active'      => 1,
-            'deleted_at'     => '2024-01-01 00:00:00',
+            'is_active' => 1,
+            'deleted_at' => '2024-01-01 00:00:00',
         ]);
 
         $this->db->method('prepare')->willReturn($stmt);
@@ -143,8 +143,8 @@ final class ProductRepositoryStockTest extends TestCase
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'stock_quantity' => 3,
-            'is_active'      => 1,
-            'deleted_at'     => null,
+            'is_active' => 1,
+            'deleted_at' => null,
         ]);
 
         $this->db->method('prepare')->willReturn($stmt);

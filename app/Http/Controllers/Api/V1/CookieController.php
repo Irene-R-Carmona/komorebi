@@ -26,6 +26,7 @@ final class CookieController extends AbstractApiController
     public function accept(ServerRequestInterface $request): ResponseInterface
     {
         CookieManager::acceptAll();
+
         return $this->success(['message' => 'Todas las cookies funcionales han sido aceptadas']);
     }
 
@@ -36,6 +37,7 @@ final class CookieController extends AbstractApiController
     public function reject(ServerRequestInterface $request): ResponseInterface
     {
         CookieManager::rejectOptional();
+
         return $this->success(['message' => 'Solo se utilizarán cookies esenciales']);
     }
 
@@ -78,7 +80,7 @@ final class CookieController extends AbstractApiController
         $preferences = \json_decode((string) $consent, true) ?: [
             'essential' => true,
             'functional' => false,
-            'analytics'  => false,
+            'analytics' => false,
         ];
 
         return $this->success(['preferences' => $preferences]);
@@ -98,6 +100,7 @@ final class CookieController extends AbstractApiController
         }
 
         CookieManager::saveFilters($filters);
+
         return $this->success(['message' => 'Filtros guardados']);
     }
 
@@ -117,6 +120,7 @@ final class CookieController extends AbstractApiController
     public function clearFilters(ServerRequestInterface $request): ResponseInterface
     {
         CookieManager::delete(CookieManager::FILTER_PREFERENCES);
+
         return $this->success(['message' => 'Filtros eliminados']);
     }
 
@@ -134,6 +138,7 @@ final class CookieController extends AbstractApiController
         }
 
         CookieManager::saveDietaryPreferences($prefs);
+
         return $this->success(['message' => 'Preferencias dietéticas guardadas']);
     }
 
@@ -160,10 +165,10 @@ final class CookieController extends AbstractApiController
         }
 
         $service = new RecentlyViewedService();
-        $result  = $service->add((int) $input['cafeId']);
+        $result = $service->add((int) $input['cafeId']);
 
         return $this->success([
-            'added'   => $result,
+            'added' => $result,
             'message' => $result ? 'Café añadido a vistos recientemente' : 'Error al guardar',
         ]);
     }
@@ -175,8 +180,9 @@ final class CookieController extends AbstractApiController
     public function getRecentlyViewed(ServerRequestInterface $request): ResponseInterface
     {
         $service = new RecentlyViewedService();
+
         return $this->success([
-            'cafeIds'  => $service->getAll(),
+            'cafeIds' => $service->getAll(),
             'maxItems' => $service->getMaxItems(),
         ]);
     }
@@ -195,6 +201,7 @@ final class CookieController extends AbstractApiController
         }
 
         $cafeModel = new Cafe();
+
         return $this->success(['cafes' => $cafeModel->findByIds($cafeIds)]);
     }
 
@@ -205,7 +212,7 @@ final class CookieController extends AbstractApiController
     public function clearRecentlyViewed(ServerRequestInterface $request): ResponseInterface
     {
         $service = new RecentlyViewedService();
-        $result  = $service->clear();
+        $result = $service->clear();
 
         return $this->success([
             'cleared' => $result,
@@ -220,6 +227,7 @@ final class CookieController extends AbstractApiController
     public function newsletterPrompted(ServerRequestInterface $request): ResponseInterface
     {
         $prompted = isset($_COOKIE['newsletter_prompted']) && $_COOKIE['newsletter_prompted'] === '1';
+
         return $this->success(['prompted' => $prompted]);
     }
 
@@ -229,9 +237,9 @@ final class CookieController extends AbstractApiController
      */
     public function markNewsletterPrompted(ServerRequestInterface $request): ResponseInterface
     {
-        $body      = $request->getParsedBody();
+        $body = $request->getParsedBody();
         $permanent = !empty($body['permanent']);
-        $expire    = $permanent ? \time() + 60 * 60 * 24 * 365 * 2 : \time() + 60 * 60 * 24 * 180;
+        $expire = $permanent ? \time() + 60 * 60 * 24 * 365 * 2 : \time() + 60 * 60 * 24 * 180;
         \setcookie('newsletter_prompted', '1', $expire, '/');
 
         return $this->success(['message' => 'Preferencia registrada']);

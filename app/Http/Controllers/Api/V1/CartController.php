@@ -53,7 +53,7 @@ final class CartController extends AbstractApiController
      */
     public function add(ServerRequestInterface $request): ResponseInterface
     {
-        $body      = $request->getParsedBody() ?? [];
+        $body = $request->getParsedBody() ?? [];
         $productId = isset($body['product_id']) && \is_numeric($body['product_id'])
             ? (int) $body['product_id']
             : null;
@@ -75,7 +75,7 @@ final class CartController extends AbstractApiController
      */
     public function remove(ServerRequestInterface $request): ResponseInterface
     {
-        $body      = $request->getParsedBody() ?? [];
+        $body = $request->getParsedBody() ?? [];
         $productId = isset($body['product_id']) && \is_numeric($body['product_id'])
             ? (int) $body['product_id']
             : null;
@@ -100,7 +100,7 @@ final class CartController extends AbstractApiController
         }
 
         $productId = (int) $body['product_id'];
-        $change    = (int) ($body['change'] ?? 0);
+        $change = (int) ($body['change'] ?? 0);
 
         if ($change < -10 || $change > 10) {
             return $this->unprocessable('change debe estar entre -10 y 10');
@@ -115,6 +115,7 @@ final class CartController extends AbstractApiController
     public function clear(ServerRequestInterface $request): ResponseInterface
     {
         $this->service->clear();
+
         return $this->success(['status' => 'cleared']);
     }
 }

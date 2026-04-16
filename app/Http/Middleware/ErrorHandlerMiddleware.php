@@ -24,7 +24,8 @@ final class ErrorHandlerMiddleware implements MiddlewareInterface
     public function __construct(
         private readonly ExceptionRendererRegistry $registry,
         private readonly ResponseFactory $response,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -33,11 +34,11 @@ final class ErrorHandlerMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         } catch (\Throwable $e) {
             WideEvent::setSection('error', [
-                'type'    => \get_class($e),
+                'type' => \get_class($e),
                 'message' => $e->getMessage(),
-                'code'    => $e->getCode(),
-                'file'    => \basename($e->getFile()),
-                'line'    => $e->getLine(),
+                'code' => $e->getCode(),
+                'file' => \basename($e->getFile()),
+                'line' => $e->getLine(),
             ]);
 
             ExceptionLogger::log($e);

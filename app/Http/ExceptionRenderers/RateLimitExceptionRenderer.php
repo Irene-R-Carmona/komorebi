@@ -31,20 +31,20 @@ final class RateLimitExceptionRenderer extends AbstractExceptionRenderer
     #[\Override]
     public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
-        assert($e instanceof RateLimitException);
+        \assert($e instanceof RateLimitException);
 
         if ($this->isApiRequest($request)) {
             return $this->response
                 ->json([
-                    'error'       => $e->getMessage(),
+                    'error' => $e->getMessage(),
                     'retry_after' => $e->getRetryAfter(),
-                    'action'      => $e->getAction(),
+                    'action' => $e->getAction(),
                 ], 429)
                 ->withHeader('Retry-After', (string) $e->getRetryAfter());
         }
 
         $html = View::renderToString('errors/429', [
-            'message'     => $e->getMessage(),
+            'message' => $e->getMessage(),
             'retry_after' => $e->getRetryAfter(),
         ]);
 

@@ -10,4 +10,6 @@ use RuntimeException;
  * Lanzada por CircuitBreaker::call() cuando el circuito está OPEN
  * y el timeout de recuperación aún no ha expirado.
  */
-final class CircuitOpenException extends RuntimeException {}
+final class CircuitOpenException extends RuntimeException
+{
+}

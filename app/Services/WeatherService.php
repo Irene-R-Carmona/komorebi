@@ -393,12 +393,12 @@ final class WeatherService implements WeatherServiceInterface
                 $ch = \curl_init($url);
                 \curl_setopt_array($ch, [
                     CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_TIMEOUT        => self::TIMEOUT,
-                    CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+                    CURLOPT_TIMEOUT => self::TIMEOUT,
+                    CURLOPT_HTTPHEADER => ['Accept: application/json'],
                 ]);
 
-                $result   = \curl_exec($ch);
-                $error    = \curl_error($ch);
+                $result = \curl_exec($ch);
+                $error = \curl_error($ch);
                 $httpCode = (int) \curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 \curl_close($ch);
 
@@ -419,7 +419,7 @@ final class WeatherService implements WeatherServiceInterface
         } catch (\RuntimeException $e) {
             Logger::warning('Error de conexión con API meteorológica', [
                 'error' => $e->getMessage(),
-                'url'   => $url,
+                'url' => $url,
             ]);
 
             return Result::fail('Error de conexión con el servicio meteorológico');

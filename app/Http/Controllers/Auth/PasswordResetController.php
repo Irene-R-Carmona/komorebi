@@ -10,10 +10,10 @@ use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
+use App\Services\AuthService;
 use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\EmailVerificationServiceInterface;
 use App\Services\Contracts\PasswordResetServiceInterface;
-use App\Services\AuthService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -56,6 +56,7 @@ final class PasswordResetController
         View::render('auth/forgot-password', [
             'csrf_token' => Csrf::token(),
         ]);
+
         return null;
     }
 
@@ -73,6 +74,7 @@ final class PasswordResetController
 
         if (!$email) {
             Flash::error('Email es requerido.');
+
             return $this->response->redirect('/auth/forgot-password');
         }
 
@@ -92,6 +94,7 @@ final class PasswordResetController
             \App\Core\Logger::error('[PasswordReset] ' . $e->getMessage(), ['exception' => (string) $e]);
 
             Flash::error('Ocurrió un error procesando la solicitud. Por favor intenta más tarde.');
+
             return $this->response->redirect('/auth/forgot-password');
         }
     }
@@ -110,6 +113,7 @@ final class PasswordResetController
 
         if (!$token) {
             Flash::error('Token inválido o expirado.');
+
             return $this->response->redirect('/auth/forgot-password');
         }
 
@@ -118,6 +122,7 @@ final class PasswordResetController
 
         if ($validation->isFail()) {
             Flash::error($validation->getMessage());
+
             return $this->response->redirect('/auth/forgot-password');
         }
 
@@ -125,6 +130,7 @@ final class PasswordResetController
             'token' => \htmlspecialchars($token),
             'csrf_token' => Csrf::token(),
         ]);
+
         return null;
     }
 
@@ -141,6 +147,7 @@ final class PasswordResetController
 
         if (!$token) {
             Flash::error('Token inválido.');
+
             return $this->response->redirect('/auth/forgot-password');
         }
 
@@ -148,10 +155,12 @@ final class PasswordResetController
 
         if ($result->ok) {
             Flash::success('Contraseña actualizada exitosamente. Por favor inicia sesión.');
+
             return $this->response->redirect('/auth/login');
         }
 
         Flash::error($result->getMessage());
+
         return $this->response->redirect('/auth/reset-password?token=' . \urlencode($token));
     }
 
@@ -165,6 +174,7 @@ final class PasswordResetController
 
         if (!$token) {
             Flash::error('Token de verificación inválido.');
+
             return $this->response->redirect('/');
         }
 
@@ -183,6 +193,7 @@ final class PasswordResetController
         }
 
         Flash::error($result->getMessage());
+
         return $this->response->redirect('/');
     }
 
@@ -222,8 +233,10 @@ final class PasswordResetController
     {
         if (!$this->authService->check()) {
             Flash::error('Debes iniciar sesión.');
+
             return $this->response->redirect('/auth/login');
         }
+
         return null;
     }
 }

@@ -114,7 +114,7 @@ declare(strict_types=1);
                                 <th class="w-50">Peso:</th>
                                 <td>
                                     <?php if ($check['weight_kg']): ?>
-                                        <strong><?= number_format((float)$check['weight_kg'], 2) ?> kg</strong>
+                                        <strong><?= number_format((float) $check['weight_kg'], 2) ?> kg</strong>
                                     <?php else: ?>
                                         <span class="text-muted">No medido</span>
                                     <?php endif; ?>
@@ -125,7 +125,7 @@ declare(strict_types=1);
                                 <td>
                                     <?php if ($check['temperature_c']): ?>
                                         <?php
-                                        $temp = (float)$check['temperature_c'];
+                                        $temp = (float) $check['temperature_c'];
                                         $tempClass = $temp > 39.5 ? 'text-danger' : ($temp < 36 ? 'text-warning' : 'text-success');
                                         ?>
                                         <strong class="<?= $tempClass ?>">
@@ -146,8 +146,8 @@ declare(strict_types=1);
                                         'fair' => 'warning',
                                         'poor' => 'danger',
                                     ];
-                                    $coatColor = $coatColors[$check['coat_condition']] ?? 'secondary';
-                                    ?>
+$coatColor = $coatColors[$check['coat_condition']] ?? 'secondary';
+?>
                                     <span class="badge bg-<?= $coatColor ?>">
                                         <?= ucfirst(htmlspecialchars($check['coat_condition'], ENT_QUOTES, 'UTF-8')) ?>
                                     </span>
@@ -172,9 +172,9 @@ declare(strict_types=1);
                                 <th class="w-50">Apetito:</th>
                                 <td>
                                     <?php
-                                    $appetiteColors = ['normal' => 'success', 'reduced' => 'warning', 'none' => 'danger'];
-                                    $appetiteColor = $appetiteColors[$check['appetite']] ?? 'secondary';
-                                    ?>
+$appetiteColors = ['normal' => 'success', 'reduced' => 'warning', 'none' => 'danger'];
+$appetiteColor = $appetiteColors[$check['appetite']] ?? 'secondary';
+?>
                                     <span class="badge bg-<?= $appetiteColor ?>">
                                         <?= ucfirst(htmlspecialchars($check['appetite'], ENT_QUOTES, 'UTF-8')) ?>
                                     </span>
@@ -184,9 +184,9 @@ declare(strict_types=1);
                                 <th>Nivel de Energía:</th>
                                 <td>
                                     <?php
-                                    $energyColors = ['high' => 'primary', 'normal' => 'success', 'low' => 'warning'];
-                                    $energyColor = $energyColors[$check['energy_level']] ?? 'secondary';
-                                    ?>
+$energyColors = ['high' => 'primary', 'normal' => 'success', 'low' => 'warning'];
+$energyColor = $energyColors[$check['energy_level']] ?? 'secondary';
+?>
                                     <span class="badge bg-<?= $energyColor ?>">
                                         <?= ucfirst(htmlspecialchars($check['energy_level'], ENT_QUOTES, 'UTF-8')) ?>
                                     </span>

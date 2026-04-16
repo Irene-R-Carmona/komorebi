@@ -17,7 +17,8 @@ final readonly class WaitlistEntryDTO implements DomainTransferObject
         public int $guest_count,
         public string $contact_email,
         public ?string $expires_at,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public static function fromArray(array $data): static
@@ -40,16 +41,16 @@ final readonly class WaitlistEntryDTO implements DomainTransferObject
     public function toViewArray(): array
     {
         return [
-            'id'            => $this->id,
-            'token'         => $this->token,
-            'status'        => $this->status,
-            'position'      => $this->position,
-            'slot_date'     => $this->slot_date,
-            'slot_time'     => $this->slot_time,
-            'cafe_name'     => $this->cafe_name,
-            'guest_count'   => $this->guest_count,
+            'id' => $this->id,
+            'token' => $this->token,
+            'status' => $this->status,
+            'position' => $this->position,
+            'slot_date' => $this->slot_date,
+            'slot_time' => $this->slot_time,
+            'cafe_name' => $this->cafe_name,
+            'guest_count' => $this->guest_count,
             'contact_email' => $this->contact_email,
-            'expires_at'    => $this->expires_at,
+            'expires_at' => $this->expires_at,
         ];
     }
 }

@@ -77,6 +77,7 @@ final class DashboardController
             'chartData' => $chartData,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+
         return null;
     }
 
@@ -95,8 +96,8 @@ final class DashboardController
 
         // Rellenar días faltantes con 0 (último 7 días completos)
         while (\count($labels) < 7) {
-            array_unshift($labels, '');
-            array_unshift($data, 0);
+            \array_unshift($labels, '');
+            \array_unshift($data, 0);
         }
 
         return [

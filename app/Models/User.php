@@ -23,7 +23,7 @@ use Random\RandomException;
  * - Bloqueo tras intentos fallidos
  * - Prepared statements en todas las queries
  */
-class User
+final class User
 {
     use HasUuid;
 
@@ -102,6 +102,7 @@ class User
         $stmt->execute(['id' => $id]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $row === false ? null : (array) $row;
     }
 
@@ -122,6 +123,7 @@ class User
         $stmt->execute(['uuid' => $uuid]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $row === false ? null : (array) $row;
     }
 
@@ -141,6 +143,7 @@ class User
         $stmt->execute(['email' => $email]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $row === false ? null : (array) $row;
     }
 
@@ -350,6 +353,7 @@ class User
     public function verifyEmail(int $id): bool
     {
         $stmt = $this->db->prepare('UPDATE users SET email_verified = 1, updated_at = NOW() WHERE id = :id');
+
         return $stmt->execute(['id' => $id]);
     }
 
@@ -359,6 +363,7 @@ class User
     public function setActive(int $id, bool $active): bool
     {
         $stmt = $this->db->prepare('UPDATE users SET is_active = :active, updated_at = NOW() WHERE id = :id');
+
         return $stmt->execute(['id' => $id, 'active' => $active ? 1 : 0]);
     }
 

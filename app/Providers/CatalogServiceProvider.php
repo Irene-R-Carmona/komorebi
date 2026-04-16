@@ -10,12 +10,12 @@ use App\Core\ServiceProvider;
 use App\Repositories\Contracts\MenuRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\MenuRepository;
-use App\Services\MenuService;
-use App\Services\ProductService;
 use App\Services\AllergenService;
 use App\Services\Contracts\AllergenServiceInterface;
 use App\Services\Contracts\MenuServiceInterface;
 use App\Services\Contracts\ProductServiceInterface;
+use App\Services\MenuService;
+use App\Services\ProductService;
 
 /**
  * Service Provider para el catálogo: menú y productos.
@@ -31,7 +31,7 @@ final class CatalogServiceProvider extends ServiceProvider
     {
         // ── Repositorios ────────────────────────────────────────────
 
-        Container::singleton(MenuRepositoryInterface::class, fn() => new MenuRepository(
+        Container::singleton(MenuRepositoryInterface::class, fn () => new MenuRepository(
             Database::getConnection()
         ));
 
@@ -40,21 +40,21 @@ final class CatalogServiceProvider extends ServiceProvider
 
         // ── Servicios ────────────────────────────────────────────────
 
-        Container::singleton(MenuService::class, fn() => new MenuService(
+        Container::singleton(MenuService::class, fn () => new MenuService(
             Container::make(MenuRepositoryInterface::class)
         ));
 
-        Container::singleton(MenuServiceInterface::class, fn() => Container::make(MenuService::class));
+        Container::singleton(MenuServiceInterface::class, fn () => Container::make(MenuService::class));
 
-        Container::singleton(ProductService::class, fn() => new ProductService(
+        Container::singleton(ProductService::class, fn () => new ProductService(
             Container::make(ProductRepositoryInterface::class)
         ));
 
-        Container::singleton(ProductServiceInterface::class, fn() => Container::make(ProductService::class));
+        Container::singleton(ProductServiceInterface::class, fn () => Container::make(ProductService::class));
 
-        Container::singleton(AllergenService::class, fn() => new AllergenService());
+        Container::singleton(AllergenService::class, fn () => new AllergenService());
 
-        Container::singleton(AllergenServiceInterface::class, fn() => Container::make(AllergenService::class));
+        Container::singleton(AllergenServiceInterface::class, fn () => Container::make(AllergenService::class));
     }
 
     #[\Override]

@@ -35,20 +35,20 @@ final class HealthCheckControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION['_csrf_token'] = self::CSRF_TOKEN;
-        $_SESSION['user_id']     = 1;
-        $_SESSION['user']        = ['id' => 1, 'name' => 'Keeper Test', 'roles' => ['keeper']];
-        $_SERVER['REQUEST_URI']  = '/keeper/health-checks';
+        $_SESSION['user_id'] = 1;
+        $_SESSION['user'] = ['id' => 1, 'name' => 'Keeper Test', 'roles' => ['keeper']];
+        $_SERVER['REQUEST_URI'] = '/keeper/health-checks';
     }
 
     protected function tearDown(): void
     {
         $_SESSION = [];
-        $_POST    = [];
-        $_GET     = [];
+        $_POST = [];
+        $_GET = [];
         unset($_SERVER['REQUEST_URI']);
     }
 
@@ -59,24 +59,24 @@ final class HealthCheckControllerTest extends TestCase
         $repo->method('getPendingAnimals')->willReturn($overrides['pendingAnimals'] ?? []);
         $repo->method('getCheckswithAlerts')->willReturn($overrides['alerts'] ?? []);
         $repo->method('findById')->willReturn($overrides['check'] ?? [
-            'id'               => 1,
-            'animal_id'        => 1,
-            'animal_name'      => 'Neko',
-            'species_type'     => 'Gato',
-            'current_status'   => 'activo',
-            'keeper_name'      => 'Keeper Test',
-            'check_date'       => '2024-01-15',
-            'created_at'       => '2024-01-15 10:00:00',
-            'weight_kg'        => null,
-            'temperature_c'    => null,
-            'appetite'         => 'normal',
-            'energy_level'     => 'normal',
-            'coat_condition'   => 'good',
-            'eyes_clear'       => 1,
+            'id' => 1,
+            'animal_id' => 1,
+            'animal_name' => 'Neko',
+            'species_type' => 'Gato',
+            'current_status' => 'activo',
+            'keeper_name' => 'Keeper Test',
+            'check_date' => '2024-01-15',
+            'created_at' => '2024-01-15 10:00:00',
+            'weight_kg' => null,
+            'temperature_c' => null,
+            'appetite' => 'normal',
+            'energy_level' => 'normal',
+            'coat_condition' => 'good',
+            'eyes_clear' => 1,
             'breathing_normal' => 1,
-            'mobility_normal'  => 1,
-            'notes'            => '',
-            'alerts'           => null,
+            'mobility_normal' => 1,
+            'notes' => '',
+            'alerts' => null,
         ]);
         $repo->method('exists')->willReturn($overrides['exists'] ?? false);
         $repo->method('findTodayByAnimalId')->willReturn(null);
@@ -91,14 +91,15 @@ final class HealthCheckControllerTest extends TestCase
     private function makeAnimalRepo(?array $animal = null): AnimalRepositoryInterface
     {
         $defaultAnimal = [
-            'id'             => 1,
-            'name'           => 'Neko',
-            'species_type'   => 'Gato',
+            'id' => 1,
+            'name' => 'Neko',
+            'species_type' => 'Gato',
             'current_status' => 'activo',
-            'age'            => 3,
+            'age' => 3,
         ];
         $repo = $this->createStub(AnimalRepositoryInterface::class);
         $repo->method('findById')->willReturn($animal ?? $defaultAnimal);
+
         return $repo;
     }
 
@@ -134,7 +135,7 @@ final class HealthCheckControllerTest extends TestCase
 
     public function test_create_returns_null_when_animal_found_and_no_check_today(): void
     {
-        $service    = $this->makeHealthCheckService(['exists' => false]);
+        $service = $this->makeHealthCheckService(['exists' => false]);
         $animalRepo = $this->makeAnimalRepo(['id' => 5, 'name' => 'Luna', 'species_type' => 'Gato', 'current_status' => 'activo', 'age' => 2]);
 
         $request = new ServerRequest('GET', '/keeper/health-checks/create/5');
@@ -155,11 +156,11 @@ final class HealthCheckControllerTest extends TestCase
         // $_POST deve estar vacío – el controller debe leer de PSR-7
         $_POST = [];
 
-        $request = (new ServerRequest('POST', '/keeper/health-checks'))
+        $request = new ServerRequest('POST', '/keeper/health-checks')
             ->withParsedBody([
                 'csrf_token' => self::CSRF_TOKEN,
-                'animal_id'  => '5',
-                'appetite'   => 'normal',
+                'animal_id' => '5',
+                'appetite' => 'normal',
                 'energy_level' => 'normal',
                 'coat_condition' => 'good',
                 'eyes_clear' => '1',
@@ -180,16 +181,16 @@ final class HealthCheckControllerTest extends TestCase
         // Asegurar que $_POST no se lee
         $_POST = ['animal_id' => '999', 'csrf_token' => 'invalid'];
 
-        $request = (new ServerRequest('POST', '/keeper/health-checks'))
+        $request = new ServerRequest('POST', '/keeper/health-checks')
             ->withParsedBody([
-                'csrf_token'     => self::CSRF_TOKEN,
-                'animal_id'      => '5',
-                'appetite'       => 'normal',
-                'energy_level'   => 'normal',
+                'csrf_token' => self::CSRF_TOKEN,
+                'animal_id' => '5',
+                'appetite' => 'normal',
+                'energy_level' => 'normal',
                 'coat_condition' => 'good',
-                'eyes_clear'     => '1',
+                'eyes_clear' => '1',
                 'breathing_normal' => '1',
-                'mobility_normal'  => '1',
+                'mobility_normal' => '1',
             ]);
 
         $result = $this->makeController()->store($request);
@@ -211,17 +212,17 @@ final class HealthCheckControllerTest extends TestCase
         // Crear servicio real para que detecte alertas de temperatura alta
         $service = new HealthCheckService($repo);
 
-        $request = (new ServerRequest('POST', '/keeper/health-checks'))
+        $request = new ServerRequest('POST', '/keeper/health-checks')
             ->withParsedBody([
-                'csrf_token'       => self::CSRF_TOKEN,
-                'animal_id'        => '3',
-                'temperature_c'    => '42.0', // alto → genera alerta
-                'appetite'         => 'normal',
-                'energy_level'     => 'normal',
-                'coat_condition'   => 'good',
-                'eyes_clear'       => '1',
+                'csrf_token' => self::CSRF_TOKEN,
+                'animal_id' => '3',
+                'temperature_c' => '42.0', // alto → genera alerta
+                'appetite' => 'normal',
+                'energy_level' => 'normal',
+                'coat_condition' => 'good',
+                'eyes_clear' => '1',
                 'breathing_normal' => '1',
-                'mobility_normal'  => '1',
+                'mobility_normal' => '1',
             ]);
 
         $result = $this->makeController($service)->store($request);
@@ -238,24 +239,24 @@ final class HealthCheckControllerTest extends TestCase
     {
         $service = $this->makeHealthCheckService([
             'check' => [
-                'id'               => 1,
-                'animal_id'        => 1,
-                'animal_name'      => 'Neko',
-                'species_type'     => 'Gato',
-                'current_status'   => 'activo',
-                'keeper_name'      => 'Keeper Test',
-                'check_date'       => '2024-01-15',
-                'created_at'       => '2024-01-15 10:00:00',
-                'weight_kg'        => null,
-                'temperature_c'    => null,
-                'appetite'         => 'normal',
-                'energy_level'     => 'normal',
-                'coat_condition'   => 'good',
-                'eyes_clear'       => 1,
+                'id' => 1,
+                'animal_id' => 1,
+                'animal_name' => 'Neko',
+                'species_type' => 'Gato',
+                'current_status' => 'activo',
+                'keeper_name' => 'Keeper Test',
+                'check_date' => '2024-01-15',
+                'created_at' => '2024-01-15 10:00:00',
+                'weight_kg' => null,
+                'temperature_c' => null,
+                'appetite' => 'normal',
+                'energy_level' => 'normal',
+                'coat_condition' => 'good',
+                'eyes_clear' => 1,
                 'breathing_normal' => 1,
-                'mobility_normal'  => 1,
-                'notes'            => 'ok',
-                'alerts'           => null,
+                'mobility_normal' => 1,
+                'notes' => 'ok',
+                'alerts' => null,
             ],
         ]);
 
@@ -277,7 +278,7 @@ final class HealthCheckControllerTest extends TestCase
         // $_GET no debe usarse — el controller debe leer de PSR-7
         $_GET = ['limit' => '999'];
 
-        $request = (new ServerRequest('GET', '/keeper/health-checks/history/1'))
+        $request = new ServerRequest('GET', '/keeper/health-checks/history/1')
             ->withQueryParams(['limit' => '10']);
 
         \ob_start();
@@ -289,7 +290,7 @@ final class HealthCheckControllerTest extends TestCase
 
     public function test_history_returns_null_when_animal_found(): void
     {
-        $request = (new ServerRequest('GET', '/keeper/health-checks/history/1'))
+        $request = new ServerRequest('GET', '/keeper/health-checks/history/1')
             ->withQueryParams([]);
 
         \ob_start();

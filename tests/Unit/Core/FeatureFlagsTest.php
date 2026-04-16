@@ -67,12 +67,13 @@ final class FeatureFlagsTest extends TestCase
         $routesPath = __DIR__ . '/../../../app/routes.php';
         $router = (static function (string $path): Router {
             require $path;
+
             // $router is created inside routes.php in this scope
             return $router; // @phpstan-ignore-line
         })($routesPath);
 
         // Extract registered routes via reflection
-        $ref        = new ReflectionClass(Router::class);
+        $ref = new ReflectionClass(Router::class);
         $routesProp = $ref->getProperty('routes');
         /** @var array<string, array<string, mixed>> $routes */
         $routes = $routesProp->getValue($router);
@@ -100,7 +101,7 @@ final class FeatureFlagsTest extends TestCase
     {
         $routes = $this->loadRoutesAndGetRegistered(['FEATURE_BACKOFFICE' => '0']);
 
-        $get  = $routes['GET']  ?? [];
+        $get = $routes['GET'] ?? [];
         $post = $routes['POST'] ?? [];
 
         $this->assertArrayNotHasKey('/admin/dashboard', $get, 'Admin routes must be absent when FEATURE_BACKOFFICE=0');

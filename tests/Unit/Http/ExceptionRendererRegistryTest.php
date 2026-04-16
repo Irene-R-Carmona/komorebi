@@ -39,7 +39,7 @@ final class ExceptionRendererRegistryTest extends TestCase
     public function testFindReturnsSupportingRenderer(): void
     {
         $renderer = $this->makeRenderer(supports: true, priority: 10);
-        $registry  = new ExceptionRendererRegistry();
+        $registry = new ExceptionRendererRegistry();
         $registry->register($renderer);
 
         $this->assertSame($renderer, $registry->find(new \RuntimeException('test')));
@@ -47,7 +47,7 @@ final class ExceptionRendererRegistryTest extends TestCase
 
     public function testFindReturnsHighestPriorityRenderer(): void
     {
-        $low  = $this->makeRenderer(supports: true, priority: 5);
+        $low = $this->makeRenderer(supports: true, priority: 5);
         $high = $this->makeRenderer(supports: true, priority: 100);
 
         $registry = new ExceptionRendererRegistry();
@@ -59,7 +59,7 @@ final class ExceptionRendererRegistryTest extends TestCase
 
     public function testFindIgnoresNonSupportingRendererWhenSelecting(): void
     {
-        $noMatch  = $this->makeRenderer(supports: false, priority: 999);
+        $noMatch = $this->makeRenderer(supports: false, priority: 999);
         $matching = $this->makeRenderer(supports: true, priority: 1);
 
         $registry = new ExceptionRendererRegistry();
@@ -71,9 +71,9 @@ final class ExceptionRendererRegistryTest extends TestCase
 
     public function testFindDoesNotMutateOriginalOrder(): void
     {
-        $first  = $this->makeRenderer(supports: true, priority: 1);
+        $first = $this->makeRenderer(supports: true, priority: 1);
         $second = $this->makeRenderer(supports: true, priority: 2);
-        $third  = $this->makeRenderer(supports: true, priority: 3);
+        $third = $this->makeRenderer(supports: true, priority: 3);
 
         $registry = new ExceptionRendererRegistry();
         $registry->register($first);
@@ -90,11 +90,12 @@ final class ExceptionRendererRegistryTest extends TestCase
 
     private function makeRenderer(bool $supports, int $priority): ExceptionRendererInterface
     {
-        return new class($supports, $priority) implements ExceptionRendererInterface {
+        return new class ($supports, $priority) implements ExceptionRendererInterface {
             public function __construct(
                 private readonly bool $s,
                 private readonly int  $p,
-            ) {}
+            ) {
+            }
 
             #[\Override] public function supports(\Throwable $e): bool
             {

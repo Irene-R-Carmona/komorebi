@@ -41,7 +41,7 @@ final class TokenControllerTest extends ControllerTestCase
         );
 
         $this->assertSame(200, $result->getStatusCode());
-        $body = json_decode((string) $result->getBody(), true);
+        $body = \json_decode((string) $result->getBody(), true);
         $this->assertArrayHasKey('tokens', $body['data'] ?? $body);
     }
 
@@ -50,7 +50,7 @@ final class TokenControllerTest extends ControllerTestCase
         $this->expectException(ValidationException::class);
 
         $this->makeController()->create(
-            (new ServerRequest('POST', '/api/v1/tokens'))
+            new ServerRequest('POST', '/api/v1/tokens')
                 ->withParsedBody(['name' => ''])
         );
     }
@@ -66,8 +66,8 @@ final class TokenControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(TokenController::class, 'list'));
-        $this->assertTrue(method_exists(TokenController::class, 'create'));
-        $this->assertTrue(method_exists(TokenController::class, 'revoke'));
+        $this->assertTrue(\method_exists(TokenController::class, 'list'));
+        $this->assertTrue(\method_exists(TokenController::class, 'create'));
+        $this->assertTrue(\method_exists(TokenController::class, 'revoke'));
     }
 }

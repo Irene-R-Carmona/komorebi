@@ -33,7 +33,7 @@ final class NotFoundExceptionRenderer extends AbstractExceptionRenderer
     #[\Override]
     public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
-        assert($e instanceof NotFoundException);
+        \assert($e instanceof NotFoundException);
 
         if ($this->isApiRequest($request)) {
             return $this->response->problem(
@@ -43,7 +43,7 @@ final class NotFoundExceptionRenderer extends AbstractExceptionRenderer
         }
 
         $html = View::renderToString('errors/404', [
-            'message'       => $e->getMessage(),
+            'message' => $e->getMessage(),
             'resource_type' => $e->getResourceType(),
         ]);
 

@@ -35,9 +35,9 @@ $getStatusLabel = function ($status) {
 $getSeverityBadgeClass = static function (string $severity): string {
     return match ($severity) {
         'critical' => 'danger',
-        'high'     => 'warning',
-        'medium'   => 'info',
-        default    => 'secondary',
+        'high' => 'warning',
+        'medium' => 'info',
+        default => 'secondary',
     };
 };
 ?>
@@ -63,28 +63,28 @@ $getSeverityBadgeClass = static function (string $severity): string {
     <!-- Estadísticas -->
     <div class="stats-grid stats-grid--4 mb-4">
         <?= View::componentToString('components/admin/stat-card', [
-            'icon'    => 'heart-fill',
+            'icon' => 'heart-fill',
             'variant' => 'primary',
-            'label'   => 'Animales Activos',
-            'value'   => $stats['total_animals'] ?? 0,
+            'label' => 'Animales Activos',
+            'value' => $stats['total_animals'] ?? 0,
         ]) ?>
         <?= View::componentToString('components/admin/stat-card', [
-            'icon'    => 'journal-check',
+            'icon' => 'journal-check',
             'variant' => 'success',
-            'label'   => 'Logs Hoy',
-            'value'   => $stats['logs_today'] ?? 0,
+            'label' => 'Logs Hoy',
+            'value' => $stats['logs_today'] ?? 0,
         ]) ?>
         <?= View::componentToString('components/admin/stat-card', [
-            'icon'    => 'exclamation-triangle-fill',
+            'icon' => 'exclamation-triangle-fill',
             'variant' => 'warning',
-            'label'   => 'Incidentes Activos',
-            'value'   => count($active_incidents),
+            'label' => 'Incidentes Activos',
+            'value' => count($active_incidents),
         ]) ?>
         <?= View::componentToString('components/admin/stat-card', [
-            'icon'    => 'graph-up',
+            'icon' => 'graph-up',
             'variant' => 'info',
-            'label'   => 'Promedio Interacciones',
-            'value'   => ($stats['avg_interactions'] ?? 0) . '/día',
+            'label' => 'Promedio Interacciones',
+            'value' => ($stats['avg_interactions'] ?? 0) . '/día',
         ]) ?>
     </div>
 
@@ -151,7 +151,7 @@ $getSeverityBadgeClass = static function (string $severity): string {
                         <?php
                         // Crear array de IDs de animales pendientes de chequeo (Semana 6)
                         $pendingAnimalIds = array_column($pending_animals ?? [], 'animal_id');
-                        ?>
+?>
                         <?php foreach ($animals as $animal): ?>
                             <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
                                 <div class="card animal-card h-100 <?= in_array($animal['id'], $pendingAnimalIds, true) ? 'border-warning' : '' ?>" style="overflow:hidden;">

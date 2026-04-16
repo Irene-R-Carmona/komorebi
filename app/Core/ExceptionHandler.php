@@ -131,7 +131,7 @@ final class ExceptionHandler
                 $exception->getHttpCode(),
                 [
                     'resource_type' => $exception->getResourceType(),
-                    'resource_id'   => $exception->getResourceId(),
+                    'resource_id' => $exception->getResourceId(),
                 ]
             );
         } else {
@@ -182,7 +182,7 @@ final class ExceptionHandler
                 $exception->getHttpCode(),
                 [
                     'permission' => $exception->getPermission(),
-                    'resource'   => $exception->getResource(),
+                    'resource' => $exception->getResource(),
                 ]
             );
         } else {
@@ -210,7 +210,7 @@ final class ExceptionHandler
                 $exception->getHttpCode(),
                 [
                     'rule_code' => $exception->getRuleCode(),
-                    'context'   => $exception->getContext(),
+                    'context' => $exception->getContext(),
                 ]
             );
         } else {
@@ -241,8 +241,8 @@ final class ExceptionHandler
                 $exception->getHttpCode(),
                 [
                     'retry_after' => $exception->getRetryAfter(),
-                    'limit'       => $exception->getLimit(),
-                    'action'      => $exception->getAction(),
+                    'limit' => $exception->getLimit(),
+                    'action' => $exception->getAction(),
                 ]
             );
         } else {
@@ -416,9 +416,9 @@ final class ExceptionHandler
                 'server_error',
                 500,
                 $isDebug ? [
-                    'type'     => \get_class($exception),
-                    'file'     => $exception->getFile(),
-                    'line'     => $exception->getLine(),
+                    'type' => \get_class($exception),
+                    'file' => $exception->getFile(),
+                    'line' => $exception->getLine(),
                     'error_id' => $errorId,
                 ] : ['error_id' => $errorId]
             );

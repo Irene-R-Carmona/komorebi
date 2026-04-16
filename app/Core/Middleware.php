@@ -89,7 +89,7 @@ final class Middleware
             $user = self::fetchUserFromDb((int) $userId);
 
             // Solo forzar logout si el usuario existe y está marcado como inactivo.
-            if (is_array($user) && !($user['is_active'] ?? true)) {
+            if (\is_array($user) && !($user['is_active'] ?? true)) {
                 self::forceLogout('account_locked');
             }
 
@@ -112,13 +112,13 @@ final class Middleware
         // Admin siempre tiene acceso (soportar roles como `super_admin`)
         foreach ($userRoles as $r) {
             $rStr = (string) $r;
-            if ($rStr === self::ROLE_ADMIN || str_ends_with($rStr, '_admin')) {
+            if ($rStr === self::ROLE_ADMIN || \str_ends_with($rStr, '_admin')) {
                 return;
             }
         }
 
         // Verificar si usuario tiene alguno de los roles permitidos
-        $allowedRoles = array_map('strval', $allowedRoles);
+        $allowedRoles = \array_map('strval', $allowedRoles);
         $hasRole = \count(\array_intersect($userRoles, $allowedRoles)) > 0;
 
         if (!$hasRole) {
@@ -141,7 +141,7 @@ final class Middleware
         // Admin siempre tiene acceso completo (soportar roles como `super_admin`)
         foreach ($userRoles as $r) {
             $rStr = (string) $r;
-            if ($rStr === self::ROLE_ADMIN || str_ends_with($rStr, '_admin')) {
+            if ($rStr === self::ROLE_ADMIN || \str_ends_with($rStr, '_admin')) {
                 return;
             }
         }
@@ -254,7 +254,8 @@ final class Middleware
     {
         Session::start();
         $roles = Session::get('user_roles', []);
-        return is_array($roles) ? $roles : [];
+
+        return \is_array($roles) ? $roles : [];
     }
 
     /**

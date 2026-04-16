@@ -14,7 +14,7 @@ use App\Services\Contracts\HealthCheckServiceInterface;
  *
  * @package App\Services
  */
-class HealthCheckService implements HealthCheckServiceInterface
+final class HealthCheckService implements HealthCheckServiceInterface
 {
     private HealthCheckRepositoryInterface $repository;
 
@@ -41,7 +41,7 @@ class HealthCheckService implements HealthCheckServiceInterface
     public function createHealthCheck(int $animalId, int $keeperId, array $data): Result
     {
         // Validar que no exista ya un chequeo HOY para este animal
-        if ($this->repository->exists($animalId, date('Y-m-d'))) {
+        if ($this->repository->exists($animalId, \date('Y-m-d'))) {
             return Result::fail('Ya existe un chequeo registrado hoy para este animal');
         }
 
@@ -58,7 +58,7 @@ class HealthCheckService implements HealthCheckServiceInterface
         $checkData = [
             'animal_id' => $animalId,
             'checked_by' => $keeperId,
-            'check_date' => $data['check_date'] ?? date('Y-m-d'),
+            'check_date' => $data['check_date'] ?? \date('Y-m-d'),
             'weight_kg' => $data['weight_kg'] ?? null,
             'temperature_c' => $data['temperature_c'] ?? null,
             'appetite' => $data['appetite'] ?? 'normal',
@@ -67,12 +67,13 @@ class HealthCheckService implements HealthCheckServiceInterface
             'eyes_clear' => $data['eyes_clear'] ?? true,
             'breathing_normal' => $data['breathing_normal'] ?? true,
             'mobility_normal' => $data['mobility_normal'] ?? true,
-            'notes' => trim($data['notes'] ?? ''),
+            'notes' => \trim($data['notes'] ?? ''),
             'alerts' => !empty($alerts) ? $alerts : null,
         ];
 
         try {
             $checkId = $this->repository->create($checkData);
+
             return Result::ok([
                 'id' => $checkId,
                 'alerts' => $alerts,
@@ -99,8 +100,8 @@ class HealthCheckService implements HealthCheckServiceInterface
         }
 
         // Decodificar alertas JSON
-        if (isset($check['alerts']) && $check['alerts'] !== null) {
-            $check['alerts'] = json_decode($check['alerts'], true);
+        if (isset($check['alerts'])) {
+            $check['alerts'] = \json_decode($check['alerts'], true);
         }
 
         return $check;
@@ -120,16 +121,16 @@ class HealthCheckService implements HealthCheckServiceInterface
 
         // Decodificar alertas JSON en checks completados
         foreach ($completedChecks as &$check) {
-            if (isset($check['alerts']) && $check['alerts'] !== null) {
-                $check['alerts'] = json_decode($check['alerts'], true);
+            if (isset($check['alerts'])) {
+                $check['alerts'] = \json_decode($check['alerts'], true);
             }
         }
 
         return [
             'completed' => $completedChecks,
             'pending' => $pendingAnimals,
-            'completed_count' => count($completedChecks),
-            'pending_count' => count($pendingAnimals),
+            'completed_count' => \count($completedChecks),
+            'pending_count' => \count($pendingAnimals),
         ];
     }
 
@@ -147,8 +148,8 @@ class HealthCheckService implements HealthCheckServiceInterface
 
         // Decodificar alertas JSON
         foreach ($history as &$check) {
-            if (isset($check['alerts']) && $check['alerts'] !== null) {
-                $check['alerts'] = json_decode($check['alerts'], true);
+            if (isset($check['alerts'])) {
+                $check['alerts'] = \json_decode($check['alerts'], true);
             }
         }
 
@@ -168,8 +169,8 @@ class HealthCheckService implements HealthCheckServiceInterface
 
         // Decodificar alertas JSON
         foreach ($checksWithAlerts as &$check) {
-            if (isset($check['alerts']) && $check['alerts'] !== null) {
-                $check['alerts'] = json_decode($check['alerts'], true);
+            if (isset($check['alerts'])) {
+                $check['alerts'] = \json_decode($check['alerts'], true);
             }
         }
 
@@ -185,7 +186,7 @@ class HealthCheckService implements HealthCheckServiceInterface
     #[\Override]
     public function hasCheckToday(int $animalId): bool
     {
-        return $this->repository->exists($animalId, date('Y-m-d'));
+        return $this->repository->exists($animalId, \date('Y-m-d'));
     }
 
     /**
@@ -204,8 +205,8 @@ class HealthCheckService implements HealthCheckServiceInterface
         return [
             'keeper_id' => $keeperId,
             'checks_count' => $count,
-            'period_start' => $startDate ?? date('Y-m-01'),
-            'period_end' => $endDate ?? date('Y-m-d'),
+            'period_start' => $startDate ?? \date('Y-m-01'),
+            'period_end' => $endDate ?? \date('Y-m-d'),
         ];
     }
 
@@ -222,7 +223,7 @@ class HealthCheckService implements HealthCheckServiceInterface
 
         // Alerta por temperatura alta (fiebre)
         if (isset($data['temperature_c']) && (float) $data['temperature_c'] > self::TEMPERATURE_HIGH_THRESHOLD) {
-            $alerts[] = sprintf(
+            $alerts[] = \sprintf(
                 'Fiebre detectada: %.1f°C (normal: <%.1f°C)',
                 (float) $data['temperature_c'],
                 self::TEMPERATURE_HIGH_THRESHOLD
@@ -231,7 +232,7 @@ class HealthCheckService implements HealthCheckServiceInterface
 
         // Alerta por temperatura baja (hipotermia)
         if (isset($data['temperature_c']) && (float) $data['temperature_c'] < self::TEMPERATURE_LOW_THRESHOLD) {
-            $alerts[] = sprintf(
+            $alerts[] = \sprintf(
                 'Temperatura baja: %.1f°C (normal: >%.1f°C)',
                 (float) $data['temperature_c'],
                 self::TEMPERATURE_LOW_THRESHOLD
@@ -284,10 +285,10 @@ class HealthCheckService implements HealthCheckServiceInterface
     private function validateMetrics(array $data): Result
     {
         // Validar peso si está presente
-        if (isset($data['weight_kg']) && $data['weight_kg'] !== null) {
+        if (isset($data['weight_kg'])) {
             $weight = (float) $data['weight_kg'];
             if ($weight < self::WEIGHT_MIN || $weight > self::WEIGHT_MAX) {
-                return Result::fail(sprintf(
+                return Result::fail(\sprintf(
                     'Peso fuera de rango: %.2f kg (rango válido: %.1f - %.1f kg)',
                     $weight,
                     self::WEIGHT_MIN,
@@ -297,10 +298,10 @@ class HealthCheckService implements HealthCheckServiceInterface
         }
 
         // Validar temperatura si está presente
-        if (isset($data['temperature_c']) && $data['temperature_c'] !== null) {
+        if (isset($data['temperature_c'])) {
             $temp = (float) $data['temperature_c'];
             if ($temp < 30.0 || $temp > 45.0) {
-                return Result::fail(sprintf(
+                return Result::fail(\sprintf(
                     'Temperatura fuera de rango viable: %.1f°C (rango: 30.0 - 45.0°C)',
                     $temp
                 ));
@@ -309,18 +310,18 @@ class HealthCheckService implements HealthCheckServiceInterface
 
         // Validar ENUMs
         $validAppetite = ['normal', 'reduced', 'none'];
-        if (isset($data['appetite']) && !in_array($data['appetite'], $validAppetite, true)) {
-            return Result::fail('Valor de apetito inválido. Opciones: ' . implode(', ', $validAppetite));
+        if (isset($data['appetite']) && !\in_array($data['appetite'], $validAppetite, true)) {
+            return Result::fail('Valor de apetito inválido. Opciones: ' . \implode(', ', $validAppetite));
         }
 
         $validEnergy = ['high', 'normal', 'low'];
-        if (isset($data['energy_level']) && !in_array($data['energy_level'], $validEnergy, true)) {
-            return Result::fail('Nivel de energía inválido. Opciones: ' . implode(', ', $validEnergy));
+        if (isset($data['energy_level']) && !\in_array($data['energy_level'], $validEnergy, true)) {
+            return Result::fail('Nivel de energía inválido. Opciones: ' . \implode(', ', $validEnergy));
         }
 
         $validCoat = ['excellent', 'good', 'fair', 'poor'];
-        if (isset($data['coat_condition']) && !in_array($data['coat_condition'], $validCoat, true)) {
-            return Result::fail('Condición de pelaje inválida. Opciones: ' . implode(', ', $validCoat));
+        if (isset($data['coat_condition']) && !\in_array($data['coat_condition'], $validCoat, true)) {
+            return Result::fail('Condición de pelaje inválida. Opciones: ' . \implode(', ', $validCoat));
         }
 
         return Result::ok([]);

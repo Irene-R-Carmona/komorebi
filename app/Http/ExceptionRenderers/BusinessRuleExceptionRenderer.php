@@ -33,13 +33,14 @@ final class BusinessRuleExceptionRenderer extends AbstractExceptionRenderer
     #[\Override]
     public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
-        assert($e instanceof BusinessRuleException);
+        \assert($e instanceof BusinessRuleException);
 
         if ($this->isApiRequest($request)) {
             $context = \array_merge(
                 ['rule_code' => $e->getRuleCode()],
                 $e->getContext()
             );
+
             return $this->response->problem(
                 Result::fail($e->getMessage(), ServiceErrorCode::BUSINESS_RULE, context: $context),
                 $e->getHttpCode()
@@ -48,6 +49,7 @@ final class BusinessRuleExceptionRenderer extends AbstractExceptionRenderer
 
         Flash::error($e->getMessage());
         $referer = $request->getHeaderLine('Referer') ?: '/';
+
         return $this->response->redirect($referer, 302);
     }
 }

@@ -38,6 +38,7 @@ final class CookieManager
     {
         $days ??= (self::DURATIONS[$name] ?? 30);
         $expires = \time() + ($days * 86400);
+
         return \setcookie(
             $name,
             (string) $value,
@@ -99,12 +100,12 @@ final class CookieManager
         }
 
         $consent = self::get(self::COOKIE_CONSENT);
-        if (!is_string($consent) || $consent === '') {
+        if (!\is_string($consent) || $consent === '') {
             return false;
         }
 
         $preferences = \json_decode((string) $consent, true);
-        if (!is_array($preferences)) {
+        if (!\is_array($preferences)) {
             return false;
         }
 
@@ -179,12 +180,13 @@ final class CookieManager
         }
 
         $value = self::get(self::FILTER_PREFERENCES);
-        if (!is_string($value) || $value === '') {
+        if (!\is_string($value) || $value === '') {
             return null;
         }
 
         $decoded = \json_decode((string) $value, true);
-        return is_array($decoded) ? $decoded : null;
+
+        return \is_array($decoded) ? $decoded : null;
     }
 
     /**
@@ -199,7 +201,7 @@ final class CookieManager
         $recent = self::getRecentlyViewed();
 
         // Eliminar si ya existe (para moverlo al principio)
-        $recent = \array_filter($recent, static fn($id) => $id !== $productId);
+        $recent = \array_filter($recent, static fn ($id) => $id !== $productId);
 
         // Añadir al principio
         \array_unshift($recent, $productId);
@@ -224,12 +226,13 @@ final class CookieManager
         }
 
         $value = self::get(self::RECENTLY_VIEWED);
-        if (!is_string($value) || $value === '') {
+        if (!\is_string($value) || $value === '') {
             return [];
         }
 
         $decoded = \json_decode((string) $value, true);
-        return is_array($decoded) ? $decoded : [];
+
+        return \is_array($decoded) ? $decoded : [];
     }
 
     /**
@@ -286,11 +289,12 @@ final class CookieManager
         }
 
         $value = self::get(self::DIETARY_PREFERENCES);
-        if (!is_string($value) || $value === '') {
+        if (!\is_string($value) || $value === '') {
             return null;
         }
 
         $decoded = \json_decode((string) $value, true);
-        return is_array($decoded) ? $decoded : null;
+
+        return \is_array($decoded) ? $decoded : null;
     }
 }

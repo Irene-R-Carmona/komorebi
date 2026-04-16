@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Api\AbstractApiController;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
+use App\Http\Controllers\Api\AbstractApiController;
 use App\Services\SupervisorAssignmentService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

@@ -66,6 +66,7 @@ final class CafeController
             'csrf_token' => Csrf::token(),
             'extraJs' => ['admin/admin-cafes.js'],
         ], ['admin/admin-cafes.css'], 'backoffice');
+
         return null;
     }
 
@@ -84,6 +85,7 @@ final class CafeController
 
         try {
             $cafeId = $this->cafeService->create($_POST); // NOSONAR
+
             return $this->response->json(['ok' => true, 'data' => [
                 'message' => 'Café creado correctamente',
                 'cafe_id' => $cafeId,
@@ -94,6 +96,7 @@ final class CafeController
             if (Env::get('APP_ENV') === 'local') {
                 Logger::error('[CafeManagementController::create] Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
             }
+
             return $this->response->problem(Result::fail('Error al crear el café', 'server_error'), 500);
         }
     }
@@ -115,6 +118,7 @@ final class CafeController
 
         try {
             $this->cafeService->update($cafeId, $_POST); // NOSONAR
+
             return $this->response->json(['ok' => true, 'data' => ['message' => 'Café actualizado correctamente']]);
         } catch (InvalidArgumentException $e) {
             return $this->response->problem(Result::fail($e->getMessage(), 'validation'), 422); // NOSONAR
@@ -122,6 +126,7 @@ final class CafeController
             if (Env::get('APP_ENV') === 'local') {
                 Logger::error('[CafeManagementController::update] Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
             }
+
             return $this->response->problem(Result::fail('Error al actualizar el café', 'server_error'), 500);
         }
     }
@@ -143,6 +148,7 @@ final class CafeController
 
         try {
             $this->cafeService->toggleActive($cafeId);
+
             return $this->response->json(['ok' => true, 'data' => ['message' => 'Estado del café actualizado']]);
         } catch (InvalidArgumentException $e) {
             return $this->response->problem(Result::fail($e->getMessage(), 'not_found'), 404); // NOSONAR
@@ -150,6 +156,7 @@ final class CafeController
             if (Env::get('APP_ENV') === 'local') {
                 Logger::error('[CafeManagementController::toggleStatus] Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
             }
+
             return $this->response->problem(Result::fail('Error al cambiar el estado', 'server_error'), 500);
         }
     }
@@ -171,6 +178,7 @@ final class CafeController
 
         try {
             $this->cafeService->delete($cafeId);
+
             return $this->response->json(['ok' => true, 'data' => ['message' => 'Café desactivado correctamente']]);
         } catch (InvalidArgumentException $e) {
             return $this->response->problem(Result::fail($e->getMessage(), 'not_found'), 404); // NOSONAR
@@ -178,6 +186,7 @@ final class CafeController
             if (Env::get('APP_ENV') === 'local') {
                 Logger::error('[CafeManagementController::delete] Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
             }
+
             return $this->response->problem(Result::fail('Error al eliminar el café', 'server_error'), 500);
         }
     }

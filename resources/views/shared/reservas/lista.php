@@ -17,12 +17,12 @@ $reservations ??= [];
 
 $statusLabels = [
     'confirmed' => 'Confirmada',
-    'pending'   => 'Pendiente',
+    'pending' => 'Pendiente',
     'cancelled' => 'Cancelada',
 ];
 $statusBadge = [
     'confirmed' => 'rsv2-pill--confirmed',
-    'pending'   => 'rsv2-pill--pending',
+    'pending' => 'rsv2-pill--pending',
     'cancelled' => 'rsv2-pill--cancelled',
 ];
 ?>
@@ -54,10 +54,10 @@ $statusBadge = [
             <div class="rsv2-lista__list">
                 <?php foreach ($reservations as $rsv): ?>
                     <?php
-                    $status      = $rsv['status'] ?? '';
-                    $label       = $statusLabels[$status] ?? ucfirst($status);
-                    $badge       = $statusBadge[$status] ?? 'rsv2-pill--cancelled';
-                    $canCancel   = in_array($status, ['pending', 'confirmed'], true);
+                    $status = $rsv['status'] ?? '';
+                    $label = $statusLabels[$status] ?? ucfirst($status);
+                    $badge = $statusBadge[$status] ?? 'rsv2-pill--cancelled';
+                    $canCancel = in_array($status, ['pending', 'confirmed'], true);
                     $formattedDate = isset($rsv['reservation_date'])
                         ? date('d/m/Y', strtotime($rsv['reservation_date']))
                         : '—';

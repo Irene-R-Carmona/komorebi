@@ -7,7 +7,6 @@ namespace App\Http\ExceptionRenderers;
 use App\Core\Flash;
 use App\Core\Result;
 use App\Core\ServiceErrorCode;
-use App\Core\View;
 use App\Exceptions\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -34,7 +33,7 @@ final class ValidationExceptionRenderer extends AbstractExceptionRenderer
     #[\Override]
     public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
-        assert($e instanceof ValidationException);
+        \assert($e instanceof ValidationException);
 
         if ($this->isApiRequest($request)) {
             return $this->response->problem(
@@ -49,6 +48,7 @@ final class ValidationExceptionRenderer extends AbstractExceptionRenderer
         }
 
         $referer = $request->getHeaderLine('Referer') ?: '/';
+
         return $this->response->redirect($referer, 302);
     }
 }

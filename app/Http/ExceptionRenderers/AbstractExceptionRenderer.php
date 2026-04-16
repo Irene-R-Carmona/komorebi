@@ -16,17 +16,18 @@ abstract class AbstractExceptionRenderer implements ExceptionRendererInterface
 {
     public function __construct(
         protected readonly ResponseFactory $response,
-    ) {}
+    ) {
+    }
 
     /**
      * Detecta si la petición espera respuesta JSON (API/AJAX).
      */
     protected function isApiRequest(ServerRequestInterface $request): bool
     {
-        $accept         = $request->getHeaderLine('Accept');
-        $contentType    = $request->getHeaderLine('Content-Type');
+        $accept = $request->getHeaderLine('Accept');
+        $contentType = $request->getHeaderLine('Content-Type');
         $xRequestedWith = $request->getHeaderLine('X-Requested-With');
-        $path           = $request->getUri()->getPath();
+        $path = $request->getUri()->getPath();
 
         return \str_contains($accept, 'application/json')
             || \str_contains($contentType, 'application/json')

@@ -108,8 +108,9 @@ final class Flash
             if (($m['type'] ?? '') === $type) {
                 // Extraer y eliminar
                 $text = $m['message'] ?? null;
-                array_splice($_SESSION[self::KEY], $idx, 1);
-                return is_string($text) ? $text : null;
+                \array_splice($_SESSION[self::KEY], $idx, 1);
+
+                return \is_string($text) ? $text : null;
             }
         }
 

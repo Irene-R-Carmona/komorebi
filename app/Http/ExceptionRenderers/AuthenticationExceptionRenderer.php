@@ -34,7 +34,7 @@ final class AuthenticationExceptionRenderer extends AbstractExceptionRenderer
     #[\Override]
     public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
-        assert($e instanceof AuthenticationException);
+        \assert($e instanceof AuthenticationException);
 
         if ($this->isApiRequest($request)) {
             return $this->response->problem(

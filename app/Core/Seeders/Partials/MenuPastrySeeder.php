@@ -29,7 +29,7 @@ final class MenuPastrySeeder
         $allergens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($allergens as $allergen) {
-            $this->allergenCache[strtolower($allergen['name'])] = (int) $allergen['id'];
+            $this->allergenCache[\strtolower($allergen['name'])] = (int) $allergen['id'];
         }
     }
 
@@ -52,7 +52,7 @@ final class MenuPastrySeeder
         $stmt = $this->db->prepare('INSERT IGNORE INTO product_allergens (product_id, allergen_id) VALUES (?, ?)');
 
         foreach ($allergenNames as $name) {
-            $allergenId = $this->allergenCache[strtolower($name)] ?? null;
+            $allergenId = $this->allergenCache[\strtolower($name)] ?? null;
 
             if ($allergenId) {
                 $stmt->execute([$productId, $allergenId]);
@@ -272,9 +272,9 @@ final class MenuPastrySeeder
                 ':station' => $item['station'],
                 ':time' => $item['time'],
                 ':steps' => $item['steps'],
-                ':ingred' => json_encode($item['ingred'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+                ':ingred' => \json_encode($item['ingred'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
                 ':check' => $item['check'],
-                ':targets' => json_encode($item['target'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+                ':targets' => \json_encode($item['target'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
                 ':img' => $item['img'],
             ]);
 

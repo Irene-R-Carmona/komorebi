@@ -42,8 +42,8 @@ final class WaitlistController
         $queryParams = $request->getQueryParams();
         $filters = [
             'cafe_id' => $queryParams['cafe_id'] ?? null,
-            'status'  => $queryParams['status'] ?? 'waiting',
-            'date'    => $queryParams['date'] ?? null,
+            'status' => $queryParams['status'] ?? 'waiting',
+            'date' => $queryParams['date'] ?? null,
         ];
 
         // Obtener todas las waitlists activas con información del slot y usuario
@@ -56,9 +56,10 @@ final class WaitlistController
 
         View::render('admin/waitlist/index', [
             'waitlists' => $waitlists,
-            'summary'   => $summary,
-            'filters'   => $filters,
+            'summary' => $summary,
+            'filters' => $filters,
         ], [], 'backoffice');
+
         return null;
     }
 
@@ -74,6 +75,7 @@ final class WaitlistController
 
         if (!$rawWaitlist) {
             View::render('errors/404', [], [], 'errors');
+
             return null;
         }
 
@@ -82,6 +84,7 @@ final class WaitlistController
         View::render('admin/waitlist/show', [
             'waitlist' => $waitlist,
         ], [], 'backoffice');
+
         return null;
     }
 

@@ -13,7 +13,6 @@ use App\Repositories\AuthLogRepository;
 use App\Repositories\Contracts\AuthLogRepositoryInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -64,6 +63,7 @@ final class AuthLogController
             ],
             'extraJs' => ['admin/admin-logs.js'],
         ], ['admin/admin-logs.css'], 'backoffice');
+
         return null;
     }
 
@@ -84,7 +84,7 @@ final class AuthLogController
         ];
 
         // Remover valores nulos
-        $filters = \array_filter($filters, static fn($v) => $v !== null);
+        $filters = \array_filter($filters, static fn ($v) => $v !== null);
 
         $page = \max(1, (int) ($_GET['page'] ?? 1));
         $limit = \max(10, \min(100, (int) ($_GET['limit'] ?? 50)));
@@ -111,7 +111,7 @@ final class AuthLogController
             'date_to' => $_GET['date_to'] ?? null,
         ];
 
-        $filters = \array_filter($filters, static fn($v) => $v !== null && $v !== '');
+        $filters = \array_filter($filters, static fn ($v) => $v !== null && $v !== '');
 
         $authLogModel = new AuthAuditLog();
         $stats = $authLogModel->getStats($filters);
@@ -127,6 +127,7 @@ final class AuthLogController
     public function suspicious(): ResponseInterface
     {
         $suspicious = $this->authLogRepo->findSuspiciousActivity(15, 5);
+
         return $this->response->json(['ok' => true, 'data' => ['suspicious' => $suspicious]]);
     }
 
@@ -138,6 +139,7 @@ final class AuthLogController
     public function suspiciousCount(): ResponseInterface
     {
         $suspicious = $this->authLogRepo->findSuspiciousActivity(15, 5);
+
         return $this->response->json(['ok' => true, 'count' => \count($suspicious)]);
     }
 
@@ -181,7 +183,7 @@ final class AuthLogController
                 'ip_address' => $_GET['ip_address'] ?? null,
             ];
 
-            $filters = \array_filter($filters, static fn($v) => $v !== null && $v !== '');
+            $filters = \array_filter($filters, static fn ($v) => $v !== null && $v !== '');
 
             $authLogModel = new AuthAuditLog();
             $result = $authLogModel->findAll($filters, 10000, 0);

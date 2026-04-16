@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Api\AbstractApiController;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
+use App\Http\Controllers\Api\AbstractApiController;
 use App\Services\Manager\DashboardService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -61,19 +61,19 @@ final class ManagerController extends AbstractApiController
         $weeklyData = $this->dashboardService->getWeeklyRevenue($cafeId);
 
         $labels = [];
-        $data   = [];
+        $data = [];
         foreach ($weeklyData as $day) {
             $labels[] = \date('d/m', \strtotime($day['date']));
-            $data[]   = (float) $day['revenue'];
+            $data[] = (float) $day['revenue'];
         }
 
         return $this->success([
-            'labels'   => $labels,
+            'labels' => $labels,
             'datasets' => [
                 [
-                    'label'           => 'Ingresos (€)',
-                    'data'            => $data,
-                    'borderColor'     => 'rgb(75, 192, 192)',
+                    'label' => 'Ingresos (€)',
+                    'data' => $data,
+                    'borderColor' => 'rgb(75, 192, 192)',
                     'backgroundColor' => 'rgba(75, 192, 192, 0.2)',
                 ],
             ],
@@ -112,26 +112,26 @@ final class ManagerController extends AbstractApiController
         $distribution = $this->dashboardService->getReservationStatusDistribution($cafeId);
 
         $backgroundColor = [
-            'pending'   => '#FFA726',
+            'pending' => '#FFA726',
             'confirmed' => '#66BB6A',
-            'active'    => '#42A5F5',
+            'active' => '#42A5F5',
             'completed' => '#26C6DA',
             'cancelled' => '#EF5350',
-            'no_show'   => '#8D6E63',
+            'no_show' => '#8D6E63',
         ];
 
         $labels = [];
-        $data   = [];
+        $data = [];
         foreach ($distribution as $item) {
             $labels[] = \ucfirst($item['status']);
-            $data[]   = (int) $item['count'];
+            $data[] = (int) $item['count'];
         }
 
         return $this->success([
-            'labels'   => $labels,
+            'labels' => $labels,
             'datasets' => [
                 [
-                    'data'            => $data,
+                    'data' => $data,
                     'backgroundColor' => \array_values($backgroundColor),
                 ],
             ],

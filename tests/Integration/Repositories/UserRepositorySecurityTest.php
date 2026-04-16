@@ -19,9 +19,9 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Repositories;
 
+use App\Repositories\UserRepository;
 use Override;
 use ReflectionClass;
-use App\Repositories\UserRepository;
 use Tests\Support\BaseIntegrationTest;
 
 final class UserRepositorySecurityTest extends BaseIntegrationTest
@@ -48,10 +48,10 @@ final class UserRepositorySecurityTest extends BaseIntegrationTest
              VALUES (:id, UUID(), :email, :password, :name, NOW(), 1, NOW())'
         );
         $stmt->execute([
-            ':id'       => self::TEST_ID,
-            ':email'    => self::TEST_EMAIL,
+            ':id' => self::TEST_ID,
+            ':email' => self::TEST_EMAIL,
             ':password' => $hash,
-            ':name'     => 'Security Test User',
+            ':name' => 'Security Test User',
         ]);
     }
 

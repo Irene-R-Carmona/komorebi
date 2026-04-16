@@ -7,8 +7,8 @@ namespace App\Core;
 use Monolog\Formatter\JsonFormatter;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
-use Monolog\Logger as Monolog;
 use Monolog\Level;
+use Monolog\Logger as Monolog;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -116,7 +116,8 @@ final class Logger
 
     private static function parseLevel(string $level): Level
     {
-        $name = strtoupper($level);
+        $name = \strtoupper($level);
+
         try {
             return Level::fromName($name);
         } catch (\TypeError | \ValueError $e) {

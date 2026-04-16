@@ -2,18 +2,17 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Tests\Unit\Core;
 
 use App\Core\Csrf;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Tests para Csrf
@@ -29,8 +28,8 @@ final class CsrfTest extends TestCase
     protected function setUp(): void
     {
         // Limpiar sesión antes de cada test
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_destroy();
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
         }
         $_SESSION = [];
         $_POST = [];
@@ -50,7 +49,7 @@ final class CsrfTest extends TestCase
 
         $this->assertNotEmpty($token);
         $this->assertIsString($token);
-        $this->assertGreaterThan(32, strlen($token), 'Token debe tener longitud suficiente');
+        $this->assertGreaterThan(32, \strlen($token), 'Token debe tener longitud suficiente');
     }
 
     public function testGenerateStoresTokenInSession(): void
@@ -157,7 +156,7 @@ final class CsrfTest extends TestCase
             $tokens[] = Csrf::token();
         }
 
-        $uniqueTokens = array_unique($tokens);
+        $uniqueTokens = \array_unique($tokens);
         $this->assertCount(1, $uniqueTokens, 'Todas las llamadas deben retornar el mismo token');
     }
 
@@ -191,7 +190,7 @@ final class CsrfTest extends TestCase
         Csrf::init();
         $token = Csrf::token();
 
-        $request = (new ServerRequest('POST', '/test'))
+        $request = new ServerRequest('POST', '/test')
             ->withParsedBody(['csrf_token' => $token]);
 
         $isValid = Csrf::validate($request);
@@ -204,7 +203,7 @@ final class CsrfTest extends TestCase
         Csrf::init();
         $token = Csrf::token();
 
-        $request = (new ServerRequest('POST', '/test', ['X-CSRF-Token' => 'wrong-token']))
+        $request = new ServerRequest('POST', '/test', ['X-CSRF-Token' => 'wrong-token'])
             ->withParsedBody(['csrf_token' => $token]);
 
         $isValid = Csrf::validate($request);

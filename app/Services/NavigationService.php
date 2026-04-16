@@ -35,8 +35,6 @@ final class NavigationService
         'globe' => 'globe',
     ];
 
-
-
     // ─────────────────────────────────────────────────────────────
     // Menús por Rol
     // ─────────────────────────────────────────────────────────────
@@ -85,10 +83,10 @@ final class NavigationService
     {
         return [
             'Bienestar Animal' => [
-                self::item('dashboard',  'Estado Diario',      '/keeper/dashboard'),
-                self::item('animals',    'Animales',           '/keeper/animals'),
-                self::item('health',     'Chequeos de Salud',  '/keeper/health-checks'),
-                self::item('incidents',  'Incidentes',         '/keeper/incidents'),
+                self::item('dashboard', 'Estado Diario', '/keeper/dashboard'),
+                self::item('animals', 'Animales', '/keeper/animals'),
+                self::item('health', 'Chequeos de Salud', '/keeper/health-checks'),
+                self::item('incidents', 'Incidentes', '/keeper/incidents'),
             ],
         ];
     }

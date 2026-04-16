@@ -25,16 +25,14 @@ use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\Contracts\SessionManagementServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
-use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
-use Psr\Http\Message\ResponseInterface;
 
 final class AccountControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION = [];
     }
@@ -59,9 +57,9 @@ final class AccountControllerTest extends ControllerTestCase
 
     public function test_class_exists_and_has_key_methods(): void
     {
-        $this->assertTrue(method_exists(AccountController::class, 'sessions'));
-        $this->assertTrue(method_exists(AccountController::class, 'revokeSession'));
-        $this->assertTrue(method_exists(AccountController::class, 'deleteAccount'));
+        $this->assertTrue(\method_exists(AccountController::class, 'sessions'));
+        $this->assertTrue(\method_exists(AccountController::class, 'revokeSession'));
+        $this->assertTrue(\method_exists(AccountController::class, 'deleteAccount'));
     }
 
     public function test_can_be_instantiated_without_real_services(): void

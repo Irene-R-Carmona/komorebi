@@ -45,8 +45,9 @@ final class PayloadSizeMiddlewareTest extends TestCase
         $request = $this->createStub(ServerRequestInterface::class);
         $request->method('getHeaderLine')
             ->willReturnCallback(static function (string $header) use ($contentLength): string {
-                return strtolower($header) === 'content-length' ? $contentLength : '';
+                return \strtolower($header) === 'content-length' ? $contentLength : '';
             });
+
         return $request;
     }
 

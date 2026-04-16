@@ -45,7 +45,7 @@ final class HolidayServiceTest extends TestCase
 
     public function testGetHolidaysByYearConAnioDemasiadoFuturoRetornaFail(): void
     {
-        $añoFuturoExcesivo = (int) date('Y') + 10;
+        $añoFuturoExcesivo = (int) \date('Y') + 10;
 
         $result = $this->service->getHolidaysByYear($añoFuturoExcesivo);
 
@@ -66,7 +66,7 @@ final class HolidayServiceTest extends TestCase
 
     public function testGetHolidaysByRangeConRangoMayorDe5AnosRetornaFail(): void
     {
-        $currentYear = (int) date('Y');
+        $currentYear = (int) \date('Y');
 
         $result = $this->service->getHolidaysByRange($currentYear, $currentYear + 6);
 

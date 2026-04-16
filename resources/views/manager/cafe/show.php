@@ -163,7 +163,7 @@ $pageTitle = 'Configuración del Café';
                             name="capacity_max"
                             min="1"
                             max="500"
-                            value="<?= htmlspecialchars((string)$cafe['capacity_max'], ENT_QUOTES, 'UTF-8') ?>"
+                            value="<?= htmlspecialchars((string) $cafe['capacity_max'], ENT_QUOTES, 'UTF-8') ?>"
                             required>
                         <small>Entre 1 y 500 personas</small>
                     </div>
@@ -218,7 +218,7 @@ $pageTitle = 'Configuración del Café';
                             min="0"
                             max="100"
                             step="0.01"
-                            value="<?= htmlspecialchars((string)$cafe['price_per_hour'], ENT_QUOTES, 'UTF-8') ?>">
+                            value="<?= htmlspecialchars((string) $cafe['price_per_hour'], ENT_QUOTES, 'UTF-8') ?>">
                         <small>Entre 0€ y 100€</small>
                     </div>
 

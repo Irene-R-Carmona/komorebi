@@ -44,14 +44,14 @@
                             <?php
                             $station = $item['station'] ?? 'hot';
                             $stationLabel = match ($station) {
-                                'bar'          => 'Barra',
+                                'bar' => 'Barra',
                                 'kitchen_cold' => 'Frío',
-                                default        => 'Caliente',
+                                default => 'Caliente',
                             };
                             $stationClass = match ($station) {
-                                'bar'          => 'bg-primary',
+                                'bar' => 'bg-primary',
                                 'kitchen_cold' => 'bg-info text-dark',
-                                default        => 'bg-danger',
+                                default => 'bg-danger',
                             };
                             $mins = (int) ($item['waiting_minutes'] ?? 0);
                             ?>

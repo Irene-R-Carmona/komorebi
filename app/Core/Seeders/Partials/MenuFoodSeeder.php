@@ -28,7 +28,7 @@ final class MenuFoodSeeder
         $allergens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($allergens as $allergen) {
-            $this->allergenCache[strtolower($allergen['name'])] = (int) $allergen['id'];
+            $this->allergenCache[\strtolower($allergen['name'])] = (int) $allergen['id'];
         }
     }
 
@@ -238,9 +238,9 @@ final class MenuFoodSeeder
                 ':station' => $item['station'],
                 ':time' => $item['time'],
                 ':steps' => $item['steps'],
-                ':ingred' => json_encode($item['ingred'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+                ':ingred' => \json_encode($item['ingred'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
                 ':check' => $item['check'],
-                ':targets' => !empty($item['target']) ? json_encode($item['target'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) : null,
+                ':targets' => !empty($item['target']) ? \json_encode($item['target'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) : null,
                 ':img' => $item['img'],
             ]);
 

@@ -22,7 +22,7 @@ final class ProblemDetailsTest extends TestCase
     public function testKnownCodeUsesEnumTypeUri(): void
     {
         $result = Result::fail('No encontrado', ServiceErrorCode::NOT_FOUND);
-        $body   = ProblemDetails::fromResult($result, 404);
+        $body = ProblemDetails::fromResult($result, 404);
 
         $this->assertSame(ServiceErrorCode::NOT_FOUND->typeUri(), $body['type']);
     }
@@ -30,7 +30,7 @@ final class ProblemDetailsTest extends TestCase
     public function testUnknownCodeFallsBackToAboutBlank(): void
     {
         $result = Result::fail('error', 'some_custom_code');
-        $body   = ProblemDetails::fromResult($result, 400);
+        $body = ProblemDetails::fromResult($result, 400);
 
         $this->assertSame('about:blank', $body['type']);
     }
@@ -40,7 +40,7 @@ final class ProblemDetailsTest extends TestCase
     public function testKnownCodeUsesEnumTitle(): void
     {
         $result = Result::fail('Acceso denegado', ServiceErrorCode::FORBIDDEN);
-        $body   = ProblemDetails::fromResult($result, 403);
+        $body = ProblemDetails::fromResult($result, 403);
 
         $this->assertSame(ServiceErrorCode::FORBIDDEN->toTitle(), $body['title']);
     }
@@ -48,7 +48,7 @@ final class ProblemDetailsTest extends TestCase
     public function testUnknownCodeFallsBackToHttpReasonPhrase(): void
     {
         $result = Result::fail('error', 'custom');
-        $body   = ProblemDetails::fromResult($result, 422);
+        $body = ProblemDetails::fromResult($result, 422);
 
         $this->assertSame('Unprocessable Content', $body['title']);
     }
@@ -58,7 +58,7 @@ final class ProblemDetailsTest extends TestCase
     public function testStatusFieldMatchesArgument(): void
     {
         $result = Result::fail('error', ServiceErrorCode::UNAUTHORIZED);
-        $body   = ProblemDetails::fromResult($result, 401);
+        $body = ProblemDetails::fromResult($result, 401);
 
         $this->assertSame(401, $body['status']);
     }
@@ -66,7 +66,7 @@ final class ProblemDetailsTest extends TestCase
     public function testDetailFieldContainsErrorMessage(): void
     {
         $result = Result::fail('Usuario no encontrado', ServiceErrorCode::NOT_FOUND);
-        $body   = ProblemDetails::fromResult($result, 404);
+        $body = ProblemDetails::fromResult($result, 404);
 
         $this->assertSame('Usuario no encontrado', $body['detail']);
     }
@@ -74,7 +74,7 @@ final class ProblemDetailsTest extends TestCase
     public function testCodeFieldPresentWhenSet(): void
     {
         $result = Result::fail('error', 'my_code');
-        $body   = ProblemDetails::fromResult($result, 400);
+        $body = ProblemDetails::fromResult($result, 400);
 
         $this->assertSame('my_code', $body['code']);
     }
@@ -110,14 +110,14 @@ final class ProblemDetailsTest extends TestCase
     public function testEmptyContextAddsNoExtraFields(): void
     {
         $result = Result::fail('error', ServiceErrorCode::CONFLICT);
-        $body   = ProblemDetails::fromResult($result, 409);
+        $body = ProblemDetails::fromResult($result, 409);
 
         $standardKeys = ['type', 'title', 'status', 'detail', 'code'];
         foreach ($standardKeys as $key) {
             $this->assertArrayHasKey($key, $body);
         }
         // No extra keys beyond standard ones
-        $this->assertCount(\count($standardKeys), $body);
+        $this->assertCount(count($standardKeys), $body);
     }
 
     // ── guard ────────────────────────────────────────────────────────────

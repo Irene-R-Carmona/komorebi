@@ -20,25 +20,24 @@ namespace Tests\Unit\Http\Controllers\Auth;
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Auth\AuthController;
 use App\Services\AuthService;
-use Nyholm\Psr7\ServerRequest;
-use Tests\Support\ControllerTestCase;
 use Psr\Http\Message\ResponseInterface;
+use Tests\Support\ControllerTestCase;
 
 final class AuthControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION = [];
-        $_POST    = [];
+        $_POST = [];
     }
 
     protected function tearDown(): void
     {
         $_SESSION = [];
-        $_POST    = [];
+        $_POST = [];
     }
 
     private function makeController(): AuthController
@@ -77,22 +76,22 @@ final class AuthControllerTest extends ControllerTestCase
 
     public function test_process_login_returns_null_when_body_is_empty(): void
     {
-        ob_start();
+        \ob_start();
         $result = $this->makeController()->processLogin(
             $this->makePostRequest('/login', [])
         );
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
     }
 
     public function test_process_login_returns_null_when_email_format_invalid(): void
     {
-        ob_start();
+        \ob_start();
         $result = $this->makeController()->processLogin(
             $this->makePostRequest('/login', ['email' => 'not-an-email', 'password' => 'pass'])
         );
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
     }
@@ -101,11 +100,11 @@ final class AuthControllerTest extends ControllerTestCase
 
     public function test_process_register_returns_null_when_body_is_empty(): void
     {
-        ob_start();
+        \ob_start();
         $result = $this->makeController()->processRegister(
             $this->makePostRequest('/registro', [])
         );
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
     }

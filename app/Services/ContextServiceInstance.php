@@ -26,7 +26,8 @@ final class ContextServiceInstance implements ContextServiceInterface
         private readonly string $role,
         private readonly ?int $userCafeId,
         private readonly ?int $adminSelectedCafeId
-    ) {}
+    ) {
+    }
 
     // ─────────────────────────────────────────────────────────────
     // Obtención de Contexto
@@ -156,10 +157,10 @@ final class ContextServiceInstance implements ContextServiceInterface
     public function getViewData(): array
     {
         return [
-            'cafe_id'    => $this->getCafeId(),
-            'cafe_name'  => $this->getCafeName(),
-            'cafe'       => $this->getCafe(),
-            'is_global'  => $this->isGlobalView(),
+            'cafe_id' => $this->getCafeId(),
+            'cafe_name' => $this->getCafeName(),
+            'cafe' => $this->getCafe(),
+            'is_global' => $this->isGlobalView(),
             'can_switch' => $this->role === Middleware::ROLE_ADMIN,
         ];
     }

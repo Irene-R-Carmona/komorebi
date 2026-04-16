@@ -11,21 +11,21 @@ declare(strict_types=1);
 
 $getStatusBadgeClass = function (string $status): string {
     return match ($status) {
-        'active'   => 'success',
-        'resting'  => 'warning',
-        'sick'     => 'danger',
-        'retired'  => 'secondary',
-        default    => 'secondary'
+        'active' => 'success',
+        'resting' => 'warning',
+        'sick' => 'danger',
+        'retired' => 'secondary',
+        default => 'secondary'
     };
 };
 
 $getStatusLabel = function (string $status): string {
     return match ($status) {
-        'active'  => 'Activo',
+        'active' => 'Activo',
         'resting' => 'Reposo',
-        'sick'    => 'Enfermo',
+        'sick' => 'Enfermo',
         'retired' => 'Retirado',
-        default   => ucfirst($status)
+        default => ucfirst($status)
     };
 };
 ?>
@@ -121,7 +121,7 @@ $getStatusLabel = function (string $status): string {
                                                     const csrfToken = document.querySelector('meta[name=csrf-token]')?.content ?? '';
                                                     const body = new FormData();
                                                     body.append('csrf_token', csrfToken);
-                                                    const res = await fetch('/keeper/animals/<?= (int)$animal['id'] ?>/toggle', {
+                                                    const res = await fetch('/keeper/animals/<?= (int) $animal['id'] ?>/toggle', {
                                                         method: 'POST',
                                                         body
                                                     });

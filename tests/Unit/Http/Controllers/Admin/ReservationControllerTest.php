@@ -19,24 +19,24 @@ namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\ReservationController;
-use Tests\Support\ControllerTestCase;
 use Psr\Http\Message\ResponseInterface;
+use Tests\Support\ControllerTestCase;
 
 final class ReservationControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION = [];
-        $_POST    = [];
+        $_POST = [];
     }
 
     protected function tearDown(): void
     {
         $_SESSION = [];
-        $_POST    = [];
+        $_POST = [];
     }
 
     private function makeController(): ReservationController
@@ -66,8 +66,8 @@ final class ReservationControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(ReservationController::class, 'index'));
-        $this->assertTrue(method_exists(ReservationController::class, 'cancel'));
-        $this->assertTrue(method_exists(ReservationController::class, 'confirm'));
+        $this->assertTrue(\method_exists(ReservationController::class, 'index'));
+        $this->assertTrue(\method_exists(ReservationController::class, 'cancel'));
+        $this->assertTrue(\method_exists(ReservationController::class, 'confirm'));
     }
 }

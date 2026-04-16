@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -17,9 +16,9 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use Tests\Support\BaseIntegrationTest;
 use App\Repositories\CafeRepository;
 use App\Services\CafeService;
+use Tests\Support\BaseIntegrationTest;
 
 final class CafeIntegrationTest extends BaseIntegrationTest
 {
@@ -42,17 +41,17 @@ final class CafeIntegrationTest extends BaseIntegrationTest
     private function seedTestData(): void
     {
         // Limpiar datos previos
-        self::$db->exec("DELETE FROM cafes WHERE id >= " . self::TEST_CAFE_ID_BASE);
+        self::$db->exec('DELETE FROM cafes WHERE id >= ' . self::TEST_CAFE_ID_BASE);
 
         // Café activo de tipo lounge
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO cafes (
                 id, name, japanese_name, slug, location, category,
                 animal_type, description, price_per_hour,
                 opening_time, closing_time, capacity_max, is_active
             )
             VALUES (
-                " . self::TEST_CAFE_ID_BASE . ",
+                ' . self::TEST_CAFE_ID_BASE . ",
                 'Test Cat Lounge',
                 'テストキャットラウンジ',
                 'test-cat-lounge',
@@ -69,14 +68,14 @@ final class CafeIntegrationTest extends BaseIntegrationTest
         ");
 
         // Café inactivo de tipo zen
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO cafes (
                 id, name, slug, location, category,
                 animal_type, description, price_per_hour,
                 opening_time, closing_time, capacity_max, is_active
             )
             VALUES (
-                " . (self::TEST_CAFE_ID_BASE + 1) . ",
+                ' . (self::TEST_CAFE_ID_BASE + 1) . ",
                 'Test Zen Garden',
                 'test-zen-garden',
                 'Kyoto Test',
@@ -92,14 +91,14 @@ final class CafeIntegrationTest extends BaseIntegrationTest
         ");
 
         // Café activo de tipo playroom
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO cafes (
                 id, name, slug, location, category,
                 animal_type, description, price_per_hour,
                 opening_time, closing_time, capacity_max, is_active
             )
             VALUES (
-                " . (self::TEST_CAFE_ID_BASE + 2) . ",
+                ' . (self::TEST_CAFE_ID_BASE + 2) . ",
                 'Test Dog Playroom',
                 'test-dog-playroom',
                 'Osaka Test',
@@ -126,7 +125,7 @@ final class CafeIntegrationTest extends BaseIntegrationTest
 
         // ASSERT: Debe incluir nuestros 2 cafés activos (más los de seed)
         $this->assertIsArray($result);
-        $this->assertGreaterThanOrEqual(2, count($result));
+        $this->assertGreaterThanOrEqual(2, \count($result));
 
         // Verificar que todos son activos
         foreach ($result as $cafe) {
@@ -141,11 +140,11 @@ final class CafeIntegrationTest extends BaseIntegrationTest
 
         // ASSERT: Debe encontrar el café "Test Cat Lounge"
         $this->assertIsArray($result);
-        $this->assertGreaterThanOrEqual(1, count($result));
+        $this->assertGreaterThanOrEqual(1, \count($result));
 
         $found = false;
         foreach ($result as $cafe) {
-            if (stripos($cafe['name'], 'Test Cat') !== false) {
+            if (\stripos($cafe['name'], 'Test Cat') !== false) {
                 $found = true;
                 break;
             }

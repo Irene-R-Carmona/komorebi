@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Api\AbstractApiController;
 use App\Core\Http\ResponseFactory;
-use App\Core\Result;
+use App\Http\Controllers\Api\AbstractApiController;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -45,7 +44,7 @@ final class HolidayController extends AbstractApiController
 
         return $this->success([
             'holidays' => $holidays,
-            'count'    => \count($holidays),
+            'count' => \count($holidays),
         ]);
     }
 
@@ -56,7 +55,7 @@ final class HolidayController extends AbstractApiController
     public function checkHoliday(ServerRequestInterface $request): ResponseInterface
     {
         $queryParams = $request->getQueryParams();
-        $date        = $queryParams['date'] ?? null;
+        $date = $queryParams['date'] ?? null;
 
         if (!$date) {
             return $this->unprocessable('Parámetro "date" requerido (formato: YYYY-MM-DD)', 'missing_parameter');
@@ -67,11 +66,11 @@ final class HolidayController extends AbstractApiController
         }
 
         $holidayDates = \array_column(self::HOLIDAY_DATES, 'date');
-        $isHoliday    = \in_array($date, $holidayDates, true);
+        $isHoliday = \in_array($date, $holidayDates, true);
 
         return $this->success([
-            'date'                       => $date,
-            'is_holiday'                 => $isHoliday,
+            'date' => $date,
+            'is_holiday' => $isHoliday,
             'available_for_reservations' => !$isHoliday,
         ]);
     }

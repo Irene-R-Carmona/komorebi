@@ -236,6 +236,7 @@ final class FileUploadService implements FileUploadServiceInterface
         int $maxHeight
     ): Result {
         $ok = ImageProcessor::resizeAndSave($sourcePath, $destPath, $maxWidth, $maxHeight);
+
         return $ok ? Result::ok(true) : Result::fail('Error al procesar la imagen');
     }
 

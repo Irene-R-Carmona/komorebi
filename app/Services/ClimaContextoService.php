@@ -85,7 +85,9 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
         ],
     ];
 
-    public function __construct(private readonly WeatherService $weatherService) {}
+    public function __construct(private readonly WeatherService $weatherService)
+    {
+    }
 
     /**
      * Obtiene el clima actual de Tokyo con contexto poético.

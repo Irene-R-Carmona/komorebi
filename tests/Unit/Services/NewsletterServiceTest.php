@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -54,7 +53,7 @@ final class NewsletterServiceTest extends TestCase
         $result = $this->service->subscribe('invalid-email');
 
         $this->assertFalse($result['success']);
-        $this->assertStringContainsString('válido', strtolower($result['message'] ?? ''));
+        $this->assertStringContainsString('válido', \strtolower($result['message'] ?? ''));
     }
 
     public function testSubscribeWithEmptyEmailReturnsError(): void
@@ -73,7 +72,7 @@ final class NewsletterServiceTest extends TestCase
         $stmtSelect->method('fetch')->willReturn([
             'id' => 1,
             'email' => 'test@example.com',
-            'confirmed_at' => null
+            'confirmed_at' => null,
         ]);
 
         // Mock para UPDATE
@@ -96,7 +95,7 @@ final class NewsletterServiceTest extends TestCase
         $stmtSelect->method('execute')->willReturn(true);
         $stmtSelect->method('fetch')->willReturn([
             'id' => 1,
-            'email' => 'test@example.com'
+            'email' => 'test@example.com',
         ]);
 
         // Mock para UPDATE
@@ -130,7 +129,7 @@ final class NewsletterServiceTest extends TestCase
         $stmtMock = $this->createStub(PDOStatement::class);
         $stmtMock->method('fetchAll')->willReturn([
             'user1@example.com',
-            'user2@example.com'
+            'user2@example.com',
         ]);
 
         $this->dbMock->method('query')->willReturn($stmtMock);

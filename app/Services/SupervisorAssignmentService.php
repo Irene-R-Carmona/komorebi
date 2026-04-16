@@ -21,11 +21,12 @@ use App\Services\Contracts\SupervisorAssignmentServiceInterface;
  *
  * La validación CSRF es responsabilidad exclusiva del middleware PSR-15.
  */
-class SupervisorAssignmentService implements SupervisorAssignmentServiceInterface
+final class SupervisorAssignmentService implements SupervisorAssignmentServiceInterface
 {
     public function __construct(
         private readonly SupervisorAssignmentRepositoryInterface $repo,
-    ) {}
+    ) {
+    }
 
     /**
      * Crea una asignación leyendo el cuerpo JSON de la petición HTTP.
@@ -33,15 +34,15 @@ class SupervisorAssignmentService implements SupervisorAssignmentServiceInterfac
     #[\Override]
     public function createFromRequest(): Result
     {
-        $raw = (string) file_get_contents('php://input');
+        $raw = (string) \file_get_contents('php://input');
 
         try {
-            $input = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+            $input = \json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
             return Result::fail('JSON inválido en el cuerpo de la petición', 'invalid_json');
         }
 
-        if (!is_array($input)) {
+        if (!\is_array($input)) {
             return Result::fail('Payload inválido: se esperaba un objeto JSON', 'invalid_payload');
         }
 
@@ -60,11 +61,11 @@ class SupervisorAssignmentService implements SupervisorAssignmentServiceInterfac
     public function createFromArray(array $input): Result
     {
         $reservationId = isset($input['reservation_id']) ? (int) $input['reservation_id'] : 0;
-        $tableCode     = trim((string) ($input['table_code'] ?? ''));
-        $supervisorId  = isset($input['supervisor_id'])
+        $tableCode = \trim((string) ($input['table_code'] ?? ''));
+        $supervisorId = isset($input['supervisor_id'])
             ? (int) $input['supervisor_id']
             : (int) (Session::user()['id'] ?? 0);
-        $cafeId        = isset($input['cafe_id'])
+        $cafeId = isset($input['cafe_id'])
             ? (int) $input['cafe_id']
             : (int) (Session::user()['cafe_id'] ?? 0);
 
@@ -85,19 +86,19 @@ class SupervisorAssignmentService implements SupervisorAssignmentServiceInterfac
         }
 
         try {
-            $id     = $this->repo->createAssignment([
-                'supervisor_id'  => $supervisorId,
+            $id = $this->repo->createAssignment([
+                'supervisor_id' => $supervisorId,
                 'reservation_id' => $reservationId,
-                'table_code'     => $tableCode,
-                'cafe_id'        => $cafeId,
+                'table_code' => $tableCode,
+                'cafe_id' => $cafeId,
             ]);
             $record = $this->repo->findById($id);
 
             Logger::info('[SupervisorAssignmentService] Asignación creada', [
-                'id'             => $id,
+                'id' => $id,
                 'reservation_id' => $reservationId,
-                'table_code'     => $tableCode,
-                'supervisor_id'  => $supervisorId,
+                'table_code' => $tableCode,
+                'supervisor_id' => $supervisorId,
             ]);
 
             return Result::ok($record);

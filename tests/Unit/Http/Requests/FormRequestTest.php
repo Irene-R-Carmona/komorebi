@@ -29,11 +29,12 @@ final class FormRequestTest extends TestCase
 
     private function makeRequest(array $rules, array $sanitized): FormRequest
     {
-        return new class($rules, $sanitized) extends FormRequest {
+        return new class ($rules, $sanitized) extends FormRequest {
             public function __construct(
                 private readonly array $testRules,
                 private readonly array $testSanitized,
-            ) {}
+            ) {
+            }
 
             #[\Override]
             protected function rules(): array
@@ -273,7 +274,7 @@ final class FormRequestTest extends TestCase
         $psrRequest->method('getParsedBody')->willReturn(['name' => 'Komorebi', 'ignored' => 'x']);
 
         // Use an inline subclass that only keeps 'name'
-        $class = new class extends FormRequest {
+        $class = new class () extends FormRequest {
             #[\Override]
             protected function rules(): array
             {
@@ -283,7 +284,7 @@ final class FormRequestTest extends TestCase
             #[\Override]
             protected function sanitize(array $raw): array
             {
-                return ['name' => trim((string) ($raw['name'] ?? ''))];
+                return ['name' => \trim((string) ($raw['name'] ?? ''))];
             }
         };
 
@@ -301,7 +302,7 @@ final class FormRequestTest extends TestCase
         $psrRequest = $this->createStub(ServerRequestInterface::class);
         $psrRequest->method('getParsedBody')->willReturn(['name' => '  Komorebi  ']);
 
-        $class = new class extends FormRequest {
+        $class = new class () extends FormRequest {
             #[\Override]
             protected function rules(): array
             {
@@ -311,7 +312,7 @@ final class FormRequestTest extends TestCase
             #[\Override]
             protected function sanitize(array $raw): array
             {
-                return ['name' => trim((string) ($raw['name'] ?? ''))];
+                return ['name' => \trim((string) ($raw['name'] ?? ''))];
             }
         };
 

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -30,7 +29,7 @@ final class ButtonComponentTest extends TestCase
     {
         $this->componentPath = __DIR__ . '/../../resources/views/components/button.php';
 
-        if (!file_exists($this->componentPath)) {
+        if (!\file_exists($this->componentPath)) {
             $this->markTestSkipped('Button component not yet created');
         }
     }
@@ -43,14 +42,14 @@ final class ButtonComponentTest extends TestCase
     public function testRenderButtonFunctionExists(): void
     {
         require_once $this->componentPath;
-        $this->assertTrue(function_exists('renderButton'));
+        $this->assertTrue(\function_exists('renderButton'));
     }
 
     public function testRenderBasicButton(): void
     {
         require_once $this->componentPath;
 
-        $html = renderButton(['label' => 'Test Button']);
+        $html = \renderButton(['label' => 'Test Button']);
 
         $this->assertStringContainsString('btn', $html);
         $this->assertStringContainsString('btn--primary', $html);
@@ -63,9 +62,9 @@ final class ButtonComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderButton([
+        $html = \renderButton([
             'label' => 'Save',
-            'icon' => 'save'
+            'icon' => 'save',
         ]);
 
         $this->assertStringContainsString('material-symbols-outlined', $html);
@@ -77,9 +76,9 @@ final class ButtonComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderButton([
+        $html = \renderButton([
             'label' => 'Disabled',
-            'disabled' => true
+            'disabled' => true,
         ]);
 
         $this->assertStringContainsString('disabled', $html);
@@ -90,9 +89,9 @@ final class ButtonComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderButton([
+        $html = \renderButton([
             'label' => 'Loading',
-            'loading' => true
+            'loading' => true,
         ]);
 
         $this->assertStringContainsString('btn--loading', $html);
@@ -108,9 +107,9 @@ final class ButtonComponentTest extends TestCase
         $variants = ['primary', 'secondary', 'danger', 'ghost'];
 
         foreach ($variants as $variant) {
-            $html = renderButton([
-                'label' => ucfirst($variant),
-                'variant' => $variant
+            $html = \renderButton([
+                'label' => \ucfirst($variant),
+                'variant' => $variant,
             ]);
 
             $this->assertStringContainsString("btn--{$variant}", $html);
@@ -124,9 +123,9 @@ final class ButtonComponentTest extends TestCase
         $sizes = ['sm', 'md', 'lg'];
 
         foreach ($sizes as $size) {
-            $html = renderButton([
-                'label' => ucfirst($size),
-                'size' => $size
+            $html = \renderButton([
+                'label' => \ucfirst($size),
+                'size' => $size,
             ]);
 
             $this->assertStringContainsString("btn--{$size}", $html);
@@ -140,9 +139,9 @@ final class ButtonComponentTest extends TestCase
         $types = ['button', 'submit', 'reset'];
 
         foreach ($types as $type) {
-            $html = renderButton([
-                'label' => ucfirst($type),
-                'type' => $type
+            $html = \renderButton([
+                'label' => \ucfirst($type),
+                'type' => $type,
             ]);
 
             $this->assertStringContainsString("type=\"{$type}\"", $html);
@@ -153,7 +152,7 @@ final class ButtonComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderButton(['label' => '<script>alert("XSS")</script>']);
+        $html = \renderButton(['label' => '<script>alert("XSS")</script>']);
 
         $this->assertStringNotContainsString('<script>', $html);
         $this->assertStringContainsString('&lt;script&gt;', $html);
@@ -163,9 +162,9 @@ final class ButtonComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderButton([
+        $html = \renderButton([
             'label' => 'Test',
-            'icon' => '<img src=x onerror=alert(1)>'
+            'icon' => '<img src=x onerror=alert(1)>',
         ]);
 
         $this->assertStringNotContainsString('<img', $html);
@@ -176,9 +175,9 @@ final class ButtonComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderButton([
+        $html = \renderButton([
             'label' => 'Test',
-            'class' => 'custom-class'
+            'class' => 'custom-class',
         ]);
 
         $this->assertStringContainsString('custom-class', $html);
@@ -188,12 +187,12 @@ final class ButtonComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderButton([
+        $html = \renderButton([
             'label' => 'Test',
             'attributes' => [
                 'id' => 'test-button',
-                'data-action' => 'submit'
-            ]
+                'data-action' => 'submit',
+            ],
         ]);
 
         $this->assertStringContainsString('id="test-button"', $html);
@@ -204,10 +203,10 @@ final class ButtonComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderButton([
+        $html = \renderButton([
             'label' => 'Test',
             'icon' => 'save',
-            'loading' => true
+            'loading' => true,
         ]);
 
         // Icon should not be rendered when loading
@@ -220,9 +219,9 @@ final class ButtonComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderButton([
+        $html = \renderButton([
             'label' => 'Test',
-            'loading' => true
+            'loading' => true,
         ]);
 
         // Loading state should add disabled class
@@ -234,7 +233,7 @@ final class ButtonComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderButton(['label' => 'Test']);
+        $html = \renderButton(['label' => 'Test']);
 
         // Should have default type
         $this->assertStringContainsString('type="button"', $html);
@@ -252,10 +251,10 @@ final class ButtonComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderButton([
+        $html = \renderButton([
             'label' => 'Test',
             'icon' => 'save',
-            'loading' => true
+            'loading' => true,
         ]);
 
         // Icon should have aria-hidden when present
@@ -271,7 +270,7 @@ final class ButtonComponentTest extends TestCase
         require_once $this->componentPath;
 
         // Even with empty props, should have default label
-        $html = renderButton([]);
+        $html = \renderButton([]);
         $this->assertStringContainsString('Button', $html); // Default label
     }
 
@@ -279,7 +278,7 @@ final class ButtonComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderButton([
+        $html = \renderButton([
             'type' => 'submit',
             'label' => 'Submit Form',
             'variant' => 'primary',
@@ -290,8 +289,8 @@ final class ButtonComponentTest extends TestCase
             'class' => 'w-full mt-4',
             'attributes' => [
                 'id' => 'submit-btn',
-                'data-testid' => 'form-submit'
-            ]
+                'data-testid' => 'form-submit',
+            ],
         ]);
 
         $this->assertStringContainsString('type="submit"', $html);

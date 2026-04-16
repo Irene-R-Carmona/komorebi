@@ -85,6 +85,7 @@ final class ReceptionController
             'cap_max' => $capInfo['capacity_max'] ?? 0,
             'extraJs' => ['sections/reception.js'],
         ], ['workspaces/reception.css'], 'reception');
+
         return null;
     }
 
@@ -133,6 +134,7 @@ final class ReceptionController
 
         if (!$result->ok) {
             Flash::error($result->getMessage());
+
             return $this->response->redirect('/ops/reception');
         }
 
@@ -159,6 +161,7 @@ final class ReceptionController
 
         if (!$result->ok) {
             Flash::error($result->getMessage());
+
             return $this->response->redirect('/ops/reception');
         }
 

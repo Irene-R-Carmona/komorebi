@@ -18,13 +18,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
-use PHPUnit\Framework\TestCase;
-use App\Services\ReservationService;
-use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
-use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Services\ReservationService;
+use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 #[\PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations]
@@ -205,7 +205,6 @@ final class ReservationServiceTest extends TestCase
             ->with(999)
             ->willReturn(null);  // ← Café no existe
 
-
         $result = $this->service->create([
             'user_id' => 1,
             'cafe_id' => 999,
@@ -229,7 +228,6 @@ final class ReservationServiceTest extends TestCase
                 'has_reservations' => 1,
             ]);
 
-
         $result = $this->service->create([
             'user_id' => 1,
             'cafe_id' => 1,
@@ -252,7 +250,6 @@ final class ReservationServiceTest extends TestCase
                 'is_active' => 1,
                 'has_reservations' => 0,  // ← Does not accept reservations
             ]);
-
 
         $result = $this->service->create([
             'user_id' => 1,
@@ -284,7 +281,6 @@ final class ReservationServiceTest extends TestCase
             ->method('findById')
             ->with(999)
             ->willReturn(null);  // ← Pass no existe
-
 
         $result = $this->service->create([
             'user_id' => 1,
@@ -318,7 +314,6 @@ final class ReservationServiceTest extends TestCase
                 'duration_minutes' => 60,
             ]);
 
-
         $result = $this->service->create([
             'user_id' => 1,
             'cafe_id' => 1,
@@ -350,7 +345,6 @@ final class ReservationServiceTest extends TestCase
                 'product_type' => 'item',  // ← Not a pass
                 'duration_minutes' => 60,
             ]);
-
 
         $result = $this->service->create([
             'user_id' => 1,
@@ -392,7 +386,6 @@ final class ReservationServiceTest extends TestCase
                 'max_pax' => 10,
             ]);
 
-
         $result = $this->service->create([
             'user_id' => 1,
             'cafe_id' => 1,
@@ -428,7 +421,6 @@ final class ReservationServiceTest extends TestCase
                 'min_pax' => 1,
                 'max_pax' => 2,  // ← Maximum 2 guests
             ]);
-
 
         $result = $this->service->create([
             'user_id' => 1,
@@ -467,7 +459,6 @@ final class ReservationServiceTest extends TestCase
                 'target_cafe_types' => '["cats"]',  // ← Only for cats cafes
                 'target_animal_types' => null,
             ]);
-
 
         $result = $this->service->create([
             'user_id' => 1,
@@ -620,7 +611,7 @@ final class ReservationServiceTest extends TestCase
                 'is_active' => 1,
                 'price' => 1500,
                 'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
+                'target_cafe_types' => \json_encode(['cat']),
                 'min_pax' => 1,
                 'max_pax' => 4,
             ]);
@@ -670,7 +661,7 @@ final class ReservationServiceTest extends TestCase
                 'is_active' => 1,
                 'price' => 1500,
                 'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
+                'target_cafe_types' => \json_encode(['cat']),
                 'min_pax' => 1,
                 'max_pax' => 4,
             ]);
@@ -729,7 +720,7 @@ final class ReservationServiceTest extends TestCase
                 'is_active' => 1,
                 'price' => 1500,
                 'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
+                'target_cafe_types' => \json_encode(['cat']),
                 'min_pax' => 1,
                 'max_pax' => 4,
             ]);
@@ -797,7 +788,7 @@ final class ReservationServiceTest extends TestCase
                 'is_active' => 1,
                 'price' => 1500,
                 'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
+                'target_cafe_types' => \json_encode(['cat']),
                 'min_pax' => 1,
                 'max_pax' => 4,
             ]);
@@ -853,7 +844,7 @@ final class ReservationServiceTest extends TestCase
                 'is_active' => 1,
                 'price' => 1500,
                 'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
+                'target_cafe_types' => \json_encode(['cat']),
                 'min_pax' => 1,
                 'max_pax' => 4,
             ]);
@@ -911,7 +902,7 @@ final class ReservationServiceTest extends TestCase
                 'is_active' => 1,
                 'price' => 1500,
                 'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
+                'target_cafe_types' => \json_encode(['cat']),
                 'min_pax' => 1,
                 'max_pax' => 4,
             ]);
@@ -985,7 +976,7 @@ final class ReservationServiceTest extends TestCase
                 'is_active' => 1,
                 'price' => 1500,
                 'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
+                'target_cafe_types' => \json_encode(['cat']),
                 'min_pax' => 1,
                 'max_pax' => null,  // Sin límite máximo
             ]);

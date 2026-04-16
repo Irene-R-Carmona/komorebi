@@ -19,9 +19,9 @@ final class TelegramReservationListener
             . "Comensales: {$event->guests}";
 
         Queue::push(SendTelegramNotificationJob::class, [
-            'icon'            => '📅',
-            'title'           => 'Reserva confirmada',
-            'message'         => $message,
+            'icon' => '📅',
+            'title' => 'Reserva confirmada',
+            'message' => $message,
             '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
     }

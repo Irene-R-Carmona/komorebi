@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Database;
+use App\Core\Logger;
+use App\Core\Result;
 use App\Exceptions\BusinessRuleException;
 use App\Exceptions\NotFoundException;
 use App\Models\Cafe;
 use App\Models\Reservation;
 use App\Models\Tracker;
-use PDO;
-use Throwable;
-use App\Core\Logger;
-use App\Core\Result;
 use App\Services\Contracts\ReceptionServiceInterface;
+use PDO;
 
 /**
  * Servicio de Recepción
@@ -83,7 +82,7 @@ final class ReceptionService implements ReceptionServiceInterface
         $reservations = $this->getReservationModel()->findByCafeAndDate($cafeId, \date('Y-m-d'));
 
         // Filtrar solo confirmadas
-        return \array_filter($reservations, static fn($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
+        return \array_filter($reservations, static fn ($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
     }
 
     /**
@@ -160,6 +159,7 @@ final class ReceptionService implements ReceptionServiceInterface
             return Result::fail($e->getMessage(), $e->getRuleCode() ?? 'business_rule_error');
         } catch (\PDOException $e) {
             Logger::error('[ReceptionService] DB error in processCheckin()', ['exception' => $e->getMessage()]);
+
             return Result::fail('Error de base de datos', 'db_error');
         }
     }
@@ -195,13 +195,13 @@ final class ReceptionService implements ReceptionServiceInterface
                 if ($updated['status'] === Reservation::STATUS_COMPLETED && $updated['user_id']) {
                     try {
                         $loyaltyService = new LoyaltyService();
-                        $loyaltyService->addStamp((int)$updated['user_id'], 1, $reservationId);
+                        $loyaltyService->addStamp((int) $updated['user_id'], 1, $reservationId);
                     } catch (\Throwable $e) {
                         // Log error pero no falla el checkout
                         Logger::warning('Error al añadir sello de fidelización', [
                             'reservation_id' => $reservationId,
                             'user_id' => $updated['user_id'],
-                            'error' => $e->getMessage()
+                            'error' => $e->getMessage(),
                         ]);
                     }
                 }
@@ -220,6 +220,7 @@ final class ReceptionService implements ReceptionServiceInterface
             return Result::fail($e->getMessage(), $e->getRuleCode() ?? 'business_rule_error');
         } catch (\PDOException $e) {
             Logger::error('[ReceptionService] DB error in processCheckout()', ['exception' => $e->getMessage()]);
+
             return Result::fail('Error de base de datos', 'db_error');
         }
     }

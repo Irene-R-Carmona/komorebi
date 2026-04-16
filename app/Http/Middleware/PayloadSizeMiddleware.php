@@ -21,7 +21,8 @@ final class PayloadSizeMiddleware implements MiddlewareInterface
     public function __construct(
         private readonly ResponseFactory $response,
         private readonly int $maxKilobytes = 256,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface

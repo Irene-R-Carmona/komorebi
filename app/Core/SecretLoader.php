@@ -26,8 +26,8 @@ final class SecretLoader
     public static function get(string $name, ?string $default = null)
     {
         // 1. Intentar variable de entorno (método estándar 12-Factor)
-        $envName = strtoupper($name);
-        $value = $_ENV[$envName] ?? $_SERVER[$envName] ?? getenv($envName);
+        $envName = \strtoupper($name);
+        $value = $_ENV[$envName] ?? $_SERVER[$envName] ?? \getenv($envName);
 
         if (!empty($value)) {
             return $value;
@@ -35,8 +35,8 @@ final class SecretLoader
 
         // 2. Simulación Docker Secrets (para demos de producción)
         $secretPath = "/run/secrets/$name";
-        if (file_exists($secretPath) && is_readable($secretPath)) {
-            $content = trim(file_get_contents($secretPath));
+        if (\file_exists($secretPath) && \is_readable($secretPath)) {
+            $content = \trim(\file_get_contents($secretPath));
             if (!empty($content)) {
                 return $content;
             }
@@ -48,6 +48,7 @@ final class SecretLoader
             if (self::isProduction()) {
                 Logger::warning('Usando default para secret en producción', ['secret' => $name]);
             }
+
             return $default;
         }
 
@@ -68,7 +69,7 @@ final class SecretLoader
         if (empty($value)) {
             throw new \RuntimeException(
                 "Secret requerido no encontrado: $name. " .
-                    "Configura la variable de entorno " . strtoupper($name) . " " .
+                    'Configura la variable de entorno ' . \strtoupper($name) . ' ' .
                     "o monta el archivo en /run/secrets/$name"
             );
         }

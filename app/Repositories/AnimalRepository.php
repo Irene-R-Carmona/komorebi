@@ -27,7 +27,7 @@ final class AnimalRepository implements AnimalRepositoryInterface
      */
     public function findById(int $id): ?array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->db->prepare('
             SELECT
                 id, cafe_id, current_zone_id, name, species_type, age,
                 personality, description, interaction_level, attributes,
@@ -35,7 +35,7 @@ final class AnimalRepository implements AnimalRepositoryInterface
                 deleted_at, created_at, updated_at
             FROM animals
             WHERE id = ? AND deleted_at IS NULL
-        ");
+        ');
 
         $stmt->execute([$id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -69,11 +69,11 @@ final class AnimalRepository implements AnimalRepositoryInterface
      */
     public function isAvailable(int $animalId): bool
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->db->prepare('
             SELECT current_status
             FROM animals
             WHERE id = ? AND deleted_at IS NULL
-        ");
+        ');
 
         $stmt->execute([$animalId]);
         $animal = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -92,11 +92,11 @@ final class AnimalRepository implements AnimalRepositoryInterface
     public function isResting(int $animalId): bool
     {
         // Verificar si el animal tiene status de descanso
-        $stmt = $this->db->prepare("
+        $stmt = $this->db->prepare('
             SELECT current_status
             FROM animals
             WHERE id = ? AND deleted_at IS NULL
-        ");
+        ');
 
         $stmt->execute([$animalId]);
         $animal = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -108,7 +108,7 @@ final class AnimalRepository implements AnimalRepositoryInterface
         // Si está en estado resting, sick o retired, está descansando
         $restingStatuses = ['resting', 'sick', 'retired'];
 
-        return in_array($animal['current_status'], $restingStatuses, true);
+        return \in_array($animal['current_status'], $restingStatuses, true);
     }
 
     /**
@@ -116,7 +116,7 @@ final class AnimalRepository implements AnimalRepositoryInterface
      */
     public function getAnimalsWithCafeInfoOptimized(): array
     {
-        $stmt = $this->db->query("
+        $stmt = $this->db->query('
             SELECT
                 a.*,
                 c.name as cafe_name,
@@ -134,7 +134,7 @@ final class AnimalRepository implements AnimalRepositoryInterface
                 a.last_check_at, a.last_health_check, a.deleted_at,
                 a.created_at, a.updated_at, c.name
             ORDER BY a.name
-        ");
+        ');
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -159,11 +159,11 @@ final class AnimalRepository implements AnimalRepositoryInterface
         $animalStats = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // Query separada para logs de hoy (no afecta performance)
-        $logsStmt = $this->db->query("
+        $logsStmt = $this->db->query('
             SELECT COUNT(*) as logs_today
             FROM animal_health_checks
             WHERE check_date = CURDATE()
-        ");
+        ');
 
         $logsData = $logsStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -181,7 +181,7 @@ final class AnimalRepository implements AnimalRepositoryInterface
      */
     public function getRecentLogs(int $limit = 20): array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->db->prepare('
             SELECT
                 hc.*,
                 a.name as animal_name,
@@ -193,7 +193,7 @@ final class AnimalRepository implements AnimalRepositoryInterface
             WHERE hc.created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
             ORDER BY hc.created_at DESC
             LIMIT :limit
-        ");
+        ');
 
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
@@ -206,7 +206,7 @@ final class AnimalRepository implements AnimalRepositoryInterface
      */
     public function getActiveIncidents(): array
     {
-        $stmt = $this->db->query("
+        $stmt = $this->db->query('
             SELECT
                 ai.*,
                 a.name as animal_name,
@@ -215,7 +215,7 @@ final class AnimalRepository implements AnimalRepositoryInterface
             JOIN animals a ON ai.animal_id = a.id
             WHERE ai.resolved_at IS NULL
             ORDER BY ai.severity DESC, ai.created_at DESC
-        ");
+        ');
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -225,7 +225,7 @@ final class AnimalRepository implements AnimalRepositoryInterface
      */
     public function findIncidentById(int $id): ?array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->db->prepare('
             SELECT
                 ai.*,
                 a.name as animal_name,
@@ -233,7 +233,7 @@ final class AnimalRepository implements AnimalRepositoryInterface
             FROM animal_incidents ai
             JOIN animals a ON ai.animal_id = a.id
             WHERE ai.id = :id
-        ");
+        ');
         $stmt->execute(['id' => $id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 

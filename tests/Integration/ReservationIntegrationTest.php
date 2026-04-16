@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -17,14 +16,14 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use Tests\Support\BaseIntegrationTest;
-use App\Services\ReservationService;
 use App\Repositories\CafeRepository;
 use App\Repositories\ProductRepository;
 use App\Repositories\ReservationRepository;
-use App\Services\InvoicePDFService;
 use App\Services\EmailService;
+use App\Services\InvoicePDFService;
+use App\Services\ReservationService;
 use PDO;
+use Tests\Support\BaseIntegrationTest;
 
 final class ReservationIntegrationTest extends BaseIntegrationTest
 {
@@ -41,10 +40,10 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
         parent::setUp();
         $this->seedTestData();
         $reservationRepo = new ReservationRepository(self::$db);
-        $cafeRepo        = new CafeRepository(self::$db);
-        $productRepo     = new ProductRepository(self::$db);
-        $invoiceService  = new InvoicePDFService();
-        $emailService    = new EmailService();
+        $cafeRepo = new CafeRepository(self::$db);
+        $productRepo = new ProductRepository(self::$db);
+        $invoiceService = new InvoicePDFService();
+        $emailService = new EmailService();
         $this->service = new ReservationService(
             $reservationRepo,
             $cafeRepo,
@@ -60,10 +59,10 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
     private function seedTestData(): void
     {
         // Usuario de prueba
-        self::$db->exec("
+        self::$db->exec('
             INSERT IGNORE INTO users (id, uuid, email, password, name, email_verified_at, is_active)
             VALUES (
-                " . self::TEST_USER_ID . ",
+                ' . self::TEST_USER_ID . ",
                 UUID(),
                 'integration-test@komorebi.test',
                 '\$argon2id\$v=19\$m=65536,t=4,p=1\$test\$hash',
@@ -74,14 +73,14 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
         ");
 
         // Café de prueba
-        self::$db->exec("
+        self::$db->exec('
             INSERT IGNORE INTO cafes (
                 id, name, slug, location, category, animal_type,
                 description, price_per_hour, opening_time, closing_time,
                 capacity_max, is_active, has_reservations
             )
             VALUES (
-                " . self::TEST_CAFE_ID . ",
+                ' . self::TEST_CAFE_ID . ",
                 'Test Café Integration',
                 'test-cafe-integration',
                 'Tokyo Test District',
@@ -104,14 +103,14 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
         ");
 
         // Producto (pase) de prueba
-        self::$db->exec("
+        self::$db->exec('
             INSERT IGNORE INTO products (
                 id, category_id, name, slug, product_type, description,
                 price, is_active, duration_minutes, min_pax, max_pax,
                 target_cafe_types
             )
             VALUES (
-                " . self::TEST_PRODUCT_ID . ",
+                ' . self::TEST_PRODUCT_ID . ",
                 99999,
                 'Test Pass 1H',
                 'test-pass-1h',
@@ -151,14 +150,14 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
         $this->assertGreaterThan(0, $reservationId);
 
         // ASSERT: Verificar que el registro existe en la BD con datos correctos
-        $stmt = self::$db->prepare("
+        $stmt = self::$db->prepare('
             SELECT
                 user_id, cafe_id, pass_product_id,
                 reservation_date, reservation_time, guest_count,
                 status, notes
             FROM reservations
             WHERE id = ?
-        ");
+        ');
         $stmt->execute([$reservationId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -188,7 +187,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
         $reservationId = $createResult->data;
 
         // ASSERT: Verificar que notes es null o vacío en BD
-        $stmt = self::$db->prepare("SELECT notes FROM reservations WHERE id = ?");
+        $stmt = self::$db->prepare('SELECT notes FROM reservations WHERE id = ?');
         $stmt->execute([$reservationId]);
         $notes = $stmt->fetchColumn();
 
@@ -215,7 +214,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
         $this->assertTrue($result);
 
         // ASSERT: Verificar que el status cambió a 'cancelled' en BD
-        $stmt = self::$db->prepare("SELECT status FROM reservations WHERE id = ?");
+        $stmt = self::$db->prepare('SELECT status FROM reservations WHERE id = ?');
         $stmt->execute([$reservationId]);
         $status = $stmt->fetchColumn();
 
@@ -242,7 +241,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
         $this->assertFalse($result);
 
         // ASSERT: El status debe seguir siendo 'confirmed' (no se canceló)
-        $stmt = self::$db->prepare("SELECT status FROM reservations WHERE id = ?");
+        $stmt = self::$db->prepare('SELECT status FROM reservations WHERE id = ?');
         $stmt->execute([$reservationId]);
         $status = $stmt->fetchColumn();
 
@@ -330,10 +329,10 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
             $this->assertFalse($result->ok, 'No debe crear reserva en café inactivo');
         } catch (\Exception $e) {
             // Es válido que lance excepción (mensaje puede ser "no acepta reservas")
-            $message = strtolower($e->getMessage());
+            $message = \strtolower($e->getMessage());
             $this->assertTrue(
-                str_contains($message, 'acepta') || str_contains($message, 'inactiv'),
-                "Mensaje de error debe mencionar que el café no acepta reservas o está inactivo"
+                \str_contains($message, 'acepta') || \str_contains($message, 'inactiv'),
+                'Mensaje de error debe mencionar que el café no acepta reservas o está inactivo'
             );
         }
     }
@@ -355,7 +354,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
             $this->assertFalse($result->ok, 'No debe crear reserva con fecha pasada');
         } catch (\Exception $e) {
             // Es válido que lance excepción
-            $this->assertStringContainsString('fecha', strtolower($e->getMessage()));
+            $this->assertStringContainsString('fecha', \strtolower($e->getMessage()));
         }
     }
 

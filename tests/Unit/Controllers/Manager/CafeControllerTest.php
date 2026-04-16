@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -15,7 +14,6 @@ use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Manager\CafeController;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\CafeService;
-use PDO;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -79,16 +77,16 @@ final class CafeControllerTest extends TestCase
 
     public function testShowRequiresCafeAssignment(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         // Limpiar claves de sesión relacionadas con usuario y café
         unset($_SESSION['user_id'], $_SESSION['user_name'], $_SESSION['user_email'], $_SESSION['user_role'], $_SESSION['user_cafe_id']);
 
-        ob_start();
+        \ob_start();
         $this->controller->show($this->request);
-        $output = ob_get_clean();
+        $output = \ob_get_clean();
 
         // Debe renderizar 403 cuando no hay café asignado
         $this->assertIsString($output);
@@ -96,8 +94,8 @@ final class CafeControllerTest extends TestCase
 
     public function testUpdateCapacityReturns403WithoutCafeId(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         // Limpiar claves de sesión relacionadas con usuario y café
@@ -112,8 +110,8 @@ final class CafeControllerTest extends TestCase
 
     public function testUpdateCapacityValidatesPositiveValue(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 5;
@@ -126,7 +124,7 @@ final class CafeControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('mayor a 0', $data['error']);
@@ -134,8 +132,8 @@ final class CafeControllerTest extends TestCase
 
     public function testUpdateCapacityValidatesMaximumLimit(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 5;
@@ -148,7 +146,7 @@ final class CafeControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('500', $data['error']);
@@ -156,8 +154,8 @@ final class CafeControllerTest extends TestCase
 
     public function testUpdateScheduleValidatesTimeFormat(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 5;
@@ -173,7 +171,7 @@ final class CafeControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('inválido', $data['error']);
@@ -181,8 +179,8 @@ final class CafeControllerTest extends TestCase
 
     public function testUpdateScheduleValidatesOpeningBeforeClosing(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 5;
@@ -198,7 +196,7 @@ final class CafeControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('menor que', $data['error']);
@@ -206,14 +204,14 @@ final class CafeControllerTest extends TestCase
 
     public function testUpdateSettingsValidatesDescriptionLength(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 5;
         $_SESSION['user_cafe_id'] = 1;
 
-        $longDescription = str_repeat('A', 2100);
+        $longDescription = \str_repeat('A', 2100);
 
         $this->request->method('getParsedBody')->willReturn([
             'description' => $longDescription,
@@ -224,7 +222,7 @@ final class CafeControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('2000', $data['error']);
@@ -232,8 +230,8 @@ final class CafeControllerTest extends TestCase
 
     public function testUpdateSettingsValidatesPriceRange(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 5;
@@ -248,7 +246,7 @@ final class CafeControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('0 y 100', $data['error']);
@@ -256,8 +254,8 @@ final class CafeControllerTest extends TestCase
 
     public function testUpdateSettingsRequiresAtLeastOneField(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 5;
@@ -270,7 +268,7 @@ final class CafeControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('actualizar', $data['error']);

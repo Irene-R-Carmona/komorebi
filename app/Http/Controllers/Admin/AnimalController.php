@@ -7,8 +7,8 @@ namespace App\Http\Controllers\Admin;
 use App\Core\Csrf;
 use App\Core\Database;
 use App\Core\Flash;
-use App\Core\View;
 use App\Core\Http\ResponseFactory;
+use App\Core\View;
 use App\Http\Transformers\AnimalTransformer;
 use App\Repositories\AnimalRepository;
 use App\Services\AnimalCareService;
@@ -20,7 +20,7 @@ use Random\RandomException;
 /**
  * Controlador de Gestión de Animales (Admin)
  */
-class AnimalController
+final class AnimalController
 {
     private AnimalCareService $animalCareService;
     private ResponseFactory $response;
@@ -39,7 +39,7 @@ class AnimalController
             $animalCareService = new AnimalCareService($db, new AnimalRepository($db));
         }
         $this->animalCareService = $animalCareService;
-        $this->response          = $response ?? new ResponseFactory();
+        $this->response = $response ?? new ResponseFactory();
         $this->animalTransformer = $animalTransformer ?? new AnimalTransformer();
     }
 
@@ -60,6 +60,7 @@ class AnimalController
             'animals' => $animals,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+
         return null;
     }
 
@@ -75,6 +76,7 @@ class AnimalController
             'titulo' => 'Nuevo Animal',
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+
         return null;
     }
 
@@ -88,6 +90,7 @@ class AnimalController
     {
         if (!Csrf::validate()) {
             Flash::error(self::CSRF_INVALID);
+
             return $this->response->redirect('/admin/animals/create');
         }
 
@@ -105,10 +108,12 @@ class AnimalController
 
         if ($result->isOk()) {
             Flash::success('Animal creado correctamente');
+
             return $this->response->redirect(self::ADMIN_ANIMALS_URL);
         }
 
         Flash::error($result->getMessage());
+
         return $this->response->redirect('/admin/animals/create');
     }
 
@@ -127,6 +132,7 @@ class AnimalController
 
         if (!$animal) {
             Flash::error('Animal no encontrado');
+
             return $this->response->redirect(self::ADMIN_ANIMALS_URL);
         }
 
@@ -135,6 +141,7 @@ class AnimalController
             'animal' => $animal,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+
         return null;
     }
 
@@ -148,6 +155,7 @@ class AnimalController
     {
         if (!Csrf::validate()) {
             Flash::error(self::CSRF_INVALID);
+
             return $this->response->redirect(self::ADMIN_ANIMALS_URL);
         }
 
@@ -183,6 +191,7 @@ class AnimalController
     {
         if (!Csrf::validate()) {
             Flash::error(self::CSRF_INVALID);
+
             return $this->response->redirect(self::ADMIN_ANIMALS_URL);
         }
 

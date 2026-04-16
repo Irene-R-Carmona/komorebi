@@ -11,7 +11,9 @@ declare(strict_types=1);
 namespace JetBrains\PhpStorm {
     if (! \class_exists('\JetBrains\\PhpStorm\\NoReturn', false)) {
         #[\Attribute(\Attribute::TARGET_FUNCTION | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
-        final class NoReturn {}
+        final class NoReturn
+        {
+        }
     }
 }
 
@@ -21,45 +23,50 @@ namespace App\Services {
     if (!\class_exists('\App\\Services\\TelegramService', false)) {
         final class TelegramService
         {
-            public function sendAdminAlert(string $message): void {}
+            public function sendAdminAlert(string $message): void
+            {
+            }
         }
     }
 
     if (!\class_exists('\App\\Services\\RuntimeException', false)) {
-        final class RuntimeException extends \RuntimeException {}
+        final class RuntimeException extends \RuntimeException
+        {
+        }
     }
 }
 
 // Stubs para funciones globales de componentes de vista
 // (resources/views/components/*.php no está en los paths de análisis)
+
 namespace {
     // Cargar autoload de composer si está disponible
     if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
         require_once __DIR__ . '/../vendor/autoload.php';
     }
 
-    if (!\function_exists('renderButton')) {
+    if (!function_exists('renderButton')) {
         function renderButton(array $props = []): string
         {
             return '';
         }
     }
 
-    if (!\function_exists('renderModal')) {
+    if (!function_exists('renderModal')) {
         function renderModal(array $props = []): string
         {
             return '';
         }
     }
 
-    if (!\function_exists('renderBadge')) {
+    if (!function_exists('renderBadge')) {
         function renderBadge(array $props = []): string
         {
             return '';
         }
     }
 
-    if (!\function_exists('renderCard')) {
+    if (!function_exists('renderCard')) {
         function renderCard(array $props = []): string
         {
             return '';

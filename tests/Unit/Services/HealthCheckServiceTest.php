@@ -44,7 +44,7 @@ final class HealthCheckServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->repo    = $this->createMock(HealthCheckRepositoryInterface::class);
+        $this->repo = $this->createMock(HealthCheckRepositoryInterface::class);
         $this->service = new HealthCheckService($this->repo);
     }
 
@@ -157,12 +157,12 @@ final class HealthCheckServiceTest extends TestCase
         $this->repo->method('create')->willReturn(42);
 
         $data = [
-            'weight_kg'       => 5.0,
-            'temperature_c'   => 38.0,
-            'appetite'        => 'normal',
-            'energy_level'    => 'normal',
-            'coat_condition'  => 'good',
-            'eyes_clear'      => true,
+            'weight_kg' => 5.0,
+            'temperature_c' => 38.0,
+            'appetite' => 'normal',
+            'energy_level' => 'normal',
+            'coat_condition' => 'good',
+            'eyes_clear' => true,
             'breathing_normal' => true,
             'mobility_normal' => true,
         ];
@@ -210,13 +210,13 @@ final class HealthCheckServiceTest extends TestCase
     public function detectAlertsWithNormalDataReturnsEmptyAlerts(): void
     {
         $data = [
-            'temperature_c'   => 38.0,
-            'appetite'        => 'normal',
-            'energy_level'    => 'normal',
-            'eyes_clear'      => true,
+            'temperature_c' => 38.0,
+            'appetite' => 'normal',
+            'energy_level' => 'normal',
+            'eyes_clear' => true,
             'breathing_normal' => true,
             'mobility_normal' => true,
-            'coat_condition'  => 'good',
+            'coat_condition' => 'good',
         ];
 
         $alerts = $this->service->detectAlerts($data);
@@ -248,7 +248,7 @@ final class HealthCheckServiceTest extends TestCase
         // 39.5 es el umbral. Solo > 39.5 activa la alerta.
         $alerts = $this->service->detectAlerts(['temperature_c' => 39.5]);
 
-        $feverAlerts = \array_filter($alerts, fn(string $a) => \str_contains($a, 'Fiebre'));
+        $feverAlerts = \array_filter($alerts, fn (string $a) => \str_contains($a, 'Fiebre'));
         $this->assertEmpty($feverAlerts);
     }
 
@@ -282,7 +282,7 @@ final class HealthCheckServiceTest extends TestCase
     public function detectAlertsWithLowEnergyAndMobilityIssueReturnsLethargyAlert(): void
     {
         $alerts = $this->service->detectAlerts([
-            'energy_level'    => 'low',
+            'energy_level' => 'low',
             'mobility_normal' => false,
         ]);
 
@@ -421,7 +421,7 @@ final class HealthCheckServiceTest extends TestCase
     public function getTodayDashboardDecodesAlertsJsonInCompletedChecks(): void
     {
         $checkWithJsonAlerts = [
-            'id'     => 1,
+            'id' => 1,
             'alerts' => '["Fiebre detectada"]',
         ];
         $this->repo->method('getTodayChecks')->willReturn([$checkWithJsonAlerts]);
@@ -442,8 +442,8 @@ final class HealthCheckServiceTest extends TestCase
     public function getAnimalHistoryDecodesJsonAlerts(): void
     {
         $rawCheck = [
-            'id'      => 7,
-            'alerts'  => '["Apetito reducido - monitorear de cerca"]',
+            'id' => 7,
+            'alerts' => '["Apetito reducido - monitorear de cerca"]',
         ];
         $this->repo
             ->method('getCheckHistory')
@@ -475,7 +475,7 @@ final class HealthCheckServiceTest extends TestCase
     public function getActiveAlertsDecodesJsonAlerts(): void
     {
         $rawCheck = [
-            'id'     => 3,
+            'id' => 3,
             'alerts' => '["Letargo severo - evaluación veterinaria urgente"]',
         ];
         $this->repo
@@ -516,7 +516,7 @@ final class HealthCheckServiceTest extends TestCase
     public function getCheckByIdDecodesJsonAlerts(): void
     {
         $this->repo->method('findById')->willReturn([
-            'id'     => 1,
+            'id' => 1,
             'alerts' => '["Fiebre detectada: 40.0°C"]',
         ]);
 

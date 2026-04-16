@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -57,8 +56,8 @@ final class ManagerControllerTest extends TestCase
 
     public function testStatsReturns403WhenNoCafeAssigned(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         unset($_SESSION['user_cafe_id']);
@@ -67,7 +66,7 @@ final class ManagerControllerTest extends TestCase
 
         $this->assertSame(403, $response->getStatusCode());
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertSame(403, $data['status']);
         $this->assertArrayHasKey('detail', $data);
@@ -75,8 +74,8 @@ final class ManagerControllerTest extends TestCase
 
     public function testAllEndpointsRequireCafeId(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         unset($_SESSION['user_cafe_id']);

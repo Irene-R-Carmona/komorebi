@@ -24,13 +24,13 @@ final class RoleControllerTest extends ControllerTestCase
 {
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(RoleController::class, 'index'));
-        $this->assertTrue(method_exists(RoleController::class, 'createRole'));
-        $this->assertTrue(method_exists(RoleController::class, 'updateRole'));
-        $this->assertTrue(method_exists(RoleController::class, 'deleteRole'));
-        $this->assertTrue(method_exists(RoleController::class, 'grantPermission'));
-        $this->assertTrue(method_exists(RoleController::class, 'revokePermission'));
-        $this->assertTrue(method_exists(RoleController::class, 'getPermissions'));
+        $this->assertTrue(\method_exists(RoleController::class, 'index'));
+        $this->assertTrue(\method_exists(RoleController::class, 'createRole'));
+        $this->assertTrue(\method_exists(RoleController::class, 'updateRole'));
+        $this->assertTrue(\method_exists(RoleController::class, 'deleteRole'));
+        $this->assertTrue(\method_exists(RoleController::class, 'grantPermission'));
+        $this->assertTrue(\method_exists(RoleController::class, 'revokePermission'));
+        $this->assertTrue(\method_exists(RoleController::class, 'getPermissions'));
     }
 
     public function test_instance_can_be_created_with_response_factory(): void
@@ -46,4 +46,3 @@ final class RoleControllerTest extends ControllerTestCase
         $this->assertInstanceOf(RoleController::class, $controller);
     }
 }
-

@@ -1,6 +1,6 @@
 <section class="seccion seccion--activa">
     <?php
-    $cafesSimple = array_map(fn($c) => [
+    $cafesSimple = array_map(fn ($c) => [
         'tipo' => $c['animal_type'],
         'nombre' => $c['name'],
         'ubicacion' => $c['location'],
@@ -95,7 +95,7 @@
                     'nombre' => $cafe['name'],
                     'ubicacion' => $cafe['location'],
                 ], JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT);
-            ?>
+                ?>
                 <!-- Card -->
                 <article class="card"
                     x-show="filtrar(<?= $cafeJs ?>)"

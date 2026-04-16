@@ -19,7 +19,7 @@ use App\Workers\EmailWorker;
 try {
     Config::init();
 } catch (Throwable $e) {
-    fwrite(STDERR, "[EmailWorker] [FATAL] Error de configuración: " . $e->getMessage() . "\n");
+    fwrite(STDERR, '[EmailWorker] [FATAL] Error de configuración: ' . $e->getMessage() . "\n");
     exit(1);
 }
 
@@ -28,6 +28,6 @@ try {
     $worker = new EmailWorker();
     $worker->run();
 } catch (Throwable $e) {
-    fwrite(STDERR, "[EmailWorker] [FATAL] " . $e->getMessage() . "\n");
+    fwrite(STDERR, '[EmailWorker] [FATAL] ' . $e->getMessage() . "\n");
     exit(1);
 }

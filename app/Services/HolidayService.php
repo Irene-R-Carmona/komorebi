@@ -131,7 +131,7 @@ final class HolidayService implements HolidayServiceInterface
             }
 
             // Ordenar por fecha
-            \usort($allHolidays, static fn($a, $b) => \strcmp($a['date'], $b['date']));
+            \usort($allHolidays, static fn ($a, $b) => \strcmp($a['date'], $b['date']));
 
             return Result::ok(['holidays' => $allHolidays]);
         } catch (Throwable $e) {
@@ -215,10 +215,10 @@ final class HolidayService implements HolidayServiceInterface
             }
 
             // Filtrar solo festivos futuros
-            $upcomingHolidays = \array_filter($allHolidays, static fn($h) => $h['date'] >= $today);
+            $upcomingHolidays = \array_filter($allHolidays, static fn ($h) => $h['date'] >= $today);
 
             // Ordenar por fecha
-            \usort($upcomingHolidays, static fn($a, $b) => \strcmp($a['date'], $b['date']));
+            \usort($upcomingHolidays, static fn ($a, $b) => \strcmp($a['date'], $b['date']));
 
             // Limitar resultados
             $upcomingHolidays = \array_slice($upcomingHolidays, 0, $limit);

@@ -14,7 +14,6 @@ use App\Models\TimeSlot;
 use App\Models\Waitlist;
 use App\Services\Contracts\ReservationTimeSlotServiceInterface;
 use PDO;
-use PDOException;
 
 /**
  * Servicio de integración entre Reservations y TimeSlots
@@ -85,7 +84,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
             }
 
             $slots = [];
-            if (is_array($slotResult->data ?? null) && isset($slotResult->data['slots']) && is_array($slotResult->data['slots'])) {
+            if (\is_array($slotResult->data ?? null) && isset($slotResult->data['slots']) && \is_array($slotResult->data['slots'])) {
                 $slots = $slotResult->data['slots'];
             }
             if (empty($slots)) {
@@ -198,7 +197,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
     private function promoteNextInWaitlist(int $timeSlotId): int
     {
         $nextResult = $this->waitlist->getNextInQueue($timeSlotId);
-        if (!$nextResult->isOk() || !is_array($nextResult->data ?? null) || !isset($nextResult->data['id'])) {
+        if (!$nextResult->isOk() || !\is_array($nextResult->data ?? null) || !isset($nextResult->data['id'])) {
             return 0;
         }
 
@@ -210,6 +209,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
                 'waitlist_entry_id' => (int) $waitlistEntry['id'],
                 '_correlation_id' => WideEvent::get('request_id') ?? '',
             ]);
+
             return 1;
         }
 

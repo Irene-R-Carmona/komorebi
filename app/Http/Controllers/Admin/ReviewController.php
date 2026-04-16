@@ -7,13 +7,12 @@ namespace App\Http\Controllers\Admin;
 use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
-use App\Core\View;
 use App\Core\Http\ResponseFactory;
+use App\Core\View;
 use App\Http\Transformers\ReviewTransformer;
 use App\Services\Contracts\ReviewModerationServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -51,6 +50,7 @@ final class ReviewController
             'titulo' => 'Gestión de Reseñas',
             'pending' => $reviews,
         ], [], 'backoffice');
+
         return null;
     }
 
@@ -64,6 +64,7 @@ final class ReviewController
     {
         if (!Csrf::validate()) {
             Flash::error(self::CSRF_INVALID);
+
             return $this->response->redirect(self::ADMIN_REVIEWS_URL);
         }
 
@@ -90,6 +91,7 @@ final class ReviewController
     {
         if (!Csrf::validate()) {
             Flash::error(self::CSRF_INVALID);
+
             return $this->response->redirect(self::ADMIN_REVIEWS_URL);
         }
 
@@ -117,6 +119,7 @@ final class ReviewController
     {
         if (!Csrf::validate()) {
             Flash::error(self::CSRF_INVALID);
+
             return $this->response->redirect(self::ADMIN_REVIEWS_URL);
         }
 

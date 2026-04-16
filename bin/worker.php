@@ -28,7 +28,7 @@ use App\Jobs\JobInterface;
 try {
     Config::init();
 } catch (Throwable $e) {
-    fwrite(STDERR, "[Worker] [FATAL] Error de configuración: " . $e->getMessage() . "\n");
+    fwrite(STDERR, '[Worker] [FATAL] Error de configuración: ' . $e->getMessage() . "\n");
     exit(1);
 }
 
@@ -42,7 +42,7 @@ try {
         'queue' => $queueName,
         'pending' => $testSize,
         'pid' => getmypid(),
-        'env' => Config::getString('app.env', 'production')
+        'env' => Config::getString('app.env', 'production'),
     ]);
 } catch (Throwable $e) {
     Logger::critical('[Worker] Sin conexión a Redis', ['error' => $e->getMessage()]);
@@ -65,7 +65,7 @@ $signalHandler = static function (int $signo) use (&$shouldStop, $queueName): vo
 
     Logger::warning('[Worker] Señal recibida, shutdown graceful', [
         'signal' => $signalName,
-        'queue' => $queueName
+        'queue' => $queueName,
     ]);
 
     fwrite(STDOUT, "\n[Worker] $signalName recibido. Finalizando...\n");
@@ -144,14 +144,14 @@ while (!$shouldStop) {
             WideEvent::set('duration_ms', $duration);
             WideEvent::set('outcome', 'error');
             WideEvent::setSection('error', [
-                'type'    => \get_class($e),
+                'type' => get_class($e),
                 'message' => $e->getMessage(),
             ]);
             Logger::channel('queue')->info('job.canonical', WideEvent::all());
 
             Logger::error('[Worker] Job falló', [
                 'job' => $jobClass,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             // Reintentar si aplica
@@ -171,7 +171,7 @@ while (!$shouldStop) {
 
 Logger::info('[Worker] Detenido', [
     'processed' => $processed,
-    'errors' => $errors
+    'errors' => $errors,
 ]);
 
 fwrite(STDOUT, "[Worker] Finalizado. Procesados: $processed, Errores: $errors\n");

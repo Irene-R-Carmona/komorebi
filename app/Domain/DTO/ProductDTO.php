@@ -17,7 +17,8 @@ final readonly class ProductDTO implements DomainTransferObject
         public array $allergens,
         public bool $is_available,
         public ?string $image_url,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public static function fromArray(array $data): static
@@ -30,7 +31,7 @@ final readonly class ProductDTO implements DomainTransferObject
             price: (float) ($data['price'] ?? 0.0),
             category_id: (int) ($data['category_id'] ?? 0),
             category_name: (string) ($data['category_name'] ?? ''),
-            allergens: is_array($data['allergens'] ?? null) ? $data['allergens'] : [],
+            allergens: \is_array($data['allergens'] ?? null) ? $data['allergens'] : [],
             is_available: (bool) ($data['is_available'] ?? true),
             image_url: isset($data['image_url']) ? (string) $data['image_url'] : null,
         );
@@ -40,16 +41,16 @@ final readonly class ProductDTO implements DomainTransferObject
     public function toViewArray(): array
     {
         return [
-            'id'            => $this->id,
-            'name'          => $this->name,
-            'slug'          => $this->slug,
-            'description'   => $this->description,
-            'price'         => $this->price,
-            'category_id'   => $this->category_id,
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'price' => $this->price,
+            'category_id' => $this->category_id,
             'category_name' => $this->category_name,
-            'allergens'     => $this->allergens,
-            'is_available'  => $this->is_available,
-            'image_url'     => $this->image_url,
+            'allergens' => $this->allergens,
+            'is_available' => $this->is_available,
+            'image_url' => $this->image_url,
         ];
     }
 }

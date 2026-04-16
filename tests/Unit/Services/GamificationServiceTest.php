@@ -123,8 +123,8 @@ final class GamificationServiceTest extends TestCase
     {
         $this->assertSame('Aprendiz', $this->service->getLevelName(1));
         $this->assertSame('Habitual', $this->service->getLevelName(2));
-        $this->assertSame('Senpai',   $this->service->getLevelName(3));
-        $this->assertSame('Maestro',  $this->service->getLevelName(4));
+        $this->assertSame('Senpai', $this->service->getLevelName(3));
+        $this->assertSame('Maestro', $this->service->getLevelName(4));
     }
 
     #[TestDox("getLevelName retorna 'Desconocido' para un nivel que no existe")]

@@ -15,13 +15,12 @@ use App\Http\ExceptionRenderers\NotFoundExceptionRenderer;
 use App\Http\ExceptionRenderers\RateLimitExceptionRenderer;
 use App\Http\ExceptionRenderers\ValidationExceptionRenderer;
 use App\Http\Middleware\ApiAuthMiddleware;
-use App\Http\Middleware\CorsMiddleware;
-use App\Services\Contracts\ApiTokenServiceInterface;
 use App\Http\Middleware\ApiMiddleware;
 use App\Http\Middleware\ApiRoleMiddleware;
 use App\Http\Middleware\AuthMiddleware;
 use App\Http\Middleware\AuthorizationMiddleware;
 use App\Http\Middleware\CafeScopeMiddleware;
+use App\Http\Middleware\CorsMiddleware;
 use App\Http\Middleware\CsrfMiddleware;
 use App\Http\Middleware\ErrorHandlerMiddleware;
 use App\Http\Middleware\GuestMiddleware;
@@ -30,6 +29,7 @@ use App\Http\Middleware\PayloadSizeMiddleware;
 use App\Http\Middleware\RequestLogMiddleware;
 use App\Http\Middleware\RoleMiddleware;
 use App\Middleware\SecurityHeadersMiddleware;
+use App\Services\Contracts\ApiTokenServiceInterface;
 use App\Services\Contracts\RateLimitingServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -148,11 +148,11 @@ final class MiddlewareFactory
      */
     public function cors(): CorsMiddleware
     {
-        $raw         = (string) ($_ENV['CORS_ALLOWED_ORIGINS'] ?? '');
-        $origins     = array_values(array_filter(array_map('trim', explode(',', $raw))));
-        $allowed     = $origins !== [] ? $origins : ['http://localhost:8080'];
-        $credentials = filter_var($_ENV['CORS_CREDENTIALS'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
-        $maxAge      = (int) ($_ENV['CORS_MAX_AGE'] ?? 7200);
+        $raw = (string) ($_ENV['CORS_ALLOWED_ORIGINS'] ?? '');
+        $origins = \array_values(\array_filter(\array_map('trim', \explode(',', $raw))));
+        $allowed = $origins !== [] ? $origins : ['http://localhost:8080'];
+        $credentials = \filter_var($_ENV['CORS_CREDENTIALS'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+        $maxAge = (int) ($_ENV['CORS_MAX_AGE'] ?? 7200);
 
         return new CorsMiddleware($this->response, $allowed, $credentials, $maxAge);
     }
@@ -170,20 +170,22 @@ final class MiddlewareFactory
     public function rateLimit(string $action, int $max = 5, int $window = 60): MiddlewareInterface
     {
         $response = $this->response;
-        return new class($response, $action) implements MiddlewareInterface {
+
+        return new class ($response, $action) implements MiddlewareInterface {
             public function __construct(
                 private readonly ResponseFactory $response,
                 private readonly string $action,
-            ) {}
+            ) {
+            }
 
             #[\Override]
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
             {
-                return (new HttpRateLimitMiddleware(
+                return new HttpRateLimitMiddleware(
                     $this->response,
                     Container::make(RateLimitingServiceInterface::class),
                     $this->action,
-                ))->process($request, $handler);
+                )->process($request, $handler);
             }
         };
     }

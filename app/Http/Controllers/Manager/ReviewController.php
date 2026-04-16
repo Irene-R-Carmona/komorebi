@@ -41,25 +41,27 @@ final class ReviewController
      */
     public function index(): ?ResponseInterface
     {
-        $user   = Session::user();
+        $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
 
         if (!$cafeId) {
             View::render('errors/403', [
                 'message' => 'No tienes un café asignado. Contacta con el administrador.',
             ]);
+
             return null;
         }
 
         $reviews = $this->queryService->getReviewsByCafeId($cafeId);
-        $stats   = $this->queryService->getCafeRatingStats($cafeId);
+        $stats = $this->queryService->getCafeRatingStats($cafeId);
 
         View::render('manager/reviews/index', [
-            'titulo'     => 'Gestión de Reseñas',
-            'reviews'    => $reviews,
-            'stats'      => $stats,
+            'titulo' => 'Gestión de Reseñas',
+            'reviews' => $reviews,
+            'stats' => $stats,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+
         return null;
     }
 
@@ -71,10 +73,11 @@ final class ReviewController
     {
         if (!Csrf::validate()) {
             Flash::error('Token de seguridad inválido');
+
             return $this->response->redirect('/manager/reviews');
         }
 
-        $id     = (int) ($_POST['id'] ?? 0);
+        $id = (int) ($_POST['id'] ?? 0);
         $result = $this->moderationService->approveReview($id);
 
         if ($result->isOk()) {
@@ -94,10 +97,11 @@ final class ReviewController
     {
         if (!Csrf::validate()) {
             Flash::error('Token de seguridad inválido');
+
             return $this->response->redirect('/manager/reviews');
         }
 
-        $id     = (int) ($_POST['id'] ?? 0);
+        $id = (int) ($_POST['id'] ?? 0);
         $reason = $_POST['reason'] ?? 'Contenido inapropiado';
         $result = $this->moderationService->rejectReview($id, $reason);
 

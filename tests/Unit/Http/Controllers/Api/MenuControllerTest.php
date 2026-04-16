@@ -43,7 +43,7 @@ final class MenuControllerTest extends ControllerTestCase
         $response = $this->makeController()->allergens($this->makeGetRequest('/api/menu/alergenos'));
 
         $this->assertSame(200, $response->getStatusCode());
-        $body = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
         $this->assertTrue($body['ok']);
         $this->assertArrayHasKey('items', $body['data']);
     }
@@ -57,8 +57,8 @@ final class MenuControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(MenuController::class, 'allergens'));
-        $this->assertTrue(method_exists(MenuController::class, 'products'));
-        $this->assertTrue(method_exists(MenuController::class, 'viewProduct'));
+        $this->assertTrue(\method_exists(MenuController::class, 'allergens'));
+        $this->assertTrue(\method_exists(MenuController::class, 'products'));
+        $this->assertTrue(\method_exists(MenuController::class, 'viewProduct'));
     }
 }

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Workers;
 
 use App\Workers\EmailWorker;
@@ -39,7 +39,7 @@ final class EmailWorkerTest extends TestCase
 
     public function testWorkerHasRunMethod(): void
     {
-        $this->assertTrue(method_exists($this->worker, 'run'));
+        $this->assertTrue(\method_exists($this->worker, 'run'));
     }
 
     /**

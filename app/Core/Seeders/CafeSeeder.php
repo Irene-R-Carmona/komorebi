@@ -423,7 +423,7 @@ final class CafeSeeder
                 // Generamos tantos trackers como capacidad tenga el local + 5 de repuesto
                 for ($i = 1; $i <= ($cafe['cap'] + 5); $i++) {
                     // Código: Iniciales + Número (Ej: NEK-01)
-                    $code = strtoupper(substr($cafe['slug'], 0, 3)) . '-' . str_pad((string) $i, 2, '0', STR_PAD_LEFT);
+                    $code = \strtoupper(\substr($cafe['slug'], 0, 3)) . '-' . \str_pad((string) $i, 2, '0', STR_PAD_LEFT);
                     $stmtTracker->execute([':cid' => $cafe['id'], ':code' => $code, ':type' => 'token']);
                 }
 

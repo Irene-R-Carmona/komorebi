@@ -208,6 +208,7 @@ final class ReportController
                 'message' => $isDebug ? $e->getMessage() : 'Error al generar el reporte',
                 'show_details' => $isDebug,
             ]);
+
             return $response;
         } catch (\Error $e) {
             ExceptionLogger::log($e, 'Admin\\ReportController::exportReportes');
@@ -217,6 +218,7 @@ final class ReportController
                 'message' => $isDebug ? $e->getMessage() : 'Error al generar el reporte',
                 'show_details' => $isDebug,
             ]);
+
             return $response;
         }
     }

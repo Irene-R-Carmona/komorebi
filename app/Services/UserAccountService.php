@@ -22,7 +22,8 @@ final class UserAccountService implements UserAccountServiceInterface
     public function __construct(
         private readonly UserRepositoryInterface $userRepo,
         private readonly User $userModel,
-    ) {}
+    ) {
+    }
 
     /**
      * Cambia la contraseña del usuario.
@@ -61,6 +62,7 @@ final class UserAccountService implements UserAccountServiceInterface
             return Result::ok('Contraseña actualizada correctamente');
         } catch (RuntimeException $e) {
             Logger::error('[UserAccountService] Error al cambiar contraseña', ['exception' => $e->getMessage()]);
+
             return Result::fail('No se pudo cambiar la contraseña.');
         }
     }
@@ -91,6 +93,7 @@ final class UserAccountService implements UserAccountServiceInterface
             return Result::ok('Cuenta eliminada correctamente');
         } catch (RuntimeException $e) {
             Logger::error('[UserAccountService] Error al eliminar cuenta', ['exception' => $e->getMessage()]);
+
             return Result::fail('No se pudo eliminar la cuenta.');
         }
     }
@@ -103,9 +106,11 @@ final class UserAccountService implements UserAccountServiceInterface
     {
         try {
             $this->userModel->verifyEmail($userId);
+
             return Result::ok('Email verificado');
         } catch (RuntimeException $e) {
             Logger::error('[UserAccountService] Error al verificar email', ['exception' => $e->getMessage()]);
+
             return Result::fail($e->getMessage());
         }
     }
@@ -118,11 +123,13 @@ final class UserAccountService implements UserAccountServiceInterface
     {
         try {
             $ok = $this->userModel->setActive($userId, false);
+
             return $ok
                 ? Result::ok('Cuenta desactivada')
                 : Result::fail('No se pudo desactivar la cuenta');
         } catch (RuntimeException $e) {
             Logger::error('[UserAccountService] Error al desactivar cuenta', ['exception' => $e->getMessage()]);
+
             return Result::fail($e->getMessage());
         }
     }
@@ -135,11 +142,13 @@ final class UserAccountService implements UserAccountServiceInterface
     {
         try {
             $ok = $this->userModel->setActive($userId, true);
+
             return $ok
                 ? Result::ok('Cuenta reactivada')
                 : Result::fail('No se pudo reactivar la cuenta');
         } catch (RuntimeException $e) {
             Logger::error('[UserAccountService] Error al reactivar cuenta', ['exception' => $e->getMessage()]);
+
             return Result::fail($e->getMessage());
         }
     }

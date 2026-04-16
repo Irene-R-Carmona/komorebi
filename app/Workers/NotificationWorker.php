@@ -43,14 +43,14 @@ final class NotificationWorker
     {
         Logger::info('[NotificationWorker] Iniciado', [
             'queue' => self::QUEUE_NAME,
-            'pid' => getmypid(),
+            'pid' => \getmypid(),
             'env' => Config::getString('app.env', 'production'),
         ]);
 
         $this->echoToConsole('[NotificationWorker] Escuchando cola de notificaciones...');
 
-        $this->startTime     = microtime(true);
-        $this->lastHeartbeat = microtime(true);
+        $this->startTime = \microtime(true);
+        $this->lastHeartbeat = \microtime(true);
 
         while (!$this->shouldStop) {
             try {
@@ -73,7 +73,7 @@ final class NotificationWorker
                 Logger::critical('[NotificationWorker] Error en loop', [
                     'error' => $e->getMessage(),
                 ]);
-                sleep(5);
+                \sleep(5);
             }
         }
 
@@ -86,7 +86,7 @@ final class NotificationWorker
      */
     private function emitHeartbeatIfDue(): void
     {
-        $now = microtime(true);
+        $now = \microtime(true);
         if (($now - $this->lastHeartbeat) < self::HEARTBEAT_INTERVAL) {
             return;
         }
@@ -94,12 +94,12 @@ final class NotificationWorker
         $this->lastHeartbeat = $now;
 
         Logger::info('[NotificationWorker] Heartbeat', [
-            'queue'      => self::QUEUE_NAME,
-            'pending'    => Queue::size(self::QUEUE_NAME),
-            'processed'  => $this->processed,
-            'errors'     => $this->errors,
-            'uptime_s'   => (int) ($now - $this->startTime),
-            'pid'        => getmypid(),
+            'queue' => self::QUEUE_NAME,
+            'pending' => Queue::size(self::QUEUE_NAME),
+            'processed' => $this->processed,
+            'errors' => $this->errors,
+            'uptime_s' => (int) ($now - $this->startTime),
+            'pid' => \getmypid(),
         ]);
     }
 
@@ -110,7 +110,7 @@ final class NotificationWorker
     {
         $jobClass = $jobData['job'] ?? null;
 
-        if (!$jobClass || !class_exists($jobClass)) {
+        if (!$jobClass || !\class_exists($jobClass)) {
             Logger::error('[NotificationWorker] Job inválido', ['data' => $jobData]);
 
             return;
@@ -126,18 +126,18 @@ final class NotificationWorker
             return;
         }
 
-        $start = microtime(true);
+        $start = \microtime(true);
         $this->echoToConsole("[NotificationWorker] Procesando: $jobClass");
 
         WideEvent::reset();
         WideEvent::set('job_class', $jobClass);
         WideEvent::set('queue', self::QUEUE_NAME);
-        WideEvent::set('pid', getmypid());
+        WideEvent::set('pid', \getmypid());
         WideEvent::set('request_id', ($jobData['payload'] ?? [])['_correlation_id'] ?? '');
 
         try {
             $job->handle($jobData['payload'] ?? []);
-            $duration = round((microtime(true) - $start) * 1000, 2);
+            $duration = \round((\microtime(true) - $start) * 1000, 2);
             $this->processed++;
 
             WideEvent::set('duration_ms', $duration);
@@ -145,12 +145,12 @@ final class NotificationWorker
             Logger::channel('queue')->info('job.canonical', WideEvent::all());
         } catch (Throwable $e) {
             $this->errors++;
-            $duration = round((microtime(true) - $start) * 1000, 2);
+            $duration = \round((\microtime(true) - $start) * 1000, 2);
 
             WideEvent::set('duration_ms', $duration);
             WideEvent::set('outcome', 'error');
             WideEvent::setSection('error', [
-                'type'    => \get_class($e),
+                'type' => \get_class($e),
                 'message' => $e->getMessage(),
             ]);
             Logger::channel('queue')->info('job.canonical', WideEvent::all());
@@ -199,7 +199,7 @@ final class NotificationWorker
      */
     private function setupSignalHandling(): void
     {
-        if (!function_exists('pcntl_signal')) {
+        if (!\function_exists('pcntl_signal')) {
             return;
         }
 
@@ -218,9 +218,9 @@ final class NotificationWorker
             $this->shouldStop = true;
         };
 
-        pcntl_signal(SIGTERM, $handler);
-        pcntl_signal(SIGINT, $handler);
-        pcntl_async_signals(true);
+        \pcntl_signal(SIGTERM, $handler);
+        \pcntl_signal(SIGINT, $handler);
+        \pcntl_async_signals(true);
     }
 
     /**
@@ -228,8 +228,8 @@ final class NotificationWorker
      */
     private function processSignals(): void
     {
-        if (function_exists('pcntl_signal_dispatch')) {
-            pcntl_signal_dispatch();
+        if (\function_exists('pcntl_signal_dispatch')) {
+            \pcntl_signal_dispatch();
         }
     }
 
@@ -253,6 +253,6 @@ final class NotificationWorker
      */
     private function echoToConsole(string $message): void
     {
-        fwrite(STDOUT, $message . "\n");
+        \fwrite(STDOUT, $message . "\n");
     }
 }

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\BaseService;
-use App\Services\Contracts\EmailServiceInterface;
 use App\Core\Logger;
 use App\Core\Queue;
 use App\Core\WideEvent;
 use App\Jobs\SendEmailJob;
+use App\Services\Contracts\EmailServiceInterface;
 
 /**
  * Servicio de Email ASÍNCRONO
@@ -19,7 +19,6 @@ use App\Jobs\SendEmailJob;
  */
 final class EmailService extends BaseService implements EmailServiceInterface
 {
-
     /**
      * Enviar email de verificación
      *
@@ -94,14 +93,14 @@ final class EmailService extends BaseService implements EmailServiceInterface
         ?string $pdfPath = null
     ): bool {
         // Backwards-compatible handling: callers may pass (email, reservationData)
-        if (is_array($userNameOrReservationData)) {
+        if (\is_array($userNameOrReservationData)) {
             $reservationData = $userNameOrReservationData;
             $userName = $reservationData['user_name'] ?? 'Usuario';
         } else {
             $userName = (string) $userNameOrReservationData;
-            $reservationData = $reservationData ?? [];
+            $reservationData ??= [];
         }
-        $pdfPath = $pdfPath ?? ($reservationData['pdf_path'] ?? null);
+        $pdfPath ??= ($reservationData['pdf_path'] ?? null);
 
         $jobData = [
             'to' => $userEmail,
@@ -111,7 +110,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
         ];
 
         // Añadir PDF si existe
-        if ($pdfPath && file_exists($pdfPath)) {
+        if ($pdfPath && \file_exists($pdfPath)) {
             $jobData['attachment_path'] = $pdfPath;
             $jobData['attachment_name'] = 'factura_reserva.pdf';
         }

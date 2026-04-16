@@ -24,9 +24,9 @@ final class LoyaltyRewardCatalog
     public function getActiveRewards(): array
     {
         $stmt = $this->db->query(
-            "SELECT * FROM loyalty_reward_catalog
+            'SELECT * FROM loyalty_reward_catalog
              WHERE is_active = TRUE
-             ORDER BY display_order ASC, stamps_required ASC"
+             ORDER BY display_order ASC, stamps_required ASC'
         );
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -38,9 +38,9 @@ final class LoyaltyRewardCatalog
     public function findByType(string $type): ?array
     {
         $stmt = $this->db->prepare(
-            "SELECT * FROM loyalty_reward_catalog
+            'SELECT * FROM loyalty_reward_catalog
              WHERE reward_type = ? AND is_active = TRUE
-             LIMIT 1"
+             LIMIT 1'
         );
         $stmt->execute([$type]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -57,16 +57,17 @@ final class LoyaltyRewardCatalog
         $userTierLevel = $tierOrder[$tier] ?? 1;
 
         $stmt = $this->db->query(
-            "SELECT * FROM loyalty_reward_catalog
+            'SELECT * FROM loyalty_reward_catalog
              WHERE is_active = TRUE
-             ORDER BY display_order ASC"
+             ORDER BY display_order ASC'
         );
 
         $allRewards = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Filtrar recompensas según tier del usuario
-        return array_filter($allRewards, function ($reward) use ($tierOrder, $userTierLevel) {
+        return \array_filter($allRewards, function ($reward) use ($tierOrder, $userTierLevel) {
             $requiredTierLevel = $tierOrder[$reward['tier_required']] ?? 1;
+
             return $userTierLevel >= $requiredTierLevel;
         });
     }

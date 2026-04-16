@@ -28,17 +28,17 @@ final class SupervisorControllerTest extends ControllerTestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(SupervisorController::class, 'index'));
-        $this->assertTrue(method_exists(SupervisorController::class, 'assignments'));
-        $this->assertTrue(method_exists(SupervisorController::class, 'createAssignment'));
+        $this->assertTrue(\method_exists(SupervisorController::class, 'index'));
+        $this->assertTrue(\method_exists(SupervisorController::class, 'assignments'));
+        $this->assertTrue(\method_exists(SupervisorController::class, 'createAssignment'));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_instance_can_be_created_with_dependencies(): void
     {
         $assignmentService = $this->createStub(SupervisorAssignmentService::class);
-        $reservationRepo   = new ReservationRepository();
-        $kitchenService    = new KitchenService();
+        $reservationRepo = new ReservationRepository();
+        $kitchenService = new KitchenService();
 
         $controller = new SupervisorController($assignmentService, $reservationRepo, $kitchenService);
         $this->assertInstanceOf(SupervisorController::class, $controller);

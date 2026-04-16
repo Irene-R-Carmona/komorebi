@@ -13,7 +13,8 @@ final readonly class LoyaltyDTO implements DomainTransferObject
         public int $tier_level,
         public int $stamps_count,
         public ?int $next_reward_at,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public static function fromArray(array $data): static
@@ -32,11 +33,11 @@ final readonly class LoyaltyDTO implements DomainTransferObject
     public function toViewArray(): array
     {
         return [
-            'user_id'        => $this->user_id,
+            'user_id' => $this->user_id,
             'points_balance' => $this->points_balance,
-            'tier_name'      => $this->tier_name,
-            'tier_level'     => $this->tier_level,
-            'stamps_count'   => $this->stamps_count,
+            'tier_name' => $this->tier_name,
+            'tier_level' => $this->tier_level,
+            'stamps_count' => $this->stamps_count,
             'next_reward_at' => $this->next_reward_at,
         ];
     }

@@ -14,7 +14,6 @@ use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Models\MenuCategory;
 use App\Models\Product;
-use App\Repositories\ProductRepository;
 use App\Services\Contracts\ProductServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -35,7 +34,7 @@ final class ProductController
         ?ResponseFactory $response = null
     ) {
         $this->productService = $productService ?? Container::make(ProductServiceInterface::class);
-        $this->response       = $response ?? new ResponseFactory();
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**
@@ -44,32 +43,34 @@ final class ProductController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $user   = Session::user();
+        $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
 
         if (!$cafeId) {
             View::render('errors/403', ['message' => 'No tienes un café asignado.']);
+
             return null;
         }
 
-        $productModel  = new Product();
+        $productModel = new Product();
         $categoryModel = new MenuCategory();
 
         $productsData = $productModel->findAllAdmin();
-        $categories   = $categoryModel->findAll();
+        $categories = $categoryModel->findAll();
 
         $alpineConfig = Raw::json([
-            'products'   => $productsData['data'] ?? [],
+            'products' => $productsData['data'] ?? [],
             'categories' => $categories,
-            'cafeId'     => $cafeId,
-            'csrfToken'  => Csrf::token(),
+            'cafeId' => $cafeId,
+            'csrfToken' => Csrf::token(),
         ]);
 
         View::render('manager/products/index', [
-            'titulo'       => 'Gestión de Productos',
+            'titulo' => 'Gestión de Productos',
             'alpineConfig' => $alpineConfig,
-            'total'        => $productsData['total'] ?? 0,
+            'total' => $productsData['total'] ?? 0,
         ], ['admin/admin-products.css'], 'backoffice');
+
         return null;
     }
 
@@ -94,7 +95,7 @@ final class ProductController
             ]);
 
             return $this->response->json(['ok' => true, 'data' => [
-                'message'    => 'El producto se ha creado correctamente.',
+                'message' => 'El producto se ha creado correctamente.',
                 'product_id' => $productId,
             ]]);
         } catch (ValidationException $e) {

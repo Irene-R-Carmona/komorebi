@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -19,9 +18,9 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use Tests\Support\BaseIntegrationTest;
-use App\Services\EmailService;
 use App\Core\Queue;
+use App\Services\EmailService;
+use Tests\Support\BaseIntegrationTest;
 
 final class EmailIntegrationTest extends BaseIntegrationTest
 {
@@ -33,15 +32,15 @@ final class EmailIntegrationTest extends BaseIntegrationTest
         parent::setUp();
         Queue::clear();
         $this->service = new EmailService();
-        putenv('MAIL_FROM_ADDRESS=test@komorebi.test');
-        putenv('MAIL_FROM_NAME=Komorebi Integration Test');
+        \putenv('MAIL_FROM_ADDRESS=test@komorebi.test');
+        \putenv('MAIL_FROM_NAME=Komorebi Integration Test');
     }
 
     #[\Override]
     protected function tearDown(): void
     {
-        putenv('MAIL_FROM_ADDRESS');
-        putenv('MAIL_FROM_NAME');
+        \putenv('MAIL_FROM_ADDRESS');
+        \putenv('MAIL_FROM_NAME');
         Queue::clear();
         parent::tearDown();
     }

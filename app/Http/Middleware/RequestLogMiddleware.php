@@ -43,12 +43,12 @@ final class RequestLogMiddleware implements MiddlewareInterface
         WideEvent::reset();
         LogContext::reset();
 
-        $requestId = bin2hex(random_bytes(8));
+        $requestId = \bin2hex(\random_bytes(8));
         $serverParams = $request->getServerParams();
 
         // Contexto de infraestructura
         WideEvent::set('request_id', $requestId);
-        WideEvent::set('timestamp', (new \DateTimeImmutable())->format(\DateTimeInterface::RFC3339_EXTENDED));
+        WideEvent::set('timestamp', new \DateTimeImmutable()->format(\DateTimeInterface::RFC3339_EXTENDED));
         WideEvent::set('method', $request->getMethod());
         WideEvent::set('path', $request->getUri()->getPath());
         WideEvent::set('ip', self::anonymizeIp((string) ($serverParams['REMOTE_ADDR'] ?? 'N/A')));
@@ -59,7 +59,7 @@ final class RequestLogMiddleware implements MiddlewareInterface
         LogContext::set('method', $request->getMethod());
         LogContext::set('path', $request->getUri()->getPath());
 
-        $start = hrtime(true);
+        $start = \hrtime(true);
         $parsedBody = $request->getParsedBody();
 
         try {
@@ -71,10 +71,10 @@ final class RequestLogMiddleware implements MiddlewareInterface
             return $response;
         } finally {
             $status = isset($response) ? $response->getStatusCode() : 500;
-            WideEvent::set('duration_ms', (int) ((hrtime(true) - $start) / 1_000_000));
+            WideEvent::set('duration_ms', (int) ((\hrtime(true) - $start) / 1_000_000));
 
             // Incluir body sanitizado solo en errores 4xx (útil para debug sin exponer PII)
-            if ($status >= 400 && $status < 500 && is_array($parsedBody)) {
+            if ($status >= 400 && $status < 500 && \is_array($parsedBody)) {
                 WideEvent::setSection('request_body', self::sanitizeBody($parsedBody));
             }
 
@@ -87,7 +87,7 @@ final class RequestLogMiddleware implements MiddlewareInterface
             // Contexto de usuario (si está autenticado en este request)
             if (Session::isAuthenticated()) {
                 WideEvent::setSection('user', [
-                    'id'   => Session::userId(),
+                    'id' => Session::userId(),
                     'role' => Session::role(),
                 ]);
             }
@@ -122,9 +122,9 @@ final class RequestLogMiddleware implements MiddlewareInterface
 
         $sanitized = [];
         foreach ($body as $key => $value) {
-            $lowerKey = strtolower((string) $key);
-            $isSensitive = in_array($lowerKey, $sensitiveKeys, true)
-                || str_starts_with($lowerKey, 'card_');
+            $lowerKey = \strtolower((string) $key);
+            $isSensitive = \in_array($lowerKey, $sensitiveKeys, true)
+                || \str_starts_with($lowerKey, 'card_');
 
             $sanitized[$key] = $isSensitive ? '[REDACTED]' : $value;
         }

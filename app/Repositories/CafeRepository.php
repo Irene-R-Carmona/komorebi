@@ -56,7 +56,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
      */
     public function findBySlug(string $slug): ?array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
 
         $stmt = $this->getDb()->prepare(
             "SELECT $fields FROM cafes WHERE slug = :slug AND deleted_at IS NULL LIMIT 1"
@@ -73,7 +73,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
      */
     public function findActive(): array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
 
         $stmt = $this->getDb()->query(
             "SELECT {$fields}
@@ -134,7 +134,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
      */
     public function findByCategory(string $category): array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
@@ -154,7 +154,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
      */
     public function findByAnimalType(string $animalType): array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
@@ -174,7 +174,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
      */
     public function findNearby(float $latitude, float $longitude, float $radiusKm = 10): array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
 
         // Fórmula Haversine para distancia
         $stmt = $this->getDb()->prepare(
@@ -230,7 +230,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
      */
     public function findTopRated(int $limit = 5): array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
@@ -291,7 +291,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
         $occupied = (int) $stmt->fetchColumn();
         $maxCapacity = (int) $cafe['capacity_max'];
 
-        return max(0, $maxCapacity - $occupied);
+        return \max(0, $maxCapacity - $occupied);
     }
 
     /**
@@ -322,8 +322,8 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
             $params['is_active'] = (int) $filters['is_active'];
         }
 
-        $whereClause = implode(' AND ', $where);
-        $fields = implode(', ', $this->getSelectFields());
+        $whereClause = \implode(' AND ', $where);
+        $fields = \implode(', ', $this->getSelectFields());
 
         $sql = "SELECT {$fields}
                 FROM cafes
@@ -350,7 +350,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
     public function hasAvailableCapacity(int $cafeId, string $date, string $time): bool
     {
         // Obtener capacidad del café
-        $cafeStmt = $this->getDb()->prepare("SELECT capacity_max FROM cafes WHERE id = :id LIMIT 1");
+        $cafeStmt = $this->getDb()->prepare('SELECT capacity_max FROM cafes WHERE id = :id LIMIT 1');
         $cafeStmt->execute(['id' => $cafeId]);
         $cafe = $cafeStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -420,7 +420,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
         $params = ['id' => $id];
 
         foreach ($data as $field => $value) {
-            if (in_array($field, $allowedFields, true)) {
+            if (\in_array($field, $allowedFields, true)) {
                 $updates[] = "{$field} = :{$field}";
                 $params[$field] = $value;
             }
@@ -430,7 +430,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
             return true;
         }
 
-        $sql = "UPDATE cafes SET " . implode(', ', $updates) . ", updated_at = NOW() WHERE id = :id";
+        $sql = 'UPDATE cafes SET ' . \implode(', ', $updates) . ', updated_at = NOW() WHERE id = :id';
 
         $stmt = $this->getDb()->prepare($sql);
 

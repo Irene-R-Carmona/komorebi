@@ -51,14 +51,14 @@ abstract class BaseIntegrationTest extends TestCase
     {
         parent::setUpBeforeClass();
 
-        if (!getenv('RUN_INTEGRATION_TESTS')) {
+        if (!\getenv('RUN_INTEGRATION_TESTS')) {
             self::markTestSkipped(
                 'Tests de integración desactivados. ' .
                     'Define la variable de entorno RUN_INTEGRATION_TESTS=1 o usa make test.'
             );
         }
 
-        if (!extension_loaded('pdo_mysql')) {
+        if (!\extension_loaded('pdo_mysql')) {
             self::markTestSkipped('La extensión pdo_mysql no está disponible en este entorno.');
         }
 
@@ -110,6 +110,7 @@ abstract class BaseIntegrationTest extends TestCase
     {
         $stmt = static::$db->prepare($sql);
         $stmt->execute($params);
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -124,7 +125,7 @@ abstract class BaseIntegrationTest extends TestCase
         $this->assertGreaterThan(
             0,
             $count,
-            "No se encontró ninguna fila en `{$table}` que coincida con: " . json_encode($conditions)
+            "No se encontró ninguna fila en `{$table}` que coincida con: " . \json_encode($conditions)
         );
     }
 
@@ -152,20 +153,21 @@ abstract class BaseIntegrationTest extends TestCase
      */
     private function countRows(string $table, array $conditions): int
     {
-        $where  = '';
+        $where = '';
         $params = [];
 
         if ($conditions !== []) {
-            $clauses = array_map(
-                static fn(string $col): string => "`{$col}` = :{$col}",
-                array_keys($conditions)
+            $clauses = \array_map(
+                static fn (string $col): string => "`{$col}` = :{$col}",
+                \array_keys($conditions)
             );
-            $where  = ' WHERE ' . implode(' AND ', $clauses);
+            $where = ' WHERE ' . \implode(' AND ', $clauses);
             $params = $conditions;
         }
 
         $stmt = static::$db->prepare("SELECT COUNT(*) FROM `{$table}`{$where}");
         $stmt->execute($params);
+
         return (int) $stmt->fetchColumn();
     }
 }

@@ -25,18 +25,18 @@ final class ProductControllerTest extends ControllerTestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(ProductController::class, 'index'));
-        $this->assertTrue(method_exists(ProductController::class, 'create'));
-        $this->assertTrue(method_exists(ProductController::class, 'update'));
-        $this->assertTrue(method_exists(ProductController::class, 'delete'));
-        $this->assertTrue(method_exists(ProductController::class, 'toggleAvailability'));
+        $this->assertTrue(\method_exists(ProductController::class, 'index'));
+        $this->assertTrue(\method_exists(ProductController::class, 'create'));
+        $this->assertTrue(\method_exists(ProductController::class, 'update'));
+        $this->assertTrue(\method_exists(ProductController::class, 'delete'));
+        $this->assertTrue(\method_exists(ProductController::class, 'toggleAvailability'));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_instance_can_be_created_with_response_factory(): void
     {
         $productService = $this->createStub(ProductService::class);
-        $controller     = new ProductController($productService, new ResponseFactory());
+        $controller = new ProductController($productService, new ResponseFactory());
         $this->assertInstanceOf(ProductController::class, $controller);
     }
 }

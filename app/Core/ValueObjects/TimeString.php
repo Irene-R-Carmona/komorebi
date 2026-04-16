@@ -12,7 +12,7 @@ final readonly class TimeString
 
     public function __construct(string $value)
     {
-        if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $value)) {
+        if (!\preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $value)) {
             throw new ValidationException(
                 'Hora inválida',
                 ['time' => 'El formato de hora debe ser HH:MM (00:00–23:59)']

@@ -20,16 +20,16 @@ final class UserTransformer extends AbstractTransformer
     public function transform(array $data): array
     {
         return [
-            'id'         => (int) ($data['id'] ?? 0),
-            'uuid'       => (string) ($data['uuid'] ?? ''),
-            'name'       => (string) ($data['name'] ?? ''),
-            'email'      => (string) ($data['email'] ?? ''),
-            'avatar'     => isset($data['avatar']) ? (string) $data['avatar'] : null,
-            'role'       => isset($data['role']) ? (string) $data['role'] : null,
-            'roles'      => isset($data['roles']) ? (string) $data['roles'] : null,
-            'role_ids'   => isset($data['role_ids']) ? (string) $data['role_ids'] : null,
-            'cafe_id'    => isset($data['cafe_id']) ? (int) $data['cafe_id'] : null,
-            'is_active'  => (bool) ($data['is_active'] ?? false),
+            'id' => (int) ($data['id'] ?? 0),
+            'uuid' => (string) ($data['uuid'] ?? ''),
+            'name' => (string) ($data['name'] ?? ''),
+            'email' => (string) ($data['email'] ?? ''),
+            'avatar' => isset($data['avatar']) ? (string) $data['avatar'] : null,
+            'role' => isset($data['role']) ? (string) $data['role'] : null,
+            'roles' => isset($data['roles']) ? (string) $data['roles'] : null,
+            'role_ids' => isset($data['role_ids']) ? (string) $data['role_ids'] : null,
+            'cafe_id' => isset($data['cafe_id']) ? (int) $data['cafe_id'] : null,
+            'is_active' => (bool) ($data['is_active'] ?? false),
             'last_login' => isset($data['last_login']) ? (string) $data['last_login'] : null,
             'created_at' => (string) ($data['created_at'] ?? ''),
         ];

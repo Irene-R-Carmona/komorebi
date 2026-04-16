@@ -37,10 +37,10 @@ final readonly class Result
         ?string $code = null,
         array $context = [],
     ) {
-        $this->ok      = $ok;
-        $this->data    = $data;
-        $this->error   = $error;
-        $this->code    = $code;
+        $this->ok = $ok;
+        $this->data = $data;
+        $this->error = $error;
+        $this->code = $code;
         $this->context = $context;
     }
 
@@ -72,6 +72,7 @@ final readonly class Result
         array $context = [],
     ): self {
         $codeStr = $code instanceof ServiceErrorCode ? $code->value : $code;
+
         return new self(false, $data, $error, $codeStr, $context);
     }
 

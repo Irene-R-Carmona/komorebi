@@ -17,15 +17,17 @@ use App\Services\Contracts\StaffShiftServiceInterface;
  */
 final class StaffShiftService implements StaffShiftServiceInterface
 {
-    public function __construct(private readonly StaffShiftRepositoryInterface $repo) {}
+    public function __construct(private readonly StaffShiftRepositoryInterface $repo)
+    {
+    }
 
     /**
      * Obtiene los turnos de un café para la semana actual (hoy + 7 días).
      */
     public function getWeekShifts(int $cafeId): Result
     {
-        $from = date('Y-m-d');
-        $to   = date('Y-m-d', strtotime('+7 days'));
+        $from = \date('Y-m-d');
+        $to = \date('Y-m-d', \strtotime('+7 days'));
 
         $shifts = $this->repo->findByCafeAndDateRange($cafeId, $from, $to);
 
@@ -66,27 +68,27 @@ final class StaffShiftService implements StaffShiftServiceInterface
             }
 
             $shiftId = $this->repo->create([
-                'user_id'     => $userId,
-                'cafe_id'     => $cafeId,
-                'shift_date'  => $date,
+                'user_id' => $userId,
+                'cafe_id' => $cafeId,
+                'shift_date' => $date,
                 'shift_start' => $start,
-                'shift_end'   => $end,
-                'notes'       => $notes,
-                'created_by'  => $createdBy,
+                'shift_end' => $end,
+                'notes' => $notes,
+                'created_by' => $createdBy,
             ]);
 
             Logger::info('[StaffShiftService] Turno asignado', [
                 'shift_id' => $shiftId,
-                'user_id'  => $userId,
-                'cafe_id'  => $cafeId,
-                'date'     => $date,
+                'user_id' => $userId,
+                'cafe_id' => $cafeId,
+                'date' => $date,
             ]);
 
             return Result::ok(['shift_id' => $shiftId]);
         } catch (\Throwable $e) {
             Logger::error('[StaffShiftService] Error al asignar turno', [
                 'exception' => $e->getMessage(),
-                'user_id'   => $userId,
+                'user_id' => $userId,
             ]);
 
             return Result::fail('Error al asignar turno', 'shift_create_error');
@@ -105,7 +107,7 @@ final class StaffShiftService implements StaffShiftServiceInterface
         } catch (\Throwable $e) {
             Logger::error('[StaffShiftService] Error al obtener métricas', [
                 'exception' => $e->getMessage(),
-                'user_id'   => $userId,
+                'user_id' => $userId,
             ]);
 
             return Result::fail('Error al obtener métricas de performance', 'metrics_error');

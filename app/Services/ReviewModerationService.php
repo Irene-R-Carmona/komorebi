@@ -20,7 +20,8 @@ final class ReviewModerationService implements ReviewModerationServiceInterface
         private ReviewRepositoryInterface $reviewRepository,
         private CafeRepositoryInterface $cafeRepository,
         private ?EventDispatcherInterface $eventDispatcher = null,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public function approveReview(int $reviewId): Result

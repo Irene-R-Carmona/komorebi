@@ -19,7 +19,7 @@ use PDO;
  *
  * @package Komorebi\Services
  */
-class AnimalCareService extends TransactionalService implements AnimalCareServiceInterface
+final class AnimalCareService extends TransactionalService implements AnimalCareServiceInterface
 {
     private AnimalRepositoryInterface $animalRepository;
 
@@ -73,9 +73,9 @@ class AnimalCareService extends TransactionalService implements AnimalCareServic
 
             $stmt->execute([
                 'cafe_id' => $data['cafe_id'] ?? null,
-                'name'    => $data['name'],
+                'name' => $data['name'],
                 'species' => $data['species'],
-                'age'     => $data['age_years'] ?? null,
+                'age' => $data['age_years'] ?? null,
                 'personality' => $data['personality'] ?? null,
             ]);
 
@@ -104,12 +104,12 @@ class AnimalCareService extends TransactionalService implements AnimalCareServic
             ');
 
             $stmt->execute([
-                'name'        => $data['name'] ?? '',
-                'species'     => $data['species'] ?? '',
-                'age'         => $data['age_years'] ?? null,
+                'name' => $data['name'] ?? '',
+                'species' => $data['species'] ?? '',
+                'age' => $data['age_years'] ?? null,
                 'personality' => $data['personality'] ?? null,
-                'cafe_id'     => $data['cafe_id'] ?? null,
-                'id'          => $id,
+                'cafe_id' => $data['cafe_id'] ?? null,
+                'id' => $id,
             ]);
 
             if ($stmt->rowCount() === 0) {

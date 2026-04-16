@@ -14,9 +14,9 @@ use PDO;
  * Proporciona disponibilidad horaria desde la tabla `time_slots`
  * para el endpoint público de reservas.
  */
-class TimeSlotService implements TimeSlotServiceInterface
+final class TimeSlotService implements TimeSlotServiceInterface
 {
-    private ?PDO $db;
+    private PDO $db;
 
     public function __construct(?PDO $db = null)
     {
@@ -34,11 +34,7 @@ class TimeSlotService implements TimeSlotServiceInterface
     #[\Override]
     public function getAvailableSlots(string $date, ?int $cafeId = null, ?int $guests = null): array
     {
-        if ($this->db === null) {
-            return [];
-        }
-
-        $sql    = '
+        $sql = '
             SELECT
                 ts.id,
                 ts.cafe_id,
@@ -55,12 +51,12 @@ class TimeSlotService implements TimeSlotServiceInterface
         $params = [':date' => $date];
 
         if ($cafeId !== null) {
-            $sql             .= ' AND ts.cafe_id = :cafe_id';
+            $sql .= ' AND ts.cafe_id = :cafe_id';
             $params[':cafe_id'] = $cafeId;
         }
 
         if ($guests !== null) {
-            $sql              .= ' AND ts.available_spots >= :guests';
+            $sql .= ' AND ts.available_spots >= :guests';
             $params[':guests'] = $guests;
         }
 

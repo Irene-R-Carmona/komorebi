@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Core\Http\ResponseFactory;
-use App\Http\Controllers\Api\AbstractApiController;
 use App\Core\Result;
+use App\Http\Controllers\Api\AbstractApiController;
 use App\Services\NewsletterService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

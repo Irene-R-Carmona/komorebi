@@ -123,6 +123,7 @@ final class Reservation
         $stmt->execute(['id' => $id]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $row === false ? null : (array) $row;
     }
 
@@ -147,6 +148,7 @@ final class Reservation
         $stmt->execute(['id' => $id, 'user_id' => $userId]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $row === false ? null : (array) $row;
     }
 
@@ -307,7 +309,7 @@ final class Reservation
      *     guests: int,
      *     comments?: string
      * } $data
-     * @return Result{reservation_id: int, time_slot_id?: int}
+     * @return Result
      * @throws \DateMalformedStringException
      */
     public function create(array $data): Result
@@ -397,7 +399,7 @@ final class Reservation
      * Cancela una reserva.
      * Solo si está en estado cancelable.
      *
-     * @return Result{reservation_id: int}
+     * @return Result
      */
     public function cancel(int $id, ?int $userId = null): Result
     {
@@ -740,7 +742,7 @@ final class Reservation
 
         // Generar slots (cada hora desde apertura hasta cierre)
         $slots = [];
-        if (!isset($cafe['opening_time'], $cafe['closing_time']) || !is_string($cafe['opening_time']) || !is_string($cafe['closing_time'])) {
+        if (!isset($cafe['opening_time'], $cafe['closing_time']) || !\is_string($cafe['opening_time']) || !\is_string($cafe['closing_time'])) {
             return [];
         }
 

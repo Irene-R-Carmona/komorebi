@@ -54,10 +54,10 @@ final class AuditLogController
             'titulo' => 'Logs de Auditoría',
             'csrf_token' => Csrf::token(),
             'stats' => [
-                'total_logs'       => (int) ($rawStats['totals']['total_actions'] ?? 0),
-                'last_24h'         => (int) ($rawStats['totals']['last_24h'] ?? 0),
+                'total_logs' => (int) ($rawStats['totals']['total_actions'] ?? 0),
+                'last_24h' => (int) ($rawStats['totals']['last_24h'] ?? 0),
                 'critical_actions' => (int) ($rawStats['totals']['critical_actions'] ?? 0),
-                'active_users'     => (int) ($rawStats['totals']['unique_users'] ?? 0),
+                'active_users' => (int) ($rawStats['totals']['unique_users'] ?? 0),
             ],
             'extraJs' => ['admin/admin-logs.js'],
         ], ['admin/admin-logs.css'], 'backoffice');
@@ -82,7 +82,7 @@ final class AuditLogController
         ];
 
         // Remover valores nulos
-        $filters = \array_filter($filters, static fn($v) => $v !== null);
+        $filters = \array_filter($filters, static fn ($v) => $v !== null);
 
         $page = \max(1, (int) ($_GET['page'] ?? 1));
         $limit = \max(10, \min(100, (int) ($_GET['limit'] ?? 50)));
@@ -109,7 +109,7 @@ final class AuditLogController
             'date_to' => $_GET['date_to'] ?? null,
         ];
 
-        $filters = \array_filter($filters, static fn($v) => $v !== null && $v !== '');
+        $filters = \array_filter($filters, static fn ($v) => $v !== null && $v !== '');
 
         $auditLogModel = new AuditLog();
         $stats = $auditLogModel->getStats($filters);
@@ -134,7 +134,7 @@ final class AuditLogController
                 'ip_address' => $queryParams['ip_address'] ?? null,
             ];
 
-            $filters = \array_filter($filters, static fn($v) => $v !== null && $v !== '');
+            $filters = \array_filter($filters, static fn ($v) => $v !== null && $v !== '');
 
             $auditLogModel = new AuditLog();
             $result = $auditLogModel->findAll($filters, 10000, 0);
@@ -179,6 +179,7 @@ final class AuditLogController
                 'message' => $isDebug ? $e->getMessage() : 'Error al generar el archivo de exportación',
                 'show_details' => $isDebug,
             ]);
+
             return $response;
         } catch (\Error $e) {
             ExceptionLogger::log($e, 'Admin\\AuditLogController::export');
@@ -188,6 +189,7 @@ final class AuditLogController
                 'message' => $isDebug ? $e->getMessage() : 'Error al generar el archivo de exportación',
                 'show_details' => $isDebug,
             ]);
+
             return $response;
         }
     }

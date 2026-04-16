@@ -13,7 +13,7 @@ use PDOStatement;
  * Override de execute() añade medición con hrtime() y emite un log WARNING
  * si la duración supera el umbral configurado.
  */
-class LoggingPDOStatement extends PDOStatement
+final class LoggingPDOStatement extends PDOStatement
 {
     /**
      * El constructor es protected porque PDO lo invoca internamente
@@ -21,7 +21,9 @@ class LoggingPDOStatement extends PDOStatement
      *
      * @param int $slowMs Umbral en milisegundos para considerar una query como lenta.
      */
-    protected function __construct(private readonly int $slowMs) {}
+    protected function __construct(private readonly int $slowMs)
+    {
+    }
 
     /**
      * Ejecuta el statement midiendo la duración con hrtime().
@@ -32,16 +34,16 @@ class LoggingPDOStatement extends PDOStatement
     #[\Override]
     public function execute(?array $params = null): bool
     {
-        $start = hrtime(true);
+        $start = \hrtime(true);
 
         $result = parent::execute($params);
 
-        $ms = (int) ((hrtime(true) - $start) / 1_000_000);
+        $ms = (int) ((\hrtime(true) - $start) / 1_000_000);
 
         if ($ms >= $this->slowMs) {
             Logger::warning('[DB] Slow query', [
                 'duration_ms' => $ms,
-                'sql'         => $this->truncateSql($this->queryString),
+                'sql' => $this->truncateSql($this->queryString),
             ]);
         }
 
@@ -53,10 +55,10 @@ class LoggingPDOStatement extends PDOStatement
      */
     protected function truncateSql(string $sql): string
     {
-        if (mb_strlen($sql) <= 500) {
+        if (\mb_strlen($sql) <= 500) {
             return $sql;
         }
 
-        return mb_substr($sql, 0, 497) . '...';
+        return \mb_substr($sql, 0, 497) . '...';
     }
 }

@@ -17,8 +17,8 @@ final class UpdateReviewRequest extends FormRequest
     {
         return [
             'rating' => 'integer|in:1,2,3,4,5',
-            'title'  => 'max:100',
-            'body'   => 'min:10|max:5000',
+            'title' => 'max:100',
+            'body' => 'min:10|max:5000',
         ];
     }
 
@@ -31,10 +31,10 @@ final class UpdateReviewRequest extends FormRequest
             $sanitized['rating'] = (string) ((int) $raw['rating']);
         }
         if (isset($raw['title'])) {
-            $sanitized['title'] = trim((string) $raw['title']);
+            $sanitized['title'] = \trim((string) $raw['title']);
         }
         if (isset($raw['body'])) {
-            $sanitized['body'] = trim((string) $raw['body']);
+            $sanitized['body'] = \trim((string) $raw['body']);
         }
 
         return $sanitized;

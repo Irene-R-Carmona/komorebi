@@ -53,12 +53,13 @@ final class WaitlistPromotionJob implements JobInterface
     {
         // Support lightweight push: just the entry ID — hydrate from DB
         if (isset($payload['waitlist_entry_id']) && !isset($payload['waitlist_id'])) {
-            $entryId        = (int) $payload['waitlist_entry_id'];
+            $entryId = (int) $payload['waitlist_entry_id'];
             $hydratedPayload = $this->hydratePayload($entryId);
             if ($hydratedPayload === null) {
                 Logger::warning('[WaitlistPromotionJob] Entrada waitlist no encontrada', [
                     'waitlist_entry_id' => $entryId,
                 ]);
+
                 return;
             }
             $payload = $hydratedPayload;
@@ -232,21 +233,21 @@ final class WaitlistPromotionJob implements JobInterface
     {
         try {
             $stmt = $this->db->prepare(<<<'SQL'
-                SELECT
-                    w.id                          AS waitlist_id,
-                    w.token,
-                    UNIX_TIMESTAMP(w.expires_at)  AS expires_at,
-                    u.name                        AS user_name,
-                    u.email                       AS user_email,
-                    c.name                        AS cafe_name,
-                    ts.slot_date                  AS date,
-                    ts.slot_time                  AS time
-                FROM waitlist w
-                INNER JOIN users u      ON w.user_id      = u.id
-                INNER JOIN time_slots ts ON w.time_slot_id = ts.id
-                INNER JOIN cafes c       ON ts.cafe_id     = c.id
-                WHERE w.id = :id
-            SQL);
+                    SELECT
+                        w.id                          AS waitlist_id,
+                        w.token,
+                        UNIX_TIMESTAMP(w.expires_at)  AS expires_at,
+                        u.name                        AS user_name,
+                        u.email                       AS user_email,
+                        c.name                        AS cafe_name,
+                        ts.slot_date                  AS date,
+                        ts.slot_time                  AS time
+                    FROM waitlist w
+                    INNER JOIN users u      ON w.user_id      = u.id
+                    INNER JOIN time_slots ts ON w.time_slot_id = ts.id
+                    INNER JOIN cafes c       ON ts.cafe_id     = c.id
+                    WHERE w.id = :id
+                SQL);
             $stmt->execute([':id' => $entryId]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -254,8 +255,9 @@ final class WaitlistPromotionJob implements JobInterface
         } catch (Throwable $e) {
             Logger::error('[WaitlistPromotionJob] Error al hidratar payload', [
                 'waitlist_entry_id' => $entryId,
-                'error'             => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -319,6 +321,7 @@ final class WaitlistPromotionJob implements JobInterface
 
             if (!$botToken) {
                 Logger::warning('[WaitlistPromotionJob] TELEGRAM_BOT_TOKEN no configurado');
+
                 return;
             }
 

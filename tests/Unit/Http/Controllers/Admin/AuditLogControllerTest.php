@@ -23,9 +23,9 @@ final class AuditLogControllerTest extends ControllerTestCase
 {
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(AuditLogController::class, 'index'));
-        $this->assertTrue(method_exists(AuditLogController::class, 'stats'));
-        $this->assertTrue(method_exists(AuditLogController::class, 'export'));
+        $this->assertTrue(\method_exists(AuditLogController::class, 'index'));
+        $this->assertTrue(\method_exists(AuditLogController::class, 'stats'));
+        $this->assertTrue(\method_exists(AuditLogController::class, 'export'));
     }
 
     public function test_instance_can_be_created_with_response_factory(): void

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -17,14 +16,14 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use Tests\Support\BaseIntegrationTest;
+use App\Models\User;
 use App\Repositories\CafeRepository;
 use App\Repositories\ReviewRepository;
-use App\Services\ReviewService;
-use App\Services\ReviewQueryService;
 use App\Services\ReviewModerationService;
-use App\Models\User;
+use App\Services\ReviewQueryService;
+use App\Services\ReviewService;
 use PDO;
+use Tests\Support\BaseIntegrationTest;
 
 final class ReviewIntegrationTest extends BaseIntegrationTest
 {
@@ -57,18 +56,18 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
     private function seedTestData(): void
     {
         // Limpiar datos previos
-        self::$db->exec("DELETE FROM reservations WHERE id = " . self::TEST_RESERVATION_ID);
-        self::$db->exec("DELETE FROM reviews WHERE user_id = " . self::TEST_USER_ID);
-        self::$db->exec("DELETE FROM products WHERE id = " . self::TEST_PASS_ID);
-        self::$db->exec("DELETE FROM menu_categories WHERE id = " . self::TEST_CATEGORY_ID);
-        self::$db->exec("DELETE FROM users WHERE id = " . self::TEST_USER_ID);
-        self::$db->exec("DELETE FROM cafes WHERE id = " . self::TEST_CAFE_ID);
+        self::$db->exec('DELETE FROM reservations WHERE id = ' . self::TEST_RESERVATION_ID);
+        self::$db->exec('DELETE FROM reviews WHERE user_id = ' . self::TEST_USER_ID);
+        self::$db->exec('DELETE FROM products WHERE id = ' . self::TEST_PASS_ID);
+        self::$db->exec('DELETE FROM menu_categories WHERE id = ' . self::TEST_CATEGORY_ID);
+        self::$db->exec('DELETE FROM users WHERE id = ' . self::TEST_USER_ID);
+        self::$db->exec('DELETE FROM cafes WHERE id = ' . self::TEST_CAFE_ID);
 
         // Usuario de prueba
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO users (id, uuid, email, password, name, email_verified_at, is_active)
             VALUES (
-                " . self::TEST_USER_ID . ",
+                ' . self::TEST_USER_ID . ",
                 UUID(),
                 'review-test@komorebi.test',
                 '\$argon2id\$v=19\$m=65536,t=4,p=1\$test\$hash',
@@ -79,14 +78,14 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         ");
 
         // Café de prueba
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO cafes (
                 id, name, slug, location, category, animal_type,
                 description, price_per_hour, opening_time, closing_time,
                 capacity_max, is_active, has_reservations
             )
             VALUES (
-                " . self::TEST_CAFE_ID . ",
+                ' . self::TEST_CAFE_ID . ",
                 'Test Café Review',
                 'test-cafe-review',
                 'Tokyo Test',
@@ -103,24 +102,24 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         ");
 
         // Categoría de productos
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO menu_categories (id, name, slug)
             VALUES (
-                " . self::TEST_CATEGORY_ID . ",
+                ' . self::TEST_CATEGORY_ID . ",
                 'Test Category',
                 'test-category-reviews'
             )
         ");
 
         // Producto/Pase de prueba
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO products (
                 id, category_id, product_type, name, slug, price,
                 station, duration_minutes, is_active
             )
             VALUES (
-                " . self::TEST_PASS_ID . ",
-                " . self::TEST_CATEGORY_ID . ",
+                ' . self::TEST_PASS_ID . ',
+                ' . self::TEST_CATEGORY_ID . ",
                 'pass',
                 'Test Pass Reviews',
                 'test-pass-reviews',
@@ -132,17 +131,17 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         ");
 
         // Reserva completada (requisito para crear reviews)
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO reservations (
                 id, user_id, cafe_id, pass_product_id, pass_name,
                 pass_unit_price, pass_duration_minutes, reservation_date,
                 reservation_time, guest_count, status
             )
             VALUES (
-                " . self::TEST_RESERVATION_ID . ",
-                " . self::TEST_USER_ID . ",
-                " . self::TEST_CAFE_ID . ",
-                " . self::TEST_PASS_ID . ",
+                ' . self::TEST_RESERVATION_ID . ',
+                ' . self::TEST_USER_ID . ',
+                ' . self::TEST_CAFE_ID . ',
+                ' . self::TEST_PASS_ID . ",
                 'Test Pass Reviews',
                 2000,
                 60,
@@ -176,18 +175,18 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         $reviewId = $result->data['id'];
 
         // ASSERT: Verificar que el registro existe en BD
-        $stmt = self::$db->prepare("
+        $stmt = self::$db->prepare('
             SELECT id, user_id, cafe_id, rating, title, body, status
             FROM reviews
             WHERE id = ?
-        ");
+        ');
         $stmt->execute([$reviewId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $this->assertIsArray($row);
-        $this->assertSame(self::TEST_USER_ID, (int)$row['user_id']);
-        $this->assertSame(self::TEST_CAFE_ID, (int)$row['cafe_id']);
-        $this->assertSame(5, (int)$row['rating']);
+        $this->assertSame(self::TEST_USER_ID, (int) $row['user_id']);
+        $this->assertSame(self::TEST_CAFE_ID, (int) $row['cafe_id']);
+        $this->assertSame(5, (int) $row['rating']);
         $this->assertSame('Excelente experiencia', $row['title']);
         $this->assertSame('pending', $row['status']); // Por defecto pending
     }
@@ -213,7 +212,7 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         $this->assertTrue($moderateResult);
 
         // Verificar en BD
-        $stmt = self::$db->prepare("SELECT status FROM reviews WHERE id = ?");
+        $stmt = self::$db->prepare('SELECT status FROM reviews WHERE id = ?');
         $stmt->execute([$reviewId]);
         $status = $stmt->fetchColumn();
 
@@ -235,10 +234,10 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         $this->moderationService->moderateReview($result1->data['id'], 'approved');
 
         // Crear segundo usuario con reserva completada
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO users (id, uuid, email, password, name, email_verified_at, is_active)
             VALUES (
-                " . (self::TEST_USER_ID + 1) . ",
+                ' . (self::TEST_USER_ID + 1) . ",
                 UUID(),
                 'review-test2@komorebi.test',
                 '\$argon2id\$v=19\$m=65536,t=4,p=1\$test\$hash',
@@ -249,17 +248,17 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         ");
 
         // Crear reserva completada para segundo usuario
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO reservations (
                 id, user_id, cafe_id, pass_product_id, pass_name,
                 pass_unit_price, pass_duration_minutes, reservation_date,
                 reservation_time, guest_count, status
             )
             VALUES (
-                " . (self::TEST_RESERVATION_ID + 1) . ",
-                " . (self::TEST_USER_ID + 1) . ",
-                " . self::TEST_CAFE_ID . ",
-                " . self::TEST_PASS_ID . ",
+                ' . (self::TEST_RESERVATION_ID + 1) . ',
+                ' . (self::TEST_USER_ID + 1) . ',
+                ' . self::TEST_CAFE_ID . ',
+                ' . self::TEST_PASS_ID . ",
                 'Test Pass Reviews',
                 2000,
                 60,
@@ -278,7 +277,7 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
             'Segunda review',
             'Muy buen café, ambiente agradable y gatos amigables.'
         );
-        $this->assertTrue($result2->ok, 'Create review failed: ' . ($result2->error ??  'unknown error'));
+        $this->assertTrue($result2->ok, 'Create review failed: ' . ($result2->error ?? 'unknown error'));
         // Aprobar segunda review
         $this->moderationService->moderateReview($result2->data['id'], 'approved');
 
@@ -295,7 +294,7 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
             $this->assertArrayHasKey('rating', $review);
             $this->assertArrayHasKey('title', $review);
             $this->assertArrayHasKey('body', $review);
-            $this->assertSame(self::TEST_CAFE_ID, (int)$review['cafe_id']);
+            $this->assertSame(self::TEST_CAFE_ID, (int) $review['cafe_id']);
         }
     }
 
@@ -315,10 +314,10 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         $this->moderationService->moderateReview($result1->data['id'], 'approved');
 
         // Crear usuario 2 con reserva completada
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO users (id, uuid, email, password, name, email_verified_at, is_active)
             VALUES (
-                " . (self::TEST_USER_ID + 2) . ",
+                ' . (self::TEST_USER_ID + 2) . ",
                 UUID(),
                 'review-test3@komorebi.test',
                 '\$argon2id\$v=19\$m=65536,t=4,p=1\$test\$hash',
@@ -329,17 +328,17 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         ");
 
         // Crear reserva completada para usuario 2
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO reservations (
                 id, user_id, cafe_id, pass_product_id, pass_name,
                 pass_unit_price, pass_duration_minutes, reservation_date,
                 reservation_time, guest_count, status
             )
             VALUES (
-                " . (self::TEST_RESERVATION_ID + 2) . ",
-                " . (self::TEST_USER_ID + 2) . ",
-                " . self::TEST_CAFE_ID . ",
-                " . self::TEST_PASS_ID . ",
+                ' . (self::TEST_RESERVATION_ID + 2) . ',
+                ' . (self::TEST_USER_ID + 2) . ',
+                ' . self::TEST_CAFE_ID . ',
+                ' . self::TEST_PASS_ID . ",
                 'Test Pass Reviews',
                 2000,
                 60,

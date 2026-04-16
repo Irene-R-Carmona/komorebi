@@ -21,7 +21,8 @@ abstract class AbstractApiController
 {
     public function __construct(
         protected readonly ResponseFactory $response
-    ) {}
+    ) {
+    }
 
     /**
      * Respuesta de éxito.
@@ -58,6 +59,7 @@ abstract class AbstractApiController
         if ($meta !== []) {
             $payload = \array_merge($payload, ['meta' => $meta]);
         }
+
         return $this->success($payload, 200, $headers);
     }
 

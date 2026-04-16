@@ -148,13 +148,13 @@ final class AnimalIncidentSeeder
         $count = 0;
         foreach ($animals as $animal) {
             // Crear 1-2 incidentes por animal (aleatorio)
-            $numIncidents = random_int(0, 2);
+            $numIncidents = \random_int(0, 2);
 
             for ($i = 0; $i < $numIncidents; $i++) {
-                $incident = $incidents[array_rand($incidents)];
-                $loggedBy = $staffUsers[array_rand($staffUsers)];
-                $resolvedBy = $incident['resolved'] ? $staffUsers[array_rand($staffUsers)] : null;
-                $resolvedAt = $incident['resolved'] ? date('Y-m-d H:i:s', strtotime('-' . random_int(1, 24) . ' hours')) : null;
+                $incident = $incidents[\array_rand($incidents)];
+                $loggedBy = $staffUsers[\array_rand($staffUsers)];
+                $resolvedBy = $incident['resolved'] ? $staffUsers[\array_rand($staffUsers)] : null;
+                $resolvedAt = $incident['resolved'] ? \date('Y-m-d H:i:s', \strtotime('-' . \random_int(1, 24) . ' hours')) : null;
 
                 try {
                     $stmt->execute([

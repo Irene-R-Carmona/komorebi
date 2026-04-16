@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\User;
 
 use App\Core\Container;
-use App\Core\Database;
 use App\Core\Session;
 use App\Core\View;
 use App\Services\Contracts\WaitlistServiceInterface;
@@ -35,6 +34,7 @@ final class WaitlistController
 
         if (!$userId) {
             View::render('errors/401', [], [], 'errors');
+
             return null;
         }
 
@@ -42,14 +42,16 @@ final class WaitlistController
 
         if (!$result->ok) {
             View::render('errors/500', ['error' => $result->error], [], 'errors');
+
             return null;
         }
 
         View::render('user/waitlists', [
             'titulo' => 'Mis Listas de Espera - Komorebi Café',
             'waitlists' => $result->data,
-            'extraCss' => ['loyalty.css']
+            'extraCss' => ['loyalty.css'],
         ]);
+
         return null;
     }
 }

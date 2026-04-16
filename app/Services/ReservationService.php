@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Result;
 use App\Events\ReservationConfirmedEvent;
@@ -13,9 +14,8 @@ use App\Exceptions\ValidationException;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
-use App\Core\Database;
-use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
 use DateTimeImmutable;
@@ -28,7 +28,7 @@ use Throwable;
  * Orquesta la creación de reservas validando reglas de negocio.
  * Usa interfaces Repository para mejor testabilidad (Dependency Inversion Principle).
  */
-class ReservationService implements ReservationServiceInterface
+final class ReservationService implements ReservationServiceInterface
 {
     private ReservationRepositoryInterface $reservationRepo;
     private CafeRepositoryInterface $cafeRepo;
@@ -194,11 +194,13 @@ class ReservationService implements ReservationServiceInterface
             return Result::ok($reservationId);
         } catch (ValidationException | BusinessRuleException $e) {
             $code = $e instanceof BusinessRuleException ? ($e->getRuleCode() ?? 'business_rule_error') : 'validation_error';
+
             return Result::fail($e->getMessage(), $code);
         } catch (NotFoundException $e) {
             return Result::fail($e->getMessage(), 'not_found');
         } catch (\PDOException $e) {
             Logger::error('[ReservationService] DB error in create()', ['exception' => $e->getMessage()]);
+
             return Result::fail('Error de base de datos', 'db_error');
         }
     }
@@ -516,6 +518,7 @@ class ReservationService implements ReservationServiceInterface
             $reservation = $this->reservationRepo->findByIdWithCafeDetails($reservationId);
             if (!$reservation) {
                 Logger::warning('Reserva no encontrada para envío de email', ['reservation_id' => $reservationId]);
+
                 return;
             }
 

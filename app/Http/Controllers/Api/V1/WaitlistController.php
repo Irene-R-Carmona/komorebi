@@ -60,7 +60,7 @@ final class WaitlistController
     {
         $raw = @\file_get_contents('php://input');
         $raw = $raw === false ? '' : $raw;
-        $input = json_decode($raw, true) ?? [];
+        $input = \json_decode($raw, true) ?? [];
 
         if (!isset($input['time_slot_id'], $input['user_id'])) {
             return $this->response->problem(
@@ -167,7 +167,7 @@ final class WaitlistController
 
         $raw = @\file_get_contents('php://input');
         $raw = $raw === false ? '' : $raw;
-        $input = json_decode($raw, true) ?? [];
+        $input = \json_decode($raw, true) ?? [];
 
         $result = $this->service->confirmPromotion($token, $input);
 

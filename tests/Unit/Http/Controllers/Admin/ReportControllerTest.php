@@ -34,8 +34,8 @@ final class ReportControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(ReportController::class, 'index'));
-        $this->assertTrue(method_exists(ReportController::class, 'exportReportes'));
+        $this->assertTrue(\method_exists(ReportController::class, 'index'));
+        $this->assertTrue(\method_exists(ReportController::class, 'exportReportes'));
     }
 
     public function test_instance_can_be_created_with_stub(): void

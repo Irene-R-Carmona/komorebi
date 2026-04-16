@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -33,7 +32,7 @@ final class ContainerTest extends TestCase
      */
     public function testSingletonReturnsSameInstance(): void
     {
-        Container::singleton(PDO::class, fn() => $this->createStub(PDO::class));
+        Container::singleton(PDO::class, fn () => $this->createStub(PDO::class));
 
         $instance1 = Container::make(PDO::class);
         $instance2 = Container::make(PDO::class);
@@ -46,7 +45,7 @@ final class ContainerTest extends TestCase
      */
     public function testBindReturnsNewInstance(): void
     {
-        Container::bind(PDO::class, fn() => $this->createStub(PDO::class));
+        Container::bind(PDO::class, fn () => $this->createStub(PDO::class));
 
         $instance1 = Container::make(PDO::class);
         $instance2 = Container::make(PDO::class);
@@ -85,7 +84,7 @@ final class ContainerTest extends TestCase
 
     public function testContainerHasReturnsTrueForRegisteredBindings(): void
     {
-        Container::bind(PDO::class, fn() => $this->createStub(PDO::class));
+        Container::bind(PDO::class, fn () => $this->createStub(PDO::class));
 
         $this->assertTrue(Container::getInstance()->has(PDO::class));
     }

@@ -42,7 +42,7 @@ final class TransactionalServiceTest extends TestCase
         $this->pdoMock->method('beginTransaction')->willReturn(true);
         $this->pdoMock->method('commit')->willReturn(true);
 
-        $result = $this->service->runTransact(fn() => Result::ok('data'));
+        $result = $this->service->runTransact(fn () => Result::ok('data'));
 
         $this->assertTrue($result->ok);
         $this->assertSame('data', $result->data);
@@ -66,7 +66,7 @@ final class TransactionalServiceTest extends TestCase
         $this->pdoMock->method('beginTransaction')->willReturn(true);
         $this->pdoMock->method('rollBack')->willReturn(true);
 
-        $result = $this->service->runTransact(fn() => Result::fail('negocio falló', 'business_error'));
+        $result = $this->service->runTransact(fn () => Result::fail('negocio falló', 'business_error'));
 
         $this->assertFalse($result->ok);
         $this->assertSame('negocio falló', $result->getMessage());

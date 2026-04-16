@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Core\Http\ResponseFactory;
-use App\Http\Controllers\Api\AbstractApiController;
 use App\Core\Session;
+use App\Http\Controllers\Api\AbstractApiController;
 use App\Services\ReservationService;
 use App\Services\TimeSlotService;
 use Psr\Http\Message\ResponseInterface;
@@ -38,7 +38,7 @@ final class ReservationController extends AbstractApiController
     public function getAvailableSlots(ServerRequestInterface $request): ResponseInterface
     {
         $params = $request->getQueryParams();
-        $date   = $params['date'] ?? '';
+        $date = $params['date'] ?? '';
         $cafeId = isset($params['cafe_id']) ? (int) $params['cafe_id'] : null;
         $guests = isset($params['guests']) ? (int) $params['guests'] : null;
 
@@ -49,9 +49,9 @@ final class ReservationController extends AbstractApiController
         $slots = $this->timeSlotService->getAvailableSlots($date, $cafeId, $guests);
 
         return $this->success([
-            'date'    => $date,
+            'date' => $date,
             'cafe_id' => $cafeId,
-            'slots'   => $slots,
+            'slots' => $slots,
         ]);
     }
 
@@ -74,7 +74,7 @@ final class ReservationController extends AbstractApiController
             return $this->unauthorized('Debes iniciar sesión para reservar');
         }
 
-        $body     = $request->getParsedBody() ?? [];
+        $body = $request->getParsedBody() ?? [];
         $required = ['cafe_id', 'date', 'time', 'guests', 'pass_product_id'];
 
         foreach ($required as $field) {
@@ -84,13 +84,13 @@ final class ReservationController extends AbstractApiController
         }
 
         $data = [
-            'user_id'          => $userId,
-            'cafe_id'          => (int) $body['cafe_id'],
-            'pass_product_id'  => (int) $body['pass_product_id'],
-            'date'             => (string) $body['date'],
-            'time'             => (string) $body['time'],
-            'guests'           => (int) $body['guests'],
-            'comments'         => (string) ($body['special_requests'] ?? ''),
+            'user_id' => $userId,
+            'cafe_id' => (int) $body['cafe_id'],
+            'pass_product_id' => (int) $body['pass_product_id'],
+            'date' => (string) $body['date'],
+            'time' => (string) $body['time'],
+            'guests' => (int) $body['guests'],
+            'comments' => (string) ($body['special_requests'] ?? ''),
         ];
 
         $result = $this->reservationService->create($data);
@@ -100,7 +100,7 @@ final class ReservationController extends AbstractApiController
         }
 
         return $this->success([
-            'reservation_id'   => $result->data['id'] ?? null,
+            'reservation_id' => $result->data['id'] ?? null,
             'confirmation_code' => $result->data['confirmation_code'] ?? null,
         ], 201);
     }

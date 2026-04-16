@@ -6,30 +6,30 @@ $file = file_get_contents('/app/tests/Unit/Services/ReservationServiceTest.php')
 
 // Step 1: Rename methods (exception → fail naming)
 $renames = [
-    'testCreateThrowsExceptionWhenUserIdMissing'             => 'testCreateReturnsFailWhenUserIdMissing',
-    'testCreateThrowsExceptionWhenCafeIdMissing'             => 'testCreateReturnsFailWhenCafeIdMissing',
-    'testCreateThrowsExceptionWhenPassProductIdMissing'      => 'testCreateReturnsFailWhenPassProductIdMissing',
-    'testCreateThrowsExceptionWithInvalidDateFormat'         => 'testCreateReturnsFailWithInvalidDateFormat',
-    'testCreateThrowsExceptionWithInvalidTimeFormat'         => 'testCreateReturnsFailWithInvalidTimeFormat',
-    'testCreateThrowsExceptionWithTooFewGuests'              => 'testCreateReturnsFailWithTooFewGuests',
-    'testCreateThrowsExceptionWithTooManyGuests'             => 'testCreateReturnsFailWithTooManyGuests',
-    'testCreateThrowsExceptionWithPastDate'                  => 'testCreateReturnsFailWithPastDate',
-    'testCreateThrowsNotFoundExceptionWhenCafeDoesNotExist'  => 'testCreateReturnsFailWhenCafeDoesNotExist',
-    'testCreateThrowsExceptionWhenCafeIsInactive'            => 'testCreateReturnsFailWhenCafeIsInactive',
+    'testCreateThrowsExceptionWhenUserIdMissing' => 'testCreateReturnsFailWhenUserIdMissing',
+    'testCreateThrowsExceptionWhenCafeIdMissing' => 'testCreateReturnsFailWhenCafeIdMissing',
+    'testCreateThrowsExceptionWhenPassProductIdMissing' => 'testCreateReturnsFailWhenPassProductIdMissing',
+    'testCreateThrowsExceptionWithInvalidDateFormat' => 'testCreateReturnsFailWithInvalidDateFormat',
+    'testCreateThrowsExceptionWithInvalidTimeFormat' => 'testCreateReturnsFailWithInvalidTimeFormat',
+    'testCreateThrowsExceptionWithTooFewGuests' => 'testCreateReturnsFailWithTooFewGuests',
+    'testCreateThrowsExceptionWithTooManyGuests' => 'testCreateReturnsFailWithTooManyGuests',
+    'testCreateThrowsExceptionWithPastDate' => 'testCreateReturnsFailWithPastDate',
+    'testCreateThrowsNotFoundExceptionWhenCafeDoesNotExist' => 'testCreateReturnsFailWhenCafeDoesNotExist',
+    'testCreateThrowsExceptionWhenCafeIsInactive' => 'testCreateReturnsFailWhenCafeIsInactive',
     'testCreateThrowsExceptionWhenCafeDoesNotAcceptReservations' => 'testCreateReturnsFailWhenCafeDoesNotAcceptReservations',
-    'testCreateThrowsNotFoundExceptionWhenPassDoesNotExist'  => 'testCreateReturnsFailWhenPassDoesNotExist',
-    'testCreateThrowsExceptionWhenPassIsInactive'            => 'testCreateReturnsFailWhenPassIsInactive',
-    'testCreateThrowsExceptionWhenProductIsNotAPass'         => 'testCreateReturnsFailWhenProductIsNotAPass',
-    'testCreateThrowsExceptionWhenGuestsLessThanMinimum'     => 'testCreateReturnsFailWhenGuestsLessThanMinimum',
-    'testCreateThrowsExceptionWhenGuestsExceedMaximum'       => 'testCreateReturnsFailWhenGuestsExceedMaximum',
-    'testCreateThrowsExceptionWhenCafeTypeIncompatible'      => 'testCreateReturnsFailWhenCafeTypeIncompatible',
-    'testCreateThrowsExceptionWhenCafeHasNoCapacity'         => 'testCreateReturnsFailWhenCafeHasNoCapacity',
+    'testCreateThrowsNotFoundExceptionWhenPassDoesNotExist' => 'testCreateReturnsFailWhenPassDoesNotExist',
+    'testCreateThrowsExceptionWhenPassIsInactive' => 'testCreateReturnsFailWhenPassIsInactive',
+    'testCreateThrowsExceptionWhenProductIsNotAPass' => 'testCreateReturnsFailWhenProductIsNotAPass',
+    'testCreateThrowsExceptionWhenGuestsLessThanMinimum' => 'testCreateReturnsFailWhenGuestsLessThanMinimum',
+    'testCreateThrowsExceptionWhenGuestsExceedMaximum' => 'testCreateReturnsFailWhenGuestsExceedMaximum',
+    'testCreateThrowsExceptionWhenCafeTypeIncompatible' => 'testCreateReturnsFailWhenCafeTypeIncompatible',
+    'testCreateThrowsExceptionWhenCafeHasNoCapacity' => 'testCreateReturnsFailWhenCafeHasNoCapacity',
     'testCreateThrowsExceptionWhenUserHasDuplicateReservation' => 'testCreateReturnsFailWhenUserHasDuplicateReservation',
-    'testCreateHandlesRepositoryExceptionGracefully'         => 'testCreateReturnsFailWhenRepositoryThrows',
-    'testCreateThrowsExceptionWhenMaxGuestsIsNull'           => 'testCreateSucceedsWhenMaxGuestsIsNull',
-    'testCreateValidatesAllBusinessRulesBeforeTransaction'   => 'testCreateValidatesAllBusinessRulesBeforeTransaction', // keep name
-    'testCreateAcceptsOptionalCommentsField'                 => 'testCreateAcceptsOptionalCommentsField',   // keep name
-    'testCreateWorksWithoutOptionalCommentsField'            => 'testCreateWorksWithoutOptionalCommentsField', // keep name
+    'testCreateHandlesRepositoryExceptionGracefully' => 'testCreateReturnsFailWhenRepositoryThrows',
+    'testCreateThrowsExceptionWhenMaxGuestsIsNull' => 'testCreateSucceedsWhenMaxGuestsIsNull',
+    'testCreateValidatesAllBusinessRulesBeforeTransaction' => 'testCreateValidatesAllBusinessRulesBeforeTransaction', // keep name
+    'testCreateAcceptsOptionalCommentsField' => 'testCreateAcceptsOptionalCommentsField',   // keep name
+    'testCreateWorksWithoutOptionalCommentsField' => 'testCreateWorksWithoutOptionalCommentsField', // keep name
 ];
 foreach ($renames as $old => $new) {
     $file = str_replace($old, $new, $file);
@@ -119,7 +119,7 @@ while ($i < $n) {
                 $last_idx = array_key_last($method_body);
                 // Insert assertFalse before the last line
                 array_splice($method_body, $last_idx, 0, ['        $this->assertFalse($result->ok);']);
-                echo "Added assertFalse to method containing: " . substr($method_text, 0, 80) . "\n";
+                echo 'Added assertFalse to method containing: ' . substr($method_text, 0, 80) . "\n";
             }
 
             foreach ($method_body as $ml) {

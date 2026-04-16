@@ -232,6 +232,7 @@ final class TimeSlotSeeder
         ];
 
         $variation = $variations[$hour] ?? 0.8;
+
         return \max(1, (int) \round($baseCapacity * $variation));
     }
 }

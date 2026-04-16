@@ -20,7 +20,7 @@ final class TelegramService implements TelegramServiceInterface
     public function __construct()
     {
         $this->botToken = Env::get('TELEGRAM_BOT_TOKEN', '');
-        $this->chatId   = Env::get('TELEGRAM_CHAT_ID', '');
+        $this->chatId = Env::get('TELEGRAM_CHAT_ID', '');
     }
 
     #[\Override]
@@ -28,27 +28,29 @@ final class TelegramService implements TelegramServiceInterface
     {
         if ($this->botToken === '' || $this->chatId === '') {
             Logger::warning('[TelegramService] Bot token or chat ID not configured, skipping notification');
+
             return Result::ok(null);
         }
 
         $targetChat = $chatId ?? $this->chatId;
-        $url        = $this->apiUrl . $this->botToken . '/sendMessage';
+        $url = $this->apiUrl . $this->botToken . '/sendMessage';
 
-        $payload = json_encode([
-            'chat_id'    => $targetChat,
-            'text'       => $text,
+        $payload = \json_encode([
+            'chat_id' => $targetChat,
+            'text' => $text,
             'parse_mode' => 'HTML',
         ]);
 
         if ($payload === false) {
             Logger::error('[TelegramService] Failed to encode payload', ['chat_id' => $targetChat]);
+
             return Result::fail('No se pudo codificar el mensaje', 'telegram_encode_failed');
         }
 
-        $context = stream_context_create([
+        $context = \stream_context_create([
             'http' => [
-                'method'  => 'POST',
-                'header'  => "Content-Type: application/json\r\nContent-Length: " . strlen($payload),
+                'method' => 'POST',
+                'header' => "Content-Type: application/json\r\nContent-Length: " . \strlen($payload),
                 'content' => $payload,
                 'timeout' => 5,
             ],
@@ -73,13 +75,15 @@ final class TelegramService implements TelegramServiceInterface
             return Result::fail('No se pudo enviar el mensaje de Telegram', 'telegram_send_failed');
         }
 
-        $data = json_decode($response, true);
+        $data = \json_decode($response, true);
         if (!($data['ok'] ?? false)) {
             Logger::error('[TelegramService] Telegram API error', ['response' => $data]);
+
             return Result::fail('Error en la API de Telegram', 'telegram_api_error');
         }
 
         Logger::info('[TelegramService] Message sent', ['chat_id' => $targetChat]);
+
         return Result::ok($data);
     }
 
@@ -87,6 +91,7 @@ final class TelegramService implements TelegramServiceInterface
     public function sendAlert(string $emoji, string $title, string $body): Result
     {
         $text = "{$emoji} <b>{$title}</b>\n\n{$body}";
+
         return $this->sendMessage($text);
     }
 }

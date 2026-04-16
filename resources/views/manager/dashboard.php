@@ -47,8 +47,8 @@ $alpineConfig = json_encode([
                 <i class="bi bi-calendar3" aria-hidden="true"></i>
                 <?php
                 $formatter = new IntlDateFormatter('es_ES', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
-                echo $formatter->format(new DateTime());
-                ?>
+echo $formatter->format(new DateTime());
+?>
             </time>
         </div>
     </div>
@@ -71,7 +71,7 @@ $alpineConfig = json_encode([
                     <div class="stat-card__icon stat-card__icon--primary">
                         <i class="bi bi-calendar-check"></i>
                     </div>
-                </div>'
+                </div>',
         ]) ?>
 
         <!-- Animales Activos -->
@@ -90,7 +90,7 @@ $alpineConfig = json_encode([
                     <div class="stat-card__icon stat-card__icon--success">
                         <i class="bi bi-heart-fill"></i>
                     </div>
-                </div>'
+                </div>',
         ]) ?>
 
         <!-- Ingresos Semanales -->
@@ -109,7 +109,7 @@ $alpineConfig = json_encode([
                     <div class="stat-card__icon stat-card__icon--warning">
                         <i class="bi bi-currency-euro"></i>
                     </div>
-                </div>'
+                </div>',
         ]) ?>
 
         <!-- Rating Promedio -->
@@ -128,7 +128,7 @@ $alpineConfig = json_encode([
                     <div class="stat-card__icon stat-card__icon--info">
                         <i class="bi bi-star-fill"></i>
                     </div>
-                </div>'
+                </div>',
         ]) ?>
     </div>
 

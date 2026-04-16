@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shared;
 
-use App\Core\Flash;
 use App\Core\Container;
+use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
-use App\Services\Contracts\UserAccountServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
+use App\Services\Contracts\UserAccountServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
 use App\Services\GamificationService;
 use App\Services\ReservationService;
@@ -60,6 +60,7 @@ final class UserController
                 $returnTo = '/';
             }
             Session::set('redirect_after_login', $returnTo);
+
             return $this->response->redirect('/login');
         }
 
@@ -84,6 +85,7 @@ final class UserController
             'userReviews' => $userReviews,
             'flash' => Flash::consume(),
         ], ['profile.css', 'reviews.css']);
+
         return null;
     }
 
@@ -98,6 +100,7 @@ final class UserController
         $userId = Session::userId();
         if ($userId === null) {
             Flash::error('Necesitas iniciar sesión para continuar.');
+
             return $this->response->redirect('/login');
         }
 
@@ -116,6 +119,7 @@ final class UserController
         Session::set('user', $profile);
 
         Flash::success('Tu perfil se ha actualizado con éxito.');
+
         return $this->response->redirect('/perfil');
     }
 
@@ -131,6 +135,7 @@ final class UserController
         if ($userId === null) {
             // Backup defensivo (middleware 'auth' ya verificó)
             Flash::error('Necesitas iniciar sesión para continuar.');
+
             return $this->response->redirect('/login');
         }
 
@@ -145,11 +150,13 @@ final class UserController
         if (!$result->ok) {
             // Error en validación: mostrar genérico (no revelar si current es válida)
             Flash::error($result->error ?? 'No se pudo cambiar la contraseña.');
+
             return $this->response->redirect('/perfil');
         }
 
         // UX: Confirmar cambio
         Flash::success('Tu contraseña se ha actualizado correctamente.');
+
         return $this->response->redirect('/perfil');
     }
 
@@ -205,7 +212,7 @@ final class UserController
 
         // Crear directorio si no existe
         if (!\is_dir($uploadDir)) {
-            \mkdir($uploadDir, 0755, true);
+            \mkdir($uploadDir, 0o755, true);
         }
 
         $uploadPath = $uploadDir . $filename;
@@ -226,6 +233,7 @@ final class UserController
             if (\file_exists($uploadPath)) {
                 \unlink($uploadPath);
             }
+
             return $this->response->json(['success' => false, 'message' => $result->error ?? 'Error al actualizar el avatar.'], 500);
         }
 
@@ -295,6 +303,7 @@ final class UserController
         $userId = Session::userId();
         if ($userId === null) {
             Flash::error('Necesitas iniciar sesión para exportar tus datos.');
+
             return $this->response->redirect('/login');
         }
 

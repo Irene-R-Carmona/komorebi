@@ -16,15 +16,14 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Repositories;
 
+use App\Repositories\ProductRepository;
 use Override;
 use ReflectionClass;
-use function method_exists;
-use App\Repositories\ProductRepository;
 use Tests\Support\BaseIntegrationTest;
 
 final class ProductRepositorySecurityTest extends BaseIntegrationTest
 {
-    private const int TEST_PRODUCT_ID  = 79002;
+    private const int TEST_PRODUCT_ID = 79002;
     private const int TEST_CATEGORY_ID = 1;
 
     private ProductRepository $repo;
@@ -52,7 +51,7 @@ final class ProductRepositorySecurityTest extends BaseIntegrationTest
     public function testFindWithRecipeMethodExists(): void
     {
         $this->assertTrue(
-            method_exists($this->repo, 'findWithRecipe'), // @phpstan-ignore function.alreadyNarrowedType
+            \method_exists($this->repo, 'findWithRecipe'), // @phpstan-ignore function.alreadyNarrowedType
             'ProductRepository debe exponer findWithRecipe() para contextos de cocina/KDS'
         );
     }

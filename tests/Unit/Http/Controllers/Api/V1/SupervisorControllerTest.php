@@ -25,8 +25,8 @@ final class SupervisorControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION = [];
     }
@@ -67,7 +67,7 @@ final class SupervisorControllerTest extends ControllerTestCase
         );
 
         $this->assertSame(200, $response->getStatusCode());
-        $body = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
         $this->assertTrue($body['ok']);
     }
 
@@ -87,7 +87,7 @@ final class SupervisorControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(SupervisorController::class, 'assign'));
-        $this->assertTrue(method_exists(SupervisorController::class, 'list'));
+        $this->assertTrue(\method_exists(SupervisorController::class, 'assign'));
+        $this->assertTrue(\method_exists(SupervisorController::class, 'list'));
     }
 }

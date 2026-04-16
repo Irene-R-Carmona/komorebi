@@ -18,7 +18,6 @@ declare(strict_types=1);
 
 namespace Services;
 
-use App\Core\Result;
 use App\Repositories\Contracts\ApiTokenRepositoryInterface;
 use App\Services\ApiTokenService;
 use PHPUnit\Framework\TestCase;
@@ -32,7 +31,7 @@ final class ApiTokenServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repository = $this->createStub(ApiTokenRepositoryInterface::class);
-        $this->service    = new ApiTokenService($this->repository);
+        $this->service = new ApiTokenService($this->repository);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -45,7 +44,7 @@ final class ApiTokenServiceTest extends TestCase
 
         $plain = $this->service->generate(1, 'Test token');
 
-        $this->assertSame(64, strlen($plain));
+        $this->assertSame(64, \strlen($plain));
         $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $plain);
     }
 
@@ -125,7 +124,7 @@ final class ApiTokenServiceTest extends TestCase
             ->willReturn(false);
 
         $service = new ApiTokenService($repo);
-        $result  = $service->revoke(5, 99);
+        $result = $service->revoke(5, 99);
 
         $this->assertFalse($result->ok);
     }

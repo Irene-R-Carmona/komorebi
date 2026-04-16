@@ -14,7 +14,8 @@ final readonly class AnimalDTO implements DomainTransferObject
         public ?string $description,
         public ?string $image_url,
         public bool $is_active,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public static function fromArray(array $data): static
@@ -34,13 +35,13 @@ final readonly class AnimalDTO implements DomainTransferObject
     public function toViewArray(): array
     {
         return [
-            'id'          => $this->id,
-            'cafe_id'     => $this->cafe_id,
-            'name'        => $this->name,
-            'species'     => $this->species,
+            'id' => $this->id,
+            'cafe_id' => $this->cafe_id,
+            'name' => $this->name,
+            'species' => $this->species,
             'description' => $this->description,
-            'image_url'   => $this->image_url,
-            'is_active'   => $this->is_active,
+            'image_url' => $this->image_url,
+            'is_active' => $this->is_active,
         ];
     }
 }

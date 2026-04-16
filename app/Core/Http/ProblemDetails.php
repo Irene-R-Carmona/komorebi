@@ -99,8 +99,8 @@ final readonly class ProblemDetails
         $enumCase = $result->code !== null ? ServiceErrorCode::tryFrom($result->code) : null;
 
         $body = [
-            'type'   => $enumCase !== null ? $enumCase->typeUri() : 'about:blank',
-            'title'  => $enumCase !== null ? $enumCase->toTitle() : (self::HTTP_REASON_PHRASES[$status] ?? 'Unknown'),
+            'type' => $enumCase !== null ? $enumCase->typeUri() : 'about:blank',
+            'title' => $enumCase !== null ? $enumCase->toTitle() : (self::HTTP_REASON_PHRASES[$status] ?? 'Unknown'),
             'status' => $status,
             'detail' => $result->error ?? '',
         ];
@@ -111,7 +111,7 @@ final readonly class ProblemDetails
 
         // RFC 9457 extension members: context fields are merged at top level
         if ($result->context !== []) {
-            $body = array_merge($body, $result->context);
+            $body = \array_merge($body, $result->context);
         }
 
         return $body;

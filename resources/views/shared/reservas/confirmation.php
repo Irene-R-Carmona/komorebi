@@ -23,7 +23,7 @@ $formattedTime = isset($reservation['reservation_time'])
 
 $statusLabels = [
     'confirmed' => 'Confirmada',
-    'pending'   => 'Pendiente',
+    'pending' => 'Pendiente',
     'cancelled' => 'Cancelada',
 ];
 $statusLabel = $statusLabels[$reservation['status'] ?? ''] ?? ucfirst($reservation['status'] ?? '—');

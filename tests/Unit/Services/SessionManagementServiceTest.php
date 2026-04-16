@@ -39,9 +39,9 @@ final class SessionManagementServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdoMock  = $this->createStub(PDO::class);
+        $this->pdoMock = $this->createStub(PDO::class);
         $this->stmtMock = $this->createMock(PDOStatement::class);
-        $this->service  = new SessionManagementService($this->pdoMock);
+        $this->service = new SessionManagementService($this->pdoMock);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -166,6 +166,7 @@ final class SessionManagementServiceTest extends TestCase
             ->method('execute')
             ->willReturnCallback(function (array $params) use (&$capturedParams): bool {
                 $capturedParams = $params;
+
                 return true;
             });
 
@@ -265,6 +266,7 @@ final class SessionManagementServiceTest extends TestCase
             ->method('execute')
             ->willReturnCallback(function (array $params) use (&$capturedParams): bool {
                 $capturedParams = $params;
+
                 return true;
             });
 
@@ -282,6 +284,7 @@ final class SessionManagementServiceTest extends TestCase
             ->method('execute')
             ->willReturnCallback(function (array $params) use (&$capturedParams): bool {
                 $capturedParams = $params;
+
                 return true;
             });
 

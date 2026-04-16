@@ -15,7 +15,7 @@ final class LoginRequest extends FormRequest
     protected function rules(): array
     {
         return [
-            'email'    => 'required|email',
+            'email' => 'required|email',
             'password' => 'required',
         ];
     }
@@ -24,7 +24,7 @@ final class LoginRequest extends FormRequest
     protected function sanitize(array $raw): array
     {
         return [
-            'email'    => strtolower(trim((string) ($raw['email'] ?? ''))),
+            'email' => \strtolower(\trim((string) ($raw['email'] ?? ''))),
             'password' => (string) ($raw['password'] ?? ''),
         ];
     }

@@ -25,7 +25,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     public function __construct()
     {
         // Generar nonce único para esta request
-        $this->nonce = base64_encode(random_bytes(16));
+        $this->nonce = \base64_encode(\random_bytes(16));
 
         // Hacer nonce disponible globalmente para vistas
         $GLOBALS['cspNonce'] = $this->nonce;
@@ -40,7 +40,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
         $response = $handler->handle($request);
 
         // Content Security Policy con nonce dinámico
-        $csp = implode('; ', [
+        $csp = \implode('; ', [
             "default-src 'self'",
             // Scripts: self, CDN Bootstrap/Alpine, nonce para inline.
             // 'unsafe-eval' es requerido por Alpine.js v3 (usa new Function() para evaluar
@@ -64,7 +64,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
             // Form actions solo a mismo origen
             "form-action 'self'",
             // Upgrade insecure requests
-            "upgrade-insecure-requests"
+            'upgrade-insecure-requests',
         ]);
 
         // Aplicar headers de seguridad

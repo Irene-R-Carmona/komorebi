@@ -69,6 +69,7 @@ final class RoleController
             'csrf_token' => Csrf::token(),
             'extraJs' => ['admin/admin-roles.js'],
         ], ['admin/admin-roles.css'], 'backoffice');
+
         return null;
     }
 

@@ -27,14 +27,14 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
      */
     public function findById(int $id): ?array
     {
-        $sql = "
+        $sql = '
             SELECT w.*, ts.slot_date, ts.slot_time, c.name as cafe_name
             FROM waitlist w
             INNER JOIN time_slots ts ON w.time_slot_id = ts.id
             INNER JOIN cafes c ON ts.cafe_id = c.id
             WHERE w.id = :id
             LIMIT 1
-        ";
+        ';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['id' => $id]);
@@ -49,14 +49,14 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
      */
     public function findByToken(string $token): ?array
     {
-        $sql = "
+        $sql = '
             SELECT w.*, ts.slot_date, ts.slot_time, c.name as cafe_name
             FROM waitlist w
             INNER JOIN time_slots ts ON w.time_slot_id = ts.id
             INNER JOIN cafes c ON ts.cafe_id = c.id
             WHERE w.token = :token
             LIMIT 1
-        ";
+        ';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['token' => $token]);
@@ -138,16 +138,16 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
     public function create(array $data): int
     {
         // Calcular posición automáticamente
-        $stmtPosition = $this->db->prepare("
+        $stmtPosition = $this->db->prepare('
             SELECT COALESCE(MAX(position), 0) + 1 as next_position
             FROM waitlist
             WHERE time_slot_id = :time_slot_id
-        ");
+        ');
         $stmtPosition->execute(['time_slot_id' => $data['time_slot_id']]);
         $positionResult = $stmtPosition->fetch(PDO::FETCH_ASSOC);
         $position = $positionResult['next_position'] ?? 1;
 
-        $sql = "
+        $sql = '
             INSERT INTO waitlist (
                 user_id, time_slot_id, position, guest_count,
                 special_requests, status, token,
@@ -160,7 +160,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
                 :expires_at, :contact_email, :contact_phone,
                 NOW()
             )
-        ";
+        ';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
@@ -170,7 +170,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             'guest_count' => $data['guest_count'] ?? 1,
             'special_requests' => $data['special_requests'] ?? null,
             'status' => $data['status'] ?? 'waiting',
-            'token' => $data['confirmation_token'] ?? ($data['token'] ?? bin2hex(random_bytes(16))),
+            'token' => $data['confirmation_token'] ?? ($data['token'] ?? \bin2hex(\random_bytes(16))),
             'expires_at' => $data['token_expires_at'] ?? ($data['expires_at'] ?? null),
             'contact_email' => $data['contact_email'] ?? '',
             'contact_phone' => $data['contact_phone'] ?? null,
@@ -197,7 +197,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             $params['reservation_id'] = $additionalData['reservation_id'];
         }
 
-        $sql = "UPDATE waitlist SET " . implode(', ', $fields) . " WHERE id = :id";
+        $sql = 'UPDATE waitlist SET ' . \implode(', ', $fields) . ' WHERE id = :id';
 
         $stmt = $this->db->prepare($sql);
 
@@ -251,7 +251,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
      */
     public function updateStatus(int $id, string $status): bool
     {
-        $sql = "UPDATE waitlist SET status = :status, updated_at = NOW() WHERE id = :id";
+        $sql = 'UPDATE waitlist SET status = :status, updated_at = NOW() WHERE id = :id';
 
         $stmt = $this->db->prepare($sql);
 
@@ -263,13 +263,13 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
      */
     public function updateToken(int $id, string $token, string $expiresAt): bool
     {
-        $sql = "
+        $sql = '
             UPDATE waitlist
             SET token = :token,
                 expires_at = :expires_at,
                 updated_at = NOW()
             WHERE id = :id
-        ";
+        ';
 
         $stmt = $this->db->prepare($sql);
 
@@ -320,7 +320,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
      */
     public function getUserHistory(int $userId, int $limit = 10): array
     {
-        $sql = "
+        $sql = '
             SELECT w.*, ts.slot_date, ts.slot_time, c.name as cafe_name
             FROM waitlist w
             INNER JOIN time_slots ts ON w.time_slot_id = ts.id
@@ -328,7 +328,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             WHERE w.user_id = :user_id
             ORDER BY w.created_at DESC
             LIMIT :limit
-        ";
+        ';
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);

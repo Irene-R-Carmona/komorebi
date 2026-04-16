@@ -36,15 +36,15 @@ final class AnimalDashboardController
         ?ResponseFactory $response = null,
     ) {
         $db = null;
-        $this->animalCareService  = $animalCareService ?? new AnimalCareService(
+        $this->animalCareService = $animalCareService ?? new AnimalCareService(
             ($db = Database::getConnection()),
             new AnimalRepository($db)
         );
         $this->healthCheckService = $healthCheckService ?? new HealthCheckService(
             new HealthCheckRepository($db ??= Database::getConnection())
         );
-        $this->animalRepository   = $animalRepository ?? new AnimalRepository($db ??= Database::getConnection());
-        $this->response           = $response ?? new ResponseFactory();
+        $this->animalRepository = $animalRepository ?? new AnimalRepository($db ??= Database::getConnection());
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**
@@ -53,20 +53,20 @@ final class AnimalDashboardController
      */
     public function dashboard(ServerRequestInterface $request): ?ResponseInterface
     {
-        $data            = $this->animalCareService->getDashboardData();
+        $data = $this->animalCareService->getDashboardData();
         $healthCheckData = $this->healthCheckService->getTodayDashboard();
-        $activeAlerts    = $this->healthCheckService->getActiveAlerts(7);
+        $activeAlerts = $this->healthCheckService->getActiveAlerts(7);
 
         View::render('backoffice/keeper/dashboard', [
-            'titulo'               => 'Dashboard - Bienestar Animal',
-            'animals'              => $data['animals'],
-            'stats'                => $data['stats'],
-            'recent_logs'          => $data['recent_logs'],
-            'active_incidents'     => $data['active_incidents'],
+            'titulo' => 'Dashboard - Bienestar Animal',
+            'animals' => $data['animals'],
+            'stats' => $data['stats'],
+            'recent_logs' => $data['recent_logs'],
+            'active_incidents' => $data['active_incidents'],
             'pending_checks_count' => $healthCheckData['pending_count'],
-            'pending_animals'      => $healthCheckData['pending'],
-            'active_alerts'        => $activeAlerts,
-            'csrf_token'           => Csrf::token(),
+            'pending_animals' => $healthCheckData['pending'],
+            'active_alerts' => $activeAlerts,
+            'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
 
         return null;
@@ -80,6 +80,7 @@ final class AnimalDashboardController
     {
         $animals = $this->animalCareService->getAnimalsWithCafeInfo();
         View::render('backoffice/keeper/animals/index', ['animals' => $animals], [], 'backoffice');
+
         return null;
     }
 
@@ -89,15 +90,17 @@ final class AnimalDashboardController
      */
     public function show(ServerRequestInterface $request): ?ResponseInterface
     {
-        $id     = (int) $request->getAttribute('id');
+        $id = (int) $request->getAttribute('id');
         $animal = $this->animalRepository->findById($id);
 
         if ($animal === null) {
             Flash::error('Animal no encontrado.');
+
             return $this->response->redirect('/keeper/animals');
         }
 
         View::render('backoffice/keeper/animals/show', ['animal' => $animal], [], 'backoffice');
+
         return null;
     }
 }

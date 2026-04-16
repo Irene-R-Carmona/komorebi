@@ -21,8 +21,6 @@ use App\Core\Http\ResponseFactory;
 use App\Http\Middleware\ErrorHandlerMiddleware;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 final class ErrorHandlerMiddlewareTest extends TestCase
@@ -33,18 +31,18 @@ final class ErrorHandlerMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         $this->responseFactory = new ResponseFactory();
-        $this->psr17           = new Psr17Factory();
+        $this->psr17 = new Psr17Factory();
     }
 
     public function testPassesThroughWhenNoException(): void
     {
-        $request         = $this->psr17->createServerRequest('GET', '/');
+        $request = $this->psr17->createServerRequest('GET', '/');
         $expectedResponse = $this->psr17->createResponse(200);
 
         $handler = $this->createStub(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn($expectedResponse);
 
-        $mw       = new ErrorHandlerMiddleware(new ExceptionRendererRegistry(), $this->responseFactory);
+        $mw = new ErrorHandlerMiddleware(new ExceptionRendererRegistry(), $this->responseFactory);
         $response = $mw->process($request, $handler);
 
         $this->assertSame(200, $response->getStatusCode());
@@ -52,8 +50,8 @@ final class ErrorHandlerMiddlewareTest extends TestCase
 
     public function testCatchesExceptionAndUsesRenderer(): void
     {
-        $request          = $this->psr17->createServerRequest('GET', '/');
-        $exception        = new \RuntimeException('boom');
+        $request = $this->psr17->createServerRequest('GET', '/');
+        $exception = new \RuntimeException('boom');
         $renderedResponse = $this->psr17->createResponse(422);
 
         $handler = $this->createStub(RequestHandlerInterface::class);
@@ -67,7 +65,7 @@ final class ErrorHandlerMiddlewareTest extends TestCase
         $registry = new ExceptionRendererRegistry();
         $registry->register($renderer);
 
-        $mw       = new ErrorHandlerMiddleware($registry, $this->responseFactory);
+        $mw = new ErrorHandlerMiddleware($registry, $this->responseFactory);
         $response = $mw->process($request, $handler);
 
         $this->assertSame(422, $response->getStatusCode());
@@ -75,13 +73,13 @@ final class ErrorHandlerMiddlewareTest extends TestCase
 
     public function testFallsBackTo500WhenNoRendererFound(): void
     {
-        $request   = $this->psr17->createServerRequest('GET', '/');
+        $request = $this->psr17->createServerRequest('GET', '/');
         $exception = new \RuntimeException('boom');
 
         $handler = $this->createStub(RequestHandlerInterface::class);
         $handler->method('handle')->willThrowException($exception);
 
-        $mw       = new ErrorHandlerMiddleware(new ExceptionRendererRegistry(), $this->responseFactory);
+        $mw = new ErrorHandlerMiddleware(new ExceptionRendererRegistry(), $this->responseFactory);
         $response = $mw->process($request, $handler);
 
         $this->assertSame(500, $response->getStatusCode());
@@ -89,13 +87,13 @@ final class ErrorHandlerMiddlewareTest extends TestCase
 
     public function testFallback500ResponseIsJson(): void
     {
-        $request   = $this->psr17->createServerRequest('GET', '/');
+        $request = $this->psr17->createServerRequest('GET', '/');
         $exception = new \RuntimeException('boom');
 
         $handler = $this->createStub(RequestHandlerInterface::class);
         $handler->method('handle')->willThrowException($exception);
 
-        $mw       = new ErrorHandlerMiddleware(new ExceptionRendererRegistry(), $this->responseFactory);
+        $mw = new ErrorHandlerMiddleware(new ExceptionRendererRegistry(), $this->responseFactory);
         $response = $mw->process($request, $handler);
 
         $this->assertStringContainsString('application/json', $response->getHeaderLine('Content-Type'));
@@ -103,9 +101,9 @@ final class ErrorHandlerMiddlewareTest extends TestCase
 
     public function testHandlerIsNotCalledOnSecondTimeAfterExceptionCaught(): void
     {
-        $request           = $this->psr17->createServerRequest('GET', '/');
-        $exception         = new \RuntimeException('boom');
-        $fallbackResponse  = $this->psr17->createResponse(503);
+        $request = $this->psr17->createServerRequest('GET', '/');
+        $exception = new \RuntimeException('boom');
+        $fallbackResponse = $this->psr17->createResponse(503);
 
         $handler = $this->createStub(RequestHandlerInterface::class);
         $handler->method('handle')->willThrowException($exception);
@@ -118,7 +116,7 @@ final class ErrorHandlerMiddlewareTest extends TestCase
         $registry = new ExceptionRendererRegistry();
         $registry->register($renderer);
 
-        $mw       = new ErrorHandlerMiddleware($registry, $this->responseFactory);
+        $mw = new ErrorHandlerMiddleware($registry, $this->responseFactory);
         $response = $mw->process($request, $handler);
 
         // El renderer retornó 503 — el middleware no debe envolverlo de nuevo

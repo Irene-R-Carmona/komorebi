@@ -31,7 +31,7 @@ final class HolidayControllerTest extends ControllerTestCase
         $response = $this->makeController()->getHolidays($this->makeGetRequest('/api/v1/holidays'));
 
         $this->assertSame(200, $response->getStatusCode());
-        $body = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
         $this->assertTrue($body['ok']);
         $this->assertGreaterThan(0, $body['data']['count']);
         $this->assertArrayHasKey('holidays', $body['data']);
@@ -40,7 +40,7 @@ final class HolidayControllerTest extends ControllerTestCase
     public function test_all_holidays_have_date_and_name_fields(): void
     {
         $response = $this->makeController()->getHolidays($this->makeGetRequest('/api/v1/holidays'));
-        $body     = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
 
         foreach ($body['data']['holidays'] as $holiday) {
             $this->assertArrayHasKey('date', $holiday);
@@ -51,7 +51,7 @@ final class HolidayControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(HolidayController::class, 'getHolidays'));
-        $this->assertTrue(method_exists(HolidayController::class, 'checkHoliday'));
+        $this->assertTrue(\method_exists(HolidayController::class, 'getHolidays'));
+        $this->assertTrue(\method_exists(HolidayController::class, 'checkHoliday'));
     }
 }

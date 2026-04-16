@@ -6,8 +6,8 @@ namespace App\Jobs;
 
 use App\Core\Env;
 use PDO;
-use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as MailerException;
+use PHPMailer\PHPMailer\PHPMailer;
 
 /**
  * Job: Notificar cuando se desbloquea una recompensa
@@ -37,7 +37,7 @@ final class RewardUnlockedJob implements JobInterface
 
         // Obtener info del usuario
         $db = $this->db;
-        $stmt = $db->prepare("SELECT name, email FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1");
+        $stmt = $db->prepare('SELECT name, email FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1');
         $stmt->execute([$userId]);
         $user = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -61,13 +61,13 @@ final class RewardUnlockedJob implements JobInterface
             5 => ['name' => 'Bebida Gratis', 'icon' => '☕', 'type' => 'drink_free'],
             10 => ['name' => 'Entrada Gratis', 'icon' => '🎟️', 'type' => 'entry_free'],
             15 => ['name' => 'Recompensas Especiales', 'icon' => '🎁', 'type' => 'multiple'],
-            20 => ['name' => 'Recompensas Premium', 'icon' => '💎', 'type' => 'premium']
+            20 => ['name' => 'Recompensas Premium', 'icon' => '💎', 'type' => 'premium'],
         ];
 
         return $rewards[$milestone] ?? [
             'name' => 'Nueva Recompensa',
             'icon' => '⭐',
-            'type' => 'generic'
+            'type' => 'generic',
         ];
     }
 
@@ -86,7 +86,7 @@ final class RewardUnlockedJob implements JobInterface
             $mail->addAddress($user['email'], $user['name']);
 
             // Asunto
-            $mail->Subject = sprintf('🎉 ¡Nueva recompensa desbloqueada! - Komorebi Café');
+            $mail->Subject = \sprintf('🎉 ¡Nueva recompensa desbloqueada! - Komorebi Café');
 
             // Contenido HTML
             $mail->isHTML(true);
@@ -142,83 +142,83 @@ final class RewardUnlockedJob implements JobInterface
             'bronze' => '🥉 Bronce',
             'silver' => '🥈 Plata',
             'gold' => '🥇 Oro',
-            'platinum' => '💎 Platino'
+            'platinum' => '💎 Platino',
         ];
 
-        $tierLabel = $tierLabels[$tier] ?? ucfirst($tier);
+        $tierLabel = $tierLabels[$tier] ?? \ucfirst($tier);
         $cardUrl = Env::get('APP_URL', 'http://localhost:8080');
         $cardUrl .= '/loyalty/card';
 
         return <<<HTML
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 20px; text-align: center; }
-        .header h1 { margin: 0; font-size: 28px; }
-        .content { padding: 30px 20px; }
-        .reward-badge { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0; }
-        .reward-badge .icon { font-size: 60px; margin-bottom: 10px; }
-        .reward-badge .name { font-size: 24px; font-weight: bold; }
-        .stats { display: flex; justify-content: space-around; margin: 30px 0; }
-        .stat { text-align: center; }
-        .stat .value { font-size: 32px; font-weight: bold; color: #667eea; }
-        .stat .label { font-size: 14px; color: #666; margin-top: 5px; }
-        .cta { text-align: center; margin: 30px 0; }
-        .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; }
-        .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎉 ¡Felicidades, {$user['name']}!</h1>
-            <p>Has desbloqueado una nueva recompensa</p>
-        </div>
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+                    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 20px; text-align: center; }
+                    .header h1 { margin: 0; font-size: 28px; }
+                    .content { padding: 30px 20px; }
+                    .reward-badge { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0; }
+                    .reward-badge .icon { font-size: 60px; margin-bottom: 10px; }
+                    .reward-badge .name { font-size: 24px; font-weight: bold; }
+                    .stats { display: flex; justify-content: space-around; margin: 30px 0; }
+                    .stat { text-align: center; }
+                    .stat .value { font-size: 32px; font-weight: bold; color: #667eea; }
+                    .stat .label { font-size: 14px; color: #666; margin-top: 5px; }
+                    .cta { text-align: center; margin: 30px 0; }
+                    .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; }
+                    .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🎉 ¡Felicidades, {$user['name']}!</h1>
+                        <p>Has desbloqueado una nueva recompensa</p>
+                    </div>
 
-        <div class="content">
-            <div class="reward-badge">
-                <div class="icon">{$rewardInfo['icon']}</div>
-                <div class="name">{$rewardInfo['name']}</div>
-                <p style="margin: 10px 0 0 0;">¡Ya puedes canjear esta recompensa!</p>
-            </div>
+                    <div class="content">
+                        <div class="reward-badge">
+                            <div class="icon">{$rewardInfo['icon']}</div>
+                            <div class="name">{$rewardInfo['name']}</div>
+                            <p style="margin: 10px 0 0 0;">¡Ya puedes canjear esta recompensa!</p>
+                        </div>
 
-            <div class="stats">
-                <div class="stat">
-                    <div class="value">$stamps</div>
-                    <div class="label">Sellos acumulados</div>
+                        <div class="stats">
+                            <div class="stat">
+                                <div class="value">$stamps</div>
+                                <div class="label">Sellos acumulados</div>
+                            </div>
+                            <div class="stat">
+                                <div class="value">$tierLabel</div>
+                                <div class="label">Tu nivel actual</div>
+                            </div>
+                        </div>
+
+                        <p style="text-align: center; font-size: 16px; color: #555;">
+                            Visita tu tarjeta de fidelización para canjear tus sellos por recompensas exclusivas.
+                        </p>
+
+                        <div class="cta">
+                            <a href="$cardUrl" class="button">Ver Mi Tarjeta</a>
+                        </div>
+
+                        <p style="font-size: 14px; color: #666; text-align: center; margin-top: 30px;">
+                            <strong>💡 Tip:</strong> Sigue completando visitas para desbloquear más recompensas y subir de nivel.
+                        </p>
+                    </div>
+
+                    <div class="footer">
+                        <p>Este email fue enviado automáticamente por el sistema de fidelización de Komorebi Café.</p>
+                        <p>© 2026 Komorebi Café - Todos los derechos reservados</p>
+                    </div>
                 </div>
-                <div class="stat">
-                    <div class="value">$tierLabel</div>
-                    <div class="label">Tu nivel actual</div>
-                </div>
-            </div>
-
-            <p style="text-align: center; font-size: 16px; color: #555;">
-                Visita tu tarjeta de fidelización para canjear tus sellos por recompensas exclusivas.
-            </p>
-
-            <div class="cta">
-                <a href="$cardUrl" class="button">Ver Mi Tarjeta</a>
-            </div>
-
-            <p style="font-size: 14px; color: #666; text-align: center; margin-top: 30px;">
-                <strong>💡 Tip:</strong> Sigue completando visitas para desbloquear más recompensas y subir de nivel.
-            </p>
-        </div>
-
-        <div class="footer">
-            <p>Este email fue enviado automáticamente por el sistema de fidelización de Komorebi Café.</p>
-            <p>© 2026 Komorebi Café - Todos los derechos reservados</p>
-        </div>
-    </div>
-</body>
-</html>
-HTML;
+            </body>
+            </html>
+            HTML;
     }
 
     /**
@@ -229,21 +229,21 @@ HTML;
         $cardUrl = Env::get('APP_URL', 'http://localhost:8080') . '/loyalty/card';
 
         return <<<TEXT
-¡Felicidades, {$user['name']}!
+            ¡Felicidades, {$user['name']}!
 
-Has desbloqueado una nueva recompensa: {$rewardInfo['name']}
+            Has desbloqueado una nueva recompensa: {$rewardInfo['name']}
 
-Sellos acumulados: $stamps
-Nivel actual: {$tier}
+            Sellos acumulados: $stamps
+            Nivel actual: {$tier}
 
-Visita tu tarjeta de fidelización para canjear tus sellos:
-$cardUrl
+            Visita tu tarjeta de fidelización para canjear tus sellos:
+            $cardUrl
 
-Sigue completando visitas para desbloquear más recompensas.
+            Sigue completando visitas para desbloquear más recompensas.
 
----
-Komorebi Café
-© 2026 Todos los derechos reservados
-TEXT;
+            ---
+            Komorebi Café
+            © 2026 Todos los derechos reservados
+            TEXT;
     }
 }

@@ -66,7 +66,7 @@ final class TelegramServiceTest extends TestCase
     {
         // Ambas vars vacías → guarda temprana sin HTTP
         $service = new TelegramService();
-        $result  = $service->sendMessage('Hola desde el test');
+        $result = $service->sendMessage('Hola desde el test');
 
         $this->assertTrue($result->ok);
         $this->assertNull($result->data);
@@ -81,7 +81,7 @@ final class TelegramServiceTest extends TestCase
         $this->clearEnvCache();
 
         $service = new TelegramService();
-        $result  = $service->sendMessage('Mensaje sin destino');
+        $result = $service->sendMessage('Mensaje sin destino');
 
         $this->assertTrue($result->ok);
         $this->assertNull($result->data);
@@ -106,7 +106,7 @@ final class TelegramServiceTest extends TestCase
     public function testSendAlertReturnsOkNullWhenServiceNotConfigured(): void
     {
         $service = new TelegramService();
-        $result  = $service->sendAlert('🚨', 'Alerta crítica', 'Cuerpo del mensaje');
+        $result = $service->sendAlert('🚨', 'Alerta crítica', 'Cuerpo del mensaje');
 
         $this->assertTrue($result->ok);
         $this->assertNull($result->data);
@@ -116,7 +116,7 @@ final class TelegramServiceTest extends TestCase
     {
         $service = new TelegramService();
 
-        $resultInfo    = $service->sendAlert('ℹ️', 'Información', 'Detalles adicionales');
+        $resultInfo = $service->sendAlert('ℹ️', 'Información', 'Detalles adicionales');
         $resultWarning = $service->sendAlert('⚠️', 'Advertencia', 'Revisar sistema');
 
         $this->assertTrue($resultInfo->ok);

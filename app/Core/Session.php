@@ -47,7 +47,7 @@ final class Session
         // intentar arrancar la sesión ni tocar parámetros de cookie (evita
         // warnings/excepciones); en ese caso nos quedamos con la superglobal
         // inicializada y seguimos.
-        if (headers_sent()) {
+        if (\headers_sent()) {
             // La superglobal ya fue inicializada al inicio de start()
         } else {
             // En entornos normales (web/server) configuramos cookies y arrancamos
@@ -92,7 +92,7 @@ final class Session
         if (\ini_get('session.use_cookies')) {
             $params = \session_get_cookie_params();
             $samesite = (string) $params['samesite'];
-            if (!in_array($samesite, ['Lax', 'lax', 'None', 'none', 'Strict', 'strict'], true)) {
+            if (!\in_array($samesite, ['Lax', 'lax', 'None', 'none', 'Strict', 'strict'], true)) {
                 $samesite = 'Lax';
             }
 

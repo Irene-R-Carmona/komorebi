@@ -23,7 +23,8 @@ final class HttpRateLimitMiddleware implements MiddlewareInterface
         private readonly ResponseFactory $response,
         private readonly RateLimitingServiceInterface $rateLimitingService,
         private readonly string $action,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface

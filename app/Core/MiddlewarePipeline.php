@@ -65,6 +65,7 @@ final class MiddlewarePipeline implements RequestHandlerInterface
             if ($this->finalHandler === null) {
                 throw new \LogicException('No hay middlewares ni finalHandler configurado en el pipeline');
             }
+
             return $this->finalHandler->handle($request);
         }
 
@@ -72,7 +73,7 @@ final class MiddlewarePipeline implements RequestHandlerInterface
         $middleware = \array_shift($this->middlewares);
 
         // Crear un handler que ejecute el resto del pipeline
-        $nextHandler = new class($this->middlewares, $this->finalHandler) implements RequestHandlerInterface {
+        $nextHandler = new class ($this->middlewares, $this->finalHandler) implements RequestHandlerInterface {
             private array $remainingMiddlewares;
 
             private ?RequestHandlerInterface $finalHandler;

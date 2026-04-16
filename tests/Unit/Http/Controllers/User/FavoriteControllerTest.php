@@ -23,7 +23,7 @@ final class FavoriteControllerTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_class_exists_with_index_method(): void
     {
-        $this->assertTrue(class_exists(FavoriteController::class));
-        $this->assertTrue(method_exists(FavoriteController::class, 'index'));
+        $this->assertTrue(\class_exists(FavoriteController::class));
+        $this->assertTrue(\method_exists(FavoriteController::class, 'index'));
     }
 }

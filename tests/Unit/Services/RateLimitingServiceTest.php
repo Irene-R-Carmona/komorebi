@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * Verifica que RateLimitingService registra intentos y bloqueos usando Cache (PSR-6).

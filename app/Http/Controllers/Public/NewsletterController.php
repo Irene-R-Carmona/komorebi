@@ -16,7 +16,8 @@ final readonly class NewsletterController
      */
     public function __construct(
         private NewsletterService $newsletterService
-    ) {}
+    ) {
+    }
 
     /**
      * Suscribirse al newsletter (POST /newsletter/subscribe)
@@ -28,11 +29,13 @@ final readonly class NewsletterController
 
         if (empty($email)) {
             View::render('public/newsletter/subscribe', ['success' => false, 'message' => 'Email requerido']);
+
             return null;
         }
 
         $result = $this->newsletterService->subscribe($email);
         View::render('public/newsletter/subscribe', ['success' => $result['success'], 'message' => $result['message']]);
+
         return null;
     }
 
@@ -48,8 +51,9 @@ final readonly class NewsletterController
         View::render('public/newsletter/confirm', [
             'success' => $result['success'],
             'message' => $result['message'],
-            'email'   => $result['email'] ?? null,
+            'email' => $result['email'] ?? null,
         ]);
+
         return null;
     }
 
@@ -64,8 +68,9 @@ final readonly class NewsletterController
         View::render('public/newsletter/confirm', [
             'success' => $result['success'],
             'message' => $result['message'],
-            'email'   => $result['email'] ?? null,
+            'email' => $result['email'] ?? null,
         ]);
+
         return null;
     }
 
@@ -82,6 +87,7 @@ final readonly class NewsletterController
             'success' => $result['success'],
             'message' => $result['message'],
         ]);
+
         return null;
     }
 }

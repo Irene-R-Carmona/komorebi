@@ -31,13 +31,13 @@ final class ExceptionRendererRegistry
      */
     public function find(Throwable $e): ?ExceptionRendererInterface
     {
-        $matches = array_filter($this->renderers, static fn($r) => $r->supports($e));
+        $matches = \array_filter($this->renderers, static fn ($r) => $r->supports($e));
 
         if ($matches === []) {
             return null;
         }
 
-        usort($matches, static fn($a, $b) => $b->priority() <=> $a->priority());
+        \usort($matches, static fn ($a, $b) => $b->priority() <=> $a->priority());
 
         return $matches[0];
     }

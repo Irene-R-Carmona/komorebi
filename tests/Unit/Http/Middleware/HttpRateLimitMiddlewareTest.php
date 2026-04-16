@@ -8,7 +8,6 @@ use App\Core\Http\ResponseFactory;
 use App\Http\Middleware\HttpRateLimitMiddleware;
 use App\Services\Contracts\RateLimitingServiceInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
@@ -41,6 +40,7 @@ final class HttpRateLimitMiddlewareTest extends TestCase
     {
         $request = $this->createStub(ServerRequestInterface::class);
         $request->method('getServerParams')->willReturn(['REMOTE_ADDR' => $ip]);
+
         return $request;
     }
 

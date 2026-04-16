@@ -10,7 +10,7 @@ use App\Core\CookieManager;
  * Servicio para gestionar el historial de cafés vistos recientemente
  * Almacena hasta 10 cafés en orden FIFO (primero en entrar, primero en salir)
  */
-class RecentlyViewedService
+final class RecentlyViewedService
 {
     private const MAX_ITEMS = 10;
     private const COOKIE_DURATION = 30 * 24 * 3600; // 30 días
@@ -28,7 +28,7 @@ class RecentlyViewedService
         $viewed = $this->getAll();
 
         // Eliminar el café si ya existe (para moverlo al principio)
-        $viewed = \array_filter($viewed, static fn($id) => $id !== $cafeId);
+        $viewed = \array_filter($viewed, static fn ($id) => $id !== $cafeId);
 
         // Añadir al principio
         \array_unshift($viewed, $cafeId);

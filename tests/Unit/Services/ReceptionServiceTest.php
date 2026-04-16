@@ -103,6 +103,7 @@ final class ReceptionServiceTest extends TestCase
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);
         $stmt->method('fetchColumn')->willReturn($fetchColumnReturn);
+
         return $stmt;
     }
 
@@ -113,16 +114,16 @@ final class ReceptionServiceTest extends TestCase
     private function confirmedReservation(): array
     {
         return [
-            'id'             => 42,
-            'status'         => Reservation::STATUS_CONFIRMED,
-            'cafe_id'        => 1,
-            'user_id'        => 10,
-            'tracker_id'     => null,
-            'guests'         => 2,
-            'guest_count'    => 2,
+            'id' => 42,
+            'status' => Reservation::STATUS_CONFIRMED,
+            'cafe_id' => 1,
+            'user_id' => 10,
+            'tracker_id' => null,
+            'guests' => 2,
+            'guest_count' => 2,
             'pass_unit_price' => '5.00',
-            'check_in_at'    => null,
-            'check_out_at'   => null,
+            'check_in_at' => null,
+            'check_out_at' => null,
         ];
     }
 
@@ -133,29 +134,29 @@ final class ReceptionServiceTest extends TestCase
     private function activeReservation(): array
     {
         return [
-            'id'             => 42,
-            'status'         => Reservation::STATUS_ACTIVE,
-            'cafe_id'        => 1,
-            'user_id'        => null,
-            'tracker_id'     => null,
-            'guests'         => 2,
-            'guest_count'    => 2,
+            'id' => 42,
+            'status' => Reservation::STATUS_ACTIVE,
+            'cafe_id' => 1,
+            'user_id' => null,
+            'tracker_id' => null,
+            'guests' => 2,
+            'guest_count' => 2,
             'pass_unit_price' => '5.00',
-            'check_in_at'    => '2024-01-01 14:00:00',
-            'check_out_at'   => null,
+            'check_in_at' => '2024-01-01 14:00:00',
+            'check_out_at' => null,
         ];
     }
 
     private function completedReservation(): array
     {
         return [
-            'id'           => 42,
-            'status'       => Reservation::STATUS_COMPLETED,
-            'cafe_id'      => 1,
-            'user_id'      => null,
-            'tracker_id'   => null,
-            'final_price'  => '10.00',
-            'check_in_at'  => '2024-01-01 14:00:00',
+            'id' => 42,
+            'status' => Reservation::STATUS_COMPLETED,
+            'cafe_id' => 1,
+            'user_id' => null,
+            'tracker_id' => null,
+            'final_price' => '10.00',
+            'check_in_at' => '2024-01-01 14:00:00',
             'check_out_at' => '2024-01-01 16:00:00',
         ];
     }
@@ -163,10 +164,10 @@ final class ReceptionServiceTest extends TestCase
     private function availableTracker(): array
     {
         return [
-            'id'      => 5,
+            'id' => 5,
             'cafe_id' => 1,
-            'code'    => 'A01',
-            'status'  => Tracker::STATUS_AVAILABLE,
+            'code' => 'A01',
+            'status' => Tracker::STATUS_AVAILABLE,
         ];
     }
 
@@ -212,7 +213,7 @@ final class ReceptionServiceTest extends TestCase
     public function test_processCheckin_with_valid_reservation_and_tracker_returns_ok_result(): void
     {
         $confirmed = $this->confirmedReservation();
-        $tracker   = $this->availableTracker();
+        $tracker = $this->availableTracker();
 
         $this->pdoStub->method('prepare')->willReturnOnConsecutiveCalls(
             $this->makeStmt($confirmed),    // findById (service)
@@ -222,7 +223,7 @@ final class ReceptionServiceTest extends TestCase
         );
 
         $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckin(42, 5);
+        $result = $service->processCheckin(42, 5);
 
         $this->assertTrue($result->ok);
         $this->assertTrue($result->data);
@@ -239,7 +240,7 @@ final class ReceptionServiceTest extends TestCase
         $this->pdoStub->method('prepare')->willReturn($this->makeStmt(false));
 
         $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckin(999, 5);
+        $result = $service->processCheckin(999, 5);
 
         $this->assertFalse($result->ok);
         $this->assertSame('not_found', $result->code);
@@ -252,7 +253,7 @@ final class ReceptionServiceTest extends TestCase
         $this->pdoStub->method('prepare')->willReturn($this->makeStmt($this->activeReservation()));
 
         $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckin(42, 5);
+        $result = $service->processCheckin(42, 5);
 
         $this->assertFalse($result->ok);
         $this->assertNotEmpty($result->error);
@@ -269,7 +270,7 @@ final class ReceptionServiceTest extends TestCase
         );
 
         $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckin(42, 5);
+        $result = $service->processCheckin(42, 5);
 
         $this->assertFalse($result->ok);
         $this->assertSame('tracker_not_available', $result->code);
@@ -290,7 +291,7 @@ final class ReceptionServiceTest extends TestCase
     #[Test]
     public function test_processCheckout_with_active_reservation_returns_ok_result(): void
     {
-        $active    = $this->activeReservation();
+        $active = $this->activeReservation();
         $completed = $this->completedReservation();
 
         $this->pdoStub->method('prepare')->willReturnOnConsecutiveCalls(
@@ -302,7 +303,7 @@ final class ReceptionServiceTest extends TestCase
         );
 
         $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckout(42);
+        $result = $service->processCheckout(42);
 
         $this->assertTrue($result->ok);
         $this->assertTrue($result->data['success']);
@@ -320,7 +321,7 @@ final class ReceptionServiceTest extends TestCase
         $this->pdoStub->method('prepare')->willReturn($this->makeStmt(false));
 
         $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckout(999);
+        $result = $service->processCheckout(999);
 
         $this->assertFalse($result->ok);
         $this->assertSame('not_found', $result->code);
@@ -333,7 +334,7 @@ final class ReceptionServiceTest extends TestCase
         $this->pdoStub->method('prepare')->willReturn($this->makeStmt($this->confirmedReservation()));
 
         $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckout(42);
+        $result = $service->processCheckout(42);
 
         $this->assertFalse($result->ok);
         $this->assertNotEmpty($result->error);
@@ -347,16 +348,16 @@ final class ReceptionServiceTest extends TestCase
     public function test_getProtocolStatus_returns_ok_with_protocol_data_when_reservation_exists(): void
     {
         $reservation = [
-            'id'                => 42,
-            'status'            => Reservation::STATUS_ACTIVE,
-            'protocol_hygiene'  => 1,
+            'id' => 42,
+            'status' => Reservation::STATUS_ACTIVE,
+            'protocol_hygiene' => 1,
             'protocol_briefing' => 1,
-            'protocol_shoes'    => 1,
+            'protocol_shoes' => 1,
         ];
         $this->pdoStub->method('prepare')->willReturn($this->makeStmt($reservation));
 
         $service = new ReceptionService($this->pdoStub);
-        $result  = $service->getProtocolStatus(42);
+        $result = $service->getProtocolStatus(42);
 
         $this->assertTrue($result->ok);
         $this->assertArrayHasKey('hygiene', $result->data);
@@ -372,7 +373,7 @@ final class ReceptionServiceTest extends TestCase
         $this->pdoStub->method('prepare')->willReturn($this->makeStmt(false));
 
         $service = new ReceptionService($this->pdoStub);
-        $result  = $service->getProtocolStatus(999);
+        $result = $service->getProtocolStatus(999);
 
         $this->assertFalse($result->ok);
         $this->assertSame('not_found', $result->code);

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -61,15 +60,15 @@ final class DashboardControllerTest extends TestCase
     public function testIndexRequiresAuthenticatedUser(): void
     {
         // Sin sesión activa, debe renderizar 403
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION = [];
 
-        ob_start();
+        \ob_start();
         $this->controller->index($this->request);
-        $output = ob_get_clean();
+        $output = \ob_get_clean();
 
         // Verificar que renderiza error 403 cuando no hay café asignado
         $this->assertIsString($output);

@@ -32,6 +32,7 @@ abstract class ControllerTestCase extends TestCase
         if (!empty($queryParams)) {
             $request = $request->withQueryParams($queryParams);
         }
+
         return $request;
     }
 
@@ -41,6 +42,7 @@ abstract class ControllerTestCase extends TestCase
         if (!empty($body)) {
             $request = $request->withParsedBody($body);
         }
+
         return $request;
     }
 
@@ -51,6 +53,7 @@ abstract class ControllerTestCase extends TestCase
         int $error = \UPLOAD_ERR_OK
     ): UploadedFileInterface {
         $factory = new Psr17Factory();
+
         return $factory->createUploadedFile(
             $factory->createStream($content),
             \strlen($content),
@@ -62,11 +65,11 @@ abstract class ControllerTestCase extends TestCase
 
     protected function asUser(int $userId = 1, string $role = 'user', ?int $cafeId = null): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
-        $_SESSION['user_id']      = $userId;
-        $_SESSION['user_role']    = $role;
+        $_SESSION['user_id'] = $userId;
+        $_SESSION['user_role'] = $role;
         $_SESSION['user_cafe_id'] = $cafeId;
     }
 

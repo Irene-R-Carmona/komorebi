@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -34,7 +33,7 @@ final class AuthServiceTest extends TestCase
     protected function setUp(): void
     {
         // Mock del repositorio UserRepository
-        $this->userRepoMock    = $this->createStub(UserRepository::class);
+        $this->userRepoMock = $this->createStub(UserRepository::class);
         $this->rateLimiterStub = $this->createStub(RateLimitingServiceInterface::class);
 
         // SessionManagementService es final → se usa instancia real
@@ -252,6 +251,7 @@ final class AuthServiceTest extends TestCase
                 $this->assertNotNull($capturedHash, 'Password hash should not be null');
                 $this->assertNotEquals($plainPassword, $capturedHash, 'Password should be hashed');
                 $this->assertStringStartsWith('$argon2id$', $capturedHash, 'Should use Argon2id');
+
                 return 1; // Retorna int (user ID)
             });
 
@@ -273,12 +273,12 @@ final class AuthServiceTest extends TestCase
     {
         $hash = password_hash('correct_password123!', PASSWORD_ARGON2ID);
         $this->userRepoMock->method('findByEmail')->willReturn([
-            'id'             => 1,
-            'email'          => 'user@example.com',
-            'password'       => $hash,
-            'is_active'      => 1,
-            'locked_until'   => null,
-            'name'           => 'Test User',
+            'id' => 1,
+            'email' => 'user@example.com',
+            'password' => $hash,
+            'is_active' => 1,
+            'locked_until' => null,
+            'name' => 'Test User',
             'login_attempts' => 0,
         ]);
 

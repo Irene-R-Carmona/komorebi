@@ -23,12 +23,12 @@ final class DashboardControllerTest extends ControllerTestCase
 {
     public function test_class_exists(): void
     {
-        $this->assertTrue(class_exists(DashboardController::class));
+        $this->assertTrue(\class_exists(DashboardController::class));
     }
 
     public function test_index_method_exists(): void
     {
-        $this->assertTrue(method_exists(DashboardController::class, 'index'));
+        $this->assertTrue(\method_exists(DashboardController::class, 'index'));
     }
 
     public function test_constructor_accepts_optional_dependencies(): void

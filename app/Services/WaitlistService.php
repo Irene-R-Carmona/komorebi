@@ -68,7 +68,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
 
         $slot = $slotResult->getDataOr(null);
 
-        if (!is_array($slot) || empty($slot)) {
+        if (!\is_array($slot) || empty($slot)) {
             return Result::fail('Time slot no encontrado');
         }
 
@@ -84,9 +84,9 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
         }
 
         // Generar token único
-        $token = bin2hex(random_bytes(16));
+        $token = \bin2hex(\random_bytes(16));
         $responseTimeout = (int) ($data['response_timeout_minutes'] ?? Waitlist::DEFAULT_RESPONSE_TIMEOUT);
-        $expiresAt = date('Y-m-d H:i:s', time() + ($responseTimeout * 60));
+        $expiresAt = \date('Y-m-d H:i:s', \time() + ($responseTimeout * 60));
 
         // Crear entrada en waitlist usando repositorio
         $waitlistData = [
@@ -159,11 +159,10 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 $startedTransaction = true;
             }
 
-
             // Obtener el siguiente en la cola
             $next = $this->waitlistRepository->getNextInLine($timeSlotId);
 
-            if (!is_array($next) || empty($next)) {
+            if (!\is_array($next) || empty($next)) {
                 if ($startedTransaction) {
                     $this->db->commit();
                 }
@@ -174,23 +173,23 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             // Normalizar y validar campos esenciales
             /** @var array<string,mixed> $next */
             $rawNextId = $next['id'] ?? null;
-            $nextId = is_scalar($rawNextId) ? (int) $rawNextId : 0;
+            $nextId = \is_scalar($rawNextId) ? (int) $rawNextId : 0;
 
             $rawUserId = $next['user_id'] ?? null;
-            $userId = is_scalar($rawUserId) ? (int) $rawUserId : 0;
+            $userId = \is_scalar($rawUserId) ? (int) $rawUserId : 0;
 
             $rawTimeout = $next['response_timeout_minutes'] ?? null;
-            $responseTimeout = is_scalar($rawTimeout) ? (int) $rawTimeout : Waitlist::DEFAULT_RESPONSE_TIMEOUT;
+            $responseTimeout = \is_scalar($rawTimeout) ? (int) $rawTimeout : Waitlist::DEFAULT_RESPONSE_TIMEOUT;
             $expiresAt = \date('Y-m-d H:i:s', \time() + ($responseTimeout * 60));
 
             $rawToken = $next['token'] ?? null;
-            $token = is_scalar($rawToken) ? (string) $rawToken : '';
+            $token = \is_scalar($rawToken) ? (string) $rawToken : '';
 
             $rawContact = $next['contact_email'] ?? null;
-            $contactEmail = is_scalar($rawContact) ? (string) $rawContact : '';
+            $contactEmail = \is_scalar($rawContact) ? (string) $rawContact : '';
 
             $rawGuestCount = $next['guest_count'] ?? null;
-            $guestCount = is_scalar($rawGuestCount) ? (int) $rawGuestCount : 1;
+            $guestCount = \is_scalar($rawGuestCount) ? (int) $rawGuestCount : 1;
 
             if ($nextId <= 0 || $userId <= 0) {
                 if ($startedTransaction) {
@@ -256,7 +255,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             // Buscar entrada de waitlist por token
             $waitlistEntry = $this->waitlistRepository->findByToken($token);
 
-            if (!is_array($waitlistEntry) || empty($waitlistEntry)) {
+            if (!\is_array($waitlistEntry) || empty($waitlistEntry)) {
                 if ($startedTransaction) {
                     $this->db->rollBack();
                 }
@@ -276,20 +275,20 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             // Normalizar campos importantes
             /** @var array<string,mixed> $waitlistEntry */
             $rawWaitlistId = $waitlistEntry['id'] ?? null;
-            $waitlistId = is_scalar($rawWaitlistId) ? (int) $rawWaitlistId : 0;
+            $waitlistId = \is_scalar($rawWaitlistId) ? (int) $rawWaitlistId : 0;
 
             $rawTimeSlotId = $waitlistEntry['time_slot_id'] ?? null;
-            $timeSlotIdInt = is_scalar($rawTimeSlotId) ? (int) $rawTimeSlotId : 0;
+            $timeSlotIdInt = \is_scalar($rawTimeSlotId) ? (int) $rawTimeSlotId : 0;
 
             $rawPosition = $waitlistEntry['position'] ?? null;
-            $position = is_scalar($rawPosition) ? (int) $rawPosition : 0;
+            $position = \is_scalar($rawPosition) ? (int) $rawPosition : 0;
 
             $rawGuestCount = $waitlistEntry['guest_count'] ?? null;
-            $guestCount = is_scalar($rawGuestCount) ? (int) $rawGuestCount : 1;
+            $guestCount = \is_scalar($rawGuestCount) ? (int) $rawGuestCount : 1;
 
             // Verificar que no haya expirado
             $rawExpires = $waitlistEntry['expires_at'] ?? null;
-            $expiresAtStr = is_scalar($rawExpires) ? (string) $rawExpires : '';
+            $expiresAtStr = \is_scalar($rawExpires) ? (string) $rawExpires : '';
             $expiresTimestamp = $expiresAtStr === '' ? false : \strtotime($expiresAtStr);
 
             if ($expiresTimestamp === false || $expiresTimestamp < \time()) {
@@ -321,8 +320,8 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
 
             /** @var array<string,mixed>|null $slot */
             $rawAvailable = $slot['available_spots'] ?? null;
-            $availableSpots = is_scalar($rawAvailable) ? (int) $rawAvailable : 0;
-            if (!is_array($slot) || $availableSpots <= 0) {
+            $availableSpots = \is_scalar($rawAvailable) ? (int) $rawAvailable : 0;
+            if (!\is_array($slot) || $availableSpots <= 0) {
                 if ($startedTransaction) {
                     $this->db->rollBack();
                 }
@@ -332,35 +331,35 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
 
             // Construir payload tipado para Reservation::create()
             $rawUserId = $waitlistEntry['user_id'] ?? null;
-            $userIdInt = is_scalar($rawUserId) ? (int) $rawUserId : 0;
+            $userIdInt = \is_scalar($rawUserId) ? (int) $rawUserId : 0;
 
             $rawCafeId = $slot['cafe_id'] ?? null;
-            $cafeIdInt = is_scalar($rawCafeId) ? (int) $rawCafeId : 0;
+            $cafeIdInt = \is_scalar($rawCafeId) ? (int) $rawCafeId : 0;
 
             $rawSlotDate = $slot['slot_date'] ?? null;
             $rawSlotTime = $slot['slot_time'] ?? null;
 
             $rawPassProduct = $reservationData['pass_product_id'] ?? null;
-            $passProductId = is_scalar($rawPassProduct) ? (int) $rawPassProduct : 0;
+            $passProductId = \is_scalar($rawPassProduct) ? (int) $rawPassProduct : 0;
 
             $rawPassName = $reservationData['pass_name'] ?? null;
-            $passName = is_scalar($rawPassName) ? (string) $rawPassName : 'Reserva desde Waitlist';
+            $passName = \is_scalar($rawPassName) ? (string) $rawPassName : 'Reserva desde Waitlist';
 
             $rawUnitPrice = $reservationData['pass_unit_price'] ?? null;
-            $unitPrice = is_scalar($rawUnitPrice) ? (int) $rawUnitPrice : 0;
+            $unitPrice = \is_scalar($rawUnitPrice) ? (int) $rawUnitPrice : 0;
 
             $rawDuration = $reservationData['pass_duration_minutes'] ?? null;
-            $duration = is_scalar($rawDuration) ? (int) $rawDuration : 60;
+            $duration = \is_scalar($rawDuration) ? (int) $rawDuration : 60;
 
             $rawSpecial = $waitlistEntry['special_requests'] ?? null;
-            $specialReq = is_scalar($rawSpecial) ? (string) $rawSpecial : '';
+            $specialReq = \is_scalar($rawSpecial) ? (string) $rawSpecial : '';
 
             $reservationPayload = [
                 'user_id' => $userIdInt,
                 'cafe_id' => $cafeIdInt,
                 'time_slot_id' => $timeSlotIdInt,
-                'reservation_date' => is_scalar($rawSlotDate) ? (string) $rawSlotDate : '',
-                'reservation_time' => is_scalar($rawSlotTime) ? (string) $rawSlotTime : '',
+                'reservation_date' => \is_scalar($rawSlotDate) ? (string) $rawSlotDate : '',
+                'reservation_time' => \is_scalar($rawSlotTime) ? (string) $rawSlotTime : '',
                 'guests' => $guestCount,
                 'pass_product_id' => $passProductId,
                 'pass_name' => $passName,
@@ -380,7 +379,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             }
 
             $reservation = $reservationResult->getDataOr([]);
-            if (!is_array($reservation)) {
+            if (!\is_array($reservation)) {
                 $reservation = [];
             }
 
@@ -494,9 +493,9 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
 
             // Reordenar posiciones (usar valores tipados)
             $rawTimeSlot = $entry['time_slot_id'] ?? null;
-            $timeSlotIdInt = is_scalar($rawTimeSlot) ? (int) $rawTimeSlot : 0;
+            $timeSlotIdInt = \is_scalar($rawTimeSlot) ? (int) $rawTimeSlot : 0;
             $rawPos = $entry['position'] ?? null;
-            $position = is_scalar($rawPos) ? (int) $rawPos : 0;
+            $position = \is_scalar($rawPos) ? (int) $rawPos : 0;
             $this->waitlistRepository->reorderPositions($timeSlotIdInt, $position);
 
             return Result::ok([
@@ -537,13 +536,13 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
     {
         $entry = $this->waitlistRepository->findByToken($token);
 
-        if (!is_array($entry) || empty($entry)) {
+        if (!\is_array($entry) || empty($entry)) {
             return Result::fail('Token de waitlist no válido o expirado');
         }
 
         // Obtener información del time slot (usar id tipado)
         $rawTimeSlotId = $entry['time_slot_id'] ?? null;
-        $timeSlotId = is_scalar($rawTimeSlotId) ? (int) $rawTimeSlotId : 0;
+        $timeSlotId = \is_scalar($rawTimeSlotId) ? (int) $rawTimeSlotId : 0;
         if ($timeSlotId <= 0) {
             return Result::fail('Time slot inválido');
         }
@@ -555,20 +554,20 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
         }
 
         $slot = $slotResult->getDataOr([]);
-        if (!is_array($slot)) {
+        if (!\is_array($slot)) {
             $slot = [];
         }
 
         // Calcular tiempo estimado de espera (15 min por posición)
         $rawPos = $entry['position'] ?? null;
-        $positionInt = is_scalar($rawPos) ? (int) $rawPos : 0;
-        $estimatedWaitMinutes = max(0, ($positionInt - 1) * 15);
+        $positionInt = \is_scalar($rawPos) ? (int) $rawPos : 0;
+        $estimatedWaitMinutes = \max(0, ($positionInt - 1) * 15);
 
         return Result::ok([
             'id' => $entry['id'],
             'position' => $positionInt,
             'status' => $entry['status'],
-            'guest_count' => is_scalar($entry['guest_count'] ?? null) ? (int) $entry['guest_count'] : 0,
+            'guest_count' => \is_scalar($entry['guest_count'] ?? null) ? (int) $entry['guest_count'] : 0,
             'special_requests' => $entry['special_requests'] ?? null,
             'estimated_wait_minutes' => $estimatedWaitMinutes,
             'expires_at' => $entry['expires_at'] ?? null,
@@ -604,7 +603,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
 
         return Result::ok([
             'waitlists' => $waitlists,
-            'count' => count($waitlists),
+            'count' => \count($waitlists),
         ]);
     }
 }

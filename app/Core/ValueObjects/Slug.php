@@ -12,7 +12,7 @@ final readonly class Slug
 
     public function __construct(string $value)
     {
-        if ($value === '' || !preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $value)) {
+        if ($value === '' || !\preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $value)) {
             throw new ValidationException(
                 'Slug inválido',
                 ['slug' => 'El slug solo puede contener letras minúsculas, números y guiones']

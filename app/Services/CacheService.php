@@ -46,6 +46,7 @@ final class CacheService implements CacheItemPoolInterface
                     if ($password && $password !== '') {
                         $redis->auth($password);
                     }
+
                     return new RedisAdapter($redis, 'komorebi', 3600);
                 }
             }

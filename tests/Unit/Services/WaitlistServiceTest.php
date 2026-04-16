@@ -52,8 +52,8 @@ final class WaitlistServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->dbMock           = $this->createStub(PDO::class);
-        $this->waitlistMock     = $this->createStub(WaitlistRepositoryInterface::class);
+        $this->dbMock = $this->createStub(PDO::class);
+        $this->waitlistMock = $this->createStub(WaitlistRepositoryInterface::class);
         $this->emailServiceStub = $this->createStub(EmailServiceInterface::class);
 
         // Ensure prepare() always returns a usable PDOStatement stub by default
@@ -73,7 +73,7 @@ final class WaitlistServiceTest extends TestCase
         // Default PDOStatement::fetch() returns null → TimeSlot::findById returns Result::ok(null)
         // WaitlistService checks !is_array(null) → Result::fail('Time slot no encontrado')
         $result = $this->service->joinWaitlist(99999, 1, [
-            'email'       => 'test@example.com',
+            'email' => 'test@example.com',
             'guest_count' => 2,
         ]);
 
@@ -85,11 +85,11 @@ final class WaitlistServiceTest extends TestCase
     public function testJoinWaitlistFailsWhenSlotsAvailable(): void
     {
         $slot = [
-            'id'              => 1,
+            'id' => 1,
             'available_spots' => 5,
-            'cafe_id'         => 1,
-            'slot_date'       => '2030-01-01',
-            'slot_time'       => '10:00:00',
+            'cafe_id' => 1,
+            'slot_date' => '2030-01-01',
+            'slot_time' => '10:00:00',
         ];
 
         // Use a fresh PDO stub so fetch() returns the slot (can't reconfigure an already-configured stub)
@@ -100,8 +100,8 @@ final class WaitlistServiceTest extends TestCase
         $dbMock->method('prepare')->willReturn($stmt);
 
         $service = new WaitlistService($dbMock, $this->createStub(EmailServiceInterface::class), $this->waitlistMock);
-        $result  = $service->joinWaitlist(1, 1, [
-            'email'       => 'test@example.com',
+        $result = $service->joinWaitlist(1, 1, [
+            'email' => 'test@example.com',
             'guest_count' => 2,
         ]);
 
@@ -126,13 +126,13 @@ final class WaitlistServiceTest extends TestCase
     public function testConfirmPromotionFailsWithExpiredToken(): void
     {
         $this->waitlistMock->method('findByToken')->willReturn([
-            'id'           => 1,
-            'status'       => 'notified',
-            'expires_at'   => '2000-01-01 00:00:00',
+            'id' => 1,
+            'status' => 'notified',
+            'expires_at' => '2000-01-01 00:00:00',
             'time_slot_id' => 1,
-            'position'     => 1,
-            'user_id'      => 1,
-            'guest_count'  => 1,
+            'position' => 1,
+            'user_id' => 1,
+            'guest_count' => 1,
         ]);
         $this->waitlistMock->method('updateStatus')->willReturn(true);
         $this->waitlistMock->method('reorderPositions')->willReturn(true);

@@ -28,7 +28,8 @@ final class ApiAuthMiddleware implements MiddlewareInterface
     public function __construct(
         private readonly ResponseFactory $response,
         private readonly ?ApiTokenServiceInterface $tokenService = null,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public function process(
@@ -37,22 +38,26 @@ final class ApiAuthMiddleware implements MiddlewareInterface
     ): ResponseInterface {
         // ── Bearer token path ────────────────────────────────────────────────
         $authHeader = $request->getHeaderLine('Authorization');
-        if (str_starts_with($authHeader, 'Bearer ')) {
-            $plain  = trim(substr($authHeader, 7));
+        if (\str_starts_with($authHeader, 'Bearer ')) {
+            $plain = \trim(\substr($authHeader, 7));
             $result = $this->tokenService?->validate($plain);
 
-            if ($result === null || !$result->ok) {
-                $detail = $result?->error ?? 'Token inválido o expirado.';
-                $code   = $result?->code  ?? 'invalid_token';
+            if ($result === null) {
+                return $this->response->problem(Result::fail('Token inválido o expirado.', 'invalid_token'), 401);
+            }
+            if (!$result->ok) {
+                $detail = $result->error ?? 'Token inválido o expirado.';
+                $code = $result->code ?? 'invalid_token';
+
                 return $this->response->problem(Result::fail($detail, $code), 401);
             }
 
             /** @var array{user_id: int, user: array<string,mixed>, user_roles: array<string>, token_id: int} $data */
-            $data    = $result->data;
-            $request = $request->withAttribute('user_id',    $data['user_id'])
-                                ->withAttribute('user',       $data['user'])
-                                ->withAttribute('user_roles', $data['user_roles'])
-                                ->withAttribute('auth_method', 'bearer');
+            $data = $result->data;
+            $request = $request->withAttribute('user_id', $data['user_id'])
+                ->withAttribute('user', $data['user'])
+                ->withAttribute('user_roles', $data['user_roles'])
+                ->withAttribute('auth_method', 'bearer');
 
             return $handler->handle($request);
         }
@@ -63,9 +68,9 @@ final class ApiAuthMiddleware implements MiddlewareInterface
 
         if (empty($userId)) {
             return $this->response->json([
-                'ok'    => false,
+                'ok' => false,
                 'error' => 'No autenticado.',
-                'code'  => 'unauthenticated',
+                'code' => 'unauthenticated',
             ], 401);
         }
 
@@ -83,9 +88,9 @@ final class ApiAuthMiddleware implements MiddlewareInterface
             Session::destroy();
 
             return $this->response->json([
-                'ok'    => false,
+                'ok' => false,
                 'error' => 'Cuenta desactivada.',
-                'code'  => 'account_disabled',
+                'code' => 'account_disabled',
             ], 401);
         }
 

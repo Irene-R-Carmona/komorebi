@@ -91,7 +91,7 @@ if ($usagePercent > 90) {
 // 4. Verificar queues de workers (Redis debe estar disponible)
 if (getenv('REDIS_HOST') && isset($redis)) {
     try {
-        $emailPending        = (int) ($redis->lLen('queue:emails') ?: 0);
+        $emailPending = (int) ($redis->lLen('queue:emails') ?: 0);
         $notificationPending = (int) ($redis->lLen('queue:notifications') ?: 0);
 
         $queueStatus = static function (int $pending): string {
@@ -101,25 +101,26 @@ if (getenv('REDIS_HOST') && isset($redis)) {
             if ($pending >= 1000) {
                 return 'warning';
             }
+
             return 'ok';
         };
 
-        $emailStatus        = $queueStatus($emailPending);
+        $emailStatus = $queueStatus($emailPending);
         $notificationStatus = $queueStatus($notificationPending);
 
         $checks['workers'] = [
             'emails' => [
-                'status'  => $emailStatus,
+                'status' => $emailStatus,
                 'pending' => $emailPending,
             ],
             'notifications' => [
-                'status'  => $notificationStatus,
+                'status' => $notificationStatus,
                 'pending' => $notificationPending,
             ],
         ];
 
         if ($emailStatus === 'unhealthy' || $notificationStatus === 'unhealthy') {
-            $healthy    = false;
+            $healthy = false;
             $statusCode = 503;
         }
     } catch (Throwable $e) {
@@ -130,8 +131,8 @@ if (getenv('REDIS_HOST') && isset($redis)) {
 // Respuesta
 http_response_code($statusCode);
 echo json_encode([
-    'status'    => $healthy ? 'healthy' : 'unhealthy',
+    'status' => $healthy ? 'healthy' : 'unhealthy',
     'timestamp' => date('c'),
-    'version'   => getenv('APP_VERSION') ?: 'unknown',
-    'checks'    => $checks,
+    'version' => getenv('APP_VERSION') ?: 'unknown',
+    'checks' => $checks,
 ], JSON_PRETTY_PRINT);

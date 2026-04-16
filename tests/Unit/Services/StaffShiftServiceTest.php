@@ -36,7 +36,7 @@ final class StaffShiftServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repoStub = $this->createStub(StaffShiftRepositoryInterface::class);
-        $this->service  = new StaffShiftService($this->repoStub);
+        $this->service = new StaffShiftService($this->repoStub);
     }
 
     // ─────────────────────────────────────────────────────────────

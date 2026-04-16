@@ -20,15 +20,15 @@ namespace Tests\Unit\Http\Controllers\Shared;
 use App\Core\Http\ResponseFactory;
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Shared\ReservationController;
+use App\Models\Reservation;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
-use App\Services\Contracts\EmailServiceInterface;
-use App\Services\Contracts\InvoicePDFServiceInterface;
-use App\Models\Reservation;
 use App\Services\AvailabilityService;
 use App\Services\CartService;
 use App\Services\Contracts\ClimaContextoServiceInterface;
+use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\FestivosJaponesesService;
 use App\Services\ReservationService;
 use Tests\Support\ControllerTestCase;
@@ -37,8 +37,8 @@ final class ReservationControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION = [];
     }
@@ -58,6 +58,7 @@ final class ReservationControllerTest extends ControllerTestCase
             $this->createStub(InvoicePDFServiceInterface::class),
             $this->createStub(EmailServiceInterface::class),
         );
+
         return new ReservationController(
             cartService: $this->createStub(CartService::class),
             reservationService: $reservations,
@@ -78,7 +79,7 @@ final class ReservationControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(ReservationController::class, 'index'));
-        $this->assertTrue(method_exists(ReservationController::class, 'create'));
+        $this->assertTrue(\method_exists(ReservationController::class, 'index'));
+        $this->assertTrue(\method_exists(ReservationController::class, 'create'));
     }
 }

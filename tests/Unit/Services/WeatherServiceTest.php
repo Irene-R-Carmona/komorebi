@@ -21,8 +21,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
-use App\Services\WeatherService;
 use App\Core\Result;
+use App\Services\WeatherService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 

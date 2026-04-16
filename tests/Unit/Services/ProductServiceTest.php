@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
 
-use App\Services\ProductService;
 use App\Repositories\ProductRepository;
+use App\Services\ProductService;
 use PHPUnit\Framework\TestCase;
 
 /**

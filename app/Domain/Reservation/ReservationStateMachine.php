@@ -22,12 +22,12 @@ final class ReservationStateMachine
 {
     /** Mapa declarativo de transiciones válidas: estado_origen → [estados_destino] */
     private const array TRANSITIONS = [
-        'pending'   => ['confirmed', 'cancelled'],
+        'pending' => ['confirmed', 'cancelled'],
         'confirmed' => ['active', 'cancelled', 'no_show'],
-        'active'    => ['completed'],
+        'active' => ['completed'],
         'completed' => [],
         'cancelled' => [],
-        'no_show'   => [],
+        'no_show' => [],
     ];
 
     /**

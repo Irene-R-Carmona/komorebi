@@ -28,15 +28,15 @@ final class KitchenControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         // KitchenController llama Middleware::auth() en constructor
         $_SESSION['user_id'] = 1;
         $_SESSION['user'] = ['id' => 1, 'name' => 'Chef', 'roles' => ['kitchen']];
         $_SESSION['user_roles'] = ['kitchen'];
         // Evita que el TTL check dispare fetchUserFromDb() en tests unitarios
-        $_SESSION['_user_verified_at'] = time();
+        $_SESSION['_user_verified_at'] = \time();
     }
 
     protected function tearDown(): void
@@ -66,16 +66,16 @@ final class KitchenControllerTest extends ControllerTestCase
         $this->expectException(ValidationException::class);
 
         $this->makeController()->ready(
-            (new ServerRequest('POST', '/ops/kitchen/ready'))
+            new ServerRequest('POST', '/ops/kitchen/ready')
                 ->withParsedBody(['item_id' => 0])
         );
     }
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(KitchenController::class, 'index'));
-        $this->assertTrue(method_exists(KitchenController::class, 'ready'));
-        $this->assertTrue(method_exists(KitchenController::class, 'activeOrders'));
-        $this->assertTrue(method_exists(KitchenController::class, 'completeOrder'));
+        $this->assertTrue(\method_exists(KitchenController::class, 'index'));
+        $this->assertTrue(\method_exists(KitchenController::class, 'ready'));
+        $this->assertTrue(\method_exists(KitchenController::class, 'activeOrders'));
+        $this->assertTrue(\method_exists(KitchenController::class, 'completeOrder'));
     }
 }

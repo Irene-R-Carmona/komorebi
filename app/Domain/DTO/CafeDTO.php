@@ -23,7 +23,8 @@ final readonly class CafeDTO implements DomainTransferObject
         public string $timezone,
         public bool $is_active,
         public ?string $image_url,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public static function fromArray(array $data): static
@@ -52,22 +53,22 @@ final readonly class CafeDTO implements DomainTransferObject
     public function toViewArray(): array
     {
         return [
-            'id'             => $this->id,
-            'slug'           => $this->slug,
-            'name'           => $this->name,
-            'japanese_name'  => $this->japanese_name,
-            'description'    => $this->description,
-            'location'       => $this->location,
-            'category'       => $this->category,
-            'animal_type'    => $this->animal_type,
+            'id' => $this->id,
+            'slug' => $this->slug,
+            'name' => $this->name,
+            'japanese_name' => $this->japanese_name,
+            'description' => $this->description,
+            'location' => $this->location,
+            'category' => $this->category,
+            'animal_type' => $this->animal_type,
             'price_per_hour' => $this->price_per_hour,
-            'capacity_max'   => $this->capacity_max,
-            'rating_avg'     => $this->rating_avg,
-            'opening_time'   => $this->opening_time,
-            'closing_time'   => $this->closing_time,
-            'timezone'       => $this->timezone,
-            'is_active'      => $this->is_active,
-            'image_url'      => $this->image_url,
+            'capacity_max' => $this->capacity_max,
+            'rating_avg' => $this->rating_avg,
+            'opening_time' => $this->opening_time,
+            'closing_time' => $this->closing_time,
+            'timezone' => $this->timezone,
+            'is_active' => $this->is_active,
+            'image_url' => $this->image_url,
         ];
     }
 }

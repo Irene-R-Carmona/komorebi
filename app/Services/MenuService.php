@@ -18,7 +18,7 @@ use App\Services\Contracts\MenuServiceInterface;
  * - Decodificar JSON de alérgenos y atributos de forma segura
  * - Preparar datos para renderizado en vista
  */
-class MenuService extends BaseService implements MenuServiceInterface
+final class MenuService extends BaseService implements MenuServiceInterface
 {
     private MenuRepositoryInterface $menuRepository;
 
@@ -56,7 +56,7 @@ class MenuService extends BaseService implements MenuServiceInterface
         // Agrupar productos por category_id
         $grouped = [];
         foreach ($products as $product) {
-            $categoryId = (int)$product['category_id'];
+            $categoryId = (int) $product['category_id'];
             if (!isset($grouped[$categoryId])) {
                 $grouped[$categoryId] = [];
             }
@@ -64,19 +64,19 @@ class MenuService extends BaseService implements MenuServiceInterface
             // Parsear allergen_ids y allergen_names en allergens_list
             $allergensList = [];
             if (!empty($product['allergen_ids'])) {
-                $ids = explode(',', $product['allergen_ids']);
-                $names = explode(',', $product['allergen_names']);
-                $icons = !empty($product['allergen_icons']) ? explode(',', $product['allergen_icons']) : [];
-                $colors = !empty($product['allergen_colors']) ? explode(',', $product['allergen_colors']) : [];
-                $severities = !empty($product['allergen_severities']) ? explode(',', $product['allergen_severities']) : [];
+                $ids = \explode(',', $product['allergen_ids']);
+                $names = \explode(',', $product['allergen_names']);
+                $icons = !empty($product['allergen_icons']) ? \explode(',', $product['allergen_icons']) : [];
+                $colors = !empty($product['allergen_colors']) ? \explode(',', $product['allergen_colors']) : [];
+                $severities = !empty($product['allergen_severities']) ? \explode(',', $product['allergen_severities']) : [];
 
                 foreach ($ids as $idx => $id) {
                     $allergensList[] = [
-                        'id' => (int)$id,
+                        'id' => (int) $id,
                         'name' => $names[$idx] ?? '',
                         'icon' => $icons[$idx] ?? '',
                         'icon_color' => $colors[$idx] ?? '',
-                        'severity' => $severities[$idx] ?? 'moderate'
+                        'severity' => $severities[$idx] ?? 'moderate',
                     ];
                 }
             }

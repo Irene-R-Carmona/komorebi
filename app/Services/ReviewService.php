@@ -20,7 +20,7 @@ use RuntimeException;
  * Gestiona la lógica de negocio para reseñas: creación, edición y eliminación
  * por el propietario, más verificación de elegibilidad.
  */
-class ReviewService extends BaseService implements ReviewServiceInterface
+final class ReviewService extends BaseService implements ReviewServiceInterface
 {
     private User $userModel;
 

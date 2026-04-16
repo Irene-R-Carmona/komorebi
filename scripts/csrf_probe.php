@@ -38,19 +38,19 @@ echo "Running CSRF probe\n";
 
 // 1) GET page
 [$info, $body, $err] = runCurl('http://localhost/auth/forgot-password');
-echo "GET -> HTTP: " . ($info['http_code'] ?? 'N/A') . "\n";
+echo 'GET -> HTTP: ' . ($info['http_code'] ?? 'N/A') . "\n";
 if ($err) {
     echo "GET curl error: $err\n";
 }
 echo "--- page head ---\n";
-echo substr((string)$body, 0, 800) . "\n";
+echo substr((string) $body, 0, 800) . "\n";
 
 // 2) Extract token
 $token = '';
-if (preg_match('/<meta name="csrf-token" content="([^"]+)"/s', (string)$body, $m)) {
+if (preg_match('/<meta name="csrf-token" content="([^"]+)"/s', (string) $body, $m)) {
     $token = $m[1];
 }
-echo "token: " . ($token === '' ? '<empty>' : substr($token, 0, 6) . '...') . " len=" . strlen($token) . "\n";
+echo 'token: ' . ($token === '' ? '<empty>' : substr($token, 0, 6) . '...') . ' len=' . strlen($token) . "\n";
 
 // 3) POST
 [$info2, $body2, $err2] = runCurl('http://localhost/forgot-password', [
@@ -58,12 +58,12 @@ echo "token: " . ($token === '' ? '<empty>' : substr($token, 0, 6) . '...') . " 
     CURLOPT_POSTFIELDS => http_build_query(['email' => 'test@example.com', 'csrf_token' => $token]),
 ]);
 
-echo "POST -> HTTP: " . ($info2['http_code'] ?? 'N/A') . "\n";
+echo 'POST -> HTTP: ' . ($info2['http_code'] ?? 'N/A') . "\n";
 if ($err2) {
     echo "POST curl error: $err2\n";
 }
 echo "--- post head/body ---\n";
-echo substr((string)$body2, 0, 800) . "\n";
+echo substr((string) $body2, 0, 800) . "\n";
 
 echo "--- tail php-error.log ---\n";
 passthru('tail -n 200 storage/logs/php-error.log 2>/dev/null || true');

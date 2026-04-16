@@ -51,7 +51,7 @@ final class TimeSlotController
         }
 
         $slots = $result->data;
-        if (!is_array($slots)) {
+        if (!\is_array($slots)) {
             $slots = [];
         }
 
@@ -65,7 +65,7 @@ final class TimeSlotController
                 ],
                 'total_slots' => \count($slots),
                 'slots' => \array_map(function ($slot) {
-                    $slot = is_array($slot) ? $slot : [];
+                    $slot = \is_array($slot) ? $slot : [];
 
                     $slotTime = (string) ($slot['slot_time'] ?? '');
                     $available = isset($slot['available_spots']) ? (int) $slot['available_spots'] : 0;

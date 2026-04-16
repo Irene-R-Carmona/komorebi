@@ -9,7 +9,6 @@ use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
-use App\Repositories\StaffShiftRepository;
 use App\Repositories\UserRepository;
 use App\Services\Contracts\StaffShiftServiceInterface;
 use App\Services\StaffShiftService;
@@ -73,6 +72,7 @@ final class StaffController
             'cafe_id' => $cafeId,
             'csrf_token' => Csrf::token(),
         ], ['manager/staff.css'], 'backoffice');
+
         return null;
     }
 
@@ -115,6 +115,7 @@ final class StaffController
             'shift_history' => $shiftHistory,
             'csrf_token' => Csrf::token(),
         ], ['manager/staff.css'], 'backoffice');
+
         return null;
     }
 
@@ -150,7 +151,7 @@ final class StaffController
             ], 400);
         }
 
-        if (empty($shiftDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $shiftDate)) {
+        if (empty($shiftDate) || !\preg_match('/^\d{4}-\d{2}-\d{2}$/', $shiftDate)) {
             return $this->response->json([
                 'success' => false,
                 'error' => 'Fecha de turno inválida (formato: YYYY-MM-DD)',
@@ -198,15 +199,16 @@ final class StaffController
 
         if (!$result->ok) {
             $status = $result->code === 'shift_overlap' ? 400 : 500;
+
             return $this->response->json([
                 'success' => false,
-                'error'   => $result->getMessage(),
+                'error' => $result->getMessage(),
             ], $status);
         }
 
         return $this->response->json([
-            'success'  => true,
-            'message'  => 'Turno asignado correctamente',
+            'success' => true,
+            'message' => 'Turno asignado correctamente',
             'shift_id' => $result->data['shift_id'],
         ]);
     }
@@ -267,13 +269,13 @@ final class StaffController
         if (!$metricsResult->ok) {
             return $this->response->json([
                 'success' => false,
-                'error'   => $metricsResult->getMessage(),
+                'error' => $metricsResult->getMessage(),
             ], 500);
         }
 
         return $this->response->json([
             'success' => true,
-            'staff'   => $staffMember,
+            'staff' => $staffMember,
             'metrics' => $metricsResult->data,
         ]);
     }
@@ -283,7 +285,7 @@ final class StaffController
      */
     private function isValidTime(string $time): bool
     {
-        return (bool) preg_match('/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/', $time);
+        return (bool) \preg_match('/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/', $time);
     }
 
     /**
@@ -294,7 +296,7 @@ final class StaffController
         $normalized1 = $this->normalizeTime($time1);
         $normalized2 = $this->normalizeTime($time2);
 
-        return strcmp($normalized1, $normalized2) <=> 0;
+        return \strcmp($normalized1, $normalized2) <=> 0;
     }
 
     /**
@@ -302,7 +304,7 @@ final class StaffController
      */
     private function normalizeTime(string $time): string
     {
-        if (preg_match('/^(\d{2}):(\d{2})$/', $time)) {
+        if (\preg_match('/^(\d{2}):(\d{2})$/', $time)) {
             return $time . ':00';
         }
 

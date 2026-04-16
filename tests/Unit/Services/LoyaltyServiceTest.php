@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -113,7 +112,7 @@ final class LoyaltyServiceTest extends TestCase
         $this->assertIsArray($platinumRewards);
 
         // Platinum debe tener todas las recompensas de bronze + más
-        $this->assertGreaterThanOrEqual(count($bronzeRewards), count($platinumRewards));
+        $this->assertGreaterThanOrEqual(\count($bronzeRewards), \count($platinumRewards));
     }
 
     #[TestDox('getAvailableRewards filtra por sellos disponibles')]
@@ -124,6 +123,6 @@ final class LoyaltyServiceTest extends TestCase
         // Con muchos sellos debe retornar todas las recompensas accesibles
         $manyStampsRewards = $this->service->getAvailableRewards('gold', 50);
 
-        $this->assertLessThanOrEqual(count($manyStampsRewards), count($fewStampsRewards));
+        $this->assertLessThanOrEqual(\count($manyStampsRewards), \count($fewStampsRewards));
     }
 }

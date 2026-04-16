@@ -43,14 +43,14 @@ final class EmailWorker
     {
         Logger::info('[EmailWorker] Iniciado', [
             'queue' => self::QUEUE_NAME,
-            'pid' => getmypid(),
+            'pid' => \getmypid(),
             'env' => Config::getString('app.env', 'production'),
         ]);
 
         $this->echoToConsole('[EmailWorker] Escuchando cola de emails...');
 
-        $this->startTime     = microtime(true);
-        $this->lastHeartbeat = microtime(true);
+        $this->startTime = \microtime(true);
+        $this->lastHeartbeat = \microtime(true);
 
         while (!$this->shouldStop) {
             try {
@@ -73,7 +73,7 @@ final class EmailWorker
                 Logger::critical('[EmailWorker] Error en loop', [
                     'error' => $e->getMessage(),
                 ]);
-                sleep(5); // Evitar CPU spinning
+                \sleep(5); // Evitar CPU spinning
             }
         }
 
@@ -86,7 +86,7 @@ final class EmailWorker
      */
     private function emitHeartbeatIfDue(): void
     {
-        $now = microtime(true);
+        $now = \microtime(true);
         if (($now - $this->lastHeartbeat) < self::HEARTBEAT_INTERVAL) {
             return;
         }
@@ -94,12 +94,12 @@ final class EmailWorker
         $this->lastHeartbeat = $now;
 
         Logger::info('[EmailWorker] Heartbeat', [
-            'queue'      => self::QUEUE_NAME,
-            'pending'    => Queue::size(self::QUEUE_NAME),
-            'processed'  => $this->processed,
-            'errors'     => $this->errors,
-            'uptime_s'   => (int) ($now - $this->startTime),
-            'pid'        => getmypid(),
+            'queue' => self::QUEUE_NAME,
+            'pending' => Queue::size(self::QUEUE_NAME),
+            'processed' => $this->processed,
+            'errors' => $this->errors,
+            'uptime_s' => (int) ($now - $this->startTime),
+            'pid' => \getmypid(),
         ]);
     }
 
@@ -110,7 +110,7 @@ final class EmailWorker
     {
         $jobClass = $jobData['job'] ?? null;
 
-        if (!$jobClass || !class_exists($jobClass)) {
+        if (!$jobClass || !\class_exists($jobClass)) {
             Logger::error('[EmailWorker] Job inválido', ['data' => $jobData]);
 
             return;
@@ -126,18 +126,18 @@ final class EmailWorker
             return;
         }
 
-        $start = microtime(true);
+        $start = \microtime(true);
         $this->echoToConsole("[EmailWorker] Procesando: $jobClass");
 
         WideEvent::reset();
         WideEvent::set('job_class', $jobClass);
         WideEvent::set('queue', self::QUEUE_NAME);
-        WideEvent::set('pid', getmypid());
+        WideEvent::set('pid', \getmypid());
         WideEvent::set('request_id', ($jobData['payload'] ?? [])['_correlation_id'] ?? '');
 
         try {
             $job->handle($jobData['payload'] ?? []);
-            $duration = round((microtime(true) - $start) * 1000, 2);
+            $duration = \round((\microtime(true) - $start) * 1000, 2);
             $this->processed++;
 
             WideEvent::set('duration_ms', $duration);
@@ -145,12 +145,12 @@ final class EmailWorker
             Logger::channel('queue')->info('job.canonical', WideEvent::all());
         } catch (Throwable $e) {
             $this->errors++;
-            $duration = round((microtime(true) - $start) * 1000, 2);
+            $duration = \round((\microtime(true) - $start) * 1000, 2);
 
             WideEvent::set('duration_ms', $duration);
             WideEvent::set('outcome', 'error');
             WideEvent::setSection('error', [
-                'type'    => \get_class($e),
+                'type' => \get_class($e),
                 'message' => $e->getMessage(),
             ]);
             Logger::channel('queue')->info('job.canonical', WideEvent::all());
@@ -200,7 +200,7 @@ final class EmailWorker
      */
     private function setupSignalHandling(): void
     {
-        if (!function_exists('pcntl_signal')) {
+        if (!\function_exists('pcntl_signal')) {
             return;
         }
 
@@ -219,9 +219,9 @@ final class EmailWorker
             $this->shouldStop = true;
         };
 
-        pcntl_signal(SIGTERM, $handler);
-        pcntl_signal(SIGINT, $handler);
-        pcntl_async_signals(true);
+        \pcntl_signal(SIGTERM, $handler);
+        \pcntl_signal(SIGINT, $handler);
+        \pcntl_async_signals(true);
     }
 
     /**
@@ -229,8 +229,8 @@ final class EmailWorker
      */
     private function processSignals(): void
     {
-        if (function_exists('pcntl_signal_dispatch')) {
-            pcntl_signal_dispatch();
+        if (\function_exists('pcntl_signal_dispatch')) {
+            \pcntl_signal_dispatch();
         }
     }
 
@@ -254,6 +254,6 @@ final class EmailWorker
      */
     private function echoToConsole(string $message): void
     {
-        fwrite(STDOUT, $message . "\n");
+        \fwrite(STDOUT, $message . "\n");
     }
 }

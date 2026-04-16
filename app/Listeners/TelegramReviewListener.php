@@ -13,15 +13,15 @@ final class TelegramReviewListener
 {
     public function __invoke(ReviewPublishedEvent $event): void
     {
-        $stars   = str_repeat('⭐', $event->rating);
+        $stars = \str_repeat('⭐', $event->rating);
         $message = "Reseña #: {$event->reviewId}\n"
             . "Puntuación: {$stars} ({$event->rating}/5)\n"
             . "Comentario: {$event->comment}";
 
         Queue::push(SendTelegramNotificationJob::class, [
-            'icon'            => '⭐',
-            'title'           => 'Nueva reseña publicada',
-            'message'         => $message,
+            'icon' => '⭐',
+            'title' => 'Nueva reseña publicada',
+            'message' => $message,
             '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
     }

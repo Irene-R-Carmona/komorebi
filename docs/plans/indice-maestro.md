@@ -244,5 +244,7 @@ FASE 4 (independiente de Fases 0-3)
 | Fase 3 | `docs/plans/2026-04-13-uiux-vistas-publicas.md` | ✅ Plan creado — en implementación |
 | Fase 4 | `docs/plans/2026-04-14-brand-visual-unification.md` | 🟡 En implementación — A✅ B✅(B4 pendiente) D(parcial)✅ E1+E2✅ — C y resto D pendientes |
 | Sprint QoL | `docs/plans/2026-04-14-qol-holistic-sprint.md` | 🔵 Plan creado — pendiente inicio |
-| Pre-defensa TFG | `docs/plans/2026-04-15-refuerzo-predefensa-tfg.md` | 🟡 En implementación — F1 ✅, F2 omitida (suite ya verde), F3 pendiente |
+| Pre-defensa TFG | ~~`docs/plans/2026-04-15-refuerzo-predefensa-tfg.md`~~ | ✅ Completado y eliminado (2026-04-16) — PHPStan L5 0 errores, PSR-12 0 violaciones, tests 0 fallos |
 | Ecosystem Cleanup | ~~`docs/plans/2026-04-15-ecosystem-cleanup.md`~~ | ✅ Completado y eliminado (2026-04-15) — commit `ecbae94` |
+| Infra + Calidad Integral | `docs/plans/2026-04-15-infra-calidad-integral.md` | � En implementación — F3 (tooling) ✅, Docker headers ✅, A/B/C/D pendientes |
+| FrankenPHP + Stack Optimization | `docs/plans/2026-04-15-frankenphp-stack-optimization.md` | 🔵 Plan creado — pendiente inicio |

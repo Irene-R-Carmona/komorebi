@@ -37,7 +37,7 @@ final class CartControllerTest extends ControllerTestCase
         $response = $this->makeController()->get($this->makeGetRequest('/api/cart'));
 
         $this->assertSame(200, $response->getStatusCode());
-        $body = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
         $this->assertTrue($body['ok']);
         $this->assertArrayHasKey('items', $body['data']);
     }
@@ -47,7 +47,7 @@ final class CartControllerTest extends ControllerTestCase
         $response = $this->makeController()->guest($this->makeGetRequest('/api/cart/guest'));
 
         $this->assertSame(200, $response->getStatusCode());
-        $body = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
         $this->assertSame(0, $body['data']['totalQty']);
         $this->assertSame(0, $body['data']['totalPrice']);
     }
@@ -70,11 +70,11 @@ final class CartControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(CartController::class, 'get'));
-        $this->assertTrue(method_exists(CartController::class, 'guest'));
-        $this->assertTrue(method_exists(CartController::class, 'add'));
-        $this->assertTrue(method_exists(CartController::class, 'remove'));
-        $this->assertTrue(method_exists(CartController::class, 'update'));
-        $this->assertTrue(method_exists(CartController::class, 'clear'));
+        $this->assertTrue(\method_exists(CartController::class, 'get'));
+        $this->assertTrue(\method_exists(CartController::class, 'guest'));
+        $this->assertTrue(\method_exists(CartController::class, 'add'));
+        $this->assertTrue(\method_exists(CartController::class, 'remove'));
+        $this->assertTrue(\method_exists(CartController::class, 'update'));
+        $this->assertTrue(\method_exists(CartController::class, 'clear'));
     }
 }

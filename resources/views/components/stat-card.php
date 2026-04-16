@@ -10,16 +10,16 @@ $small ??= false;
 $bgStyle = match ($color) {
     'success' => 'background: var(--admin-success-light, rgba(94,111,100,0.1));',
     'warning' => 'background: var(--admin-warning-light, rgba(230,149,0,0.1));',
-    'danger'  => 'background: var(--admin-error-light, rgba(155,35,53,0.1));',
-    'info'    => 'background: var(--admin-info-light, rgba(59,130,246,0.1));',
-    default   => 'background: var(--admin-primary-light, rgba(92,61,46,0.1));',
+    'danger' => 'background: var(--admin-error-light, rgba(155,35,53,0.1));',
+    'info' => 'background: var(--admin-info-light, rgba(59,130,246,0.1));',
+    default => 'background: var(--admin-primary-light, rgba(92,61,46,0.1));',
 };
 $textStyle = match ($color) {
     'success' => 'color: var(--admin-success, #5E6F64);',
     'warning' => 'color: var(--admin-warning, #E69500);',
-    'danger'  => 'color: var(--admin-error, #9B2335);',
-    'info'    => 'color: var(--admin-info, #3B82F6);',
-    default   => 'color: var(--admin-primary, #5C3D2E);',
+    'danger' => 'color: var(--admin-error, #9B2335);',
+    'info' => 'color: var(--admin-info, #3B82F6);',
+    default => 'color: var(--admin-primary, #5C3D2E);',
 };
 ?>
 

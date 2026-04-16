@@ -68,11 +68,11 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
     private function reservationRow(): array
     {
         return [
-            'id'          => 1,
-            'user_id'     => 10,
-            'cafe_id'     => 1,
-            'cafe_name'   => 'Test Café',
-            'status'      => Reservation::STATUS_PENDING,
+            'id' => 1,
+            'user_id' => 10,
+            'cafe_id' => 1,
+            'cafe_name' => 'Test Café',
+            'status' => Reservation::STATUS_PENDING,
             'time_slot_id' => 5,
             'guest_count' => 2,
         ];
@@ -89,7 +89,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
         \PDOStatement $waitlistQueueStmt,
         ?\PDOStatement $waitlistNotifyStmt = null
     ): ReservationTimeSlotService {
-        $reservation    = $this->reservationRow();
+        $reservation = $this->reservationRow();
 
         // Reservation PDO:
         //   1ª prepare → findById (validateAndFetchReservation)
@@ -105,8 +105,8 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
         // TimeSlot PDO (incrementSpots gestiona su propia transacción interna):
         //   1ª prepare → SELECT FOR UPDATE (verificar capacidad)
         //   2ª prepare → UPDATE available_spots
-        $slotRow     = ['total_capacity' => 10, 'available_spots' => 3];
-        $timeSlotDb  = $this->createStub(\PDO::class);
+        $slotRow = ['total_capacity' => 10, 'available_spots' => 3];
+        $timeSlotDb = $this->createStub(\PDO::class);
         $timeSlotDb->method('beginTransaction')->willReturn(true);
         $timeSlotDb->method('commit')->willReturn(true);
         $timeSlotDb->method('prepare')->willReturnOnConsecutiveCalls(
@@ -144,7 +144,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
     {
         // getNextInQueue devuelve false → nadie en cola
         $service = $this->buildService($this->makeStmt(false));
-        $result  = $service->cancelReservationAndPromote(1);
+        $result = $service->cancelReservationAndPromote(1);
 
         $this->assertTrue($result->isOk());
         $this->assertSame(0, $result->data['promoted_users']);
@@ -161,7 +161,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
         $notifyStmt = $this->makeStmt(false, 0);
 
         $service = $this->buildService($queueStmt, $notifyStmt);
-        $result  = $service->cancelReservationAndPromote(1);
+        $result = $service->cancelReservationAndPromote(1);
 
         $this->assertTrue($result->isOk());
         $this->assertSame(0, $result->data['promoted_users']);

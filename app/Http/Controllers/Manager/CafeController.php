@@ -67,6 +67,7 @@ final class CafeController
             'cafe' => $cafe,
             'csrf_token' => Csrf::token(),
         ], ['manager/cafe-management.css'], 'backoffice');
+
         return null;
     }
 

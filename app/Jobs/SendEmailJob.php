@@ -61,7 +61,7 @@ final class SendEmailJob implements JobInterface
     private function configureEmailRecipients(PHPMailer $mail, array $payload): void
     {
         $to = isset($payload['to']) ? (string) $payload['to'] : '';
-        if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        if ($to === '' || !\filter_var($to, FILTER_VALIDATE_EMAIL)) {
             throw new ExternalServiceException('Destinatario inválido en SendEmailJob', 'SendEmailJob');
         }
         $mail->addAddress($to);
@@ -76,7 +76,7 @@ final class SendEmailJob implements JobInterface
         if (isset($payload['cc']) && \is_array($payload['cc'])) {
             foreach ($payload['cc'] as $cc) {
                 $ccEmail = (string) $cc;
-                if ($ccEmail !== '' && filter_var($ccEmail, FILTER_VALIDATE_EMAIL)) {
+                if ($ccEmail !== '' && \filter_var($ccEmail, FILTER_VALIDATE_EMAIL)) {
                     $mail->addCC($ccEmail);
                 }
             }
@@ -85,7 +85,7 @@ final class SendEmailJob implements JobInterface
         if (isset($payload['bcc']) && \is_array($payload['bcc'])) {
             foreach ($payload['bcc'] as $bcc) {
                 $bccEmail = (string) $bcc;
-                if ($bccEmail !== '' && filter_var($bccEmail, FILTER_VALIDATE_EMAIL)) {
+                if ($bccEmail !== '' && \filter_var($bccEmail, FILTER_VALIDATE_EMAIL)) {
                     $mail->addBCC($bccEmail);
                 }
             }
@@ -108,8 +108,8 @@ final class SendEmailJob implements JobInterface
     private function configureEmailAttachments(PHPMailer $mail, array $payload): void
     {
         // Soporte para adjunto único (attachment_path + attachment_name)
-        if (isset($payload['attachment_path']) && file_exists($payload['attachment_path'])) {
-            $attachmentName = $payload['attachment_name'] ?? basename($payload['attachment_path']);
+        if (isset($payload['attachment_path']) && \file_exists($payload['attachment_path'])) {
+            $attachmentName = $payload['attachment_name'] ?? \basename($payload['attachment_path']);
             $mail->addAttachment($payload['attachment_path'], $attachmentName);
             Logger::debug('[SendEmailJob] Adjunto añadido', [
                 'path' => $payload['attachment_path'],

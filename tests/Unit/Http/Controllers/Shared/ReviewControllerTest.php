@@ -29,17 +29,17 @@ final class ReviewControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION = [];
-        $_POST    = [];
+        $_POST = [];
     }
 
     protected function tearDown(): void
     {
         $_SESSION = [];
-        $_POST    = [];
+        $_POST = [];
     }
 
     private function makeController(): ReviewController
@@ -61,11 +61,11 @@ final class ReviewControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(ReviewController::class, 'create'));
-        $this->assertTrue(method_exists(ReviewController::class, 'update'));
-        $this->assertTrue(method_exists(ReviewController::class, 'delete'));
-        $this->assertTrue(method_exists(ReviewController::class, 'pending'));
-        $this->assertTrue(method_exists(ReviewController::class, 'approve'));
-        $this->assertTrue(method_exists(ReviewController::class, 'reject'));
+        $this->assertTrue(\method_exists(ReviewController::class, 'create'));
+        $this->assertTrue(\method_exists(ReviewController::class, 'update'));
+        $this->assertTrue(\method_exists(ReviewController::class, 'delete'));
+        $this->assertTrue(\method_exists(ReviewController::class, 'pending'));
+        $this->assertTrue(\method_exists(ReviewController::class, 'approve'));
+        $this->assertTrue(\method_exists(ReviewController::class, 'reject'));
     }
 }

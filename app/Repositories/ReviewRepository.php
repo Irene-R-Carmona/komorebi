@@ -27,14 +27,14 @@ final class ReviewRepository implements ReviewRepositoryInterface
      */
     public function findById(int $id): ?array
     {
-        $sql = "
+        $sql = '
             SELECT r.*, u.name as user_name, c.name as cafe_name
             FROM reviews r
             INNER JOIN users u ON r.user_id = u.id
             INNER JOIN cafes c ON r.cafe_id = c.id
             WHERE r.id = :id
             LIMIT 1
-        ";
+        ';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['id' => $id]);
@@ -49,13 +49,13 @@ final class ReviewRepository implements ReviewRepositoryInterface
      */
     public function findByUserId(int $userId): array
     {
-        $sql = "
+        $sql = '
             SELECT r.*, c.name as cafe_name
             FROM reviews r
             INNER JOIN cafes c ON r.cafe_id = c.id
             WHERE r.user_id = :user_id
             ORDER BY r.created_at DESC
-        ";
+        ';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['user_id' => $userId]);
@@ -68,14 +68,14 @@ final class ReviewRepository implements ReviewRepositoryInterface
      */
     public function findByCafeId(int $cafeId, string $status = 'approved'): array
     {
-        $sql = "
+        $sql = '
             SELECT r.*, u.name as user_name
             FROM reviews r
             INNER JOIN users u ON r.user_id = u.id
             WHERE r.cafe_id = :cafe_id
               AND r.status = :status
             ORDER BY r.created_at DESC
-        ";
+        ';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId, 'status' => $status]);
@@ -139,10 +139,10 @@ final class ReviewRepository implements ReviewRepositoryInterface
      */
     public function create(array $data): int
     {
-        $sql = "
+        $sql = '
             INSERT INTO reviews (user_id, cafe_id, rating, title, body, status, rejection_reason)
             VALUES (:user_id, :cafe_id, :rating, :title, :body, :status, :rejection_reason)
-        ";
+        ';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
@@ -168,7 +168,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
         $params = ['id' => $id];
 
         foreach ($data as $field => $value) {
-            if (in_array($field, $allowedFields, true)) {
+            if (\in_array($field, $allowedFields, true)) {
                 $updates[] = "{$field} = :{$field}";
                 $params[$field] = $value;
             }
@@ -178,7 +178,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
             return true;
         }
 
-        $sql = "UPDATE reviews SET " . implode(', ', $updates) . ", updated_at = NOW() WHERE id = :id";
+        $sql = 'UPDATE reviews SET ' . \implode(', ', $updates) . ', updated_at = NOW() WHERE id = :id';
 
         $stmt = $this->db->prepare($sql);
 
@@ -190,7 +190,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
      */
     public function updateStatus(int $id, string $status): bool
     {
-        $sql = "UPDATE reviews SET status = :status, updated_at = NOW() WHERE id = :id";
+        $sql = 'UPDATE reviews SET status = :status, updated_at = NOW() WHERE id = :id';
 
         $stmt = $this->db->prepare($sql);
 
@@ -202,7 +202,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
      */
     public function delete(int $id): bool
     {
-        $sql = "DELETE FROM reviews WHERE id = :id";
+        $sql = 'DELETE FROM reviews WHERE id = :id';
 
         $stmt = $this->db->prepare($sql);
 
@@ -234,13 +234,13 @@ final class ReviewRepository implements ReviewRepositoryInterface
      */
     public function userHasReview(int $userId, int $cafeId): bool
     {
-        $sql = "
+        $sql = '
             SELECT 1
             FROM reviews
             WHERE user_id = :user_id
               AND cafe_id = :cafe_id
             LIMIT 1
-        ";
+        ';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);

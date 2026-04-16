@@ -558,7 +558,7 @@ final class Animal
     {
         $relationships = $this->getRelationships($animalId);
 
-        return \array_values(\array_filter($relationships, static fn($r) => $r['type'] === 'hostile'));
+        return \array_values(\array_filter($relationships, static fn ($r) => $r['type'] === 'hostile'));
     }
 
     // ─────────────────────────────────────────────────────────────

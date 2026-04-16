@@ -50,8 +50,8 @@
     <!-- BOTTOM NAV -->
     <nav class="mobile-bottom-nav">
         <?php if (!empty($mobileMenu)): foreach ($mobileMenu as $item):
-                $isActive = ($_SERVER['REQUEST_URI'] == $item['url']) ? 'active' : '';
-        ?>
+            $isActive = ($_SERVER['REQUEST_URI'] == $item['url']) ? 'active' : '';
+            ?>
                 <a href="<?= $item['url'] ?>" class="nav-icon <?= $isActive ?>">
                     <i class="ph ph-<?= $item['icon'] ?>"></i>
                     <span><?= $item['label'] ?></span>

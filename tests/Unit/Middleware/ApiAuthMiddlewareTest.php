@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * Tests unitarios del middleware ApiAuthMiddleware.
@@ -41,13 +40,13 @@ final class ApiAuthMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         $this->responseFactory = new ResponseFactory();
-        $this->request         = $this->createStub(ServerRequestInterface::class);
+        $this->request = $this->createStub(ServerRequestInterface::class);
     }
 
     protected function tearDown(): void
     {
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_destroy();
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
         }
     }
 
@@ -78,10 +77,10 @@ final class ApiAuthMiddlewareTest extends TestCase
     public function testValidBearerSetsAttributesAndDelegatesToHandler(): void
     {
         $tokenData = [
-            'user_id'    => 7,
-            'user'       => ['id' => 7, 'name' => 'Test', 'is_active' => 1],
+            'user_id' => 7,
+            'user' => ['id' => 7, 'name' => 'Test', 'is_active' => 1],
             'user_roles' => ['admin'],
-            'token_id'   => 1,
+            'token_id' => 1,
         ];
 
         $tokenService = $this->createStub(ApiTokenServiceInterface::class);
@@ -94,7 +93,7 @@ final class ApiAuthMiddlewareTest extends TestCase
         // withAttribute() retorna la misma instancia (fluent)
         $this->request->method('withAttribute')->willReturnSelf();
 
-        $handler  = $this->mockHandlerReturning(200);
+        $handler = $this->mockHandlerReturning(200);
         $response = $this->buildMiddleware($tokenService)->process($this->request, $handler);
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
@@ -141,13 +140,13 @@ final class ApiAuthMiddlewareTest extends TestCase
         $this->request->method('getHeaderLine')
             ->willReturn('');
 
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
         // Sin user_id en sesión
         unset($_SESSION['user_id']);
 
-        $handler  = $this->createStub(RequestHandlerInterface::class);
+        $handler = $this->createStub(RequestHandlerInterface::class);
         $response = $this->buildMiddleware()->process($this->request, $handler);
 
         $this->assertSame(401, $response->getStatusCode());

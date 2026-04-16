@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Csrf;
+
 ?>
 <div class="confirm-container">
     <div class="success-icon"><i class="bi bi-stars" aria-hidden="true"></i></div>

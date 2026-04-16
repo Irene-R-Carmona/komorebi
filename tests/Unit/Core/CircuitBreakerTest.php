@@ -43,7 +43,7 @@ final class CircuitBreakerTest extends TestCase
 
     public function testClosedCircuitAllowsOperationAndReturnsValue(): void
     {
-        $result = CircuitBreaker::call(self::CIRCUIT, fn() => 42);
+        $result = CircuitBreaker::call(self::CIRCUIT, fn () => 42);
 
         $this->assertSame(42, $result);
     }
@@ -53,13 +53,13 @@ final class CircuitBreakerTest extends TestCase
         // (FAILURE_THRESHOLD - 1) fallos consecutivos: circuito sigue CLOSED
         for ($i = 0; $i < CircuitBreaker::FAILURE_THRESHOLD - 1; $i++) {
             try {
-                CircuitBreaker::call(self::CIRCUIT, fn() => throw new RuntimeException('fallo'));
+                CircuitBreaker::call(self::CIRCUIT, fn () => throw new RuntimeException('fallo'));
             } catch (RuntimeException) {
                 // registrado por el CB, continuamos
             }
         }
 
-        $result = CircuitBreaker::call(self::CIRCUIT, fn() => 'ok');
+        $result = CircuitBreaker::call(self::CIRCUIT, fn () => 'ok');
 
         $this->assertSame('ok', $result);
     }
@@ -69,14 +69,14 @@ final class CircuitBreakerTest extends TestCase
         // Exactamente FAILURE_THRESHOLD fallos consecutivos → circuito se abre
         for ($i = 0; $i < CircuitBreaker::FAILURE_THRESHOLD; $i++) {
             try {
-                CircuitBreaker::call(self::CIRCUIT, fn() => throw new RuntimeException('servicio caído'));
+                CircuitBreaker::call(self::CIRCUIT, fn () => throw new RuntimeException('servicio caído'));
             } catch (RuntimeException) {
                 // fallo esperado
             }
         }
 
         $this->expectException(CircuitOpenException::class);
-        CircuitBreaker::call(self::CIRCUIT, fn() => 'rechazada');
+        CircuitBreaker::call(self::CIRCUIT, fn () => 'rechazada');
     }
 
     public function testOpenCircuitRejectsCallWithoutExecutingOperation(): void
@@ -84,6 +84,7 @@ final class CircuitBreakerTest extends TestCase
         CircuitBreaker::forceOpenAt(self::CIRCUIT, \time());
 
         $operationExecuted = false;
+
         try {
             CircuitBreaker::call(self::CIRCUIT, function () use (&$operationExecuted) {
                 $operationExecuted = true;
@@ -102,7 +103,7 @@ final class CircuitBreakerTest extends TestCase
         CircuitBreaker::forceOpenAt(self::CIRCUIT, $pastTimestamp);
 
         // La sonda en HALF_OPEN debe ejecutarse y retornar el valor
-        $result = CircuitBreaker::call(self::CIRCUIT, fn() => 'sonda exitosa');
+        $result = CircuitBreaker::call(self::CIRCUIT, fn () => 'sonda exitosa');
 
         $this->assertSame('sonda exitosa', $result);
     }
@@ -113,10 +114,10 @@ final class CircuitBreakerTest extends TestCase
         CircuitBreaker::forceOpenAt(self::CIRCUIT, $pastTimestamp);
 
         // Sonda exitosa → circuito se cierra
-        CircuitBreaker::call(self::CIRCUIT, fn() => 'sonda ok');
+        CircuitBreaker::call(self::CIRCUIT, fn () => 'sonda ok');
 
         // Circuito CLOSED: llamadas normales funcionan sin lanzar CircuitOpenException
-        $result = CircuitBreaker::call(self::CIRCUIT, fn() => 'llamada normal');
+        $result = CircuitBreaker::call(self::CIRCUIT, fn () => 'llamada normal');
         $this->assertSame('llamada normal', $result);
     }
 
@@ -127,14 +128,14 @@ final class CircuitBreakerTest extends TestCase
 
         // Sonda fallida → circuito reabierto
         try {
-            CircuitBreaker::call(self::CIRCUIT, fn() => throw new RuntimeException('servicio aún caído'));
+            CircuitBreaker::call(self::CIRCUIT, fn () => throw new RuntimeException('servicio aún caído'));
         } catch (RuntimeException) {
             // fallo esperado
         }
 
         // Circuito OPEN de nuevo → siguiente llamada rechazada
         $this->expectException(CircuitOpenException::class);
-        CircuitBreaker::call(self::CIRCUIT, fn() => 'rechazada');
+        CircuitBreaker::call(self::CIRCUIT, fn () => 'rechazada');
     }
 
     public function testResetClearsAllState(): void
@@ -143,7 +144,7 @@ final class CircuitBreakerTest extends TestCase
         CircuitBreaker::reset(self::CIRCUIT);
 
         // Después del reset, el circuito vuelve a CLOSED
-        $result = CircuitBreaker::call(self::CIRCUIT, fn() => 'post-reset');
+        $result = CircuitBreaker::call(self::CIRCUIT, fn () => 'post-reset');
         $this->assertSame('post-reset', $result);
     }
 }

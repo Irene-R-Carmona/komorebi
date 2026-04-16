@@ -15,10 +15,10 @@ use App\Exceptions\ValidationException;
 use App\Services\AuthService;
 use App\Services\Contracts\AccountDeletionServiceInterface;
 use App\Services\Contracts\AuthServiceInterface;
+use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\Contracts\SessionManagementServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
-use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\FileUploadService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -77,6 +77,7 @@ final class AccountController
             'sessions' => $sessions,
             'csrf_token' => Csrf::token(),
         ]);
+
         return null;
     }
 
@@ -141,6 +142,7 @@ final class AccountController
         View::render('shared/account/security', [
             'auth_history' => $authHistory,
         ]);
+
         return null;
     }
 
@@ -157,6 +159,7 @@ final class AccountController
         View::render('shared/account/change-password', [
             'csrf_token' => Csrf::token(),
         ]);
+
         return null;
     }
 
@@ -177,6 +180,7 @@ final class AccountController
 
         if (!$currentPassword || !$newPassword || !$confirmPassword) {
             Flash::error('Todos los campos son requeridos.');
+
             return $this->response->redirect('/account/change-password');
         }
 
@@ -191,6 +195,7 @@ final class AccountController
             Flash::success('Contraseña actualizada exitosamente. Por seguridad, se revocaron otras sesiones.');
         } else {
             Flash::error($result->error);
+
             return $this->response->redirect('/account/change-password');
         }
 
@@ -204,8 +209,10 @@ final class AccountController
     {
         if (!$this->authService->check()) {
             Flash::error('Debes iniciar sesión.');
+
             return $this->response->redirect('/auth/login');
         }
+
         return null;
     }
 
@@ -224,6 +231,7 @@ final class AccountController
 
         if (!$result->ok) {
             Flash::error($result->getMessage());
+
             return $this->response->redirect('/account');
         }
 
@@ -272,6 +280,7 @@ final class AccountController
 
         if ($updateResult->isFail()) {
             $this->fileUploadService->deleteFile($result->data);
+
             return $this->response->problem(Result::fail('Error al actualizar el avatar', 'server_error'), 500);
         }
 

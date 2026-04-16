@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Kitchen;
 
+use App\Core\Flash;
+use App\Core\Http\ResponseFactory;
 use App\Core\Middleware;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Services\ContextServiceInstance;
-use App\Core\Flash;
-use App\Core\Http\ResponseFactory;
 use App\Services\KitchenService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -83,6 +83,7 @@ final class KitchenController
                 'cold' => \count($stations['cold']),
             ],
         ], ['workspaces/kds.css'], 'kds');
+
         return null;
     }
 
@@ -105,13 +106,14 @@ final class KitchenController
         }
 
         $completed = $this->service->getCompletedToday($cafeId);
-        $cafeName  = $this->context->getCafeName();
+        $cafeName = $this->context->getCafeName();
 
         View::render('kitchen/history', [
-            'titulo'    => "Historial de hoy - $cafeName",
+            'titulo' => "Historial de hoy - $cafeName",
             'completed' => $completed,
             'cafe_name' => $cafeName,
         ], ['workspaces/kds.css'], 'kds');
+
         return null;
     }
 
@@ -149,12 +151,14 @@ final class KitchenController
 
         if ($cafeId === null) {
             Flash::error('KDS requiere un contexto de sede. Contacta a tu administrador.');
+
             return $this->response->redirect('/ops/kitchen');
         }
 
         $orders = $this->service->getAllPending($cafeId);
 
         View::render('kitchen/index', ['orders' => $orders], ['workspaces/kds.css'], 'kds');
+
         return null;
     }
 
@@ -171,10 +175,12 @@ final class KitchenController
 
         if (!$ok) {
             Flash::error('No se pudo completar el pedido.');
+
             return $this->response->redirect('/ops/kitchen');
         }
 
         Flash::success('Pedido completado.');
+
         return $this->response->redirect('/ops/kitchen');
     }
 

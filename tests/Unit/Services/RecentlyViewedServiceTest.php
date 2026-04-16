@@ -64,7 +64,7 @@ final class RecentlyViewedServiceTest extends TestCase
 
     public function testGetAllRetornaArrayDeEnterosCuandoCookieValida(): void
     {
-        $_COOKIE[CookieManager::RECENTLY_VIEWED] = json_encode([3, 7, 1]);
+        $_COOKIE[CookieManager::RECENTLY_VIEWED] = \json_encode([3, 7, 1]);
 
         $result = $this->service->getAll();
 
@@ -90,7 +90,7 @@ final class RecentlyViewedServiceTest extends TestCase
 
     public function testGetAllRetornaArrayVacioCuandoCookieEsStringNoArray(): void
     {
-        $_COOKIE[CookieManager::RECENTLY_VIEWED] = json_encode('solo-un-string');
+        $_COOKIE[CookieManager::RECENTLY_VIEWED] = \json_encode('solo-un-string');
 
         $result = $this->service->getAll();
 
@@ -105,7 +105,7 @@ final class RecentlyViewedServiceTest extends TestCase
     public function testGetAllConvierteValoresAEnteros(): void
     {
         // La cookie puede contener strings que deben convertirse a int
-        $_COOKIE[CookieManager::RECENTLY_VIEWED] = json_encode(['5', '12', '3']);
+        $_COOKIE[CookieManager::RECENTLY_VIEWED] = \json_encode(['5', '12', '3']);
 
         $result = $this->service->getAll();
 

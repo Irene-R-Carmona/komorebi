@@ -35,12 +35,12 @@ final class AnimalIncidentControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION['_csrf_token'] = self::CSRF_TOKEN;
-        $_SESSION['user_id']     = 1;
-        $_SESSION['user']        = ['id' => 1, 'name' => 'Keeper Test', 'roles' => ['keeper']];
+        $_SESSION['user_id'] = 1;
+        $_SESSION['user'] = ['id' => 1, 'name' => 'Keeper Test', 'roles' => ['keeper']];
     }
 
     protected function tearDown(): void
@@ -66,9 +66,9 @@ final class AnimalIncidentControllerTest extends TestCase
 
     private function makeController(?AnimalCareService $service = null): AnimalIncidentController
     {
-        $pdo     = $this->makePdoStub();
+        $pdo = $this->makePdoStub();
         $animalRepo = new AnimalRepository($pdo);
-        $service = $service ?? new AnimalCareService($pdo, $animalRepo);
+        $service ??= new AnimalCareService($pdo, $animalRepo);
 
         return new AnimalIncidentController(
             $service,
@@ -89,12 +89,12 @@ final class AnimalIncidentControllerTest extends TestCase
             ['id' => 1, 'animal_name' => 'Leo', 'severity' => 'high', 'description' => 'Injury', 'status' => 'open', 'created_at' => '2024-01-15 10:30:00'],
         ]);
 
-        $pdo     = $this->makePdoStub();
+        $pdo = $this->makePdoStub();
         $service = new AnimalCareService($pdo, $animalRepo);
 
-        ob_start();
+        \ob_start();
         $result = $this->makeController($service)->index(new ServerRequest('GET', '/keeper/incidents'));
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
     }
@@ -106,9 +106,9 @@ final class AnimalIncidentControllerTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_create_renders_form_and_returns_null(): void
     {
-        ob_start();
+        \ob_start();
         $result = $this->makeController()->create(new ServerRequest('GET', '/keeper/incidents/create'));
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
     }
@@ -123,11 +123,11 @@ final class AnimalIncidentControllerTest extends TestCase
         $service = $this->createStub(AnimalCareService::class);
         $service->method('createIncident')->willReturn(Result::ok('Incidente reportado correctamente'));
 
-        $request = (new ServerRequest('POST', '/keeper/incidents'))
+        $request = new ServerRequest('POST', '/keeper/incidents')
             ->withParsedBody([
-                'csrf_token'  => self::CSRF_TOKEN,
-                'animal_id'   => '3',
-                'severity'    => 'high',
+                'csrf_token' => self::CSRF_TOKEN,
+                'animal_id' => '3',
+                'severity' => 'high',
                 'description' => 'Animal herido en el recinto trasero, requiere atención.',
             ]);
 
@@ -141,11 +141,11 @@ final class AnimalIncidentControllerTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_store_throws_on_invalid_csrf(): void
     {
-        $request = (new ServerRequest('POST', '/keeper/incidents'))
+        $request = new ServerRequest('POST', '/keeper/incidents')
             ->withParsedBody([
-                'csrf_token'  => 'invalid-token',
-                'animal_id'   => '3',
-                'severity'    => 'high',
+                'csrf_token' => 'invalid-token',
+                'animal_id' => '3',
+                'severity' => 'high',
                 'description' => 'Animal herido en el recinto trasero.',
             ]);
 
@@ -159,11 +159,11 @@ final class AnimalIncidentControllerTest extends TestCase
         $service = $this->createStub(AnimalCareService::class);
         $service->method('createIncident')->willReturn(Result::fail('Descripción demasiado corta'));
 
-        $request = (new ServerRequest('POST', '/keeper/incidents'))
+        $request = new ServerRequest('POST', '/keeper/incidents')
             ->withParsedBody([
-                'csrf_token'  => self::CSRF_TOKEN,
-                'animal_id'   => '3',
-                'severity'    => 'high',
+                'csrf_token' => self::CSRF_TOKEN,
+                'animal_id' => '3',
+                'severity' => 'high',
                 'description' => 'Corto',
             ]);
 
@@ -190,12 +190,12 @@ final class AnimalIncidentControllerTest extends TestCase
             'created_at' => '2024-01-15 10:30:00',
         ]);
 
-        ob_start();
+        \ob_start();
         $result = $this->makeController($service)->show(
             new ServerRequest('GET', '/keeper/incidents/5'),
             5
         );
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
     }
@@ -210,7 +210,7 @@ final class AnimalIncidentControllerTest extends TestCase
         $service = $this->createStub(AnimalCareService::class);
         $service->method('resolveIncident')->willReturn(Result::ok('Incidente resuelto correctamente'));
 
-        $request = (new ServerRequest('POST', '/keeper/incidents/5/resolve'))
+        $request = new ServerRequest('POST', '/keeper/incidents/5/resolve')
             ->withParsedBody([
                 'csrf_token' => self::CSRF_TOKEN,
                 'resolution' => 'Se trató al animal y quedó estable.',
@@ -226,7 +226,7 @@ final class AnimalIncidentControllerTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_resolve_throws_on_invalid_csrf(): void
     {
-        $request = (new ServerRequest('POST', '/keeper/incidents/5/resolve'))
+        $request = new ServerRequest('POST', '/keeper/incidents/5/resolve')
             ->withParsedBody([
                 'csrf_token' => 'bad-token',
                 'resolution' => 'Se trató al animal.',

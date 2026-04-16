@@ -298,7 +298,7 @@ final class Waitlist
                 $params[$k] = $v;
             }
 
-            $sql = 'UPDATE waitlist SET ' . implode(', ', $set) . ' WHERE id = :id';
+            $sql = 'UPDATE waitlist SET ' . \implode(', ', $set) . ' WHERE id = :id';
 
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
@@ -780,7 +780,7 @@ final class Waitlist
 
         $summary = [];
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $summary[$row['status']] = (int)$row['count'];
+            $summary[$row['status']] = (int) $row['count'];
         }
 
         return $summary;
@@ -797,12 +797,12 @@ final class Waitlist
     {
         try {
             $sql = <<<'SQL'
-                UPDATE waitlist
-                SET position = position - 1, updated_at = CURRENT_TIMESTAMP
-                WHERE time_slot_id = :time_slot_id
-                  AND position > :pos
-                  AND status IN ('waiting', 'notified')
-            SQL;
+                    UPDATE waitlist
+                    SET position = position - 1, updated_at = CURRENT_TIMESTAMP
+                    WHERE time_slot_id = :time_slot_id
+                      AND position > :pos
+                      AND status IN ('waiting', 'notified')
+                SQL;
 
             $stmt = $this->db->prepare($sql);
             $stmt->execute(['time_slot_id' => $timeSlotId, 'pos' => $removedPosition]);
@@ -821,12 +821,13 @@ final class Waitlist
     {
         try {
             $sql = <<<'SQL'
-                SELECT * FROM waitlist
-                WHERE status IN ('waiting', 'notified')
-                  AND expires_at < CURRENT_TIMESTAMP
-            SQL;
+                    SELECT * FROM waitlist
+                    WHERE status IN ('waiting', 'notified')
+                      AND expires_at < CURRENT_TIMESTAMP
+                SQL;
 
             $stmt = $this->db->query($sql);
+
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             return [];
@@ -864,6 +865,7 @@ final class Waitlist
             $sql = 'SELECT COUNT(*) FROM waitlist WHERE time_slot_id = :time_slot_id AND status IN (\'waiting\', \'notified\')';
             $stmt = $this->db->prepare($sql);
             $stmt->execute(['time_slot_id' => $timeSlotId]);
+
             return (int) $stmt->fetchColumn();
         } catch (PDOException $e) {
             return 0;
@@ -880,23 +882,23 @@ final class Waitlist
     {
         try {
             $sql = <<<'SQL'
-                SELECT
-                    w.id,
-                    w.time_slot_id,
-                    w.position,
-                    w.status,
-                    w.guest_count,
-                    w.created_at,
-                    ts.slot_date,
-                    ts.slot_time,
-                    c.name AS cafe_name
-                FROM waitlist w
-                INNER JOIN time_slots ts ON w.time_slot_id = ts.id
-                INNER JOIN cafes c ON ts.cafe_id = c.id
-                WHERE w.user_id = :user_id
-                ORDER BY w.created_at DESC
-                LIMIT :limit
-            SQL;
+                    SELECT
+                        w.id,
+                        w.time_slot_id,
+                        w.position,
+                        w.status,
+                        w.guest_count,
+                        w.created_at,
+                        ts.slot_date,
+                        ts.slot_time,
+                        c.name AS cafe_name
+                    FROM waitlist w
+                    INNER JOIN time_slots ts ON w.time_slot_id = ts.id
+                    INNER JOIN cafes c ON ts.cafe_id = c.id
+                    WHERE w.user_id = :user_id
+                    ORDER BY w.created_at DESC
+                    LIMIT :limit
+                SQL;
 
             $stmt = $this->db->prepare($sql);
             $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
@@ -924,6 +926,7 @@ final class Waitlist
             SQL;
 
         $stmt = $this->db->prepare($sql);
+
         return $stmt->execute(['id' => $id]);
     }
 }

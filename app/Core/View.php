@@ -31,14 +31,13 @@ final class View
     public static function getSecurityHeaders(): array
     {
         return [
-            'Content-Security-Policy'   => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
-            'X-Frame-Options'           => 'DENY',
-            'X-Content-Type-Options'    => 'nosniff',
-            'Referrer-Policy'           => 'strict-origin-when-cross-origin',
-            'Permissions-Policy'        => 'geolocation=(), microphone=(), camera=()',
+            'Content-Security-Policy' => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
+            'X-Frame-Options' => 'DENY',
+            'X-Content-Type-Options' => 'nosniff',
+            'Referrer-Policy' => 'strict-origin-when-cross-origin',
+            'Permissions-Policy' => 'geolocation=(), microphone=(), camera=()',
         ];
     }
-
 
     /**
      * Renderiza una vista con layout opcional.
@@ -61,7 +60,7 @@ final class View
         // 1) Extraer extraCss y extraJs del array de datos ANTES de escapar
         // El extraCss puede venir como parámetro o dentro de $data
         if (!empty($data['extraCss'])) {
-            $extraCss = array_merge($extraCss, (array)$data['extraCss']);
+            $extraCss = \array_merge($extraCss, (array) $data['extraCss']);
             unset($data['extraCss']);
         }
 
@@ -258,8 +257,8 @@ final class View
     public static function img(string $src, string $alt, array $attrs = []): string
     {
         // Escapar src y alt para seguridad
-        $escapedSrc = htmlspecialchars($src, ENT_QUOTES, 'UTF-8');
-        $escapedAlt = htmlspecialchars($alt, ENT_QUOTES, 'UTF-8');
+        $escapedSrc = \htmlspecialchars($src, ENT_QUOTES, 'UTF-8');
+        $escapedAlt = \htmlspecialchars($alt, ENT_QUOTES, 'UTF-8');
 
         // Default loading strategy: lazy (performance)
         $loading = $attrs['loading'] ?? 'lazy';
@@ -272,8 +271,8 @@ final class View
                 continue; // Skip null/false attributes
             }
 
-            $escapedKey = htmlspecialchars($key, ENT_QUOTES, 'UTF-8');
-            $escapedValue = htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+            $escapedKey = \htmlspecialchars($key, ENT_QUOTES, 'UTF-8');
+            $escapedValue = \htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
             $attrsString .= " {$escapedKey}=\"{$escapedValue}\"";
         }
 
@@ -304,7 +303,7 @@ final class View
     {
         $viewFile = self::resolvePath($view);
 
-        $scope = new class {
+        $scope = new class () {
             public array $sections = [];
             private ?string $current = null;
             public ?string $layout = null;

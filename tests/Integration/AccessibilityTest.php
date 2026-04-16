@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -36,7 +35,7 @@ final class AccessibilityTest extends TestCase
     {
         require_once __DIR__ . '/../../resources/views/components/button.php';
 
-        $html = renderButton(['label' => 'Test Button']);
+        $html = \renderButton(['label' => 'Test Button']);
 
         // Tiene elemento button o a con role="button"
         $this->assertMatchesRegularExpression('/<button|<a[^>]+role="button"/', $html);
@@ -45,7 +44,7 @@ final class AccessibilityTest extends TestCase
         $this->assertStringContainsString('Test Button', $html);
 
         // No tiene disabled sin aria-disabled
-        if (str_contains($html, 'disabled')) {
+        if (\str_contains($html, 'disabled')) {
             $this->assertStringContainsString('aria-disabled', $html);
         }
     }
@@ -57,10 +56,10 @@ final class AccessibilityTest extends TestCase
     {
         require_once __DIR__ . '/../../resources/views/components/modal.php';
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'test-modal',
             'title' => 'Test Modal',
-            'body' => 'Content'
+            'body' => 'Content',
         ]);
 
         // Tiene role="dialog"
@@ -83,13 +82,13 @@ final class AccessibilityTest extends TestCase
     {
         require_once __DIR__ . '/../../resources/views/components/badge.php';
 
-        $html = renderBadge(['label' => 'Active', 'variant' => 'success']);
+        $html = \renderBadge(['label' => 'Active', 'variant' => 'success']);
 
         // Tiene texto visible
         $this->assertStringContainsString('Active', $html);
 
         // No usa solo color para transmitir información (tiene texto)
-        $this->assertNotEmpty(strip_tags($html));
+        $this->assertNotEmpty(\strip_tags($html));
     }
 
     /**
@@ -99,13 +98,13 @@ final class AccessibilityTest extends TestCase
     {
         require_once __DIR__ . '/../../resources/views/components/badge.php';
 
-        $html = renderBadge([
+        $html = \renderBadge([
             'label' => 'Success',
-            'icon' => 'check_circle'
+            'icon' => 'check_circle',
         ]);
 
         // Iconos decorativos tienen aria-hidden="true"
-        if (str_contains($html, 'material-symbols-outlined')) {
+        if (\str_contains($html, 'material-symbols-outlined')) {
             $this->assertStringContainsString('aria-hidden="true"', $html);
         }
     }
@@ -123,13 +122,13 @@ final class AccessibilityTest extends TestCase
         ];
 
         foreach ($cssFiles as $file) {
-            $css = file_get_contents($file);
+            $css = \file_get_contents($file);
 
             // Verifica que hay estilos :focus-visible
             $this->assertStringContainsString(
                 ':focus-visible',
                 $css,
-                basename($file) . ' debe tener estilos :focus-visible'
+                \basename($file) . ' debe tener estilos :focus-visible'
             );
 
             // Verifica que hay outline o box-shadow en focus
@@ -137,7 +136,7 @@ final class AccessibilityTest extends TestCase
             $this->assertMatchesRegularExpression(
                 $focusPattern,
                 $css,
-                basename($file) . ' debe tener outline o box-shadow visible'
+                \basename($file) . ' debe tener outline o box-shadow visible'
             );
         }
     }
@@ -153,16 +152,16 @@ final class AccessibilityTest extends TestCase
         ];
 
         foreach ($cssFiles as $file) {
-            $css = file_get_contents($file);
+            $css = \file_get_contents($file);
 
             // WCAG 2.5.5: touch targets should be at least 44×44 CSS pixels
             // Accept both min-height and height (if >= 44px)
-            $hasMinHeight = preg_match('/min-height:\s*(44|4[4-9]|[5-9]\d)px/', $css);
-            $hasHeight = preg_match('/height:\s*(44|4[4-9]|[5-9]\d)px/', $css);
+            $hasMinHeight = \preg_match('/min-height:\s*(44|4[4-9]|[5-9]\d)px/', $css);
+            $hasHeight = \preg_match('/height:\s*(44|4[4-9]|[5-9]\d)px/', $css);
 
             $this->assertTrue(
                 $hasMinHeight || $hasHeight,
-                basename($file) . ' debe tener min-height o height >= 44px en elementos interactivos'
+                \basename($file) . ' debe tener min-height o height >= 44px en elementos interactivos'
             );
         }
     }
@@ -175,7 +174,7 @@ final class AccessibilityTest extends TestCase
         $cssFile = __DIR__ . '/../../public/css/components/forms.css';
         $this->assertFileExists($cssFile, 'forms.css debe existir en public/css/components/');
 
-        $css = file_get_contents($cssFile);
+        $css = \file_get_contents($cssFile);
         $this->assertIsString($css);
 
         // WCAG 1.3.1: label elements must be present and styled
@@ -208,19 +207,19 @@ final class AccessibilityTest extends TestCase
             if ($file->getExtension() !== 'php') {
                 continue;
             }
-            $content = file_get_contents($file->getPathname());
+            $content = \file_get_contents($file->getPathname());
             // Elimina bloques PHP inline para que > de cierre no corte el regex HTML
-            $stripped = preg_replace('/<\?.*?\?>/s', 'PHPEXPR', $content);
+            $stripped = \preg_replace('/<\?.*?\?>/s', 'PHPEXPR', $content);
             // Busca <img tags sin atributo alt= ni :alt= (Alpine.js)
-            if (preg_match_all('/<img\b(?![^>]*\s:?alt=)[^>]*>/is', $stripped, $matches)) {
-                $relative = str_replace($componentDir . DIRECTORY_SEPARATOR, '', $file->getPathname());
-                $violations[] = $relative . ': ' . implode(', ', $matches[0]);
+            if (\preg_match_all('/<img\b(?![^>]*\s:?alt=)[^>]*>/is', $stripped, $matches)) {
+                $relative = \str_replace($componentDir . DIRECTORY_SEPARATOR, '', $file->getPathname());
+                $violations[] = $relative . ': ' . \implode(', ', $matches[0]);
             }
         }
 
         $this->assertEmpty(
             $violations,
-            'Imágenes sin atributo alt encontradas (WCAG 1.1.1): ' . implode('; ', $violations)
+            'Imágenes sin atributo alt encontradas (WCAG 1.1.1): ' . \implode('; ', $violations)
         );
     }
 
@@ -230,7 +229,7 @@ final class AccessibilityTest extends TestCase
     public function testColorContrastMeetsWCAG(): void
     {
         $tokensFile = __DIR__ . '/../../public/css/design-tokens.css';
-        $tokens = file_get_contents($tokensFile);
+        $tokens = \file_get_contents($tokensFile);
 
         // Verificar que existen variables de color primarias
         $this->assertStringContainsString('--color-primary-500', $tokens);
@@ -253,13 +252,13 @@ final class AccessibilityTest extends TestCase
         ];
 
         foreach ($cssFiles as $file) {
-            $css = file_get_contents($file);
+            $css = \file_get_contents($file);
 
             // Verifica que hay media query para reduced motion
             $this->assertStringContainsString(
                 'prefers-reduced-motion',
                 $css,
-                basename($file) . ' debe soportar prefers-reduced-motion'
+                \basename($file) . ' debe soportar prefers-reduced-motion'
             );
         }
     }
@@ -271,11 +270,11 @@ final class AccessibilityTest extends TestCase
     {
         $layoutFile = __DIR__ . '/../../resources/views/layouts/backoffice.php';
 
-        if (!file_exists($layoutFile)) {
+        if (!\file_exists($layoutFile)) {
             $this->markTestSkipped('Layout file no encontrado');
         }
 
-        $layout = file_get_contents($layoutFile);
+        $layout = \file_get_contents($layoutFile);
 
         // Verifica que hay h1 en el layout
         $this->assertMatchesRegularExpression('/<h1[^>]*>/', $layout, 'Layout debe tener h1');
@@ -306,7 +305,7 @@ final class AccessibilityTest extends TestCase
     {
         require_once __DIR__ . '/../../resources/views/components/modal.php';
 
-        $html = renderModal(['title' => 'Test']);
+        $html = \renderModal(['title' => 'Test']);
 
         // Verificar atributos ARIA críticos
         $requiredAttributes = [

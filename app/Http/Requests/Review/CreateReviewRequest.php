@@ -16,9 +16,9 @@ final class CreateReviewRequest extends FormRequest
     {
         return [
             'cafe_id' => 'required|integer',
-            'rating'  => 'required|integer|in:1,2,3,4,5',
-            'title'   => 'required|max:100',
-            'body'    => 'required|min:10|max:5000',
+            'rating' => 'required|integer|in:1,2,3,4,5',
+            'title' => 'required|max:100',
+            'body' => 'required|min:10|max:5000',
         ];
     }
 
@@ -27,9 +27,9 @@ final class CreateReviewRequest extends FormRequest
     {
         return [
             'cafe_id' => (string) ((int) ($raw['cafe_id'] ?? 0)),
-            'rating'  => (string) ((int) ($raw['rating'] ?? 0)),
-            'title'   => trim((string) ($raw['title'] ?? '')),
-            'body'    => trim((string) ($raw['body'] ?? '')),
+            'rating' => (string) ((int) ($raw['rating'] ?? 0)),
+            'title' => \trim((string) ($raw['title'] ?? '')),
+            'body' => \trim((string) ($raw['body'] ?? '')),
         ];
     }
 }

@@ -63,10 +63,10 @@ final class ProcessImageJob implements JobInterface
         $this->validatePayload($payload);
 
         // Narrow types for static analysis and runtime safety
-        if (!isset($payload['source_path']) || !is_string($payload['source_path'])) {
+        if (!isset($payload['source_path']) || !\is_string($payload['source_path'])) {
             throw new FilesystemException('Campo source_path inválido en ProcessImageJob');
         }
-        if (!isset($payload['sizes']) || !is_array($payload['sizes'])) {
+        if (!isset($payload['sizes']) || !\is_array($payload['sizes'])) {
             throw new FilesystemException('Campo sizes inválido en ProcessImageJob');
         }
 
@@ -142,11 +142,11 @@ final class ProcessImageJob implements JobInterface
         string $suffix,
         int $quality,
     ): void {
-        $pathInfo    = pathinfo($sourcePath);
-        $dirname     = $pathInfo['dirname'] ?? '';
-        $filename    = $pathInfo['filename'] ?? basename($sourcePath);
-        $extension   = $pathInfo['extension'] ?? 'jpg';
-        $destPath    = rtrim($dirname, '/') . '/' . $filename . '_' . $suffix . '.' . $extension;
+        $pathInfo = \pathinfo($sourcePath);
+        $dirname = $pathInfo['dirname'] ?? '';
+        $filename = $pathInfo['filename'] ?? \basename($sourcePath);
+        $extension = $pathInfo['extension'] ?? 'jpg';
+        $destPath = \rtrim($dirname, '/') . '/' . $filename . '_' . $suffix . '.' . $extension;
 
         $saved = ImageProcessor::resizeAndSave($sourcePath, $destPath, $targetWidth, $targetHeight, $quality);
 
@@ -157,9 +157,9 @@ final class ProcessImageJob implements JobInterface
         }
 
         Logger::debug('[ProcessImageJob] Thumbnail generado', [
-            'source'      => $sourcePath,
+            'source' => $sourcePath,
             'destination' => $destPath,
-            'size'        => "{$targetWidth}x{$targetHeight}",
+            'size' => "{$targetWidth}x{$targetHeight}",
         ]);
     }
 

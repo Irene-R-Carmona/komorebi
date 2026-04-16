@@ -34,19 +34,20 @@ final class QueueRetryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->zaddCalls  = [];
+        $this->zaddCalls = [];
         $this->lpushCalls = [];
 
-        $zaddRef  = &$this->zaddCalls;
+        $zaddRef = &$this->zaddCalls;
         $lpushRef = &$this->lpushCalls;
 
-        $fakeRedis = new class($zaddRef, $lpushRef) {
+        $fakeRedis = new class ($zaddRef, $lpushRef) {
             public function __construct(
                 /** @phpstan-ignore property.onlyWritten */
                 private array &$zaddCalls,
                 /** @phpstan-ignore property.onlyWritten */
                 private array &$lpushCalls,
-            ) {}
+            ) {
+            }
 
             /** @param mixed ...$args */
             public function zAdd(string $key, array $options, float $score, mixed ...$args): mixed
@@ -54,6 +55,7 @@ final class QueueRetryTest extends TestCase
                 foreach ($args as $value) {
                     $this->zaddCalls[] = ['key' => $key, 'score' => $score, 'value' => (string) $value];
                 }
+
                 return 1;
             }
 
@@ -63,33 +65,34 @@ final class QueueRetryTest extends TestCase
                 foreach ($values as $value) {
                     $this->lpushCalls[] = ['key' => $key, 'value' => (string) $value];
                 }
+
                 return 1;
             }
         };
 
-        $prop = (new \ReflectionClass(Queue::class))->getProperty('redis');
+        $prop = new \ReflectionClass(Queue::class)->getProperty('redis');
         $prop->setValue(null, $fakeRedis);
     }
 
     protected function tearDown(): void
     {
-        (new \ReflectionClass(Queue::class))->getProperty('redis')->setValue(null, null);
+        new \ReflectionClass(Queue::class)->getProperty('redis')->setValue(null, null);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function testRetryDelayIsWithinJitterBounds(): void
     {
         // attempts=2 → internal $attempts=3 → max = min(300, 2^3) = 8
-        $jobData   = ['job' => 'App\Jobs\SendEmailJob', 'payload' => [], 'attempts' => 2];
-        $maxDelay  = min(300, 2 ** 3);  // 8
+        $jobData = ['job' => 'App\Jobs\SendEmailJob', 'payload' => [], 'attempts' => 2];
+        $maxDelay = \min(300, 2 ** 3);  // 8
 
-        $before = time();
+        $before = \time();
 
         for ($i = 0; $i < 50; $i++) {
             Queue::retry($jobData, 'default', 10);
         }
 
-        $after = time();  // captures worst-case elapsed time for the loop
+        $after = \time();  // captures worst-case elapsed time for the loop
 
         $this->assertCount(50, $this->zaddCalls, 'Se esperan 50 llamadas a zAdd');
 
@@ -113,9 +116,9 @@ final class QueueRetryTest extends TestCase
     {
         // attempts=9 → internal $attempts=10 → 2^10=1024 → cap=300
         $jobData = ['job' => 'App\Jobs\SendEmailJob', 'payload' => [], 'attempts' => 9];
-        $cap     = 300;
+        $cap = 300;
 
-        $before = time();
+        $before = \time();
 
         for ($i = 0; $i < 50; $i++) {
             Queue::retry($jobData, 'default', 20);  // maxAttempts=20 para no llegar al límite

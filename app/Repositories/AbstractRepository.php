@@ -45,7 +45,7 @@ abstract class AbstractRepository implements RepositoryInterface
     #[Override]
     public function findById(int $id): ?array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
         $table = $this->getTable();
 
         $stmt = $this->getDb()->prepare(
@@ -54,13 +54,14 @@ abstract class AbstractRepository implements RepositoryInterface
         $stmt->execute(['id' => $id]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $result === false ? null : (array) $result;
     }
 
     #[Override]
     public function findAll(): array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
         $table = $this->getTable();
 
         return $this->getDb()->query("SELECT $fields FROM $table")->fetchAll(PDO::FETCH_ASSOC);
@@ -83,14 +84,14 @@ abstract class AbstractRepository implements RepositoryInterface
     public function create(array $data): int
     {
         $table = $this->getTable();
-        $fields = array_keys($data);
-        $placeholders = array_map(static fn($f) => ":$f", $fields);
+        $fields = \array_keys($data);
+        $placeholders = \array_map(static fn ($f) => ":$f", $fields);
 
-        $sql = sprintf(
-            "INSERT INTO %s (%s) VALUES (%s)",
+        $sql = \sprintf(
+            'INSERT INTO %s (%s) VALUES (%s)',
             $table,
-            implode(', ', $fields),
-            implode(', ', $placeholders)
+            \implode(', ', $fields),
+            \implode(', ', $placeholders)
         );
 
         $stmt = $this->getDb()->prepare($sql);
@@ -103,16 +104,17 @@ abstract class AbstractRepository implements RepositoryInterface
     public function update(int $id, array $data): bool
     {
         $table = $this->getTable();
-        $fields = array_keys($data);
-        $setParts = array_map(static fn($f) => "$f = :$f", $fields);
+        $fields = \array_keys($data);
+        $setParts = \array_map(static fn ($f) => "$f = :$f", $fields);
 
-        $sql = sprintf(
+        $sql = \sprintf(
             "UPDATE %s SET %s WHERE $this->primaryKey = :id",
             $table,
-            implode(', ', $setParts)
+            \implode(', ', $setParts)
         );
 
         $data['id'] = $id;
+
         return $this->getDb()->prepare($sql)->execute($data);
     }
 
@@ -133,7 +135,7 @@ abstract class AbstractRepository implements RepositoryInterface
      */
     public function softDelete(int $id): bool
     {
-        return $this->update($id, ['deleted_at' => date('Y-m-d H:i:s')]);
+        return $this->update($id, ['deleted_at' => \date('Y-m-d H:i:s')]);
     }
 
     /**
@@ -145,8 +147,8 @@ abstract class AbstractRepository implements RepositoryInterface
         $sql = "SELECT COUNT(*) as total FROM $table";
 
         if (!empty($conditions)) {
-            $whereParts = array_map(static fn($f) => "$f = :$f", array_keys($conditions));
-            $sql .= ' WHERE ' . implode(' AND ', $whereParts);
+            $whereParts = \array_map(static fn ($f) => "$f = :$f", \array_keys($conditions));
+            $sql .= ' WHERE ' . \implode(' AND ', $whereParts);
         }
 
         $stmt = $this->getDb()->prepare($sql);

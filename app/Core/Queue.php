@@ -39,7 +39,9 @@ final class Queue
     /**
      * Constructor privado para evitar instanciación directa (Singleton)
      */
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     /**
      * Obtiene la instancia de Redis (o fallback) para colas
@@ -250,7 +252,7 @@ final class Queue
             $jobData['attempts'] = $attempts;
 
             // Full jitter: uniforme en [0, min(300, 2^attempts)] para evitar thundering herd
-            $delay = random_int(0, min(300, 2 ** $attempts));
+            $delay = \random_int(0, \min(300, 2 ** $attempts));
 
             $serialized = \json_encode($jobData, JSON_THROW_ON_ERROR);
             $delayedKey = self::REDIS_PREFIX . $queue . ':delayed';

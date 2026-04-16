@@ -54,12 +54,12 @@ set_error_handler(function (int $errno, string $errstr, string $errfile, int $er
 
 // Bloque de documentación que debe incluirse en cada fichero de test.
 $requiredBlock = <<<'TXT'
-/**
- * ¿Qué pruebas aquí?
- * ¿Qué me quieres demostrar?
- * ¿Qué va a fallar en este test si se cambia el código?
- */
-TXT;
+    /**
+     * ¿Qué pruebas aquí?
+     * ¿Qué me quieres demostrar?
+     * ¿Qué va a fallar en este test si se cambia el código?
+     */
+    TXT;
 
 // Añadir el bloque al principio de cada fichero de tests que no lo tenga.
 $testDirs = [__DIR__ . '/Unit', __DIR__ . '/Integration'];

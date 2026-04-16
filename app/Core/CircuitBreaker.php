@@ -21,13 +21,13 @@ use Throwable;
  */
 final class CircuitBreaker
 {
-    public const string STATE_CLOSED    = 'CLOSED';
-    public const string STATE_OPEN      = 'OPEN';
+    public const string STATE_CLOSED = 'CLOSED';
+    public const string STATE_OPEN = 'OPEN';
     public const string STATE_HALF_OPEN = 'HALF_OPEN';
 
     public const int FAILURE_THRESHOLD = 5;
-    public const int WINDOW_SECONDS    = 60;
-    public const int TIMEOUT_SECONDS   = 120;
+    public const int WINDOW_SECONDS = 60;
+    public const int TIMEOUT_SECONDS = 120;
 
     /** @var array<string, array{state: string, failures: int, opened_at: int}> */
     private static array $memoryState = [];
@@ -40,7 +40,7 @@ final class CircuitBreaker
      */
     public static function call(string $name, callable $operation): mixed
     {
-        $redis        = Cache::getRedis();
+        $redis = Cache::getRedis();
         $currentState = self::readState($name, $redis);
 
         if ($currentState === self::STATE_OPEN) {
@@ -110,7 +110,7 @@ final class CircuitBreaker
             self::writeState($name, self::STATE_OPEN, $redis);
             self::writeOpenedAt($name, \time(), $redis);
             Logger::warning("[CircuitBreaker] Circuito '{$name}' abierto.", [
-                'failures'       => $failures,
+                'failures' => $failures,
                 'previous_state' => $previousState,
             ]);
         }
@@ -168,7 +168,7 @@ final class CircuitBreaker
     private static function incrementFailures(string $name, mixed $redis): int
     {
         if ($redis !== null) {
-            $key   = "circuit:{$name}:failures";
+            $key = "circuit:{$name}:failures";
             $count = (int) $redis->incr($key);
             if ($count === 1) {
                 // Primera falla del ciclo: TTL = ventana de observación

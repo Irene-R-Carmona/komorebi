@@ -33,22 +33,22 @@ use App\Core\View;
     <!-- Estadísticas Rápidas -->
     <div class="stats-grid stats-grid--3 mb-4">
         <?= View::componentToString('components/admin/stat-card', [
-            'icon'    => 'check-circle-fill',
+            'icon' => 'check-circle-fill',
             'variant' => 'success',
-            'label'   => 'Chequeos Completados Hoy',
-            'value'   => $completed_count,
+            'label' => 'Chequeos Completados Hoy',
+            'value' => $completed_count,
         ]) ?>
         <?= View::componentToString('components/admin/stat-card', [
-            'icon'    => 'hourglass-split',
+            'icon' => 'hourglass-split',
             'variant' => 'warning',
-            'label'   => 'Chequeos Pendientes',
-            'value'   => $pending_count,
+            'label' => 'Chequeos Pendientes',
+            'value' => $pending_count,
         ]) ?>
         <?= View::componentToString('components/admin/stat-card', [
-            'icon'    => 'exclamation-triangle-fill',
+            'icon' => 'exclamation-triangle-fill',
             'variant' => 'error',
-            'label'   => 'Alertas Activas (7 días)',
-            'value'   => count($active_alerts),
+            'label' => 'Alertas Activas (7 días)',
+            'value' => count($active_alerts),
         ]) ?>
     </div>
 
@@ -111,21 +111,21 @@ use App\Core\View;
                                                     <td>
                                                         <?php
                                                         $statusColors = [
-                                                            'active'     => 'success',
+                                                            'active' => 'success',
                                                             'monitoring' => 'warning',
-                                                            'resting'    => 'secondary',
-                                                            'sick'       => 'danger',
+                                                            'resting' => 'secondary',
+                                                            'sick' => 'danger',
                                                         ];
-                                                        $statusLabels = [
-                                                            'active'     => 'Activo',
-                                                            'monitoring' => 'En observación',
-                                                            'resting'    => 'Descansando',
-                                                            'sick'       => 'Enfermo',
-                                                            'retired'    => 'Retirado',
-                                                        ];
-                                                        $statusColor = $statusColors[$animal['current_status']] ?? 'secondary';
-                                                        $statusLabel = $statusLabels[$animal['current_status']] ?? ucfirst($animal['current_status']);
-                                                        ?>
+                                                $statusLabels = [
+                                                    'active' => 'Activo',
+                                                    'monitoring' => 'En observación',
+                                                    'resting' => 'Descansando',
+                                                    'sick' => 'Enfermo',
+                                                    'retired' => 'Retirado',
+                                                ];
+                                                $statusColor = $statusColors[$animal['current_status']] ?? 'secondary';
+                                                $statusLabel = $statusLabels[$animal['current_status']] ?? ucfirst($animal['current_status']);
+                                                ?>
                                                         <span class="badge bg-<?= $statusColor ?>">
                                                             <?= htmlspecialchars($statusLabel, ENT_QUOTES, 'UTF-8') ?>
                                                         </span>
@@ -187,7 +187,7 @@ use App\Core\View;
                                                     <td><small class="text-muted"><?= date('H:i', strtotime($check['created_at'])) ?></small></td>
                                                     <td>
                                                         <?php if ($check['temperature_c']): ?>
-                                                            <?= number_format((float)$check['temperature_c'], 1) ?>°C
+                                                            <?= number_format((float) $check['temperature_c'], 1) ?>°C
                                                         <?php else: ?>
                                                             <span class="text-muted">-</span>
                                                         <?php endif; ?>

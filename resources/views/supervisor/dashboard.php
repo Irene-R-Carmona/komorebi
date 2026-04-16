@@ -39,8 +39,8 @@ $greeting = match (true) {
                 <i class="bi bi-calendar3" aria-hidden="true"></i>
                 <?php
                 $formatter = new IntlDateFormatter('es_ES', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
-                echo $formatter->format(new DateTime());
-                ?>
+echo $formatter->format(new DateTime());
+?>
             </time>
         </div>
     </div>
@@ -75,18 +75,18 @@ $greeting = match (true) {
                                         <p><?= $res['guests'] ?> persona<?= $res['guests'] > 1 ? 's' : '' ?></p>
                                     </div>
                                     <?php
-                                    $badgeVariant = match ($res['status']) {
-                                        'confirmed' => 'success',
-                                        'pending' => 'warning',
-                                        'cancelled' => 'danger',
-                                        default => 'neutral'
-                                    };
-                                    echo renderBadge([
-                                        'label' => $res['statusLabel'],
-                                        'variant' => $badgeVariant,
-                                        'size' => 'sm'
-                                    ]);
-                                    ?>
+                    $badgeVariant = match ($res['status']) {
+                        'confirmed' => 'success',
+                        'pending' => 'warning',
+                        'cancelled' => 'danger',
+                        default => 'neutral'
+                    };
+                                echo renderBadge([
+                                    'label' => $res['statusLabel'],
+                                    'variant' => $badgeVariant,
+                                    'size' => 'sm',
+                                ]);
+                                ?>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -122,13 +122,13 @@ $greeting = match (true) {
                                         &nbsp;&middot;&nbsp;<?= e($table['time']) ?>
                                     </div>
                                     <?php
-                                    echo renderBadge([
-                                        'label'   => 'En local',
-                                        'variant' => 'success',
-                                        'size'    => 'sm',
-                                        'class'   => 'table-cell__status',
-                                    ]);
-                                    ?>
+                                echo renderBadge([
+                                    'label' => 'En local',
+                                    'variant' => 'success',
+                                    'size' => 'sm',
+                                    'class' => 'table-cell__status',
+                                ]);
+                                ?>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -166,24 +166,24 @@ $greeting = match (true) {
                                         <?= e($order['quantity'] . 'x ' . ($order['product_name'] ?? '')) ?>
                                     </div>
                                     <?php
-                                    $statusLabel = match ($order['status'] ?? '') {
-                                        'kitchen' => 'En cocina',
-                                        'pending' => 'Pendiente',
-                                        'ready'   => 'Listo',
-                                        default   => ucfirst((string) ($order['status'] ?? ''))
-                                    };
-                                    $statusVariant = match ($order['status'] ?? '') {
-                                        'kitchen' => 'warning',
-                                        'pending' => 'neutral',
-                                        'ready'   => 'info',
-                                        default   => 'neutral'
-                                    };
-                                    echo renderBadge([
-                                        'label'   => $statusLabel,
-                                        'variant' => $statusVariant,
-                                        'size'    => 'sm',
-                                    ]);
-                                    ?>
+                                $statusLabel = match ($order['status'] ?? '') {
+                                    'kitchen' => 'En cocina',
+                                    'pending' => 'Pendiente',
+                                    'ready' => 'Listo',
+                                    default => ucfirst((string) ($order['status'] ?? ''))
+                                };
+                                $statusVariant = match ($order['status'] ?? '') {
+                                    'kitchen' => 'warning',
+                                    'pending' => 'neutral',
+                                    'ready' => 'info',
+                                    default => 'neutral'
+                                };
+                                echo renderBadge([
+                                    'label' => $statusLabel,
+                                    'variant' => $statusVariant,
+                                    'size' => 'sm',
+                                ]);
+                                ?>
                                 </div>
                             <?php endforeach; ?>
                         </div>

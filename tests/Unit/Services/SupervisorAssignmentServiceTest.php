@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * Comportamiento del SupervisorAssignmentService con repositorio en base de datos.
@@ -27,21 +26,21 @@ final class SupervisorAssignmentServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->repo    = $this->createStub(SupervisorAssignmentRepositoryInterface::class);
+        $this->repo = $this->createStub(SupervisorAssignmentRepositoryInterface::class);
         $this->service = new SupervisorAssignmentService($this->repo);
     }
 
     public function testCreateFromArrayHappyPath(): void
     {
         $createdRecord = [
-            'id'             => 1,
-            'supervisor_id'  => 5,
+            'id' => 1,
+            'supervisor_id' => 5,
             'reservation_id' => 123,
-            'table_code'     => 'A1',
-            'cafe_id'        => 2,
-            'is_active'      => 1,
-            'assigned_at'    => '2026-03-27 10:00:00',
-            'created_at'     => '2026-03-27 10:00:00',
+            'table_code' => 'A1',
+            'cafe_id' => 2,
+            'is_active' => 1,
+            'assigned_at' => '2026-03-27 10:00:00',
+            'created_at' => '2026-03-27 10:00:00',
         ];
 
         $this->repo->method('createAssignment')->willReturn(1);
@@ -49,9 +48,9 @@ final class SupervisorAssignmentServiceTest extends TestCase
 
         $result = $this->service->createFromArray([
             'reservation_id' => 123,
-            'table_code'     => 'A1',
-            'supervisor_id'  => 5,
-            'cafe_id'        => 2,
+            'table_code' => 'A1',
+            'supervisor_id' => 5,
+            'cafe_id' => 2,
         ]);
 
         $this->assertTrue($result->ok);
@@ -63,9 +62,9 @@ final class SupervisorAssignmentServiceTest extends TestCase
     public function testCreateFromArrayMissingReservationId(): void
     {
         $result = $this->service->createFromArray([
-            'table_code'    => 'A1',
+            'table_code' => 'A1',
             'supervisor_id' => 5,
-            'cafe_id'       => 2,
+            'cafe_id' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -76,8 +75,8 @@ final class SupervisorAssignmentServiceTest extends TestCase
     {
         $result = $this->service->createFromArray([
             'reservation_id' => 123,
-            'supervisor_id'  => 5,
-            'cafe_id'        => 2,
+            'supervisor_id' => 5,
+            'cafe_id' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -88,8 +87,8 @@ final class SupervisorAssignmentServiceTest extends TestCase
     {
         $result = $this->service->createFromArray([
             'reservation_id' => 123,
-            'table_code'     => 'A1',
-            'cafe_id'        => 2,
+            'table_code' => 'A1',
+            'cafe_id' => 2,
         ]);
 
         $this->assertFalse($result->ok);

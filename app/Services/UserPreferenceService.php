@@ -16,7 +16,8 @@ final class UserPreferenceService implements UserPreferenceServiceInterface
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepo,
-    ) {}
+    ) {
+    }
 
     /**
      * Obtiene las preferencias del usuario.

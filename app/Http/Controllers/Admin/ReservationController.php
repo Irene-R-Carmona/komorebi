@@ -16,7 +16,6 @@ use App\Services\AdminActivityService;
 use App\Services\Contracts\AdminActivityServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -62,6 +61,7 @@ final class ReservationController
             'csrf_token' => Csrf::token(),
             'extraJs' => ['admin/admin-reservations.js'],
         ], ['admin/admin-reservations.css'], 'backoffice');
+
         return null;
     }
 
@@ -79,6 +79,7 @@ final class ReservationController
     {
         if (!Csrf::validate()) {
             Flash::error('Token de seguridad inválido');
+
             return $this->response->redirect(self::ADMIN_RESERVATIONS_URL);
         }
 
@@ -91,6 +92,7 @@ final class ReservationController
 
         if ($id <= 0) {
             Flash::error('Identificador de reserva inválido');
+
             return $this->response->redirect(self::ADMIN_RESERVATIONS_URL);
         }
 
@@ -103,7 +105,7 @@ final class ReservationController
         }
 
         // Registrar acción en audit log
-        AuditLog::log('cancel_reservation', 'reservation', $id, null, ['cancelled_at' => date('Y-m-d H:i:s')]);
+        AuditLog::log('cancel_reservation', 'reservation', $id, null, ['cancelled_at' => \date('Y-m-d H:i:s')]);
 
         Flash::success('Reserva cancelada correctamente');
 
@@ -124,6 +126,7 @@ final class ReservationController
     {
         if (!Csrf::validate()) {
             Flash::error('Token de seguridad inválido');
+
             return $this->response->redirect(self::ADMIN_RESERVATIONS_URL);
         }
 
@@ -136,6 +139,7 @@ final class ReservationController
 
         if ($id <= 0) {
             Flash::error('Identificador de reserva inválido');
+
             return $this->response->redirect(self::ADMIN_RESERVATIONS_URL);
         }
 
@@ -148,7 +152,7 @@ final class ReservationController
         }
 
         // Registrar acción en audit log
-        AuditLog::log('confirm_reservation', 'reservation', $id, null, ['confirmed_at' => date('Y-m-d H:i:s')]);
+        AuditLog::log('confirm_reservation', 'reservation', $id, null, ['confirmed_at' => \date('Y-m-d H:i:s')]);
 
         Flash::success('Reserva confirmada correctamente');
 

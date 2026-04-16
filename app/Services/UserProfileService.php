@@ -23,7 +23,8 @@ final class UserProfileService implements UserProfileServiceInterface
     public function __construct(
         private readonly UserRepositoryInterface $userRepo,
         private readonly User $userModel,
-    ) {}
+    ) {
+    }
 
     /**
      * Obtiene el perfil del usuario autenticado en la sesión actual.
@@ -63,18 +64,18 @@ final class UserProfileService implements UserProfileServiceInterface
         $roleCodes = \array_column($roles, 'slug');
 
         return [
-            'id'          => (int) ($user['id'] ?? 0),
-            'uuid'        => $user['uuid'] ?? null,
-            'name'        => $user['name'] ?? '',
-            'email'       => $user['email'] ?? null,
-            'roles'       => $roleCodes,
-            'is_active'   => isset($user['is_active']) ? (bool) $user['is_active'] : false,
-            'cafe_id'     => isset($user['cafe_id']) && $user['cafe_id'] ? (int) $user['cafe_id'] : null,
-            'avatar'      => $user['avatar'] ?? null,
+            'id' => (int) ($user['id'] ?? 0),
+            'uuid' => $user['uuid'] ?? null,
+            'name' => $user['name'] ?? '',
+            'email' => $user['email'] ?? null,
+            'roles' => $roleCodes,
+            'is_active' => isset($user['is_active']) ? (bool) $user['is_active'] : false,
+            'cafe_id' => isset($user['cafe_id']) && $user['cafe_id'] ? (int) $user['cafe_id'] : null,
+            'avatar' => $user['avatar'] ?? null,
             'preferences' => isset($user['preferences']) && $user['preferences']
                 ? \json_decode($user['preferences'], true)
                 : [],
-            'created_at'  => $user['created_at'] ?? null,
+            'created_at' => $user['created_at'] ?? null,
         ];
     }
 
@@ -89,11 +90,11 @@ final class UserProfileService implements UserProfileServiceInterface
         $updatePayload = [];
 
         if (\is_array($nameOrData)) {
-            $data     = $nameOrData;
-            $name     = isset($data['name']) ? \trim((string) $data['name']) : null;
+            $data = $nameOrData;
+            $name = isset($data['name']) ? \trim((string) $data['name']) : null;
             $emailVal = isset($data['email']) ? \strtolower(\trim((string) $data['email'])) : null;
         } else {
-            $name     = \trim($nameOrData);
+            $name = \trim($nameOrData);
             $emailVal = $email !== null ? \strtolower(\trim($email)) : null;
         }
 
@@ -156,9 +157,7 @@ final class UserProfileService implements UserProfileServiceInterface
     #[\Override]
     public function getUsersByRole(string $role): array
     {
-        return \method_exists($this->userRepo, 'findByRole')
-            ? $this->userRepo->findByRole($role)
-            : [];
+        return $this->userRepo->findByRole($role);
     }
 
     /**
@@ -167,8 +166,6 @@ final class UserProfileService implements UserProfileServiceInterface
     #[\Override]
     public function hasPermission(int $userId, string $permission): bool
     {
-        return \method_exists($this->userRepo, 'hasPermission')
-            ? (bool) $this->userRepo->hasPermission($userId, $permission)
-            : false;
+        return (bool) $this->userRepo->hasPermission($userId, $permission);
     }
 }

@@ -14,9 +14,9 @@ final class TelegramNewUserListener
     public function __invoke(UserRegisteredEvent $event): void
     {
         Queue::push(SendTelegramNotificationJob::class, [
-            'icon'            => '🆕',
-            'title'           => 'Nuevo usuario registrado',
-            'message'         => "Nombre: {$event->name}\nEmail: {$event->email}",
+            'icon' => '🆕',
+            'title' => 'Nuevo usuario registrado',
+            'message' => "Nombre: {$event->name}\nEmail: {$event->email}",
             '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
     }

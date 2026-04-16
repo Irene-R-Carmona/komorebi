@@ -41,7 +41,7 @@ $csrf = Csrf::token();
                         <tbody>
                             <?php foreach ($assignments as $assignment): ?>
                                 <tr>
-                                    <td>#<?= htmlspecialchars((string)$assignment['reservation_id'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td>#<?= htmlspecialchars((string) $assignment['reservation_id'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><span class="badge bg-primary"><?= htmlspecialchars($assignment['table_code'], ENT_QUOTES, 'UTF-8') ?></span></td>
                                     <td><?= htmlspecialchars($assignment['assigned_at'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                                     <td>

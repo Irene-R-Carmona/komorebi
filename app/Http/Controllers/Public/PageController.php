@@ -27,6 +27,7 @@ final class PageController
     public function historia(ServerRequestInterface $request): ?ResponseInterface
     {
         $this->view('historia');
+
         return null;
     }
 
@@ -37,6 +38,7 @@ final class PageController
     public function faq(ServerRequestInterface $request): ?ResponseInterface
     {
         $this->view('faq');
+
         return null;
     }
 
@@ -47,6 +49,7 @@ final class PageController
     public function contacto(ServerRequestInterface $request): ?ResponseInterface
     {
         $this->view('contacto');
+
         return null;
     }
 

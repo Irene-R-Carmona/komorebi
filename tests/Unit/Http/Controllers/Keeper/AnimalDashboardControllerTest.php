@@ -22,9 +22,9 @@ namespace Tests\Unit\Http\Controllers\Keeper;
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Keeper\AnimalDashboardController;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
+use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use App\Services\AnimalCareService;
 use App\Services\HealthCheckService;
-use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use Nyholm\Psr7\ServerRequest;
 use PDO;
 use PDOStatement;
@@ -35,13 +35,13 @@ final class AnimalDashboardControllerTest extends TestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION['_csrf_token'] = 'test-token';
-        $_SESSION['user_id']     = 1;
-        $_SESSION['user']        = ['id' => 1, 'name' => 'Test', 'roles' => ['keeper']];
-        $_SERVER['REQUEST_URI']  = '/keeper/test';
+        $_SESSION['user_id'] = 1;
+        $_SESSION['user'] = ['id' => 1, 'name' => 'Test', 'roles' => ['keeper']];
+        $_SERVER['REQUEST_URI'] = '/keeper/test';
     }
 
     protected function tearDown(): void
@@ -67,9 +67,9 @@ final class AnimalDashboardControllerTest extends TestCase
     private function makeController(
         ?AnimalRepositoryInterface $animalRepository = null,
     ): AnimalDashboardController {
-        $pdo               = $this->makePdoStub();
+        $pdo = $this->makePdoStub();
         $animalCareService = new AnimalCareService($pdo, $this->createStub(AnimalRepositoryInterface::class));
-        $healthCheckRepo   = $this->createStub(HealthCheckRepositoryInterface::class);
+        $healthCheckRepo = $this->createStub(HealthCheckRepositoryInterface::class);
         $healthCheckRepo->method('getTodayChecks')->willReturn([]);
         $healthCheckRepo->method('getPendingAnimals')->willReturn([]);
         $healthCheckRepo->method('getCheckswithAlerts')->willReturn([]);
@@ -83,13 +83,12 @@ final class AnimalDashboardControllerTest extends TestCase
         );
     }
 
-
     public function test_show_redirects_when_animal_not_found(): void
     {
         $animalRepository = $this->createStub(AnimalRepositoryInterface::class);
         $animalRepository->method('findById')->willReturn(null);
 
-        $request = (new ServerRequest('GET', '/keeper/animals/99'))
+        $request = new ServerRequest('GET', '/keeper/animals/99')
             ->withAttribute('id', 99);
 
         $result = $this->makeController($animalRepository)->show($request);
@@ -101,19 +100,19 @@ final class AnimalDashboardControllerTest extends TestCase
     {
         $request = new ServerRequest('GET', '/keeper/dashboard');
 
-        ob_start();
+        \ob_start();
         $result = $this->makeController()->dashboard($request);
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
     }
 
     public function test_index_returns_null(): void
     {
-        ob_start();
+        \ob_start();
         $result = $this->makeController()
             ->index(new ServerRequest('GET', '/keeper/animals'));
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
     }
@@ -122,26 +121,26 @@ final class AnimalDashboardControllerTest extends TestCase
     {
         $animalRepository = $this->createStub(AnimalRepositoryInterface::class);
         $animalRepository->method('findById')->willReturn([
-            'id'            => 5,
-            'name'          => 'Luna',
-            'species'       => 'gato',
+            'id' => 5,
+            'name' => 'Luna',
+            'species' => 'gato',
             'health_status' => 'healthy',
         ]);
 
-        $request = (new ServerRequest('GET', '/keeper/animals/5'))
+        $request = new ServerRequest('GET', '/keeper/animals/5')
             ->withAttribute('id', 5);
 
-        ob_start();
+        \ob_start();
         $result = $this->makeController($animalRepository)->show($request);
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
     }
 
     public function test_class_has_view_methods(): void
     {
-        $this->assertTrue(method_exists(AnimalDashboardController::class, 'dashboard'));
-        $this->assertTrue(method_exists(AnimalDashboardController::class, 'index'));
-        $this->assertTrue(method_exists(AnimalDashboardController::class, 'show'));
+        $this->assertTrue(\method_exists(AnimalDashboardController::class, 'dashboard'));
+        $this->assertTrue(\method_exists(AnimalDashboardController::class, 'index'));
+        $this->assertTrue(\method_exists(AnimalDashboardController::class, 'show'));
     }
 }

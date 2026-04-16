@@ -38,7 +38,7 @@ final class FavoriteController extends AbstractApiController
             return $this->unauthorized('Debes iniciar sesión');
         }
 
-        $body   = $request->getParsedBody() ?? [];
+        $body = $request->getParsedBody() ?? [];
         $cafeId = $body['cafe_id'] ?? null;
 
         if (!\is_numeric($cafeId)) {

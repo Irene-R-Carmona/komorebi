@@ -49,20 +49,20 @@ try {
 } catch (RuntimeException $e) {
     // Error crítico de configuración (falta variable requerida)
     http_response_code(500);
-    error_log("[CONFIG ERROR] " . $e->getMessage());
+    error_log('[CONFIG ERROR] ' . $e->getMessage());
 
     if (!$isProduction) {
-        echo "<h1>Error de Configuración</h1>";
-        echo "<pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+        echo '<h1>Error de Configuración</h1>';
+        echo '<pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
     } else {
-        echo "Error interno del servidor";
+        echo 'Error interno del servidor';
     }
     exit(1);
 }
 
 // Actualizar configuración de errores basada en Config (más específico)
 $logLevel = Config::getString('logging.level', 'info');
-ini_set('error_reporting', (string)($isProduction ? 0 : E_ALL));
+ini_set('error_reporting', (string) ($isProduction ? 0 : E_ALL));
 
 // Registrar manejador de excepciones global
 ExceptionHandler::register();
@@ -109,7 +109,7 @@ if ($sessionDriver === 'redis') {
         Logger::warning('Usando session.files en producción (no recomendado para 12-Factor)');
     }
     ini_set('session.save_path', '/tmp/sessions');
-    if (!is_dir('/tmp/sessions') && !mkdir('/tmp/sessions', 0777, true) && !is_dir('/tmp/sessions')) {
+    if (!is_dir('/tmp/sessions') && !mkdir('/tmp/sessions', 0o777, true) && !is_dir('/tmp/sessions')) {
         throw new RuntimeException(sprintf('Directory "%s" was not created', '/tmp/sessions'));
     }
 }
@@ -127,7 +127,7 @@ ini_set('session.cookie_secure', $isHttps ? '1' : '0');
 ini_set('session.cookie_lifetime', '0'); // Session cookie
 // Obtener lifetime como entero de forma segura
 $sessionLifetime = Config::getInt('session.lifetime', 120);
-ini_set('session.gc_maxlifetime', (string)($sessionLifetime * 60));
+ini_set('session.gc_maxlifetime', (string) ($sessionLifetime * 60));
 
 // Nombre de sesión personalizado (evita fingerprinting básico)
 ini_set('session.name', 'komorebi_session');

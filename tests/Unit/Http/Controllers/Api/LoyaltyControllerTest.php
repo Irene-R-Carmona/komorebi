@@ -61,8 +61,8 @@ final class LoyaltyControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(LoyaltyController::class, 'redeem'));
-        $this->assertTrue(method_exists(LoyaltyController::class, 'validateCode'));
-        $this->assertTrue(method_exists(LoyaltyController::class, 'use'));
+        $this->assertTrue(\method_exists(LoyaltyController::class, 'redeem'));
+        $this->assertTrue(\method_exists(LoyaltyController::class, 'validateCode'));
+        $this->assertTrue(\method_exists(LoyaltyController::class, 'use'));
     }
 }

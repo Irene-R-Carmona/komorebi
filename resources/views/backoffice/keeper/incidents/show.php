@@ -10,12 +10,12 @@ declare(strict_types=1);
 
 $severityColors = [
     'critical' => 'danger',
-    'high'     => 'warning',
-    'medium'   => 'info',
-    'low'      => 'secondary',
+    'high' => 'warning',
+    'medium' => 'info',
+    'low' => 'secondary',
 ];
 $severityColor = $severityColors[$incident['severity']] ?? 'secondary';
-$isResolved    = !empty($incident['resolved_at']);
+$isResolved = !empty($incident['resolved_at']);
 ?>
 
 <div class="container-fluid py-4">
@@ -68,7 +68,7 @@ $isResolved    = !empty($incident['resolved_at']);
                         <dt class="col-sm-4">Severidad</dt>
                         <dd class="col-sm-8">
                             <span class="badge bg-<?= $severityColor ?>">
-                                <?= e(\ucfirst($incident['severity'])) ?>
+                                <?= e(ucfirst($incident['severity'])) ?>
                             </span>
                         </dd>
 
@@ -76,7 +76,7 @@ $isResolved    = !empty($incident['resolved_at']);
                         <dd class="col-sm-8"><?= e($incident['description']) ?></dd>
 
                         <dt class="col-sm-4">Estado</dt>
-                        <dd class="col-sm-8"><?= e(\ucfirst($incident['status'])) ?></dd>
+                        <dd class="col-sm-8"><?= e(ucfirst($incident['status'])) ?></dd>
 
                         <dt class="col-sm-4">Reportado</dt>
                         <dd class="col-sm-8">

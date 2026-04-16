@@ -23,7 +23,7 @@ final class LoggingPDOTest extends TestCase
 {
     public function testLogginPDOExtendsPDO(): void
     {
-        $parents = class_parents(LoggingPDO::class);
+        $parents = \class_parents(LoggingPDO::class);
 
         $this->assertIsArray($parents);
         $this->assertContains(\PDO::class, $parents);
@@ -36,7 +36,7 @@ final class LoggingPDOTest extends TestCase
 
     public function testLogginPDOStatementExtendsPDOStatement(): void
     {
-        $parents = class_parents(\App\Core\LoggingPDOStatement::class);
+        $parents = \class_parents(\App\Core\LoggingPDOStatement::class);
 
         $this->assertIsArray($parents);
         $this->assertContains(\PDOStatement::class, $parents);

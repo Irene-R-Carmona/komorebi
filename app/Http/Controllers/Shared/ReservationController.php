@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shared;
 
+use App\Core\Container;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Raw;
 use App\Core\Session;
-use App\Core\WideEvent;
 use App\Core\View;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use App\Core\WideEvent;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Http\Transformers\ReservationTransformer;
 use App\Models\Reservation;
-use App\Core\Container;
 use App\Services\AvailabilityService;
 use App\Services\CartService;
 use App\Services\Contracts\ClimaContextoServiceInterface;
 use App\Services\FestivosJaponesesService;
 use App\Services\ReservationService;
 use JsonException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 use Throwable;
 
@@ -80,7 +80,7 @@ final class ReservationController
         $userId = Session::userId();
 
         $result = $this->reservationModel->findByUser($userId);
-        $misReservas = (new ReservationTransformer())->collection($result['data'] ?? []);
+        $misReservas = new ReservationTransformer()->collection($result['data'] ?? []);
 
         $cafes = $this->availabilityService->getAvailableCafesForReservation();
         $cafesById = $this->availabilityService->getAvailableCafesById();
@@ -107,6 +107,7 @@ final class ReservationController
             'clima' => $clima,
             'festivos' => $festivosDelMes,
         ], ['reservas.css']);
+
         return null;
     }
 
@@ -125,11 +126,11 @@ final class ReservationController
         $userId = Session::userId();
 
         $body = (array) $request->getParsedBody();
-        $cafeId = isset($body['cafe_id']) ? filter_var($body['cafe_id'], FILTER_VALIDATE_INT) : false;
-        $passProductId = isset($body['pass_product_id']) ? filter_var($body['pass_product_id'], FILTER_VALIDATE_INT) : false;
+        $cafeId = isset($body['cafe_id']) ? \filter_var($body['cafe_id'], FILTER_VALIDATE_INT) : false;
+        $passProductId = isset($body['pass_product_id']) ? \filter_var($body['pass_product_id'], FILTER_VALIDATE_INT) : false;
         $fecha = \trim((string) ($body['fecha'] ?? ''));
         $hora = \trim((string) ($body['hora'] ?? ''));
-        $personas = isset($body['personas']) ? filter_var($body['personas'], FILTER_VALIDATE_INT) : false;
+        $personas = isset($body['personas']) ? \filter_var($body['personas'], FILTER_VALIDATE_INT) : false;
         $comentarios = \trim(\strip_tags((string) ($body['comentarios'] ?? '')));
 
         $errors = [];
@@ -159,11 +160,11 @@ final class ReservationController
         ]);
 
         WideEvent::setSection('reservation', [
-            'cafe_id'         => $cafeId,
+            'cafe_id' => $cafeId,
             'pass_product_id' => $passProductId,
-            'date'            => $fecha,
-            'time'            => $hora,
-            'guests'          => $personas,
+            'date' => $fecha,
+            'time' => $hora,
+            'guests' => $personas,
         ]);
 
         $result = $this->reservationService->create([
@@ -178,6 +179,7 @@ final class ReservationController
 
         if (!$result->ok) {
             Flash::error($result->getMessage());
+
             return $this->response->redirect('/reservas');
         }
 
@@ -204,7 +206,7 @@ final class ReservationController
 
         $userId = Session::userId();
         $body = (array) $request->getParsedBody();
-        $reservationId = isset($body['id']) ? filter_var($body['id'], FILTER_VALIDATE_INT) : false;
+        $reservationId = isset($body['id']) ? \filter_var($body['id'], FILTER_VALIDATE_INT) : false;
 
         if (!$reservationId || $reservationId <= 0) {
             throw ValidationException::withMessage('Reserva inválida');
@@ -245,6 +247,7 @@ final class ReservationController
 
         if (!$userId || $id <= 0) {
             Flash::error('Reserva no encontrada.');
+
             return $this->response->redirect('/reservas');
         }
 
@@ -252,6 +255,7 @@ final class ReservationController
 
         if (!$reservation) {
             Flash::error('Reserva no encontrada.');
+
             return $this->response->redirect('/reservas');
         }
 
@@ -273,6 +277,7 @@ final class ReservationController
 
         if (!$userId) {
             Flash::error('Debes iniciar sesión para ver tus reservas.');
+
             return $this->response->redirect('/login');
         }
 

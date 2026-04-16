@@ -13,7 +13,8 @@ final class ReviewQueryService implements ReviewQueryServiceInterface
 {
     public function __construct(
         private ReviewRepositoryInterface $reviewRepository,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public function getReviewsByUserId(int $userId): array

@@ -136,10 +136,11 @@ final class Csrf
                 if ($t === null || $t === '') {
                     return '<empty>';
                 }
-                return substr($t, 0, 6) . '...' . strlen($t);
+
+                return \substr($t, 0, 6) . '...' . \strlen($t);
             };
 
-            $msg = sprintf(
+            $msg = \sprintf(
                 '[Csrf::validate] mismatch - extracted=%s session=%s request=%s',
                 $masked($token),
                 $masked($sessionToken),

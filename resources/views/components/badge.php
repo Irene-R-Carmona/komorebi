@@ -62,7 +62,7 @@ function renderBadge(array $props): string
     $classes = [
         'badge',
         "badge--{$variant}",
-        "badge--{$size}"
+        "badge--{$size}",
     ];
 
     if ($dot) {
@@ -78,12 +78,12 @@ function renderBadge(array $props): string
     // Build attributes
     $attrString = '';
     foreach ($attributes as $key => $value) {
-        $attrString .= ' ' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '="' . htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8') . '"';
+        $attrString .= ' ' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '="' . htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8') . '"';
     }
 
     // Render badge
     ob_start();
-?>
+    ?>
     <span class="<?= htmlspecialchars($classString, ENT_QUOTES, 'UTF-8') ?>" <?= $attrString ?>>
         <?php if ($dot): ?>
             <span class="badge__dot" aria-hidden="true"></span>
@@ -96,7 +96,7 @@ function renderBadge(array $props): string
         <span class="badge__label"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></span>
     </span>
 <?php
-    return ob_get_clean();
+        return ob_get_clean();
 }
 
 // Auto-render if label provided directly in scope

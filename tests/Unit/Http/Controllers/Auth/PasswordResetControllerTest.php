@@ -27,8 +27,8 @@ final class PasswordResetControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION = [];
     }
@@ -49,11 +49,11 @@ final class PasswordResetControllerTest extends ControllerTestCase
 
     public function test_class_exists_and_has_key_methods(): void
     {
-        $this->assertTrue(class_exists(PasswordResetController::class));
-        $this->assertTrue(method_exists(PasswordResetController::class, 'forgotPasswordForm'));
-        $this->assertTrue(method_exists(PasswordResetController::class, 'sendResetEmail'));
-        $this->assertTrue(method_exists(PasswordResetController::class, 'resetPasswordForm'));
-        $this->assertTrue(method_exists(PasswordResetController::class, 'processReset'));
+        $this->assertTrue(\class_exists(PasswordResetController::class));
+        $this->assertTrue(\method_exists(PasswordResetController::class, 'forgotPasswordForm'));
+        $this->assertTrue(\method_exists(PasswordResetController::class, 'sendResetEmail'));
+        $this->assertTrue(\method_exists(PasswordResetController::class, 'resetPasswordForm'));
+        $this->assertTrue(\method_exists(PasswordResetController::class, 'processReset'));
     }
 
     public function test_can_be_instantiated_without_real_services(): void

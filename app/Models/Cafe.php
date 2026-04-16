@@ -95,6 +95,7 @@ final class Cafe
         $stmt->execute(['id' => $id]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $row === false ? null : (array) $row;
     }
 
@@ -114,6 +115,7 @@ final class Cafe
         $stmt->execute(['slug' => $slug]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $row === false ? null : (array) $row;
     }
 

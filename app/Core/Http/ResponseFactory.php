@@ -39,7 +39,7 @@ final class ResponseFactory
      */
     public function json(array $data, int $status = 200, array $headers = []): ResponseInterface
     {
-        $json = json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+        $json = \json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
 
         $response = $this->createResponse($status)
             ->withHeader('Content-Type', 'application/json; charset=utf-8');
@@ -94,7 +94,7 @@ final class ResponseFactory
      */
     public function problem(Result $result, int $status): ResponseInterface
     {
-        $json = json_encode(
+        $json = \json_encode(
             ProblemDetails::fromResult($result, $status),
             JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE,
         );

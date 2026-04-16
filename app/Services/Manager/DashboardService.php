@@ -13,7 +13,7 @@ use PDO;
  * Proporciona métricas en tiempo real para el panel de control del gestor.
  * Todas las consultas están scopeadas al café asignado al manager.
  */
-class DashboardService
+final class DashboardService
 {
     private PDO $db;
 
@@ -169,9 +169,9 @@ class DashboardService
     public function getAverageRating(int $cafeId): float
     {
         $stmt = $this->db->prepare(
-            "SELECT rating_avg
+            'SELECT rating_avg
              FROM cafes
-             WHERE id = :cafe_id"
+             WHERE id = :cafe_id'
         );
         $stmt->execute(['cafe_id' => $cafeId]);
 
@@ -231,14 +231,14 @@ class DashboardService
     public function getReservationStatusDistribution(int $cafeId): array
     {
         $stmt = $this->db->prepare(
-            "SELECT
+            'SELECT
                 status,
                 COUNT(*) AS count
              FROM reservations
              WHERE cafe_id = :cafe_id
              AND reservation_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
              AND deleted_at IS NULL
-             GROUP BY status"
+             GROUP BY status'
         );
         $stmt->execute(['cafe_id' => $cafeId]);
 
@@ -262,10 +262,10 @@ class DashboardService
         ?string $to = null,
         ?int $limit = 100,
     ): array {
-        $from = $from ?? date('Y-m-d', strtotime('-30 days'));
-        $to   = $to   ?? date('Y-m-d');
+        $from ??= \date('Y-m-d', \strtotime('-30 days'));
+        $to ??= \date('Y-m-d');
 
-        $sql = "SELECT
+        $sql = 'SELECT
                     r.id,
                     r.reservation_date  AS fecha,
                     r.status            AS estado,
@@ -276,10 +276,10 @@ class DashboardService
                 WHERE r.cafe_id = :cafe_id
                 AND r.reservation_date BETWEEN :from AND :to
                 AND r.deleted_at IS NULL
-                ORDER BY r.reservation_date DESC, r.id DESC";
+                ORDER BY r.reservation_date DESC, r.id DESC';
 
         if ($limit !== null) {
-            $sql .= " LIMIT :limit";
+            $sql .= ' LIMIT :limit';
         }
 
         $stmt = $this->db->prepare($sql);

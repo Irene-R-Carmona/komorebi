@@ -26,11 +26,11 @@ trait ResultAssertions
     {
         Assert::assertTrue(
             $result->ok,
-            sprintf(
+            \sprintf(
                 'Expected Result::ok but got failure. code=%s, error=%s, context=%s',
                 $result->code ?? '(none)',
                 $result->error ?? '(none)',
-                json_encode($result->context, JSON_UNESCAPED_UNICODE)
+                \json_encode($result->context, JSON_UNESCAPED_UNICODE)
             )
         );
     }
@@ -39,9 +39,9 @@ trait ResultAssertions
     {
         Assert::assertFalse(
             $result->ok,
-            sprintf(
+            \sprintf(
                 'Expected Result failure but got ok=true. data=%s',
-                json_encode($result->data, JSON_UNESCAPED_UNICODE)
+                \json_encode($result->data, JSON_UNESCAPED_UNICODE)
             )
         );
 
@@ -53,12 +53,12 @@ trait ResultAssertions
             Assert::assertSame(
                 $expectedCodeStr,
                 $result->code,
-                sprintf(
+                \sprintf(
                     'Expected result code "%s" but got "%s". error=%s, context=%s',
                     $expectedCodeStr,
                     $result->code ?? '(none)',
                     $result->error ?? '(none)',
-                    json_encode($result->context, JSON_UNESCAPED_UNICODE)
+                    \json_encode($result->context, JSON_UNESCAPED_UNICODE)
                 )
             );
         }

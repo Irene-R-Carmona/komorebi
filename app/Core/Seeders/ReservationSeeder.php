@@ -156,12 +156,12 @@ final class ReservationSeeder
         $columns = [
             'user_id', 'cafe_id', 'pass_product_id', 'pass_name', 'pass_unit_price',
             'pass_duration_minutes', 'reservation_date', 'reservation_time',
-            'guest_count', 'status', 'created_at', 'updated_at'
+            'guest_count', 'status', 'created_at', 'updated_at',
         ];
         $placeholders = [
             ':user_id', ':cafe_id', ':pass_product_id', ':pass_name', ':pass_unit_price',
             ':pass_duration_minutes', ':reservation_date', ':reservation_time',
-            ':guest_count', ':status', 'NOW()', 'NOW()'
+            ':guest_count', ':status', 'NOW()', 'NOW()',
         ];
 
         if ($timeSlotId !== null) {
@@ -170,8 +170,8 @@ final class ReservationSeeder
         }
 
         $stmt = $this->db->prepare(
-            'INSERT INTO reservations (' . implode(', ', $columns) . ') ' .
-            'VALUES (' . implode(', ', $placeholders) . ')'
+            'INSERT INTO reservations (' . \implode(', ', $columns) . ') ' .
+            'VALUES (' . \implode(', ', $placeholders) . ')'
         );
 
         try {

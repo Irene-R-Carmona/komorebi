@@ -21,16 +21,15 @@ use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\UserController;
 use App\Repositories\UserRepository;
 use App\Services\UserManagementService;
-use Nyholm\Psr7\ServerRequest;
-use Tests\Support\ControllerTestCase;
 use Psr\Http\Message\ResponseInterface;
+use Tests\Support\ControllerTestCase;
 
 final class UserControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION = [];
     }
@@ -59,7 +58,7 @@ final class UserControllerTest extends ControllerTestCase
         $this->assertInstanceOf(ResponseInterface::class, $result);
         $this->assertResponseIsJson($result, 200);
 
-        $body = json_decode((string) $result->getBody(), true);
+        $body = \json_decode((string) $result->getBody(), true);
         $this->assertTrue($body['ok']);
         $this->assertArrayHasKey('users', $body['data']);
         $this->assertCount(2, $body['data']['users']);
@@ -79,17 +78,17 @@ final class UserControllerTest extends ControllerTestCase
         $result = $controller->getUsersList($this->makeGetRequest('/admin/users/list'));
 
         $this->assertInstanceOf(ResponseInterface::class, $result);
-        $body = json_decode((string) $result->getBody(), true);
+        $body = \json_decode((string) $result->getBody(), true);
         $this->assertCount(0, $body['data']['users']);
     }
 
     public function test_class_has_crud_methods(): void
     {
-        $this->assertTrue(method_exists(UserController::class, 'index'));
-        $this->assertTrue(method_exists(UserController::class, 'getUsersList'));
-        $this->assertTrue(method_exists(UserController::class, 'create'));
-        $this->assertTrue(method_exists(UserController::class, 'update'));
-        $this->assertTrue(method_exists(UserController::class, 'delete'));
-        $this->assertTrue(method_exists(UserController::class, 'toggleActive'));
+        $this->assertTrue(\method_exists(UserController::class, 'index'));
+        $this->assertTrue(\method_exists(UserController::class, 'getUsersList'));
+        $this->assertTrue(\method_exists(UserController::class, 'create'));
+        $this->assertTrue(\method_exists(UserController::class, 'update'));
+        $this->assertTrue(\method_exists(UserController::class, 'delete'));
+        $this->assertTrue(\method_exists(UserController::class, 'toggleActive'));
     }
 }

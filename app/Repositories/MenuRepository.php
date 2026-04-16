@@ -46,7 +46,7 @@ final class MenuRepository implements MenuRepositoryInterface
      */
     public function getProductsByCategory(array $excludeAllergenIds = []): array
     {
-        $excludeAllergenIds = array_values(array_filter(array_map('intval', $excludeAllergenIds), static fn($v) => $v > 0));
+        $excludeAllergenIds = \array_values(\array_filter(\array_map('intval', $excludeAllergenIds), static fn ($v) => $v > 0));
 
         $sql = "
             SELECT
@@ -75,7 +75,7 @@ final class MenuRepository implements MenuRepositoryInterface
         ";
 
         if (!empty($excludeAllergenIds)) {
-            $placeholders = implode(',', array_fill(0, count($excludeAllergenIds), '?'));
+            $placeholders = \implode(',', \array_fill(0, \count($excludeAllergenIds), '?'));
             $sql .= " AND p.id NOT IN (
                 SELECT product_id
                 FROM product_allergens
@@ -83,8 +83,8 @@ final class MenuRepository implements MenuRepositoryInterface
             )";
         }
 
-        $sql .= " GROUP BY p.id, p.name, p.japanese_name, p.description, p.price, p.category_id, p.product_type, p.is_active, p.image_url, mc.name, mc.slug
-                  ORDER BY mc.display_order, p.name";
+        $sql .= ' GROUP BY p.id, p.name, p.japanese_name, p.description, p.price, p.category_id, p.product_type, p.is_active, p.image_url, mc.name, mc.slug
+                  ORDER BY mc.display_order, p.name';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($excludeAllergenIds);
@@ -181,17 +181,17 @@ final class MenuRepository implements MenuRepositoryInterface
         if ($cafeCategory !== null) {
             // Solo incluir pases sin restricciones O que incluyan explícitamente este cafe_type
             $conditions[] = "(p.target_cafe_types IS NULL OR p.target_cafe_types = '' OR p.target_cafe_types = '[]' OR JSON_CONTAINS(p.target_cafe_types, :cafe_category))";
-            $params['cafe_category'] = json_encode($cafeCategory);
+            $params['cafe_category'] = \json_encode($cafeCategory);
         }
 
         if ($animalType !== null) {
             // Solo incluir pases sin restricciones O que incluyan explícitamente este animal_type
             $conditions[] = "(p.target_animal_types IS NULL OR p.target_animal_types = '' OR p.target_animal_types = '[]' OR JSON_CONTAINS(p.target_animal_types, :animal_type))";
-            $params['animal_type'] = json_encode($animalType);
+            $params['animal_type'] = \json_encode($animalType);
         }
 
         if (!empty($conditions)) {
-            $sql .= ' AND ' . implode(' AND ', $conditions);
+            $sql .= ' AND ' . \implode(' AND ', $conditions);
         }
 
         $sql .= ' ORDER BY p.price ASC';
@@ -219,7 +219,7 @@ final class MenuRepository implements MenuRepositoryInterface
      */
     public function getAllergensByProduct(int $productId): array
     {
-        $sql = "
+        $sql = '
             SELECT DISTINCT
                 a.id,
                 a.name,
@@ -232,7 +232,7 @@ final class MenuRepository implements MenuRepositoryInterface
             INNER JOIN product_allergens pa ON a.id = pa.allergen_id
             WHERE pa.product_id = :product_id
             ORDER BY a.name
-        ";
+        ';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['product_id' => $productId]);

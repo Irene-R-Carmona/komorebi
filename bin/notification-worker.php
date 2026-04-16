@@ -19,7 +19,7 @@ use App\Workers\NotificationWorker;
 try {
     Config::init();
 } catch (Throwable $e) {
-    fwrite(STDERR, "[NotificationWorker] [FATAL] Error de configuración: " . $e->getMessage() . "\n");
+    fwrite(STDERR, '[NotificationWorker] [FATAL] Error de configuración: ' . $e->getMessage() . "\n");
     exit(1);
 }
 
@@ -28,6 +28,6 @@ try {
     $worker = new NotificationWorker();
     $worker->run();
 } catch (Throwable $e) {
-    fwrite(STDERR, "[NotificationWorker] [FATAL] " . $e->getMessage() . "\n");
+    fwrite(STDERR, '[NotificationWorker] [FATAL] ' . $e->getMessage() . "\n");
     exit(1);
 }

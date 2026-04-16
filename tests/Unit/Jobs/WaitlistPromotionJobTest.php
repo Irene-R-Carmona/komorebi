@@ -82,13 +82,13 @@ final class WaitlistPromotionJobTest extends TestCase
     {
         return [
             'waitlist_id' => 1,
-            'token'       => 'test-token-abc',
-            'expires_at'  => \time() - 3600,
-            'user_name'   => 'Test User',
-            'user_email'  => 'test@example.com',
-            'cafe_name'   => 'Komorebi Café',
-            'date'        => '2024-12-25',
-            'time'        => '10:00',
+            'token' => 'test-token-abc',
+            'expires_at' => \time() - 3600,
+            'user_name' => 'Test User',
+            'user_email' => 'test@example.com',
+            'cafe_name' => 'Komorebi Café',
+            'date' => '2024-12-25',
+            'time' => '10:00',
         ];
     }
 
@@ -97,13 +97,13 @@ final class WaitlistPromotionJobTest extends TestCase
     {
         return [
             'waitlist_id' => $waitlistId,
-            'token'       => 'test-token-abc',
-            'expires_at'  => \time() - 3600,   // expirado hace 1 hora
-            'user_name'   => 'Test User',
-            'user_email'  => 'test@example.com',
-            'cafe_name'   => 'Komorebi Café',
-            'date'        => '2024-12-25',
-            'time'        => '10:00',
+            'token' => 'test-token-abc',
+            'expires_at' => \time() - 3600,   // expirado hace 1 hora
+            'user_name' => 'Test User',
+            'user_email' => 'test@example.com',
+            'cafe_name' => 'Komorebi Café',
+            'date' => '2024-12-25',
+            'time' => '10:00',
         ];
     }
 
@@ -116,8 +116,8 @@ final class WaitlistPromotionJobTest extends TestCase
     {
         // PDO devuelve false → entrada no encontrada en BD
         $stmt = $this->makeStmt(false);
-        $pdo  = $this->makePdo($stmt);
-        $job  = new WaitlistPromotionJob($pdo);
+        $pdo = $this->makePdo($stmt);
+        $job = new WaitlistPromotionJob($pdo);
 
         // No debe lanzar excepción alguna
         $job->handle(['waitlist_entry_id' => 9999]);
@@ -132,8 +132,8 @@ final class WaitlistPromotionJobTest extends TestCase
         $selectStmt = $this->makeStmt($this->expiredHydratedRow(1));
         // Segunda prepare → UPDATE markAsExpired
         $updateStmt = $this->makeStmt();
-        $pdo        = $this->makePdoWithTwoStmts($selectStmt, $updateStmt);
-        $job        = new WaitlistPromotionJob($pdo);
+        $pdo = $this->makePdoWithTwoStmts($selectStmt, $updateStmt);
+        $job = new WaitlistPromotionJob($pdo);
 
         // Token expirado → markAsExpired → return temprano, sin email
         $job->handle(['waitlist_entry_id' => 1]);
@@ -150,8 +150,8 @@ final class WaitlistPromotionJobTest extends TestCase
     {
         // Solo la UPDATE de markAsExpired; hydratePayload no se llama
         $updateStmt = $this->makeStmt();
-        $pdo        = $this->makePdo($updateStmt);
-        $job        = new WaitlistPromotionJob($pdo);
+        $pdo = $this->makePdo($updateStmt);
+        $job = new WaitlistPromotionJob($pdo);
 
         $job->handle($this->expiredFullPayload());
 

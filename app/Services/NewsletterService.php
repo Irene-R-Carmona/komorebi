@@ -17,7 +17,7 @@ use PDO;
  * Newsletter Service - Gestión de suscripciones con double opt-in
  * GDPR compliant
  */
-class NewsletterService extends BaseService implements NewsletterServiceInterface
+final class NewsletterService extends BaseService implements NewsletterServiceInterface
 {
     private PDO $db;
 
@@ -90,6 +90,7 @@ class NewsletterService extends BaseService implements NewsletterServiceInterfac
 
                 if (!$enqueued) {
                     Logger::error('Error encolando email de confirmación newsletter', ['email' => $email]);
+
                     return ['success' => false, 'message' => 'Error al procesar la solicitud'];
                 }
 
@@ -389,10 +390,10 @@ class NewsletterService extends BaseService implements NewsletterServiceInterfac
     private function shouldUseSyncEmail(): bool
     {
         $appEnv = Env::get('APP_ENV', 'production');
-        $appDebug = filter_var(Env::get('APP_DEBUG', 'false'), FILTER_VALIDATE_BOOLEAN);
+        $appDebug = \filter_var(Env::get('APP_DEBUG', 'false'), FILTER_VALIDATE_BOOLEAN);
 
         // Usar sync en development, local o cuando debug está habilitado
-        return in_array($appEnv, ['local', 'development'], true) || $appDebug === true;
+        return \in_array($appEnv, ['local', 'development'], true) || $appDebug === true;
     }
 
     /**

@@ -154,6 +154,7 @@ final class ReviewController
 
         if ($result->ok) {
             Flash::success('Tu reseña se ha enviado y está pendiente de aprobación. ¡Gracias por compartir tu experiencia!');
+
             return $this->response->redirect('/cafes/' . $cafeId);
         }
 
@@ -227,6 +228,7 @@ final class ReviewController
 
         if ($result->ok) {
             Flash::success('Tu reseña se ha actualizado y quedará pendiente de aprobación.');
+
             return $this->response->redirect('/perfil');
         }
 
@@ -279,6 +281,7 @@ final class ReviewController
 
         if ($result->ok) {
             Flash::success('Reseña eliminada con éxito.');
+
             return $this->response->redirect('/perfil');
         }
 
@@ -325,6 +328,7 @@ final class ReviewController
             'csrf_token' => Csrf::token(),
             'extraJs' => ['admin/admin-reviews.js'],
         ], ['admin/admin-reviews.css'], 'backoffice');
+
         return null;
     }
 
@@ -361,12 +365,14 @@ final class ReviewController
         $review = $this->queryService->getReview($reviewId);
         if (!$review) {
             Flash::error('Reseña no encontrada.');
+
             return $this->response->redirect('/admin/reviews/pending');
         }
 
         // [x] VALIDACIÓN CONTEXTO: Reseña está pending
         if ($review['status'] !== 'pending') {
             Flash::warning('Esta reseña no está pendiente de aprobación.');
+
             return $this->response->redirect('/admin/reviews/pending');
         }
 
@@ -375,10 +381,12 @@ final class ReviewController
 
         if ($result->ok) {
             Flash::success('Reseña aprobada y publicada.');
+
             return $this->response->redirect('/admin/reviews/pending');
         }
 
         Flash::error($result->getMessage());
+
         return $this->response->redirect('/admin/reviews/pending');
     }
 
@@ -418,12 +426,14 @@ final class ReviewController
         $review = $this->queryService->getReview($reviewId);
         if (!$review) {
             Flash::error('Reseña no encontrada.');
+
             return $this->response->redirect('/admin/reviews/pending');
         }
 
         // [x] VALIDACIÓN CONTEXTO: Reseña está pending
         if ($review['status'] !== 'pending') {
             Flash::warning('Esta reseña no está pendiente de aprobación.');
+
             return $this->response->redirect('/admin/reviews/pending');
         }
 
@@ -437,10 +447,12 @@ final class ReviewController
 
         if ($result->ok) {
             Flash::success('Reseña rechazada. Se notificará al autor con el motivo.');
+
             return $this->response->redirect('/admin/reviews/pending');
         }
 
         Flash::error($result->getMessage());
+
         return $this->response->redirect('/admin/reviews/pending');
     }
 }

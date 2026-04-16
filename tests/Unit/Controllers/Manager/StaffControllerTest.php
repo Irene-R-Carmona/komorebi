@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -67,16 +66,16 @@ final class StaffControllerTest extends TestCase
 
     public function testIndexRequiresCafeAssignment(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         // Limpiar claves de sesión
         unset($_SESSION['user_id'], $_SESSION['user_name'], $_SESSION['user_email'], $_SESSION['user_role'], $_SESSION['user_cafe_id']);
 
-        ob_start();
+        \ob_start();
         $this->controller->index($this->request);
-        $output = ob_get_clean();
+        $output = \ob_get_clean();
 
         // Debe renderizar 403 cuando no hay café asignado
         $this->assertIsString($output);
@@ -84,23 +83,23 @@ final class StaffControllerTest extends TestCase
 
     public function testShowRequiresCafeAssignment(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         unset($_SESSION['user_id'], $_SESSION['user_name'], $_SESSION['user_email'], $_SESSION['user_role'], $_SESSION['user_cafe_id']);
 
-        ob_start();
+        \ob_start();
         $this->controller->show($this->request, 1);
-        $output = ob_get_clean();
+        $output = \ob_get_clean();
 
         $this->assertIsString($output);
     }
 
     public function testShowReturns404WhenStaffNotBelongsToCafe(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 10;
@@ -113,9 +112,9 @@ final class StaffControllerTest extends TestCase
 
         $this->db->method('prepare')->willReturn($stmt);
 
-        ob_start();
+        \ob_start();
         $this->controller->show($this->request, 999);
-        $output = ob_get_clean();
+        $output = \ob_get_clean();
 
         // Debe renderizar 404
         $this->assertIsString($output);
@@ -123,8 +122,8 @@ final class StaffControllerTest extends TestCase
 
     public function testAssignShiftRequiresCafeAssignment(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         unset($_SESSION['user_id'], $_SESSION['user_name'], $_SESSION['user_email'], $_SESSION['user_role'], $_SESSION['user_cafe_id']);
@@ -143,8 +142,8 @@ final class StaffControllerTest extends TestCase
 
     public function testAssignShiftValidatesUserId(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 10;
@@ -162,7 +161,7 @@ final class StaffControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('válido', $data['error']);
@@ -170,8 +169,8 @@ final class StaffControllerTest extends TestCase
 
     public function testAssignShiftValidatesDateFormat(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 10;
@@ -189,7 +188,7 @@ final class StaffControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('Fecha', $data['error']);
@@ -197,8 +196,8 @@ final class StaffControllerTest extends TestCase
 
     public function testAssignShiftValidatesStartTimeFormat(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 10;
@@ -216,7 +215,7 @@ final class StaffControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('inicio inválida', $data['error']);
@@ -224,8 +223,8 @@ final class StaffControllerTest extends TestCase
 
     public function testAssignShiftValidatesEndTimeFormat(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 10;
@@ -243,7 +242,7 @@ final class StaffControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('fin inválida', $data['error']);
@@ -251,8 +250,8 @@ final class StaffControllerTest extends TestCase
 
     public function testAssignShiftValidatesStartBeforeEnd(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 10;
@@ -270,7 +269,7 @@ final class StaffControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('menor que', $data['error']);
@@ -278,8 +277,8 @@ final class StaffControllerTest extends TestCase
 
     public function testAssignShiftDetectsOverlap(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_id'] = 10;
@@ -307,7 +306,7 @@ final class StaffControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('turno asignado', $data['error']);
@@ -315,8 +314,8 @@ final class StaffControllerTest extends TestCase
 
     public function testViewPerformanceRequiresCafeAssignment(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         unset($_SESSION['user_id'], $_SESSION['user_name'], $_SESSION['user_email'], $_SESSION['user_role'], $_SESSION['user_cafe_id']);
@@ -326,7 +325,7 @@ final class StaffControllerTest extends TestCase
         $this->assertSame(403, $response->getStatusCode());
 
         $body = (string) $response->getBody();
-        $data = json_decode($body, true);
+        $data = \json_decode($body, true);
 
         $this->assertFalse($data['success']);
         $this->assertStringContainsString('café asignado', $data['error']);

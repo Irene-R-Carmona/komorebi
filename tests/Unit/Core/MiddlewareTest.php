@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -85,8 +84,8 @@ final class MiddlewareTest extends TestCase
 
     public function testAuthWithAuthenticatedUserPasses(): void
     {
-        $_SESSION['user_id']          = 1;
-        $_SESSION['user_roles']       = ['user'];  // evita consulta a BD
+        $_SESSION['user_id'] = 1;
+        $_SESSION['user_roles'] = ['user'];  // evita consulta a BD
         $_SESSION['user_permissions'] = [];         // sin permisos extra
 
         // No debe lanzar excepción

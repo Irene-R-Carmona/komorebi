@@ -37,12 +37,12 @@ final class AnimalCareControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION['_csrf_token'] = self::CSRF_TOKEN;
-        $_SESSION['user_id']     = 1;
-        $_SESSION['user']        = ['id' => 1, 'name' => 'Test', 'roles' => ['keeper']];
+        $_SESSION['user_id'] = 1;
+        $_SESSION['user'] = ['id' => 1, 'name' => 'Test', 'roles' => ['keeper']];
     }
 
     protected function tearDown(): void
@@ -71,9 +71,9 @@ final class AnimalCareControllerTest extends TestCase
         ?PDO $pdo = null,
         ?HealthCheckService $healthCheckService = null,
     ): AnimalCareController {
-        $pdo             ??= $this->makePdoStub();
+        $pdo ??= $this->makePdoStub();
         $animalCareService = new AnimalCareService($pdo, $this->createStub(AnimalRepositoryInterface::class));
-        $healthCheckRepo   = $this->createStub(HealthCheckRepositoryInterface::class);
+        $healthCheckRepo = $this->createStub(HealthCheckRepositoryInterface::class);
         $healthCheckRepo->method('getTodayChecks')->willReturn([]);
         $healthCheckRepo->method('getPendingAnimals')->willReturn([]);
 
@@ -88,12 +88,12 @@ final class AnimalCareControllerTest extends TestCase
 
     public function test_log_care_returns_json_on_success(): void
     {
-        $request = (new ServerRequest('POST', '/keeper/log'))
+        $request = new ServerRequest('POST', '/keeper/log')
             ->withParsedBody([
-                'csrf_token'    => self::CSRF_TOKEN,
-                'animal_id'     => '3',
+                'csrf_token' => self::CSRF_TOKEN,
+                'animal_id' => '3',
                 'activity_type' => 'feeding',
-                'notes'         => 'ok',
+                'notes' => 'ok',
             ]);
 
         $result = $this->makeController()->logCare($request);
@@ -106,16 +106,16 @@ final class AnimalCareControllerTest extends TestCase
         // Asegurarse que $_POST está vacío: el controller debe leer de PSR-7
         $_POST = [];
 
-        $pdo  = $this->makePdoStub();
+        $pdo = $this->makePdoStub();
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('lastInsertId')->willReturn('7');
 
-        $request = (new ServerRequest('POST', '/keeper/log'))
+        $request = new ServerRequest('POST', '/keeper/log')
             ->withParsedBody([
-                'csrf_token'    => self::CSRF_TOKEN,
-                'animal_id'     => '7',
+                'csrf_token' => self::CSRF_TOKEN,
+                'animal_id' => '7',
                 'activity_type' => 'feeding',
             ]);
 
@@ -126,7 +126,7 @@ final class AnimalCareControllerTest extends TestCase
 
     public function test_toggle_active_returns_json_on_success(): void
     {
-        $request = (new ServerRequest('POST', '/keeper/animal/5/toggle'))
+        $request = new ServerRequest('POST', '/keeper/animal/5/toggle')
             ->withParsedBody(['csrf_token' => self::CSRF_TOKEN]);
 
         $result = $this->makeController()->toggleActive($request, 5);
@@ -136,11 +136,11 @@ final class AnimalCareControllerTest extends TestCase
 
     public function test_update_health_returns_json_on_success(): void
     {
-        $request = (new ServerRequest('POST', '/keeper/animal/3/health'))
+        $request = new ServerRequest('POST', '/keeper/animal/3/health')
             ->withParsedBody([
-                'csrf_token'    => self::CSRF_TOKEN,
+                'csrf_token' => self::CSRF_TOKEN,
                 'health_status' => 'healthy',
-                'notes'         => '',
+                'notes' => '',
             ]);
 
         $result = $this->makeController()->updateHealth($request, 3);
@@ -150,7 +150,7 @@ final class AnimalCareControllerTest extends TestCase
 
     public function test_record_feeding_redirects_on_success(): void
     {
-        $request = (new ServerRequest('POST', '/keeper/animals/2/feeding'))
+        $request = new ServerRequest('POST', '/keeper/animals/2/feeding')
             ->withAttribute('id', 2)
             ->withParsedBody(['csrf_token' => self::CSRF_TOKEN, 'notes' => '']);
 
@@ -166,7 +166,7 @@ final class AnimalCareControllerTest extends TestCase
         $healthCheckRepo->method('create')->willReturn(1);
         $healthCheckService = new HealthCheckService($healthCheckRepo);
 
-        $request = (new ServerRequest('POST', '/keeper/animals/2/health'))
+        $request = new ServerRequest('POST', '/keeper/animals/2/health')
             ->withAttribute('id', 2)
             ->withParsedBody(['csrf_token' => self::CSRF_TOKEN]);
 

@@ -51,7 +51,7 @@ final class LoyaltyController extends AbstractApiController
 
         return $this->success([
             'message' => 'Recompensa canjeada exitosamente',
-            'result'  => $result->data,
+            'result' => $result->data,
         ]);
     }
 

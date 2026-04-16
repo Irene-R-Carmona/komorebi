@@ -28,9 +28,9 @@ final class RbacSeederCorrectionsTest extends TestCase
 
     protected function setUp(): void
     {
-        $path = \dirname(__DIR__, 3) . '/app/Core/Seeders/RbacSeeder.php';
+        $path = dirname(__DIR__, 3) . '/app/Core/Seeders/RbacSeeder.php';
         $this->assertFileExists($path, 'RbacSeeder.php debe existir');
-        $source = \file_get_contents($path);
+        $source = file_get_contents($path);
         $this->assertIsString($source);
         $this->seederSource = $source;
     }
@@ -107,18 +107,18 @@ final class RbacSeederCorrectionsTest extends TestCase
     private function extractRoleBlock(string $role): string
     {
         // Acotar al contexto de $rolePermissions, no createRoles()
-        $start = \strpos($this->seederSource, '$rolePermissions = [');
+        $start = strpos($this->seederSource, '$rolePermissions = [');
 
         if ($start === false) {
             return '';
         }
 
-        $context = \substr($this->seederSource, $start);
+        $context = substr($this->seederSource, $start);
 
         // Busca "'<role>' => [" seguido de contenido hasta el cierre "],"
-        $pattern = "/'" . \preg_quote($role, '/') . "'\s*=>\s*\[(.+?)\n\s+\],/s";
+        $pattern = "/'" . preg_quote($role, '/') . "'\s*=>\s*\[(.+?)\n\s+\],/s";
 
-        if (\preg_match($pattern, $context, $matches)) {
+        if (preg_match($pattern, $context, $matches)) {
             return $matches[1];
         }
 

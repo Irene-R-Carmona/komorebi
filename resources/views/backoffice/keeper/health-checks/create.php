@@ -29,14 +29,14 @@ declare(strict_types=1);
                                 Edad: <?= $animal['age'] ?? 'N/D' ?> años •
                                 <?php
                                 $animalStatusLabels = [
-                                    'active'     => 'Activo',
+                                    'active' => 'Activo',
                                     'monitoring' => 'En observación',
-                                    'resting'    => 'Descansando',
-                                    'sick'       => 'Enfermo',
-                                    'retired'    => 'Retirado',
+                                    'resting' => 'Descansando',
+                                    'sick' => 'Enfermo',
+                                    'retired' => 'Retirado',
                                 ];
-                                $animalStatusLabel = $animalStatusLabels[$animal['current_status']] ?? ucfirst($animal['current_status']);
-                                ?>
+$animalStatusLabel = $animalStatusLabels[$animal['current_status']] ?? ucfirst($animal['current_status']);
+?>
                                 Estado: <span class="badge bg-secondary"><?= htmlspecialchars($animalStatusLabel, ENT_QUOTES, 'UTF-8') ?></span>
                             </p>
                         </div>

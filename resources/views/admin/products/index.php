@@ -19,8 +19,8 @@ $total ??= count($products);
 $filters ??= [];
 
 // Calcular estadísticas
-$available = count(array_filter($products, static fn($p) => !empty($p['is_active'])));
-$withAllergens = count(array_filter($products, static fn($p) => !empty($p['allergens_list'])));
+$available = count(array_filter($products, static fn ($p) => !empty($p['is_active'])));
+$withAllergens = count(array_filter($products, static fn ($p) => !empty($p['allergens_list'])));
 $csrfToken = Csrf::token();
 
 // Preparar configuración para Alpine.js

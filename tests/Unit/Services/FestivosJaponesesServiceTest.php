@@ -114,7 +114,7 @@ final class FestivosJaponesesServiceTest extends TestCase
     {
         $festivos = $this->service->obtenerFestivosDelAnio(2025);
 
-        $fechas = array_column($festivos, 'fecha');
+        $fechas = \array_column($festivos, 'fecha');
         $this->assertContains('2025-01-01', $fechas);
     }
 }

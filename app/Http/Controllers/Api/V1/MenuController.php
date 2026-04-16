@@ -34,6 +34,7 @@ final class MenuController extends AbstractApiController
     public function allergens(ServerRequestInterface $request): ResponseInterface
     {
         $allergens = $this->menuService->getAllergens();
+
         return $this->collection($allergens, $this->allergenTransformer);
     }
 
@@ -46,6 +47,7 @@ final class MenuController extends AbstractApiController
     public function products(ServerRequestInterface $request): ResponseInterface
     {
         $products = $this->menuService->getProductsByCategory();
+
         return $this->success($products);
     }
 

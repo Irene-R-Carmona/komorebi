@@ -17,10 +17,9 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Repositories;
 
+use App\Repositories\ReservationRepository;
 use Override;
 use ReflectionClass;
-use function method_exists;
-use App\Repositories\ReservationRepository;
 use Tests\Support\BaseIntegrationTest;
 
 final class ReservationRepositorySecurityTest extends BaseIntegrationTest
@@ -54,7 +53,7 @@ final class ReservationRepositorySecurityTest extends BaseIntegrationTest
     public function testFindWithOperationalDataMethodExists(): void
     {
         $this->assertTrue(
-            method_exists($this->repo, 'findWithOperationalData'), // @phpstan-ignore function.alreadyNarrowedType
+            \method_exists($this->repo, 'findWithOperationalData'), // @phpstan-ignore function.alreadyNarrowedType
             'ReservationRepository debe exponer findWithOperationalData() para contextos de staff'
         );
     }

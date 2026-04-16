@@ -34,6 +34,7 @@ abstract class FormRequest
 
         $instance = new static();
         $instance->sanitizedData = $instance->sanitize($body);
+
         return $instance;
     }
 
@@ -52,7 +53,7 @@ abstract class FormRequest
         $errors = [];
 
         foreach ($this->rules() as $field => $ruleString) {
-            $rules = explode('|', (string) $ruleString);
+            $rules = \explode('|', (string) $ruleString);
             $value = $sanitized[$field] ?? null;
 
             foreach ($rules as $rule) {
@@ -90,63 +91,72 @@ abstract class FormRequest
             if ($value === null || $value === '') {
                 return "El campo $field es obligatorio.";
             }
+
             return null;
         }
 
         if ($rule === 'email') {
-            if ($value !== null && $value !== '' && filter_var($value, FILTER_VALIDATE_EMAIL) === false) {
+            if ($value !== null && $value !== '' && \filter_var($value, FILTER_VALIDATE_EMAIL) === false) {
                 return "El campo $field debe ser un correo válido.";
             }
+
             return null;
         }
 
         if ($rule === 'integer') {
-            if ($value !== null && $value !== '' && !ctype_digit((string) $value)) {
+            if ($value !== null && $value !== '' && !\ctype_digit((string) $value)) {
                 return "El campo $field debe ser un número entero.";
             }
+
             return null;
         }
 
         if ($rule === 'bool') {
             if ($value !== null && $value !== '') {
                 $allowed = ['1', '0', 'true', 'false', true, false, 1, 0];
-                if (!in_array($value, $allowed, true)) {
+                if (!\in_array($value, $allowed, true)) {
                     return "El campo $field debe ser un valor booleano.";
                 }
             }
+
             return null;
         }
 
-        if (str_starts_with($rule, 'min:')) {
-            $min = (int) substr($rule, 4);
-            if ($value !== null && $value !== '' && mb_strlen((string) $value) < $min) {
+        if (\str_starts_with($rule, 'min:')) {
+            $min = (int) \substr($rule, 4);
+            if ($value !== null && $value !== '' && \mb_strlen((string) $value) < $min) {
                 return "El campo $field debe tener al menos $min caracteres.";
             }
+
             return null;
         }
 
-        if (str_starts_with($rule, 'max:')) {
-            $max = (int) substr($rule, 4);
-            if ($value !== null && $value !== '' && mb_strlen((string) $value) > $max) {
+        if (\str_starts_with($rule, 'max:')) {
+            $max = (int) \substr($rule, 4);
+            if ($value !== null && $value !== '' && \mb_strlen((string) $value) > $max) {
                 return "El campo $field no debe superar los $max caracteres.";
             }
+
             return null;
         }
 
-        if (str_starts_with($rule, 'in:')) {
-            $allowed = explode(',', substr($rule, 3));
-            if ($value !== null && $value !== '' && !in_array((string) $value, $allowed, true)) {
-                $list = implode(', ', $allowed);
+        if (\str_starts_with($rule, 'in:')) {
+            $allowed = \explode(',', \substr($rule, 3));
+            if ($value !== null && $value !== '' && !\in_array((string) $value, $allowed, true)) {
+                $list = \implode(', ', $allowed);
+
                 return "El campo $field debe ser uno de: $list.";
             }
+
             return null;
         }
 
-        if (str_starts_with($rule, 'regex:')) {
-            $pattern = '/' . substr($rule, 6) . '/';
-            if ($value !== null && $value !== '' && !preg_match($pattern, (string) $value)) {
+        if (\str_starts_with($rule, 'regex:')) {
+            $pattern = '/' . \substr($rule, 6) . '/';
+            if ($value !== null && $value !== '' && !\preg_match($pattern, (string) $value)) {
                 return "El campo $field no tiene el formato esperado.";
             }
+
             return null;
         }
 

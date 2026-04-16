@@ -16,6 +16,8 @@ declare(strict_types=1);
 use App\Core\Config;
 use App\Core\Container;
 use App\Core\Env;
+use App\Jobs\RewardUnlockedJob;
+use App\Jobs\SendTelegramNotificationJob;
 use App\Providers\AuthServiceProvider;
 use App\Providers\CacheServiceProvider;
 use App\Providers\CatalogServiceProvider;
@@ -25,25 +27,23 @@ use App\Providers\NewsletterServiceProvider;
 use App\Providers\ReservationServiceProvider;
 use App\Providers\SharedServiceProvider;
 use App\Providers\StaffServiceProvider;
+use App\Repositories\ApiTokenRepository;
+use App\Repositories\Contracts\ApiTokenRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\UserRepository;
 use App\Services\AccountDeletionService;
-use App\Services\ContextServiceInstance;
-use App\Services\Contracts\ContextServiceInterface;
-use App\Services\NavigationService;
-use App\Jobs\RewardUnlockedJob;
-use App\Jobs\SendTelegramNotificationJob;
-use App\Repositories\ApiTokenRepository;
-use App\Repositories\Contracts\ApiTokenRepositoryInterface;
 use App\Services\ApiTokenService;
-use App\Services\Contracts\ApiTokenServiceInterface;
 use App\Services\CacheService;
 use App\Services\ClimaContextoService;
+use App\Services\ContextServiceInstance;
+use App\Services\Contracts\ApiTokenServiceInterface;
+use App\Services\Contracts\ContextServiceInterface;
 use App\Services\Contracts\RateLimitingServiceInterface;
 use App\Services\Contracts\TelegramServiceInterface;
+use App\Services\Contracts\WeatherServiceInterface;
+use App\Services\NavigationService;
 use App\Services\RateLimitingService;
 use App\Services\TelegramService;
-use App\Services\Contracts\WeatherServiceInterface;
 use App\Services\WeatherService;
 
 // Asegurar que Config está inicializado
@@ -84,30 +84,30 @@ foreach ($providers as $providerClass) {
 // tenga todos los bindings cuando EventServiceProvider::boot() dispara ensureBuild().
 
 // UserRepositoryInterface → UserRepository
-Container::singleton(UserRepositoryInterface::class, fn() => new UserRepository(
+Container::singleton(UserRepositoryInterface::class, fn () => new UserRepository(
     Container::make(\PDO::class)
 ));
 // Alias concreto para inyección directa (AuthService espera ?UserRepository)
-Container::singleton(UserRepository::class, fn() => Container::make(UserRepositoryInterface::class));
+Container::singleton(UserRepository::class, fn () => Container::make(UserRepositoryInterface::class));
 
 // AccountDeletionService: eliminación atómica de cuentas (GDPR)
-Container::singleton(AccountDeletionService::class, fn() => new AccountDeletionService(
+Container::singleton(AccountDeletionService::class, fn () => new AccountDeletionService(
     Container::make(\PDO::class)
 ));
 
 // RewardUnlockedJob: PDO inyectado (no Database::getConnection() estático)
-Container::singleton(RewardUnlockedJob::class, fn() => new RewardUnlockedJob(
+Container::singleton(RewardUnlockedJob::class, fn () => new RewardUnlockedJob(
     Container::make(\PDO::class)
 ));
 
 // SendTelegramNotificationJob: notificaciones Telegram asíncronas
-Container::singleton(SendTelegramNotificationJob::class, fn() => new SendTelegramNotificationJob(
+Container::singleton(SendTelegramNotificationJob::class, fn () => new SendTelegramNotificationJob(
     Container::make(TelegramServiceInterface::class)
 ));
 
 // TelegramService: notificaciones internas vía bot
-Container::singleton(TelegramService::class, static fn(): TelegramService => new TelegramService());
-Container::singleton(TelegramServiceInterface::class, static fn(): TelegramServiceInterface => Container::make(TelegramService::class));
+Container::singleton(TelegramService::class, static fn (): TelegramService => new TelegramService());
+Container::singleton(TelegramServiceInterface::class, static fn (): TelegramServiceInterface => Container::make(TelegramService::class));
 
 // Servicios de clima: WeatherService (HTTP + caché) y ClimaContextoService (contexto poético)
 Container::singleton(WeatherService::class, static function (): WeatherService {
@@ -119,16 +119,17 @@ Container::singleton(ClimaContextoService::class, static function (): ClimaConte
 });
 
 // Tokens Bearer opacos para la API
-Container::singleton(ApiTokenRepositoryInterface::class, fn() => new ApiTokenRepository());
-Container::singleton(ApiTokenServiceInterface::class, fn() => new ApiTokenService(Container::make(ApiTokenRepositoryInterface::class)));
+Container::singleton(ApiTokenRepositoryInterface::class, fn () => new ApiTokenRepository());
+Container::singleton(ApiTokenServiceInterface::class, fn () => new ApiTokenService(Container::make(ApiTokenRepositoryInterface::class)));
 // Alias por concrete class (para compatibilidad interna si fuera necesario)
-Container::singleton(ApiTokenRepository::class, fn() => Container::make(ApiTokenRepositoryInterface::class));
-Container::singleton(ApiTokenService::class, fn() => Container::make(ApiTokenServiceInterface::class));
+Container::singleton(ApiTokenRepository::class, fn () => Container::make(ApiTokenRepositoryInterface::class));
+Container::singleton(ApiTokenService::class, fn () => Container::make(ApiTokenServiceInterface::class));
 
 // ContextServiceInstance: versión inyectable de ContextService (per-request)
 // El bind de la interfaz permite inyectar por contrato (no por clase concreta)
 Container::bind(ContextServiceInterface::class, function (): ContextServiceInstance {
     $selectedId = \App\Core\Session::get('admin_selected_cafe_id');
+
     return new ContextServiceInstance(
         Container::make(\App\Repositories\Contracts\CafeRepositoryInterface::class),
         \App\Core\Session::role(),
@@ -138,6 +139,7 @@ Container::bind(ContextServiceInterface::class, function (): ContextServiceInsta
 });
 Container::bind(ContextServiceInstance::class, function (): ContextServiceInstance {
     $selectedId = \App\Core\Session::get('admin_selected_cafe_id');
+
     return new ContextServiceInstance(
         Container::make(\App\Repositories\Contracts\CafeRepositoryInterface::class),
         \App\Core\Session::role(),
@@ -147,10 +149,10 @@ Container::bind(ContextServiceInstance::class, function (): ContextServiceInstan
 });
 
 // NavigationService: singleton inyectable (sin dependencias, lógica pura)
-Container::singleton(NavigationService::class, fn() => new NavigationService());
+Container::singleton(NavigationService::class, fn () => new NavigationService());
 
 // RateLimitingServiceInterface: rate limiting vía PSR-6 cache
-Container::singleton(RateLimitingServiceInterface::class, fn() => new RateLimitingService(
+Container::singleton(RateLimitingServiceInterface::class, fn () => new RateLimitingService(
     Container::make(CacheService::class)
 ));
 

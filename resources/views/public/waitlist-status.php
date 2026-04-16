@@ -24,8 +24,8 @@ declare(strict_types=1);
         'expired' => 'Expirado',
         'cancelled' => 'Cancelado',
     ];
-    $statusClass = 'status-' . $waitlist['status'];
-    ?>
+$statusClass = 'status-' . $waitlist['status'];
+?>
 
     <div class="text-center mb-4">
         <span class="status-badge <?= $statusClass ?>">

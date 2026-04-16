@@ -25,8 +25,8 @@ final class SendTelegramNotificationJobTest extends TestCase
 
         $job = new SendTelegramNotificationJob($telegram);
         $job->handle([
-            'icon'    => '🆕',
-            'title'   => 'Test title',
+            'icon' => '🆕',
+            'title' => 'Test title',
             'message' => 'Test body',
         ]);
     }

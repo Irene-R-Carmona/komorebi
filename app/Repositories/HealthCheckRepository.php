@@ -6,7 +6,6 @@ namespace App\Repositories;
 
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use PDO;
-use PDOException;
 
 /**
  * Repositorio para gestionar chequeos de salud animal.
@@ -39,12 +38,13 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
         $stmt->execute(['id' => $id]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $result !== false ? $result : null;
     }
 
     public function findByAnimalAndDate(int $animalId, ?string $date = null): ?array
     {
-        $date = $date ?? date('Y-m-d');
+        $date ??= \date('Y-m-d');
 
         $stmt = $this->db->prepare('
             SELECT hc.*,
@@ -63,12 +63,13 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
         ]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $result !== false ? $result : null;
     }
 
     public function findTodayByAnimalId(int $animalId): ?array
     {
-        return $this->findByAnimalAndDate($animalId, date('Y-m-d'));
+        return $this->findByAnimalAndDate($animalId, \date('Y-m-d'));
     }
 
     public function getCheckHistory(int $animalId, int $limit = 30): array
@@ -179,7 +180,7 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
         $stmt->execute([
             'animal_id' => $data['animal_id'],
             'checked_by' => $data['checked_by'],
-            'check_date' => $data['check_date'] ?? date('Y-m-d'),
+            'check_date' => $data['check_date'] ?? \date('Y-m-d'),
             'weight_kg' => $data['weight_kg'] ?? null,
             'temperature_c' => $data['temperature_c'] ?? null,
             'appetite' => $data['appetite'] ?? 'normal',
@@ -189,7 +190,7 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
             'breathing_normal' => $data['breathing_normal'] ?? true,
             'mobility_normal' => $data['mobility_normal'] ?? true,
             'notes' => $data['notes'] ?? null,
-            'alerts' => isset($data['alerts']) ? json_encode($data['alerts']) : null,
+            'alerts' => isset($data['alerts']) ? \json_encode($data['alerts']) : null,
         ]);
 
         return (int) $this->db->lastInsertId();
@@ -209,13 +210,14 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
         ]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $result !== false && (int) $result['count'] > 0;
     }
 
     public function countByKeeperInPeriod(int $keeperId, ?string $startDate = null, ?string $endDate = null): int
     {
-        $startDate = $startDate ?? date('Y-m-01'); // Primer día del mes actual
-        $endDate = $endDate ?? date('Y-m-d'); // Hoy
+        $startDate ??= \date('Y-m-01'); // Primer día del mes actual
+        $endDate ??= \date('Y-m-d'); // Hoy
 
         $stmt = $this->db->prepare('
             SELECT COUNT(*) as count
@@ -230,6 +232,7 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
         ]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $result !== false ? (int) $result['count'] : 0;
     }
 

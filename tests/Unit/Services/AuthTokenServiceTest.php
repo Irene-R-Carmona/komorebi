@@ -44,6 +44,7 @@ final class AuthTokenServiceTest extends TestCase
         $pdo = $this->createStub(\PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('query')->willReturn($stmt);
+
         return $pdo;
     }
 
@@ -59,6 +60,7 @@ final class AuthTokenServiceTest extends TestCase
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('fetchColumn')->willReturn($fetchColumnReturn);
         $stmt->method('rowCount')->willReturn(0);
+
         return $stmt;
     }
 
@@ -115,6 +117,7 @@ final class AuthTokenServiceTest extends TestCase
         $stmt->method('fetch')->willReturn(['id' => 1, 'user_id' => 5]);
         $stmt->method('execute')->willReturnCallback(function () use (&$executeCount): bool {
             $executeCount++;
+
             return true;
         });
 

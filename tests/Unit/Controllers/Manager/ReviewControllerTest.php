@@ -71,25 +71,25 @@ final class ReviewControllerTest extends TestCase
 
     public function testIndexReturnsNullWhenNoCafeIdInSession(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         unset($_SESSION['user_cafe_id']);
 
         $controller = new ReviewController($this->queryService, $this->moderationService);
 
-        ob_start();
+        \ob_start();
         $result = $controller->index();
-        ob_get_clean();
+        \ob_get_clean();
 
         $this->assertNull($result);
     }
 
     public function testIndexReturnsNullWhenCafeIdIsSet(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['user_cafe_id'] = 3;
@@ -110,9 +110,9 @@ final class ReviewControllerTest extends TestCase
 
         $controller = new ReviewController($this->queryService, $this->moderationService);
 
-        ob_start();
+        \ob_start();
         $result = $controller->index();
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
     }
@@ -123,16 +123,16 @@ final class ReviewControllerTest extends TestCase
 
     public function testApproveRedirectsOnCsrfFailure(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['_csrf_token'] = 'session_token_abc';
-        $_POST['csrf_token']     = 'wrong_token';
-        $_POST['id']             = '7';
+        $_POST['csrf_token'] = 'wrong_token';
+        $_POST['id'] = '7';
 
         $controller = new ReviewController($this->queryService, $this->moderationService);
-        $response   = $controller->approve();
+        $response = $controller->approve();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $this->assertSame(302, $response->getStatusCode());
@@ -141,14 +141,14 @@ final class ReviewControllerTest extends TestCase
 
     public function testApproveRedirectsWhenReviewNotFound(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $token = 'valid_csrf_xyz';
         $_SESSION['_csrf_token'] = $token;
-        $_POST['csrf_token']     = $token;
-        $_POST['id']             = '999';
+        $_POST['csrf_token'] = $token;
+        $_POST['id'] = '999';
 
         // approveReview retorna Result::fail → el controller muestra error
         $this->moderationService->method('approveReview')->willReturn(
@@ -156,7 +156,7 @@ final class ReviewControllerTest extends TestCase
         );
 
         $controller = new ReviewController($this->queryService, $this->moderationService);
-        $response   = $controller->approve();
+        $response = $controller->approve();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $this->assertSame(302, $response->getStatusCode());
@@ -165,14 +165,14 @@ final class ReviewControllerTest extends TestCase
 
     public function testApproveRedirectsOnServiceSuccess(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $token = 'valid_csrf_xyz';
         $_SESSION['_csrf_token'] = $token;
-        $_POST['csrf_token']     = $token;
-        $_POST['id']             = '5';
+        $_POST['csrf_token'] = $token;
+        $_POST['id'] = '5';
 
         // approveReview retorna Result::ok → el controller muestra éxito
         $this->moderationService->method('approveReview')->willReturn(
@@ -180,7 +180,7 @@ final class ReviewControllerTest extends TestCase
         );
 
         $controller = new ReviewController($this->queryService, $this->moderationService);
-        $response   = $controller->approve();
+        $response = $controller->approve();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $this->assertSame(302, $response->getStatusCode());
@@ -193,17 +193,17 @@ final class ReviewControllerTest extends TestCase
 
     public function testRejectRedirectsOnCsrfFailure(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $_SESSION['_csrf_token'] = 'real_token_abc';
-        $_POST['csrf_token']     = 'tampered_token';
-        $_POST['id']             = '7';
-        $_POST['reason']         = 'Spam en la reseña';
+        $_POST['csrf_token'] = 'tampered_token';
+        $_POST['id'] = '7';
+        $_POST['reason'] = 'Spam en la reseña';
 
         $controller = new ReviewController($this->queryService, $this->moderationService);
-        $response   = $controller->reject();
+        $response = $controller->reject();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $this->assertSame(302, $response->getStatusCode());
@@ -212,22 +212,22 @@ final class ReviewControllerTest extends TestCase
 
     public function testRejectRedirectsWhenReviewNotFound(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $token = 'valid_csrf_abc';
         $_SESSION['_csrf_token'] = $token;
-        $_POST['csrf_token']     = $token;
-        $_POST['id']             = '42';
-        $_POST['reason']         = 'Contenido inapropiado detectado';
+        $_POST['csrf_token'] = $token;
+        $_POST['id'] = '42';
+        $_POST['reason'] = 'Contenido inapropiado detectado';
 
         $this->moderationService->method('rejectReview')->willReturn(
             Result::fail('Reseña no encontrada', 'not_found')
         );
 
         $controller = new ReviewController($this->queryService, $this->moderationService);
-        $response   = $controller->reject();
+        $response = $controller->reject();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $this->assertSame(302, $response->getStatusCode());
@@ -236,22 +236,22 @@ final class ReviewControllerTest extends TestCase
 
     public function testRejectRedirectsOnServiceSuccess(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
 
         $token = 'valid_csrf_abc';
         $_SESSION['_csrf_token'] = $token;
-        $_POST['csrf_token']     = $token;
-        $_POST['id']             = '12';
-        $_POST['reason']         = 'Lenguaje inapropiado detectado en el texto';
+        $_POST['csrf_token'] = $token;
+        $_POST['id'] = '12';
+        $_POST['reason'] = 'Lenguaje inapropiado detectado en el texto';
 
         $this->moderationService->method('rejectReview')->willReturn(
             Result::ok(['id' => 12])
         );
 
         $controller = new ReviewController($this->queryService, $this->moderationService);
-        $response   = $controller->reject();
+        $response = $controller->reject();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $this->assertSame(302, $response->getStatusCode());

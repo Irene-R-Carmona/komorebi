@@ -23,8 +23,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
-use App\Core\ExceptionLogger;
 use App\Core\Env;
+use App\Core\ExceptionLogger;
 use App\Core\LogContext;
 use App\Core\LogContextProcessor;
 use App\Core\Logger;
@@ -62,18 +62,18 @@ final class ExceptionLoggerTest extends TestCase
     {
         // Garantizar entorno limpio para cada test
         $this->clearEnvCache();
-        putenv('TELEGRAM_BOT_TOKEN');
-        putenv('TELEGRAM_CHAT_ID');
-        putenv('APP_ENV=production');
+        \putenv('TELEGRAM_BOT_TOKEN');
+        \putenv('TELEGRAM_CHAT_ID');
+        \putenv('APP_ENV=production');
         $_ENV['APP_ENV'] = 'production';
         unset($_ENV['TELEGRAM_BOT_TOKEN'], $_ENV['TELEGRAM_CHAT_ID']);
     }
 
     protected function tearDown(): void
     {
-        putenv('TELEGRAM_BOT_TOKEN');
-        putenv('TELEGRAM_CHAT_ID');
-        putenv('APP_ENV');
+        \putenv('TELEGRAM_BOT_TOKEN');
+        \putenv('TELEGRAM_CHAT_ID');
+        \putenv('APP_ENV');
         unset($_ENV['APP_ENV'], $_ENV['TELEGRAM_BOT_TOKEN'], $_ENV['TELEGRAM_CHAT_ID']);
         $this->clearEnvCache();
     }
@@ -97,7 +97,7 @@ final class ExceptionLoggerTest extends TestCase
     public function testLogCriticalWithTokenButNoChatIdDegratesGracefully(): void
     {
         // Token presente pero sin CHAT_ID → TelegramService devuelve Result::ok(null) internamente
-        putenv('TELEGRAM_BOT_TOKEN=bot123:FakeTestToken');
+        \putenv('TELEGRAM_BOT_TOKEN=bot123:FakeTestToken');
         $_ENV['TELEGRAM_BOT_TOKEN'] = 'bot123:FakeTestToken';
         $this->clearEnvCache();
 
@@ -113,7 +113,7 @@ final class ExceptionLoggerTest extends TestCase
     public function testLogNonCriticalExceptionDoesNotActivateTelegramPath(): void
     {
         // Aunque haya token, ValidationException es INFO y no debe notificar
-        putenv('TELEGRAM_BOT_TOKEN=bot123:FakeTestToken');
+        \putenv('TELEGRAM_BOT_TOKEN=bot123:FakeTestToken');
         $_ENV['TELEGRAM_BOT_TOKEN'] = 'bot123:FakeTestToken';
         $this->clearEnvCache();
 

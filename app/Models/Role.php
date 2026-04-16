@@ -196,14 +196,14 @@ final class Role
         $stmt = $this->getDb()->query($sql);
         $rows = $stmt->fetchAll();
 
-        return array_map(static function (array $row): array {
+        return \array_map(static function (array $row): array {
             if ($row['permission_ids'] !== null) {
-                $ids   = explode(',', (string) $row['permission_ids']);
-                $names = explode(',', (string) $row['permission_names']);
+                $ids = \explode(',', (string) $row['permission_ids']);
+                $names = \explode(',', (string) $row['permission_names']);
 
-                $row['permissions'] = array_map(
-                    static fn(string $id, ?string $name): array => [
-                        'id'   => (int) $id,
+                $row['permissions'] = \array_map(
+                    static fn (string $id, ?string $name): array => [
+                        'id' => (int) $id,
                         'name' => $name ?? '',
                     ],
                     $ids,

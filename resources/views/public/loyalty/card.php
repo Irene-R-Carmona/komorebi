@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-echo "<!--VISTA CARD.PHP EJECUTADA-->";
+echo '<!--VISTA CARD.PHP EJECUTADA-->';
 
 /**
  * Vista: Tarjeta de Fidelización
@@ -13,8 +13,6 @@ echo "<!--VISTA CARD.PHP EJECUTADA-->";
  * @var array $redeemed_rewards - Historial de canjes
  * @var array $tier_progress - Progreso al siguiente tier
  */
-
-use App\Core\Csrf;
 
 // Extraer datos
 $stamps = (int) ($card['stamps'] ?? 0);
@@ -27,21 +25,21 @@ $tierNames = [
     'bronze' => 'Bronce',
     'silver' => 'Plata',
     'gold' => 'Oro',
-    'platinum' => 'Platino'
+    'platinum' => 'Platino',
 ];
 
 $tierIcons = [
     'bronze' => 'bi-award',
     'silver' => 'bi-award-fill',
     'gold' => 'bi-trophy',
-    'platinum' => 'bi-gem'
+    'platinum' => 'bi-gem',
 ];
 
 $tierEmojis = [
     'bronze' => 'bi-award',
     'silver' => 'bi-award-fill',
     'gold' => 'bi-trophy',
-    'platinum' => 'bi-gem'
+    'platinum' => 'bi-gem',
 ];
 
 // Progreso
@@ -145,8 +143,8 @@ if ($nextMilestone === $stamps && $stamps > 0) {
         <div class="rewards-grid">
             <?php foreach ($available_rewards as $reward): ?>
                 <?php
-                $canRedeem = (int)($reward['stamps_required'] ?? 99) <= $stamps;
-                $tierRequired = (string)($reward['tier_required'] ?? 'bronze');
+                $canRedeem = (int) ($reward['stamps_required'] ?? 99) <= $stamps;
+                $tierRequired = (string) ($reward['tier_required'] ?? 'bronze');
                 $tierMet = array_search($currentTier, array_keys($tierNames), true) >= array_search($tierRequired, array_keys($tierNames), true);
                 $isLocked = !$tierMet;
                 ?>
@@ -165,7 +163,7 @@ if ($nextMilestone === $stamps && $stamps > 0) {
                         <?php elseif ($canRedeem): ?>
                             <span class="reward-badge reward-badge--available"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Disponible</span>
                         <?php else: ?>
-                            <span class="reward-badge"><i class="bi bi-clock" aria-hidden="true"></i> <?= (int)($reward['stamps_required'] ?? 0) - $stamps ?> sellos más</span>
+                            <span class="reward-badge"><i class="bi bi-clock" aria-hidden="true"></i> <?= (int) ($reward['stamps_required'] ?? 0) - $stamps ?> sellos más</span>
                         <?php endif; ?>
                     </div>
 
@@ -173,7 +171,7 @@ if ($nextMilestone === $stamps && $stamps > 0) {
                     <p class="reward-card__description"><?= htmlspecialchars($reward['description'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
 
                     <div class="reward-card__footer">
-                        <span class="reward-card__cost"><?= (int)($reward['stamps_required'] ?? 0) ?> sellos</span>
+                        <span class="reward-card__cost"><?= (int) ($reward['stamps_required'] ?? 0) ?> sellos</span>
                         <?php if (!$isLocked && $canRedeem): ?>
                             <button
                                 class="btn-reward"
@@ -205,7 +203,7 @@ if ($nextMilestone === $stamps && $stamps > 0) {
                     </span>
                     <div class="history-card__details">
                         <h4><?= htmlspecialchars($item['reward_name'] ?? '', ENT_QUOTES, 'UTF-8') ?></h4>
-                        <p class="history-card__date"><?= date('d/m/Y', strtotime((string)($item['redeemed_at'] ?? ''))) ?></p>
+                        <p class="history-card__date"><?= date('d/m/Y', strtotime((string) ($item['redeemed_at'] ?? ''))) ?></p>
                     </div>
                     <?php if (!empty($item['is_used'])): ?>
                         <span class="history-card__status history-card__status--used"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Usado</span>

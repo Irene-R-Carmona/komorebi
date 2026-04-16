@@ -24,6 +24,6 @@ final class LogContextProcessor implements ProcessorInterface
             return $record;
         }
 
-        return $record->with(extra: array_merge($record->extra, $extra));
+        return $record->with(extra: \array_merge($record->extra, $extra));
     }
 }

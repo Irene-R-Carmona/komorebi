@@ -55,7 +55,7 @@ final class RoleMiddleware implements MiddlewareInterface
         if (!$hasRole) {
             Logger::warning('[RoleMiddleware] Acceso denegado', [
                 'required_roles' => $this->allowedRoles,
-                'user_roles'     => $userRoles,
+                'user_roles' => $userRoles,
             ]);
 
             Flash::error('No tienes permisos para acceder a este recurso.');

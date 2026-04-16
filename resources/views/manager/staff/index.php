@@ -11,8 +11,6 @@ declare(strict_types=1);
  * @var string $csrf_token Token CSRF
  */
 
-use App\Core\Session;
-
 $pageTitle = 'Gestión de Staff';
 ?>
 
@@ -170,12 +168,12 @@ $pageTitle = 'Gestión de Staff';
                     <div class="calendar-grid">
                         <?php
                         $today = new DateTime();
-                        for ($i = 0; $i < 7; $i++):
-                            $date = clone $today;
-                            $date->modify("+{$i} days");
-                            $dateStr = $date->format('Y-m-d');
-                            $dayShifts = array_filter($shifts, fn($s) => $s['shift_date'] === $dateStr);
-                        ?>
+for ($i = 0; $i < 7; $i++):
+    $date = clone $today;
+    $date->modify("+{$i} days");
+    $dateStr = $date->format('Y-m-d');
+    $dayShifts = array_filter($shifts, fn ($s) => $s['shift_date'] === $dateStr);
+    ?>
                             <div class="calendar-day">
                                 <div class="day-header">
                                     <strong><?= $date->format('D d/m') ?></strong>

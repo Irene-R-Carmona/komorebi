@@ -35,9 +35,10 @@ final class FavoriteController
         }
 
         View::render('user/favorites', [
-            'titulo'    => 'Mis Favoritos',
+            'titulo' => 'Mis Favoritos',
             'csrfToken' => Csrf::token(),
         ], [], 'main');
+
         return null;
     }
 }

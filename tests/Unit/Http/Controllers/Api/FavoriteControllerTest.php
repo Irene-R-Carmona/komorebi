@@ -50,7 +50,7 @@ final class FavoriteControllerTest extends ControllerTestCase
         );
 
         $this->assertSame(401, $result->getStatusCode());
-        $body = json_decode((string) $result->getBody(), true);
+        $body = \json_decode((string) $result->getBody(), true);
         $this->assertSame(401, $body['status']);
     }
 
@@ -65,7 +65,7 @@ final class FavoriteControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(FavoriteController::class, 'toggle'));
-        $this->assertTrue(method_exists(FavoriteController::class, 'list'));
+        $this->assertTrue(\method_exists(FavoriteController::class, 'toggle'));
+        $this->assertTrue(\method_exists(FavoriteController::class, 'list'));
     }
 }

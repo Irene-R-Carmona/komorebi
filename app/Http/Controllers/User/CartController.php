@@ -35,9 +35,10 @@ final class CartController
         }
 
         View::render('user/cart', [
-            'titulo'    => 'Mi Carrito',
+            'titulo' => 'Mi Carrito',
             'csrfToken' => Csrf::token(),
         ], [], 'main');
+
         return null;
     }
 }

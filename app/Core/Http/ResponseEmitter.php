@@ -43,8 +43,8 @@ final class ResponseEmitter
         $reasonPhrase = $response->getReasonPhrase();
         $protocolVersion = $response->getProtocolVersion();
 
-        header(
-            sprintf('HTTP/%s %d%s', $protocolVersion, $statusCode, $reasonPhrase ? ' ' . $reasonPhrase : ''),
+        \header(
+            \sprintf('HTTP/%s %d%s', $protocolVersion, $statusCode, $reasonPhrase ? ' ' . $reasonPhrase : ''),
             true,
             $statusCode
         );
@@ -58,8 +58,8 @@ final class ResponseEmitter
         foreach ($response->getHeaders() as $name => $values) {
             $first = true;
             foreach ($values as $value) {
-                header(
-                    sprintf('%s: %s', $name, $value),
+                \header(
+                    \sprintf('%s: %s', $name, $value),
                     $first
                 );
                 $first = false;

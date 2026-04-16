@@ -329,7 +329,7 @@ final class Product
         return \array_filter($products, static function ($product) use ($excludeAllergens) {
             $productAllergens = $product['allergens'] ?? [];
 
-            return \array_all($excludeAllergens, static fn($allergen) => !\in_array($allergen, $productAllergens, true));
+            return \array_all($excludeAllergens, static fn ($allergen) => !\in_array($allergen, $productAllergens, true));
         });
     }
 

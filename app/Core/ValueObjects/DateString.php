@@ -12,15 +12,15 @@ final readonly class DateString
 
     public function __construct(string $value)
     {
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+        if (!\preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
             throw new ValidationException(
                 'Fecha inválida',
                 ['date' => 'El formato de fecha debe ser YYYY-MM-DD']
             );
         }
 
-        [$year, $month, $day] = explode('-', $value);
-        if (!checkdate((int) $month, (int) $day, (int) $year)) {
+        [$year, $month, $day] = \explode('-', $value);
+        if (!\checkdate((int) $month, (int) $day, (int) $year)) {
             throw new ValidationException(
                 'Fecha inválida',
                 ['date' => 'La fecha no existe en el calendario']

@@ -31,6 +31,7 @@ final class WaitlistViewController
     {
         if (empty($token)) {
             View::render('errors/400', [], [], 'errors');
+
             return null;
         }
 
@@ -38,13 +39,15 @@ final class WaitlistViewController
 
         if (!$result->isOk()) {
             View::render('errors/404', ['error' => $result->getMessage()], [], 'errors');
+
             return null;
         }
 
         View::render('public/waitlist-status', [
-            'titulo'   => 'Estado de Lista de Espera - Komorebi Café',
+            'titulo' => 'Estado de Lista de Espera - Komorebi Café',
             'waitlist' => $result->getDataOr([]),
         ], ['waitlist-status.css']);
+
         return null;
     }
 
@@ -57,6 +60,7 @@ final class WaitlistViewController
     {
         if (empty($token)) {
             View::render('errors/400', [], [], 'errors');
+
             return null;
         }
 
@@ -64,6 +68,7 @@ final class WaitlistViewController
 
         if (!$result->isOk()) {
             View::render('errors/404', ['error' => $result->getMessage()], [], 'errors');
+
             return null;
         }
 
@@ -72,13 +77,15 @@ final class WaitlistViewController
         // Solo mostrar formulario si está en estado 'notified'
         if ($waitlist['status'] !== 'notified') {
             View::render('errors/400', [], [], 'errors');
+
             return null;
         }
 
         View::render('public/waitlist-confirm', [
-            'titulo'   => 'Confirmar Reserva - Komorebi Café',
+            'titulo' => 'Confirmar Reserva - Komorebi Café',
             'waitlist' => $waitlist,
         ], ['waitlist-confirm.css']);
+
         return null;
     }
 
@@ -91,6 +98,7 @@ final class WaitlistViewController
     {
         if (empty($token)) {
             View::render('errors/400', [], [], 'errors');
+
             return null;
         }
 
@@ -98,6 +106,7 @@ final class WaitlistViewController
 
         if (!$result->isOk()) {
             View::render('errors/400', ['error' => $result->getMessage()], [], 'errors');
+
             return null;
         }
 
@@ -108,9 +117,10 @@ final class WaitlistViewController
         $reservationId = $data['reservation_id'];
 
         View::render('public/waitlist-success', [
-            'message'       => $message,
+            'message' => $message,
             'reservationId' => $reservationId,
         ]);
+
         return null;
     }
 }

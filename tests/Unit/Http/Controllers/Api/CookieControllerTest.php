@@ -20,8 +20,8 @@ namespace Tests\Unit\Http\Controllers\Api;
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\CookieController;
 use Nyholm\Psr7\ServerRequest;
-use Tests\Support\ControllerTestCase;
 use Psr\Http\Message\ResponseInterface;
+use Tests\Support\ControllerTestCase;
 
 final class CookieControllerTest extends ControllerTestCase
 {
@@ -39,7 +39,7 @@ final class CookieControllerTest extends ControllerTestCase
         $this->assertInstanceOf(ResponseInterface::class, $result);
         $this->assertResponseIsJson($result, 200);
 
-        $body = json_decode((string) $result->getBody(), true);
+        $body = \json_decode((string) $result->getBody(), true);
         $this->assertTrue($body['ok']);
     }
 
@@ -52,13 +52,13 @@ final class CookieControllerTest extends ControllerTestCase
         $this->assertInstanceOf(ResponseInterface::class, $result);
         $this->assertResponseIsJson($result, 200);
 
-        $body = json_decode((string) $result->getBody(), true);
+        $body = \json_decode((string) $result->getBody(), true);
         $this->assertTrue($body['ok']);
     }
 
     public function test_update_returns_422_when_body_not_array(): void
     {
-        $request = (new ServerRequest('POST', '/api/cookies/update'))
+        $request = new ServerRequest('POST', '/api/cookies/update')
             ->withParsedBody(null);
 
         $result = $this->makeController()->update($request);

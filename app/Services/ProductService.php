@@ -22,7 +22,7 @@ use PDOException;
  * Encapsula la lógica de negocio relacionada con productos del menú.
  * Maneja validación, persistencia y consultas.
  */
-class ProductService extends TransactionalService implements ProductServiceInterface
+final class ProductService extends TransactionalService implements ProductServiceInterface
 {
     private ProductRepository $productRepo;
 

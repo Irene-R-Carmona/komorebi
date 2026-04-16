@@ -59,14 +59,14 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     public function findWithRecipe(int $id): ?array
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT id, category_id, product_type, name, japanese_name, slug, description,
+            'SELECT id, category_id, product_type, name, japanese_name, slug, description,
                     price, station, prep_time, recipe_steps, ingredients_list, critical_check,
                     calories, attributes, target_cafe_types, target_animal_types,
                     duration_minutes, min_pax, max_pax, pass_duration_minutes,
                     image_url, is_active, is_seasonal, sort_order, deleted_at, created_at, updated_at
              FROM products
              WHERE id = :id
-             LIMIT 1"
+             LIMIT 1'
         );
         $stmt->execute(['id' => $id]);
 
@@ -84,7 +84,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      */
     public function findByCafeId(int $cafeId): array
     {
-        $fields = 'p.' . implode(', p.', $this->getSelectFields());
+        $fields = 'p.' . \implode(', p.', $this->getSelectFields());
 
         $sql = "
             SELECT {$fields},
@@ -124,7 +124,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      */
     public function findByCategoryId(int $categoryId, ?int $cafeId = null): array
     {
-        $fields = 'p.' . implode(', p.', $this->getSelectFields());
+        $fields = 'p.' . \implode(', p.', $this->getSelectFields());
 
         if ($cafeId === null) {
             $sql = "
@@ -179,7 +179,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      */
     public function findByProductType(string $productType, ?int $cafeId = null): array
     {
-        $fields = 'p.' . implode(', p.', $this->getSelectFields());
+        $fields = 'p.' . \implode(', p.', $this->getSelectFields());
 
         if ($cafeId === null) {
             $sql = "
@@ -472,7 +472,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
 
         return $this->update($id, [
             'is_active' => !$product['is_active'],
-            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_at' => \date('Y-m-d H:i:s'),
         ]);
     }
 
@@ -482,11 +482,11 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     public function getAllergens(int $productId): array
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT a.id, a.name, a.icon, a.severity
+            'SELECT a.id, a.name, a.icon, a.severity
              FROM allergens a
              INNER JOIN product_allergens pa ON a.id = pa.allergen_id
              WHERE pa.product_id = :product_id
-             ORDER BY a.severity DESC, a.name "
+             ORDER BY a.severity DESC, a.name '
         );
         $stmt->execute(['product_id' => $productId]);
 
@@ -499,8 +499,8 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      */
     public function findWithoutAllergens(array $allergenIds, ?int $cafeId = null): array
     {
-        $fields = 'p.' . implode(', p.', $this->getSelectFields());
-        $placeholders = implode(',', array_fill(0, count($allergenIds), '?'));
+        $fields = 'p.' . \implode(', p.', $this->getSelectFields());
+        $placeholders = \implode(',', \array_fill(0, \count($allergenIds), '?'));
 
         if ($cafeId === null) {
             $sql = "SELECT DISTINCT {$fields}, mc.name as category_name
@@ -539,7 +539,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
                         WHERE pa.allergen_id IN ($placeholders)
                     )
                     ORDER BY mc.display_order, p.sort_order, p.name";
-            $params = array_merge($allergenIds, [$cafeId]);
+            $params = \array_merge($allergenIds, [$cafeId]);
         }
 
         $stmt = $this->getDb()->prepare($sql);
@@ -559,8 +559,8 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     public function findFiltered(array $filters = [], int $page = 1, int $perPage = 20): array
     {
         // Validar parámetros
-        $page = max(1, $page);
-        $perPage = min(100, max(1, $perPage));
+        $page = \max(1, $page);
+        $perPage = \min(100, \max(1, $perPage));
         $offset = ($page - 1) * $perPage;
 
         // Construir WHERE
@@ -590,7 +590,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             $params['search_jp'] = $searchTerm;
         }
 
-        $whereClause = implode(' AND ', $where);
+        $whereClause = \implode(' AND ', $where);
 
         // Contar total
         $countSql = "SELECT COUNT(*) FROM products p WHERE $whereClause";
@@ -599,7 +599,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         $total = (int) $stmt->fetchColumn();
 
         // Obtener datos paginados
-        $fields = implode(', p.', $this->getSelectFields());
+        $fields = \implode(', p.', $this->getSelectFields());
         $sql = "SELECT p.$fields, mc.name as category_name
                 FROM products p
                 LEFT JOIN menu_categories mc ON p.category_id = mc.id
@@ -623,7 +623,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             'total' => $total,
             'page' => $page,
             'perPage' => $perPage,
-            'totalPages' => max(1, (int) ceil($total / $perPage)),
+            'totalPages' => \max(1, (int) \ceil($total / $perPage)),
         ];
     }
 
@@ -632,7 +632,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      */
     public function findAllActive(): array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
 
         $stmt = $this->getDb()->query(
             "SELECT {$fields}
@@ -650,7 +650,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      */
     public function findByCategory(string $category): array
     {
-        $fields = 'p.' . implode(', p.', $this->getSelectFields());
+        $fields = 'p.' . \implode(', p.', $this->getSelectFields());
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields}, mc.name as category_name, mc.slug as category_slug
@@ -694,18 +694,18 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         $stmt = $this->getDb()->query($sql);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return array_map(static function (array $row): array {
+        return \array_map(static function (array $row): array {
             if ($row['allergen_ids'] !== null) {
-                $ids        = explode(',', $row['allergen_ids']);
-                $names      = explode(',', $row['allergen_names']);
-                $codes      = explode(',', $row['allergen_codes']);
-                $severities = explode(',', $row['allergen_severities']);
+                $ids = \explode(',', $row['allergen_ids']);
+                $names = \explode(',', $row['allergen_names']);
+                $codes = \explode(',', $row['allergen_codes']);
+                $severities = \explode(',', $row['allergen_severities']);
 
-                $row['allergens_list'] = array_map(
-                    static fn(string $id, string $name, string $code, string $severity): array => [
-                        'id'       => (int) $id,
-                        'name'     => $name,
-                        'code'     => $code,
+                $row['allergens_list'] = \array_map(
+                    static fn (string $id, string $name, string $code, string $severity): array => [
+                        'id' => (int) $id,
+                        'name' => $name,
+                        'code' => $code,
                         'severity' => $severity,
                     ],
                     $ids,

@@ -16,14 +16,14 @@ namespace App\Core;
  */
 enum ServiceErrorCode: string
 {
-    case NOT_FOUND       = 'not_found';
-    case UNAUTHORIZED    = 'unauthorized';
-    case FORBIDDEN       = 'forbidden';
+    case NOT_FOUND = 'not_found';
+    case UNAUTHORIZED = 'unauthorized';
+    case FORBIDDEN = 'forbidden';
     case VALIDATION_ERROR = 'validation_error';
-    case MISSING_FIELD   = 'missing_field';
-    case BUSINESS_RULE   = 'business_rule';
-    case CONFLICT        = 'conflict';
-    case SERVER_ERROR    = 'server_error';
+    case MISSING_FIELD = 'missing_field';
+    case BUSINESS_RULE = 'business_rule';
+    case CONFLICT = 'conflict';
+    case SERVER_ERROR = 'server_error';
 
     /**
      * URI de tipo RFC 9457 — identifica de forma inequívoca esta clase de error.
@@ -39,14 +39,14 @@ enum ServiceErrorCode: string
     public function toHttpStatus(): int
     {
         return match ($this) {
-            self::NOT_FOUND       => 404,
-            self::UNAUTHORIZED    => 401,
-            self::FORBIDDEN       => 403,
+            self::NOT_FOUND => 404,
+            self::UNAUTHORIZED => 401,
+            self::FORBIDDEN => 403,
             self::VALIDATION_ERROR,
-            self::MISSING_FIELD   => 422,
-            self::BUSINESS_RULE   => 400,
-            self::CONFLICT        => 409,
-            self::SERVER_ERROR    => 500,
+            self::MISSING_FIELD => 422,
+            self::BUSINESS_RULE => 400,
+            self::CONFLICT => 409,
+            self::SERVER_ERROR => 500,
         };
     }
 
@@ -56,14 +56,14 @@ enum ServiceErrorCode: string
     public function toTitle(): string
     {
         return match ($this) {
-            self::NOT_FOUND       => 'Not Found',
-            self::UNAUTHORIZED    => 'Unauthorized',
-            self::FORBIDDEN       => 'Forbidden',
+            self::NOT_FOUND => 'Not Found',
+            self::UNAUTHORIZED => 'Unauthorized',
+            self::FORBIDDEN => 'Forbidden',
             self::VALIDATION_ERROR,
-            self::MISSING_FIELD   => 'Unprocessable Content',
-            self::BUSINESS_RULE   => 'Bad Request',
-            self::CONFLICT        => 'Conflict',
-            self::SERVER_ERROR    => 'Internal Server Error',
+            self::MISSING_FIELD => 'Unprocessable Content',
+            self::BUSINESS_RULE => 'Bad Request',
+            self::CONFLICT => 'Conflict',
+            self::SERVER_ERROR => 'Internal Server Error',
         };
     }
 }

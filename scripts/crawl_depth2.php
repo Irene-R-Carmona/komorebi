@@ -30,10 +30,19 @@ function fetch(string $url): array
 
 function normalize(string $base, string $href): ?string
 {
-    if ($href === '' || str_starts_with($href, '#')) return null;
-    if (preg_match('#^(mailto:|tel:|javascript:)#i', $href)) return null;
-    if (preg_match('#^https?://#i', $href)) return $href;
-    if (str_starts_with($href, '/')) return rtrim($base, '/') . $href;
+    if ($href === '' || str_starts_with($href, '#')) {
+        return null;
+    }
+    if (preg_match('#^(mailto:|tel:|javascript:)#i', $href)) {
+        return null;
+    }
+    if (preg_match('#^https?://#i', $href)) {
+        return $href;
+    }
+    if (str_starts_with($href, '/')) {
+        return rtrim($base, '/') . $href;
+    }
+
     return rtrim($base, '/') . '/' . ltrim($href, './');
 }
 
@@ -42,11 +51,16 @@ function extractLinks(string $html): array
     $links = [];
     libxml_use_internal_errors(true);
     $dom = new DOMDocument();
-    if (@$dom->loadHTML($html) === false) return [];
+    if (@$dom->loadHTML($html) === false) {
+        return [];
+    }
     foreach ($dom->getElementsByTagName('a') as $a) {
         $href = trim($a->getAttribute('href'));
-        if ($href !== '') $links[] = $href;
+        if ($href !== '') {
+            $links[] = $href;
+        }
     }
+
     return array_values(array_unique($links));
 }
 
@@ -54,7 +68,9 @@ $toCrawl = [[$base, 0]];
 
 while (!empty($toCrawl)) {
     [$url, $depth] = array_shift($toCrawl);
-    if (isset($visited[$url])) continue;
+    if (isset($visited[$url])) {
+        continue;
+    }
     $visited[$url] = true;
 
     $r = fetch($url);
@@ -64,11 +80,17 @@ while (!empty($toCrawl)) {
         $links = extractLinks($r['body']);
         foreach ($links as $href) {
             $abs = normalize($base, $href);
-            if ($abs === null) continue;
+            if ($abs === null) {
+                continue;
+            }
             $u1 = parse_url($base, PHP_URL_HOST);
             $u2 = parse_url($abs, PHP_URL_HOST);
-            if ($u2 !== null && $u2 !== $u1) continue;
-            if (!isset($visited[$abs])) $toCrawl[] = [$abs, $depth + 1];
+            if ($u2 !== null && $u2 !== $u1) {
+                continue;
+            }
+            if (!isset($visited[$abs])) {
+                $toCrawl[] = [$abs, $depth + 1];
+            }
         }
     }
 }

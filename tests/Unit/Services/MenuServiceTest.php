@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -11,9 +10,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
-use App\Services\MenuService;
 use App\Repositories\Contracts\MenuRepositoryInterface;
-use PDOStatement;
+use App\Services\MenuService;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
@@ -118,7 +116,7 @@ final class MenuServiceTest extends TestCase
             ->method('getProductsByCategory')
             ->with([5])
             ->willReturn([
-                ['id' => 1, 'category_id' => 1, 'name' => 'Producto sin leche', 'price' => 500, 'allergen_ids' => null, 'allergen_names' => null]
+                ['id' => 1, 'category_id' => 1, 'name' => 'Producto sin leche', 'price' => 500, 'allergen_ids' => null, 'allergen_names' => null],
             ]);
 
         // ACT: Excluir alérgeno ID 5 (leche)
@@ -207,7 +205,7 @@ final class MenuServiceTest extends TestCase
 
         // ASSERT: Solo retorna genérico y el compatible
         $this->assertCount(2, $result);
-        $names = array_column($result, 'name');
+        $names = \array_column($result, 'name');
         $this->assertContains('Pase Genérico', $names);
         $this->assertContains('Pase Lounge', $names);
     }

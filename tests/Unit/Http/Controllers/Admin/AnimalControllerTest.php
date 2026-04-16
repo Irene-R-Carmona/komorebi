@@ -26,8 +26,8 @@ final class AnimalControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION = [];
         $_POST = [];
@@ -81,11 +81,11 @@ final class AnimalControllerTest extends ControllerTestCase
 
     public function test_class_has_crud_methods(): void
     {
-        $this->assertTrue(method_exists(AnimalController::class, 'index'));
-        $this->assertTrue(method_exists(AnimalController::class, 'create'));
-        $this->assertTrue(method_exists(AnimalController::class, 'store'));
-        $this->assertTrue(method_exists(AnimalController::class, 'edit'));
-        $this->assertTrue(method_exists(AnimalController::class, 'update'));
-        $this->assertTrue(method_exists(AnimalController::class, 'delete'));
+        $this->assertTrue(\method_exists(AnimalController::class, 'index'));
+        $this->assertTrue(\method_exists(AnimalController::class, 'create'));
+        $this->assertTrue(\method_exists(AnimalController::class, 'store'));
+        $this->assertTrue(\method_exists(AnimalController::class, 'edit'));
+        $this->assertTrue(\method_exists(AnimalController::class, 'update'));
+        $this->assertTrue(\method_exists(AnimalController::class, 'delete'));
     }
 }

@@ -25,7 +25,7 @@ final class LoggingPDOStatementTest extends TestCase
     public function testTruncateSqlReturnsSqlUnchangedWhenShort(): void
     {
         $stmt = new LoggingPDOStatementExposed(100);
-        $sql  = 'SELECT * FROM cafes WHERE id = ?';
+        $sql = 'SELECT * FROM cafes WHERE id = ?';
 
         $this->assertSame($sql, $stmt->exposeTruncateSql($sql));
     }
@@ -33,18 +33,18 @@ final class LoggingPDOStatementTest extends TestCase
     public function testTruncateSqlCutsAt500Chars(): void
     {
         $stmt = new LoggingPDOStatementExposed(100);
-        $sql  = str_repeat('X', 600);
+        $sql = \str_repeat('X', 600);
 
         $result = $stmt->exposeTruncateSql($sql);
 
-        $this->assertSame(500, strlen($result));
+        $this->assertSame(500, \strlen($result));
         $this->assertStringEndsWith('...', $result);
     }
 
     public function testTruncateSqlExactly500CharsUnchanged(): void
     {
         $stmt = new LoggingPDOStatementExposed(100);
-        $sql  = str_repeat('Y', 500);
+        $sql = \str_repeat('Y', 500);
 
         $this->assertSame($sql, $stmt->exposeTruncateSql($sql));
     }

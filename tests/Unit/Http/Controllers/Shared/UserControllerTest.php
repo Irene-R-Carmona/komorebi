@@ -57,6 +57,7 @@ final class UserControllerTest extends TestCase
             $this->createStub(InvoicePDFServiceInterface::class),
             $this->createStub(EmailServiceInterface::class),
         );
+
         return new UserController(
             profileService: $this->createStub(UserProfileServiceInterface::class),
             accountService: $this->createStub(UserAccountServiceInterface::class),
@@ -71,7 +72,7 @@ final class UserControllerTest extends TestCase
         // Sin sesión activa → el controller redirige y devuelve ResponseInterface
         $controller = $this->makeController();
 
-        $request = (new ServerRequest('POST', '/perfil/actualizar'))
+        $request = new ServerRequest('POST', '/perfil/actualizar')
             ->withParsedBody(['name' => 'Juan', 'email' => 'juan@example.com']);
 
         $result = $controller->update($request);
@@ -84,10 +85,10 @@ final class UserControllerTest extends TestCase
         // Sin sesión activa → redirect a login devuelve ResponseInterface
         $controller = $this->makeController();
 
-        $request = (new ServerRequest('POST', '/perfil/password'))
+        $request = new ServerRequest('POST', '/perfil/password')
             ->withParsedBody([
-                'current_password'     => 'old123',
-                'new_password'         => 'new456789',
+                'current_password' => 'old123',
+                'new_password' => 'new456789',
                 'new_password_confirm' => 'new456789',
             ]);
 

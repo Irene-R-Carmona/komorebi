@@ -30,7 +30,7 @@ final class NavigationServiceTest extends TestCase
 
     public function testGetMenuAdminDevuelveSecciones(): void
     {
-        $menu = (new NavigationService())->getMenu(Middleware::ROLE_ADMIN);
+        $menu = new NavigationService()->getMenu(Middleware::ROLE_ADMIN);
 
         $this->assertIsArray($menu);
         $this->assertNotEmpty($menu);
@@ -39,7 +39,7 @@ final class NavigationServiceTest extends TestCase
 
     public function testGetMenuManagerDevuelveMenuNoVacio(): void
     {
-        $menu = (new NavigationService())->getMenu(Middleware::ROLE_MANAGER);
+        $menu = new NavigationService()->getMenu(Middleware::ROLE_MANAGER);
 
         $this->assertIsArray($menu);
         $this->assertNotEmpty($menu);
@@ -47,7 +47,7 @@ final class NavigationServiceTest extends TestCase
 
     public function testGetMenuKeeperDevuelveMenuAnimal(): void
     {
-        $menu = (new NavigationService())->getMenu(Middleware::ROLE_KEEPER);
+        $menu = new NavigationService()->getMenu(Middleware::ROLE_KEEPER);
 
         $this->assertIsArray($menu);
         $this->assertArrayHasKey('Bienestar Animal', $menu);
@@ -55,7 +55,7 @@ final class NavigationServiceTest extends TestCase
 
     public function testGetMenuDesconocidoDevuelveArrayVacio(): void
     {
-        $menu = (new NavigationService())->getMenu('rol_inexistente');
+        $menu = new NavigationService()->getMenu('rol_inexistente');
 
         $this->assertIsArray($menu);
         $this->assertEmpty($menu);
@@ -63,7 +63,7 @@ final class NavigationServiceTest extends TestCase
 
     public function testGetMenuAdminContieneItemConUrl(): void
     {
-        $menu = (new NavigationService())->getMenu(Middleware::ROLE_ADMIN);
+        $menu = new NavigationService()->getMenu(Middleware::ROLE_ADMIN);
 
         $items = $menu['Sistema'];
         $this->assertIsArray($items);
@@ -81,24 +81,24 @@ final class NavigationServiceTest extends TestCase
 
     public function testCheckIsActiveConIncidenciaExacta(): void
     {
-        $this->assertTrue((new NavigationService())->checkIsActive('/admin/dashboard', '/admin/dashboard'));
+        $this->assertTrue(new NavigationService()->checkIsActive('/admin/dashboard', '/admin/dashboard'));
     }
 
     public function testCheckIsActiveConPrefijoCoincidente(): void
     {
         // /admin/users debería ser "activo" cuando la URL actual es /admin/users/1
-        $this->assertTrue((new NavigationService())->checkIsActive('/admin/users', '/admin/users/1'));
+        $this->assertTrue(new NavigationService()->checkIsActive('/admin/users', '/admin/users/1'));
     }
 
     public function testCheckIsActiveRetornaFalseCuandoNoCoincide(): void
     {
-        $this->assertFalse((new NavigationService())->checkIsActive('/admin/users', '/admin/settings'));
+        $this->assertFalse(new NavigationService()->checkIsActive('/admin/users', '/admin/settings'));
     }
 
     public function testCheckIsActiveConSlashRaizNoEsPrefijoUniversal(): void
     {
         // La raíz '/' no debe marcar como activo cualquier página
-        $this->assertFalse((new NavigationService())->checkIsActive('/', '/admin/dashboard'));
+        $this->assertFalse(new NavigationService()->checkIsActive('/', '/admin/dashboard'));
     }
 
     // ──────────────────────────────────────────────
@@ -108,7 +108,7 @@ final class NavigationServiceTest extends TestCase
     public function testGetMenuBadgedAplicaBadgeAItemEspecifico(): void
     {
         $badges = ['ops/reception' => 3];
-        $menu = (new NavigationService())->getMenuBadged(Middleware::ROLE_SUPERVISOR, $badges);
+        $menu = new NavigationService()->getMenuBadged(Middleware::ROLE_SUPERVISOR, $badges);
 
         $this->assertIsArray($menu);
         $this->assertNotEmpty($menu);
@@ -117,7 +117,7 @@ final class NavigationServiceTest extends TestCase
         $badgeFound = false;
         foreach ($menu as $items) {
             foreach ($items as $item) {
-                if (str_contains($item['url'], '/ops/reception') && isset($item['badge'])) {
+                if (\str_contains($item['url'], '/ops/reception') && isset($item['badge'])) {
                     $this->assertSame(3, $item['badge']);
                     $badgeFound = true;
                 }
@@ -129,7 +129,7 @@ final class NavigationServiceTest extends TestCase
 
     public function testGetMenuBadgedSinBadgesNoAgregaPropiedadBadge(): void
     {
-        $menu = (new NavigationService())->getMenuBadged(Middleware::ROLE_ADMIN, []);
+        $menu = new NavigationService()->getMenuBadged(Middleware::ROLE_ADMIN, []);
 
         foreach ($menu as $items) {
             foreach ($items as $item) {

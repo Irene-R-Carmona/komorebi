@@ -8,7 +8,9 @@ use InvalidArgumentException;
 
 final readonly class Slug
 {
-    private function __construct(public readonly string $value) {}
+    private function __construct(public readonly string $value)
+    {
+    }
 
     public static function fromString(string $slug): self
     {

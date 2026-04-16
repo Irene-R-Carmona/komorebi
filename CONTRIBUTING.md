@@ -79,7 +79,6 @@ El proyecto corre **completamente dentro de Docker**. No se instala PHP ni Compo
    ```bash
    make test          # unitarios + integración
    make phpstan       # análisis estático PHPStan nivel 5
-   make psalm         # análisis estático Psalm nivel 5
    make cs-check      # validación de estilo PSR-12
    make ci            # todos los pasos anteriores en secuencia
    ```
@@ -137,4 +136,4 @@ El proyecto corre **completamente dentro de Docker**. No se instala PHP ni Compo
   declare(strict_types=1);
   ```
 
-- Análisis estático: **PHPStan nivel 5** + **Psalm nivel 5** (`make phpstan`, `make psalm`).
+- Análisis estático: **PHPStan nivel 5** (`make phpstan`). Psalm fue eliminado en abril 2026 por solapamiento total con PHPStan 5 — una sola herramienta con cobertura equivalente reduce fricción de CI sin perder cobertura.

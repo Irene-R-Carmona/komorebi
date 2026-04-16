@@ -51,10 +51,10 @@ final class ExceptionLogger
         $contextData = \array_merge(
             self::extractContext($exception),
             [
-                'context'         => $context ?? 'SYSTEM',
+                'context' => $context ?? 'SYSTEM',
                 'exception_class' => \get_class($exception),
-                'file'            => \basename($exception->getFile()),
-                'line'            => $exception->getLine(),
+                'file' => \basename($exception->getFile()),
+                'line' => $exception->getLine(),
             ]
         );
 
@@ -62,9 +62,9 @@ final class ExceptionLogger
 
         match ($severity) {
             'CRITICAL' => $channel->critical($exception->getMessage(), $contextData),
-            'ERROR'    => $channel->error($exception->getMessage(), $contextData),
-            'WARNING'  => $channel->warning($exception->getMessage(), $contextData),
-            default    => $channel->info($exception->getMessage(), $contextData),
+            'ERROR' => $channel->error($exception->getMessage(), $contextData),
+            'WARNING' => $channel->warning($exception->getMessage(), $contextData),
+            default => $channel->info($exception->getMessage(), $contextData),
         };
 
         if ($severity === 'CRITICAL') {
@@ -293,7 +293,7 @@ final class ExceptionLogger
         // Notificación Telegram: condicional si TELEGRAM_BOT_TOKEN está configurado
         if (Env::get('TELEGRAM_BOT_TOKEN') !== '') {
             try {
-                (new TelegramService())->sendAlert(
+                new TelegramService()->sendAlert(
                     '🚨',
                     'Error Crítico — ' . Env::get('APP_NAME', 'Komorebi'),
                     $message

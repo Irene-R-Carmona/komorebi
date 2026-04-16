@@ -51,16 +51,17 @@ final class AnimalCareController
         $this->response = $response ?? new ResponseFactory();
 
         if ($animalCareService !== null && $healthCheckService !== null && $animalRepository !== null) {
-            $this->animalCareService  = $animalCareService;
+            $this->animalCareService = $animalCareService;
             $this->healthCheckService = $healthCheckService;
-            $this->animalRepository   = $animalRepository;
+            $this->animalRepository = $animalRepository;
+
             return;
         }
 
-        $db         = Database::getConnection();
+        $db = Database::getConnection();
         $animalRepo = $animalRepository ?? new AnimalRepository($db);
 
-        $this->animalCareService  = $animalCareService ?? new AnimalCareService($db, $animalRepo);
+        $this->animalCareService = $animalCareService ?? new AnimalCareService($db, $animalRepo);
         $this->healthCheckService = $healthCheckService ?? new HealthCheckService(
             new HealthCheckRepository($db)
         );
@@ -81,18 +82,18 @@ final class AnimalCareController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $user   = Session::user();
+        $user = Session::user();
         $userId = $user ? (int) $user['id'] : null;
 
         $body = (array) $request->getParsedBody();
 
         $data = [
-            'animal_id'         => isset($body['animal_id']) ? (int) $body['animal_id'] : 0,
-            'activity_type'     => $body['activity_type'] ?? '',
-            'notes'             => isset($body['notes']) ? \trim((string) $body['notes']) : null,
-            'duration_minutes'  => isset($body['duration_minutes']) ? (int) $body['duration_minutes'] : null,
-            'mood_before'       => $body['mood_before'] ?? null,
-            'mood_after'        => $body['mood_after'] ?? null,
+            'animal_id' => isset($body['animal_id']) ? (int) $body['animal_id'] : 0,
+            'activity_type' => $body['activity_type'] ?? '',
+            'notes' => isset($body['notes']) ? \trim((string) $body['notes']) : null,
+            'duration_minutes' => isset($body['duration_minutes']) ? (int) $body['duration_minutes'] : null,
+            'mood_before' => $body['mood_before'] ?? null,
+            'mood_after' => $body['mood_after'] ?? null,
             'logged_by_user_id' => $userId,
         ];
 
@@ -101,7 +102,7 @@ final class AnimalCareController
         if ($result->ok) {
             return $this->response->json(['ok' => true, 'data' => [
                 'message' => \is_string($result->data) ? $result->data : 'Log registrado correctamente',
-                'log_id'  => \is_int($result->data) ? $result->data : null,
+                'log_id' => \is_int($result->data) ? $result->data : null,
             ]]);
         }
 
@@ -122,18 +123,18 @@ final class AnimalCareController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $body         = (array) $request->getParsedBody();
+        $body = (array) $request->getParsedBody();
         $healthStatus = (string) ($body['health_status'] ?? '');
-        $notes        = isset($body['notes']) ? \trim((string) $body['notes']) : null;
+        $notes = isset($body['notes']) ? \trim((string) $body['notes']) : null;
 
-        $user   = Session::user();
+        $user = Session::user();
         $userId = $user ? (int) $user['id'] : null;
 
         $result = $this->animalCareService->updateHealth($animalId, $healthStatus, $notes, $userId);
 
         if ($result->ok) {
             return $this->response->json(['ok' => true, 'data' => [
-                'message'       => 'Estado actualizado correctamente',
+                'message' => 'Estado actualizado correctamente',
                 'health_status' => $healthStatus,
             ]]);
         }
@@ -181,7 +182,7 @@ final class AnimalCareController
         }
 
         $animalModel = new Animal(Database::getConnection());
-        $animal      = $animalModel->findById($animalId);
+        $animal = $animalModel->findById($animalId);
         if (!$animal) {
             throw NotFoundException::forResource('Animal', $animalId);
         }
@@ -191,7 +192,7 @@ final class AnimalCareController
             throw ValidationException::withMessage('No tienes permisos para subir fotos de este animal', 403);
         }
 
-        $files        = $request->getUploadedFiles();
+        $files = $request->getUploadedFiles();
         $uploadedFile = $files['photo'] ?? null;
 
         if (!($uploadedFile instanceof UploadedFileInterface) || $uploadedFile->getError() !== UPLOAD_ERR_OK) {
@@ -200,11 +201,11 @@ final class AnimalCareController
 
         // Adapter: FileUploadService espera array con claves error/tmp_name/name/size/type
         $fileArray = [
-            'error'    => $uploadedFile->getError(),
+            'error' => $uploadedFile->getError(),
             'tmp_name' => (string) ($uploadedFile->getStream()->getMetadata('uri') ?? ''),
-            'name'     => $uploadedFile->getClientFilename() ?? '',
-            'size'     => $uploadedFile->getSize() ?? 0,
-            'type'     => $uploadedFile->getClientMediaType() ?? '',
+            'name' => $uploadedFile->getClientFilename() ?? '',
+            'size' => $uploadedFile->getSize() ?? 0,
+            'type' => $uploadedFile->getClientMediaType() ?? '',
         ];
 
         $result = $this->fileUploadService->uploadAnimalPhoto($fileArray, $animalId);
@@ -219,7 +220,7 @@ final class AnimalCareController
         }
 
         return $this->response->json(['ok' => true, 'data' => [
-            'message'   => 'Foto subida correctamente',
+            'message' => 'Foto subida correctamente',
             'image_url' => $result->data,
         ]]);
     }
@@ -238,15 +239,15 @@ final class AnimalCareController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $user   = Session::user();
+        $user = Session::user();
         $userId = $user ? (int) $user['id'] : null;
 
         $body = (array) $request->getParsedBody();
 
         $data = [
-            'animal_id'           => isset($body['animal_id']) ? (int) $body['animal_id'] : 0,
-            'severity'            => $body['severity'] ?? '',
-            'description'         => isset($body['description']) ? \trim((string) $body['description']) : '',
+            'animal_id' => isset($body['animal_id']) ? (int) $body['animal_id'] : 0,
+            'severity' => $body['severity'] ?? '',
+            'description' => isset($body['description']) ? \trim((string) $body['description']) : '',
             'reported_by_user_id' => $userId,
         ];
 
@@ -254,7 +255,7 @@ final class AnimalCareController
 
         if ($result->ok) {
             return $this->response->json(['ok' => true, 'data' => [
-                'message'     => \is_string($result->data) ? $result->data : 'Incidente reportado correctamente',
+                'message' => \is_string($result->data) ? $result->data : 'Incidente reportado correctamente',
                 'incident_id' => \is_int($result->data) ? $result->data : null,
             ]], 201);
         }
@@ -276,10 +277,10 @@ final class AnimalCareController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $body       = (array) $request->getParsedBody();
+        $body = (array) $request->getParsedBody();
         $resolution = isset($body['resolution']) ? \trim((string) $body['resolution']) : null;
 
-        $user   = Session::user();
+        $user = Session::user();
         $userId = $user ? (int) $user['id'] : null;
 
         $result = $this->animalCareService->resolveIncident($incidentId, $resolution, $userId);
@@ -312,7 +313,7 @@ final class AnimalCareController
      */
     public function toggle(ServerRequestInterface $request): ResponseInterface
     {
-        $body     = (array) $request->getParsedBody();
+        $body = (array) $request->getParsedBody();
         $animalId = isset($body['animal_id']) ? (int) $body['animal_id'] : 0;
         if ($animalId > 0) {
             return $this->toggleActive($request, $animalId);
@@ -326,19 +327,19 @@ final class AnimalCareController
      */
     public function recordFeeding(ServerRequestInterface $request): ResponseInterface
     {
-        $id   = (int) $request->getAttribute('id');
+        $id = (int) $request->getAttribute('id');
         $body = (array) $request->getParsedBody();
 
-        $user   = Session::user();
+        $user = Session::user();
         $userId = $user ? (int) $user['id'] : null;
 
         $data = [
-            'animal_id'         => $id,
-            'activity_type'     => 'feeding',
-            'notes'             => isset($body['notes']) ? \trim((string) $body['notes']) : null,
-            'duration_minutes'  => isset($body['duration_minutes']) ? (int) $body['duration_minutes'] : null,
-            'mood_before'       => $body['mood_before'] ?? null,
-            'mood_after'        => $body['mood_after'] ?? null,
+            'animal_id' => $id,
+            'activity_type' => 'feeding',
+            'notes' => isset($body['notes']) ? \trim((string) $body['notes']) : null,
+            'duration_minutes' => isset($body['duration_minutes']) ? (int) $body['duration_minutes'] : null,
+            'mood_before' => $body['mood_before'] ?? null,
+            'mood_after' => $body['mood_after'] ?? null,
             'logged_by_user_id' => $userId,
         ];
 
@@ -346,10 +347,12 @@ final class AnimalCareController
 
         if (!$result->ok) {
             Flash::error($result->getMessage());
+
             return $this->response->redirect('/keeper/animals/' . $id);
         }
 
         Flash::success('Alimentación registrada.');
+
         return $this->response->redirect('/keeper/animals/' . $id);
     }
 
@@ -359,20 +362,22 @@ final class AnimalCareController
      */
     public function recordHealth(ServerRequestInterface $request): ResponseInterface
     {
-        $id   = (int) $request->getAttribute('id');
+        $id = (int) $request->getAttribute('id');
         $body = (array) $request->getParsedBody();
 
-        $user     = Session::user();
+        $user = Session::user();
         $keeperId = $user ? (int) $user['id'] : 0;
 
         $result = $this->healthCheckService->createHealthCheck($id, $keeperId, $body);
 
         if (!$result->ok) {
             Flash::error($result->getMessage());
+
             return $this->response->redirect('/keeper/animals/' . $id);
         }
 
         Flash::success('Control de salud registrado.');
+
         return $this->response->redirect('/keeper/animals/' . $id);
     }
 }

@@ -20,7 +20,9 @@ use Throwable;
  */
 final class ApiTokenService implements ApiTokenServiceInterface
 {
-    public function __construct(private readonly ApiTokenRepositoryInterface $repository) {}
+    public function __construct(private readonly ApiTokenRepositoryInterface $repository)
+    {
+    }
 
     /**
      * Genera un nuevo token para el usuario y retorna el texto plano.
@@ -29,8 +31,8 @@ final class ApiTokenService implements ApiTokenServiceInterface
      */
     public function generate(int $userId, string $name, ?\DateTimeImmutable $expiresAt = null): string
     {
-        $plain = bin2hex(random_bytes(32));   // 64 hex chars, 256-bit entropy
-        $hash  = hash('sha256', $plain);
+        $plain = \bin2hex(\random_bytes(32));   // 64 hex chars, 256-bit entropy
+        $hash = \hash('sha256', $plain);
 
         $this->repository->createToken($userId, $name, $hash, $expiresAt);
 
@@ -44,8 +46,8 @@ final class ApiTokenService implements ApiTokenServiceInterface
      */
     public function validate(string $plainToken): Result
     {
-        $hash = hash('sha256', $plainToken);
-        $row  = $this->repository->findByHash($hash);
+        $hash = \hash('sha256', $plainToken);
+        $row = $this->repository->findByHash($hash);
 
         if ($row === null) {
             return Result::fail('Token inválido o expirado.', 'invalid_token');
@@ -54,15 +56,16 @@ final class ApiTokenService implements ApiTokenServiceInterface
         $userId = (int) $row['user_id'];
 
         try {
-            $db   = Database::getConnection();
+            $db = Database::getConnection();
             $stmt = $db->prepare('SELECT id, name, email, is_active FROM users WHERE id = ?');
             $stmt->execute([$userId]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (Throwable $e) {
             Logger::error('[ApiTokenService] Error al cargar usuario del token', [
                 'token_id' => $row['id'],
-                'error'    => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
+
             return Result::fail('Error interno al validar el token.', 'server_error');
         }
 
@@ -71,7 +74,7 @@ final class ApiTokenService implements ApiTokenServiceInterface
         }
 
         try {
-            $db   = Database::getConnection();
+            $db = Database::getConnection();
             $stmt = $db->prepare(
                 'SELECT r.code FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?'
             );
@@ -80,7 +83,7 @@ final class ApiTokenService implements ApiTokenServiceInterface
         } catch (Throwable $e) {
             Logger::error('[ApiTokenService] Error al cargar roles del token', [
                 'token_id' => $row['id'],
-                'error'    => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
             $roles = ['user'];
         }
@@ -93,10 +96,10 @@ final class ApiTokenService implements ApiTokenServiceInterface
         }
 
         return Result::ok([
-            'user_id'    => (int) $user['id'],
-            'user'       => $user,
+            'user_id' => (int) $user['id'],
+            'user' => $user,
             'user_roles' => $roles,
-            'token_id'   => (int) $row['id'],
+            'token_id' => (int) $row['id'],
         ]);
     }
 

@@ -52,7 +52,7 @@ final class CacheStatsTest extends TestCase
 
     public function testMissIncrementedWhenKeyNotFound(): void
     {
-        Cache::get('nonexistent-key-' . uniqid());
+        Cache::get('nonexistent-key-' . \uniqid());
 
         $stats = Cache::getStats();
         $this->assertSame(1, $stats['misses']);
@@ -61,7 +61,7 @@ final class CacheStatsTest extends TestCase
 
     public function testHitIncrementedWhenKeyFound(): void
     {
-        $key = 'test-hit-' . uniqid();
+        $key = 'test-hit-' . \uniqid();
         Cache::set($key, 'value', 60);
 
         // Reset stats after set (set doesn't count as hit/miss)
@@ -76,7 +76,7 @@ final class CacheStatsTest extends TestCase
 
     public function testMultipleAccessesAccumulate(): void
     {
-        $key = 'test-multi-' . uniqid();
+        $key = 'test-multi-' . \uniqid();
         Cache::set($key, 'present', 60);
         Cache::resetStats();
 
@@ -116,9 +116,9 @@ final class CacheStatsTest extends TestCase
 
     public function testRememberCountsMissWhenValueNotCached(): void
     {
-        $key = 'remember-miss-' . uniqid();
+        $key = 'remember-miss-' . \uniqid();
 
-        Cache::remember($key, fn() => 'generated', 60);
+        Cache::remember($key, fn () => 'generated', 60);
 
         $stats = Cache::getStats();
         $this->assertSame(1, $stats['misses']);
@@ -126,11 +126,11 @@ final class CacheStatsTest extends TestCase
 
     public function testRememberCountsHitWhenValueAlreadyCached(): void
     {
-        $key = 'remember-hit-' . uniqid();
+        $key = 'remember-hit-' . \uniqid();
         Cache::set($key, 'cached-value', 60);
         Cache::resetStats();
 
-        Cache::remember($key, fn() => 'should-not-execute', 60);
+        Cache::remember($key, fn () => 'should-not-execute', 60);
 
         $stats = Cache::getStats();
         $this->assertSame(1, $stats['hits']);

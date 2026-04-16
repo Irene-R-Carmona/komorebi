@@ -52,13 +52,13 @@ final class ApiRoleMiddleware implements MiddlewareInterface
         if (!$hasRole) {
             Logger::warning('[ApiRoleMiddleware] Acceso denegado', [
                 'required_roles' => $this->allowedRoles,
-                'user_roles'     => $userRoles,
+                'user_roles' => $userRoles,
             ]);
 
             return $this->response->json([
-                'ok'    => false,
+                'ok' => false,
                 'error' => 'No tienes permisos para acceder a este recurso.',
-                'code'  => 'forbidden',
+                'code' => 'forbidden',
             ], 403);
         }
 

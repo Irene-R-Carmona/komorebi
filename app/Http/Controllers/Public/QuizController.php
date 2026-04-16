@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
-use App\Core\View;
 use App\Core\Http\ResponseFactory;
+use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Models\Cafe;
 use JsonException;
@@ -19,7 +19,9 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class QuizController
 {
-    public function __construct(private readonly ResponseFactory $response) {}
+    public function __construct(private readonly ResponseFactory $response)
+    {
+    }
 
     /**
      * Preguntas filosóficas del quiz
@@ -121,6 +123,7 @@ final class QuizController
             'titulo' => 'Tu Café del Alma | Quiz',
             'preguntas' => self::PREGUNTAS,
         ], ['quiz.css']);
+
         return null;
     }
 
@@ -181,6 +184,7 @@ final class QuizController
             'cafeData' => $cafeData,
             'puntuaciones' => $puntuaciones,
         ], ['quiz.css']);
+
         return null;
     }
 
@@ -217,6 +221,6 @@ final class QuizController
      */
     private function obtenerPreguntaPorId(int $id): ?array
     {
-        return \array_find(self::PREGUNTAS, static fn($pregunta) => $pregunta['id'] === $id);
+        return \array_find(self::PREGUNTAS, static fn ($pregunta) => $pregunta['id'] === $id);
     }
 }

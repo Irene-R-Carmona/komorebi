@@ -52,7 +52,7 @@ final class CafeControllerTest extends ControllerTestCase
         );
 
         $this->assertSame(403, $result->getStatusCode());
-        $body = json_decode((string) $result->getBody(), true);
+        $body = \json_decode((string) $result->getBody(), true);
         $this->assertFalse($body['success']);
     }
 
@@ -62,7 +62,7 @@ final class CafeControllerTest extends ControllerTestCase
         $_SESSION['user_cafe_id'] = 5;
 
         $result = $this->makeController()->updateCapacity(
-            (new ServerRequest('POST', '/manager/cafe/capacity'))
+            new ServerRequest('POST', '/manager/cafe/capacity')
                 ->withParsedBody(['capacity_max' => 0])
         );
 
@@ -71,9 +71,9 @@ final class CafeControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(CafeController::class, 'show'));
-        $this->assertTrue(method_exists(CafeController::class, 'updateCapacity'));
-        $this->assertTrue(method_exists(CafeController::class, 'updateSchedule'));
-        $this->assertTrue(method_exists(CafeController::class, 'updateSettings'));
+        $this->assertTrue(\method_exists(CafeController::class, 'show'));
+        $this->assertTrue(\method_exists(CafeController::class, 'updateCapacity'));
+        $this->assertTrue(\method_exists(CafeController::class, 'updateSchedule'));
+        $this->assertTrue(\method_exists(CafeController::class, 'updateSettings'));
     }
 }

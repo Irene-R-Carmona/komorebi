@@ -184,18 +184,18 @@ final class RequestLogMiddlewareTest extends TestCase
         $ref = new \ReflectionMethod(RequestLogMiddleware::class, 'sanitizeBody');
 
         $body = [
-            'email'       => 'user@example.com',
-            'password'    => 'secret123',
-            'token'       => 'abc',
-            '_token'      => 'xyz',
-            'cvv'         => '123',
+            'email' => 'user@example.com',
+            'password' => 'secret123',
+            'token' => 'abc',
+            '_token' => 'xyz',
+            'cvv' => '123',
             'card_number' => '4111111111111111',
             'card_expiry' => '12/26',
-            'secret'      => 'mysecret',
+            'secret' => 'mysecret',
             'authorization' => 'Bearer xyz',
             'current_password' => 'old',
             'new_password' => 'new',
-            'name'        => 'Ana García',
+            'name' => 'Ana García',
         ];
 
         /** @var array<string,mixed> $result */

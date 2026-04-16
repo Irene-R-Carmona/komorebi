@@ -23,7 +23,7 @@ final class PasswordResetRequest extends FormRequest
     protected function sanitize(array $raw): array
     {
         return [
-            'email' => strtolower(trim((string) ($raw['email'] ?? ''))),
+            'email' => \strtolower(\trim((string) ($raw['email'] ?? ''))),
         ];
     }
 }

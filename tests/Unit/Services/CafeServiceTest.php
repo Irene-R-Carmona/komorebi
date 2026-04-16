@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -12,11 +11,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Core\Result;
-use App\Services\CafeService;
 use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Services\CafeService;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
-use InvalidArgumentException;
 
 /**
  * Tests Unitarios de CafeService
@@ -229,6 +227,6 @@ final class CafeServiceTest extends TestCase
         // ACT & ASSERT: Debe retornar Result fallido
         $result = $this->service->update(999, ['name' => 'Test']);
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('no encontrado', strtolower($result->error));
+        $this->assertStringContainsString('no encontrado', \strtolower($result->error));
     }
 }

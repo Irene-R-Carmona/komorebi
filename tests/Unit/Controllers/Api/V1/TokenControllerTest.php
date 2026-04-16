@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * Tests unitarios del controlador TokenController.
@@ -41,9 +40,9 @@ final class TokenControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->tokenService    = $this->createStub(ApiTokenServiceInterface::class);
+        $this->tokenService = $this->createStub(ApiTokenServiceInterface::class);
         $this->responseFactory = new ResponseFactory();
-        $this->request         = $this->createStub(ServerRequestInterface::class);
+        $this->request = $this->createStub(ServerRequestInterface::class);
 
         $this->controller = new TokenController(
             $this->responseFactory,
@@ -75,7 +74,7 @@ final class TokenControllerTest extends TestCase
         $response = $this->controller->list($this->request);
 
         $this->assertSame(200, $response->getStatusCode());
-        $body = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
         $this->assertSame($tokens, $body['data']['tokens'] ?? null);
     }
 
@@ -90,12 +89,12 @@ final class TokenControllerTest extends TestCase
             ->willReturn(3);
 
         $this->tokenService->method('generate')
-            ->willReturn(str_repeat('a', 64));
+            ->willReturn(\str_repeat('a', 64));
 
         $response = $this->controller->create($this->request);
 
         $this->assertSame(201, $response->getStatusCode());
-        $body = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
         $this->assertArrayHasKey('token', $body['data'] ?? []);
         $this->assertSame('My CLI token', $body['data']['name'] ?? null);
     }
@@ -122,7 +121,7 @@ final class TokenControllerTest extends TestCase
 
     public function testCreateWithTooLongNameThrowsValidationException(): void
     {
-        $this->request->method('getParsedBody')->willReturn(['name' => str_repeat('x', 101)]);
+        $this->request->method('getParsedBody')->willReturn(['name' => \str_repeat('x', 101)]);
         $this->request->method('getAttribute')->willReturn(1);
 
         $this->expectException(ValidationException::class);
@@ -148,7 +147,7 @@ final class TokenControllerTest extends TestCase
         $response = $this->controller->revoke($this->request);
 
         $this->assertSame(200, $response->getStatusCode());
-        $body = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
         $this->assertTrue($body['data']['revoked'] ?? false);
     }
 

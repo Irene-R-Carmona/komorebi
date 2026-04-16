@@ -27,15 +27,15 @@ final class ReceptionControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         // ReceptionController llama Middleware::auth() en constructor
         $_SESSION['user_id'] = 1;
         $_SESSION['user'] = ['id' => 1, 'roles' => ['reception']];
         $_SESSION['user_roles'] = ['reception'];
         // Evita que el TTL check dispare fetchUserFromDb() en tests unitarios
-        $_SESSION['_user_verified_at'] = time();
+        $_SESSION['_user_verified_at'] = \time();
     }
 
     protected function tearDown(): void
@@ -54,7 +54,7 @@ final class ReceptionControllerTest extends ControllerTestCase
     public function test_check_in_redirects_when_id_is_zero(): void
     {
         $result = $this->makeController()->checkIn(
-            (new ServerRequest('POST', '/ops/reception/reservations/0/checkin'))
+            new ServerRequest('POST', '/ops/reception/reservations/0/checkin')
                 ->withParsedBody(['tracker_id' => 1]),
             0
         );
@@ -65,7 +65,7 @@ final class ReceptionControllerTest extends ControllerTestCase
     public function test_check_in_redirects_when_tracker_id_is_zero(): void
     {
         $result = $this->makeController()->checkIn(
-            (new ServerRequest('POST', '/ops/reception/reservations/1/checkin'))
+            new ServerRequest('POST', '/ops/reception/reservations/1/checkin')
                 ->withParsedBody(['tracker_id' => 0]),
             1
         );
@@ -85,9 +85,9 @@ final class ReceptionControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(ReceptionController::class, 'index'));
-        $this->assertTrue(method_exists(ReceptionController::class, 'todayReservations'));
-        $this->assertTrue(method_exists(ReceptionController::class, 'checkIn'));
-        $this->assertTrue(method_exists(ReceptionController::class, 'checkOut'));
+        $this->assertTrue(\method_exists(ReceptionController::class, 'index'));
+        $this->assertTrue(\method_exists(ReceptionController::class, 'todayReservations'));
+        $this->assertTrue(\method_exists(ReceptionController::class, 'checkIn'));
+        $this->assertTrue(\method_exists(ReceptionController::class, 'checkOut'));
     }
 }

@@ -66,7 +66,7 @@ function renderButton(array $props): string
     $classes = [
         'btn',
         "btn--{$variant}",
-        "btn--{$size}"
+        "btn--{$size}",
     ];
 
     if ($disabled || $loading) {
@@ -90,12 +90,12 @@ function renderButton(array $props): string
     }
 
     foreach ($attributes as $key => $value) {
-        $attrString .= ' ' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '="' . htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8') . '"';
+        $attrString .= ' ' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '="' . htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8') . '"';
     }
 
     // Render button
     ob_start();
-?>
+    ?>
     <button type="<?= htmlspecialchars($type, ENT_QUOTES, 'UTF-8') ?>"
         class="<?= htmlspecialchars($classString, ENT_QUOTES, 'UTF-8') ?>"
         <?= $attrString ?>>
@@ -111,7 +111,7 @@ function renderButton(array $props): string
         <span class="btn__label"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></span>
     </button>
 <?php
-    return ob_get_clean();
+        return ob_get_clean();
 }
 
 // Auto-render if props provided directly in scope

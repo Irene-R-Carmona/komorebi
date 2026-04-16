@@ -34,11 +34,11 @@ final class Cache
         }
         self::$initialized = true;
 
-        $host     = Env::get('REDIS_HOST', 'redis');
-        $port     = (int) Env::get('REDIS_PORT', '6379');
+        $host = Env::get('REDIS_HOST', 'redis');
+        $port = (int) Env::get('REDIS_PORT', '6379');
         $password = Env::get('REDIS_PASSWORD');
 
-        if (class_exists(\Redis::class)) {
+        if (\class_exists(\Redis::class)) {
             try {
                 $r = new \Redis();
                 if ($r->connect($host, $port, 2.5)) {
@@ -46,7 +46,8 @@ final class Cache
                         Logger::warning('[Cache] Redis auth failed');
                     }
                     self::$redis = $r;
-                    self::$pool  = new Psr16Cache(new RedisAdapter($r));
+                    self::$pool = new Psr16Cache(new RedisAdapter($r));
+
                     return;
                 }
             } catch (\Throwable $e) {
@@ -66,6 +67,7 @@ final class Cache
     public static function getRedis(): mixed
     {
         self::init();
+
         return self::$redis;
     }
 
@@ -80,6 +82,7 @@ final class Cache
         self::init();
         if (self::$pool === null) {
             self::$misses++;
+
             return $default;
         }
         $value = self::$pool->get(self::sanitizeKey($key), $default);
@@ -88,6 +91,7 @@ final class Cache
         } else {
             self::$misses++;
         }
+
         return $value;
     }
 
@@ -101,6 +105,7 @@ final class Cache
     public static function set(string $key, mixed $value, int $ttl = 3600): bool
     {
         self::init();
+
         return self::$pool?->set(self::sanitizeKey($key), $value, $ttl) ?? false;
     }
 
@@ -112,6 +117,7 @@ final class Cache
     public static function delete(string $key): bool
     {
         self::init();
+
         return self::$pool?->delete(self::sanitizeKey($key)) ?? false;
     }
 
@@ -123,6 +129,7 @@ final class Cache
     public static function has(string $key): bool
     {
         self::init();
+
         return self::$pool?->has(self::sanitizeKey($key)) ?? false;
     }
 
@@ -132,6 +139,7 @@ final class Cache
     public static function flush(): bool
     {
         self::init();
+
         return self::$pool?->clear() ?? false;
     }
 
@@ -146,11 +154,13 @@ final class Cache
         self::init();
         if (self::$redis === null) {
             Logger::warning('[Cache] deletePattern not supported without Redis', ['pattern' => $pattern]);
+
             return 0;
         }
+
         try {
-            $cursor          = null;
-            $deleted         = 0;
+            $cursor = null;
+            $deleted = 0;
             $sanitizedPattern = self::sanitizePattern($pattern);
             do {
                 $keys = self::$redis->scan($cursor, $sanitizedPattern, 100);
@@ -158,9 +168,11 @@ final class Cache
                     $deleted += self::$redis->del(...$keys);
                 }
             } while ($cursor !== 0 && $cursor !== null);
+
             return $deleted;
         } catch (\Throwable $e) {
             Logger::warning('[Cache] deletePattern failed', ['exception' => $e->getMessage()]);
+
             return 0;
         }
     }
@@ -181,6 +193,7 @@ final class Cache
         }
         $value = $callback();
         self::set($key, $value, $ttl);
+
         return $value;
     }
 
@@ -198,10 +211,12 @@ final class Cache
         if (self::$redis === null) {
             return false;
         }
+
         try {
             return self::$redis->incrBy($key, $by);
         } catch (\Throwable $e) {
             Logger::warning('[Cache] increment failed', ['key' => $key, 'exception' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -220,10 +235,12 @@ final class Cache
         if (self::$redis === null) {
             return false;
         }
+
         try {
             return self::$redis->decrBy($key, $by);
         } catch (\Throwable $e) {
             Logger::warning('[Cache] decrement failed', ['key' => $key, 'exception' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -235,7 +252,7 @@ final class Cache
      */
     private static function sanitizeKey(string $key): string
     {
-        return rawurlencode($key);
+        return \rawurlencode($key);
     }
 
     /**
@@ -244,7 +261,7 @@ final class Cache
      */
     private static function sanitizePattern(string $pattern): string
     {
-        return str_replace(
+        return \str_replace(
             [':', '{', '}', '(', ')', '/', '\\', '@'],
             ['%3A', '%7B', '%7D', '%28', '%29', '%2F', '%5C', '%40'],
             $pattern
@@ -267,7 +284,7 @@ final class Cache
      */
     public static function resetStats(): void
     {
-        self::$hits   = 0;
+        self::$hits = 0;
         self::$misses = 0;
     }
 
@@ -276,10 +293,10 @@ final class Cache
      */
     public static function reset(): void
     {
-        self::$redis       = null;
-        self::$pool        = null;
+        self::$redis = null;
+        self::$pool = null;
         self::$initialized = false;
-        self::$hits        = 0;
-        self::$misses      = 0;
+        self::$hits = 0;
+        self::$misses = 0;
     }
 }

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -30,7 +29,7 @@ final class BadgeComponentTest extends TestCase
     {
         $this->componentPath = __DIR__ . '/../../resources/views/components/badge.php';
 
-        if (!file_exists($this->componentPath)) {
+        if (!\file_exists($this->componentPath)) {
             $this->markTestSkipped('Badge component not yet created');
         }
     }
@@ -43,14 +42,14 @@ final class BadgeComponentTest extends TestCase
     public function testRenderBadgeFunctionExists(): void
     {
         require_once $this->componentPath;
-        $this->assertTrue(function_exists('renderBadge'));
+        $this->assertTrue(\function_exists('renderBadge'));
     }
 
     public function testRenderBasicBadge(): void
     {
         require_once $this->componentPath;
 
-        $html = renderBadge(['label' => 'Test']);
+        $html = \renderBadge(['label' => 'Test']);
 
         $this->assertStringContainsString('badge', $html);
         $this->assertStringContainsString('badge--neutral', $html);
@@ -66,9 +65,9 @@ final class BadgeComponentTest extends TestCase
         $variants = ['success', 'warning', 'danger', 'info', 'neutral'];
 
         foreach ($variants as $variant) {
-            $html = renderBadge([
-                'label' => ucfirst($variant),
-                'variant' => $variant
+            $html = \renderBadge([
+                'label' => \ucfirst($variant),
+                'variant' => $variant,
             ]);
 
             $this->assertStringContainsString("badge--{$variant}", $html);
@@ -82,9 +81,9 @@ final class BadgeComponentTest extends TestCase
         $sizes = ['sm', 'md', 'lg'];
 
         foreach ($sizes as $size) {
-            $html = renderBadge([
-                'label' => ucfirst($size),
-                'size' => $size
+            $html = \renderBadge([
+                'label' => \ucfirst($size),
+                'size' => $size,
             ]);
 
             $this->assertStringContainsString("badge--{$size}", $html);
@@ -95,9 +94,9 @@ final class BadgeComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderBadge([
+        $html = \renderBadge([
             'label' => 'Alert',
-            'icon' => 'warning'
+            'icon' => 'warning',
         ]);
 
         $this->assertStringContainsString('badge__icon', $html);
@@ -110,9 +109,9 @@ final class BadgeComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderBadge([
+        $html = \renderBadge([
             'label' => 'Online',
-            'dot' => true
+            'dot' => true,
         ]);
 
         $this->assertStringContainsString('badge--dot', $html);
@@ -123,10 +122,10 @@ final class BadgeComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderBadge([
+        $html = \renderBadge([
             'label' => 'Status',
             'icon' => 'circle',
-            'dot' => true
+            'dot' => true,
         ]);
 
         // Dot mode should hide icon
@@ -138,9 +137,9 @@ final class BadgeComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderBadge([
+        $html = \renderBadge([
             'label' => 'Test',
-            'class' => 'custom-badge'
+            'class' => 'custom-badge',
         ]);
 
         $this->assertStringContainsString('custom-badge', $html);
@@ -150,12 +149,12 @@ final class BadgeComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderBadge([
+        $html = \renderBadge([
             'label' => 'Test',
             'attributes' => [
                 'id' => 'badge-1',
-                'data-value' => '5'
-            ]
+                'data-value' => '5',
+            ],
         ]);
 
         $this->assertStringContainsString('id="badge-1"', $html);
@@ -166,8 +165,8 @@ final class BadgeComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderBadge([
-            'label' => '<script>alert("XSS")</script>'
+        $html = \renderBadge([
+            'label' => '<script>alert("XSS")</script>',
         ]);
 
         $this->assertStringNotContainsString('<script>', $html);
@@ -178,9 +177,9 @@ final class BadgeComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderBadge([
+        $html = \renderBadge([
             'label' => 'Test',
-            'icon' => '<img src=x onerror=alert(1)>'
+            'icon' => '<img src=x onerror=alert(1)>',
         ]);
 
         $this->assertStringNotContainsString('<img', $html);
@@ -191,11 +190,11 @@ final class BadgeComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderBadge([
+        $html = \renderBadge([
             'label' => 'Test',
             'attributes' => [
-                'onclick' => '<script>alert("XSS")</script>'
-            ]
+                'onclick' => '<script>alert("XSS")</script>',
+            ],
         ]);
 
         $this->assertStringNotContainsString('<script>', $html);
@@ -206,7 +205,7 @@ final class BadgeComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderBadge(['label' => 'Test']);
+        $html = \renderBadge(['label' => 'Test']);
 
         // Should have default variant
         $this->assertStringContainsString('badge--neutral', $html);
@@ -223,7 +222,7 @@ final class BadgeComponentTest extends TestCase
         require_once $this->componentPath;
 
         // Even with empty props, should have default label
-        $html = renderBadge([]);
+        $html = \renderBadge([]);
         $this->assertStringContainsString('Badge', $html); // Default label
     }
 
@@ -231,17 +230,17 @@ final class BadgeComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderBadge(['label' => 'Test']);
+        $html = \renderBadge(['label' => 'Test']);
 
-        $this->assertStringStartsWith('<span', trim($html));
-        $this->assertStringEndsWith('</span>', trim($html));
+        $this->assertStringStartsWith('<span', \trim($html));
+        $this->assertStringEndsWith('</span>', \trim($html));
     }
 
     public function testBadgeWithAllProps(): void
     {
         require_once $this->componentPath;
 
-        $html = renderBadge([
+        $html = \renderBadge([
             'label' => 'Active',
             'variant' => 'success',
             'size' => 'lg',
@@ -249,8 +248,8 @@ final class BadgeComponentTest extends TestCase
             'class' => 'custom-badge',
             'attributes' => [
                 'id' => 'status-badge',
-                'data-status' => 'active'
-            ]
+                'data-status' => 'active',
+            ],
         ]);
 
         $this->assertStringContainsString('Active', $html);
@@ -266,10 +265,10 @@ final class BadgeComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderBadge([
+        $html = \renderBadge([
             'label' => '5',
             'variant' => 'danger',
-            'size' => 'sm'
+            'size' => 'sm',
         ]);
 
         $this->assertStringContainsString('5', $html);

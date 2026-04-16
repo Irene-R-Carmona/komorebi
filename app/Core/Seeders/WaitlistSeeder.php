@@ -26,32 +26,32 @@ final class WaitlistSeeder
         echo "[WaitlistSeeder] Creando datos de lista de espera...\n";
 
         // Obtener algunos time slots con capacidad completa
-        $fullSlots = $this->db->query("
+        $fullSlots = $this->db->query('
             SELECT id, cafe_id, slot_date, slot_time, available_spots
             FROM time_slots
             WHERE available_spots = 0
             ORDER BY slot_date DESC, slot_time DESC
             LIMIT 5
-        ")->fetchAll(PDO::FETCH_ASSOC);
+        ')->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($fullSlots)) {
             echo "[WaitlistSeeder] ⚠️  No hay slots completos, creando algunos...\n";
             // Marcar algunos slots como completos
-            $this->db->exec("
+            $this->db->exec('
                 UPDATE time_slots
                 SET available_spots = 0
                 WHERE slot_date >= CURDATE()
                 ORDER BY slot_date, slot_time
                 LIMIT 5
-            ");
+            ');
 
-            $fullSlots = $this->db->query("
+            $fullSlots = $this->db->query('
                 SELECT id, cafe_id, slot_date, slot_time, available_spots
                 FROM time_slots
                 WHERE available_spots = 0
                 ORDER BY slot_date DESC, slot_time DESC
                 LIMIT 5
-            ")->fetchAll(PDO::FETCH_ASSOC);
+            ')->fetchAll(PDO::FETCH_ASSOC);
         }
 
         // Obtener usuarios de prueba (clientes, no staff)
@@ -60,13 +60,14 @@ final class WaitlistSeeder
             FROM users u
             INNER JOIN user_roles ur ON u.id = ur.user_id
             INNER JOIN roles r ON ur.role_id = r.id
-            WHERE r.name = 'user'
+            WHERE r.code = 'user'
             ORDER BY RAND()
             LIMIT 15
         ")->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($users)) {
             echo "[WaitlistSeeder] ⚠️  No hay usuarios disponibles\n";
+
             return;
         }
 
@@ -92,7 +93,7 @@ final class WaitlistSeeder
                     $expiresAt = \date('Y-m-d H:i:s', \time() + \rand(300, 900));
                 }
 
-                $this->db->prepare("
+                $this->db->prepare('
                     INSERT INTO waitlist (
                         user_id, time_slot_id, position, status,
                         guest_count, contact_email, contact_phone,
@@ -105,7 +106,7 @@ final class WaitlistSeeder
                         :token, :notified_at, :expires_at,
                         15, :special_requests, NOW()
                     )
-                ")->execute([
+                ')->execute([
                     'user_id' => $user['id'],
                     'time_slot_id' => $slot['id'],
                     'position' => $position++,

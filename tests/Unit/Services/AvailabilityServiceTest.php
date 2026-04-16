@@ -335,9 +335,9 @@ final class AvailabilityServiceTest extends TestCase
         );
         $this->mockStmt->method('fetchAll')->willReturn([
             [
-                'reservation_time'     => '09:00:00',
+                'reservation_time' => '09:00:00',
                 'pass_duration_minutes' => 540,  // 9h: cubre 09:00–18:00
-                'guests'               => 2,
+                'guests' => 2,
             ],
         ]);
 
@@ -357,9 +357,9 @@ final class AvailabilityServiceTest extends TestCase
         );
         $this->mockStmt->method('fetchAll')->willReturn([
             [
-                'reservation_time'     => '10:00:00',
+                'reservation_time' => '10:00:00',
                 'pass_duration_minutes' => 60,
-                'guests'               => 2,
+                'guests' => 2,
             ],
         ]);
 
@@ -439,14 +439,14 @@ final class AvailabilityServiceTest extends TestCase
      */
     private function buildCafeRow(array $overrides = []): array
     {
-        return array_merge([
-            'id'               => 1,
-            'category'         => 'cat',
-            'animal_type'      => 'cat',
-            'opening_time'     => '09:00:00',
-            'closing_time'     => '18:00:00',
-            'capacity_max'     => 10,
-            'is_active'        => 1,
+        return \array_merge([
+            'id' => 1,
+            'category' => 'cat',
+            'animal_type' => 'cat',
+            'opening_time' => '09:00:00',
+            'closing_time' => '18:00:00',
+            'capacity_max' => 10,
+            'is_active' => 1,
             'has_reservations' => 1,
         ], $overrides);
     }
@@ -457,16 +457,16 @@ final class AvailabilityServiceTest extends TestCase
      */
     private function buildPassRow(array $overrides = []): array
     {
-        return array_merge([
-            'id'                  => 1,
-            'product_type'        => 'pass',
-            'is_active'           => 1,
-            'duration_minutes'    => 60,
-            'min_pax'             => 1,
-            'max_pax'             => 10,
-            'target_cafe_types'   => null,
+        return \array_merge([
+            'id' => 1,
+            'product_type' => 'pass',
+            'is_active' => 1,
+            'duration_minutes' => 60,
+            'min_pax' => 1,
+            'max_pax' => 10,
+            'target_cafe_types' => null,
             'target_animal_types' => null,
-            'attributes'          => '',
+            'attributes' => '',
         ], $overrides);
     }
 }

@@ -21,7 +21,7 @@ use PDOException;
  *
  * @package Komorebi\Services
  */
-class CafeService extends BaseService implements CafeServiceInterface
+final class CafeService extends BaseService implements CafeServiceInterface
 {
     private CafeRepositoryInterface $cafeRepo;
     private ?PDO $db = null; // Inicialización lazy: se obtiene solo cuando se necesita
@@ -48,7 +48,7 @@ class CafeService extends BaseService implements CafeServiceInterface
     public function getAll(array $filters = [], int $limit = 100, int $offset = 0): array
     {
         // Para filtros simples, usar métodos específicos del repositorio
-        if (isset($filters['is_active']) && (int)$filters['is_active'] === 1 && empty($filters['category']) && empty($filters['animal_type'])) {
+        if (isset($filters['is_active']) && (int) $filters['is_active'] === 1 && empty($filters['category']) && empty($filters['animal_type'])) {
             return $this->cafeRepo->findActive();
         }
 

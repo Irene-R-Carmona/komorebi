@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Tests\Unit\Services;
 
 use App\Core\Queue;
-use App\Jobs\SendEmailJob;
 use App\Services\EmailService;
 use PHPUnit\Framework\TestCase;
 
@@ -32,14 +31,14 @@ final class EmailServiceTest extends TestCase
         $this->service = new EmailService();
 
         // Configurar env vars para tests
-        putenv('MAIL_FROM_ADDRESS=test@komorebi.test');
-        putenv('MAIL_FROM_NAME=Komorebi Test');
+        \putenv('MAIL_FROM_ADDRESS=test@komorebi.test');
+        \putenv('MAIL_FROM_NAME=Komorebi Test');
     }
 
     protected function tearDown(): void
     {
-        putenv('MAIL_FROM_ADDRESS');
-        putenv('MAIL_FROM_NAME');
+        \putenv('MAIL_FROM_ADDRESS');
+        \putenv('MAIL_FROM_NAME');
     }
 
     public function testSendVerificationEmailEnqueuesJob(): void
@@ -74,7 +73,7 @@ final class EmailServiceTest extends TestCase
             'cafe_name' => 'Test Café',
             'date' => '2026-02-15',
             'time' => '15:00:00',
-            'guests' => 2
+            'guests' => 2,
         ];
 
         $result = $this->service->sendReservationConfirmation(
@@ -91,7 +90,7 @@ final class EmailServiceTest extends TestCase
             'id' => 1,
             'cafe_name' => 'Test Café',
             'date' => '2026-02-15',
-            'time' => '15:00:00'
+            'time' => '15:00:00',
         ];
 
         $result = $this->service->sendReservationCancellation(
@@ -116,8 +115,8 @@ final class EmailServiceTest extends TestCase
     public function testEmailServiceUsesCorrectFromConfiguration(): void
     {
         // Verificar que el servicio usa las variables de entorno correctas
-        $this->assertEquals('test@komorebi.test', getenv('MAIL_FROM_ADDRESS'));
-        $this->assertEquals('Komorebi Test', getenv('MAIL_FROM_NAME'));
+        $this->assertEquals('test@komorebi.test', \getenv('MAIL_FROM_ADDRESS'));
+        $this->assertEquals('Komorebi Test', \getenv('MAIL_FROM_NAME'));
     }
 
     public function testSendReservationConfirmationHandlesMissingDataGracefully(): void
@@ -148,7 +147,7 @@ final class EmailServiceTest extends TestCase
             [
                 'slot_date' => '2026-02-15',
                 'slot_time' => '15:00:00',
-                'position' => 5
+                'position' => 5,
             ]
         );
 

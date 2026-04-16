@@ -33,7 +33,7 @@ final class DatabaseExceptionRenderer extends AbstractExceptionRenderer
     #[\Override]
     public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
-        assert($e instanceof DatabaseException);
+        \assert($e instanceof DatabaseException);
 
         $isDebug = (bool) (Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production'));
         $message = $isDebug
@@ -45,7 +45,7 @@ final class DatabaseExceptionRenderer extends AbstractExceptionRenderer
         }
 
         $html = View::renderToString('errors/500', [
-            'message'      => $message,
+            'message' => $message,
             'show_details' => $isDebug,
         ]);
 

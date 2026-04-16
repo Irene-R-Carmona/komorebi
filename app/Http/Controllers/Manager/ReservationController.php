@@ -32,27 +32,28 @@ final class ReservationController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $user   = Session::user();
+        $user = Session::user();
         $cafeId = (int) ($user['cafe_id'] ?? 0);
 
         if (!$cafeId) {
             View::render('errors/403', [
                 'message' => 'No tienes un café asignado. Contacta con el administrador.',
             ]);
+
             return null;
         }
 
         $params = $request->getQueryParams();
         $status = (isset($params['status']) && $params['status'] !== '') ? (string) $params['status'] : null;
-        $date   = (isset($params['date'])   && $params['date']   !== '') ? (string) $params['date']   : null;
+        $date = (isset($params['date']) && $params['date'] !== '') ? (string) $params['date'] : null;
 
         $reservations = $this->reservationRepo->findByCafeWithFilters($cafeId, $status, $date);
 
         View::render('manager/reservations/index', [
-            'titulo'       => 'Gestión de Reservas',
+            'titulo' => 'Gestión de Reservas',
             'reservations' => $reservations,
-            'filters'      => ['status' => $status, 'date' => $date],
-            'csrf_token'   => Csrf::token(),
+            'filters' => ['status' => $status, 'date' => $date],
+            'csrf_token' => Csrf::token(),
         ], ['manager/manager-reservations.css'], 'backoffice');
 
         return null;

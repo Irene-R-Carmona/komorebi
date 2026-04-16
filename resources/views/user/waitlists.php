@@ -21,6 +21,7 @@ function formatDate(string $date): string
     $month = (int) date('m', $timestamp);
     $year = date('Y', $timestamp);
     $time = date('H:i', $timestamp);
+
     return "$day de {$months[$month]} de $year a las $time";
 }
 
@@ -33,6 +34,7 @@ function getStatusBadge(string $status): array
         'confirmed' => ['text' => '✅ Confirmado', 'class' => 'status-badge--confirmed'],
         'expired' => ['text' => '❌ Expirado', 'class' => 'status-badge--expired'],
     ];
+
     return $badges[$status] ?? ['text' => $status, 'class' => ''];
 }
 ?>
@@ -101,9 +103,9 @@ function getStatusBadge(string $status): array
         <div class="waitlist-cards">
             <?php
             $position = 1;
-            foreach ($waitlists as $item):
-                $statusBadge = getStatusBadge((string)($item['status'] ?? 'waiting'));
-            ?>
+    foreach ($waitlists as $item):
+        $statusBadge = getStatusBadge((string) ($item['status'] ?? 'waiting'));
+        ?>
                 <div class="waitlist-card">
                     <!-- Badge de posición -->
                     <div class="waitlist-card__position">
@@ -123,11 +125,11 @@ function getStatusBadge(string $status): array
 
                         <div class="waitlist-card__details">
                             <p class="waitlist-card__date">
-                                📅 <?= formatDate((string)($item['requested_for'] ?? '')) ?>
+                                📅 <?= formatDate((string) ($item['requested_for'] ?? '')) ?>
                             </p>
                             <?php if (!empty($item['party_size'])): ?>
                                 <p class="waitlist-card__party">
-                                    👥 <?= (int)$item['party_size'] ?> persona<?= (int)$item['party_size'] > 1 ? 's' : '' ?>
+                                    👥 <?= (int) $item['party_size'] ?> persona<?= (int) $item['party_size'] > 1 ? 's' : '' ?>
                                 </p>
                             <?php endif; ?>
                         </div>
@@ -135,7 +137,7 @@ function getStatusBadge(string $status): array
                         <?php if ($item['status'] === 'notified'): ?>
                             <div class="waitlist-card__actions">
                                 <p class="waitlist-card__warning">
-                                    ⚠️ Tienes hasta el <?= date('d/m/Y H:i', strtotime((string)($item['notified_at'] ?? '') . ' +24 hours')) ?> para confirmar
+                                    ⚠️ Tienes hasta el <?= date('d/m/Y H:i', strtotime((string) ($item['notified_at'] ?? '') . ' +24 hours')) ?> para confirmar
                                 </p>
                                 <button class="btn-primary btn-sm">Confirmar Plaza</button>
                                 <button class="btn-secondary btn-sm">Rechazar</button>
@@ -144,9 +146,9 @@ function getStatusBadge(string $status): array
                     </div>
                 </div>
             <?php
-                $position++;
-            endforeach;
-            ?>
+            $position++;
+    endforeach;
+?>
         </div>
     </section>
 

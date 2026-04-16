@@ -14,16 +14,16 @@ declare(strict_types=1);
 
 /** @var array<string, array{class: string, label: string}> $statusLabels */
 $statusLabels = [
-    'pending'   => ['class' => 'reservation-badge--pending',   'label' => 'Pendiente'],
+    'pending' => ['class' => 'reservation-badge--pending',   'label' => 'Pendiente'],
     'confirmed' => ['class' => 'reservation-badge--confirmed', 'label' => 'Confirmada'],
-    'active'    => ['class' => 'reservation-badge--active',    'label' => 'Activa'],
+    'active' => ['class' => 'reservation-badge--active',    'label' => 'Activa'],
     'completed' => ['class' => 'reservation-badge--completed', 'label' => 'Completada'],
     'cancelled' => ['class' => 'reservation-badge--cancelled', 'label' => 'Cancelada'],
-    'no_show'   => ['class' => 'reservation-badge--no-show',   'label' => 'No Show'],
+    'no_show' => ['class' => 'reservation-badge--no-show',   'label' => 'No Show'],
 ];
 
 $hasActiveFilters = ($filters['status'] !== null || $filters['date'] !== null);
-$total            = count($reservations);
+$total = count($reservations);
 ?>
 
 <div class="container-fluid">
@@ -108,7 +108,7 @@ $total            = count($reservations);
                         <?php foreach ($reservations as $r): ?>
                             <?php
                             $rstatus = $r['status'] ?? 'pending';
-                            $badge   = $statusLabels[$rstatus]
+                            $badge = $statusLabels[$rstatus]
                                 ?? ['class' => 'reservation-badge--completed', 'label' => e($rstatus)];
                             ?>
                             <tr>

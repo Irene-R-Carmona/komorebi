@@ -7,7 +7,7 @@
  */
 ?>
 <div class="kds-card <?= htmlspecialchars($item['ui_class'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-    data-item-id="<?= (int)($item['id'] ?? 0) ?>"
+    data-item-id="<?= (int) ($item['id'] ?? 0) ?>"
     x-data="{ expanded: false }">
 
     <!-- HEADER -->
@@ -32,12 +32,12 @@
         <div class="kds-card__meta">
             <span class="kds-card__qty">
                 <span class="material-symbols-outlined">restaurant</span>
-                × <?= (int)($item['quantity'] ?? 1) ?>
+                × <?= (int) ($item['quantity'] ?? 1) ?>
             </span>
             <?php if (!empty($item['guests'])): ?>
                 <span class="kds-card__guests">
                     <span class="material-symbols-outlined">group</span>
-                    <?= (int)$item['guests'] ?> PAX
+                    <?= (int) $item['guests'] ?> PAX
                 </span>
             <?php endif; ?>
         </div>
@@ -46,7 +46,7 @@
     <!-- ACCIONES -->
     <div class="kds-card__actions">
         <button class="kds-btn kds-btn--primary"
-            @click="$dispatch('mark-ready', { id: <?= (int)($item['id'] ?? 0) ?> })"
+            @click="$dispatch('mark-ready', { id: <?= (int) ($item['id'] ?? 0) ?> })"
             type="button">
             <span class="material-symbols-outlined">check_circle</span>
             READY
@@ -63,11 +63,11 @@
     </div>
 
     <!-- PREP TIME (si existe) -->
-    <?php if (!empty($item['prep_time']) && (int)$item['prep_time'] > 0): ?>
+    <?php if (!empty($item['prep_time']) && (int) $item['prep_time'] > 0): ?>
         <div class="kds-card__footer">
             <small>
                 <span class="material-symbols-outlined">schedule</span>
-                Prep: ~<?= (int)$item['prep_time'] ?>min
+                Prep: ~<?= (int) $item['prep_time'] ?>min
             </small>
         </div>
     <?php endif; ?>

@@ -54,7 +54,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findActiveByUser(int $userId): array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
@@ -76,7 +76,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     public function findWithOperationalData(int $id): ?array
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT id, user_id, cafe_id, pass_product_id, pass_name, pass_unit_price,
+            'SELECT id, user_id, cafe_id, pass_product_id, pass_name, pass_unit_price,
                     pass_duration_minutes, tracker_id, current_zone_id, reservation_date,
                     reservation_time, guest_count, status, check_in_at, check_out_at,
                     protocol_hygiene, protocol_briefing, protocol_shoes, final_amount,
@@ -84,7 +84,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
                     deleted_at, created_at, updated_at
              FROM reservations
              WHERE id = :id
-             LIMIT 1"
+             LIMIT 1'
         );
         $stmt->execute(['id' => $id]);
 
@@ -98,7 +98,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findByUuid(string $uuid): ?array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
 
         $stmt = $this->getDb()->prepare(
             "SELECT $fields FROM reservations WHERE uuid = :uuid LIMIT 1"
@@ -115,11 +115,11 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findByIdWithCafeDetails(int $id): ?array
     {
-        $reservationFields = array_map(
-            fn($field) => "r.$field",
+        $reservationFields = \array_map(
+            fn ($field) => "r.$field",
             $this->getSelectFields()
         );
-        $fields = implode(', ', $reservationFields);
+        $fields = \implode(', ', $reservationFields);
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields},
@@ -145,7 +145,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findByCafeAndDate(int $cafeId, string $date): array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
@@ -176,21 +176,21 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findByCafeWithFilters(int $cafeId, ?string $status = null, ?string $date = null, int $limit = 50): array
     {
-        $fields = implode(', ', $this->getSelectFields());
-        $where  = ['cafe_id = :cafe_id', 'deleted_at IS NULL'];
+        $fields = \implode(', ', $this->getSelectFields());
+        $where = ['cafe_id = :cafe_id', 'deleted_at IS NULL'];
         $params = ['cafe_id' => $cafeId];
 
         if ($status !== null) {
-            $where[]          = 'status = :status';
+            $where[] = 'status = :status';
             $params['status'] = $status;
         }
 
         if ($date !== null) {
-            $where[]        = 'reservation_date = :date';
+            $where[] = 'reservation_date = :date';
             $params['date'] = $date;
         }
 
-        $whereClause = implode(' AND ', $where);
+        $whereClause = \implode(' AND ', $where);
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields}
@@ -234,7 +234,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     {
         return $this->update($id, [
             'status' => $status,
-            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_at' => \date('Y-m-d H:i:s'),
         ]);
     }
 
@@ -245,8 +245,8 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     {
         $data = [
             'status' => 'active',
-            'check_in_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
+            'check_in_at' => \date('Y-m-d H:i:s'),
+            'updated_at' => \date('Y-m-d H:i:s'),
         ];
 
         if (isset($protocolData['hygiene'])) {
@@ -275,8 +275,8 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     {
         $data = [
             'status' => 'completed',
-            'check_out_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
+            'check_out_at' => \date('Y-m-d H:i:s'),
+            'updated_at' => \date('Y-m-d H:i:s'),
         ];
 
         if (isset($paymentData['final_amount'])) {
@@ -314,8 +314,8 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
         return $this->update($id, [
             'status' => 'cancelled',
-            'deleted_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
+            'deleted_at' => \date('Y-m-d H:i:s'),
+            'updated_at' => \date('Y-m-d H:i:s'),
         ]);
     }
 
@@ -326,7 +326,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     {
         return $this->update($id, [
             'status' => 'no_show',
-            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_at' => \date('Y-m-d H:i:s'),
         ]);
     }
 
@@ -350,7 +350,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     public function getStatsForCafe(int $cafeId, string $startDate, string $endDate): array
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT
+            'SELECT
                 status,
                 COUNT(*) as count,
                 SUM(final_amount) as total_amount,
@@ -359,7 +359,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
              WHERE cafe_id = :cafe_id
              AND reservation_date BETWEEN :start_date AND :end_date
              AND deleted_at IS NULL
-             GROUP BY status"
+             GROUP BY status'
         );
         $stmt->execute([
             'cafe_id' => $cafeId,
@@ -383,7 +383,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
             $params['status'] = $status;
         }
 
-        $whereClause = implode(' AND ', $where);
+        $whereClause = \implode(' AND ', $where);
 
         // Contar total
         $countSql = "SELECT COUNT(*) FROM reservations r WHERE $whereClause";
@@ -392,7 +392,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         $total = (int) $stmt->fetchColumn();
 
         // Obtener datos con detalles del café
-        $fields = implode(', ', array_map(fn($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
                 FROM reservations r
@@ -420,7 +420,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findUpcomingByUser(int $userId, int $limit = 5): array
     {
-        $fields = implode(', ', array_map(fn($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
 
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
@@ -483,7 +483,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         while ($current < $closing) {
             $timeStr = $current->format('H:i:s');
             $booked = $bookings[$timeStr] ?? 0;
-            $available = max(0, (int) $cafe['capacity_max'] - $booked);
+            $available = \max(0, (int) $cafe['capacity_max'] - $booked);
 
             $slots[] = [
                 'time' => $current->format('H:i'),
@@ -529,7 +529,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findByUserId(int $userId): array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields}

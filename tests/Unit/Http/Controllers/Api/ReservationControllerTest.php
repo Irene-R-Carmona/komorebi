@@ -39,7 +39,7 @@ final class ReservationControllerTest extends ControllerTestCase
         );
 
         $this->assertSame(422, $response->getStatusCode());
-        $body = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
         $this->assertSame(422, $body['status']);
     }
 
@@ -63,6 +63,6 @@ final class ReservationControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(ReservationController::class, 'getAvailableSlots'));
+        $this->assertTrue(\method_exists(ReservationController::class, 'getAvailableSlots'));
     }
 }

@@ -9,13 +9,13 @@ use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
-use App\Models\Cafe;
-use App\Models\Favorite;
 use App\Http\Transformers\AnimalTransformer;
 use App\Http\Transformers\CafeTransformer;
+use App\Models\Cafe;
+use App\Models\Favorite;
+use App\Services\Contracts\MenuServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\ReviewServiceInterface;
-use App\Services\Contracts\MenuServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -91,6 +91,7 @@ final class CafeController
                 'orden' => $orderBy,
             ],
         ], ['catalogo.css']);
+
         return null;
     }
 
@@ -116,7 +117,7 @@ final class CafeController
         $rawAnimals = $cafe['animals'] ?? [];
 
         // Aplicar CafeTransformer: presentación segura sin campos internos
-        $cafe = (new CafeTransformer())->transform($cafe);
+        $cafe = new CafeTransformer()->transform($cafe);
 
         // Verificar si es favorito del usuario actual
         $isFavorite = false;
@@ -157,7 +158,7 @@ final class CafeController
             'total_animals' => \count($rawAnimals),
             'active_animals' => \count(\array_filter(
                 $rawAnimals,
-                static fn($a) => $a['current_status'] === 'active'
+                static fn ($a) => $a['current_status'] === 'active'
             )),
             'favorites_count' => $this->cafeModel->getFavoritesCount((int) $cafe['id']),
         ];
@@ -167,8 +168,9 @@ final class CafeController
             if (empty($a['attributes'])) {
                 return $a;
             }
+
             try {
-                $attrs = json_decode($a['attributes'], true, 512, \JSON_THROW_ON_ERROR) ?? [];
+                $attrs = \json_decode($a['attributes'], true, 512, \JSON_THROW_ON_ERROR) ?? [];
             } catch (\JsonException $e) {
                 Logger::warning('[CafeController] Error decodificando atributos de animal', [
                     'exception' => $e::class,
@@ -177,7 +179,8 @@ final class CafeController
                 ]);
                 $attrs = [];
             }
-            return array_merge($a, $attrs);
+
+            return \array_merge($a, $attrs);
         }, $rawAnimals);
 
         // Aplicar AnimalTransformer: excluye campos operativos/sensibles
@@ -198,6 +201,7 @@ final class CafeController
             'canReview' => $canReview,
             'reviewEligibility' => $reviewEligibility,
         ], ['catalogo.css', 'reviews.css']);
+
         return null;
     }
 

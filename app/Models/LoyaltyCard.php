@@ -48,7 +48,7 @@ final class LoyaltyCard
     public function findByUserId(int $userId): ?array
     {
         $stmt = $this->db->prepare(
-            "SELECT * FROM loyalty_cards WHERE user_id = ? LIMIT 1"
+            'SELECT * FROM loyalty_cards WHERE user_id = ? LIMIT 1'
         );
         $stmt->execute([$userId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -62,7 +62,7 @@ final class LoyaltyCard
     public function findById(int $id): ?array
     {
         $stmt = $this->db->prepare(
-            "SELECT * FROM loyalty_cards WHERE id = ? LIMIT 1"
+            'SELECT * FROM loyalty_cards WHERE id = ? LIMIT 1'
         );
         $stmt->execute([$id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -80,12 +80,12 @@ final class LoyaltyCard
     public function addStamps(int $cardId, int $stamps = 1): bool
     {
         $stmt = $this->db->prepare(
-            "UPDATE loyalty_cards
+            'UPDATE loyalty_cards
              SET stamps = stamps + ?,
                  visits_count = visits_count + ?,
                  last_stamp_at = CURRENT_TIMESTAMP,
                  updated_at = CURRENT_TIMESTAMP
-             WHERE id = ?"
+             WHERE id = ?'
         );
 
         return $stmt->execute([$stamps, $stamps, $cardId]);
@@ -101,11 +101,11 @@ final class LoyaltyCard
     public function consumeStamps(int $cardId, int $stamps): bool
     {
         $stmt = $this->db->prepare(
-            "UPDATE loyalty_cards
+            'UPDATE loyalty_cards
              SET stamps = stamps - ?,
                  total_rewards_redeemed = total_rewards_redeemed + 1,
                  updated_at = CURRENT_TIMESTAMP
-             WHERE id = ? AND stamps >= ?"
+             WHERE id = ? AND stamps >= ?'
         );
 
         return $stmt->execute([$stamps, $cardId, $stamps]);
@@ -121,15 +121,15 @@ final class LoyaltyCard
     public function updateTier(int $cardId, string $tier): bool
     {
         $validTiers = ['bronze', 'silver', 'gold', 'platinum'];
-        if (!in_array($tier, $validTiers, true)) {
+        if (!\in_array($tier, $validTiers, true)) {
             return false;
         }
 
         $stmt = $this->db->prepare(
-            "UPDATE loyalty_cards
+            'UPDATE loyalty_cards
              SET current_tier = ?,
                  updated_at = CURRENT_TIMESTAMP
-             WHERE id = ?"
+             WHERE id = ?'
         );
 
         return $stmt->execute([$tier, $cardId]);
@@ -162,14 +162,14 @@ final class LoyaltyCard
     public function getTopUsers(int $limit = 10): array
     {
         $stmt = $this->db->prepare(
-            "SELECT
+            'SELECT
                 lc.id, lc.stamps, lc.current_tier, lc.visits_count,
                 u.id as user_id, u.name, u.email
              FROM loyalty_cards lc
              INNER JOIN users u ON lc.user_id = u.id
              WHERE u.deleted_at IS NULL
              ORDER BY lc.stamps DESC, lc.visits_count DESC
-             LIMIT ?"
+             LIMIT ?'
         );
         $stmt->execute([$limit]);
 
@@ -182,16 +182,16 @@ final class LoyaltyCard
     public function findByTier(string $tier): array
     {
         $validTiers = ['bronze', 'silver', 'gold', 'platinum'];
-        if (!in_array($tier, $validTiers, true)) {
+        if (!\in_array($tier, $validTiers, true)) {
             return [];
         }
 
         $stmt = $this->db->prepare(
-            "SELECT lc.*, u.name as user_name, u.email as user_email
+            'SELECT lc.*, u.name as user_name, u.email as user_email
              FROM loyalty_cards lc
              INNER JOIN users u ON lc.user_id = u.id
              WHERE lc.current_tier = ? AND u.deleted_at IS NULL
-             ORDER BY lc.visits_count DESC"
+             ORDER BY lc.visits_count DESC'
         );
         $stmt->execute([$tier]);
 

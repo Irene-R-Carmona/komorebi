@@ -34,6 +34,7 @@ final class LoyaltyController
 
         if (!$userId) {
             Flash::error('Debes iniciar sesión para ver tu tarjeta');
+
             return $this->response->redirect('/login');
         }
 
@@ -41,6 +42,7 @@ final class LoyaltyController
 
         if (!$result->ok) {
             Flash::error($result->error);
+
             return $this->response->redirect('/');
         }
 
@@ -50,8 +52,9 @@ final class LoyaltyController
             'redeemed_rewards' => $result->data['redeemed_rewards'],
             'tier_progress' => $result->data['tier_progress'],
             'page_title' => '🎴 Mi Tarjeta de Fidelización - Komorebi Café',
-            'extraCss' => ['loyalty.css']
+            'extraCss' => ['loyalty.css'],
         ]);
+
         return null;
     }
 }

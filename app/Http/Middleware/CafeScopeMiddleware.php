@@ -52,9 +52,10 @@ final class CafeScopeMiddleware implements MiddlewareInterface
             if ($this->isApiRequest($request)) {
                 return $this->response->json([
                     'success' => false,
-                    'error'   => 'Acceso denegado a este recurso.',
+                    'error' => 'Acceso denegado a este recurso.',
                 ], 403);
             }
+
             return $this->response->redirect('/manager/dashboard');
         }
 

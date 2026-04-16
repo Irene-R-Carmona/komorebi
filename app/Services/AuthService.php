@@ -14,10 +14,8 @@ use App\Events\UserRegisteredEvent;
 use App\Exceptions\ValidationException;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
-use App\Services\AuthTokenService;
 use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\RateLimitingServiceInterface;
-use App\Services\SessionManagementService;
 use DateTimeImmutable;
 use PDO;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -27,7 +25,7 @@ use RuntimeException;
 /**
  * Servicio de Autenticación
  */
-class AuthService extends BaseService implements AuthServiceInterface
+final class AuthService extends BaseService implements AuthServiceInterface
 {
     private UserRepositoryInterface $userRepo;
     private User $userModel;
@@ -136,7 +134,7 @@ class AuthService extends BaseService implements AuthServiceInterface
             $userId = $this->userRepo->create([
                 'name' => $name,
                 'email' => $email,
-                'password' => password_hash($password, PASSWORD_ARGON2ID),
+                'password' => \password_hash($password, PASSWORD_ARGON2ID),
             ]);
 
             // Disparar evento de registro
@@ -213,7 +211,7 @@ class AuthService extends BaseService implements AuthServiceInterface
 
         // Obtener roles del usuario via RBAC
         $roles = $this->userModel->getRoles($userId) ?: [];
-        $rolesCodes = is_array($roles) ? \array_column($roles, 'code') : [];
+        $rolesCodes = \is_array($roles) ? \array_column($roles, 'code') : [];
 
         if (Env::get('APP_ENV') === 'local') {
             Logger::error('[AuthService::createSession] Roles: ' . \json_encode($rolesCodes), []);
@@ -238,7 +236,7 @@ class AuthService extends BaseService implements AuthServiceInterface
 
         // 1. Establecer datos básicos de usuario en sesión
         // Seleccionar rol principal (si existe) o 'user' por defecto
-        $primaryRole = is_string($rolesCodes[0] ?? null) ? $rolesCodes[0] : 'user';
+        $primaryRole = \is_string($rolesCodes[0] ?? null) ? $rolesCodes[0] : 'user';
 
         // Pasar la lista de roles al Session::setUser para popular 'user_roles'
         $roleValue = !empty($rolesCodes) ? $rolesCodes : [$primaryRole];
@@ -485,7 +483,7 @@ class AuthService extends BaseService implements AuthServiceInterface
 
         // Si hay un redirect guardado y no es una ruta de autenticación, usarlo.
         // Si apunta al backoffice, normalizar a la raíz /admin/ para evitar redirects intermedios.
-        if (is_string($savedRedirect) && $savedRedirect !== '' && !\str_starts_with($savedRedirect, '/login') && !\str_starts_with($savedRedirect, '/registro')) {
+        if (\is_string($savedRedirect) && $savedRedirect !== '' && !\str_starts_with($savedRedirect, '/login') && !\str_starts_with($savedRedirect, '/registro')) {
             if (\str_starts_with($savedRedirect, '/admin')) {
                 return '/admin/';
             }

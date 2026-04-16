@@ -61,6 +61,7 @@ final class FileUploadServiceTest extends TestCase
         $path = \tempnam(\sys_get_temp_dir(), 'komorebi_test_');
         \file_put_contents($path, $content);
         $this->tmpFiles[] = $path;
+
         return $path;
     }
 
@@ -75,6 +76,7 @@ final class FileUploadServiceTest extends TestCase
         $img = \imagecreatetruecolor(10, 10);
         \imagejpeg($img, $path, 85);
         \imagedestroy($img);
+
         return $path;
     }
 
@@ -86,10 +88,10 @@ final class FileUploadServiceTest extends TestCase
         int $size = 100
     ): array {
         return [
-            'error'    => $errorCode,
-            'name'     => $name,
+            'error' => $errorCode,
+            'name' => $name,
             'tmp_name' => $tmpName,
-            'size'     => $size,
+            'size' => $size,
         ];
     }
 
@@ -124,7 +126,7 @@ final class FileUploadServiceTest extends TestCase
     public function getUploadLimitsDefaultsToAvatar(): void
     {
         $defaultLimits = $this->service->getUploadLimits();
-        $avatarLimits  = $this->service->getUploadLimits('avatar');
+        $avatarLimits = $this->service->getUploadLimits('avatar');
 
         $this->assertSame($avatarLimits['maxSize'], $defaultLimits['maxSize']);
     }
@@ -137,10 +139,10 @@ final class FileUploadServiceTest extends TestCase
     public function uploadAvatarWithErrorArrayInsteadOfCodeReturnsFail(): void
     {
         $file = [
-            'error'    => [UPLOAD_ERR_OK, UPLOAD_ERR_NO_FILE], // array, no escalar
-            'name'     => 'photo.jpg',
+            'error' => [UPLOAD_ERR_OK, UPLOAD_ERR_NO_FILE], // array, no escalar
+            'name' => 'photo.jpg',
             'tmp_name' => '',
-            'size'     => 100,
+            'size' => 100,
         ];
 
         $result = $this->service->uploadAvatar($file, 1);

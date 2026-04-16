@@ -42,7 +42,7 @@ final class SupervisorAssignmentRepository extends AbstractRepository implements
      */
     public function findBySupervisor(int $supervisorId): array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields} FROM supervisor_assignments
              WHERE supervisor_id = :supervisor_id
@@ -60,7 +60,7 @@ final class SupervisorAssignmentRepository extends AbstractRepository implements
      */
     public function findActiveByCafe(int $cafeId): array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields} FROM supervisor_assignments
              WHERE cafe_id = :cafe_id AND is_active = 1

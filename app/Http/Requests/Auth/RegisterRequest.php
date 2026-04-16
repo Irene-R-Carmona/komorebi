@@ -15,9 +15,9 @@ final class RegisterRequest extends FormRequest
     protected function rules(): array
     {
         return [
-            'name'                 => 'required|max:50',
-            'email'                => 'required|email',
-            'password'             => 'required|min:8',
+            'name' => 'required|max:50',
+            'email' => 'required|email',
+            'password' => 'required|min:8',
             'password_confirmation' => 'required',
         ];
     }
@@ -26,9 +26,9 @@ final class RegisterRequest extends FormRequest
     protected function sanitize(array $raw): array
     {
         return [
-            'name'                 => trim((string) ($raw['name'] ?? '')),
-            'email'                => strtolower(trim((string) ($raw['email'] ?? ''))),
-            'password'             => (string) ($raw['password'] ?? ''),
+            'name' => \trim((string) ($raw['name'] ?? '')),
+            'email' => \strtolower(\trim((string) ($raw['email'] ?? ''))),
+            'password' => (string) ($raw['password'] ?? ''),
             'password_confirmation' => (string) ($raw['password_confirm'] ?? $raw['password_confirmation'] ?? ''),
         ];
     }

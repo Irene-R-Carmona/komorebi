@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /** @var array $waitlists Lista de waitlists activas */
 /** @var array $summary Resumen por estado */
@@ -117,16 +117,16 @@
                 <tbody>
                     <?php
                     $statusLabels = [
-                        'waiting'   => 'En Espera',
-                        'notified'  => 'Notificado',
+                        'waiting' => 'En Espera',
+                        'notified' => 'Notificado',
                         'confirmed' => 'Confirmado',
                         'cancelled' => 'Cancelado',
-                        'expired'   => 'Expirado',
+                        'expired' => 'Expirado',
                     ];
-                    foreach ($waitlists as $w):
-                        $statusKey = isset($statusLabels[$w['status']]) ? $w['status'] : 'expired';
-                        $statusLabel = $statusLabels[$statusKey];
-                    ?>
+        foreach ($waitlists as $w):
+            $statusKey = isset($statusLabels[$w['status']]) ? $w['status'] : 'expired';
+            $statusLabel = $statusLabels[$statusKey];
+            ?>
                         <tr>
                             <td class="text-muted small"><?= htmlspecialchars((string) $w['id'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td>

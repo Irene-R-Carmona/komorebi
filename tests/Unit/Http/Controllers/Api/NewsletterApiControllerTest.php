@@ -38,8 +38,8 @@ final class NewsletterApiControllerTest extends ControllerTestCase
     {
         $factory = new Psr17Factory();
 
-        return (new ServerRequest('POST', $path))
-            ->withBody($factory->createStream((string) json_encode($data)));
+        return new ServerRequest('POST', $path)
+            ->withBody($factory->createStream((string) \json_encode($data)));
     }
 
     public function test_subscribe_returns_422_when_body_is_empty(): void
@@ -58,7 +58,7 @@ final class NewsletterApiControllerTest extends ControllerTestCase
         );
 
         $this->assertSame(200, $response->getStatusCode());
-        $body = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
         $this->assertTrue($body['ok']);
     }
 

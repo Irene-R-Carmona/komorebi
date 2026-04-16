@@ -58,6 +58,7 @@ final class AccountDeletionService implements AccountDeletionServiceInterface
             return Result::ok(true);
         } catch (\Throwable $e) {
             $this->db->rollBack();
+
             return Result::fail('No se pudo eliminar la cuenta: ' . $e->getMessage());
         }
     }

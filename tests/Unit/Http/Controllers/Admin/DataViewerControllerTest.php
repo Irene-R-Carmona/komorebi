@@ -24,16 +24,15 @@ final class DataViewerControllerTest extends ControllerTestCase
 {
     public function test_index_returns_null(): void
     {
-        ob_start();
-        $result = (new DataViewerController())->index($this->makeGetRequest('/admin/data-viewer'));
-        ob_end_clean();
+        \ob_start();
+        $result = new DataViewerController()->index($this->makeGetRequest('/admin/data-viewer'));
+        \ob_end_clean();
 
         $this->assertNull($result);
     }
 
     public function test_class_has_index_method(): void
     {
-        $this->assertTrue(method_exists(DataViewerController::class, 'index'));
+        $this->assertTrue(\method_exists(DataViewerController::class, 'index'));
     }
 }
-

@@ -16,7 +16,8 @@ final readonly class ReviewDTO implements DomainTransferObject
         public string $body,
         public string $status,
         public string $created_at,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public static function fromArray(array $data): static
@@ -38,14 +39,14 @@ final readonly class ReviewDTO implements DomainTransferObject
     public function toViewArray(): array
     {
         return [
-            'id'         => $this->id,
-            'cafe_id'    => $this->cafe_id,
-            'cafe_name'  => $this->cafe_name,
-            'user_name'  => $this->user_name,
-            'rating'     => $this->rating,
-            'title'      => $this->title,
-            'body'       => $this->body,
-            'status'     => $this->status,
+            'id' => $this->id,
+            'cafe_id' => $this->cafe_id,
+            'cafe_name' => $this->cafe_name,
+            'user_name' => $this->user_name,
+            'rating' => $this->rating,
+            'title' => $this->title,
+            'body' => $this->body,
+            'status' => $this->status,
             'created_at' => $this->created_at,
         ];
     }

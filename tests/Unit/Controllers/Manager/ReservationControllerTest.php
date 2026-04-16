@@ -41,7 +41,7 @@ final class ReservationControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdoMock  = $this->createStub(PDO::class);
+        $this->pdoMock = $this->createStub(PDO::class);
         $this->stmtMock = $this->createStub(PDOStatement::class);
 
         // ReservationRepository es final; se construye con PDO mockeado
@@ -66,13 +66,14 @@ final class ReservationControllerTest extends TestCase
     {
         $request = $this->createStub(ServerRequestInterface::class);
         $request->method('getQueryParams')->willReturn($queryParams);
+
         return $request;
     }
 
     private function startSession(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
     }
 
@@ -97,9 +98,9 @@ final class ReservationControllerTest extends TestCase
 
         $controller = new ReservationController($this->reservationRepo);
 
-        ob_start();
+        \ob_start();
         $result = $controller->index($this->makeRequest());
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
     }
@@ -108,7 +109,7 @@ final class ReservationControllerTest extends TestCase
     {
         $this->startSession();
         $_SESSION['user_cafe_id'] = 2;
-        $_SERVER['REQUEST_URI']   = '/manager/reservations';
+        $_SERVER['REQUEST_URI'] = '/manager/reservations';
 
         // PDO devuelve lista vacía
         $this->stmtMock->method('execute')->willReturn(true);
@@ -117,9 +118,9 @@ final class ReservationControllerTest extends TestCase
 
         $controller = new ReservationController($this->reservationRepo);
 
-        ob_start();
+        \ob_start();
         $result = $controller->index($this->makeRequest());
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
     }
@@ -128,7 +129,7 @@ final class ReservationControllerTest extends TestCase
     {
         $this->startSession();
         $_SESSION['user_cafe_id'] = 5;
-        $_SERVER['REQUEST_URI']   = '/manager/reservations';
+        $_SERVER['REQUEST_URI'] = '/manager/reservations';
 
         $capturedSql = '';
         $capturedParams = [];
@@ -137,20 +138,22 @@ final class ReservationControllerTest extends TestCase
         $this->stmtMock->method('execute')
             ->willReturnCallback(function (array $params) use (&$capturedParams): bool {
                 $capturedParams = $params;
+
                 return true;
             });
         $this->stmtMock->method('fetchAll')->willReturn([]);
         $this->pdoMock->method('prepare')
             ->willReturnCallback(function (string $sql) use (&$capturedSql): PDOStatement {
                 $capturedSql = $sql;
+
                 return $this->stmtMock;
             });
 
         $controller = new ReservationController($this->reservationRepo);
 
-        ob_start();
+        \ob_start();
         $result = $controller->index($this->makeRequest(['status' => 'confirmed']));
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
         $this->assertArrayHasKey('status', $capturedParams);
@@ -161,13 +164,14 @@ final class ReservationControllerTest extends TestCase
     {
         $this->startSession();
         $_SESSION['user_cafe_id'] = 5;
-        $_SERVER['REQUEST_URI']   = '/manager/reservations';
+        $_SERVER['REQUEST_URI'] = '/manager/reservations';
 
         $capturedParams = [];
 
         $this->stmtMock->method('execute')
             ->willReturnCallback(function (array $params) use (&$capturedParams): bool {
                 $capturedParams = $params;
+
                 return true;
             });
         $this->stmtMock->method('fetchAll')->willReturn([]);
@@ -175,9 +179,9 @@ final class ReservationControllerTest extends TestCase
 
         $controller = new ReservationController($this->reservationRepo);
 
-        ob_start();
+        \ob_start();
         $result = $controller->index($this->makeRequest(['date' => '2026-06-15']));
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
         $this->assertArrayHasKey('date', $capturedParams);
@@ -188,13 +192,14 @@ final class ReservationControllerTest extends TestCase
     {
         $this->startSession();
         $_SESSION['user_cafe_id'] = 5;
-        $_SERVER['REQUEST_URI']   = '/manager/reservations';
+        $_SERVER['REQUEST_URI'] = '/manager/reservations';
 
         $capturedParams = [];
 
         $this->stmtMock->method('execute')
             ->willReturnCallback(function (array $params) use (&$capturedParams): bool {
                 $capturedParams = $params;
+
                 return true;
             });
         $this->stmtMock->method('fetchAll')->willReturn([]);
@@ -202,9 +207,9 @@ final class ReservationControllerTest extends TestCase
 
         $controller = new ReservationController($this->reservationRepo);
 
-        ob_start();
+        \ob_start();
         $result = $controller->index($this->makeRequest(['status' => '', 'date' => '']));
-        ob_end_clean();
+        \ob_end_clean();
 
         $this->assertNull($result);
         // Con filtros vacíos, el query sólo lleva cafe_id (no status ni date)

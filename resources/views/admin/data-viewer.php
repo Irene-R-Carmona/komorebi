@@ -13,8 +13,8 @@ declare(strict_types=1);
 use App\Core\View;
 
 echo View::componentToString('components/admin/page-header', [
-    'icon'     => 'database',
-    'title'    => 'Data Viewer',
+    'icon' => 'database',
+    'title' => 'Data Viewer',
     'subtitle' => 'Visualización completa de todos los datos cargados en el sistema',
 ]);
 ?>
@@ -189,7 +189,7 @@ echo View::componentToString('components/admin/page-header', [
                             'completed' => 'text-bg-info',
                             default => 'text-bg-danger'
                         };
-                        ?>
+                ?>
                         <span class="badge <?= $statusClass ?>"><?= $res['status'] ?></span>
                     </td>
                     <td><?= $res['has_slot'] === 'Sí' ? '✅' : '❌' ?></td>

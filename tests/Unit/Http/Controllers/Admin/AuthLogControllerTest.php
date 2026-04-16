@@ -24,11 +24,11 @@ final class AuthLogControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
-        $_SESSION                              = [];
-        $_SERVER['HTTP_X_REQUESTED_WITH']      = '';
+        $_SESSION = [];
+        $_SERVER['HTTP_X_REQUESTED_WITH'] = '';
     }
 
     protected function tearDown(): void
@@ -47,10 +47,10 @@ final class AuthLogControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(AuthLogController::class, 'index'));
-        $this->assertTrue(method_exists(AuthLogController::class, 'stats'));
-        $this->assertTrue(method_exists(AuthLogController::class, 'suspicious'));
-        $this->assertTrue(method_exists(AuthLogController::class, 'export'));
+        $this->assertTrue(\method_exists(AuthLogController::class, 'index'));
+        $this->assertTrue(\method_exists(AuthLogController::class, 'stats'));
+        $this->assertTrue(\method_exists(AuthLogController::class, 'suspicious'));
+        $this->assertTrue(\method_exists(AuthLogController::class, 'export'));
     }
 
     public function test_instance_can_be_created_with_stub(): void

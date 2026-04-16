@@ -17,7 +17,7 @@ use RuntimeException;
  * Regla: Un usuario final final final solo puede crear UNA reseña por café.
  * Se requiere tener al menos UNA reserva completada en ese café.
  */
-class Review
+final class Review
 {
     private PDO $db;
 
@@ -91,6 +91,7 @@ class Review
         $stmt->execute(['id' => $id]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $row === false ? null : (array) $row;
     }
 
@@ -105,6 +106,7 @@ class Review
         $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $row === false ? null : (array) $row;
     }
 

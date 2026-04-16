@@ -34,9 +34,9 @@ final class SystemControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(SystemController::class, 'settings'));
-        $this->assertTrue(method_exists(SystemController::class, 'clearCache'));
-        $this->assertTrue(method_exists(SystemController::class, 'testEmail'));
+        $this->assertTrue(\method_exists(SystemController::class, 'settings'));
+        $this->assertTrue(\method_exists(SystemController::class, 'clearCache'));
+        $this->assertTrue(\method_exists(SystemController::class, 'testEmail'));
     }
 
     public function test_instance_can_be_created_with_stubs(): void

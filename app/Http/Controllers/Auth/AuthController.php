@@ -113,6 +113,7 @@ final class AuthController
                 'errors' => $e->getErrors(),
                 'old' => ['email' => $body['email'] ?? ''],
             ], ['auth.css']);
+
             return null;
         }
 
@@ -156,6 +157,7 @@ final class AuthController
                 'errors' => $e->getErrors(),
                 'old' => ['name' => $body['name'] ?? '', 'email' => $body['email'] ?? ''],
             ], ['auth.css']);
+
             return null;
         }
 

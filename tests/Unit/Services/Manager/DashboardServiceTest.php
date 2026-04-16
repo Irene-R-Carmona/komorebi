@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -29,7 +28,7 @@ final class DashboardServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!extension_loaded('pdo_mysql')) {
+        if (!\extension_loaded('pdo_mysql')) {
             $this->markTestSkipped('PDO MySQL no disponible');
         }
 

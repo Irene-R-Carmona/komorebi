@@ -25,22 +25,22 @@ function renderResponsiveImage(
 
     $hasWebP = file_exists(str_replace(".$extension", '.webp', $imagePath));
 
-?>
+    ?>
     <picture class="responsive-image <?= htmlspecialchars($className) ?>">
         <?php if ($hasWebP): ?>
             <!-- WebP sources -->
             <source
                 type="image/webp"
                 srcset="<?php
-                        $srcset = [];
-                        foreach ($sizes as $width) {
-                            $webpPath = "{$baseDir}/{$baseName}-{$width}w.webp";
-                            if (file_exists($webpPath)) {
-                                $srcset[] = "{$webpPath} {$width}w";
-                            }
-                        }
-                        echo implode(', ', $srcset);
-                        ?>"
+                            $srcset = [];
+            foreach ($sizes as $width) {
+                $webpPath = "{$baseDir}/{$baseName}-{$width}w.webp";
+                if (file_exists($webpPath)) {
+                    $srcset[] = "{$webpPath} {$width}w";
+                }
+            }
+            echo implode(', ', $srcset);
+            ?>"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw">
         <?php endif; ?>
 
@@ -49,18 +49,18 @@ function renderResponsiveImage(
             type="image/<?= $extension === 'jpg' ? 'jpeg' : $extension ?>"
             srcset="<?php
                     $srcset = [];
-                    foreach ($sizes as $width) {
-                        $resizedPath = "{$baseDir}/{$baseName}-{$width}w.{$extension}";
-                        if (file_exists($resizedPath)) {
-                            $srcset[] = "{$resizedPath} {$width}w";
-                        }
-                    }
-                    // Fallback a imagen original si no hay versiones
-                    if (empty($srcset)) {
-                        $srcset[] = "{$imagePath} " . ($sizes[count($sizes) - 1] ?? 1024) . 'w';
-                    }
-                    echo implode(', ', $srcset);
-                    ?>"
+    foreach ($sizes as $width) {
+        $resizedPath = "{$baseDir}/{$baseName}-{$width}w.{$extension}";
+        if (file_exists($resizedPath)) {
+            $srcset[] = "{$resizedPath} {$width}w";
+        }
+    }
+    // Fallback a imagen original si no hay versiones
+    if (empty($srcset)) {
+        $srcset[] = "{$imagePath} " . ($sizes[count($sizes) - 1] ?? 1024) . 'w';
+    }
+    echo implode(', ', $srcset);
+    ?>"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw">
 
         <!-- Fallback img -->
@@ -182,17 +182,17 @@ function generateSrcset(string $basePath, array $widths = [320, 640, 1024]): str
 
 <!-- Ejemplo de uso -->
 <?php if (false): // Solo para documentación
-?>
+    ?>
     <div class="product-card">
         <?php
-        renderResponsiveImage(
-            '/uploads/products/cafe-latte.jpg',
-            'Café Latte con arte latte en forma de corazón',
-            [320, 640, 1024],
-            true,
-            'responsive-image--16-9 responsive-image--rounded'
-        );
-        ?>
+            renderResponsiveImage(
+                '/uploads/products/cafe-latte.jpg',
+                'Café Latte con arte latte en forma de corazón',
+                [320, 640, 1024],
+                true,
+                'responsive-image--16-9 responsive-image--rounded'
+            );
+    ?>
         <h3>Café Latte</h3>
         <p>Delicioso café con leche...</p>
     </div>

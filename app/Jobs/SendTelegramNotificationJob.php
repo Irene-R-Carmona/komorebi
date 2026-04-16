@@ -10,7 +10,9 @@ use Throwable;
 
 final class SendTelegramNotificationJob implements JobInterface
 {
-    public function __construct(private readonly TelegramServiceInterface $telegram) {}
+    public function __construct(private readonly TelegramServiceInterface $telegram)
+    {
+    }
 
     /** @param array{icon: string, title: string, message: string} $payload */
     #[\Override]
@@ -18,8 +20,8 @@ final class SendTelegramNotificationJob implements JobInterface
     {
         try {
             $this->telegram->sendAlert(
-                $payload['icon']    ?? '🔔',
-                $payload['title']   ?? '',
+                $payload['icon'] ?? '🔔',
+                $payload['title'] ?? '',
                 $payload['message'] ?? '',
             );
         } catch (Throwable $e) {

@@ -34,12 +34,12 @@ final class AnimalIncidentController
         ?AnimalRepository $animalRepository = null,
     ) {
         if ($service === null || $animalRepository === null) {
-            $db                     = Database::getConnection();
+            $db = Database::getConnection();
             $this->animalRepository = $animalRepository ?? new AnimalRepository($db);
-            $this->service          = $service ?? new AnimalCareService($db, $this->animalRepository);
+            $this->service = $service ?? new AnimalCareService($db, $this->animalRepository);
         } else {
             $this->animalRepository = $animalRepository;
-            $this->service          = $service;
+            $this->service = $service;
         }
         $this->response = $response ?? new ResponseFactory();
     }
@@ -52,7 +52,7 @@ final class AnimalIncidentController
     {
         $incidents = $this->service->getActiveIncidents();
 
-        View::render('backoffice/keeper/incidents/index', compact('incidents'), [], 'backoffice');
+        View::render('backoffice/keeper/incidents/index', \compact('incidents'), [], 'backoffice');
 
         return null;
     }
@@ -63,11 +63,11 @@ final class AnimalIncidentController
      */
     public function create(ServerRequestInterface $request): ?ResponseInterface
     {
-        $user    = Session::user();
-        $cafeId  = (int) ($user['cafe_id'] ?? 0);
+        $user = Session::user();
+        $cafeId = (int) ($user['cafe_id'] ?? 0);
         $animals = $cafeId > 0 ? $this->animalRepository->findActiveByCafe($cafeId) : [];
 
-        View::render('backoffice/keeper/incidents/create', compact('animals'), [], 'backoffice');
+        View::render('backoffice/keeper/incidents/create', \compact('animals'), [], 'backoffice');
 
         return null;
     }
@@ -90,9 +90,9 @@ final class AnimalIncidentController
         $user = Session::user();
 
         $data = [
-            'animal_id'           => isset($body['animal_id']) ? (int) $body['animal_id'] : 0,
-            'severity'            => $body['severity'] ?? '',
-            'description'         => isset($body['description']) ? \trim((string) $body['description']) : '',
+            'animal_id' => isset($body['animal_id']) ? (int) $body['animal_id'] : 0,
+            'severity' => $body['severity'] ?? '',
+            'description' => isset($body['description']) ? \trim((string) $body['description']) : '',
             'reported_by_user_id' => $user ? (int) $user['id'] : null,
         ];
 
@@ -121,7 +121,7 @@ final class AnimalIncidentController
             throw NotFoundException::forResource('Incidente', $id);
         }
 
-        View::render('backoffice/keeper/incidents/show', compact('incident'), [], 'backoffice');
+        View::render('backoffice/keeper/incidents/show', \compact('incident'), [], 'backoffice');
 
         return null;
     }
@@ -140,10 +140,10 @@ final class AnimalIncidentController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $body       = (array) $request->getParsedBody();
+        $body = (array) $request->getParsedBody();
         $resolution = isset($body['resolution']) ? \trim((string) $body['resolution']) : null;
 
-        $user   = Session::user();
+        $user = Session::user();
         $userId = $user ? (int) $user['id'] : null;
 
         $result = $this->service->resolveIncident($incidentId, $resolution, $userId);

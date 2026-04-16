@@ -120,21 +120,21 @@ final class ClimaContextoServiceTest extends TestCase
     public static function wmoCodeProvider(): array
     {
         return [
-            'WMO 0 → clear'           => [0, 'clear'],
-            'WMO 1 → clear'           => [1, 'clear'],
-            'WMO 2 → clouds'          => [2, 'clouds'],
-            'WMO 3 → clouds'          => [3, 'clouds'],
-            'WMO 45 → fog'            => [45, 'fog'],
-            'WMO 48 → fog'            => [48, 'fog'],
-            'WMO 51 → rain'           => [51, 'rain'],
-            'WMO 61 → rain'           => [61, 'rain'],
-            'WMO 65 → rain'           => [65, 'rain'],
-            'WMO 71 → snow'           => [71, 'snow'],
-            'WMO 75 → snow'           => [75, 'snow'],
-            'WMO 80 → rain'           => [80, 'rain'],
-            'WMO 95 → thunderstorm'   => [95, 'thunderstorm'],
-            'WMO 96 → thunderstorm'   => [96, 'thunderstorm'],
-            'WMO 99 → thunderstorm'   => [99, 'thunderstorm'],
+            'WMO 0 → clear' => [0, 'clear'],
+            'WMO 1 → clear' => [1, 'clear'],
+            'WMO 2 → clouds' => [2, 'clouds'],
+            'WMO 3 → clouds' => [3, 'clouds'],
+            'WMO 45 → fog' => [45, 'fog'],
+            'WMO 48 → fog' => [48, 'fog'],
+            'WMO 51 → rain' => [51, 'rain'],
+            'WMO 61 → rain' => [61, 'rain'],
+            'WMO 65 → rain' => [65, 'rain'],
+            'WMO 71 → snow' => [71, 'snow'],
+            'WMO 75 → snow' => [75, 'snow'],
+            'WMO 80 → rain' => [80, 'rain'],
+            'WMO 95 → thunderstorm' => [95, 'thunderstorm'],
+            'WMO 96 → thunderstorm' => [96, 'thunderstorm'],
+            'WMO 99 → thunderstorm' => [99, 'thunderstorm'],
         ];
     }
 

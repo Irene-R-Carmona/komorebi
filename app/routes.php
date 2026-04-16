@@ -26,6 +26,7 @@ $renderView = static function (string $template, array $data = [], array $styles
     ob_start();
     View::render($template, $data, $styles, $layout);
     $content = ob_get_clean();
+
     return $responseFactory->html($content);
 };
 
@@ -274,9 +275,9 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->post('/cache/clear', 'Admin\SystemController@clearCache', [$mw->csrf()]);
     });
 
-// ============================================================================
-// BACKOFFICE - MANAGER
-// ============================================================================
+    // ============================================================================
+    // BACKOFFICE - MANAGER
+    // ============================================================================
 
     /** @var array<int, MiddlewareInterface> $managerMiddleware */
     $managerMiddleware = [$mw->auth(), $mw->role(['admin', 'manager'])];
@@ -311,9 +312,9 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->post('/products/{id:\d+}/delete', 'Manager\ProductController@delete', [$mw->ownsCafe(), $mw->csrf()]);
     });
 
-// ============================================================================
-// BACKOFFICE - SUPERVISOR
-// ============================================================================
+    // ============================================================================
+    // BACKOFFICE - SUPERVISOR
+    // ============================================================================
 
     /** @var array<int, MiddlewareInterface> $supervisorMiddleware */
     $supervisorMiddleware = [$mw->auth(), $mw->role(['admin', 'manager', 'supervisor'])];
@@ -350,9 +351,9 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
 
 if (Env::get('FEATURE_OPS', '1') === '1') {
 
-// ============================================================================
-// BACKOFFICE - RECEPTION
-// ============================================================================
+    // ============================================================================
+    // BACKOFFICE - RECEPTION
+    // ============================================================================
 
     /** @var array<int, MiddlewareInterface> $receptionMiddleware */
     $receptionMiddleware = [$mw->auth(), $mw->role(['admin', 'manager', 'supervisor', 'reception'])];
@@ -363,9 +364,9 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
         $r->post('/reservations/{id}/checkout', 'Reception\ReceptionController@checkOut', [$mw->csrf()]);
     });
 
-// ============================================================================
-// BACKOFFICE - KITCHEN
-// ============================================================================
+    // ============================================================================
+    // BACKOFFICE - KITCHEN
+    // ============================================================================
 
     /** @var array<int, MiddlewareInterface> $kitchenMiddleware */
     $kitchenMiddleware = [$mw->auth(), $mw->role(['admin', 'manager', 'kitchen', 'supervisor'])];
@@ -422,9 +423,9 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
 // ============================================================================
 
 $corsOnly = [$mw->cors()];
-$router->options('/api/v1/{resource}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{id}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{sub}/{id}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{id}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{sub}/{id}', fn () => '', $corsOnly);
 
 // ============================================================================
 // HEALTH CHECK
@@ -465,7 +466,7 @@ $router->get('/health', function () use ($responseFactory) {
         'status' => $status,
         'timestamp' => date('c'),
         'version' => '1.0.0',
-        'checks' => $checks
+        'checks' => $checks,
     ], $httpCode);
 });
 
@@ -478,14 +479,15 @@ $router->get('/error/403', 'Shared\ErrorController@forbidden');
 $router->get('/error/500', 'Shared\ErrorController@serverError');
 
 $router->setNotFoundHandler(function () use ($responseFactory): ResponseInterface {
-    $requestedPath = \strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/';
-    \ob_start();
+    $requestedPath = strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/';
+    ob_start();
     View::render('errors/404', [
-        'titulo'        => '404 - Página no encontrada',
+        'titulo' => '404 - Página no encontrada',
         'requestedPath' => $requestedPath,
         'suggestedLink' => ['href' => '/', 'label' => 'Volver al inicio'],
     ], [], 'errors');
-    $html = \ob_get_clean();
+    $html = ob_get_clean();
+
     return $responseFactory->html($html ?: '', 404);
 });
 

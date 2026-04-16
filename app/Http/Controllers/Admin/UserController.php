@@ -65,9 +65,9 @@ final class UserController
         // Calcular estadísticas desde datos crudos (antes de transformar)
         $stats = [
             'total_users' => \count($rawUsers),
-            'active_users' => \count(\array_filter($rawUsers, static fn($u) => !empty($u['is_active']))),
-            'admin_users' => \count(\array_filter($rawUsers, static fn($u) => \stripos($u['roles'] ?? '', 'admin') !== false)),
-            'inactive_users' => \count(\array_filter($rawUsers, static fn($u) => empty($u['is_active']))),
+            'active_users' => \count(\array_filter($rawUsers, static fn ($u) => !empty($u['is_active']))),
+            'admin_users' => \count(\array_filter($rawUsers, static fn ($u) => \stripos($u['roles'] ?? '', 'admin') !== false)),
+            'inactive_users' => \count(\array_filter($rawUsers, static fn ($u) => empty($u['is_active']))),
         ];
 
         View::render('admin/users/index', [
@@ -79,6 +79,7 @@ final class UserController
             // Pasar extraJs para que el layout lo incluya
             'extraJs' => ['admin/admin-users.js'],
         ], ['admin/admin-users.css'], 'backoffice');
+
         return null;
     }
 
@@ -90,6 +91,7 @@ final class UserController
     public function getUsersList(ServerRequestInterface $request): ResponseInterface
     {
         $users = $this->userRepo->getActiveUsersList();
+
         return $this->response->json(['ok' => true, 'data' => ['users' => $users]]);
     }
 
@@ -136,6 +138,7 @@ final class UserController
         if (!empty($errors)) {
             throw ValidationException::fromArray($errors);
         }
+
         return $this->response->problem(Result::fail($result->getMessage('Error al crear usuario'), 'validation'), 422);
     }
 
@@ -174,7 +177,7 @@ final class UserController
                 'user',
                 $userId,
                 null,
-                \array_filter($data, static fn($v) => $v !== null)
+                \array_filter($data, static fn ($v) => $v !== null)
             );
 
             return $this->response->json(['ok' => true, 'data' => ['message' => 'Usuario actualizado exitosamente']]);
@@ -184,6 +187,7 @@ final class UserController
         if (!empty($errors)) {
             throw ValidationException::fromArray($errors);
         }
+
         return $this->response->problem(Result::fail($result->getMessage('Error al actualizar usuario'), 'validation'), 422);
     }
 

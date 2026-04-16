@@ -99,15 +99,15 @@ $isCancelable = is_array($next)
                             :data-current-avatar="'<?= $profile['avatar_url'] ?? '' ?>'">
                             <?php
                             $avatarSrc = '';
-                            if (!empty($profile['avatar_url'])) {
-                                $avatarSrc = (string) $profile['avatar_url'];
-                            } else {
-                                $seed = (int) crc32((string) ($profile['email'] ?? $name));
-                                $gender = ($seed % 2 === 0) ? 'men' : 'women';
-                                $id = abs($seed) % 100;
-                                $avatarSrc = sprintf('https://randomuser.me/api/portraits/%s/%d.jpg', $gender, $id);
-                            }
-                            ?>
+if (!empty($profile['avatar_url'])) {
+    $avatarSrc = (string) $profile['avatar_url'];
+} else {
+    $seed = (int) crc32((string) ($profile['email'] ?? $name));
+    $gender = ($seed % 2 === 0) ? 'men' : 'women';
+    $id = abs($seed) % 100;
+    $avatarSrc = sprintf('https://randomuser.me/api/portraits/%s/%d.jpg', $gender, $id);
+}
+?>
 
                             <img
                                 src="<?= htmlspecialchars($avatarSrc) ?>"
@@ -199,11 +199,11 @@ $isCancelable = is_array($next)
                                 class="next-adventure__img"
                                 alt=""
                                 src="data:image/svg+xml;utf8,<?=
-                                                                rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'>
+                                    rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'>
                                     <rect width='80' height='80' rx='12' fill='%23f3efe9'/>
                                     <text x='40' y='48' font-size='34' text-anchor='middle'>🍵</text>
                                     </svg>")
-                                                                ?>" />
+                    ?>" />
 
                             <div class="next-adventure__details">
                                 <h3><?= $next['cafe_name'] ?? 'Café' ?></h3>
@@ -413,7 +413,7 @@ $isCancelable = is_array($next)
 
                 <?php
                 $userReviews = (array) ($userReviews ?? []);
-                if (empty($userReviews)): ?>
+if (empty($userReviews)): ?>
                     <div class="reviews-empty">
                         <p>Aún no has dejado reseñas. Cuando visites un café que ya hayas visitado, podrás compartir tu opinión.</p>
                         <a href="/cafes" class="btn btn--primario btn--pequeno">Explorar cafés</a>
@@ -435,14 +435,14 @@ $isCancelable = is_array($next)
 
                                     <!-- Status badge -->
                                     <?php
-                                    $status = $review['status'] ?? 'pending';
-                                    $statusLabels = [
-                                        'pending' => ['label' => 'Pendiente', 'class' => 'status-pending'],
-                                        'approved' => ['label' => 'Aprobada', 'class' => 'status-approved'],
-                                        'rejected' => ['label' => 'Rechazada', 'class' => 'status-rejected'],
-                                    ];
-                                    $statusInfo = $statusLabels[$status] ?? ['label' => $status, 'class' => ''];
-                                    ?>
+                    $status = $review['status'] ?? 'pending';
+                            $statusLabels = [
+                                'pending' => ['label' => 'Pendiente', 'class' => 'status-pending'],
+                                'approved' => ['label' => 'Aprobada', 'class' => 'status-approved'],
+                                'rejected' => ['label' => 'Rechazada', 'class' => 'status-rejected'],
+                            ];
+                            $statusInfo = $statusLabels[$status] ?? ['label' => $status, 'class' => ''];
+                            ?>
                                     <span class="my-review__status my-review__status--<?= $statusInfo['class'] ?>">
                                         <?= $statusInfo['label'] ?>
                                     </span>
@@ -451,10 +451,10 @@ $isCancelable = is_array($next)
                                 <!-- Rating -->
                                 <div class="my-review__rating">
                                     <?php
-                                    $rating = (int) ($review['rating'] ?? 0);
-                                    for ($i = 1; $i <= 5; $i++):
-                                        $filled = $i <= $rating ? 'review-star--filled' : '';
-                                    ?>
+                            $rating = (int) ($review['rating'] ?? 0);
+                            for ($i = 1; $i <= 5; $i++):
+                                $filled = $i <= $rating ? 'review-star--filled' : '';
+                                ?>
                                         <span class="review-star <?= $filled ?>">★</span>
                                     <?php endfor; ?>
                                 </div>

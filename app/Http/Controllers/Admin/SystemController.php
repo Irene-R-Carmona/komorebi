@@ -58,6 +58,7 @@ final class SystemController
             'csrf_token' => Csrf::token(),
             'extraJs' => ['admin/admin-settings.js'],
         ], ['admin/admin-settings.css'], 'backoffice');
+
         return null;
     }
 
@@ -73,6 +74,7 @@ final class SystemController
             'titulo' => 'Logs del Sistema',
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+
         return null;
     }
 
@@ -84,6 +86,7 @@ final class SystemController
     {
         Cache::flush();
         Flash::success('Caché limpiada correctamente.');
+
         return $this->response->redirect('/admin/settings');
     }
 
@@ -95,6 +98,7 @@ final class SystemController
     public function getSettingsData(): ResponseInterface
     {
         $settings = $this->settingsService->getAll();
+
         return $this->response->json(['ok' => true, 'data' => ['settings' => $settings]]);
     }
 

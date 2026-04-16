@@ -43,8 +43,8 @@ final class ExceptionRenderersTest extends TestCase
     protected function setUp(): void
     {
         $this->responseFactory = new ResponseFactory();
-        $this->psr17           = new Psr17Factory();
-        $this->apiRequest      = $this->psr17
+        $this->psr17 = new Psr17Factory();
+        $this->apiRequest = $this->psr17
             ->createServerRequest('GET', '/')
             ->withHeader('Accept', 'application/json');
     }
@@ -67,14 +67,14 @@ final class ExceptionRenderersTest extends TestCase
 
     public function testValidationRendererReturns422(): void
     {
-        $r   = new ValidationExceptionRenderer($this->responseFactory);
+        $r = new ValidationExceptionRenderer($this->responseFactory);
         $res = $r->render(new ValidationException('Datos inválidos', ['name' => 'requerido']), $this->apiRequest);
         $this->assertSame(422, $res->getStatusCode());
     }
 
     public function testValidationRendererReturnsJsonContentType(): void
     {
-        $r   = new ValidationExceptionRenderer($this->responseFactory);
+        $r = new ValidationExceptionRenderer($this->responseFactory);
         $res = $r->render(new ValidationException(), $this->apiRequest);
         $this->assertStringContainsString('application/problem+json', $res->getHeaderLine('Content-Type'));
     }
@@ -97,7 +97,7 @@ final class ExceptionRenderersTest extends TestCase
 
     public function testNotFoundRendererReturns404(): void
     {
-        $r   = new NotFoundExceptionRenderer($this->responseFactory);
+        $r = new NotFoundExceptionRenderer($this->responseFactory);
         $res = $r->render(new NotFoundException('No encontrado'), $this->apiRequest);
         $this->assertSame(404, $res->getStatusCode());
     }
@@ -120,7 +120,7 @@ final class ExceptionRenderersTest extends TestCase
 
     public function testAuthenticationRendererReturns401(): void
     {
-        $r   = new AuthenticationExceptionRenderer($this->responseFactory);
+        $r = new AuthenticationExceptionRenderer($this->responseFactory);
         $res = $r->render(new AuthenticationException(), $this->apiRequest);
         $this->assertSame(401, $res->getStatusCode());
     }
@@ -143,7 +143,7 @@ final class ExceptionRenderersTest extends TestCase
 
     public function testAuthorizationRendererReturns403(): void
     {
-        $r   = new AuthorizationExceptionRenderer($this->responseFactory);
+        $r = new AuthorizationExceptionRenderer($this->responseFactory);
         $res = $r->render(new AuthorizationException(), $this->apiRequest);
         $this->assertSame(403, $res->getStatusCode());
     }
@@ -166,7 +166,7 @@ final class ExceptionRenderersTest extends TestCase
 
     public function testBusinessRuleRendererReturnsHttpCode(): void
     {
-        $r   = new BusinessRuleExceptionRenderer($this->responseFactory);
+        $r = new BusinessRuleExceptionRenderer($this->responseFactory);
         $res = $r->render(new BusinessRuleException('regla rota'), $this->apiRequest);
         $this->assertSame(400, $res->getStatusCode());
     }
@@ -189,14 +189,14 @@ final class ExceptionRenderersTest extends TestCase
 
     public function testRateLimitRendererReturns429(): void
     {
-        $r   = new RateLimitExceptionRenderer($this->responseFactory);
+        $r = new RateLimitExceptionRenderer($this->responseFactory);
         $res = $r->render(new RateLimitException('Demasiadas peticiones', 60), $this->apiRequest);
         $this->assertSame(429, $res->getStatusCode());
     }
 
     public function testRateLimitRendererSetsRetryAfterHeader(): void
     {
-        $r   = new RateLimitExceptionRenderer($this->responseFactory);
+        $r = new RateLimitExceptionRenderer($this->responseFactory);
         $res = $r->render(new RateLimitException('Demasiadas peticiones', 120), $this->apiRequest);
         $this->assertSame('120', $res->getHeaderLine('Retry-After'));
     }
@@ -219,7 +219,7 @@ final class ExceptionRenderersTest extends TestCase
 
     public function testDatabaseRendererReturns500(): void
     {
-        $r   = new DatabaseExceptionRenderer($this->responseFactory);
+        $r = new DatabaseExceptionRenderer($this->responseFactory);
         $res = $r->render(new DatabaseException('fallo db'), $this->apiRequest);
         $this->assertSame(500, $res->getStatusCode());
     }
@@ -239,14 +239,14 @@ final class ExceptionRenderersTest extends TestCase
 
     public function testFallbackRendererReturns500(): void
     {
-        $r   = new FallbackExceptionRenderer($this->responseFactory);
+        $r = new FallbackExceptionRenderer($this->responseFactory);
         $res = $r->render(new \RuntimeException('boom'), $this->apiRequest);
         $this->assertSame(500, $res->getStatusCode());
     }
 
     public function testFallbackRendererHasLowestPriority(): void
     {
-        $fallback   = new FallbackExceptionRenderer($this->responseFactory);
+        $fallback = new FallbackExceptionRenderer($this->responseFactory);
         $validation = new ValidationExceptionRenderer($this->responseFactory);
 
         $this->assertLessThan($validation->priority(), $fallback->priority());

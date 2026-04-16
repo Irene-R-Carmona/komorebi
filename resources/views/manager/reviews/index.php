@@ -83,15 +83,15 @@ declare(strict_types=1);
                     <tbody>
                         <?php foreach ($reviews as $review):
                             $statusLabels = [
-                                'pending'  => 'Pendiente',
+                                'pending' => 'Pendiente',
                                 'approved' => 'Aprobada',
                                 'rejected' => 'Rechazada',
                             ];
-                            $status      = $review['status'] ?? 'pending';
-                            $rating      = (int) ($review['rating'] ?? 0);
-                            $stars       = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
+                            $status = $review['status'] ?? 'pending';
+                            $rating = (int) ($review['rating'] ?? 0);
+                            $stars = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
                             $statusLabel = $statusLabels[$status] ?? $status;
-                        ?>
+                            ?>
                             <tr>
                                 <td>
                                     <span class="star-rating" title="<?= $rating ?>/5">

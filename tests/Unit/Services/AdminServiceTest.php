@@ -40,6 +40,7 @@ final class AdminServiceTest extends TestCase
     private function calcularTrend(int $current, int $previous): string
     {
         $method = new ReflectionMethod($this->service, 'calculateTrend');
+
         return $method->invoke($this->service, $current, $previous);
     }
 

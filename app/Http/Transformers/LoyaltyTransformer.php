@@ -15,13 +15,13 @@ final class LoyaltyTransformer extends AbstractTransformer
     public function transform(array $data): array
     {
         return [
-            'id'                     => (int) ($data['id'] ?? 0),
-            'user_id'                => (int) ($data['user_id'] ?? 0),
-            'stamps_count'           => (int) ($data['stamps'] ?? 0),
-            'tier'                   => (string) ($data['current_tier'] ?? 'bronze'),
-            'visits_count'           => (int) ($data['visits_count'] ?? 0),
+            'id' => (int) ($data['id'] ?? 0),
+            'user_id' => (int) ($data['user_id'] ?? 0),
+            'stamps_count' => (int) ($data['stamps'] ?? 0),
+            'tier' => (string) ($data['current_tier'] ?? 'bronze'),
+            'visits_count' => (int) ($data['visits_count'] ?? 0),
             'total_rewards_redeemed' => (int) ($data['total_rewards_redeemed'] ?? 0),
-            'last_stamp_at'          => isset($data['last_stamp_at']) ? (string) $data['last_stamp_at'] : null,
+            'last_stamp_at' => isset($data['last_stamp_at']) ? (string) $data['last_stamp_at'] : null,
         ];
     }
 }

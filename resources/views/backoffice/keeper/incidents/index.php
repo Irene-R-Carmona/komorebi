@@ -11,9 +11,9 @@ declare(strict_types=1);
 $severityBadge = static function (string $severity): string {
     return match ($severity) {
         'critical' => 'danger',
-        'high'     => 'warning',
-        'medium'   => 'info',
-        default    => 'secondary',
+        'high' => 'warning',
+        'medium' => 'info',
+        default => 'secondary',
     };
 };
 ?>
@@ -90,7 +90,7 @@ $severityBadge = static function (string $severity): string {
                                             </td>
                                             <td>
                                                 <span class="badge bg-<?= $severityBadge($inc['severity']) ?>">
-                                                    <?= e(\ucfirst($inc['severity'])) ?>
+                                                    <?= e(ucfirst($inc['severity'])) ?>
                                                 </span>
                                             </td>
                                             <td class="text-truncate" style="max-width:260px">
@@ -101,7 +101,7 @@ $severityBadge = static function (string $severity): string {
                                             </td>
                                             <td>
                                                 <span class="badge bg-warning text-dark">
-                                                    <?= e(\ucfirst($inc['status'])) ?>
+                                                    <?= e(ucfirst($inc['status'])) ?>
                                                 </span>
                                             </td>
                                             <td class="text-end">

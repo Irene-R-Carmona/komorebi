@@ -42,10 +42,10 @@ final class HealthCheckController
         if ($healthCheckService === null || $animalRepo === null) {
             $db = Database::getConnection();
             $this->healthCheckService = $healthCheckService ?? new HealthCheckService(new HealthCheckRepository($db));
-            $this->animalRepo         = $animalRepo ?? new AnimalRepository($db);
+            $this->animalRepo = $animalRepo ?? new AnimalRepository($db);
         } else {
             $this->healthCheckService = $healthCheckService;
-            $this->animalRepo         = $animalRepo;
+            $this->animalRepo = $animalRepo;
         }
         $this->response = $response ?? new ResponseFactory();
     }
@@ -57,16 +57,16 @@ final class HealthCheckController
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $dashboardData = $this->healthCheckService->getTodayDashboard();
-        $activeAlerts  = $this->healthCheckService->getActiveAlerts(7);
+        $activeAlerts = $this->healthCheckService->getActiveAlerts(7);
 
         View::render('backoffice/keeper/health-checks/index', [
-            'titulo'           => 'Chequeos de Salud - Dashboard',
+            'titulo' => 'Chequeos de Salud - Dashboard',
             'completed_checks' => $dashboardData['completed'],
-            'pending_animals'  => $dashboardData['pending'],
-            'completed_count'  => $dashboardData['completed_count'],
-            'pending_count'    => $dashboardData['pending_count'],
-            'active_alerts'    => $activeAlerts,
-            'csrf_token'       => Csrf::token(),
+            'pending_animals' => $dashboardData['pending'],
+            'completed_count' => $dashboardData['completed_count'],
+            'pending_count' => $dashboardData['pending_count'],
+            'active_alerts' => $activeAlerts,
+            'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
 
         return null;
@@ -95,8 +95,8 @@ final class HealthCheckController
         }
 
         View::render('backoffice/keeper/health-checks/create', [
-            'titulo'     => 'Nuevo Chequeo de Salud',
-            'animal'     => $animal,
+            'titulo' => 'Nuevo Chequeo de Salud',
+            'animal' => $animal,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
 
@@ -124,17 +124,17 @@ final class HealthCheckController
 
         $body = (array) $request->getParsedBody();
 
-        $animalId  = isset($body['animal_id']) ? (int) $body['animal_id'] : 0;
+        $animalId = isset($body['animal_id']) ? (int) $body['animal_id'] : 0;
         $checkData = [
-            'weight_kg'        => !empty($body['weight_kg']) ? (float) $body['weight_kg'] : null,
-            'temperature_c'    => !empty($body['temperature_c']) ? (float) $body['temperature_c'] : null,
-            'appetite'         => $body['appetite'] ?? 'normal',
-            'energy_level'     => $body['energy_level'] ?? 'normal',
-            'coat_condition'   => $body['coat_condition'] ?? 'good',
-            'eyes_clear'       => isset($body['eyes_clear']) && $body['eyes_clear'] === '1',
+            'weight_kg' => !empty($body['weight_kg']) ? (float) $body['weight_kg'] : null,
+            'temperature_c' => !empty($body['temperature_c']) ? (float) $body['temperature_c'] : null,
+            'appetite' => $body['appetite'] ?? 'normal',
+            'energy_level' => $body['energy_level'] ?? 'normal',
+            'coat_condition' => $body['coat_condition'] ?? 'good',
+            'eyes_clear' => isset($body['eyes_clear']) && $body['eyes_clear'] === '1',
             'breathing_normal' => isset($body['breathing_normal']) && $body['breathing_normal'] === '1',
-            'mobility_normal'  => isset($body['mobility_normal']) && $body['mobility_normal'] === '1',
-            'notes'            => \trim($body['notes'] ?? ''),
+            'mobility_normal' => isset($body['mobility_normal']) && $body['mobility_normal'] === '1',
+            'notes' => \trim($body['notes'] ?? ''),
         ];
 
         if ($animalId <= 0) {
@@ -173,8 +173,8 @@ final class HealthCheckController
         }
 
         View::render('backoffice/keeper/health-checks/show', [
-            'titulo'     => 'Detalle de Chequeo',
-            'check'      => $check,
+            'titulo' => 'Detalle de Chequeo',
+            'check' => $check,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
 
@@ -190,21 +190,21 @@ final class HealthCheckController
     public function history(ServerRequestInterface $request, int $animalId): ?ResponseInterface
     {
         $queryParams = $request->getQueryParams();
-        $limit       = isset($queryParams['limit']) ? (int) $queryParams['limit'] : 30;
-        $limit       = \max(1, \min($limit, 100));
+        $limit = isset($queryParams['limit']) ? (int) $queryParams['limit'] : 30;
+        $limit = \max(1, \min($limit, 100));
 
         $history = $this->healthCheckService->getAnimalHistory($animalId, $limit);
-        $animal  = $this->animalRepo->findById($animalId);
+        $animal = $this->animalRepo->findById($animalId);
 
         if ($animal === null) {
             throw new NotFoundException('Animal no encontrado');
         }
 
         View::render('backoffice/keeper/health-checks/history', [
-            'titulo'     => 'Historial de Chequeos',
-            'animal'     => $animal,
-            'history'    => $history,
-            'limit'      => $limit,
+            'titulo' => 'Historial de Chequeos',
+            'animal' => $animal,
+            'history' => $history,
+            'limit' => $limit,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
 

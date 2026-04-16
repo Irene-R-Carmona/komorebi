@@ -58,7 +58,7 @@ final class MenuController
             'lounge' => 'Lounge',
             'playroom' => 'Playroom',
             'farm' => 'Farm',
-            'zen' => 'Zen'
+            'zen' => 'Zen',
         ];
 
         // Cargar alérgenos y formatear disponibilidad por café para cada producto
@@ -68,7 +68,7 @@ final class MenuController
             // Formatear target_cafe_types
             if (!empty($product['target_cafe_types']) && \is_array($product['target_cafe_types'])) {
                 $product['cafe_types_display'] = \array_map(
-                    fn($type) => $cafeTypeLabels[$type] ?? $type,
+                    fn ($type) => $cafeTypeLabels[$type] ?? $type,
                     $product['target_cafe_types']
                 );
             } else {
@@ -93,6 +93,7 @@ final class MenuController
             'csrf_token' => Csrf::token(),
             'extraJs' => ['admin/admin-products.js'],
         ], ['admin/admin-products.css'], 'backoffice');
+
         return null;
     }
 

@@ -147,7 +147,9 @@ final class Database
     /**
      * Prevenir clonación (Singleton).
      */
-    private function __clone(): void {}
+    private function __clone(): void
+    {
+    }
 
     /**
      * Prevenir deserialización (Singleton).

@@ -26,17 +26,17 @@ final class CafeControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION = [];
-        $_POST    = [];
+        $_POST = [];
     }
 
     protected function tearDown(): void
     {
         $_SESSION = [];
-        $_POST    = [];
+        $_POST = [];
     }
 
     private function makeController(): CafeController
@@ -65,10 +65,10 @@ final class CafeControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(CafeController::class, 'index'));
-        $this->assertTrue(method_exists(CafeController::class, 'create'));
-        $this->assertTrue(method_exists(CafeController::class, 'update'));
-        $this->assertTrue(method_exists(CafeController::class, 'toggleStatus'));
-        $this->assertTrue(method_exists(CafeController::class, 'delete'));
+        $this->assertTrue(\method_exists(CafeController::class, 'index'));
+        $this->assertTrue(\method_exists(CafeController::class, 'create'));
+        $this->assertTrue(\method_exists(CafeController::class, 'update'));
+        $this->assertTrue(\method_exists(CafeController::class, 'toggleStatus'));
+        $this->assertTrue(\method_exists(CafeController::class, 'delete'));
     }
 }

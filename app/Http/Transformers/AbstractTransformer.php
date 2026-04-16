@@ -17,6 +17,6 @@ abstract class AbstractTransformer implements TransformerInterface
     #[\Override]
     public function collection(array $items): array
     {
-        return \array_values(\array_map(fn(array $item) => $this->transform($item), $items));
+        return \array_values(\array_map(fn (array $item) => $this->transform($item), $items));
     }
 }

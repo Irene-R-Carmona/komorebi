@@ -33,7 +33,7 @@ final class AuthorizationExceptionRenderer extends AbstractExceptionRenderer
     #[\Override]
     public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
-        assert($e instanceof AuthorizationException);
+        \assert($e instanceof AuthorizationException);
 
         if ($this->isApiRequest($request)) {
             return $this->response->problem(
@@ -43,7 +43,7 @@ final class AuthorizationExceptionRenderer extends AbstractExceptionRenderer
         }
 
         $html = View::renderToString('errors/403', [
-            'message'    => $e->getMessage(),
+            'message' => $e->getMessage(),
             'permission' => $e->getPermission(),
         ]);
 

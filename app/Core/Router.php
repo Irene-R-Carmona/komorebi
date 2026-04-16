@@ -8,12 +8,12 @@ use App\Core\Http\ResponseFactory;
 use App\Exceptions\RouterException;
 use App\Exceptions\RouterParameterException;
 use Closure;
+use Nyholm\Psr7\ServerRequest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionMethod;
-use Nyholm\Psr7\ServerRequest;
 
 /**
  * Router PSR-7/PSR-15 con soporte de grupos y middlewares.
@@ -48,8 +48,8 @@ final class Router implements RequestHandlerInterface
         $body = (string) $response->getBody();
         $contentType = $response->getHeaderLine('Content-Type');
 
-        if (str_contains($contentType, 'application/json')) {
-            return json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        if (\str_contains($contentType, 'application/json')) {
+            return \json_decode($body, true, 512, JSON_THROW_ON_ERROR);
         }
 
         return $body;
@@ -57,13 +57,15 @@ final class Router implements RequestHandlerInterface
 
     public function setControllerNamespace(string $namespace): self
     {
-        $this->controllerNamespace = rtrim($namespace, '\\');
+        $this->controllerNamespace = \rtrim($namespace, '\\');
+
         return $this;
     }
 
     public function setNotFoundHandler(Closure $handler): self
     {
         $this->notFoundHandler = $handler;
+
         return $this;
     }
 
@@ -110,8 +112,8 @@ final class Router implements RequestHandlerInterface
         }
 
         if (isset($options['middleware'])) {
-            $middlewares = is_array($options['middleware']) ? $options['middleware'] : [$options['middleware']];
-            $this->currentMiddleware = array_merge($this->currentMiddleware, $middlewares);
+            $middlewares = \is_array($options['middleware']) ? $options['middleware'] : [$options['middleware']];
+            $this->currentMiddleware = \array_merge($this->currentMiddleware, $middlewares);
         }
 
         $callback($this);
@@ -153,7 +155,7 @@ final class Router implements RequestHandlerInterface
         $fullUri = $this->currentPrefix . $uri;
 
         /** @var array<MiddlewareInterface> $allMiddleware */
-        $allMiddleware = array_merge($this->currentMiddleware, $middleware);
+        $allMiddleware = \array_merge($this->currentMiddleware, $middleware);
 
         $this->routes[$method][$fullUri] = [
             'handler' => $handler,
@@ -169,15 +171,15 @@ final class Router implements RequestHandlerInterface
      */
     private function normalizePath(string $path): string
     {
-        $parsed = parse_url($path, PHP_URL_PATH);
+        $parsed = \parse_url($path, PHP_URL_PATH);
         if ($parsed === false || $parsed === null) {
             $path = '/';
         } else {
             $path = $parsed;
         }
 
-        if ($path !== '/' && str_ends_with($path, '/')) {
-            $path = rtrim($path, '/');
+        if ($path !== '/' && \str_ends_with($path, '/')) {
+            $path = \rtrim($path, '/');
         }
 
         return $path;
@@ -203,15 +205,15 @@ final class Router implements RequestHandlerInterface
 
         // Coincidencia con parámetros
         foreach ($this->routes[$method] as $route => $definition) {
-            if (!str_contains($route, '{')) {
+            if (!\str_contains($route, '{')) {
                 continue;
             }
 
             $pattern = $this->compilePattern($route);
 
-            if (preg_match($pattern, $path, $matches)) {
-                $params = array_filter($matches, static function ($key) {
-                    return is_string($key);
+            if (\preg_match($pattern, $path, $matches)) {
+                $params = \array_filter($matches, static function ($key) {
+                    return \is_string($key);
                 }, ARRAY_FILTER_USE_KEY);
 
                 return [
@@ -227,7 +229,8 @@ final class Router implements RequestHandlerInterface
 
     private function compilePattern(string $route): string
     {
-        $pattern = preg_replace('/\{(\w+)}/', '(?P<$1>[^/]+)', $route);
+        $pattern = \preg_replace('/\{(\w+)}/', '(?P<$1>[^/]+)', $route);
+
         return '#^' . $pattern . '$#';
     }
 
@@ -240,7 +243,7 @@ final class Router implements RequestHandlerInterface
     {
         $router = $this;
 
-        return new class($router, $route) implements RequestHandlerInterface {
+        return new class ($router, $route) implements RequestHandlerInterface {
             private Router $router;
             /** @var array{handler: mixed, middleware: array<MiddlewareInterface>, params: array<string, string>} */
             private array $route;
@@ -274,12 +277,13 @@ final class Router implements RequestHandlerInterface
      */
     public function executeHandler(callable|string $handler, ServerRequestInterface $request, array $params): ResponseInterface
     {
-        if ($handler instanceof Closure || (is_callable($handler) && !is_string($handler))) {
+        if ($handler instanceof Closure || (\is_callable($handler) && !\is_string($handler))) {
             $result = $handler($request);
+
             return $this->convertToResponse($result);
         }
 
-        if (is_string($handler) && str_contains($handler, '@')) {
+        if (\is_string($handler) && \str_contains($handler, '@')) {
             return $this->executeController($handler, $request, $params);
         }
 
@@ -298,15 +302,15 @@ final class Router implements RequestHandlerInterface
      */
     private function executeController(string $handler, ServerRequestInterface $request, array $params): ResponseInterface
     {
-        [$controllerName, $method] = explode('@', $handler, 2);
+        [$controllerName, $method] = \explode('@', $handler, 2);
 
-        $controllerClass = str_starts_with($controllerName, '\\')
-            ? ltrim($controllerName, '\\')
+        $controllerClass = \str_starts_with($controllerName, '\\')
+            ? \ltrim($controllerName, '\\')
             : $this->controllerNamespace . '\\' . $controllerName;
 
-        if (!class_exists($controllerClass)) {
+        if (!\class_exists($controllerClass)) {
             // Fallback para tests que declaran controllers en espacio global
-            if (class_exists($controllerName)) {
+            if (\class_exists($controllerName)) {
                 $controllerClass = $controllerName;
             } else {
                 throw new RouterException("Controller no encontrado: $controllerClass");
@@ -320,19 +324,20 @@ final class Router implements RequestHandlerInterface
             throw new RouterException("Error al instanciar controller $controllerClass: " . $e->getMessage(), previous: $e);
         }
 
-        if (!method_exists($controller, $method)) {
+        if (!\method_exists($controller, $method)) {
             throw new RouterException("Método no encontrado: $controllerClass@$method");
         }
 
         $args = $this->resolveMethodArguments($controller, $method, $request, $params);
 
         // Capturar output buffer para controladores que hacen echo directamente
-        ob_start();
+        \ob_start();
+
         try {
             $result = $controller->$method(...$args);
-            $output = ob_get_clean();
+            $output = \ob_get_clean();
         } catch (\Throwable $e) {
-            ob_end_clean();
+            \ob_end_clean();
             throw $e;
         }
 
@@ -362,7 +367,7 @@ final class Router implements RequestHandlerInterface
                 continue;
             }
 
-            if (array_key_exists($paramName, $params)) {
+            if (\array_key_exists($paramName, $params)) {
                 $value = $params[$paramName];
 
                 // Cast según tipo declarado (int/float/bool)
@@ -373,7 +378,7 @@ final class Router implements RequestHandlerInterface
                     } elseif ($typeName === 'float') {
                         $value = (float) $value;
                     } elseif ($typeName === 'bool') {
-                        $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                        $value = \filter_var($value, FILTER_VALIDATE_BOOLEAN);
                     }
                 }
 
@@ -413,11 +418,11 @@ final class Router implements RequestHandlerInterface
             return $result;
         }
 
-        if (is_array($result)) {
+        if (\is_array($result)) {
             return $this->response->json($result);
         }
 
-        if (is_string($result)) {
+        if (\is_string($result)) {
             return $this->response->html($result);
         }
 
@@ -432,6 +437,7 @@ final class Router implements RequestHandlerInterface
     {
         if ($this->notFoundHandler !== null) {
             $result = ($this->notFoundHandler)();
+
             return $this->convertToResponse($result);
         }
 

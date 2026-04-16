@@ -34,6 +34,7 @@ final class ErrorController
             'requestedPath' => $path,
             'suggestedLink' => $this->getSuggestedLink($path),
         ], [], 'errors');
+
         return null;
     }
 
@@ -50,6 +51,7 @@ final class ErrorController
             'titulo' => '403 - Acceso denegado',
             'suggestedLink' => $this->getSuggestedLink('/'),
         ], [], 'errors');
+
         return null;
     }
 
@@ -66,6 +68,7 @@ final class ErrorController
             'titulo' => '419 - Sesión expirada',
             'suggestion' => 'Por favor, recarga la página e intenta de nuevo.',
         ], [], 'errors');
+
         return null;
     }
 
@@ -85,6 +88,7 @@ final class ErrorController
             'titulo' => '500 - Error interno',
             'suggestedLink' => $this->getSuggestedLink('/'),
         ], [], 'errors');
+
         return null;
     }
 
@@ -99,6 +103,7 @@ final class ErrorController
             419 => $this->pageExpired($request),
             default => $this->serverError($request),
         };
+
         return null;
     }
 
@@ -150,6 +155,6 @@ final class ErrorController
     {
         $backofficePrefix = ['/admin', '/manager', '/ops', '/keeper'];
 
-        return \array_any($backofficePrefix, static fn($prefix) => \str_starts_with($path, $prefix));
+        return \array_any($backofficePrefix, static fn ($prefix) => \str_starts_with($path, $prefix));
     }
 }

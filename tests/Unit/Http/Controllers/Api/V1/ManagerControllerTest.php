@@ -24,8 +24,8 @@ final class ManagerControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
     {
-        if (session_status() === \PHP_SESSION_NONE) {
-            session_start();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
         $_SESSION = [];
     }
@@ -50,7 +50,7 @@ final class ManagerControllerTest extends ControllerTestCase
         $response = $this->makeController()->stats($this->makeGetRequest('/api/v1/manager/stats'));
 
         $this->assertSame(403, $response->getStatusCode());
-        $body = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
         $this->assertSame(403, $body['status']);
     }
 
@@ -61,7 +61,7 @@ final class ManagerControllerTest extends ControllerTestCase
         $response = $this->makeController()->stats($this->makeGetRequest('/api/v1/manager/stats'));
 
         $this->assertSame(200, $response->getStatusCode());
-        $body = json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
         $this->assertTrue($body['ok']);
         $this->assertArrayHasKey('timestamp', $body['data']);
         $this->assertArrayHasKey('reservations_today', $body['data']);
@@ -69,7 +69,7 @@ final class ManagerControllerTest extends ControllerTestCase
 
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(method_exists(ManagerController::class, 'stats'));
-        $this->assertTrue(method_exists(ManagerController::class, 'weeklyRevenue'));
+        $this->assertTrue(\method_exists(ManagerController::class, 'stats'));
+        $this->assertTrue(\method_exists(ManagerController::class, 'weeklyRevenue'));
     }
 }

@@ -15,7 +15,7 @@ use App\Services\Contracts\CartServiceInterface;
  * Gestiona el carrito en sesión para pedidos durante la visita.
  * Solo permite productos tipo 'item' (no pases).
  */
-class CartService implements CartServiceInterface
+final class CartService implements CartServiceInterface
 {
     private const string SESSION_KEY = 'cart';
     private const int MAX_QTY_PER_ITEM = 99;

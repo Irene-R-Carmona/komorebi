@@ -32,11 +32,11 @@ final class ReservationTimeSlotServiceTest extends TestCase
     private ReservationTimeSlotService $service;
 
     private const VALID_DATA = [
-        'cafe_id'          => 1,
+        'cafe_id' => 1,
         'reservation_date' => '2026-12-25',
         'reservation_time' => '10:00',
-        'guest_count'      => 2,
-        'user_id'          => 7,
+        'guest_count' => 2,
+        'user_id' => 7,
     ];
 
     protected function setUp(): void

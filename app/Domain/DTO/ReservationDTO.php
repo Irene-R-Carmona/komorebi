@@ -22,7 +22,8 @@ final readonly class ReservationDTO implements DomainTransferObject
         public ?string $payment_status,
         public ?string $payment_method,
         public ?string $notes,
-    ) {}
+    ) {
+    }
 
     #[\Override]
     public static function fromArray(array $data): static
@@ -50,21 +51,21 @@ final readonly class ReservationDTO implements DomainTransferObject
     public function toViewArray(): array
     {
         return [
-            'id'             => $this->id,
-            'uuid'           => $this->uuid,
-            'cafe_id'        => $this->cafe_id,
-            'user_id'        => $this->user_id,
-            'date'           => $this->date,
-            'time'           => $this->time,
-            'guest_count'    => $this->guest_count,
-            'status'         => $this->status,
-            'pass_name'      => $this->pass_name,
-            'check_in_at'    => $this->check_in_at,
-            'check_out_at'   => $this->check_out_at,
-            'final_amount'   => $this->final_amount,
+            'id' => $this->id,
+            'uuid' => $this->uuid,
+            'cafe_id' => $this->cafe_id,
+            'user_id' => $this->user_id,
+            'date' => $this->date,
+            'time' => $this->time,
+            'guest_count' => $this->guest_count,
+            'status' => $this->status,
+            'pass_name' => $this->pass_name,
+            'check_in_at' => $this->check_in_at,
+            'check_out_at' => $this->check_out_at,
+            'final_amount' => $this->final_amount,
             'payment_status' => $this->payment_status,
             'payment_method' => $this->payment_method,
-            'notes'          => $this->notes,
+            'notes' => $this->notes,
         ];
     }
 }

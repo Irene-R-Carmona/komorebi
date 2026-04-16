@@ -109,6 +109,7 @@ final class DashboardController
                 'details' => Env::get('APP_ENV') === 'local' ? $e->getMessage() : null,
             ]);
         }
+
         return null;
     }
 }

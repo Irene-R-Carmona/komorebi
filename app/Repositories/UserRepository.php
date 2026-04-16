@@ -13,7 +13,7 @@ use PDO;
  * Encapsula toda la lógica de acceso a datos de usuarios,
  * incluyendo búsquedas por email, roles y gestión de perfil.
  */
-class UserRepository extends AbstractRepository implements UserRepositoryInterface
+final class UserRepository extends AbstractRepository implements UserRepositoryInterface
 {
     #[\Override]
     protected function getTable(): string
@@ -64,11 +64,11 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     {
         // Formato: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
         // donde x es hexadecimal random y y es [8, 9, a, b]
-        $data = random_bytes(16);
-        $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // versión 4
-        $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // variante RFC4122
+        $data = \random_bytes(16);
+        $data[6] = \chr(\ord($data[6]) & 0x0f | 0x40); // versión 4
+        $data[8] = \chr(\ord($data[8]) & 0x3f | 0x80); // variante RFC4122
 
-        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+        return \vsprintf('%s%s-%s-%s-%s-%s%s%s', \str_split(\bin2hex($data), 4));
     }
 
     /**
@@ -76,12 +76,12 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function findByEmail(string $email): ?array
     {
-        $fields = implode(', ', $this->getSelectFields());
+        $fields = \implode(', ', $this->getSelectFields());
 
         $stmt = $this->getDb()->prepare(
             "SELECT $fields FROM users WHERE email = :email LIMIT 1"
         );
-        $stmt->execute(['email' => strtolower(trim($email))]);
+        $stmt->execute(['email' => \strtolower(\trim($email))]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -95,14 +95,14 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function findByEmailWithCredentials(string $email): ?array
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT id, uuid, email, password, login_attempts, locked_until,
+            'SELECT id, uuid, email, password, login_attempts, locked_until,
                     last_ip_address, is_active, email_verified_at
              FROM users
              WHERE email = :email
                AND deleted_at IS NULL
-             LIMIT 1"
+             LIMIT 1'
         );
-        $stmt->execute(['email' => strtolower(trim($email))]);
+        $stmt->execute(['email' => \strtolower(\trim($email))]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -116,10 +116,10 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function findByIdForSecurity(int $id): ?array
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT id, uuid, email, password, login_attempts, locked_until, last_ip_address
+            'SELECT id, uuid, email, password, login_attempts, locked_until, last_ip_address
              FROM users
              WHERE id = :id
-             LIMIT 1"
+             LIMIT 1'
         );
         $stmt->execute(['id' => $id]);
 
@@ -134,9 +134,9 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function emailExists(string $email): bool
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT 1 FROM users WHERE email = :email LIMIT 1"
+            'SELECT 1 FROM users WHERE email = :email LIMIT 1'
         );
-        $stmt->execute(['email' => strtolower(trim($email))]);
+        $stmt->execute(['email' => \strtolower(\trim($email))]);
 
         return (bool) $stmt->fetch();
     }
@@ -147,10 +147,10 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function getRoles(int $userId): array
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT r.name, r.code AS slug, r.description
+            'SELECT r.name, r.code AS slug, r.description
              FROM roles r
              INNER JOIN user_roles ur ON r.id = ur.role_id
-             WHERE ur.user_id = :user_id"
+             WHERE ur.user_id = :user_id'
         );
         $stmt->execute(['user_id' => $userId]);
 
@@ -163,11 +163,11 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function getPermissions(int $userId): array
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT DISTINCT p.name, p.code AS slug, p.resource, p.action
+            'SELECT DISTINCT p.name, p.code AS slug, p.resource, p.action
              FROM permissions p
              INNER JOIN role_permissions rp ON p.id = rp.permission_id
              INNER JOIN user_roles ur ON rp.role_id = ur.role_id
-             WHERE ur.user_id = :user_id"
+             WHERE ur.user_id = :user_id'
         );
         $stmt->execute(['user_id' => $userId]);
 
@@ -180,13 +180,13 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function hasPermission(int $userId, string $permission): bool
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT 1
+            'SELECT 1
              FROM permissions p
              INNER JOIN role_permissions rp ON rp.permission_id = p.id
              INNER JOIN user_roles ur ON ur.role_id = rp.role_id
              WHERE ur.user_id = :user_id
                AND (p.code = :perm OR p.name = :perm)
-             LIMIT 1"
+             LIMIT 1'
         );
 
         $stmt->execute(['user_id' => $userId, 'perm' => $permission]);
@@ -201,7 +201,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     {
         return $this->update($id, [
             'is_active' => $active ? 1 : 0,
-            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_at' => \date('Y-m-d H:i:s'),
         ]);
     }
 
@@ -211,8 +211,8 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function assignRole(int $userId, int $roleId): bool
     {
         $stmt = $this->getDb()->prepare(
-            "INSERT IGNORE INTO user_roles (user_id, role_id, assigned_at)
-             VALUES (:user_id, :role_id, NOW())"
+            'INSERT IGNORE INTO user_roles (user_id, role_id, assigned_at)
+             VALUES (:user_id, :role_id, NOW())'
         );
 
         return $stmt->execute([
@@ -227,7 +227,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function removeRole(int $userId, int $roleId): bool
     {
         $stmt = $this->getDb()->prepare(
-            "DELETE FROM user_roles WHERE user_id = :user_id AND role_id = :role_id"
+            'DELETE FROM user_roles WHERE user_id = :user_id AND role_id = :role_id'
         );
 
         return $stmt->execute([
@@ -242,7 +242,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function updateLastLogin(int $id, string $ipAddress): bool
     {
         return $this->update($id, [
-            'last_login' => date('Y-m-d H:i:s'),
+            'last_login' => \date('Y-m-d H:i:s'),
             'last_ip_address' => $ipAddress,
             'login_attempts' => 0,
             'locked_until' => null,
@@ -255,10 +255,10 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function incrementFailedAttempts(int $id): bool
     {
         $stmt = $this->getDb()->prepare(
-            "UPDATE users
+            'UPDATE users
              SET login_attempts = login_attempts + 1,
                  updated_at = NOW()
-             WHERE id = :id"
+             WHERE id = :id'
         );
 
         return $stmt->execute(['id' => $id]);
@@ -269,11 +269,11 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function lockAccount(int $id, int $minutes = 15): bool
     {
-        $lockedUntil = date('Y-m-d H:i:s', time() + ($minutes * 60));
+        $lockedUntil = \date('Y-m-d H:i:s', \time() + ($minutes * 60));
 
         return $this->update($id, [
             'locked_until' => $lockedUntil,
-            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_at' => \date('Y-m-d H:i:s'),
         ]);
     }
 
@@ -290,7 +290,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
 
         return $this->update($id, [
             'is_active' => !$user['is_active'],
-            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_at' => \date('Y-m-d H:i:s'),
         ]);
     }
 
@@ -300,8 +300,8 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function updatePassword(int $userId, string $newPassword): bool
     {
         return $this->update($userId, [
-            'password' => password_hash($newPassword, PASSWORD_ARGON2ID),
-            'updated_at' => date('Y-m-d H:i:s'),
+            'password' => \password_hash($newPassword, PASSWORD_ARGON2ID),
+            'updated_at' => \date('Y-m-d H:i:s'),
         ]);
     }
 
@@ -311,8 +311,8 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function verifyEmail(int $id): bool
     {
         return $this->update($id, [
-            'email_verified_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
+            'email_verified_at' => \date('Y-m-d H:i:s'),
+            'updated_at' => \date('Y-m-d H:i:s'),
         ]);
     }
 
@@ -323,7 +323,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     {
         return $this->update($id, [
             'avatar' => $avatarUrl,
-            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_at' => \date('Y-m-d H:i:s'),
         ]);
     }
 
@@ -332,7 +332,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function findByRole(string $roleSlug): array
     {
-        $fields = implode(', u.', $this->getSelectFields());
+        $fields = \implode(', u.', $this->getSelectFields());
 
         $stmt = $this->getDb()->prepare(
             "SELECT u.{$fields}
@@ -356,7 +356,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function softDelete(int $id): bool
     {
         return $this->update($id, [
-            'deleted_at' => date('Y-m-d H:i:s'),
+            'deleted_at' => \date('Y-m-d H:i:s'),
             'email' => 'deleted_' . $id . '@deleted.local',
             'name' => 'Usuario Eliminado',
             'is_active' => 0,
@@ -368,13 +368,13 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
      */
     public function updatePreferences(int $id, array $preferences): bool
     {
-        $json = json_encode($preferences, JSON_UNESCAPED_UNICODE);
+        $json = \json_encode($preferences, JSON_UNESCAPED_UNICODE);
 
         $stmt = $this->getDb()->prepare(
-            "UPDATE users
+            'UPDATE users
              SET preferences = :prefs,
                  updated_at = NOW()
-             WHERE id = :id"
+             WHERE id = :id'
         );
 
         return $stmt->execute([
@@ -415,7 +415,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function getActiveUsersList(): array
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT id, name, email FROM users WHERE is_active = 1 AND deleted_at IS NULL ORDER BY name"
+            'SELECT id, name, email FROM users WHERE is_active = 1 AND deleted_at IS NULL ORDER BY name'
         );
         $stmt->execute();
 
@@ -476,7 +476,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function existsInCafe(int $userId, int $cafeId): bool
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT id FROM users WHERE id = :user_id AND cafe_id = :cafe_id AND deleted_at IS NULL LIMIT 1"
+            'SELECT id FROM users WHERE id = :user_id AND cafe_id = :cafe_id AND deleted_at IS NULL LIMIT 1'
         );
         $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
 
@@ -492,7 +492,7 @@ class UserRepository extends AbstractRepository implements UserRepositoryInterfa
     public function getStaffBasicById(int $userId, int $cafeId): ?array
     {
         $stmt = $this->getDb()->prepare(
-            "SELECT id, name FROM users WHERE id = :user_id AND cafe_id = :cafe_id AND deleted_at IS NULL LIMIT 1"
+            'SELECT id, name FROM users WHERE id = :user_id AND cafe_id = :cafe_id AND deleted_at IS NULL LIMIT 1'
         );
         $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
 

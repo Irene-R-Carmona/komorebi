@@ -89,7 +89,7 @@ final class ProductController
 
         // Cargar alérgenos en una única consulta (evita N+1)
         $allProductsWithAllergens = $this->productRepo->getAllWithAllergens();
-        $allergenMap = array_column($allProductsWithAllergens, 'allergens_list', 'id');
+        $allergenMap = \array_column($allProductsWithAllergens, 'allergens_list', 'id');
         foreach ($result['data'] as &$product) {
             $product['allergens_list'] = $allergenMap[(int) $product['id']] ?? [];
         }
@@ -118,6 +118,7 @@ final class ProductController
             ],
             'filters' => $filters,
         ], [], 'backoffice');
+
         return null;
     }
 
@@ -140,6 +141,7 @@ final class ProductController
             'allergens' => $allergens,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+
         return null;
     }
 
@@ -174,6 +176,7 @@ final class ProductController
         }
 
         Session::set('flash_success', 'Producto creado correctamente');
+
         return $this->response->json(['ok' => true, 'data' => ['redirect' => '/admin/productos']]);
     }
 
@@ -209,6 +212,7 @@ final class ProductController
             'product_allergens' => $product_allergens,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+
         return null;
     }
 
@@ -242,6 +246,7 @@ final class ProductController
         $this->productService->syncAllergens($id, $allergenIds);
 
         Session::set('flash_success', 'Producto actualizado correctamente');
+
         return $this->response->json(['ok' => true, 'data' => ['redirect' => '/admin/productos']]);
     }
 
@@ -263,6 +268,7 @@ final class ProductController
         }
 
         $this->productService->delete($id);
+
         return $this->response->json(['ok' => true, 'data' => ['message' => 'Producto eliminado correctamente']]);
     }
 
@@ -283,6 +289,7 @@ final class ProductController
         }
 
         $this->productService->toggleActive($id);
+
         return $this->response->json(['ok' => true, 'data' => ['message' => 'Estado actualizado']]);
     }
 
@@ -352,6 +359,7 @@ final class ProductController
     public function apiAllergens(): ResponseInterface
     {
         $allergens = $this->allergenModel->getAll(true);
+
         return $this->response->json(['ok' => true, 'data' => ['allergens' => $allergens]]);
     }
 }

@@ -19,12 +19,12 @@ namespace Tests\Unit\Services;
 
 use App\Core\Result;
 use App\Models\User;
-use App\Services\ReviewService;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
+use App\Services\ReviewService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 
 /**
  * Tests para ReviewService
@@ -53,7 +53,7 @@ final class ReviewServiceTest extends TestCase
     {
         $this->userModelMock->method('findById')->willReturn([
             'id' => 1,
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         $this->reviewRepoMock->method('create')->willReturn(123);
@@ -90,7 +90,7 @@ final class ReviewServiceTest extends TestCase
     {
         $this->userModelMock->method('findById')->willReturn([
             'id' => 1,
-            'is_active' => false
+            'is_active' => false,
         ]);
 
         $result = $this->service->createReview(
@@ -109,7 +109,7 @@ final class ReviewServiceTest extends TestCase
     {
         $this->userModelMock->method('findById')->willReturn([
             'id' => 1,
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         // Rating fuera de rango (< 1)
@@ -141,7 +141,7 @@ final class ReviewServiceTest extends TestCase
     {
         $this->userModelMock->method('findById')->willReturn([
             'id' => 1,
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         $result = $this->service->createReview(
@@ -160,10 +160,10 @@ final class ReviewServiceTest extends TestCase
     {
         $this->userModelMock->method('findById')->willReturn([
             'id' => 1,
-            'is_active' => true
+            'is_active' => true,
         ]);
 
-        $longTitle = str_repeat('A', 101); // Más de 100 caracteres
+        $longTitle = \str_repeat('A', 101); // Más de 100 caracteres
 
         $result = $this->service->createReview(
             userId: 1,
@@ -181,7 +181,7 @@ final class ReviewServiceTest extends TestCase
     {
         $this->userModelMock->method('findById')->willReturn([
             'id' => 1,
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         $result = $this->service->createReview(
@@ -200,7 +200,7 @@ final class ReviewServiceTest extends TestCase
     {
         $this->userModelMock->method('findById')->willReturn([
             'id' => 1,
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         // Capturar los argumentos pasados al método create del repository
@@ -210,6 +210,7 @@ final class ReviewServiceTest extends TestCase
             ->method('create')
             ->willReturnCallback(function ($data) use (&$capturedData) {
                 $capturedData = $data;
+
                 return 123;
             });
 
