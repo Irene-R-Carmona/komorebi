@@ -7,14 +7,14 @@ namespace App\Http\Controllers\Api\V1;
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Http\Controllers\Api\AbstractApiController;
-use App\Services\NewsletterService;
+use App\Services\Contracts\NewsletterServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class NewsletterApiController extends AbstractApiController
 {
     public function __construct(
-        private readonly NewsletterService $newsletterService,
+        private readonly NewsletterServiceInterface $newsletterService,
         ResponseFactory $response,
     ) {
         parent::__construct($response);

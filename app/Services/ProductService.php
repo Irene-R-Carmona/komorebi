@@ -11,7 +11,7 @@ use App\Core\TransactionalService;
 use App\Exceptions\DatabaseException;
 use App\Exceptions\ValidationException;
 use App\Models\AuditLog;
-use App\Repositories\ProductRepository;
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\Contracts\ProductServiceInterface;
 use PDO;
 use PDOException;
@@ -24,11 +24,11 @@ use PDOException;
  */
 final class ProductService extends TransactionalService implements ProductServiceInterface
 {
-    private ProductRepository $productRepo;
+    private ProductRepositoryInterface $productRepo;
 
-    public function __construct(ProductRepository $productRepo)
+    public function __construct(ProductRepositoryInterface $productRepo, ?PDO $pdo = null)
     {
-        parent::__construct(Database::getConnection());
+        parent::__construct($pdo ?? Database::getConnection());
         $this->productRepo = $productRepo;
     }
 
@@ -75,6 +75,9 @@ final class ProductService extends TransactionalService implements ProductServic
     #[\Override]
     public function getAllPaginated(int $page = 1, int $perPage = 20, array $filters = []): array
     {
+        $page    = max(1, $page);
+        $perPage = min(100, max(1, $perPage));
+
         return $this->productRepo->findFiltered($filters, $page, $perPage);
     }
 

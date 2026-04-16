@@ -103,15 +103,15 @@ final class HttpRateLimitMiddlewareTest extends TestCase
     public function testUsesRemoteAddrAsIdentifier(): void
     {
         $rateLimiter = $this->createMock(RateLimitingServiceInterface::class);
-        $rateLimiter->method('isBlocked')
+        $rateLimiter->expects($this->once())
+            ->method('isBlocked')
             ->with('registration', '192.168.1.1')
             ->willReturn(['blocked' => false]);
-        $rateLimiter->method('recordAttempt')
+        $rateLimiter->expects($this->once())
+            ->method('recordAttempt')
             ->with('registration', '192.168.1.1');
 
         $mw = new HttpRateLimitMiddleware($this->responseFactory, $rateLimiter, 'registration');
         $mw->process($this->makeRequest('192.168.1.1'), $this->handler);
-
-        $this->addToAssertionCount(1);
     }
 }

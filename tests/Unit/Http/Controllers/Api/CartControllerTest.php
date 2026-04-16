@@ -18,14 +18,14 @@ namespace Tests\Unit\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\CartController;
-use App\Services\CartService;
+use App\Services\Contracts\CartServiceInterface;
 use Tests\Support\ControllerTestCase;
 
 final class CartControllerTest extends ControllerTestCase
 {
     private function makeController(): CartController
     {
-        $service = $this->createStub(CartService::class);
+        $service = $this->createStub(CartServiceInterface::class);
         $service->method('getWithDetails')->willReturn(['items' => [], 'totalQty' => 0, 'totalPrice' => 0.0]);
         $service->method('add')->willReturn(['items' => [], 'totalQty' => 1, 'totalPrice' => 0.0]);
 

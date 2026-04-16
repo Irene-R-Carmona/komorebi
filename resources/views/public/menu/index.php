@@ -208,7 +208,7 @@ $excludeAllergens ??= [];
                             // Validar que solo contenga valores válidos: lounge, playroom, farm, zen
                             $validTypes = ['lounge', 'playroom', 'farm', 'zen'];
                             $cafeTypesArray = is_array($targetCafeTypes)
-                                ? array_filter($targetCafeTypes, fn ($t) => in_array($t, $validTypes, true))
+                                ? array_filter($targetCafeTypes, fn($t) => in_array($t, $validTypes, true))
                                 : [];
 
                             // Si está vacío = disponible en todos los cafés (no poner atributo)
@@ -229,7 +229,8 @@ $excludeAllergens ??= [];
                                             class="producto-card__img"
                                             width="280"
                                             height="210"
-                                            loading="lazy">
+                                            loading="lazy"
+                                            onerror="this.onerror=null; this.src='/images/ui/placeholder.svg'">
 
                                         <div class="producto-card__badges">
                                             <span class="badge-mini badge-popular">Pase</span>
@@ -270,7 +271,7 @@ $excludeAllergens ??= [];
                                 <article class="producto-card"
                                     data-name="<?= htmlspecialchars($prod['name'], ENT_QUOTES, 'UTF-8') ?>"
                                     data-desc="<?= htmlspecialchars($prod['description'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                    data-allergens="<?= htmlspecialchars(implode(',', array_map(fn ($a) => (string) ($a['id'] ?? ''), $prod['allergens_list'] ?? [])), ENT_QUOTES, 'UTF-8') ?>"
+                                    data-allergens="<?= htmlspecialchars(implode(',', array_map(fn($a) => (string) ($a['id'] ?? ''), $prod['allergens_list'] ?? [])), ENT_QUOTES, 'UTF-8') ?>"
                                     <?php if ($cafeTypesAttr): ?>data-cafe-types="<?= htmlspecialchars($cafeTypesAttr, ENT_QUOTES, 'UTF-8') ?>" <?php endif; ?>
                                     :class="{ 'producto-card--active': getQty(<?= $prodId ?>) > 0 }"
                                     x-show="matchesNode($el)">
@@ -281,7 +282,8 @@ $excludeAllergens ??= [];
                                             class="producto-card__img"
                                             width="280"
                                             height="210"
-                                            loading="lazy">
+                                            loading="lazy"
+                                            onerror="this.onerror=null; this.src='/images/ui/placeholder.svg'">
 
                                         <div class="producto-card__badges">
                                             <?php if ($prod['attrs']['popular'] ?? false): ?>
@@ -309,80 +311,80 @@ $excludeAllergens ??= [];
                                                                 <?php
                                                                 $iconVal = (string) ($allergen['icon'] ?? '');
 
-                                                            // Intentar resolver una imagen PNG en /images/allergens
-                                                            $assetSrc = null;
-                                                            $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? (__DIR__ . '/../../../public');
+                                                                // Intentar resolver una imagen PNG en /images/allergens
+                                                                $assetSrc = null;
+                                                                $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? (__DIR__ . '/../../../public');
 
-                                                            $candidates = [];
-                                                            $clean = trim($iconVal);
-                                                            if ($clean !== '') {
-                                                                $candidates[] = $clean;
-                                                                $candidates[] = strtolower($clean);
-                                                                $candidates[] = strtoupper($clean);
-                                                                $candidates[] = preg_replace('/\.[a-z0-9]+$/i', '', $clean); // sin extensión
-                                                            }
-                                                            $slugName = preg_replace('/[^a-z0-9]+/', '-', strtolower($allergen['name'] ?? ''));
-                                                            $candidates[] = $slugName;
-
-                                                            foreach ($candidates as $cand) {
-                                                                if (!$cand) {
-                                                                    continue;
+                                                                $candidates = [];
+                                                                $clean = trim($iconVal);
+                                                                if ($clean !== '') {
+                                                                    $candidates[] = $clean;
+                                                                    $candidates[] = strtolower($clean);
+                                                                    $candidates[] = strtoupper($clean);
+                                                                    $candidates[] = preg_replace('/\.[a-z0-9]+$/i', '', $clean); // sin extensión
                                                                 }
-                                                                $rel = '/images/alergenos/' . $cand . '.png';
-                                                                $full = $docRoot . $rel;
-                                                                if (file_exists($full)) {
-                                                                    $assetSrc = $rel;
-                                                                    break;
-                                                                }
-                                                                // comprobar mayúsculas/extensiones alternativas
-                                                                $rel2 = '/images/alergenos/' . $cand . '.PNG';
-                                                                if (file_exists($docRoot . $rel2)) {
-                                                                    $assetSrc = $rel2;
-                                                                    break;
-                                                                }
-                                                            }
+                                                                $slugName = preg_replace('/[^a-z0-9]+/', '-', strtolower($allergen['name'] ?? ''));
+                                                                $candidates[] = $slugName;
 
-                                                            // Si no se encontró exactamente, intentar búsqueda flexible en el directorio
-                                                            if (!$assetSrc && is_dir($docRoot . '/images/alergenos')) {
-                                                                $normalize = function (string $s): string {
-                                                                    // eliminar acentos y caracteres no alfanum, minúsculas
-                                                                    $s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s) ?: $s;
-                                                                    $s = strtolower($s);
-                                                                    $s = preg_replace('/[^a-z0-9]+/', '', $s);
-
-                                                                    return $s;
-                                                                };
-
-                                                                $needle1 = $normalize($iconVal);
-                                                                $needle2 = $normalize($allergen['name'] ?? '');
-
-                                                                $files = glob($docRoot . '/images/alergenos/*.*');
-                                                                foreach ($files as $file) {
-                                                                    $base = basename($file);
-                                                                    $nameOnly = pathinfo($base, PATHINFO_FILENAME);
-                                                                    $norm = $normalize($nameOnly);
-                                                                    if ($needle1 !== '') {
-                                                                        if ($norm === $needle1 || strpos($norm, $needle1) === 0 || substr($norm, -strlen($needle1)) === $needle1) {
-                                                                            $assetSrc = '/images/alergenos/' . $base;
-                                                                            break;
-                                                                        }
+                                                                foreach ($candidates as $cand) {
+                                                                    if (!$cand) {
+                                                                        continue;
                                                                     }
-                                                                    if ($needle2 !== '') {
-                                                                        if ($norm === $needle2 || strpos($norm, $needle2) === 0 || substr($norm, -strlen($needle2)) === $needle2) {
-                                                                            $assetSrc = '/images/alergenos/' . $base;
-                                                                            break;
-                                                                        }
+                                                                    $rel = '/images/alergenos/' . $cand . '.png';
+                                                                    $full = $docRoot . $rel;
+                                                                    if (file_exists($full)) {
+                                                                        $assetSrc = $rel;
+                                                                        break;
+                                                                    }
+                                                                    // comprobar mayúsculas/extensiones alternativas
+                                                                    $rel2 = '/images/alergenos/' . $cand . '.PNG';
+                                                                    if (file_exists($docRoot . $rel2)) {
+                                                                        $assetSrc = $rel2;
+                                                                        break;
                                                                     }
                                                                 }
-                                                            }
-                                                            ?>
+
+                                                                // Si no se encontró exactamente, intentar búsqueda flexible en el directorio
+                                                                if (!$assetSrc && is_dir($docRoot . '/images/alergenos')) {
+                                                                    $normalize = function (string $s): string {
+                                                                        // eliminar acentos y caracteres no alfanum, minúsculas
+                                                                        $s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s) ?: $s;
+                                                                        $s = strtolower($s);
+                                                                        $s = preg_replace('/[^a-z0-9]+/', '', $s);
+
+                                                                        return $s;
+                                                                    };
+
+                                                                    $needle1 = $normalize($iconVal);
+                                                                    $needle2 = $normalize($allergen['name'] ?? '');
+
+                                                                    $files = glob($docRoot . '/images/alergenos/*.*');
+                                                                    foreach ($files as $file) {
+                                                                        $base = basename($file);
+                                                                        $nameOnly = pathinfo($base, PATHINFO_FILENAME);
+                                                                        $norm = $normalize($nameOnly);
+                                                                        if ($needle1 !== '') {
+                                                                            if ($norm === $needle1 || strpos($norm, $needle1) === 0 || substr($norm, -strlen($needle1)) === $needle1) {
+                                                                                $assetSrc = '/images/alergenos/' . $base;
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                        if ($needle2 !== '') {
+                                                                            if ($norm === $needle2 || strpos($norm, $needle2) === 0 || substr($norm, -strlen($needle2)) === $needle2) {
+                                                                                $assetSrc = '/images/alergenos/' . $base;
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                ?>
 
                                                                 <?php if ($assetSrc): ?>
-                                                                    <img src="<?= e($assetSrc) ?>" alt="<?= e($allergen['name']) ?>" class="allergen-img" loading="lazy" width="24" height="24">
+                                                                    <img src="<?= e($assetSrc) ?>" alt="<?= e($allergen['name']) ?>" class="allergen-img" loading="lazy" width="24" height="24" onerror="this.onerror=null; this.style.display='none'">
                                                                 <?php else:
                                                                     // Fallback: si es clase de icon-font renderizar <i>, si no mostrar código textual
                                                                     $isFontClass = (strpos($iconVal, 'bi-') === 0) || (strpos($iconVal, 'fa-') === 0) || (strpos($iconVal, ' ') !== false);
-                                                                    ?>
+                                                                ?>
                                                                     <?php if ($isFontClass): ?>
                                                                         <i class="<?= e($iconVal) ?>"></i>
                                                                     <?php else: ?>

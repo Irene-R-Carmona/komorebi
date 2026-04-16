@@ -17,7 +17,7 @@ namespace Tests\Unit\Http\Controllers\Api\V1;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\ManagerController;
-use App\Services\Manager\DashboardService;
+use App\Services\Contracts\DashboardServiceInterface;
 use Tests\Support\ControllerTestCase;
 
 final class ManagerControllerTest extends ControllerTestCase
@@ -37,7 +37,7 @@ final class ManagerControllerTest extends ControllerTestCase
 
     private function makeController(): ManagerController
     {
-        $service = $this->createStub(DashboardService::class);
+        $service = $this->createStub(DashboardServiceInterface::class);
         $service->method('getDashboardMetrics')->willReturn(['reservations_today' => 5, 'revenue_today' => 0.0]);
         $service->method('getWeeklyRevenue')->willReturn([]);
 

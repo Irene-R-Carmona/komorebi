@@ -17,15 +17,15 @@ namespace Tests\Unit\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\MenuController;
-use App\Services\MenuService;
-use App\Services\RecentlyViewedService;
+use App\Services\Contracts\MenuServiceInterface;
+use App\Services\Contracts\RecentlyViewedServiceInterface;
 use Tests\Support\ControllerTestCase;
 
 final class MenuControllerTest extends ControllerTestCase
 {
     private function makeController(): MenuController
     {
-        $menuService = $this->createStub(MenuService::class);
+        $menuService = $this->createStub(MenuServiceInterface::class);
         $menuService->method('getAllergens')->willReturn([
             ['id' => 1, 'name' => 'Gluten', 'icon' => 'gluten.svg', 'description' => ''],
         ]);
@@ -34,7 +34,7 @@ final class MenuControllerTest extends ControllerTestCase
         return new MenuController(
             new ResponseFactory(),
             $menuService,
-            $this->createStub(RecentlyViewedService::class),
+            $this->createStub(RecentlyViewedServiceInterface::class),
         );
     }
 

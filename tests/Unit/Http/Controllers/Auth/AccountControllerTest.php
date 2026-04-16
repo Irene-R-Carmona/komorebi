@@ -19,7 +19,7 @@ namespace Tests\Unit\Http\Controllers\Auth;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Auth\AccountController;
-use App\Services\AuthService;
+use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\AccountDeletionServiceInterface;
 use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\Contracts\SessionManagementServiceInterface;
@@ -45,7 +45,7 @@ final class AccountControllerTest extends ControllerTestCase
     private function makeController(): AccountController
     {
         return new AccountController(
-            authService: $this->createStub(AuthService::class),
+            authService: $this->createStub(AuthServiceInterface::class),
             fileUploadService: $this->createStub(FileUploadServiceInterface::class),
             profileService: $this->createStub(UserProfileServiceInterface::class),
             accountService: $this->createStub(UserAccountServiceInterface::class),

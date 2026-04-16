@@ -8,12 +8,12 @@ declare(strict_types=1);
  * ¿Qué va a fallar en este test si se cambia el código?
  */
 
-namespace Controllers\Manager;
+namespace Tests\Unit\Controllers\Manager;
 
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Http\Controllers\Manager\StaffController;
-use App\Repositories\UserRepository;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\StaffShiftServiceInterface;
 use PDO;
 use PDOStatement;
@@ -29,8 +29,8 @@ final class StaffControllerTest extends TestCase
 {
     private StaffController $controller;
 
-    /** @var \PHPUnit\Framework\MockObject\Stub&UserRepository */
-    private UserRepository $userRepo;
+    /** @var \PHPUnit\Framework\MockObject\Stub&UserRepositoryInterface */
+    private UserRepositoryInterface $userRepo;
 
     private ResponseFactory $responseFactory;
 
@@ -43,7 +43,7 @@ final class StaffControllerTest extends TestCase
     protected function setUp(): void
     {
         // Mock UserRepository
-        $this->userRepo = $this->createStub(UserRepository::class);
+        $this->userRepo = $this->createStub(UserRepositoryInterface::class);
 
         // Mock PDO y PDOStatement
         $this->db = $this->createStub(PDO::class);

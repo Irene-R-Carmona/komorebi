@@ -77,7 +77,8 @@ $equipo = $datos['equipo'] ?? [];
                             <img src="<?= htmlspecialchars($miembro['foto'], ENT_QUOTES, 'UTF-8') ?>"
                                 alt="<?= htmlspecialchars($miembro['nombre'], ENT_QUOTES, 'UTF-8') ?>"
                                 class="static-team__photo"
-                                loading="lazy">
+                                loading="lazy"
+                                onerror="this.onerror=null; this.src='/images/ui/placeholder.svg'">
                         <?php else: ?>
                             <div class="static-team__photo static-team__photo--initial">
                                 <?= mb_substr($miembro['nombre'], 0, 1) ?>

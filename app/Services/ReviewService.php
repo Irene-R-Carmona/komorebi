@@ -8,7 +8,7 @@ use App\Core\BaseService;
 use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Result;
-use App\Models\User;
+use App\Models\Contracts\UserModelInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Services\Contracts\ReviewServiceInterface;
 use Exception;
@@ -22,12 +22,12 @@ use RuntimeException;
  */
 final class ReviewService extends BaseService implements ReviewServiceInterface
 {
-    private User $userModel;
+    private UserModelInterface $userModel;
 
     private ReviewRepositoryInterface $reviewRepository;
 
     public function __construct(
-        User $userModel,
+        UserModelInterface $userModel,
         ReviewRepositoryInterface $reviewRepository
     ) {
         $this->userModel = $userModel;

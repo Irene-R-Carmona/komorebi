@@ -36,6 +36,46 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased]
+## [Unreleased] — 2026-04-16
 
-<!-- Add entries here as work progresses -->
+### Added
+
+- `LoggingPDO` + `LoggingPDOStatement`: slow query logging with configurable threshold (100 ms default)
+- `RequestLogMiddleware`: correlation ID propagation and per-request structured logging
+- `LogContextProcessor` (Monolog processor) + `LogContext` static registry for enriching log entries
+- `BaseService` helpers: `logDebug()`, `logWarning()`, `logCritical()` with enforced context
+- PHPStan rule enforcing non-empty context on `error`/`critical` log calls
+- `DashboardServiceInterface`, `RecentlyViewedServiceInterface`, `UserModelInterface`, `SessionManagementServiceInterface` — full interface extraction with container bindings
+- 13 controller constructors updated to inject interfaces (not concrete classes)
+- 21 new unit tests for service interfaces and controller wiring
+- `.github/workflows/ci.yml`: CI pipeline (PHPStan level 5 + PHPUnit)
+- `public/images/ui/placeholder.svg`: accessible SVG placeholder for broken image fallback
+- `migrations/017_product_stock.sql`: per-product stock control (`stock_quantity`, NULL = unlimited)
+- `migrations/018_api_tokens.sql`: stateless bearer token auth for external clients (SHA-256 stored only)
+
+### Changed
+
+- PHPUnit 12 → 13, PHPStan 1 → 2 (zero errors at level 5, baseline cleared)
+- PHPStan baseline `phpstan-baseline.neon` emptied — all issues resolved, not suppressed
+- Psalm removed from quality gate (PHPStan level 5 covers equivalent rules)
+- PSR-12 normalized across entire codebase (`make cs-fix`)
+- Docker: pinned all base image versions; Dockerfile.prod corrected (app code now copied)
+- `npm`: replaced `@lhci/cli` (3 critical vulns) with Lighthouse standalone; zero audit warnings
+- `phpunit.xml`: coverage thresholds set (`lowUpperBound` ≥ 50 %, `highLowerBound` ≥ 70 %)
+- `WaitlistSeeder`: `r.name` → `r.code` (column rename alignment)
+- `menu.js`: loading state initialised to `true` to prevent flash of unfiltered content
+
+### Fixed
+
+- `LoggingPDOStatement`: removed deprecated `PDOStatement::bindParam` callback — migrated to `execute()` pattern
+- Quiz resultado (`resources/views/public/quiz/resultado.php`): `$cafeData` keys corrected — `imagen`→`image_url`, `nombre`→`name`, `descripcion`→`description`, `ubicacion`→`location`, `rating`→`rating_avg`
+- Admin review modal (`resources/views/components/admin/review-card.php`): JS injection — replaced `'<?= e($author) ?>'` with `<?= json_encode($author) ?>` in Alpine `@click` handler
+- Keeper dashboard (`resources/views/backoffice/keeper/dashboard.php`): KPI cards referenced nonexistent keys — `total_animals`→`healthy`, removed `avg_interactions` (not in service contract) →`monitoring`
+- Vista 404: added "Volver al inicio" navigation link
+- `resources/views/public/loyalty/card.php`: removed dead code array `$tierEmojis`
+- Café and menu images: added `onerror` fallback pointing to `placeholder.svg`
+- `scripts/apply-db.php`: added migrations 016, 017, 018 to execution sequence; added `time_slots > 0` pre-check for `ReservationSeeder`
+
+### Security
+
+- JS injection (OWASP A03) in admin review modal: user-supplied `author` was interpolated raw into an Alpine.js event string. Now uses `json_encode()` which produces a properly escaped JSON string safe for JS context.

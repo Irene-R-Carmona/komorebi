@@ -22,7 +22,7 @@ use App\Http\Controllers\Shared\ReviewController;
 use App\Models\Cafe;
 use App\Services\Contracts\ReviewModerationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
-use App\Services\ReviewService;
+use App\Services\Contracts\ReviewServiceInterface;
 use Tests\Support\ControllerTestCase;
 
 final class ReviewControllerTest extends ControllerTestCase
@@ -45,7 +45,7 @@ final class ReviewControllerTest extends ControllerTestCase
     private function makeController(): ReviewController
     {
         return new ReviewController(
-            reviewService: $this->createStub(ReviewService::class),
+            reviewService: $this->createStub(ReviewServiceInterface::class),
             queryService: $this->createStub(ReviewQueryServiceInterface::class),
             moderationService: $this->createStub(ReviewModerationServiceInterface::class),
             cafeModel: new Cafe(),

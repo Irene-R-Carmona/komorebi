@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\AbstractApiController;
-use App\Services\CartService;
+use App\Services\Contracts\CartServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -25,7 +25,7 @@ final class CartController extends AbstractApiController
 {
     public function __construct(
         ResponseFactory $response,
-        private readonly CartService $service,
+        private readonly CartServiceInterface $service,
     ) {
         parent::__construct($response);
     }

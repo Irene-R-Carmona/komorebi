@@ -26,7 +26,7 @@ declare(strict_types=1);
  * (ReviewRepositoryInterface + CafeRepository con PDO mock).
  */
 
-namespace Controllers\Manager;
+namespace Tests\Unit\Controllers\Manager;
 
 use App\Core\Result;
 use App\Http\Controllers\Manager\ReviewController;

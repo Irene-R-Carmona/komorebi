@@ -19,7 +19,7 @@ namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\UserController;
-use App\Repositories\UserRepository;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\UserManagementService;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
@@ -41,7 +41,7 @@ final class UserControllerTest extends ControllerTestCase
 
     public function test_get_users_list_returns_json_response(): void
     {
-        $repoStub = $this->createStub(UserRepository::class);
+        $repoStub = $this->createStub(UserRepositoryInterface::class);
         $repoStub->method('getActiveUsersList')->willReturn([
             ['id' => 1, 'name' => 'Ana', 'email' => 'ana@example.com'],
             ['id' => 2, 'name' => 'Juan', 'email' => 'juan@example.com'],
@@ -66,7 +66,7 @@ final class UserControllerTest extends ControllerTestCase
 
     public function test_get_users_list_returns_empty_array_when_no_users(): void
     {
-        $repoStub = $this->createStub(UserRepository::class);
+        $repoStub = $this->createStub(UserRepositoryInterface::class);
         $repoStub->method('getActiveUsersList')->willReturn([]);
 
         $controller = new UserController(

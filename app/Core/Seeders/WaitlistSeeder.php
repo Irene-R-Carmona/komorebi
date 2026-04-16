@@ -83,7 +83,7 @@ final class WaitlistSeeder
 
                 $status = 'waiting';
                 $notifiedAt = null;
-                $expiresAt = null;
+                $expiresAt = \date('Y-m-d H:i:s', \time() + 86400); // seed: expira en 24h
                 $token = \bin2hex(\random_bytes(16));
 
                 // Algunos en estado 'notified' (10%)

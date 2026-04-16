@@ -18,7 +18,7 @@ namespace Tests\Unit\Http\Controllers\Auth;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Auth\PasswordResetController;
-use App\Services\AuthService;
+use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\EmailVerificationServiceInterface;
 use App\Services\Contracts\PasswordResetServiceInterface;
 use Tests\Support\ControllerTestCase;
@@ -41,7 +41,7 @@ final class PasswordResetControllerTest extends ControllerTestCase
     private function makeController(): PasswordResetController
     {
         return new PasswordResetController(
-            authService: $this->createStub(AuthService::class),
+            authService: $this->createStub(AuthServiceInterface::class),
             passwordResetService: $this->createStub(PasswordResetServiceInterface::class),
             emailVerificationService: $this->createStub(EmailVerificationServiceInterface::class),
         );
@@ -64,7 +64,7 @@ final class PasswordResetControllerTest extends ControllerTestCase
 
     public function test_forgot_password_form_redirects_when_authenticated(): void
     {
-        $authStub = $this->createStub(AuthService::class);
+        $authStub = $this->createStub(AuthServiceInterface::class);
         $authStub->method('check')->willReturn(true);
         $controller = new PasswordResetController(
             authService: $authStub,

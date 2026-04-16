@@ -13,6 +13,7 @@ use App\Http\Transformers\UserTransformer;
 use App\Models\AuditLog;
 use App\Models\Role;
 use App\Repositories\UserRepository;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\UserManagementService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -36,13 +37,13 @@ final class UserController
 {
     private Role $roleModel;
     private UserManagementService $userManagementService;
-    private UserRepository $userRepo;
+    private UserRepositoryInterface $userRepo;
     private ResponseFactory $response;
     private UserTransformer $userTransformer;
 
     private const CSRF_INVALID = 'Token de seguridad inválido';
 
-    public function __construct(?UserManagementService $userManagementService = null, ?UserRepository $userRepo = null, ?ResponseFactory $response = null, ?UserTransformer $userTransformer = null)
+    public function __construct(?UserManagementService $userManagementService = null, ?UserRepositoryInterface $userRepo = null, ?ResponseFactory $response = null, ?UserTransformer $userTransformer = null)
     {
         $this->roleModel = new Role();
         $this->userManagementService = $userManagementService ?? new UserManagementService();
@@ -65,9 +66,9 @@ final class UserController
         // Calcular estadísticas desde datos crudos (antes de transformar)
         $stats = [
             'total_users' => \count($rawUsers),
-            'active_users' => \count(\array_filter($rawUsers, static fn ($u) => !empty($u['is_active']))),
-            'admin_users' => \count(\array_filter($rawUsers, static fn ($u) => \stripos($u['roles'] ?? '', 'admin') !== false)),
-            'inactive_users' => \count(\array_filter($rawUsers, static fn ($u) => empty($u['is_active']))),
+            'active_users' => \count(\array_filter($rawUsers, static fn($u) => !empty($u['is_active']))),
+            'admin_users' => \count(\array_filter($rawUsers, static fn($u) => \stripos($u['roles'] ?? '', 'admin') !== false)),
+            'inactive_users' => \count(\array_filter($rawUsers, static fn($u) => empty($u['is_active']))),
         ];
 
         View::render('admin/users/index', [
@@ -177,7 +178,7 @@ final class UserController
                 'user',
                 $userId,
                 null,
-                \array_filter($data, static fn ($v) => $v !== null)
+                \array_filter($data, static fn($v) => $v !== null)
             );
 
             return $this->response->json(['ok' => true, 'data' => ['message' => 'Usuario actualizado exitosamente']]);

@@ -556,6 +556,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      * @param int $perPage Items por página
      * @return array{data: array, total: int, page: int, perPage: int, totalPages: int}
      */
+    #[\Override]
     public function findFiltered(array $filters = [], int $page = 1, int $perPage = 20): array
     {
         // Validar parámetros
@@ -702,7 +703,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
                 $severities = \explode(',', $row['allergen_severities']);
 
                 $row['allergens_list'] = \array_map(
-                    static fn (string $id, string $name, string $code, string $severity): array => [
+                    static fn(string $id, string $name, string $code, string $severity): array => [
                         'id' => (int) $id,
                         'name' => $name,
                         'code' => $code,

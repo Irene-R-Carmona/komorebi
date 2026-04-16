@@ -17,8 +17,8 @@ namespace Tests\Unit\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\ReservationController;
-use App\Services\ReservationService;
-use App\Services\TimeSlotService;
+use App\Services\Contracts\ReservationServiceInterface;
+use App\Services\Contracts\TimeSlotServiceInterface;
 use Tests\Support\ControllerTestCase;
 
 final class ReservationControllerTest extends ControllerTestCase
@@ -27,8 +27,8 @@ final class ReservationControllerTest extends ControllerTestCase
     {
         return new ReservationController(
             new ResponseFactory(),
-            $this->createStub(ReservationService::class),
-            $this->createStub(TimeSlotService::class),
+            $this->createStub(ReservationServiceInterface::class),
+            $this->createStub(TimeSlotServiceInterface::class),
         );
     }
 
@@ -45,12 +45,12 @@ final class ReservationControllerTest extends ControllerTestCase
 
     public function test_get_available_slots_calls_service_with_valid_date(): void
     {
-        $timeSlotService = $this->createStub(TimeSlotService::class);
+        $timeSlotService = $this->createStub(TimeSlotServiceInterface::class);
         $timeSlotService->method('getAvailableSlots')->willReturn([]);
 
         $controller = new ReservationController(
             new ResponseFactory(),
-            $this->createStub(ReservationService::class),
+            $this->createStub(ReservationServiceInterface::class),
             $timeSlotService,
         );
 

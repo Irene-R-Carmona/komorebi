@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Http\Controllers\Api\AbstractApiController;
-use App\Services\Manager\DashboardService;
+use App\Services\Contracts\DashboardServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -21,7 +21,7 @@ final class ManagerController extends AbstractApiController
 {
     public function __construct(
         ResponseFactory $response,
-        private readonly DashboardService $dashboardService,
+        private readonly DashboardServiceInterface $dashboardService,
     ) {
         parent::__construct($response);
     }

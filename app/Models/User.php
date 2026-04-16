@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Core\Database;
 use App\Core\Logger;
 use App\Exceptions\ValidationException;
+use App\Models\Contracts\UserModelInterface;
 use App\Models\Traits\HasUuid;
 use Exception;
 use PDO;
@@ -23,7 +24,7 @@ use Random\RandomException;
  * - Bloqueo tras intentos fallidos
  * - Prepared statements en todas las queries
  */
-final class User
+final class User implements UserModelInterface
 {
     use HasUuid;
 
@@ -92,6 +93,7 @@ final class User
      *
      * @return array<string,mixed>|null
      */
+    #[\Override]
     public function findById(int $id): ?array
     {
         $fields = \implode(', ', self::SELECT_FIELDS);
@@ -384,6 +386,7 @@ final class User
      * Verifica la contraseña de un usuario.
      * Incluye rehash automático si el algoritmo cambió.
      */
+    #[\Override]
     public function verifyPassword(array $user, string $password): bool
     {
         if (!isset($user['password'], $user['id'])) {
@@ -405,6 +408,7 @@ final class User
     /**
      * Verifica si el usuario está bloqueado.
      */
+    #[\Override]
     public function isLocked(array $user): bool
     {
         if (empty($user['locked_until'])) {
@@ -417,6 +421,7 @@ final class User
     /**
      * Obtiene los minutos restantes de bloqueo.
      */
+    #[\Override]
     public function lockoutMinutesRemaining(array $user): int
     {
         if (!$this->isLocked($user)) {
@@ -432,6 +437,7 @@ final class User
      * Registra un intento de login fallido.
      * Bloquea la cuenta si se superan los intentos máximos.
      */
+    #[\Override]
     public function registerFailedAttempt(int $id): void
     {
         // Incrementar contador
@@ -456,6 +462,7 @@ final class User
     /**
      * Resetea los intentos de login tras login exitoso.
      */
+    #[\Override]
     public function clearLoginAttempts(int $id): void
     {
         $stmt = $this->db->prepare(
@@ -578,6 +585,7 @@ final class User
      *
      * @return array<array{id: int, code: string, name: string}>
      */
+    #[\Override]
     public function getRoles(int $userId): array
     {
         try {

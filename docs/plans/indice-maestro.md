@@ -1,250 +1,177 @@
-# Índice Maestro — Komorebi Café: Arquitectura, Observabilidad y UI/UX
+﻿# Índice Maestro — Komorebi Café: Plan de Cierre Pre-Defensa TFG
 
-**Fecha:** 12 de abril de 2026
-**Estado:** Índice maestro — los planes de implementación detallados se crean por fase a demanda
-**Branches a crear por fase:** pendiente decisión
+**Fecha:** 16 de abril de 2026
+**Estado:** Índice maestro reordenado — prioridades aplicadas por auditoría TFG
+**Criterio de orden:** lo que un evaluador puede reproducir o ver en < 5 minutos tiene prioridad absoluta
 
 ---
 
 ## Propósito de este Documento
 
-Este índice es la fuente de verdad de todo el trabajo de mejora técnica y visual surgido del análisis
-del 12/04/2026. Cada fase tiene su propio plan de implementación detallado que se crea cuando
-se indica. El orden de las fases refleja la dependencia real: los principios arquitectónicos definen
-cómo se implementan todas las demás.
+Este índice reemplaza al índice original del 12/04/2026. Es la fuente de verdad del trabajo
+pendiente desde la perspectiva de la defensa del TFG. Las tareas se agrupan en bloques
+ordenados por impacto en la defensa, no por dependencia técnica.
+
+Los planes de implementación detallados siguen existiendo en este mismo directorio.
+Este índice indica **en qué orden ejecutarlos y qué tareas de cada plan son prioritarias**.
 
 ---
 
-## FASE 0 — Principios Arquitectónicos (fundamento conceptual)
+## BLOQUE 1 — Bugs visuales reproducibles en < 2 min
+>
+> **Urgencia: CRÍTICA.** Si un tribunal abre el navegador, estos son visibles de inmediato.
+> Plan origen: `2026-04-14-qol-holistic-sprint.md` — OLA 0
 
-> Debe resolverse **conceptualmente antes** de tocar código en otras fases. Define los contratos
-> de capas que el resto de fases respetará. Sin este acuerdo, las fases 1-3 pueden contradecirse.
+| # | Tarea | Archivo | Estado |
+|---|-------|---------|--------|
+| 1 | **T0.1** — Fix claves `$cafeData` en quiz resultado (`nombre`→`name`, `imagen`→`image_url`, etc.) | `resources/views/public/quiz/resultado.php` | - [x] ✅ |
+| 2 | **T0.2** — Fix JS injection en modal reviews admin (usar `json_encode` en lugar de `e()` + comillas simples) | `resources/views/components/admin/review-card.php` | - [x] ✅ |
+| 3 | **T0.3** — Fix KPI cards keeper dashboard (`total_animals`→`healthy`, eliminar `avg_interactions`) | `resources/views/backoffice/keeper/dashboard.php` | - [x] ✅ |
+| 4 | **T3.1** — Vista 404: añadir enlace "Volver al inicio" | Vista 404 (localizar con grep) | - [x] ✅ |
 
-### Principios a evaluar, decidir y documentar
-
-**Capa de datos y dominio:**
-
-- [ ] **DTO vs arrays asociativos** — Decidir si DTOs son `readonly class` en `app/Http/DTO/`
-  o si se eleva al dominio (`app/Domain/DTO/`). Implicaciones en todas las capas.
-- [ ] **Value Objects** — ¿`Email`, `Slug`, `CafeRating`, `Money` como clases del dominio?
-  Hoy son strings/floats sin validación de negocio encapsulada.
-- [ ] **DAO vs Repository** — El `AbstractRepository` ya es el DAO. Confirmarlo y dejar claro
-  que no se añade otra capa. El DAO real es el Repository.
-- [ ] **Separación de campos por contexto** — Definir convención: `getSelectFields()` (presentación),
-  `getAuthFields()` (operaciones de autenticación), `getOperationalFields()` (staff/backoffice).
-  Esta convención afecta a UserRepository, ReservationRepository y ProductRepository.
-
-**Flujo de datos entre capas:**
-
-- [ ] **Contrato Repository → Service** — ¿Service recibe arrays o DTOs? Si recibe arrays,
-  la responsabilidad de filtrado está en el Service. Si recibe DTOs, en el Repository o un assembler.
-- [ ] **Contrato Service → Controller** — ¿`Result` envuelve un DTO o un array? Hoy envuelve arrays.
-  Cambiar requiere actualizar todos los servicios que retornan `Result::ok($data)`.
-- [ ] **Contrato Controller → View** — ¿Las vistas reciben DTOs directamente o `toArray()`?
-  `View::escapeData()` trabaja con arrays, lo que sugiere `toArray()` o mantener arrays tipados.
-
-**Principios de diseño adicionales:**
-
-- [ ] **CQRS Light** — Nombrar métodos explícitamente: `find*()` para queries (sin side effects),
-  verbos imperativos (`crear`, `cancelar`, `publicar`) para commands. No requiere bus.
-- [ ] **Specification Pattern** — Evaluar si los filtros del catálogo (`CafeFilter`, `ProductFilter`)
-  se benefician. Umbral: > 4 criterios combinados. Hoy son arrays en métodos de repositorio.
-- [ ] **Interface Segregation en Services** — `UserService` y `CafeService` tienen demasiadas
-  responsabilidades. Evaluar dividir: `UserProfileService`, `UserAuthService`, `UserAdminService`.
-  Impacta registro en `bootstrap/container.php`.
-- [ ] **Error Boundary — Excepciones vs Result** — Hoy hay mezcla: servicios devuelven `Result`,
-  pero también hay `throw` en algunos casos. Definir cuándo se lanza y cuándo se devuelve `Result`.
-- [ ] **API Versioning** — ¿Las rutas API ya tienen `/v1/`? Si no, añadir antes de consumidores externos.
-- [ ] **Consistencia de nombres** — Revisar convención de idioma en métodos: `findById` vs `obtenerPorId`.
-  Elegir uno y documentarlo.
-
-**Corto plazo (necesario antes del primer lanzamiento público):**
-
-- Separación de campos sensibles (UserRepository) — urgente, es seguridad
-- DTO de presentación para User — urgente, evita filtración accidental
-
-**Largo plazo (post-lanzamiento o cuando la codebase crezca):**
-
-- Value Objects completos para dominio
-- Interface Segregation en servicios grandes
-- CQRS estructurado si se añade event sourcing
-
-**Entregable de esta fase:**
-Decisiones documentadas en `docs/ARCHITECTURE.md` (sección "Decisiones de Diseño") + actualización
-de `app/Core/AbstractRepository.php` con la convención de métodos de selección.
+**Pasos 1–4 son independientes entre sí → ejecutables en paralelo.**
 
 ---
 
-## FASE 1 — Seguridad de Datos: Filtrado y Contratos de Capas
+## BLOQUE 2 — Documentación de progreso
+>
+> **Urgencia: ALTA.** La sección `[Unreleased]` vacía dice "este proyecto no se documenta".
+> No están en ningún plan existente — son tareas manuales independientes.
 
-> Depende de las decisiones tomadas en Fase 0. Implementa los contratos acordados.
-
-### Problemas identificados (CRÍTICO)
-
-- **`UserRepository::getSelectFields()`** incluye `password`, `last_ip_address`, `locked_until`,
-  `login_attempts` → cualquier `findById()` devuelve el hash de contraseña
-- **HTML Controllers** (Admin, Public, Shared) no usan Transformers → datos brutos a vistas
-- **`ReservationRepository`** expone `tracker_id`, `protocol_*`, `payment_notes` en contexto cliente
-- **`ProductRepository`** expone `recipe_steps`, `ingredients_list`, `station`, `critical_check`
-  fuera de contexto KDS/backoffice
-
-### Scope de implementación
-
-- Separar `getAuthFields()` en `UserRepository` (solo para `AuthService`)
-- Crear `app/Http/DTO/`: `UserDTO`, `CafeDTO`, `ReservationDTO`, `ProductDTO`
-- Extender Transformers existentes (ya disponibles en `app/Http/Transformers/`) a controllers HTML
-- Añadir `getOperationalFields()` en Reservation y Product repositories
-- Tests de integración que confirmen que `getSelectFields()` NO devuelve campos sensibles
-
-**Archivos afectados:**
-
-- `app/Repositories/UserRepository.php`
-- `app/Repositories/ReservationRepository.php`
-- `app/Repositories/ProductRepository.php`
-- `app/Http/Controllers/Admin/UserController.php` (y otros que usen UserRepository)
-- `app/Http/DTO/` (directorio nuevo)
-- `tests/Integration/Repositories/UserRepositoryTest.php` (nuevo)
+| # | Acción | Archivo | Estado |
+|---|--------|---------|--------|
+| 5 | Rellenar `CHANGELOG.md [Unreleased]` con todo el trabajo desde 12/04 (8 planes, 20+ commits) | `CHANGELOG.md` | - [x] ✅ |
+| 6 | Actualizar `migrations/README.md`: añadir entradas 017, 018 y nota de 019 eliminada | `migrations/README.md` | - [x] ✅ |
 
 ---
 
-## FASE 2 — Observabilidad: Logging, Trazabilidad y Monitoreo
+## BLOQUE 3 — Integridad de datos (BD y seeders)
+>
+> **Urgencia: ALTA.** Un `make db-reset` delante del tribunal puede fallar silenciosamente.
+> Plan origen: `2026-04-15-infra-calidad-integral.md` — Módulos A y B
 
-> No depende de Fase 0 ni Fase 1. Se puede implementar en paralelo.
+| # | Tarea | Archivo | Estado |
+|---|-------|---------|--------|
+| 7 | **B1** — `016_supervisor_assignments.sql`: cambiar INT → BIGINT UNSIGNED en columnas clave | `migrations/016_supervisor_assignments.sql` | - [x] ✅ |
+| 8 | **B2** — Eliminar `019_fix_supervisor_assignments_bigint.sql` (fusionado en 016 por B1) | `migrations/019_fix_supervisor_assignments_bigint.sql` | - [x] ✅ |
+| 9 | **A2** — WaitlistSeeder: `r.name` → `r.code` en línea 63 | `app/Core/Seeders/WaitlistSeeder.php` | - [x] ✅ |
+| 10 | **A3** — Prereq ReservationSeeder: añadir check `time_slots > 0` | `scripts/apply-db.php` | - [x] ✅ |
+| 11 | **A5** — Workers: investigar fallo de arranque + aplicar fix | `docker/supervisor.conf` + workers | - [ ] |
 
-### Fortalezas actuales (no tocar)
-
-- ✅ `WideEvent` — canonical log line, un evento rico por request
-- ✅ Correlation ID propagado a jobs async (`_correlation_id` en Queue payload)
-- ✅ Structured logging: JSON en prod, LineFormatter en dev
-- ✅ `LogContextProcessor` — contexto automático en todos los logs
-- ✅ Workers con logs de startup/shutdown/retry
-
-### Gaps a implementar
-
-**Corto plazo (alto impacto en dev):**
-
-- [x] **Slow Query Detection** — Decorator `LoggingPDO` en `app/Core/Database.php`
-  Umbral: `DB_SLOW_QUERY_MS` (env var, default 100ms). Dev: loguea todas en debug.
-- [x] **Request Body sanitizado en errores 4xx** — En `RequestLogMiddleware`, loguear body
-  sin campos PII (`password`, `token`, `cvv`, `card_*`).
-- [x] **Make targets dev** — `make logs-errors`, `make logs-slow`, `make logs-trace REQUEST_ID=xxx`,
-  `make logs-http` — todos via `docker compose logs app | jq '...'`
-- [x] **Health endpoint completo** — `public/health.php` existe pero puede ser básico.
-  Expandir: `{status, db, redis, workers: {email, notifications}, version}`
-
-**Largo plazo (observabilidad en producción):**
-
-- [x] **Cache hit/miss en WideEvent** — Contadores en `app/Core/Cache.php` → sección `cache: {hits, misses}`
-- [x] **Worker heartbeat + queue size** — Cada 60s: `[Worker] Heartbeat {queue, pending, processed, errors}`
-  - `Queue::size()` logueado. Dead-letter log cuando job supera `max_retries`.
-- [ ] **OpenTelemetry / Sentry** — Instrumentación externa. Es decisión de infraestructura, no de código.
-  Preparar hooks (el request_id ya existe, facilita correlación con Sentry).
-- [ ] **Métricas de percentiles** — `duration_ms` capturado en WideEvent pero sin p95/p99.
-  Requiere agregación externa (Grafana/Loki).
-
-**Archivos afectados:**
-
-- `app/Core/Database.php`
-- `app/Core/Middleware/RequestLogMiddleware.php`
-- `app/Core/Cache.php`
-- `bin/email-worker.php`, `bin/notification-worker.php`
-- `public/health.php`
-- `Makefile`
+**B1 debe completarse antes de B2. A2, A3 y A5 son independientes entre sí.**
 
 ---
 
-## FASE 3 — UI/UX: Vistas Públicas
+## BLOQUE 4 — Tests positivos de seguridad (completar FASE 1)
+>
+> **Urgencia: MEDIA.** Los tests actuales verifican que los métodos existen, no que devuelven los campos correctos.
+> Plan origen: `2026-04-13-seguridad-datos-dto.md`
 
-> No depende de Fase 0 ni Fase 1. Se puede implementar en paralelo con Fase 2.
-
-### Estado del sistema de diseño (sólido, no romper)
-
-- ✅ Design tokens completos (`design-tokens.css`) — colores, espaciado, tipografía, sombras, transiciones
-- ✅ Dark mode (`[data-tema="oscuro"]`) con paleta separada
-- ✅ 3 fuentes japonesas (`Shippori Mincho`, `Zen Maru Gothic`, `Kaisei Decol`)
-- ✅ Accesibilidad WCAG AA: focus rings, skip link, touch targets 44px, aria-live
-- ✅ Alpine.js bien organizado por sección (`catalogo.js`, `menu.js`, `detalle-cafe.js`, etc.)
-
-### Gaps por subárea
-
-**Performance Web Vitals (corto plazo, alto impacto):**
-
-- [ ] `fetchpriority="high"` en imagen hero del home (LCP)
-- [x] `loading="lazy"` + `width`/`height` explícitos en tarjetas del catálogo (CLS = 0)
-- [ ] `font-display: swap` en `@font-face` de fuentes japonesas (FOUT prevention)
-- [ ] Verificar WebP/AVIF en imágenes servidas (o añadir `<picture>` con fallback)
-
-**Dark mode — inconsistencias (corto plazo):**
-
-- [x] Imágenes sin filtro en dark → `[data-tema="oscuro"] img { filter: brightness(0.82) saturate(0.9) }`
-- [ ] Sombras usan `rgba(marrón,...)` — en dark deberían ser casi transparentes o neutras
-- [ ] Focus outlines en dark (verificar contraste sobre fondos oscuros)
-
-**Estados faltantes (corto plazo):**
-
-- [x] Skeleton loaders en catálogo y menú mientras Alpine inicializa
-- [x] Empty states con SVG + CTA cuando filtros no dan resultados
-- [ ] Estado de carga optimista en formularios (botón submit con spinner)
-
-**Tipografía (corto plazo):**
-
-- [x] `text-wrap: balance` en H1/H2 grandes
-- [x] Line-clamp en descriptions de tarjetas de café
-
-**Micro-interacciones (largo plazo, decorativo):**
-
-- [ ] Animación corazón en botón favoritos (scale + color con `@keyframes`)
-- [ ] Slide horizontal entre preguntas del quiz
-- [ ] Hover state para cards con `will-change: transform` solo durante hover (no siempre)
-
-**Accesibilidad avanzada (largo plazo):**
-
-- [x] `role="status"` en contador "X cafés encontrados"
-- [ ] `aria-label` en step indicator del quiz
-- [ ] Revisar contraste de `--color-texto-suave` (#5C4A3A) sobre `--color-fondo-alt` (#E8DCC4)
-
-**Archivos afectados (corregir):**
-
-- `resources/views/public/home.php` (fetchpriority, dark mode img)
-- `resources/views/public/cafes/index.php` (skeleton, empty state, lazy)
-- `resources/views/public/menu/index.php` (skeleton, empty state)
-- `resources/views/layouts/main.php` (font-display swap si está aquí)
-- `public/css/design-tokens.css` (dark mode sombras)
-- `public/css/` — archivos de componentes relevantes
+| # | Tarea | Archivo | Estado |
+|---|-------|---------|--------|
+| 12 | **TASK 1** — Test positivo `ReservationRepository::findWithOperationalData()` | `tests/Integration/Repositories/ReservationRepositorySecurityTest.php` | - [ ] |
+| 13 | **TASK 2** — Test positivo `ProductRepository::findWithRecipe()` | `tests/Integration/Repositories/ProductRepositorySecurityTest.php` | - [ ] |
 
 ---
 
-## Orden de Ejecución Recomendado
+## BLOQUE 5 — UI/UX Vistas Públicas (completar FASE 3)
+>
+> **Urgencia: MEDIA.** Impacto visual directo en la demo.
+> Plan origen: `2026-04-13-uiux-vistas-publicas.md`
+
+| # | Tarea | Estado |
+|---|-------|--------|
+| 14 | **TASK 1** — Dark mode: filtro CSS en imágenes | - [x] ✅ |
+| 15 | **TASK 2** — Tipografía: `text-wrap: balance` + `.line-clamp-*` | - [x] ✅ |
+| 16 | **TASK 3+4** — Cafés: `width`/`height` explícitos + `line-clamp` en cards | - [x] ✅ |
+| 17 | **TASK 5** — Skeleton loader catálogo | - [x] ✅ |
+| 18 | **TASK 6+7** — Menú: dimensiones explícitas + `line-clamp` en productos | - [x] ✅ |
+| 19 | **TASK 8** — Menú: empty state para filtro de tipo de café | - [x] ✅ |
+
+---
+
+## BLOQUE 6 — Brand Visual (completar lo que queda)
+>
+> **Urgencia: MEDIA.** Coherencia visual entre site público y backoffice.
+> Plan origen: `2026-04-14-brand-visual-unification.md` — Fase D parcial + E3-E7
+
+| # | Tarea | Estado |
+|---|-------|--------|
+| 20 | **Fase D** (componentes backoffice restantes) | - [x] ✅ |
+| 21 | **E3** — Loyalty card: reemplazar gradient indigo por paleta de marca | - [x] ✅ |
+| 22 | **E4** — Login button: reemplazar `#3B82F6` azul por `--brand-amber` | - [x] ✅ |
+| 23 | **E5-E7** — Font Awesome mezclado: eliminar referencias residuales | - [x] ✅ |
+
+---
+
+## BLOQUE 7 — Calidad técnica (deuda, no bugs)
+>
+> **Urgencia: BAJA-MEDIA.** Visible si se muestra logs o se audita el código.
+> Plan origen: `2026-04-15-infra-calidad-integral.md` — Módulos C y D
+
+| # | Tarea | Estado |
+|---|-------|--------|
+| 24 | **C1** — `scripts/apply-db.php`: emojis y `\n` literal → ASCII + Logger | - [ ] |
+| 25 | **C2** — 7 seeders: `echo` + emojis → `Logger::*` con prefijo `[ClassName]` | - [ ] |
+| 26 | **C3** — `bin/quality-check.php`: emojis → marcadores ASCII | - [ ] |
+| 27 | **D1** — AbstractRepository: añadir `execTimed()` + envolver 6 métodos CRUD | - [ ] |
+| 28 | **D2** — Logger.php: activar StreamHandler en canales `db` y `queue` | - [ ] |
+| 29 | **D3** — WideEvent::setSection en 4 servicios clave (Reservation, Review, Auth, Loyalty) | - [ ] |
+| 30 | **D4** — Logger::warning tipo B antes de Result::fail en 4 services | - [ ] |
+| 31 | **D5** — Completar `_correlation_id` en re-push de workers | - [ ] |
+
+---
+
+## BLOQUE 8 — FrankenPHP + Stack Optimization (argumento de rendimiento)
+>
+> **Urgencia: BAJA.** Impacto narrativo alto si se activa Worker Mode para demo.
+> Plan origen: `2026-04-15-frankenphp-stack-optimization.md`
+> Ejecutar solo si el tiempo lo permite. FASE 5 primero, el resto es opcional.
+
+| # | Tarea | Esfuerzo | Estado |
+|---|-------|----------|--------|
+| 32 | **FASE 0.7** — Migración CHECK Constraints + índices compuestos (`020_integrity_indexes.sql`) | Bajo | - [ ] |
+| 33 | **FASE 5** — Activar Worker Mode (`frankenphp_handle_request=1`) | Medio-alto | - [ ] |
+| 34 | **FASE 7.2** — Redis Streams en lugar de LISTS (jobs con ACK) | Alto | - [ ] |
+| 35 | Resto FASES 0-4, 6, 7.1, 7.3 | Varios | - [ ] |
+
+---
+
+## TAREAS NUEVAS — Sin plan existente (identificadas en auditoría)
+
+| # | Acción | Archivo | Esfuerzo | Estado |
+|---|--------|---------|----------|--------|
+| A | Elevar umbrales cobertura en phpunit.xml (`lowUpperBound` ≥ 50%, `highLowerBound` ≥ 70%) | `phpunit.xml` | 10 min | - [x] ✅ |
+| B | Limpiar namespace legacy `tests/Unit/Controllers/` (migrar a `tests/Unit/Http/Controllers/`) | `tests/Unit/Controllers/` | 1-2h | - [ ] (parcial — 8 archivos pendientes: Api/V1, Manager, Supervisor) |
+| C | Crear `.github/workflows/ci.yml` (phpstan + test básico) | `.github/workflows/ci.yml` (nuevo) | 1h | - [x] ✅ |
+| D | **QoL T0.4** — Loyalty card: eliminar dead code `$tierEmojis` | `resources/views/public/loyalty/card.php` | 15 min | - [x] ✅ |
+| E | **QoL T0.5** — `onerror` fallback en imágenes + crear `placeholder.svg` | Vistas públicas + `public/images/ui/placeholder.svg` | 30 min | - [x] ✅ |
+
+---
+
+## Orden de ejecución recomendado
 
 ```
-FASE 0 (principios y código fundacional)
-  → bloquea Fase 1
-
-FASE 1 + FASE 2 (pueden ir en paralelo)
-  → Fase 1 depende de Fase 0
-  → Fase 2 es independiente
-
-FASE 3 (independiente, puede empezar en cualquier momento)
-  → Recomendado: después de Fase 1 para no mezclar PRs de seguridad con PRs visuales
-
-FASE 4 (independiente de Fases 0-3)
-  → Puede ejecutarse en paralelo con cualquier fase técnica
-  → No afecta a lógica de negocio ni a tests unitarios
+DÍA 1  → BLOQUE 1 (paralelo, ~2h) + BLOQUE 2 (manual, ~1h)
+DÍA 2  → BLOQUE 3 (B1→B2, resto paralelo, ~2-3h) + BLOQUE 4 (~1h)
+DÍA 3  → BLOQUE 5 (secuencial, ~3h) + BLOQUE 6 (~2h) + Tareas D y E
+DÍA 4  → BLOQUE 7 (paralelo por módulo) + BLOQUE 8 FASE 0.7 + Tarea A
+Opcional → BLOQUE 8 FASE 5 (Worker Mode) + Tareas B y C
 ```
 
 ---
 
-## Planes de Implementación Detallados
+## Planes de implementación detallados
 
-| Fase | Plan | Estado |
-|---|---|---|
-| Fase 0 | `docs/plans/2026-04-12-principios-arquitectonicos.md` | ✅ Plan definitivo creado |
-| Fase 1 | `docs/plans/2026-04-13-seguridad-datos-dto.md` | ✅ Plan creado — en implementación |
-| Fase 2 | `docs/plans/2026-04-13-observabilidad-logging.md` | ✅ Plan creado — implementación completa |
-| Fase 3 | `docs/plans/2026-04-13-uiux-vistas-publicas.md` | ✅ Plan creado — en implementación |
-| Fase 4 | `docs/plans/2026-04-14-brand-visual-unification.md` | 🟡 En implementación — A✅ B✅(B4 pendiente) D(parcial)✅ E1+E2✅ — C y resto D pendientes |
-| Sprint QoL | `docs/plans/2026-04-14-qol-holistic-sprint.md` | 🔵 Plan creado — pendiente inicio |
-| Pre-defensa TFG | ~~`docs/plans/2026-04-15-refuerzo-predefensa-tfg.md`~~ | ✅ Completado y eliminado (2026-04-16) — PHPStan L5 0 errores, PSR-12 0 violaciones, tests 0 fallos |
-| Ecosystem Cleanup | ~~`docs/plans/2026-04-15-ecosystem-cleanup.md`~~ | ✅ Completado y eliminado (2026-04-15) — commit `ecbae94` |
-| Infra + Calidad Integral | `docs/plans/2026-04-15-infra-calidad-integral.md` | � En implementación — F3 (tooling) ✅, Docker headers ✅, A/B/C/D pendientes |
-| FrankenPHP + Stack Optimization | `docs/plans/2026-04-15-frankenphp-stack-optimization.md` | 🔵 Plan creado — pendiente inicio |
+| Plan | Archivo | Estado |
+|------|---------|--------|
+| FASE 1 — Seguridad de Datos + DTOs | `2026-04-13-seguridad-datos-dto.md` | 🟡 En implementación — Bloques 4 pendientes |
+| FASE 3 — UI/UX Vistas Públicas | `2026-04-13-uiux-vistas-publicas.md` | 🟡 En implementación — Bloque 5 pendiente |
+| Brand Visual Unification | `2026-04-14-brand-visual-unification.md` | 🟡 En implementación — Bloque 6 pendiente |
+| Sprint QoL Holístico | `2026-04-14-qol-holistic-sprint.md` | � En implementación — T3.1✅, T0.4✅, T0.5✅; pendientes T0.1/T0.2/T0.3 (OLA 0), OLAs 1-3 |
+| Infra + Calidad Integral | `2026-04-15-infra-calidad-integral.md` | 🟡 En implementación — A1✅ A2✅ A3✅; pendientes B1/B2, A5, C1-C3, D1-D5 |
+| FrankenPHP + Stack Optimization | `2026-04-15-frankenphp-stack-optimization.md` | 🔵 Pendiente inicio — Bloque 8 |
+| Cierre de Gaps Arquitectónicos | `2026-04-13-cierre-gaps-arquitectonicos.md` | ✅ Completado — GAPs 1-4 resueltos |
+| FASE 0 — Principios Arquitectónicos | `2026-04-12-principios-arquitectonicos.md` | ✅ Implementado — decisiones en `docs/ARCHITECTURE.md` |
+| Pre-defensa TFG | *(eliminado)* | ✅ Completado — PHPStan L5 0 errores, PSR-12 0 violaciones |
+| Ecosystem Cleanup | *(eliminado)* | ✅ Completado — commit `ecbae94` |

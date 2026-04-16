@@ -8,7 +8,7 @@ declare(strict_types=1);
  * ¿Qué va a fallar en este test si se cambia el código?
  */
 
-namespace Controllers\Api\V1;
+namespace Tests\Unit\Controllers\Api\V1;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\ManagerController;

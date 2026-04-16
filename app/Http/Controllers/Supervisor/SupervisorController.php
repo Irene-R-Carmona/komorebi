@@ -10,8 +10,8 @@ use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
 use App\Repositories\ReservationRepository;
+use App\Services\Contracts\SupervisorAssignmentServiceInterface;
 use App\Services\KitchenService;
-use App\Services\SupervisorAssignmentService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -40,7 +40,7 @@ final class SupervisorController
     ];
 
     public function __construct(
-        private readonly SupervisorAssignmentService $assignmentService,
+        private readonly SupervisorAssignmentServiceInterface $assignmentService,
         ?ReservationRepository $reservationRepo = null,
         ?KitchenService $kitchenService = null,
     ) {
@@ -79,7 +79,7 @@ final class SupervisorController
 
         // Mesas ocupadas = reservas con check-in activo ahora
         $activeTables = \array_values(
-            \array_filter($reservations, fn (array $r): bool => $r['status'] === 'checked_in')
+            \array_filter($reservations, fn(array $r): bool => $r['status'] === 'checked_in')
         );
 
         // Órdenes en curso desde el KDS

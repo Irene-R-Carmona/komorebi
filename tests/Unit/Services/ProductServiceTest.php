@@ -8,8 +8,12 @@ declare(strict_types=1);
  * ¿Qué va a fallar en este test si se cambia el código?
  */
 
-use App\Repositories\ProductRepository;
+namespace Tests\Unit\Services;
+
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\ProductService;
+use PDO;
+use PDOStatement;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,7 +26,19 @@ final class ProductServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ProductService($this->createStub(ProductRepository::class));
+        $stmtStub = $this->createStub(PDOStatement::class);
+        $stmtStub->method('execute')->willReturn(true);
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('prepare')->willReturn($stmtStub);
+
+        $repoStub = $this->createStub(ProductRepositoryInterface::class);
+        $repoStub->method('findFiltered')->willReturnCallback(
+            static function (array $filters, int $page, int $perPage): array {
+                return ['data' => [], 'total' => 0, 'page' => $page, 'perPage' => $perPage, 'totalPages' => 1];
+            }
+        );
+
+        $this->service = new ProductService($repoStub, $pdoStub);
     }
 
     /**

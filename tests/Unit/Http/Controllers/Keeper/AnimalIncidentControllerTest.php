@@ -23,6 +23,7 @@ use App\Http\Controllers\Keeper\AnimalIncidentController;
 use App\Repositories\AnimalRepository;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Services\AnimalCareService;
+use App\Services\Contracts\AnimalCareServiceInterface;
 use Nyholm\Psr7\ServerRequest;
 use PDO;
 use PDOStatement;
@@ -64,7 +65,7 @@ final class AnimalIncidentControllerTest extends TestCase
         return $pdo;
     }
 
-    private function makeController(?AnimalCareService $service = null): AnimalIncidentController
+    private function makeController(?AnimalCareServiceInterface $service = null): AnimalIncidentController
     {
         $pdo = $this->makePdoStub();
         $animalRepo = new AnimalRepository($pdo);
@@ -120,7 +121,7 @@ final class AnimalIncidentControllerTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_store_creates_incident_and_redirects(): void
     {
-        $service = $this->createStub(AnimalCareService::class);
+        $service = $this->createStub(AnimalCareServiceInterface::class);
         $service->method('createIncident')->willReturn(Result::ok('Incidente reportado correctamente'));
 
         $request = new ServerRequest('POST', '/keeper/incidents')
@@ -156,7 +157,7 @@ final class AnimalIncidentControllerTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_store_redirects_with_error_on_service_failure(): void
     {
-        $service = $this->createStub(AnimalCareService::class);
+        $service = $this->createStub(AnimalCareServiceInterface::class);
         $service->method('createIncident')->willReturn(Result::fail('Descripción demasiado corta'));
 
         $request = new ServerRequest('POST', '/keeper/incidents')
@@ -180,7 +181,7 @@ final class AnimalIncidentControllerTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_show_renders_view_and_returns_null(): void
     {
-        $service = $this->createStub(AnimalCareService::class);
+        $service = $this->createStub(AnimalCareServiceInterface::class);
         $service->method('getIncidentById')->willReturn([
             'id' => 5,
             'animal_name' => 'Mochi',
@@ -207,7 +208,7 @@ final class AnimalIncidentControllerTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_resolve_resolves_incident_and_redirects(): void
     {
-        $service = $this->createStub(AnimalCareService::class);
+        $service = $this->createStub(AnimalCareServiceInterface::class);
         $service->method('resolveIncident')->willReturn(Result::ok('Incidente resuelto correctamente'));
 
         $request = new ServerRequest('POST', '/keeper/incidents/5/resolve')

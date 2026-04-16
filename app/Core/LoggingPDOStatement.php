@@ -21,9 +21,7 @@ final class LoggingPDOStatement extends PDOStatement
      *
      * @param int $slowMs Umbral en milisegundos para considerar una query como lenta.
      */
-    protected function __construct(private readonly int $slowMs)
-    {
-    }
+    protected function __construct(private readonly int $slowMs) {}
 
     /**
      * Ejecuta el statement midiendo la duración con hrtime().
@@ -43,7 +41,7 @@ final class LoggingPDOStatement extends PDOStatement
         if ($ms >= $this->slowMs) {
             Logger::warning('[DB] Slow query', [
                 'duration_ms' => $ms,
-                'sql' => $this->truncateSql($this->queryString),
+                'sql' => self::truncateSql($this->queryString),
             ]);
         }
 
@@ -53,7 +51,7 @@ final class LoggingPDOStatement extends PDOStatement
     /**
      * Trunca SQL a 500 caracteres para evitar logs excesivamente grandes.
      */
-    protected function truncateSql(string $sql): string
+    private static function truncateSql(string $sql): string
     {
         if (\mb_strlen($sql) <= 500) {
             return $sql;

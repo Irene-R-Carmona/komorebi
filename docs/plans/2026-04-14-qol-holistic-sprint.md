@@ -251,7 +251,7 @@ git commit -m "fix(keeper): KPI Animales Activos usa stats[healthy], reemplaza a
 
 `$tierEmojis` está definido con clases Bootstrap Icons pero nunca se usa en el template → dead code que puede confundir. Los iconos de tier sí usan `$tierIcons` correctamente.
 
-- [ ] **Paso 1: Verificar que Bootstrap Icons cargan correctamente**
+- [x] **Paso 1: Verificar que Bootstrap Icons cargan correctamente**
 
 Con stack levantado, abrir `/loyalty/card` e inspeccionar los iconos de tier (`bi-award`, `bi-shield-fill`, etc.). Si se ven correctamente, continuar.
 
@@ -263,7 +263,7 @@ Si *no* se ven, verificar en `resources/views/layouts/main.php` que exista la l�
 
 Si no existe, añadirla en el `<head>`.
 
-- [ ] **Paso 2: Localizar y eliminar `$tierEmojis`**
+- [x] **Paso 2: Localizar y eliminar `$tierEmojis`**
 
 ```bash
 grep -n "tierEmojis" resources/views/public/loyalty/card.php
@@ -271,14 +271,14 @@ grep -n "tierEmojis" resources/views/public/loyalty/card.php
 
 Localizar el bloque de PHP donde se define `$tierEmojis` (array con clases BI como valores). Eliminar completamente ese bloque ya que no se usa en ningún lugar del template.
 
-- [ ] **Paso 3: Verificar que no hay referencias rotas**
+- [x] **Paso 3: Verificar que no hay referencias rotas** ✅
 
 ```bash
 grep -n "tierEmojis" resources/views/public/loyalty/card.php
 # Debe retornar: sin resultados
 ```
 
-- [ ] **Paso 4: Commit**
+- [x] **Paso 4: Commit** ✅
 
 ```bash
 git add resources/views/public/loyalty/card.php
@@ -296,7 +296,7 @@ git commit -m "fix(loyalty): eliminar array tierEmojis sin uso (dead code)"
 
 Los archivos de imagen no existen en el repo. El fallback SVG evita broken images en cualquier entorno sin assets físicos.
 
-- [ ] **Paso 1: Crear el fichero placeholder SVG**
+- [x] **Paso 1: Crear el fichero placeholder SVG** ✅
 
 Crear `public/images/ui/placeholder.svg` con el siguiente contenido (placeholder neutro de 400×300 con silueta):
 
@@ -310,7 +310,7 @@ Crear `public/images/ui/placeholder.svg` con el siguiente contenido (placeholder
 </svg>
 ```
 
-- [ ] **Paso 2: Localizar todos los `<img>` de cafés sin `onerror`**
+- [x] **Paso 2: Localizar todos los `<img>` de cafés sin `onerror`** ✅
 
 ```bash
 grep -rn "<img" resources/views/public/cafes/ resources/views/public/quiz/ resources/views/backoffice/keeper/ \
@@ -318,7 +318,7 @@ grep -rn "<img" resources/views/public/cafes/ resources/views/public/quiz/ resou
   | grep -v "onerror"
 ```
 
-- [ ] **Paso 3: Añadir `onerror` en cada `<img>` identificado**
+- [x] **Paso 3: Añadir `onerror` en cada `<img>` identificado** ✅
 
 Para cada `<img src="...">` que muestre imágenes de cafés o animales, añadir el atributo:
 
@@ -341,11 +341,11 @@ El mismo patrón se aplica a imágenes de animales:
      onerror="this.src='/images/ui/placeholder.svg'; this.onerror=null;">
 ```
 
-- [ ] **Paso 4: Verificar visualmente con stack levantado**
+- [x] **Paso 4: Verificar visualmente con stack levantado** ✅
 
 Abrir `/cafes`. Las cards deben mostrar el placeholder SVG (fondo crema con silueta) en lugar de iconos de imagen rota.
 
-- [ ] **Paso 5: Commit**
+- [x] **Paso 5: Commit** ✅
 
 ```bash
 git add public/images/ui/placeholder.svg resources/views/
@@ -626,7 +626,7 @@ git commit -m "refactor(kds): extraer thresholds de tiempo a constantes nombrada
 
 El usuario que llega a una URL inexistente no tiene forma de volver al site.
 
-- [ ] **Paso 1: Localizar la vista 404**
+- [x] **Paso 1: Localizar la vista 404** ✅
 
 ```bash
 grep -rn "404\|not.found\|NotFound" resources/views/ --include="*.php" -l
@@ -635,7 +635,7 @@ grep -rn "404" app/routes.php | head -5
 
 Identificar el fichero exacto.
 
-- [ ] **Paso 2: Añadir navegación mínima**
+- [x] **Paso 2: Añadir navegación mínima** ✅
 
 En la vista 404, añadir dentro del contenido visible (después del mensaje de error):
 
@@ -661,11 +661,11 @@ En la vista 404, añadir dentro del contenido visible (después del mensaje de e
 
 Si la vista usa el layout principal (`layouts/main.php`), el navbar ya está presente y este enlace es un fallback adicional bajo el mensaje de error para claridad.
 
-- [ ] **Paso 3: Verificar en browser**
+- [x] **Paso 3: Verificar en browser** ✅
 
 Navegar a `/url-que-no-existe`. La página 404 debe mostrar el botón "Volver al inicio" que lleva a `/`.
 
-- [ ] **Paso 4: Verificar accesibilidad básica**
+- [x] **Paso 4: Verificar accesibilidad básica** ✅
 
 ```bash
 make e2e-a11y
@@ -673,7 +673,7 @@ make e2e-a11y
 
 Sin regresiones en contraste o estructura semántica.
 
-- [ ] **Paso 5: Commit**
+- [x] **Paso 5: Commit** ✅
 
 ```bash
 git add resources/views/

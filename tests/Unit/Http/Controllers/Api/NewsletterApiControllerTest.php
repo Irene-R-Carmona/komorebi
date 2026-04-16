@@ -17,17 +17,17 @@ namespace Tests\Unit\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\NewsletterApiController;
-use App\Services\NewsletterService;
+use App\Services\Contracts\NewsletterServiceInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
 
 final class NewsletterApiControllerTest extends ControllerTestCase
 {
-    private function makeController(?NewsletterService $service = null): NewsletterApiController
+    private function makeController(?NewsletterServiceInterface $service = null): NewsletterApiController
     {
         if ($service === null) {
-            $service = $this->createStub(NewsletterService::class);
+            $service = $this->createStub(NewsletterServiceInterface::class);
             $service->method('subscribe')->willReturn(['success' => true, 'message' => 'Suscrito correctamente']);
         }
 
@@ -64,7 +64,7 @@ final class NewsletterApiControllerTest extends ControllerTestCase
 
     public function test_subscribe_returns_400_when_service_fails(): void
     {
-        $service = $this->createStub(NewsletterService::class);
+        $service = $this->createStub(NewsletterServiceInterface::class);
         $service->method('subscribe')->willReturn(['success' => false, 'message' => 'Ya suscrito']);
 
         $response = $this->makeController($service)->subscribe(

@@ -35,13 +35,6 @@ $tierIcons = [
     'platinum' => 'bi-gem',
 ];
 
-$tierEmojis = [
-    'bronze' => 'bi-award',
-    'silver' => 'bi-award-fill',
-    'gold' => 'bi-trophy',
-    'platinum' => 'bi-gem',
-];
-
 // Progreso
 $nextTier = $tier_progress['next_tier'] ?? 'silver';
 $visitsNeeded = (int) ($tier_progress['visits_needed'] ?? 10);

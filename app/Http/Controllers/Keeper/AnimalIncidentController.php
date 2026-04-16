@@ -14,6 +14,7 @@ use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Repositories\AnimalRepository;
 use App\Services\AnimalCareService;
+use App\Services\Contracts\AnimalCareServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,12 +25,12 @@ use Random\RandomException;
  */
 final class AnimalIncidentController
 {
-    private AnimalCareService $service;
+    private AnimalCareServiceInterface $service;
     private ResponseFactory $response;
     private AnimalRepository $animalRepository;
 
     public function __construct(
-        ?AnimalCareService $service = null,
+        ?AnimalCareServiceInterface $service = null,
         ?ResponseFactory $response = null,
         ?AnimalRepository $animalRepository = null,
     ) {

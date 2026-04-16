@@ -9,6 +9,7 @@ use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\UserRepository;
 use App\Services\Contracts\StaffShiftServiceInterface;
 use App\Services\StaffShiftService;
@@ -23,14 +24,14 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class StaffController
 {
-    private UserRepository $userRepo;
+    private UserRepositoryInterface $userRepo;
 
     private ResponseFactory $response;
 
     private StaffShiftServiceInterface $shiftService;
 
     public function __construct(
-        ?UserRepository $userRepo = null,
+        ?UserRepositoryInterface $userRepo = null,
         ?ResponseFactory $response = null,
         ?StaffShiftServiceInterface $shiftService = null,
     ) {

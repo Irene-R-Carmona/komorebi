@@ -19,7 +19,7 @@ declare(strict_types=1);
  * - Si el constructor deja de aceptar ReservationRepository inyectado.
  */
 
-namespace Controllers\Supervisor;
+namespace Tests\Unit\Controllers\Supervisor;
 
 use App\Http\Controllers\Supervisor\SupervisorController;
 use App\Repositories\ReservationRepository;

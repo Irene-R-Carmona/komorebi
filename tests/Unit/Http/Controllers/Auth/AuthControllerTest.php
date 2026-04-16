@@ -19,7 +19,7 @@ namespace Tests\Unit\Http\Controllers\Auth;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Auth\AuthController;
-use App\Services\AuthService;
+use App\Services\Contracts\AuthServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
 
@@ -43,7 +43,7 @@ final class AuthControllerTest extends ControllerTestCase
     private function makeController(): AuthController
     {
         return new AuthController(
-            authService: $this->createStub(AuthService::class),
+            authService: $this->createStub(AuthServiceInterface::class),
             response: new ResponseFactory(),
         );
     }

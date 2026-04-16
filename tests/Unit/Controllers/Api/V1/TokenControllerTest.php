@@ -16,7 +16,7 @@ declare(strict_types=1);
  * de respuesta, o en las reglas de validación de nombre de token.
  */
 
-namespace Controllers\Api\V1;
+namespace Tests\Unit\Controllers\Api\V1;
 
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;

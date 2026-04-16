@@ -18,7 +18,7 @@ namespace Tests\Unit\Http\Controllers\Api\V1;
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Http\Controllers\Api\V1\SupervisorController;
-use App\Services\SupervisorAssignmentService;
+use App\Services\Contracts\SupervisorAssignmentServiceInterface;
 use Tests\Support\ControllerTestCase;
 
 final class SupervisorControllerTest extends ControllerTestCase
@@ -36,11 +36,11 @@ final class SupervisorControllerTest extends ControllerTestCase
         $_SESSION = [];
     }
 
-    private function makeController(?SupervisorAssignmentService $service = null): SupervisorController
+    private function makeController(?SupervisorAssignmentServiceInterface $service = null): SupervisorController
     {
         return new SupervisorController(
             new ResponseFactory(),
-            $service ?? $this->createStub(SupervisorAssignmentService::class)
+            $service ?? $this->createStub(SupervisorAssignmentServiceInterface::class)
         );
     }
 
@@ -59,7 +59,7 @@ final class SupervisorControllerTest extends ControllerTestCase
     {
         $this->asUser(userId: 1, role: 'supervisor');
 
-        $service = $this->createStub(SupervisorAssignmentService::class);
+        $service = $this->createStub(SupervisorAssignmentServiceInterface::class);
         $service->method('createFromRequest')->willReturn(Result::ok(['id' => 1, 'table_code' => 'A1']));
 
         $response = $this->makeController($service)->assign(
@@ -75,7 +75,7 @@ final class SupervisorControllerTest extends ControllerTestCase
     {
         $this->asUser(userId: 1, role: 'supervisor');
 
-        $service = $this->createStub(SupervisorAssignmentService::class);
+        $service = $this->createStub(SupervisorAssignmentServiceInterface::class);
         $service->method('createFromRequest')->willReturn(Result::fail('Datos inválidos', 'validation_error'));
 
         $response = $this->makeController($service)->assign(

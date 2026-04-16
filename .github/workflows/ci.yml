@@ -17,6 +17,7 @@ jobs:
   quality:
     name: Code Quality
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +43,7 @@ jobs:
         run: vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff
 
       - name: Static analysis (PHPStan)
-        run: vendor/bin/phpstan analyse --memory-limit=256M --no-progress
+        run: vendor/bin/phpstan analyse --memory-limit=256M --no-progress --error-format=github
 
   # --------------------------------------------------------------------------
   # Job 2: Tests unitarios en paralelo (sin Docker, feedback rápido)
@@ -50,6 +51,7 @@ jobs:
   unit-tests:
     name: Unit Tests (paratest ×4)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -84,6 +86,7 @@ jobs:
   tests:
     name: Integration & Coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       actions: write
@@ -168,6 +171,7 @@ jobs:
   sast:
     name: SAST (Semgrep)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:

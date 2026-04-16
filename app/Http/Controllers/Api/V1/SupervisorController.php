@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Http\Controllers\Api\AbstractApiController;
-use App\Services\SupervisorAssignmentService;
+use App\Services\Contracts\SupervisorAssignmentServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -21,7 +21,7 @@ final class SupervisorController extends AbstractApiController
 {
     public function __construct(
         ResponseFactory $response,
-        private readonly SupervisorAssignmentService $service,
+        private readonly SupervisorAssignmentServiceInterface $service,
     ) {
         parent::__construct($response);
     }

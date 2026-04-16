@@ -72,4 +72,12 @@ interface ProductRepositoryInterface
      * @return array<int, array<string, mixed>>
      */
     public function findItemsByIds(array $ids): array;
+
+    /**
+     * Obtener productos filtrados con paginación.
+     *
+     * @param array<string, mixed> $filters
+     * @return array{data: array, total: int, page: int, perPage: int, totalPages: int}
+     */
+    public function findFiltered(array $filters = [], int $page = 1, int $perPage = 20): array;
 }

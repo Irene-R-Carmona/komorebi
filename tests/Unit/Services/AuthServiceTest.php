@@ -8,11 +8,15 @@ declare(strict_types=1);
  * ¿Qué va a fallar en este test si se cambia el código?
  */
 
-use App\Models\User;
-use App\Repositories\UserRepository;
+namespace Tests\Unit\Services;
+
+use App\Models\Contracts\UserModelInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\AuthService;
 use App\Services\Contracts\RateLimitingServiceInterface;
-use App\Services\SessionManagementService;
+use App\Services\Contracts\SessionManagementServiceInterface;
+use PDO;
+use PDOStatement;
 use PHPUnit\Framework\TestCase;
 use Random\RandomException;
 
@@ -24,32 +28,38 @@ use Random\RandomException;
 final class AuthServiceTest extends TestCase
 {
     private AuthService $service;
-    /** @var \PHPUnit\Framework\MockObject\Stub&UserRepository */
-    private UserRepository $userRepoMock;
+    /** @var \PHPUnit\Framework\MockObject\Stub&UserRepositoryInterface */
+    private UserRepositoryInterface $userRepoMock;
     /** @var \PHPUnit\Framework\MockObject\Stub&RateLimitingServiceInterface */
     private RateLimitingServiceInterface $rateLimiterStub;
-    private SessionManagementService $sessionService;
+    /** @var \PHPUnit\Framework\MockObject\Stub&SessionManagementServiceInterface */
+    private SessionManagementServiceInterface $sessionServiceStub;
+    /** @var \PHPUnit\Framework\MockObject\Stub&UserModelInterface */
+    private UserModelInterface $userModelStub;
 
     protected function setUp(): void
     {
-        // Mock del repositorio UserRepository
-        $this->userRepoMock = $this->createStub(UserRepository::class);
-        $this->rateLimiterStub = $this->createStub(RateLimitingServiceInterface::class);
+        $this->userRepoMock       = $this->createStub(UserRepositoryInterface::class);
+        $this->rateLimiterStub    = $this->createStub(RateLimitingServiceInterface::class);
+        $this->sessionServiceStub = $this->createStub(SessionManagementServiceInterface::class);
+        $this->userModelStub      = $this->createStub(UserModelInterface::class);
 
-        // SessionManagementService es final → se usa instancia real
-        $pdo = \App\Core\Database::getConnection();
-        $this->sessionService = new SessionManagementService($pdo);
+        // PDO stub: prepare() devuelve un statement que ejecuta sin errores
+        $stmtStub = $this->createStub(PDOStatement::class);
+        $stmtStub->method('execute')->willReturn(true);
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('prepare')->willReturn($stmtStub);
 
         $this->service = new AuthService(
             $this->userRepoMock,
-            new User(),
-            $this->sessionService,
+            $this->userModelStub,
+            $this->sessionServiceStub,
             $this->rateLimiterStub,
-            $pdo
+            $pdoStub
         );
 
-        // Simular superglobales (usar IP única por test para evitar rate-limits acumulados)
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.' . (string) random_int(2, 254);
+        // Simular superglobales (IP única por test para evitar rate-limits acumulados)
+        $_SERVER['REMOTE_ADDR']    = '127.0.0.' . (string) random_int(2, 254);
         $_SERVER['HTTP_USER_AGENT'] = 'PHPUnit Test';
     }
 
@@ -158,20 +168,24 @@ final class AuthServiceTest extends TestCase
     public function testEmailIsNormalizedToLowercase(): void
     {
         // Construir un mock local con expectativa sobre el argumento
-        $mock = $this->createMock(UserRepository::class);
+        $mock = $this->createMock(UserRepositoryInterface::class);
         $mock->expects($this->once())
-            ->method('findByEmail')
+            ->method('findByEmailWithCredentials')
             ->with($this->equalTo('test@example.com'))
             ->willReturn(null);
 
-        $pdo = \App\Core\Database::getConnection();
+        $stmtStub = $this->createStub(PDOStatement::class);
+        $stmtStub->method('execute')->willReturn(true);
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('prepare')->willReturn($stmtStub);
+
         // Usar servicio construido con el mock que verifica el argumento
         $service = new AuthService(
             $mock,
-            new User(),
-            $this->sessionService,
+            $this->userModelStub,
+            $this->sessionServiceStub,
             $this->rateLimiterStub,
-            $pdo
+            $pdoStub
         );
         $service->login('TEST@EXAMPLE.COM', 'password123');
 
@@ -281,6 +295,8 @@ final class AuthServiceTest extends TestCase
             'name' => 'Test User',
             'login_attempts' => 0,
         ]);
+        $this->userModelStub->method('isLocked')->willReturn(false);
+        $this->userModelStub->method('verifyPassword')->willReturn(false);
 
         $result = $this->service->login('user@example.com', 'wrong_password');
 

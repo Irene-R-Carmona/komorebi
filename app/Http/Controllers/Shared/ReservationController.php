@@ -18,6 +18,7 @@ use App\Http\Transformers\ReservationTransformer;
 use App\Models\Reservation;
 use App\Services\AvailabilityService;
 use App\Services\CartService;
+use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\ClimaContextoServiceInterface;
 use App\Services\FestivosJaponesesService;
 use App\Services\ReservationService;
@@ -35,7 +36,7 @@ use Throwable;
  */
 final class ReservationController
 {
-    private CartService $cartService;
+    private CartServiceInterface $cartService;
     private ReservationService $reservationService;
     private AvailabilityService $availabilityService;
     private Reservation $reservationModel;
@@ -44,7 +45,7 @@ final class ReservationController
     private ResponseFactory $response;
 
     public function __construct(
-        ?CartService $cartService = null,
+        ?CartServiceInterface $cartService = null,
         ?ReservationService $reservationService = null,
         ?AvailabilityService $availabilityService = null,
         ?Reservation $reservationModel = null,

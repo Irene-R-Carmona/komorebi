@@ -12,6 +12,7 @@ use App\Core\View;
 use App\Http\Transformers\AnimalTransformer;
 use App\Repositories\AnimalRepository;
 use App\Services\AnimalCareService;
+use App\Services\Contracts\AnimalCareServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -22,7 +23,7 @@ use Random\RandomException;
  */
 final class AnimalController
 {
-    private AnimalCareService $animalCareService;
+    private AnimalCareServiceInterface $animalCareService;
     private ResponseFactory $response;
     private AnimalTransformer $animalTransformer;
 
@@ -30,7 +31,7 @@ final class AnimalController
     private const ADMIN_ANIMALS_URL = '/admin/animals';
 
     public function __construct(
-        ?AnimalCareService $animalCareService = null,
+        ?AnimalCareServiceInterface $animalCareService = null,
         ?ResponseFactory $response = null,
         ?AnimalTransformer $animalTransformer = null,
     ) {

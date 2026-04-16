@@ -8,7 +8,7 @@
 > un error en una migration, se corrige en el archivo original y se borra el fix.
 
 **Fecha creación:** 15 de abril de 2026
-**Estado:** 🔵 Plan creado — pendiente inicio
+**Estado:** � En implementación — A1/A2/A3 completados; B1/B2/A5, C1-C3, D1-D5 pendientes
 **Dependencias:** ninguna (trabaja sobre archivos de infra y core, sin tocar contratos entre capas)
 
 ---
@@ -27,9 +27,9 @@
 
 | ID | Severidad | Archivo | Bug |
 |----|-----------|---------|-----|
-| A1 | CRÍTICA | `scripts/apply-db.php` | Migraciones 016-018 no están en el array `$migrations` → tablas supervisor_assignments, product_stock, api_tokens nunca se crean |
-| A2 | ALTA | `app/Core/Seeders/WaitlistSeeder.php:63` | `WHERE r.name = 'user'` → debe ser `r.code` → 0 usuarios encontrados → seeder vacío |
-| A3 | ALTA | `scripts/apply-db.php` prereq ReservationSeeder | No verifica `time_slots > 0` → corre en Pass 1 antes de TimeSlotSeeder → 0 reservas completadas → ReviewSeeder falla los 3 passes |
+| ~~A1~~ | ~~CRÍTICA~~ | ~~`scripts/apply-db.php`~~ | ~~Migraciones 016-018~~ | ✅ Resuelto |
+| ~~A2~~ | ~~ALTA~~ | ~~`app/Core/Seeders/WaitlistSeeder.php:63`~~ | ~~`WHERE r.name` → `r.code`~~ | ✅ Resuelto |
+| ~~A3~~ | ~~ALTA~~ | ~~`scripts/apply-db.php` prereq ReservationSeeder~~ | ~~`time_slots > 0` check~~ | ✅ Resuelto |
 | A4 | MEDIA | `migrations/019_fix_supervisor_assignments_bigint.sql` | Migration de fix en dev (inaceptable) — su contenido debe fusionarse en 016 y eliminarse |
 | A5 | MEDIA | `docker-compose.yml:85` | `dev.cnf` ignorado en Windows Docker (world-writable) → MySQL arranca con defaults en vez de config de dev optimizada |
 | A6 | MEDIA | `app/Workers/*.php` | Workers no arrancan en `make dev` — causa a investigar antes del fix |
@@ -60,7 +60,7 @@
 
 > 019 NO se añade — su contenido se fusiona en 016 en el Módulo B y el archivo se elimina.
 
-- [ ] A1 — Añadir migraciones 016-018 al array en apply-db.php
+- [x] A1 — Añadir migraciones 016-018 al array en apply-db.php ✅
 
 ---
 
@@ -72,7 +72,7 @@
 Todos los demás seeders usan `r.code` como identificador único de rol. La columna `name`
 no existe como identificador en la tabla `roles`.
 
-- [ ] A2 — WaitlistSeeder: `r.name` → `r.code` en línea 63
+- [x] A2 — WaitlistSeeder: `r.name` → `r.code` en línea 63 ✅
 
 ---
 
@@ -95,7 +95,7 @@ return $u > 0 && $c > 0 && $p > 0 && $t > 0;
 Efecto: ReservationSeeder se fuerza a Pass 2 (TimeSlotSeeder corre en Pass 1), las reservas
 se crean con `time_slot_id`, llegan a `completed`, ReviewSeeder pasa en Pass 2 o 3.
 
-- [ ] A3 — Prereq ReservationSeeder: añadir verificación `time_slots > 0`
+- [x] A3 — Prereq ReservationSeeder: añadir verificación `time_slots > 0` ✅
 
 ---
 

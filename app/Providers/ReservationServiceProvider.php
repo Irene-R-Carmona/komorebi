@@ -23,6 +23,7 @@ use App\Repositories\TimeSlotRepository;
 use App\Repositories\WaitlistRepository;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\ReservationTimeSlotServiceInterface;
 use App\Services\Contracts\TimeSlotServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
@@ -44,29 +45,29 @@ final class ReservationServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Repositorios de reservas
-        Container::singleton(ReservationRepositoryInterface::class, fn () => new ReservationRepository(
+        Container::singleton(ReservationRepositoryInterface::class, fn() => new ReservationRepository(
             Database::getConnection()
         ));
 
-        Container::singleton(ProductRepositoryInterface::class, fn () => new ProductRepository(
+        Container::singleton(ProductRepositoryInterface::class, fn() => new ProductRepository(
             Database::getConnection()
         ));
 
-        Container::singleton(AnimalRepositoryInterface::class, fn () => new AnimalRepository(
+        Container::singleton(AnimalRepositoryInterface::class, fn() => new AnimalRepository(
             Database::getConnection()
         ));
 
-        Container::singleton(TimeSlotRepositoryInterface::class, fn () => new TimeSlotRepository(
+        Container::singleton(TimeSlotRepositoryInterface::class, fn() => new TimeSlotRepository(
             Database::getConnection()
         ));
 
         // Servicios de soporte
-        Container::singleton(InvoicePDFServiceInterface::class, fn () => new InvoicePDFService());
+        Container::singleton(InvoicePDFServiceInterface::class, fn() => new InvoicePDFService());
 
-        Container::singleton(EmailServiceInterface::class, fn () => new EmailService());
+        Container::singleton(EmailServiceInterface::class, fn() => new EmailService());
 
         // Servicio principal de reservas (DI limpio)
-        Container::singleton(ReservationService::class, fn () => new ReservationService(
+        Container::singleton(ReservationService::class, fn() => new ReservationService(
             Container::make(ReservationRepositoryInterface::class),
             Container::make(CafeRepositoryInterface::class),
             Container::make(ProductRepositoryInterface::class),
@@ -75,6 +76,8 @@ final class ReservationServiceProvider extends ServiceProvider
             Container::make(EventDispatcherInterface::class),
             Container::make(UserProfileServiceInterface::class)
         ));
+
+        Container::singleton(ReservationServiceInterface::class, fn() => Container::make(ReservationService::class));
 
         // Modelos (lazy loading)
         Container::singleton(Reservation::class, function () {
@@ -99,27 +102,27 @@ final class ReservationServiceProvider extends ServiceProvider
             );
         });
 
-        Container::singleton(ReservationTimeSlotServiceInterface::class, fn () => Container::make(ReservationTimeSlotService::class));
+        Container::singleton(ReservationTimeSlotServiceInterface::class, fn() => Container::make(ReservationTimeSlotService::class));
 
         // WaitlistService: gestión completa de lista de espera
-        Container::singleton(WaitlistRepository::class, fn () => new WaitlistRepository(
+        Container::singleton(WaitlistRepository::class, fn() => new WaitlistRepository(
             Database::getConnection()
         ));
 
-        Container::singleton(WaitlistRepositoryInterface::class, fn () => Container::make(
+        Container::singleton(WaitlistRepositoryInterface::class, fn() => Container::make(
             WaitlistRepository::class
         ));
 
-        Container::singleton(WaitlistService::class, fn () => new WaitlistService(
+        Container::singleton(WaitlistService::class, fn() => new WaitlistService(
             Database::getConnection(),
             Container::make(EmailServiceInterface::class),
             Container::make(WaitlistRepositoryInterface::class)
         ));
 
-        Container::singleton(WaitlistServiceInterface::class, fn () => Container::make(WaitlistService::class));
+        Container::singleton(WaitlistServiceInterface::class, fn() => Container::make(WaitlistService::class));
 
-        Container::singleton(TimeSlotService::class, fn () => new TimeSlotService(Database::getConnection()));
-        Container::singleton(TimeSlotServiceInterface::class, fn () => Container::make(TimeSlotService::class));
+        Container::singleton(TimeSlotService::class, fn() => new TimeSlotService(Database::getConnection()));
+        Container::singleton(TimeSlotServiceInterface::class, fn() => Container::make(TimeSlotService::class));
     }
 
     #[\Override]

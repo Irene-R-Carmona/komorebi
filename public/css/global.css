@@ -134,8 +134,11 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30L30 0z' fill='none' stroke='%234A3828' stroke-width='0.5' opacity='0.4'/%3E%3C/svg%3E");
 }
 
-[data-tema="oscuro"] img {
-  filter: brightness(0.9) contrast(1.05);
+/* Imágenes atenuadas en dark mode para reducir contraste
+   Excluir con data-no-filter en imágenes decorativas que deben verse al 100% */
+[data-tema="oscuro"] img:not([data-no-filter]) {
+  filter: brightness(0.82) saturate(0.9);
+  transition: filter var(--transicion);
 }
 
 a {

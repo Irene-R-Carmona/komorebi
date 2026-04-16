@@ -22,20 +22,24 @@ use PHPUnit\Framework\TestCase;
 
 final class LoggingPDOStatementTest extends TestCase
 {
+    private function callTruncateSql(string $sql): string
+    {
+        $method = new \ReflectionMethod(LoggingPDOStatement::class, 'truncateSql');
+        return (string) $method->invoke(null, $sql);
+    }
+
     public function testTruncateSqlReturnsSqlUnchangedWhenShort(): void
     {
-        $stmt = new LoggingPDOStatementExposed(100);
         $sql = 'SELECT * FROM cafes WHERE id = ?';
 
-        $this->assertSame($sql, $stmt->exposeTruncateSql($sql));
+        $this->assertSame($sql, $this->callTruncateSql($sql));
     }
 
     public function testTruncateSqlCutsAt500Chars(): void
     {
-        $stmt = new LoggingPDOStatementExposed(100);
         $sql = \str_repeat('X', 600);
 
-        $result = $stmt->exposeTruncateSql($sql);
+        $result = $this->callTruncateSql($sql);
 
         $this->assertSame(500, \strlen($result));
         $this->assertStringEndsWith('...', $result);
@@ -43,25 +47,8 @@ final class LoggingPDOStatementTest extends TestCase
 
     public function testTruncateSqlExactly500CharsUnchanged(): void
     {
-        $stmt = new LoggingPDOStatementExposed(100);
         $sql = \str_repeat('Y', 500);
 
-        $this->assertSame($sql, $stmt->exposeTruncateSql($sql));
-    }
-}
-
-/**
- * Subclase de test que expone el método privado truncateSql sin necesidad de Reflection.
- */
-final class LoggingPDOStatementExposed extends LoggingPDOStatement
-{
-    public function __construct(int $slowMs)
-    {
-        parent::__construct($slowMs);
-    }
-
-    public function exposeTruncateSql(string $sql): string
-    {
-        return $this->truncateSql($sql);
+        $this->assertSame($sql, $this->callTruncateSql($sql));
     }
 }

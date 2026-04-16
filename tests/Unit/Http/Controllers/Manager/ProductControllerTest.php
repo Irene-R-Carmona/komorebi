@@ -17,7 +17,7 @@ namespace Tests\Unit\Http\Controllers\Manager;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Manager\ProductController;
-use App\Services\ProductService;
+use App\Services\Contracts\ProductServiceInterface;
 use Tests\Support\ControllerTestCase;
 
 final class ProductControllerTest extends ControllerTestCase
@@ -35,7 +35,7 @@ final class ProductControllerTest extends ControllerTestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_instance_can_be_created_with_response_factory(): void
     {
-        $productService = $this->createStub(ProductService::class);
+        $productService = $this->createStub(ProductServiceInterface::class);
         $controller = new ProductController($productService, new ResponseFactory());
         $this->assertInstanceOf(ProductController::class, $controller);
     }

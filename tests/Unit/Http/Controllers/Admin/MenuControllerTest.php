@@ -19,7 +19,7 @@ namespace Tests\Unit\Http\Controllers\Admin;
 use App\Core\Http\ResponseFactory;
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Admin\MenuController;
-use App\Services\ProductService;
+use App\Services\Contracts\ProductServiceInterface;
 use Tests\Support\ControllerTestCase;
 
 final class MenuControllerTest extends ControllerTestCase
@@ -42,7 +42,7 @@ final class MenuControllerTest extends ControllerTestCase
     private function makeController(): MenuController
     {
         return new MenuController(
-            productService: $this->createStub(ProductService::class),
+            productService: $this->createStub(ProductServiceInterface::class),
             response: new ResponseFactory(),
         );
     }

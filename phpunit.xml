@@ -48,8 +48,8 @@
             <text outputFile="php://stdout" showOnlySummary="true"/>
             <clover outputFile="tests/reports/coverage.xml"/>
             <html outputDirectory="tests/reports/coverage/"
-                  lowUpperBound="15"
-                  highLowerBound="18"/>
+                  lowUpperBound="50"
+                  highLowerBound="70"/>
         </report>
     </coverage>
 

@@ -15,6 +15,7 @@ use App\Exceptions\ValidationException;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\AuthService;
+use App\Services\Contracts\AuthServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -34,10 +35,10 @@ use Throwable;
  */
 final class AuthController
 {
-    private AuthService $authService;
+    private AuthServiceInterface $authService;
     private ResponseFactory $response;
 
-    public function __construct(?AuthService $authService = null, ?ResponseFactory $response = null)
+    public function __construct(?AuthServiceInterface $authService = null, ?ResponseFactory $response = null)
     {
         $this->authService = $authService ?? Container::make(AuthService::class);
         $this->response = $response ?? new ResponseFactory();

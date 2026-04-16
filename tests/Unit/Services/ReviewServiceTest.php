@@ -18,7 +18,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Core\Result;
-use App\Models\User;
+use App\Models\Contracts\UserModelInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Services\ReviewService;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -39,12 +39,12 @@ use PHPUnit\Framework\TestCase;
 final class ReviewServiceTest extends TestCase
 {
     private ReviewService $service;
-    private User&Stub $userModelMock;
+    private UserModelInterface&Stub $userModelMock;
     private ReviewRepositoryInterface&MockObject $reviewRepoMock;
 
     protected function setUp(): void
     {
-        $this->userModelMock = $this->createStub(User::class);
+        $this->userModelMock = $this->createStub(UserModelInterface::class);
         $this->reviewRepoMock = $this->createMock(ReviewRepositoryInterface::class);
         $this->service = new ReviewService($this->userModelMock, $this->reviewRepoMock);
     }

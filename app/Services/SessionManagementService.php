@@ -32,6 +32,7 @@ final class SessionManagementService implements SessionManagementServiceInterfac
      *
      * @return boolean
      */
+    #[\Override]
     public function createSession(
         int $userId,
         string $sessionId,
@@ -214,6 +215,7 @@ final class SessionManagementService implements SessionManagementServiceInterfac
      *
      * @return boolean
      */
+    #[\Override]
     public function logAuthEvent(
         ?int $userId,
         string $eventType,

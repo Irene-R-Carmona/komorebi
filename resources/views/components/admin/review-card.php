@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Componente: Card de Reseña para Moderación
  *
@@ -66,11 +67,10 @@ $initial = strtoupper(mb_substr($author, 0, 1));
 
         <!-- Rechazar -->
         <button
-                type="button"
-                class="btn btn-outline-danger"
-                @click="openRejectModal({id: <?= (int) $id ?>, author: '<?= e($author) ?>'})"
-                :disabled="processing.includes(<?= (int) $id ?>)"
-        >
+            type="button"
+            class="btn btn-outline-danger"
+            @click="openRejectModal({id: <?= (int) $id ?>, author: <?= json_encode($author) ?>})"
+            :disabled="processing.includes(<?= (int) $id ?>)">
             <i class="bi bi-x-lg me-1"></i>
             Rechazar
         </button>

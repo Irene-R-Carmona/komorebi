@@ -72,19 +72,20 @@
             <h2 class="cafe-destino__titulo">Visita tu refugio</h2>
 
             <div class="cafe-destino__card">
-                <?php if (!empty($cafeData['imagen'])): ?>
-                    <img src="<?= htmlspecialchars($cafeData['imagen']) ?>"
-                        alt="<?= htmlspecialchars($cafeData['nombre']) ?>"
-                        class="cafe-destino__imagen">
+                <?php if (!empty($cafeData['image_url'])): ?>
+                    <img src="<?= htmlspecialchars($cafeData['image_url']) ?>"
+                        alt="<?= htmlspecialchars($cafeData['name']) ?>"
+                        class="cafe-destino__imagen"
+                        onerror="this.onerror=null; this.src='/images/ui/placeholder.svg'">
                 <?php endif; ?>
 
                 <div class="cafe-destino__info">
-                    <h3><?= htmlspecialchars($cafeData['nombre']) ?></h3>
-                    <p><?= htmlspecialchars($cafeData['descripcion']) ?></p>
+                    <h3><?= htmlspecialchars($cafeData['name']) ?></h3>
+                    <p><?= htmlspecialchars($cafeData['description']) ?></p>
 
                     <div class="cafe-destino__meta">
-                        <span><i class="bi bi-geo-alt" aria-hidden="true"></i> <?= htmlspecialchars($cafeData['ubicacion'] ?? 'Tokyo, Japón') ?></span>
-                        <span><i class="bi bi-star-fill" aria-hidden="true" style="color:var(--color-acento)"></i> <span class="visually-hidden">Valoración:</span><?= number_format($cafeData['rating'] ?? 4.5, 1) ?></span>
+                        <span><i class="bi bi-geo-alt" aria-hidden="true"></i> <?= htmlspecialchars($cafeData['location'] ?? 'Tokyo, Japón') ?></span>
+                        <span><i class="bi bi-star-fill" aria-hidden="true" style="color:var(--color-acento)"></i> <span class="visually-hidden">Valoración:</span><?= number_format($cafeData['rating_avg'] ?? 4.5, 1) ?></span>
                     </div>
                 </div>
             </div>

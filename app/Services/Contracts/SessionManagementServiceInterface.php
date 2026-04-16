@@ -36,4 +36,29 @@ interface SessionManagementServiceInterface
      * @return array<int,array<string,mixed>>
      */
     public function getAuthHistory(int $userId, int $limit = 20): array;
+
+    /**
+     * Crear una nueva sesión activa.
+     */
+    public function createSession(
+        int $userId,
+        string $sessionId,
+        string $ipAddress,
+        ?string $userAgent = null,
+        ?string $deviceName = null,
+        int $expiresInSeconds = 86400
+    ): bool;
+
+    /**
+     * Registrar un evento de autenticación en el historial de auditoría.
+     */
+    public function logAuthEvent(
+        ?int $userId,
+        string $eventType,
+        string $ipAddress,
+        ?string $userAgent = null,
+        ?string $deviceName = null,
+        bool $success = true,
+        ?string $reason = null
+    ): bool;
 }

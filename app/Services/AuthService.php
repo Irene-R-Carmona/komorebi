@@ -12,10 +12,11 @@ use App\Core\Result;
 use App\Core\Session;
 use App\Events\UserRegisteredEvent;
 use App\Exceptions\ValidationException;
-use App\Models\User;
+use App\Models\Contracts\UserModelInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\RateLimitingServiceInterface;
+use App\Services\Contracts\SessionManagementServiceInterface;
 use DateTimeImmutable;
 use PDO;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -28,16 +29,16 @@ use RuntimeException;
 final class AuthService extends BaseService implements AuthServiceInterface
 {
     private UserRepositoryInterface $userRepo;
-    private User $userModel;
-    private SessionManagementService $sessionService;
+    private UserModelInterface $userModel;
+    private SessionManagementServiceInterface $sessionService;
     private RateLimitingServiceInterface $rateLimiter;
     private PDO $db;
     private ?EventDispatcherInterface $eventDispatcher;
 
     public function __construct(
         UserRepositoryInterface $userRepo,
-        User $userModel,
-        SessionManagementService $sessionService,
+        UserModelInterface $userModel,
+        SessionManagementServiceInterface $sessionService,
         RateLimitingServiceInterface $rateLimiter,
         PDO $db,
         ?EventDispatcherInterface $eventDispatcher = null

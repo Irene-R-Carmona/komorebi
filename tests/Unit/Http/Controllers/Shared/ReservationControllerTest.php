@@ -25,7 +25,7 @@ use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\AvailabilityService;
-use App\Services\CartService;
+use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\ClimaContextoServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
@@ -60,7 +60,7 @@ final class ReservationControllerTest extends ControllerTestCase
         );
 
         return new ReservationController(
-            cartService: $this->createStub(CartService::class),
+            cartService: $this->createStub(CartServiceInterface::class),
             reservationService: $reservations,
             availabilityService: new AvailabilityService($pdoStub),
             reservationModel: new Reservation($pdoStub),

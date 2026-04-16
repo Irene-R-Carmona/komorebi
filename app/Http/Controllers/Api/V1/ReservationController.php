@@ -7,8 +7,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Http\Controllers\Api\AbstractApiController;
-use App\Services\ReservationService;
-use App\Services\TimeSlotService;
+use App\Services\Contracts\ReservationServiceInterface;
+use App\Services\Contracts\TimeSlotServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -21,8 +21,8 @@ final class ReservationController extends AbstractApiController
 {
     public function __construct(
         ResponseFactory $response,
-        private readonly ReservationService $reservationService,
-        private readonly TimeSlotService $timeSlotService,
+        private readonly ReservationServiceInterface $reservationService,
+        private readonly TimeSlotServiceInterface $timeSlotService,
     ) {
         parent::__construct($response);
     }

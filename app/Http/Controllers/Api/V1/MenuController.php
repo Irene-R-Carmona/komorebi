@@ -7,8 +7,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\AbstractApiController;
 use App\Http\Transformers\AllergenTransformer;
-use App\Services\MenuService;
-use App\Services\RecentlyViewedService;
+use App\Services\Contracts\MenuServiceInterface;
+use App\Services\Contracts\RecentlyViewedServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -21,8 +21,8 @@ final class MenuController extends AbstractApiController
 {
     public function __construct(
         ResponseFactory $response,
-        private readonly MenuService $menuService,
-        private readonly RecentlyViewedService $recentlyViewedService,
+        private readonly MenuServiceInterface $menuService,
+        private readonly RecentlyViewedServiceInterface $recentlyViewedService,
         private readonly AllergenTransformer $allergenTransformer = new AllergenTransformer(),
     ) {
         parent::__construct($response);

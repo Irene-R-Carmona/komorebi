@@ -20,7 +20,7 @@ declare(strict_types=1);
  * - Si index() cambia su tipo de retorno de ?ResponseInterface a otro.
  */
 
-namespace Controllers\Manager;
+namespace Tests\Unit\Controllers\Manager;
 
 use App\Http\Controllers\Manager\ReservationController;
 use App\Repositories\ReservationRepository;

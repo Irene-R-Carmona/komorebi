@@ -18,7 +18,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\AnimalController;
-use App\Services\AnimalCareService;
+use App\Services\Contracts\AnimalCareServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
 
@@ -41,7 +41,7 @@ final class AnimalControllerTest extends ControllerTestCase
 
     public function test_store_with_invalid_csrf_returns_redirect(): void
     {
-        $controller = new AnimalController(animalCareService: $this->createStub(AnimalCareService::class));
+        $controller = new AnimalController(animalCareService: $this->createStub(AnimalCareServiceInterface::class));
         $request = $this->makePostRequest('/admin/animals', [
             'name' => 'Mochi',
             'species' => 'cat',
@@ -55,7 +55,7 @@ final class AnimalControllerTest extends ControllerTestCase
 
     public function test_update_with_invalid_csrf_returns_redirect(): void
     {
-        $controller = new AnimalController(animalCareService: $this->createStub(AnimalCareService::class));
+        $controller = new AnimalController(animalCareService: $this->createStub(AnimalCareServiceInterface::class));
         $request = $this->makePostRequest('/admin/animals/1', [
             'id' => '1',
             'name' => 'Mochi',
@@ -70,7 +70,7 @@ final class AnimalControllerTest extends ControllerTestCase
 
     public function test_delete_with_invalid_csrf_returns_redirect(): void
     {
-        $controller = new AnimalController(animalCareService: $this->createStub(AnimalCareService::class));
+        $controller = new AnimalController(animalCareService: $this->createStub(AnimalCareServiceInterface::class));
         $request = $this->makePostRequest('/admin/animals/1/delete', ['id' => '1']);
 
         $result = $controller->delete($request);

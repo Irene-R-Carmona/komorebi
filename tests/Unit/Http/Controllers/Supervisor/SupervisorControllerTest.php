@@ -20,7 +20,7 @@ namespace Tests\Unit\Http\Controllers\Supervisor;
 use App\Http\Controllers\Supervisor\SupervisorController;
 use App\Repositories\ReservationRepository;
 use App\Services\KitchenService;
-use App\Services\SupervisorAssignmentService;
+use App\Services\Contracts\SupervisorAssignmentServiceInterface;
 use Tests\Support\ControllerTestCase;
 
 final class SupervisorControllerTest extends ControllerTestCase
@@ -36,7 +36,7 @@ final class SupervisorControllerTest extends ControllerTestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_instance_can_be_created_with_dependencies(): void
     {
-        $assignmentService = $this->createStub(SupervisorAssignmentService::class);
+        $assignmentService = $this->createStub(SupervisorAssignmentServiceInterface::class);
         $reservationRepo = new ReservationRepository();
         $kitchenService = new KitchenService();
 
@@ -47,7 +47,7 @@ final class SupervisorControllerTest extends ControllerTestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_instance_can_be_created_with_only_required_dependency(): void
     {
-        $assignmentService = $this->createStub(SupervisorAssignmentService::class);
+        $assignmentService = $this->createStub(SupervisorAssignmentServiceInterface::class);
 
         $controller = new SupervisorController($assignmentService);
         $this->assertInstanceOf(SupervisorController::class, $controller);
