@@ -25,6 +25,7 @@ final class LoggingPDOStatementTest extends TestCase
     private function callTruncateSql(string $sql): string
     {
         $method = new \ReflectionMethod(LoggingPDOStatement::class, 'truncateSql');
+
         return (string) $method->invoke(null, $sql);
     }
 

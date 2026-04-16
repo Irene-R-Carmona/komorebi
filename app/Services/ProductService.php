@@ -75,8 +75,8 @@ final class ProductService extends TransactionalService implements ProductServic
     #[\Override]
     public function getAllPaginated(int $page = 1, int $perPage = 20, array $filters = []): array
     {
-        $page    = max(1, $page);
-        $perPage = min(100, max(1, $perPage));
+        $page = \max(1, $page);
+        $perPage = \min(100, \max(1, $perPage));
 
         return $this->productRepo->findFiltered($filters, $page, $perPage);
     }

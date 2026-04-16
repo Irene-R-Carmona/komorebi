@@ -39,10 +39,10 @@ final class AuthServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->userRepoMock       = $this->createStub(UserRepositoryInterface::class);
-        $this->rateLimiterStub    = $this->createStub(RateLimitingServiceInterface::class);
+        $this->userRepoMock = $this->createStub(UserRepositoryInterface::class);
+        $this->rateLimiterStub = $this->createStub(RateLimitingServiceInterface::class);
         $this->sessionServiceStub = $this->createStub(SessionManagementServiceInterface::class);
-        $this->userModelStub      = $this->createStub(UserModelInterface::class);
+        $this->userModelStub = $this->createStub(UserModelInterface::class);
 
         // PDO stub: prepare() devuelve un statement que ejecuta sin errores
         $stmtStub = $this->createStub(PDOStatement::class);
@@ -59,7 +59,7 @@ final class AuthServiceTest extends TestCase
         );
 
         // Simular superglobales (IP única por test para evitar rate-limits acumulados)
-        $_SERVER['REMOTE_ADDR']    = '127.0.0.' . (string) random_int(2, 254);
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.' . (string) \random_int(2, 254);
         $_SERVER['HTTP_USER_AGENT'] = 'PHPUnit Test';
     }
 
@@ -80,7 +80,7 @@ final class AuthServiceTest extends TestCase
         $result = $this->service->login('', 'password123');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('email', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('email', \strtolower($result->error ?? ''));
     }
 
     /**
@@ -91,7 +91,7 @@ final class AuthServiceTest extends TestCase
         $result = $this->service->login('test@example.com', '');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('contraseña', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('contraseña', \strtolower($result->error ?? ''));
     }
 
     /**
@@ -107,7 +107,7 @@ final class AuthServiceTest extends TestCase
         $result = $this->service->login('not-an-email', 'password123');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('credencial', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('credencial', \strtolower($result->error ?? ''));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -126,7 +126,7 @@ final class AuthServiceTest extends TestCase
         $result = $this->service->login('noexiste@example.com', 'password123');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('credencial', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('credencial', \strtolower($result->error ?? ''));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -136,7 +136,7 @@ final class AuthServiceTest extends TestCase
     public function testPasswordIsHashedWithArgon2id(): void
     {
         $plainPassword = 'test_password_123';
-        $hashedPassword = password_hash($plainPassword, PASSWORD_ARGON2ID);
+        $hashedPassword = \password_hash($plainPassword, PASSWORD_ARGON2ID);
 
         // Verificar algoritmo Argon2id
         $this->assertStringStartsWith('$argon2id$', $hashedPassword);
@@ -145,17 +145,17 @@ final class AuthServiceTest extends TestCase
         $this->assertNotEquals($plainPassword, $hashedPassword);
 
         // Verificar password_verify funciona
-        $this->assertTrue(password_verify($plainPassword, $hashedPassword));
+        $this->assertTrue(\password_verify($plainPassword, $hashedPassword));
     }
 
     public function testPasswordHashIsNotReversible(): void
     {
         $password = 'my_secret_password';
-        $hash = password_hash($password, PASSWORD_ARGON2ID);
+        $hash = \password_hash($password, PASSWORD_ARGON2ID);
 
         // Hash no debe contener password en texto plano
         $this->assertStringNotContainsString($password, $hash);
-        $this->assertGreaterThan(60, strlen($hash)); // Hash Argon2id es largo
+        $this->assertGreaterThan(60, \strlen($hash)); // Hash Argon2id es largo
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -213,10 +213,10 @@ final class AuthServiceTest extends TestCase
 
     public function testRegisterValidatesNameLength(): void
     {
-        $result = $this->service->register(str_repeat('A', 101), 'user@example.com', 'SecurePass123!', 'SecurePass123!');
+        $result = $this->service->register(\str_repeat('A', 101), 'user@example.com', 'SecurePass123!', 'SecurePass123!');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('nombre', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('nombre', \strtolower($result->error ?? ''));
     }
 
     public function testRegisterWithMismatchedPasswordsFails(): void
@@ -224,7 +224,7 @@ final class AuthServiceTest extends TestCase
         $result = $this->service->register('User', 'user@example.com', 'SecurePass123!', 'DifferentPass123!');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('contraseñ', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('contraseñ', \strtolower($result->error ?? ''));
     }
 
     public function testRegisterWithExistingEmailFails(): void
@@ -237,7 +237,7 @@ final class AuthServiceTest extends TestCase
         $result = $this->service->register('User', 'existing@example.com', 'SecurePass123!', 'SecurePass123!');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('email', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('email', \strtolower($result->error ?? ''));
     }
 
     public function testRegisterWithEmptyNameFails(): void
@@ -245,7 +245,7 @@ final class AuthServiceTest extends TestCase
         $result = $this->service->register('', 'user@example.com', 'SecurePass123!', 'SecurePass123!');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('nombre', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('nombre', \strtolower($result->error ?? ''));
     }
 
     public function testRegisterHashesPasswordCorrectly(): void
@@ -285,7 +285,7 @@ final class AuthServiceTest extends TestCase
 
     public function testLoginWithWrongPasswordFails(): void
     {
-        $hash = password_hash('correct_password123!', PASSWORD_ARGON2ID);
+        $hash = \password_hash('correct_password123!', PASSWORD_ARGON2ID);
         $this->userRepoMock->method('findByEmail')->willReturn([
             'id' => 1,
             'email' => 'user@example.com',
@@ -308,7 +308,7 @@ final class AuthServiceTest extends TestCase
         $result = $this->service->register('User', 'user@example.com', 'Short1!', 'Short1!');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('contraseña', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('contraseña', \strtolower($result->error ?? ''));
     }
 
     public function testRegisterWithInvalidEmailFormatFails(): void
@@ -316,6 +316,6 @@ final class AuthServiceTest extends TestCase
         $result = $this->service->register('User', 'not-an-email', 'SecurePass123!', 'SecurePass123!');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('email', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('email', \strtolower($result->error ?? ''));
     }
 }

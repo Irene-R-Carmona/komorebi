@@ -93,7 +93,7 @@ final class ProductServiceTest extends TestCase
     {
         $result = $this->service->getAllPaginated(1, 10);
 
-        $this->assertLessThanOrEqual(10, count($result['data']));
+        $this->assertLessThanOrEqual(10, \count($result['data']));
     }
 
     /**
@@ -104,7 +104,7 @@ final class ProductServiceTest extends TestCase
         $result = $this->service->getAllPaginated(1, 20);
 
         if ($result['total'] > 0) {
-            $expectedPages = (int) ceil($result['total'] / $result['perPage']);
+            $expectedPages = (int) \ceil($result['total'] / $result['perPage']);
             $this->assertEquals($expectedPages, $result['totalPages']);
         } else {
             $this->assertEquals(1, $result['totalPages']);
@@ -168,13 +168,13 @@ final class ProductServiceTest extends TestCase
         $this->assertIsArray($result['data']);
 
         foreach ($result['data'] as $product) {
-            $name = mb_strtolower($product['name'] ?? '');
-            $desc = mb_strtolower($product['description'] ?? '');
-            $jp = mb_strtolower($product['japanese_name'] ?? '');
+            $name = \mb_strtolower($product['name'] ?? '');
+            $desc = \mb_strtolower($product['description'] ?? '');
+            $jp = \mb_strtolower($product['japanese_name'] ?? '');
 
-            $found = str_contains($name, 'latte')
-                || str_contains($desc, 'latte')
-                || str_contains($jp, 'latte');
+            $found = \str_contains($name, 'latte')
+                || \str_contains($desc, 'latte')
+                || \str_contains($jp, 'latte');
 
             $this->assertTrue($found, "Product '{$product['name']}' should contain 'latte' in name, description or japanese_name");
         }

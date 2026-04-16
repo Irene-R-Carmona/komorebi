@@ -19,8 +19,8 @@ namespace Tests\Unit\Http\Controllers\Supervisor;
 
 use App\Http\Controllers\Supervisor\SupervisorController;
 use App\Repositories\ReservationRepository;
-use App\Services\KitchenService;
 use App\Services\Contracts\SupervisorAssignmentServiceInterface;
+use App\Services\KitchenService;
 use Tests\Support\ControllerTestCase;
 
 final class SupervisorControllerTest extends ControllerTestCase

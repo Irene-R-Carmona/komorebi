@@ -30,7 +30,7 @@ final class RecentlyViewedService implements RecentlyViewedServiceInterface
         $viewed = $this->getAll();
 
         // Eliminar el café si ya existe (para moverlo al principio)
-        $viewed = \array_filter($viewed, static fn($id) => $id !== $cafeId);
+        $viewed = \array_filter($viewed, static fn ($id) => $id !== $cafeId);
 
         // Añadir al principio
         \array_unshift($viewed, $cafeId);

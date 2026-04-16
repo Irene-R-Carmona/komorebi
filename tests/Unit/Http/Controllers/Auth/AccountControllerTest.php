@@ -19,8 +19,8 @@ namespace Tests\Unit\Http\Controllers\Auth;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Auth\AccountController;
-use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\AccountDeletionServiceInterface;
+use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\Contracts\SessionManagementServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;

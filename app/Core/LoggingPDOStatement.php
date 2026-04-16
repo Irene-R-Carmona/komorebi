@@ -21,7 +21,9 @@ final class LoggingPDOStatement extends PDOStatement
      *
      * @param int $slowMs Umbral en milisegundos para considerar una query como lenta.
      */
-    protected function __construct(private readonly int $slowMs) {}
+    protected function __construct(private readonly int $slowMs)
+    {
+    }
 
     /**
      * Ejecuta el statement midiendo la duración con hrtime().
