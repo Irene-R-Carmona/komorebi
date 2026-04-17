@@ -79,7 +79,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
                 $guestCount
             );
 
-            if (!$slotResult->isOk()) {
+            if (!$slotResult->ok) {
                 return Result::fail('No hay slots disponibles para la fecha/hora seleccionada');
             }
 
@@ -95,7 +95,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
 
             // 2. Decrementar spots (atómico con lock)
             $decrementResult = $this->timeSlot->decrementSpots((int) $slot['id'], $guestCount);
-            if (!$decrementResult->isOk()) {
+            if (!$decrementResult->ok) {
                 return Result::fail($decrementResult->error);
             }
 
@@ -105,7 +105,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
             $data['guests'] = $guestCount; // Mapear guest_count -> guests para Reservation::create()
 
             $reservationResult = $this->reservation->create($data);
-            if (!$reservationResult->isOk()) {
+            if (!$reservationResult->ok) {
                 return Result::fail($reservationResult->error);
             }
 
@@ -132,7 +132,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
         return $this->transact(function () use ($reservationId): Result {
             // 1. Validar y obtener reserva
             $result = $this->validateAndFetchReservation($reservationId);
-            if (!$result->isOk()) {
+            if (!$result->ok) {
                 return $result;
             }
 
@@ -140,7 +140,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
 
             // 2. Cancelar reserva
             $cancelResult = $this->reservation->cancel($reservationId);
-            if (!$cancelResult->isOk()) {
+            if (!$cancelResult->ok) {
                 return Result::fail($cancelResult->error);
             }
 
@@ -183,7 +183,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
 
         // Liberar spots
         $incrementResult = $this->timeSlot->incrementSpots($timeSlotId, $guestCount);
-        if (!$incrementResult->isOk()) {
+        if (!$incrementResult->ok) {
             return 0;
         }
 
@@ -197,14 +197,14 @@ final class ReservationTimeSlotService extends TransactionalService implements R
     private function promoteNextInWaitlist(int $timeSlotId): int
     {
         $nextResult = $this->waitlist->getNextInQueue($timeSlotId);
-        if (!$nextResult->isOk() || !\is_array($nextResult->data ?? null) || !isset($nextResult->data['id'])) {
+        if (!$nextResult->ok || !\is_array($nextResult->data ?? null) || !isset($nextResult->data['id'])) {
             return 0;
         }
 
         $waitlistEntry = $nextResult->data;
         $notifyResult = $this->waitlist->markAsNotified((int) $waitlistEntry['id']);
 
-        if ($notifyResult->isOk()) {
+        if ($notifyResult->ok) {
             Queue::push(WaitlistPromotionJob::class, [
                 'waitlist_entry_id' => (int) $waitlistEntry['id'],
                 '_correlation_id' => WideEvent::get('request_id') ?? '',
@@ -247,7 +247,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
         return $this->transact(function () use ($token): Result {
             // 1. Confirmar por token
             $confirmResult = $this->waitlist->confirmByToken($token);
-            if (!$confirmResult->isOk()) {
+            if (!$confirmResult->ok) {
                 return Result::fail($confirmResult->error);
             }
 
@@ -259,7 +259,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
                 (int) $waitlistEntry['guest_count']
             );
 
-            if (!$slotResult->isOk() || empty($slotResult->data)) {
+            if (!$slotResult->ok || empty($slotResult->data)) {
                 return Result::fail('El slot ya no tiene capacidad disponible');
             }
 

@@ -82,8 +82,6 @@ final class ReservationService implements ReservationServiceInterface
     #[\Override]
     public function create(array $data, ?CartServiceInterface $cart = null): Result
     {
-        // NOTE: Shared\ReservationController::store() no comprueba el resultado — actualizar a $result->ok
-        // NOTE: Api\ReservationController::store() usa try/catch y $result->isSuccess() — actualizar a $result->ok
         try {
             // Validar datos requeridos
             $this->validateRequired($data);

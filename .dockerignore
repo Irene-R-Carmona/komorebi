@@ -1,119 +1,54 @@
-# =============================================================================
-# .dockerignore — Komorebi Café
-# Aplica a: docker/php/Dockerfile.prod y Dockerfile.test
-# El entorno dev usa bind mount (./:/app), por lo que este archivo no le afecta.
-#
-# Regla de oro: excluir todo lo que no sea código de aplicación, config de runtime
-# o composer.lock/package-lock.json (necesarios para builds reproducibles).
-# =============================================================================
-
-# ─── Control de versiones ────────────────────────────────────────────────────
+# Git
 .git/
 .gitignore
-.gitattributes
-.gitleaks.toml
 
-# ─── Dependencias (se instalan/compilan en la imagen) ────────────────────────
-# IMPORTANTE: composer.lock y package-lock.json NO se ignoran.
-# Son imprescindibles para garantizar builds reproducibles.
+# Dependencias (se instalan en build)
 vendor/
 node_modules/
+package-lock.json
 
-# ─── Entorno (12-Factor III: config desde env, nunca en imagen) ──────────────
+# Entorno (12-Factor: nunca en imagen)
 .env
 .env.*
 !.env.example
-secrets/
 
-# ─── Tests (no van a producción) ─────────────────────────────────────────────
+# Desarrollo
 tests/
 .phpunit.result.cache
-.phpunit.cache/
 phpunit.xml
-phpstan.neon
-phpstan-baseline.neon
-psalm.xml
-psalm-baseline.xml
-
-# ─── Herramientas de análisis estático (dev-only) ────────────────────────────
 .php-cs-fixer.cache
-.psalm/
-.sonarqube/
-sonar-project.properties
-.quality/
-
-# ─── IDE y editores ──────────────────────────────────────────────────────────
+phpstan.neon
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
 .DS_Store
-Thumbs.db
-desktop.ini
 
-# ─── Documentación (no necesaria en imagen) ──────────────────────────────────
+# Documentación
 docs/
 *.md
 README*
-CONTRIBUTING*
-LICENSE
 
-# ─── CI/CD y workflows ───────────────────────────────────────────────────────
+# CI/CD
 .github/
 .gitlab-ci.yml
+.travis.yml
 Jenkinsfile
 
-# ─── Agentes de IA y herramientas de desarrollo ──────────────────────────────
+# Herramientas y scripts de desarrollo
+scripts/
+tools/
 .agents/
-.ai/
-skills-lock.json
-playwright.config.ts
-playwright-report/
-.playwright/
-.playwright-mcp/
-.lighthouseci/
-
-# ─── Seguridad — herramientas de audit ───────────────────────────────────────
-.zap/
-
-# ─── Scripts de desarrollo (dev-only) ────────────────────────────────────────
-# apply-db.php NO se excluye: es necesario para migraciones en producción.
-scripts/benchmark.php
-scripts/check_pass.php
-scripts/crawl_depth2.php
-scripts/csrf_probe.php
-scripts/docker-build.ps1
-scripts/docker-helper.ps1
-scripts/fix_*.php
-
-# ─── Wrappers de desarrollo en bin/ ──────────────────────────────────────────
-# Los workers PHP (email-worker, worker, notification-worker) SÍ van a producción.
-# Solo se excluyen los wrappers para Windows/local.
-bin/*.bat
-bin/*.ps1
-bin/run-phpstan
-bin/php
-
-# ─── Storage (volumen externo) ───────────────────────────────────────────────
-# Los directorios se crean vía RUN mkdir en el Dockerfile (no se copian).
-storage/
-
-# ─── Assets y artefactos de desarrollo ───────────────────────────────────────
 screenshots/
-test-results/
-coverage/
-backups/
-*.sql.gz
-*.dump
+lighthouse-reports/
+storage/
+playwright.config.ts
+sonar-project.properties
 
-# ─── Docker — archivos de override y datos locales ───────────────────────────
-docker-compose.override.yml
-docker-compose.test.yml
-docker/mysql/data/
-docker/redis/data/
-
-# ─── Seguridad — Claves y certificados ───────────────────────────────────────
+# Security — nunca en imagen
+secrets/
+auth.json
 *.pem
 *.key
 *.crt
@@ -122,12 +57,30 @@ docker/redis/data/
 *.p12
 *.pfx
 *.jks
-auth.json
 *.token
 *.secret
 *.secrets
 
-# ─── Build artifacts ─────────────────────────────────────────────────────────
+# Storage (volumen externo)
+storage/logs/*
+storage/cache/*
+storage/uploads/*
+!storage/logs/.gitkeep
+!storage/cache/.gitkeep
+!storage/uploads/.gitkeep
+
+# Backups locales
+backups/
+*.sql
+*.sql.gz
+*.dump
+
+# Assets compilados (si usas vite/webpack)
 public/build/
 public/hot
 mix-manifest.json
+
+# Docker
+docker-compose.override.yml
+docker/mysql/data/
+docker/redis/data/

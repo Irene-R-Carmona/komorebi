@@ -33,7 +33,7 @@ abstract class TransactionalService extends BaseService
         try {
             $result = $fn();
 
-            if ($result->isFail()) {
+            if ($result->error !== null) {
                 $this->db->rollBack();
 
                 return $result;

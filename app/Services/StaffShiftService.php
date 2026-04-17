@@ -24,6 +24,7 @@ final class StaffShiftService implements StaffShiftServiceInterface
     /**
      * Obtiene los turnos de un café para la semana actual (hoy + 7 días).
      */
+    #[\Override]
     public function getWeekShifts(int $cafeId): Result
     {
         $from = \date('Y-m-d');
@@ -37,6 +38,7 @@ final class StaffShiftService implements StaffShiftServiceInterface
     /**
      * Obtiene el historial de turnos recientes de un staff en un café.
      */
+    #[\Override]
     public function getStaffHistory(int $userId, int $cafeId): Result
     {
         $history = $this->repo->findRecentByUserAndCafe($userId, $cafeId);
@@ -50,6 +52,7 @@ final class StaffShiftService implements StaffShiftServiceInterface
      * @param string $start Hora inicio normalizada (HH:MM:SS)
      * @param string $end   Hora fin normalizada (HH:MM:SS)
      */
+    #[\Override]
     public function assignShift(
         int $userId,
         int $cafeId,
@@ -98,6 +101,7 @@ final class StaffShiftService implements StaffShiftServiceInterface
     /**
      * Obtiene métricas de performance de un staff en un café (últimos 30 días).
      */
+    #[\Override]
     public function getPerformanceMetrics(int $userId, int $cafeId): Result
     {
         try {

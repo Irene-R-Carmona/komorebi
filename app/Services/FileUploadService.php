@@ -65,7 +65,7 @@ final class FileUploadService implements FileUploadServiceInterface
             self::MAX_AVATAR_SIZE
         );
 
-        if ($validation->isFail()) {
+        if ($validation->error !== null) {
             return $validation;
         }
 
@@ -85,7 +85,7 @@ final class FileUploadService implements FileUploadServiceInterface
             self::AVATAR_MAX_HEIGHT
         );
 
-        if ($saveResult->isFail()) {
+        if ($saveResult->error !== null) {
             return $saveResult;
         }
 
@@ -134,7 +134,7 @@ final class FileUploadService implements FileUploadServiceInterface
             self::MAX_ANIMAL_PHOTO_SIZE
         );
 
-        if ($validation->isFail()) {
+        if ($validation->error !== null) {
             return $validation;
         }
 
@@ -151,7 +151,7 @@ final class FileUploadService implements FileUploadServiceInterface
             1200
         );
 
-        if ($saveResult->isFail()) {
+        if ($saveResult->error !== null) {
             return $saveResult;
         }
 

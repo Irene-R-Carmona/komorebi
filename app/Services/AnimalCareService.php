@@ -231,7 +231,7 @@ final class AnimalCareService extends TransactionalService implements AnimalCare
     {
         // Validaciones de negocio
         $validation = $this->validateCareLogData($data);
-        if ($validation->isFail()) {
+        if ($validation->error !== null) {
             return $validation;
         }
 
@@ -383,7 +383,7 @@ final class AnimalCareService extends TransactionalService implements AnimalCare
     {
         // Validaciones
         $validation = $this->validateIncidentData($data);
-        if ($validation->isFail()) {
+        if (!$validation->ok) {
             return $validation;
         }
 

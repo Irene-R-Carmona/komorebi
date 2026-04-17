@@ -1,4 +1,4 @@
-﻿# Índice Maestro — Komorebi Café: Plan de Cierre Pre-Defensa TFG
+# Índice Maestro — Komorebi Café: Plan de Cierre Pre-Defensa TFG
 
 **Fecha:** 16 de abril de 2026
 **Estado:** Índice maestro reordenado — prioridades aplicadas por auditoría TFG
@@ -200,6 +200,7 @@ Opcional → BLOQUE 7 restante + BLOQUE 9 (FrankenPHP)
 
 | Plan                                 | Archivo                                             | Estado                                                                                  |
 |--------------------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------|
+| **Preparación Entorno Inicial**      | `2026-04-17-preparacion-entorno-inicial.md`         | 🔵 Plan creado — pendiente ejecución                                                    |
 | **Business Rules Hardening**         | `2026-04-17-business-rules-hardening.md`            | 🔵 Plan creado — Sprint 0 (legacy/alias) + 13 Q decisions + 5 sprints (87 hallazgos)    |
 | **Unificación Estilos Globales PHP** | `2026-04-17-unificacion-estilos-globales-php.md`    | 🔵 Plan creado — pendiente inicio                                                       |
 | **Auditoría de Reglas de Negocio**   | `docs/business-rules-audit.md` (documento, no plan) | 🟢 Investigación completa — 14 P1, 23 P2, 6 P3, 8 decisiones pendientes                 |

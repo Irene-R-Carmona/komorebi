@@ -1,7 +1,11 @@
 # Plan: Business Rules Hardening + Zero Legacy/Alias + Q Decisions
 
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan
+> sprint-by-sprint. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Execution choice (confirmed):** ✅ **Subagent-Driven** — subagente fresco por sprint + revisión entre sprints.
+
 **Fecha:** 17 de abril de 2026
-**Estado:** 🔵 Plan creado — pendiente inicio
+**Estado:** 🟡 En implementación
 **Prioridad:** CRÍTICA — defensa TFG
 **Origen:** Auditoría `docs/business-rules-audit.md` (87 hallazgos) + regla inmutable "zero legacy/deprecated/alias"
 
@@ -34,22 +38,22 @@
 
 ### S0-01 — Unificar API de `Result` (Q-09)
 
-- [ ] Eliminar de `Result.php`: `isOk()`, `isFail()`, `getDataOr()`, `getMessage()`
-- [ ] Reemplazar en todo el codebase:
+- [x] Eliminar de `Result.php`: `isOk()`, `isFail()`, `getDataOr()`, `getMessage()`
+- [x] Reemplazar en todo el codebase:
     - `$result->isOk()` → `$result->ok`
-    - `$result->isFail()` → `!$result->ok`
+    - `$result->isFail()` → `$result->error !== null`
     - `$result->getDataOr($x)` → `$result->data ?? $x`
     - `$result->getMessage()` / `$result->getMessage('fb')` → `$result->error ?? 'fb'`
     - `$result->isSuccess()` → `$result->ok`
-- [ ] Verificar: `grep -r "isOk\|isFail\|getDataOr\|getMessage\|isSuccess" app/` → 0 resultados
-- [ ] Archivos conocidos: `AnimalCareService.php` (L234, L386), `StaffShiftService.php`,
+- [x] Verificar: `grep -r "isOk\|isFail\|getDataOr\|getMessage\|isSuccess" app/` → 0 resultados
+- [x] Archivos conocidos: `AnimalCareService.php` (L234, L386), `StaffShiftService.php`,
   `Api\ReservationController.php`, `ReservationService.php` (comentario L86)
 
 ### S0-02 — Eliminar fallback `password_hash ?? password` (B-01)
 
-- [ ] Verificar columna real: `DESCRIBE users` → confirmar `password_hash`
-- [ ] Eliminar `?? $user['password']` de `UserAccountService.php:53`
-- [ ] Auditar: `grep -r "'password'" app/Services/` → solo `password_hash`
+- [x] Verificar columna real: `DESCRIBE users` → confirmar `password` (migración 002)
+- [x] Corregir `$user['password_hash']` → `$user['password']` en `UserAccountService.php:53`
+- [x] Auditar: `grep -r "'password'" app/Services/` → solo accesos correctos a columna `password`
 
 ### S0-03 — Inyección de repositorios en WaitlistService y ReservationTimeSlotService
 
@@ -60,8 +64,8 @@
 
 ### S0-04 — Eliminar comentarios NOTE con APIs obsoletas
 
-- [ ] Eliminar/actualizar comentario `NOTE: $result->isSuccess()` en `ReservationService.php:86`
-- [ ] Confirmar que `Api\ReservationController` ya usa `$result->ok`
+- [x] Eliminar/actualizar comentario `NOTE: $result->isSuccess()` en `ReservationService.php:86`
+- [x] Confirmar que `Api\ReservationController` ya usa `$result->ok`
 
 ### S0-05 — Unificar columna de roles: slug vs code (Q-10)
 
@@ -71,8 +75,8 @@
 
 ### S0-06 — `#[\Override]` faltante en StaffShiftService
 
-- [ ] Añadir `#[\Override]` a todos los métodos que implementan la interfaz
-- [ ] Verificar: `make phpstan` → 0 errores
+- [x] Añadir `#[\Override]` a todos los métodos que implementan la interfaz
+- [x] Verificar: `make phpstan` → 0 errores
 
 ---
 
@@ -277,4 +281,3 @@
 
 Al completar cada sprint: marcar tareas `[x]` + actualizar estado en `indice-maestro.md`.
 Al completar todas las fases: eliminar este archivo y marcar `✅ Completado y eliminado` en el índice.
-

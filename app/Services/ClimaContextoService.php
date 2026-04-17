@@ -64,9 +64,9 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
             '☁️ Entre nubes, la luz encuentra su camino',
         ],
         'rain' => [
-            '🌧️ Lluvia suave acaricia las calles de Tokyo',
-            '🌧️ Perfecto para escuchar la lluvia junto a una taza de café',
-            '🌧️ La lluvia canta su melodía en los tejados',
+            '️ Lluvia suave acaricia las calles de Tokyo',
+            '️ Perfecto para escuchar la lluvia junto a una taza de café',
+            '️ La lluvia canta su melodía en los tejados',
         ],
         'snow' => [
             '❄️ Copos de nieve adornan Tokyo',
@@ -74,9 +74,9 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
             '❄️ Nieve como pétalos de sakura en invierno',
         ],
         'fog' => [
-            '🌫️ Niebla misteriosa envuelve Tokyo',
-            '🌫️ La ciudad emerge entre brumas',
-            '🌫️ Como un sueño flotando entre nubes',
+            '️ Niebla misteriosa envuelve Tokyo',
+            '️ La ciudad emerge entre brumas',
+            '️ Como un sueño flotando entre nubes',
         ],
         'thunderstorm' => [
             '⚡️ Tormenta dramática sobre Tokyo',
