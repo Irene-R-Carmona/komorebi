@@ -120,8 +120,8 @@ final class PasswordResetController
         // Validar token sin consumirlo
         $validation = $this->passwordResetService->validatePasswordResetToken($token);
 
-        if ($validation->isFail()) {
-            Flash::error($validation->getMessage());
+        if ($validation->error !== null) {
+            Flash::error($validation->error);
 
             return $this->response->redirect('/auth/forgot-password');
         }

@@ -8,7 +8,7 @@
 FROM composer:2 AS vendor-build
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
 COPY . /app
 RUN composer dump-autoload --optimize
 

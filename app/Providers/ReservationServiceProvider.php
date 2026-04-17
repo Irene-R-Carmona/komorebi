@@ -116,7 +116,9 @@ final class ReservationServiceProvider extends ServiceProvider
         Container::singleton(WaitlistService::class, fn () => new WaitlistService(
             Database::getConnection(),
             Container::make(EmailServiceInterface::class),
-            Container::make(WaitlistRepositoryInterface::class)
+            Container::make(WaitlistRepositoryInterface::class),
+            Container::make(TimeSlot::class),
+            Container::make(Reservation::class)
         ));
 
         Container::singleton(WaitlistServiceInterface::class, fn () => Container::make(WaitlistService::class));

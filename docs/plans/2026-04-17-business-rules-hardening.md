@@ -1,7 +1,11 @@
 # Plan: Business Rules Hardening + Zero Legacy/Alias + Q Decisions
 
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan
+> sprint-by-sprint. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Execution choice (confirmed):** ✅ **Subagent-Driven** — subagente fresco por sprint + revisión entre sprints.
+
 **Fecha:** 17 de abril de 2026
-**Estado:** 🔵 Plan creado — pendiente inicio
+**Estado:** 🟡 En implementación
 **Prioridad:** CRÍTICA — defensa TFG
 **Origen:** Auditoría `docs/business-rules-audit.md` (87 hallazgos) + regla inmutable "zero legacy/deprecated/alias"
 
@@ -9,21 +13,21 @@
 
 ## Decisiones Q — Resolver antes de implementar
 
-| ID | Pregunta | Decisión |
-|----|----------|----------|
-| **Q-01** | ¿Una sola reseña por usuario por café? | ✅ **SÍ** — `UNIQUE(user_id, cafe_id)` + guard en servicio |
-| **Q-02** | ¿Verificación de email obligatoria antes del primer acceso? | ✅ **SÍ** — `EmailVerificationService` ya existe; activar guard en `AuthService` |
-| **Q-03** | ¿Complejidad mínima de contraseña? | ✅ **SÍ** — mínimo 8 chars, 1 mayúscula, 1 número |
-| **Q-04** | ¿Máximo de sellos por usuario por día? | ✅ **1 por reserva** — `UNIQUE(reservation_id)` en `loyalty_stamps` |
-| **Q-05** | ¿Cancelar una reserva invalida los sellos asociados? | ✅ **SÍ** — revertir sello en `cancel()` dentro de la misma transacción |
-| **Q-06** | ¿Se permiten turnos de staff que cruzan medianoche? | ❌ **NO** — `$start < $end` forzado en validación |
-| **Q-07** | ¿Un animal sin `cafe_id` es válido? | ❌ **NO** (salvo `quarantine`) — `cafe_id NOT NULL` en servicio |
-| **Q-08** | ¿Máximo de días de adelanto para reservas configurable? | ✅ **SÍ** — `RESERVATION_MAX_DAYS_AHEAD` env var (default 60) |
-| **Q-09** | API `Result`: ¿propiedad o métodos como canónico? | ✅ **Propiedad** — `$result->ok`, `$result->data`, `$result->error`. Eliminar `isOk()`, `isFail()`, `getDataOr()`, `getMessage()` |
-| **Q-10** | `roles` table: ¿columna `slug` o `code`? | ✅ **`slug`** — verificar con `DESCRIBE roles`; unificar todos los accesos |
-| **Q-11** | ¿`CartService` devuelve `Result` o `array`? | ✅ **`Result`** — unificar contrato de servicio |
-| **Q-12** | ¿`NewsletterService::subscribe()` devuelve `Result`? | ✅ **SÍ** — actualmente devuelve `array`; cambiar a `Result` |
-| **Q-13** | ¿`deleteReview(null $userId)` elimina sin chequear propiedad? | ✅ **Separar métodos** — `deleteReview(int $reviewId, int $userId): Result` y `deleteReviewAdmin(int $reviewId): Result` |
+| ID       | Pregunta                                                      | Decisión                                                                                                                         |
+|----------|---------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| **Q-01** | ¿Una sola reseña por usuario por café?                        | ✅ **SÍ** — `UNIQUE(user_id, cafe_id)` + guard en servicio                                                                        |
+| **Q-02** | ¿Verificación de email obligatoria antes del primer acceso?   | ✅ **SÍ** — `EmailVerificationService` ya existe; activar guard en `AuthService`                                                  |
+| **Q-03** | ¿Complejidad mínima de contraseña?                            | ✅ **SÍ** — mínimo 8 chars, 1 mayúscula, 1 número                                                                                 |
+| **Q-04** | ¿Máximo de sellos por usuario por día?                        | ✅ **1 por reserva** — `UNIQUE(reservation_id)` en `loyalty_stamps`                                                               |
+| **Q-05** | ¿Cancelar una reserva invalida los sellos asociados?          | ✅ **SÍ** — revertir sello en `cancel()` dentro de la misma transacción                                                           |
+| **Q-06** | ¿Se permiten turnos de staff que cruzan medianoche?           | ❌ **NO** — `$start < $end` forzado en validación                                                                                 |
+| **Q-07** | ¿Un animal sin `cafe_id` es válido?                           | ❌ **NO** (salvo `quarantine`) — `cafe_id NOT NULL` en servicio                                                                   |
+| **Q-08** | ¿Máximo de días de adelanto para reservas configurable?       | ✅ **SÍ** — `RESERVATION_MAX_DAYS_AHEAD` env var (default 60)                                                                     |
+| **Q-09** | API `Result`: ¿propiedad o métodos como canónico?             | ✅ **Propiedad** — `$result->ok`, `$result->data`, `$result->error`. Eliminar `isOk()`, `isFail()`, `getDataOr()`, `getMessage()` |
+| **Q-10** | `roles` table: ¿columna `slug` o `code`?                      | ✅ **`slug`** — verificar con `DESCRIBE roles`; unificar todos los accesos                                                        |
+| **Q-11** | ¿`CartService` devuelve `Result` o `array`?                   | ✅ **`Result`** — unificar contrato de servicio                                                                                   |
+| **Q-12** | ¿`NewsletterService::subscribe()` devuelve `Result`?          | ✅ **SÍ** — actualmente devuelve `array`; cambiar a `Result`                                                                      |
+| **Q-13** | ¿`deleteReview(null $userId)` elimina sin chequear propiedad? | ✅ **Separar métodos** — `deleteReview(int $reviewId, int $userId): Result` y `deleteReviewAdmin(int $reviewId): Result`          |
 
 ---
 
@@ -34,21 +38,22 @@
 
 ### S0-01 — Unificar API de `Result` (Q-09)
 
-- [ ] Eliminar de `Result.php`: `isOk()`, `isFail()`, `getDataOr()`, `getMessage()`
-- [ ] Reemplazar en todo el codebase:
-  - `$result->isOk()` → `$result->ok`
-  - `$result->isFail()` → `!$result->ok`
-  - `$result->getDataOr($x)` → `$result->data ?? $x`
-  - `$result->getMessage()` / `$result->getMessage('fb')` → `$result->error ?? 'fb'`
-  - `$result->isSuccess()` → `$result->ok`
-- [ ] Verificar: `grep -r "isOk\|isFail\|getDataOr\|getMessage\|isSuccess" app/` → 0 resultados
-- [ ] Archivos conocidos: `AnimalCareService.php` (L234, L386), `StaffShiftService.php`, `Api\ReservationController.php`, `ReservationService.php` (comentario L86)
+- [x] Eliminar de `Result.php`: `isOk()`, `isFail()`, `getDataOr()`, `getMessage()`
+- [x] Reemplazar en todo el codebase:
+    - `$result->isOk()` → `$result->ok`
+    - `$result->isFail()` → `$result->error !== null`
+    - `$result->getDataOr($x)` → `$result->data ?? $x`
+    - `$result->getMessage()` / `$result->getMessage('fb')` → `$result->error ?? 'fb'`
+    - `$result->isSuccess()` → `$result->ok`
+- [x] Verificar: `grep -r "isOk\|isFail\|getDataOr\|getMessage\|isSuccess" app/` → 0 resultados
+- [x] Archivos conocidos: `AnimalCareService.php` (L234, L386), `StaffShiftService.php`,
+  `Api\ReservationController.php`, `ReservationService.php` (comentario L86)
 
 ### S0-02 — Eliminar fallback `password_hash ?? password` (B-01)
 
-- [ ] Verificar columna real: `DESCRIBE users` → confirmar `password_hash`
-- [ ] Eliminar `?? $user['password']` de `UserAccountService.php:53`
-- [ ] Auditar: `grep -r "'password'" app/Services/` → solo `password_hash`
+- [x] Verificar columna real: `DESCRIBE users` → confirmar `password` (migración 002)
+- [x] Corregir `$user['password_hash']` → `$user['password']` en `UserAccountService.php:53`
+- [x] Auditar: `grep -r "'password'" app/Services/` → solo accesos correctos a columna `password`
 
 ### S0-03 — Inyección de repositorios en WaitlistService y ReservationTimeSlotService
 
@@ -59,8 +64,8 @@
 
 ### S0-04 — Eliminar comentarios NOTE con APIs obsoletas
 
-- [ ] Eliminar/actualizar comentario `NOTE: $result->isSuccess()` en `ReservationService.php:86`
-- [ ] Confirmar que `Api\ReservationController` ya usa `$result->ok`
+- [x] Eliminar/actualizar comentario `NOTE: $result->isSuccess()` en `ReservationService.php:86`
+- [x] Confirmar que `Api\ReservationController` ya usa `$result->ok`
 
 ### S0-05 — Unificar columna de roles: slug vs code (Q-10)
 
@@ -70,8 +75,8 @@
 
 ### S0-06 — `#[\Override]` faltante en StaffShiftService
 
-- [ ] Añadir `#[\Override]` a todos los métodos que implementan la interfaz
-- [ ] Verificar: `make phpstan` → 0 errores
+- [x] Añadir `#[\Override]` a todos los métodos que implementan la interfaz
+- [x] Verificar: `make phpstan` → 0 errores
 
 ---
 
@@ -127,7 +132,8 @@
 
 ### S2-04 — Validación de fechas reales (V-04)
 
-- [ ] `ReservationService.php:306-323` → `DateTimeImmutable::createFromFormat()` + no pasado + respetar `RESERVATION_MAX_DAYS_AHEAD`
+- [ ] `ReservationService.php:306-323` → `DateTimeImmutable::createFromFormat()` + no pasado + respetar
+  `RESERVATION_MAX_DAYS_AHEAD`
 
 ### S2-05 — `validateRequired` acepta `0` como vacío (V-05)
 

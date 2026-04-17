@@ -5,14 +5,12 @@
 # Dependencias (se instalan en build)
 vendor/
 node_modules/
-composer.lock
 package-lock.json
 
 # Entorno (12-Factor: nunca en imagen)
 .env
 .env.*
 !.env.example
-secrets/
 
 # Desarrollo
 tests/

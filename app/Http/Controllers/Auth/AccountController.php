@@ -191,7 +191,7 @@ final class AccountController
             $confirmPassword
         );
 
-        if ($result->isOk()) {
+        if ($result->ok) {
             Flash::success('Contraseña actualizada exitosamente. Por seguridad, se revocaron otras sesiones.');
         } else {
             Flash::error($result->error);
@@ -271,14 +271,14 @@ final class AccountController
         // Subir avatar
         $result = $this->fileUploadService->uploadAvatar($_FILES['avatar'], $userId);
 
-        if ($result->isFail()) {
-            return $this->response->problem(Result::fail($result->getMessage(), 'upload_failed'), 422);
+        if ($result->error !== null) {
+            return $this->response->problem(Result::fail($result->error, 'upload_failed'), 422);
         }
 
         // Actualizar URL del avatar en la base de datos
         $updateResult = $this->profileService->updateAvatar($userId, $result->data);
 
-        if ($updateResult->isFail()) {
+        if ($updateResult->error !== null) {
             $this->fileUploadService->deleteFile($result->data);
 
             return $this->response->problem(Result::fail('Error al actualizar el avatar', 'server_error'), 500);
@@ -320,7 +320,7 @@ final class AccountController
         // Actualizar BD (eliminar referencia)
         $updateResult = $this->profileService->updateAvatar($userId, null);
 
-        if ($updateResult->isFail()) {
+        if ($updateResult->error !== null) {
             return $this->response->problem(Result::fail('Error al eliminar el avatar', 'server_error'), 500);
         }
 

@@ -71,7 +71,7 @@ final class WeatherService implements WeatherServiceInterface
             $params = $this->buildWeatherParams($latitude, $longitude, $timezone, $hourly);
             $response = $this->fetchApi($params);
 
-            if ($response->isFail()) {
+            if ($response->error !== null) {
                 return $response;
             }
 
@@ -249,7 +249,7 @@ final class WeatherService implements WeatherServiceInterface
         try {
             // Validaciones
             $validationResult = $this->validateForecastInput($latitude, $longitude, $startDate, $endDate);
-            if (!$validationResult->isOk()) {
+            if (!$validationResult->ok) {
                 return $validationResult;
             }
 
@@ -264,7 +264,7 @@ final class WeatherService implements WeatherServiceInterface
             $params = $this->buildForecastParams($latitude, $longitude, $startDate, $endDate, $timezone);
             $response = $this->fetchApi($params);
 
-            if ($response->isFail()) {
+            if ($response->error !== null) {
                 return $response;
             }
 

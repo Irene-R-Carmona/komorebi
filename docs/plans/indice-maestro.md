@@ -24,7 +24,7 @@ Este índice indica **en qué orden ejecutarlos y qué tareas de cada plan son p
 > Plan origen: `2026-04-14-qol-holistic-sprint.md` — OLA 0
 
 | # | Tarea                                                                                                        | Archivo                                            | Estado  |
-|---|--------------------------------------------------------------------------------------------------------------|----------------------------------------------------|-------------------|
+|---|--------------------------------------------------------------------------------------------------------------|----------------------------------------------------|---------|
 | 1 | **T0.1** — Fix claves `$cafeData` en quiz resultado (`nombre`→`name`, `imagen`→`image_url`, etc.)            | `resources/views/public/quiz/resultado.php`        | - [x] ✅ |
 | 2 | **T0.2** — Fix JS injection en modal reviews admin (usar `json_encode` en lugar de `e()` + comillas simples) | `resources/views/components/admin/review-card.php` | - [x] ✅ |
 | 3 | **T0.3** — Fix KPI cards keeper dashboard (`total_animals`→`healthy`, eliminar `avg_interactions`)           | `resources/views/backoffice/keeper/dashboard.php`  | - [x] ✅ |
@@ -135,14 +135,14 @@ Este índice indica **en qué orden ejecutarlos y qué tareas de cada plan son p
 > **Urgencia: CRÍTICA para defensa.** El tribunal intentará romper la app.
 > Plan: `2026-04-17-business-rules-hardening.md`
 
-| # | Sprint | Descripción | Estado |
-|---|--------|-------------|--------|
+| #  | Sprint   | Descripción                                                                               | Estado   |
+|----|----------|-------------------------------------------------------------------------------------------|----------|
 | G0 | Sprint 0 | Zero legacy/deprecated/alias: Result API, password fallback, model injection, #[Override] | - [ ] 🔵 |
-| G1 | Sprint 1 | Seguridad HTTP + RBAC: IDOR, open redirect, CSRF, rate limit | - [ ] 🔵 |
-| G2 | Sprint 2 | Validación entrada: mb_strlen, htmlspecialchars, fechas, rangos, contraseña | - [ ] 🔵 |
-| G3 | Sprint 3 | Reglas de dominio: reseña única, email verificado, stamp reversal, newsletter | - [ ] 🔵 |
-| G4 | Sprint 4 | Arquitectura: SQL en repos, lazy init, tier constants | - [ ] 🔵 |
-| G5 | Sprint 5 | Limpieza P3: logs, rutas legacy, endpoints públicos | - [ ] 🔵 |
+| G1 | Sprint 1 | Seguridad HTTP + RBAC: IDOR, open redirect, CSRF, rate limit                              | - [ ] 🔵 |
+| G2 | Sprint 2 | Validación entrada: mb_strlen, htmlspecialchars, fechas, rangos, contraseña               | - [ ] 🔵 |
+| G3 | Sprint 3 | Reglas de dominio: reseña única, email verificado, stamp reversal, newsletter             | - [ ] 🔵 |
+| G4 | Sprint 4 | Arquitectura: SQL en repos, lazy init, tier constants                                     | - [ ] 🔵 |
+| G5 | Sprint 5 | Limpieza P3: logs, rutas legacy, endpoints públicos                                       | - [ ] 🔵 |
 
 ---
 
@@ -176,10 +176,10 @@ Este índice indica **en qué orden ejecutarlos y qué tareas de cada plan son p
 
 ## DEUDA TÉCNICA DOCUMENTADA — Pendiente planificación futura
 
-| # | Deuda                                                                                         | Archivos afectados                                                  | Impacto | Plan futuro sugerido              |
-|---|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------|---------|-----------------------------------|
-| T1 | **Models lanzan `RuntimeException` para errores de negocio** — deben devolver `Result::fail()` | `Reservation.php` (×8), `Cafe.php` (×2), `Role.php`, `Permission.php`, `Tracker.php` | Medio | `models-result-pattern.md`       |
-| T2 | **Models sin interfaces de contrato** — solo `User` implementa interfaz; resto son concretos   | Todos los Models excepto `User`                                     | Bajo    | `models-contracts.md`            |
+| #  | Deuda                                                                                          | Archivos afectados                                                                   | Impacto | Plan futuro sugerido       |
+|----|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|---------|----------------------------|
+| T1 | **Models lanzan `RuntimeException` para errores de negocio** — deben devolver `Result::fail()` | `Reservation.php` (×8), `Cafe.php` (×2), `Role.php`, `Permission.php`, `Tracker.php` | Medio   | `models-result-pattern.md` |
+| T2 | **Models sin interfaces de contrato** — solo `User` implementa interfaz; resto son concretos   | Todos los Models excepto `User`                                                      | Bajo    | `models-contracts.md`      |
 
 ---
 
@@ -198,19 +198,20 @@ Opcional → BLOQUE 7 restante + BLOQUE 9 (FrankenPHP)
 
 ## Planes de implementación detallados
 
-| Plan                                | Archivo                                             | Estado                                                                                  |
-|-------------------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------|
-| **Business Rules Hardening**        | `2026-04-17-business-rules-hardening.md`            | 🔵 Plan creado — Sprint 0 (legacy/alias) + 13 Q decisions + 5 sprints (87 hallazgos)   |
-| **Unificación Estilos Globales PHP** | `2026-04-17-unificacion-estilos-globales-php.md`   | 🔵 Plan creado — pendiente inicio                                                       |
-| **Auditoría de Reglas de Negocio**  | `docs/business-rules-audit.md` (documento, no plan) | 🟢 Investigación completa — 14 P1, 23 P2, 6 P3, 8 decisiones pendientes                 |
-| FASE 1 — Seguridad de Datos + DTOs  | `2026-04-13-seguridad-datos-dto.md`                 | 🟢 Implementación completa — pendiente verificación final                               |
-| Auditoría Lógica de Negocio         | `docs/business-rules-audit.md`                      | 🟢 Investigación completa — 14 P1, 23 P2, 6 P3                                          |
-| FASE 3 — UI/UX Vistas Públicas      | `2026-04-13-uiux-vistas-publicas.md`                | 🟢 Implementación completa — todas las tareas ✅; pendiente verificación                 |
-| Brand Visual Unification            | `2026-04-14-brand-visual-unification.md`            | 🟢 Implementación completa — todas las tareas ✅; pendiente verificación                 |
-| Sprint QoL Holístico                | `2026-04-14-qol-holistic-sprint.md`                 | 🟢 Implementación completa — OLA 0 ✅, OLA 1 ✅, OLA 2 ✅, OLA 3 ✅; pendiente verificación |
-| Infra + Calidad Integral            | `2026-04-15-infra-calidad-integral.md`              | 🟢 Implementación completa — A5/B4 requieren Docker; C1-C3/D1-D5 ✅                      |
-| FrankenPHP + Stack Optimization     | `2026-04-15-frankenphp-stack-optimization.md`       | 🔵 Pendiente inicio — Bloque 9                                                          |
-| Cierre de Gaps Arquitectónicos      | `2026-04-13-cierre-gaps-arquitectonicos.md`         | ✅ Completado — GAPs 1-4 resueltos                                                       |
-| FASE 0 — Principios Arquitectónicos | `2026-04-12-principios-arquitectonicos.md`          | ✅ Implementado — decisiones en `docs/ARCHITECTURE.md`                                   |
-| Pre-defensa TFG                     | *(eliminado)*                                       | ✅ Completado — PHPStan L5 0 errores, PSR-12 0 violaciones                               |
-| Ecosystem Cleanup                   | *(eliminado)*                                       | ✅ Completado — commit `ecbae94`                                                         |
+| Plan                                 | Archivo                                             | Estado                                                                                  |
+|--------------------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------|
+| **Preparación Entorno Inicial**      | `2026-04-17-preparacion-entorno-inicial.md`         | 🔵 Plan creado — pendiente ejecución                                                    |
+| **Business Rules Hardening**         | `2026-04-17-business-rules-hardening.md`            | 🔵 Plan creado — Sprint 0 (legacy/alias) + 13 Q decisions + 5 sprints (87 hallazgos)    |
+| **Unificación Estilos Globales PHP** | `2026-04-17-unificacion-estilos-globales-php.md`    | 🔵 Plan creado — pendiente inicio                                                       |
+| **Auditoría de Reglas de Negocio**   | `docs/business-rules-audit.md` (documento, no plan) | 🟢 Investigación completa — 14 P1, 23 P2, 6 P3, 8 decisiones pendientes                 |
+| FASE 1 — Seguridad de Datos + DTOs   | `2026-04-13-seguridad-datos-dto.md`                 | 🟢 Implementación completa — pendiente verificación final                               |
+| Auditoría Lógica de Negocio          | `docs/business-rules-audit.md`                      | 🟢 Investigación completa — 14 P1, 23 P2, 6 P3                                          |
+| FASE 3 — UI/UX Vistas Públicas       | `2026-04-13-uiux-vistas-publicas.md`                | 🟢 Implementación completa — todas las tareas ✅; pendiente verificación                 |
+| Brand Visual Unification             | `2026-04-14-brand-visual-unification.md`            | 🟢 Implementación completa — todas las tareas ✅; pendiente verificación                 |
+| Sprint QoL Holístico                 | `2026-04-14-qol-holistic-sprint.md`                 | 🟢 Implementación completa — OLA 0 ✅, OLA 1 ✅, OLA 2 ✅, OLA 3 ✅; pendiente verificación |
+| Infra + Calidad Integral             | `2026-04-15-infra-calidad-integral.md`              | 🟢 Implementación completa — A5/B4 requieren Docker; C1-C3/D1-D5 ✅                      |
+| FrankenPHP + Stack Optimization      | `2026-04-15-frankenphp-stack-optimization.md`       | 🔵 Pendiente inicio — Bloque 9                                                          |
+| Cierre de Gaps Arquitectónicos       | `2026-04-13-cierre-gaps-arquitectonicos.md`         | ✅ Completado — GAPs 1-4 resueltos                                                       |
+| FASE 0 — Principios Arquitectónicos  | `2026-04-12-principios-arquitectonicos.md`          | ✅ Implementado — decisiones en `docs/ARCHITECTURE.md`                                   |
+| Pre-defensa TFG                      | *(eliminado)*                                       | ✅ Completado — PHPStan L5 0 errores, PSR-12 0 violaciones                               |
+| Ecosystem Cleanup                    | *(eliminado)*                                       | ✅ Completado — commit `ecbae94`                                                         |

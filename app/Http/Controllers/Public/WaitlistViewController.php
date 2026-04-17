@@ -37,15 +37,15 @@ final class WaitlistViewController
 
         $result = $this->service->getWaitlistStatus($token);
 
-        if (!$result->isOk()) {
-            View::render('errors/404', ['error' => $result->getMessage()], [], 'errors');
+        if (!$result->ok) {
+            View::render('errors/404', ['error' => $result->error ?? ''], [], 'errors');
 
             return null;
         }
 
         View::render('public/waitlist-status', [
             'titulo' => 'Estado de Lista de Espera - Komorebi Café',
-            'waitlist' => $result->getDataOr([]),
+            'waitlist' => $result->data ?? [],
         ], ['waitlist-status.css']);
 
         return null;
@@ -66,13 +66,13 @@ final class WaitlistViewController
 
         $result = $this->service->getWaitlistStatus($token);
 
-        if (!$result->isOk()) {
-            View::render('errors/404', ['error' => $result->getMessage()], [], 'errors');
+        if (!$result->ok) {
+            View::render('errors/404', ['error' => $result->error ?? ''], [], 'errors');
 
             return null;
         }
 
-        $waitlist = $result->getDataOr([]);
+        $waitlist = $result->data ?? [];
 
         // Solo mostrar formulario si está en estado 'notified'
         if ($waitlist['status'] !== 'notified') {
@@ -104,13 +104,13 @@ final class WaitlistViewController
 
         $result = $this->service->confirmPromotion($token, []);
 
-        if (!$result->isOk()) {
-            View::render('errors/400', ['error' => $result->getMessage()], [], 'errors');
+        if (!$result->ok) {
+            View::render('errors/400', ['error' => $result->error ?? ''], [], 'errors');
 
             return null;
         }
 
-        $data = $result->getDataOr([]);
+        $data = $result->data ?? [];
 
         // Redirigir a página de éxito o mostrar mensaje
         $message = 'Tu reserva ha sido confirmada exitosamente';

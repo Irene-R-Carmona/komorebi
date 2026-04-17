@@ -50,7 +50,7 @@ final class UserAccountService implements UserAccountServiceInterface
             return Result::fail('Usuario no encontrado.');
         }
 
-        $storedHash = $user['password_hash'] ?? $user['password'] ?? null;
+        $storedHash = $user['password'] ?? null;
 
         if (!$storedHash || !\password_verify($currentPassword, $storedHash)) {
             return Result::fail('La contraseña actual es incorrecta.');

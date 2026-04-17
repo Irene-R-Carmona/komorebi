@@ -122,7 +122,7 @@ final class UserManagementService extends TransactionalService implements UserMa
     {
         // Validar datos
         $validation = $this->validateUserData($data, false);
-        if ($validation->isFail()) {
+        if ($validation->error !== null) {
             return $validation;
         }
 
@@ -166,7 +166,7 @@ final class UserManagementService extends TransactionalService implements UserMa
     {
         // Validar datos
         $validation = $this->validateUserData($data, true);
-        if ($validation->isFail()) {
+        if ($validation->error !== null) {
             return $validation;
         }
 

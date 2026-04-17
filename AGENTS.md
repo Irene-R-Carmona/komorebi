@@ -266,12 +266,13 @@ Los planes viven en `docs/plans/`. El índice maestro es `docs/plans/indice-maes
 **Al terminar una fase o tarea de un plan:**
 
 1. Marcar la tarea con `[x]` en el archivo del plan.
-2. Actualizar el estado de la fase en el encabezado del plan (`En implementación` → `Implementación completa` → `Verificado`).
+2. Actualizar el estado de la fase en el encabezado del plan (`En implementación` → `Implementación completa` →
+   `Verificado`).
 3. Actualizar la fila correspondiente en `docs/plans/indice-maestro.md` con el nuevo estado y emoji:
-   - 🔵 Plan creado — pendiente inicio
-   - 🟡 En implementación
-   - 🟢 Implementación completa — pendiente verificación
-   - ✅ Verificado y cerrado
+    - 🔵 Plan creado — pendiente inicio
+    - 🟡 En implementación
+    - 🟢 Implementación completa — pendiente verificación
+    - ✅ Verificado y cerrado
 
 **Al completar todas las fases de un plan:**
 
@@ -305,16 +306,16 @@ Requieren **Node.js ≥ 20 en el host** (no dentro de Docker).
 ### Configurados en `.vscode/mcp.json`
 
 | Servidor              | Paquete                                            | Cuándo es útil                                                                             |
-|-----------------------|----------------------------------------------------|---------------------------------------------------------------------------------------------|
-| `sequential-thinking` | `@modelcontextprotocol/server-sequential-thinking` | Razonamiento encadenado para tareas complejas. Skills: `writing-plans`, `executing-plans`.  |
-| `filesystem`          | `@modelcontextprotocol/server-filesystem`          | Lectura estructurada del workspace (docs/plans/, .agents/skills/, migrations/, views/).     |
+|-----------------------|----------------------------------------------------|--------------------------------------------------------------------------------------------|
+| `sequential-thinking` | `@modelcontextprotocol/server-sequential-thinking` | Razonamiento encadenado para tareas complejas. Skills: `writing-plans`, `executing-plans`. |
+| `filesystem`          | `@modelcontextprotocol/server-filesystem`          | Lectura estructurada del workspace (docs/plans/, .agents/skills/, migrations/, views/).    |
 
 ### Disponibles vía extensión GitHub Copilot Chat (no requieren mcp.json)
 
-| Herramienta                   | Cuándo es útil                                                                                                                          |
-|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `github` (`git_*`)            | Crear PRs, listar issues, revisar diffs. Skills: `requesting-code-review`, `finishing-a-development-branch`.                            |
-| `playwright` (`pla_browser_*`)| Screenshots, árbol de accesibilidad, acciones de navegador. Skills: `ui-ux-pro-max`, `frontend-design`, `interface-design`, `systematic-debugging`. |
+| Herramienta                    | Cuándo es útil                                                                                                                                      |
+|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `github` (`git_*`)             | Crear PRs, listar issues, revisar diffs. Skills: `requesting-code-review`, `finishing-a-development-branch`.                                        |
+| `playwright` (`pla_browser_*`) | Screenshots, árbol de accesibilidad, acciones de navegador. Skills: `ui-ux-pro-max`, `frontend-design`, `interface-design`, `systematic-debugging`. |
 
 > **Figma MCP eliminado** — superó el límite de llamadas a la API. Las referencias visuales
 > se gestionan ahora en `docs/design-system/` y via screenshots de Playwright.
@@ -344,23 +345,23 @@ en el perfil de usuario o extensión — no se registran en el lock file del pro
 
 ### Desarrollo
 
-| Skill                     | Cuándo invocarla en Komorebi Café                                                                                                      |
-|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| `test-driven-development` | Al implementar cualquier feature o bugfix — escribe el test antes del código. Todos los tests en `tests/Unit/` o `tests/Integration/`. |
-| `systematic-debugging`    | Ante cualquier bug, test fallido o comportamiento inesperado. ANTES de proponer un fix.                                                |
+| Skill                     | Cuándo invocarla en Komorebi Café                                                                                                                                                                                                  |
+|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `test-driven-development` | Al implementar cualquier feature o bugfix — escribe el test antes del código. Todos los tests en `tests/Unit/` o `tests/Integration/`.                                                                                             |
+| `systematic-debugging`    | Ante cualquier bug, test fallido o comportamiento inesperado. ANTES de proponer un fix.                                                                                                                                            |
 | `ui-ux-pro-max`           | **Skill primaria para TODO trabajo visual**: componentes, layouts, dark mode, accesibilidad, colores, tipografía, animaciones, formularios, placeholders. Incluye 99 guías UX, 50+ estilos y checklists de accesibilidad WCAG 2.1. |
-| `frontend-design`         | Vistas con lógica interactiva compleja (Alpine.js, animaciones CSS custom, micro-interacciones).                                       |
-| `interface-design`        | Dashboards y paneles admin/operativos con alta densidad de información: backoffice, KDS, recepción, keeper.                            |
-| `api-design-principles`   | Al modificar o añadir rutas en la API REST — revisar `docs/openapi.yaml` y seguir convenciones PSR-7.                                  |
+| `frontend-design`         | Vistas con lógica interactiva compleja (Alpine.js, animaciones CSS custom, micro-interacciones).                                                                                                                                   |
+| `interface-design`        | Dashboards y paneles admin/operativos con alta densidad de información: backoffice, KDS, recepción, keeper.                                                                                                                        |
+| `api-design-principles`   | Al modificar o añadir rutas en la API REST — revisar `docs/openapi.yaml` y seguir convenciones PSR-7.                                                                                                                              |
 
 ### Marca e Identidad Visual
 
-| Skill                    | Cuándo invocarla en Komorebi Café                                                                                              |
-|--------------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| `branding`               | Al definir o auditar la estrategia de marca: propósito, valores, posicionamiento, storytelling, voz y narrativa de Komorebi.   |
-| `brand-visual-generator` | Al crear o actualizar la identidad visual: paleta de colores, tipografía, tokens de diseño o guía de estilos del proyecto.     |
-| `logo-generator`         | Al colocar o ajustar el logo en vistas web: posición, tamaño, alt text, enlace, favicon y variantes responsivas.               |
-| `svg-logo-designer`      | Al crear el logo del café o iconos de marca como SVG escalables: variaciones de layout, estilos y marcas visuales.             |
+| Skill                    | Cuándo invocarla en Komorebi Café                                                                                            |
+|--------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| `branding`               | Al definir o auditar la estrategia de marca: propósito, valores, posicionamiento, storytelling, voz y narrativa de Komorebi. |
+| `brand-visual-generator` | Al crear o actualizar la identidad visual: paleta de colores, tipografía, tokens de diseño o guía de estilos del proyecto.   |
+| `logo-generator`         | Al colocar o ajustar el logo en vistas web: posición, tamaño, alt text, enlace, favicon y variantes responsivas.             |
+| `svg-logo-designer`      | Al crear el logo del café o iconos de marca como SVG escalables: variaciones de layout, estilos y marcas visuales.           |
 
 ### Calidad y Revisión
 

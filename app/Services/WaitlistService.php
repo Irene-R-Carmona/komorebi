@@ -16,7 +16,9 @@ use App\Models\Waitlist;
 use App\Repositories\Contracts\WaitlistRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\WaitlistServiceInterface;
+use Override;
 use PDO;
+use Random\RandomException;
 
 /**
  * WaitlistService - Gestión de lista de espera para reservas
@@ -40,11 +42,13 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
     public function __construct(
         PDO $db,
         EmailServiceInterface $emailService,
-        WaitlistRepositoryInterface $waitlistRepository
+        WaitlistRepositoryInterface $waitlistRepository,
+        TimeSlot $timeSlotModel,
+        Reservation $reservationModel
     ) {
         parent::__construct($db);
-        $this->timeSlotModel = new TimeSlot($db);
-        $this->reservationModel = new Reservation($db);
+        $this->timeSlotModel = $timeSlotModel;
+        $this->reservationModel = $reservationModel;
         $this->emailService = $emailService;
         $this->waitlistRepository = $waitlistRepository;
     }
@@ -53,20 +57,21 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
      * Añadir un usuario a la waitlist
      *
      * @param integer $timeSlotId ID del time slot deseado
-     * @param integer $userId     ID del usuario
-     * @param array   $data       Datos adicionales (email, phone, guest_count, special_requests)
+     * @param integer $userId ID del usuario
+     * @param array $data Datos adicionales (email, phone, guest_count, special_requests)
      * @return Result
+     * @throws RandomException
      */
-    #[\Override]
+    #[Override]
     public function joinWaitlist(int $timeSlotId, int $userId, array $data): Result
     {
         // Validar que el slot existe
         $slotResult = $this->timeSlotModel->findById($timeSlotId);
-        if (!$slotResult->isOk()) {
+        if (!$slotResult->ok) {
             return Result::fail('Time slot no encontrado');
         }
 
-        $slot = $slotResult->getDataOr(null);
+        $slot = $slotResult->data;
 
         if (!\is_array($slot) || empty($slot)) {
             return Result::fail('Time slot no encontrado');
@@ -148,7 +153,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
      * @param integer $timeSlotId ID del time slot que se ha liberado
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function promoteNext(int $timeSlotId): Result
     {
         try {
@@ -241,7 +246,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
      * @param array  $reservationData Datos adicionales para la reserva
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function confirmPromotion(string $token, array $reservationData = []): Result
     {
         try {
@@ -308,7 +313,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             // Verificar disponibilidad del slot (bloqueo pesimista)
             $slotResult = $this->timeSlotModel->findByIdForUpdate($timeSlotIdInt);
 
-            if (!$slotResult->isOk()) {
+            if (!$slotResult->ok) {
                 if ($startedTransaction) {
                     $this->db->rollBack();
                 }
@@ -316,7 +321,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::fail('Time slot no disponible');
             }
 
-            $slot = $slotResult->getDataOr(null);
+            $slot = $slotResult->data;
 
             /** @var array<string,mixed>|null $slot */
             $rawAvailable = $slot['available_spots'] ?? null;
@@ -370,15 +375,15 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
 
             $reservationResult = $this->reservationModel->create($reservationPayload);
 
-            if (!$reservationResult->isOk()) {
+            if (!$reservationResult->ok) {
                 if ($startedTransaction) {
                     $this->db->rollBack();
                 }
 
-                return Result::fail('Error al crear reserva: ' . $reservationResult->getMessage());
+                return Result::fail('Error al crear reserva: ' . ($reservationResult->error ?? ''));
             }
 
-            $reservation = $reservationResult->getDataOr([]);
+            $reservation = $reservationResult->data ?? [];
             if (!\is_array($reservation)) {
                 $reservation = [];
             }
@@ -417,7 +422,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
      *
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function expireTokens(): Result
     {
         try {
@@ -440,7 +445,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
      * @param integer $timeSlotId
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function getPosition(int $userId, int $timeSlotId): Result
     {
         $position = $this->waitlistRepository->getPosition($timeSlotId, $userId);
@@ -468,7 +473,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
      * @param integer $userId     Usuario que cancela (para verificar ownership)
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function cancelWaitlist(int $waitlistId, int $userId): Result
     {
         return $this->transact(function () use ($waitlistId, $userId): Result {
@@ -512,7 +517,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
      * @param integer $limit
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function getUserHistory(int $userId, int $limit = 10): Result
     {
         $entries = $this->waitlistRepository->getUserHistory($userId, $limit);
@@ -531,7 +536,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
      * @param string $token
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function getWaitlistStatus(string $token): Result
     {
         $entry = $this->waitlistRepository->findByToken($token);
@@ -549,11 +554,11 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
 
         $slotResult = $this->timeSlotModel->findById($timeSlotId);
 
-        if (!$slotResult->isOk()) {
+        if (!$slotResult->ok) {
             return Result::fail('Error al obtener información del horario');
         }
 
-        $slot = $slotResult->getDataOr([]);
+        $slot = $slotResult->data ?? [];
         if (!\is_array($slot)) {
             $slot = [];
         }
@@ -592,7 +597,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
      *
      * @psalm-return Result
      */
-    #[\Override]
+    #[Override]
     public function getUserWaitlists(int $userId, bool $activeOnly = true): Result
     {
         if ($activeOnly) {

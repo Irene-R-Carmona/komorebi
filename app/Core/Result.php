@@ -12,32 +12,34 @@ namespace App\Core;
  *
  * @template T Tipo del dato en caso de éxito (PHPDoc genérico, sin impacto en runtime)
  */
-final readonly class Result
+final class Result
 {
-    public bool $ok;
+    /** Derivado de $error: true cuando no hay error, false cuando sí. */
+    public bool $ok {
+        get => $this->error === null;
+    }
 
     /** @var T|null */
-    public mixed $data;
+    public readonly mixed $data;
 
-    public ?string $error;
+    public readonly ?string $error;
 
-    public ?string $code;
+    public readonly ?string $code;
 
     /** @var array<string, mixed> Contexto adicional para Problem Details (RFC 9457 extension members) */
-    public array $context;
+    public readonly array $context;
 
     /**
-     * @param T|null               $data
+     * @param T|null $data
      * @param array<string, mixed> $context
      */
     private function __construct(
-        bool $ok,
-        mixed $data = null,
+        mixed   $data = null,
         ?string $error = null,
         ?string $code = null,
-        array $context = [],
-    ) {
-        $this->ok = $ok;
+        array   $context = [],
+    )
+    {
         $this->data = $data;
         $this->error = $error;
         $this->code = $code;
@@ -53,76 +55,33 @@ final readonly class Result
      */
     public static function ok(mixed $data = null): self
     {
-        return new self(true, $data);
+        return new self($data);
     }
 
     /**
      * Crea un resultado fallido.
      *
-     * @param string|ServiceErrorCode  $code    Código de error o case del enum ServiceErrorCode
-     * @param mixed                    $data    Datos opcionales (compatibilidad hacia atrás)
-     * @param array<string, mixed>     $context Contexto extra para RFC 9457 extension members
+     * @param string|ServiceErrorCode $code Código de error o case del enum ServiceErrorCode
+     * @param mixed $data Datos opcionales (compatibilidad hacia atrás)
+     * @param array<string, mixed> $context Contexto extra para RFC 9457 extension members
      *
      * @return self<null>
      */
     public static function fail(
-        string $error,
+        string                  $error,
         string|ServiceErrorCode $code = 'error',
-        mixed $data = null,
-        array $context = [],
-    ): self {
+        mixed                   $data = null,
+        array                   $context = [],
+    ): self
+    {
         $codeStr = $code instanceof ServiceErrorCode ? $code->value : $code;
 
-        return new self(false, $data, $error, $codeStr, $context);
+        return new self($data, $error, $codeStr, $context);
     }
 
     // ─────────────────────────────────────────────────────────────
     // Helper methods
     // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Obtiene el mensaje de error o un mensaje por defecto
-     *
-     * @param string $default
-     *
-     * @return string
-     */
-    public function getMessage(string $default = 'Error'): string
-    {
-        return $this->error ?? $default;
-    }
-
-    /**
-     * Verifica si el resultado es exitoso
-     *
-     * @return boolean
-     */
-    public function isOk(): bool
-    {
-        return $this->ok;
-    }
-
-    /**
-     * Verifica si el resultado es un fallo
-     *
-     * @return boolean
-     */
-    public function isFail(): bool
-    {
-        return !$this->ok;
-    }
-
-    /**
-     * Obtiene data o un valor por defecto
-     *
-     * @param mixed $default
-     *
-     * @return mixed
-     */
-    public function getDataOr(mixed $default = null): mixed
-    {
-        return $this->data ?? $default;
-    }
 
     /**
      * Propaga el resultado a Flash messages.
@@ -133,7 +92,7 @@ final readonly class Result
             $message = $successMessage ?? (\is_string($this->data) ? $this->data : 'Operación completada exitosamente');
             Flash::set($successType, $message);
         } else {
-            Flash::set($errorType, $this->getMessage());
+            Flash::set($errorType, $this->error ?? 'Error');
         }
     }
 

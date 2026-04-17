@@ -107,13 +107,13 @@ final class AnimalController
 
         $result = $this->animalCareService->createAnimal($data);
 
-        if ($result->isOk()) {
+        if ($result->ok) {
             Flash::success('Animal creado correctamente');
 
             return $this->response->redirect(self::ADMIN_ANIMALS_URL);
         }
 
-        Flash::error($result->getMessage());
+        Flash::error($result->error ?? 'Error al crear animal');
 
         return $this->response->redirect('/admin/animals/create');
     }
@@ -128,7 +128,6 @@ final class AnimalController
     {
         $query = $request->getQueryParams();
         $id = (int) ($query['id'] ?? 0);
-        $animal = null;
         $animal = $this->animalCareService->getAnimalById($id);
 
         if (!$animal) {
@@ -173,10 +172,10 @@ final class AnimalController
 
         $result = $this->animalCareService->updateAnimal($id, $data);
 
-        if ($result->isOk()) {
+        if ($result->ok) {
             Flash::success('Animal actualizado correctamente');
         } else {
-            Flash::error($result->getMessage());
+            Flash::error($result->error ?? 'Error al actualizar animal');
         }
 
         return $this->response->redirect(self::ADMIN_ANIMALS_URL);
@@ -201,10 +200,10 @@ final class AnimalController
 
         $result = $this->animalCareService->deleteAnimal($id);
 
-        if ($result->isOk()) {
+        if ($result->ok) {
             Flash::success('Animal eliminado');
         } else {
-            Flash::error($result->getMessage());
+            Flash::error($result->error ?? 'Error al eliminar animal');
         }
 
         return $this->response->redirect(self::ADMIN_ANIMALS_URL);
