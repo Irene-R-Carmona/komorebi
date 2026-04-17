@@ -21,11 +21,7 @@ parameters:
     # ── Rutas excluidas ────────────────────────────────────────
     excludePaths:
         - vendor
-        - node_modules (?)
         - storage
-        - cache (?)
-        - tmp (?)
-        - tests/fixtures (?)
 
     # ── PHP objetivo ───────────────────────────────────────────
     phpVersion: 80400  # PHP 8.4

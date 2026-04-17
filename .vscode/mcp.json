@@ -1,0 +1,43 @@
+{
+	"inputs": [
+		{
+			"id": "github_token",
+			"type": "promptString",
+			"description": "GitHub Personal Access Token (scopes: repo, read:org)",
+			"password": true
+		}
+	],
+	"servers": {
+		"sequential-thinking": {
+			"command": "cmd",
+			"args": [
+				"/c",
+				"npx",
+				"-y",
+				"@modelcontextprotocol/server-sequential-thinking"
+			],
+			"type": "stdio"
+		},
+		"filesystem": {
+			"command": "cmd",
+			"args": [
+				"/c",
+				"npx",
+				"-y",
+				"@modelcontextprotocol/server-filesystem",
+				"${workspaceFolder}"
+			],
+			"type": "stdio"
+		},
+		"context7": {
+			"command": "cmd",
+			"args": [
+				"/c",
+				"npx",
+				"-y",
+				"@upstash/context7-mcp"
+			],
+			"type": "stdio"
+		}
+	}
+}

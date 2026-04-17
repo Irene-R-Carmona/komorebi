@@ -31,13 +31,13 @@ final class NewsletterServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->dbMock = $this->createStub(PDO::class);
+        $this->dbMock = $this->createMock(PDO::class);
         $this->service = new NewsletterService($this->dbMock);
     }
 
     public function testSubscribeWithValidEmailReturnsSuccess(): void
     {
-        $stmtMock = $this->createStub(PDOStatement::class);
+        $stmtMock = $this->createMock(PDOStatement::class);
         $stmtMock->method('execute')->willReturn(true);
         $stmtMock->method('rowCount')->willReturn(1);
 
@@ -67,7 +67,7 @@ final class NewsletterServiceTest extends TestCase
     public function testConfirmWithValidTokenReturnsSuccess(): void
     {
         // Mock para SELECT
-        $stmtSelect = $this->createStub(PDOStatement::class);
+        $stmtSelect = $this->createMock(PDOStatement::class);
         $stmtSelect->method('execute')->willReturn(true);
         $stmtSelect->method('fetch')->willReturn([
             'id' => 1,
@@ -76,7 +76,7 @@ final class NewsletterServiceTest extends TestCase
         ]);
 
         // Mock para UPDATE
-        $stmtUpdate = $this->createStub(PDOStatement::class);
+        $stmtUpdate = $this->createMock(PDOStatement::class);
         $stmtUpdate->method('execute')->willReturn(true);
 
         $this->dbMock->method('prepare')
@@ -91,7 +91,7 @@ final class NewsletterServiceTest extends TestCase
     public function testUnsubscribeWithValidTokenReturnsSuccess(): void
     {
         // Mock para SELECT
-        $stmtSelect = $this->createStub(PDOStatement::class);
+        $stmtSelect = $this->createMock(PDOStatement::class);
         $stmtSelect->method('execute')->willReturn(true);
         $stmtSelect->method('fetch')->willReturn([
             'id' => 1,
@@ -99,7 +99,7 @@ final class NewsletterServiceTest extends TestCase
         ]);
 
         // Mock para UPDATE
-        $stmtUpdate = $this->createStub(PDOStatement::class);
+        $stmtUpdate = $this->createMock(PDOStatement::class);
         $stmtUpdate->method('execute')->willReturn(true);
 
         $this->dbMock->method('prepare')
@@ -112,7 +112,7 @@ final class NewsletterServiceTest extends TestCase
 
     public function testUnsubscribeWithInvalidTokenReturnsError(): void
     {
-        $stmtMock = $this->createStub(PDOStatement::class);
+        $stmtMock = $this->createMock(PDOStatement::class);
         $stmtMock->method('execute')->willReturn(true);
         $stmtMock->method('fetch')->willReturn(false); // No encontrado
 
@@ -126,7 +126,7 @@ final class NewsletterServiceTest extends TestCase
 
     public function testGetConfirmedEmailsReturnsArray(): void
     {
-        $stmtMock = $this->createStub(PDOStatement::class);
+        $stmtMock = $this->createMock(PDOStatement::class);
         $stmtMock->method('fetchAll')->willReturn([
             'user1@example.com',
             'user2@example.com',

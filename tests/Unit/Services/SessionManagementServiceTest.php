@@ -39,7 +39,7 @@ final class SessionManagementServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdoMock = $this->createStub(PDO::class);
+        $this->pdoMock = $this->createMock(PDO::class);
         $this->stmtMock = $this->createMock(PDOStatement::class);
         $this->service = new SessionManagementService($this->pdoMock);
     }

@@ -30,7 +30,7 @@ final class ApiTokenServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->repository = $this->createStub(ApiTokenRepositoryInterface::class);
+        $this->repository = $this->createMock(ApiTokenRepositoryInterface::class);
         $this->service = new ApiTokenService($this->repository);
     }
 

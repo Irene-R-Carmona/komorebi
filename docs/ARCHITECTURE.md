@@ -149,13 +149,16 @@ Los diagramas de referencia se encuentran en `docs/diagrams/`:
 
 ### Capa de Dominio
 
-Introducida en Fase 0 (streams 1–2). Los DTOs y Value Objects viven en `app/Domain/`:
+Introducida en Fase 0 (streams 1–2). Los DTOs viven en `app/Domain/`:
 
 ```
 app/Domain/
   DTO/             → Datos de transferencia inmutables (readonly classes)
-  ValueObjects/    → Tipos de valor con validación propia
+  Reservation/     → State machine de reservas
 ```
+
+**Nota:** `app/Domain/ValueObjects/` fue eliminado (abril 2026) — los Value Objects con uso activo
+residen en `app/Core/ValueObjects/` (`Email`, `Slug`, `Password`, `GuestCount`, etc.).
 
 **Reglas obligatorias:**
 
@@ -216,15 +219,43 @@ No pasar objetos en `$data`. Los DTOs deben llamar a `toViewArray()`.
 
 Los métodos de servicio siguen la convención:
 
-| Acción         | Prefijo    | Ejemplo                        |
-|----------------|------------|--------------------------------|
-| Consulta       | `get`, `find`, `list` | `getById()`, `findByEmail()` |
-| Mutación       | `create`, `update`, `delete` | `createReservation()` |
-| Validación     | `validate`, `check` | `validateRedemptionCode()` |
-| Operación sync | verbo directo | `redeem()`, `use()` |
+| Acción         | Prefijo                      | Ejemplo                      |
+|----------------|------------------------------|------------------------------|
+| Consulta       | `get`, `find`, `list`        | `getById()`, `findByEmail()` |
+| Mutación       | `create`, `update`, `delete` | `createReservation()`        |
+| Validación     | `validate`, `check`          | `validateRedemptionCode()`   |
+| Operación sync | verbo directo                | `redeem()`, `use()`          |
 
 ### Límite de Error
 
-- Los servicios retornan `Result::ok($data)` / `Result::fail($msg, $code)`. **No lanzan excepciones** para fallos esperados.
+- Los servicios retornan `Result::ok($data)` / `Result::fail($msg, $code)`. **No lanzan excepciones** para fallos
+  esperados.
 - Los controladores traducen `Result` a respuestas HTTP (`$this->unprocessable()`, `$this->success()`, etc.).
-- Las excepciones (`\Throwable`) son para errores inesperados de infraestructura — el middleware de error las convierte en HTTP 500.
+- Las excepciones (`\Throwable`) son para errores inesperados de infraestructura — el middleware de error las convierte
+  en HTTP 500.
+
+---
+
+## Deuda Técnica Deliberada
+
+### `app/Models/` — Active Record coexistiendo con Repository pattern
+
+**Ubicación:** `app/Models/` (20 clases: `User`, `Cafe`, `Product`, `Reservation`, `Animal`, etc.)
+
+**Situación:** El proyecto usa Repository pattern (`app/Repositories/`) como arquitectura objetivo,
+pero 20 clases Active Record legacy en `app/Models/` siguen en uso activo en controllers y servicios.
+Ambas capas conviven de forma provisional.
+
+**Impacto:** Viola la separación de capas — la lógica de acceso a BD se mezcla con el dominio.
+Dificulta los tests unitarios (los Models instancian PDO directamente y no son inyectables).
+
+**Criterios de eliminación futura:**
+
+- Cada Model debe tener un Repository equivalente que asuma sus queries.
+- Los controllers que usen `App\Models\*` deben migrar a inyectar la interfaz del Repository.
+- Eliminar el Model cuando todos sus usos hayan migrado al Repository.
+- Prioridad de migración: `Cafe` (9 usos) → `User` (mayor complejidad) → resto.
+
+**Seguimiento:** Crear plan `docs/plans/YYYY-MM-DD-migracion-models-a-repositories.md`
+cuando se inicie la migración. Búsqueda de usos: `grep -r "App\\Models\\" app/`.
+

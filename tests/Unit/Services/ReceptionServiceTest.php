@@ -43,7 +43,7 @@ final class ReceptionServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdoStub = $this->createStub(\PDO::class);
+        $this->pdoStub = $this->createMock(\PDO::class);
 
         // Inyectamos el mismo stub en el singleton de Database para que
         // Database::transaction() también use nuestro PDO de prueba.
@@ -98,7 +98,7 @@ final class ReceptionServiceTest extends TestCase
         mixed $fetchAllReturn = [],
         mixed $fetchColumnReturn = 0
     ): \PDOStatement {
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createMock(\PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);

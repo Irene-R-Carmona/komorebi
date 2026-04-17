@@ -38,7 +38,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
         mixed $fetchReturn = false,
         int $rowCountReturn = 1
     ): \PDOStatement {
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createMock(\PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('fetchAll')->willReturn([]);
@@ -52,7 +52,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
      */
     private function makeTransactionPdo(): \PDO
     {
-        $pdo = $this->createStub(\PDO::class);
+        $pdo = $this->createMock(\PDO::class);
         $pdo->method('beginTransaction')->willReturn(true);
         $pdo->method('commit')->willReturn(true);
         $pdo->method('rollBack')->willReturn(true);
@@ -95,7 +95,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
         //   1ª prepare → findById (validateAndFetchReservation)
         //   2ª prepare → findById dentro de cancel()
         //   3ª prepare → updateStatus dentro de cancel()
-        $reservationDb = $this->createStub(\PDO::class);
+        $reservationDb = $this->createMock(\PDO::class);
         $reservationDb->method('prepare')->willReturnOnConsecutiveCalls(
             $this->makeStmt($reservation),   // validateAndFetchReservation → findById
             $this->makeStmt($reservation),   // cancel() → findById
@@ -106,7 +106,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
         //   1ª prepare → SELECT FOR UPDATE (verificar capacidad)
         //   2ª prepare → UPDATE available_spots
         $slotRow = ['total_capacity' => 10, 'available_spots' => 3];
-        $timeSlotDb = $this->createStub(\PDO::class);
+        $timeSlotDb = $this->createMock(\PDO::class);
         $timeSlotDb->method('beginTransaction')->willReturn(true);
         $timeSlotDb->method('commit')->willReturn(true);
         $timeSlotDb->method('prepare')->willReturnOnConsecutiveCalls(
@@ -117,7 +117,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
         // Waitlist PDO:
         //   1ª prepare → getNextInQueue SELECT
         //   2ª prepare → markAsNotified UPDATE (solo si getNextInQueue devuelve fila)
-        $waitlistDb = $this->createStub(\PDO::class);
+        $waitlistDb = $this->createMock(\PDO::class);
         if ($waitlistNotifyStmt !== null) {
             $waitlistDb->method('prepare')->willReturnOnConsecutiveCalls(
                 $waitlistQueueStmt,

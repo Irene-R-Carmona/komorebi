@@ -27,7 +27,7 @@ final class ReviewRepositoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->db = $this->createStub(PDO::class);
+        $this->db = $this->createMock(PDO::class);
         $this->repository = new ReviewRepository($this->db);
     }
 
@@ -43,7 +43,7 @@ final class ReviewRepositoryTest extends TestCase
 
     public function testFindByIdReturnsReview(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'id' => 1,
@@ -68,7 +68,7 @@ final class ReviewRepositoryTest extends TestCase
 
     public function testFindByCafeIdReturnsArray(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([
             ['id' => 1, 'rating' => 5, 'title' => 'Genial'],
@@ -85,7 +85,7 @@ final class ReviewRepositoryTest extends TestCase
 
     public function testCalculateAverageRatingReturnsFloat(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['avg_rating' => '4.5']);
 
@@ -99,7 +99,7 @@ final class ReviewRepositoryTest extends TestCase
 
     public function testCalculateAverageRatingReturnsZeroWhenNoReviews(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['avg_rating' => null]);
 
@@ -112,7 +112,7 @@ final class ReviewRepositoryTest extends TestCase
 
     public function testUserHasReviewReturnsBool(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['1' => 1]);
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Seeders;
 
 use App\Core\Database;
+use App\Core\Logger;
 use PDO;
 
 /**
@@ -23,7 +24,7 @@ final class WaitlistSeeder
 
     public function run(): void
     {
-        echo "[WaitlistSeeder] Creando datos de lista de espera...\n";
+        Logger::info('[WaitlistSeeder] starting');
 
         // Obtener algunos time slots con capacidad completa
         $fullSlots = $this->db->query('
@@ -35,7 +36,7 @@ final class WaitlistSeeder
         ')->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($fullSlots)) {
-            echo "[WaitlistSeeder] ⚠️  No hay slots completos, creando algunos...\n";
+            Logger::warning('[WaitlistSeeder] no full slots, marking some as full');
             // Marcar algunos slots como completos
             $this->db->exec('
                 UPDATE time_slots
@@ -66,7 +67,7 @@ final class WaitlistSeeder
         ")->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($users)) {
-            echo "[WaitlistSeeder] ⚠️  No hay usuarios disponibles\n";
+            Logger::warning('[WaitlistSeeder] no users available');
 
             return;
         }
@@ -127,7 +128,7 @@ final class WaitlistSeeder
             $position = 1;
         }
 
-        echo "[WaitlistSeeder] ✅ {$inserted} entradas de waitlist creadas\n";
+        Logger::info('[WaitlistSeeder] completed', ['inserted' => $inserted]);
     }
 
     private function generatePhone(): ?string

@@ -8,6 +8,7 @@ use App\Core\BaseService;
 use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Result;
+use App\Core\WideEvent;
 use App\Models\Contracts\UserModelInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Services\Contracts\ReviewServiceInterface;
@@ -88,6 +89,11 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
                 'title' => $title,
                 'body' => $body,
                 'status' => 'pending',
+            ]);
+
+            WideEvent::setSection('review', [
+                'cafe_id' => $cafeId,
+                'rating'  => $rating,
             ]);
 
             return Result::ok(['id' => $reviewId]);

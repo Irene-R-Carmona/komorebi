@@ -52,13 +52,13 @@ final class AnimalCareControllerTest extends TestCase
 
     private function makePdoStub(): PDO
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([]);
         // toggleActive necesita fetch con current_status para alternar
         $stmt->method('fetch')->willReturn(['current_status' => 'active']);
 
-        $pdo = $this->createStub(PDO::class);
+        $pdo = $this->createMock(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('lastInsertId')->willReturn('42');
         $pdo->method('beginTransaction')->willReturn(true);
@@ -72,16 +72,16 @@ final class AnimalCareControllerTest extends TestCase
         ?HealthCheckService $healthCheckService = null,
     ): AnimalCareController {
         $pdo ??= $this->makePdoStub();
-        $animalCareService = new AnimalCareService($pdo, $this->createStub(AnimalRepositoryInterface::class));
-        $healthCheckRepo = $this->createStub(HealthCheckRepositoryInterface::class);
+        $animalCareService = new AnimalCareService($pdo, $this->createMock(AnimalRepositoryInterface::class));
+        $healthCheckRepo = $this->createMock(HealthCheckRepositoryInterface::class);
         $healthCheckRepo->method('getTodayChecks')->willReturn([]);
         $healthCheckRepo->method('getPendingAnimals')->willReturn([]);
 
         return new AnimalCareController(
             $animalCareService,
-            $this->createStub(FileUploadServiceInterface::class),
+            $this->createMock(FileUploadServiceInterface::class),
             $healthCheckService ?? new HealthCheckService($healthCheckRepo),
-            $this->createStub(AnimalRepositoryInterface::class),
+            $this->createMock(AnimalRepositoryInterface::class),
             new ResponseFactory(),
         );
     }
@@ -107,7 +107,7 @@ final class AnimalCareControllerTest extends TestCase
         $_POST = [];
 
         $pdo = $this->makePdoStub();
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('lastInsertId')->willReturn('7');
@@ -161,7 +161,7 @@ final class AnimalCareControllerTest extends TestCase
 
     public function test_record_health_redirects_on_success(): void
     {
-        $healthCheckRepo = $this->createStub(HealthCheckRepositoryInterface::class);
+        $healthCheckRepo = $this->createMock(HealthCheckRepositoryInterface::class);
         $healthCheckRepo->method('exists')->willReturn(false);
         $healthCheckRepo->method('create')->willReturn(1);
         $healthCheckService = new HealthCheckService($healthCheckRepo);

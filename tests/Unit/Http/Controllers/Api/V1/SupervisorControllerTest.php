@@ -40,7 +40,7 @@ final class SupervisorControllerTest extends ControllerTestCase
     {
         return new SupervisorController(
             new ResponseFactory(),
-            $service ?? $this->createStub(SupervisorAssignmentServiceInterface::class)
+            $service ?? $this->createMock(SupervisorAssignmentServiceInterface::class)
         );
     }
 
@@ -59,7 +59,7 @@ final class SupervisorControllerTest extends ControllerTestCase
     {
         $this->asUser(userId: 1, role: 'supervisor');
 
-        $service = $this->createStub(SupervisorAssignmentServiceInterface::class);
+        $service = $this->createMock(SupervisorAssignmentServiceInterface::class);
         $service->method('createFromRequest')->willReturn(Result::ok(['id' => 1, 'table_code' => 'A1']));
 
         $response = $this->makeController($service)->assign(
@@ -75,7 +75,7 @@ final class SupervisorControllerTest extends ControllerTestCase
     {
         $this->asUser(userId: 1, role: 'supervisor');
 
-        $service = $this->createStub(SupervisorAssignmentServiceInterface::class);
+        $service = $this->createMock(SupervisorAssignmentServiceInterface::class);
         $service->method('createFromRequest')->willReturn(Result::fail('Datos inválidos', 'validation_error'));
 
         $response = $this->makeController($service)->assign(

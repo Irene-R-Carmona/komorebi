@@ -52,12 +52,12 @@ final class AnimalDashboardControllerTest extends TestCase
 
     private function makePdoStub(): PDO
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([]);
         $stmt->method('fetch')->willReturn(false);
 
-        $pdo = $this->createStub(PDO::class);
+        $pdo = $this->createMock(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('query')->willReturn($stmt);
 
@@ -68,8 +68,8 @@ final class AnimalDashboardControllerTest extends TestCase
         ?AnimalRepositoryInterface $animalRepository = null,
     ): AnimalDashboardController {
         $pdo = $this->makePdoStub();
-        $animalCareService = new AnimalCareService($pdo, $this->createStub(AnimalRepositoryInterface::class));
-        $healthCheckRepo = $this->createStub(HealthCheckRepositoryInterface::class);
+        $animalCareService = new AnimalCareService($pdo, $this->createMock(AnimalRepositoryInterface::class));
+        $healthCheckRepo = $this->createMock(HealthCheckRepositoryInterface::class);
         $healthCheckRepo->method('getTodayChecks')->willReturn([]);
         $healthCheckRepo->method('getPendingAnimals')->willReturn([]);
         $healthCheckRepo->method('getCheckswithAlerts')->willReturn([]);
@@ -78,14 +78,14 @@ final class AnimalDashboardControllerTest extends TestCase
         return new AnimalDashboardController(
             $animalCareService,
             $healthCheckService,
-            $animalRepository ?? $this->createStub(AnimalRepositoryInterface::class),
+            $animalRepository ?? $this->createMock(AnimalRepositoryInterface::class),
             new ResponseFactory(),
         );
     }
 
     public function test_show_redirects_when_animal_not_found(): void
     {
-        $animalRepository = $this->createStub(AnimalRepositoryInterface::class);
+        $animalRepository = $this->createMock(AnimalRepositoryInterface::class);
         $animalRepository->method('findById')->willReturn(null);
 
         $request = new ServerRequest('GET', '/keeper/animals/99')
@@ -119,7 +119,7 @@ final class AnimalDashboardControllerTest extends TestCase
 
     public function test_show_returns_null_when_animal_found(): void
     {
-        $animalRepository = $this->createStub(AnimalRepositoryInterface::class);
+        $animalRepository = $this->createMock(AnimalRepositoryInterface::class);
         $animalRepository->method('findById')->willReturn([
             'id' => 5,
             'name' => 'Luna',

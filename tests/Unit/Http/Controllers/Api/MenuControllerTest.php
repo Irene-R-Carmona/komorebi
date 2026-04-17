@@ -25,7 +25,7 @@ final class MenuControllerTest extends ControllerTestCase
 {
     private function makeController(): MenuController
     {
-        $menuService = $this->createStub(MenuServiceInterface::class);
+        $menuService = $this->createMock(MenuServiceInterface::class);
         $menuService->method('getAllergens')->willReturn([
             ['id' => 1, 'name' => 'Gluten', 'icon' => 'gluten.svg', 'description' => ''],
         ]);
@@ -34,7 +34,7 @@ final class MenuControllerTest extends ControllerTestCase
         return new MenuController(
             new ResponseFactory(),
             $menuService,
-            $this->createStub(RecentlyViewedServiceInterface::class),
+            $this->createMock(RecentlyViewedServiceInterface::class),
         );
     }
 

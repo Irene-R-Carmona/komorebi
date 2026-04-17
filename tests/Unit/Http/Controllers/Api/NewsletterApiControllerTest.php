@@ -27,7 +27,7 @@ final class NewsletterApiControllerTest extends ControllerTestCase
     private function makeController(?NewsletterServiceInterface $service = null): NewsletterApiController
     {
         if ($service === null) {
-            $service = $this->createStub(NewsletterServiceInterface::class);
+            $service = $this->createMock(NewsletterServiceInterface::class);
             $service->method('subscribe')->willReturn(['success' => true, 'message' => 'Suscrito correctamente']);
         }
 
@@ -64,7 +64,7 @@ final class NewsletterApiControllerTest extends ControllerTestCase
 
     public function test_subscribe_returns_400_when_service_fails(): void
     {
-        $service = $this->createStub(NewsletterServiceInterface::class);
+        $service = $this->createMock(NewsletterServiceInterface::class);
         $service->method('subscribe')->willReturn(['success' => false, 'message' => 'Ya suscrito']);
 
         $response = $this->makeController($service)->subscribe(

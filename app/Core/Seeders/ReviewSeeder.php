@@ -29,8 +29,7 @@ final class ReviewSeeder
      */
     public function run(): void
     {
-        echo "[ReviewSeeder] Iniciando...\n";
-        Logger::info('ReviewSeeder: starting');
+        Logger::info('[ReviewSeeder] starting');
 
         // Obtener cafés con sus tipos de animales
         $cafes = $this->getCafesWithAnimalTypes();
@@ -51,16 +50,14 @@ final class ReviewSeeder
             }
         }
 
-        echo '[ReviewSeeder] Pool de ' . \count($allReviews) . " reseñas únicas generadas\n";
-        Logger::info('ReviewSeeder: pool generated', ['pool_size' => \count($allReviews)]);
+        Logger::info('[ReviewSeeder] pool generated', ['pool_size' => \count($allReviews)]);
 
         // Obtener reservas completadas
         $stmt = $this->db->query("\n            SELECT r.id as reservation_id, r.user_id, r.cafe_id\n            FROM reservations r\n            JOIN users u ON r.user_id = u.id\n            WHERE r.status = 'completed'\n            AND u.is_active = 1\n            ORDER BY r.cafe_id, r.user_id\n        ");
         $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (\count($reservations) < 10) {
-            echo '[ReviewSeeder] ⚠️ Advertencia: Solo hay ' . \count($reservations) . " reservas completadas\n";
-            Logger::warning('ReviewSeeder: few completed reservations', ['count' => \count($reservations)]);
+            Logger::warning('[ReviewSeeder] few completed reservations', ['count' => \count($reservations)]);
 
             if (\count($reservations) === 0) {
                 return;
@@ -69,8 +66,7 @@ final class ReviewSeeder
 
         // Limpiar reseñas anteriores
         $this->db->exec('DELETE FROM reviews');
-        echo "[ReviewSeeder] Reseñas anteriores eliminadas\n";
-        Logger::debug('ReviewSeeder: old reviews deleted');
+        Logger::debug('[ReviewSeeder] old reviews deleted');
 
         $insertedCount = 0;
         $cafeReviewCounts = [];
@@ -176,8 +172,7 @@ final class ReviewSeeder
             }
         }
 
-        echo "[ReviewSeeder] $insertedCount reseñas creadas para " . \count($cafeReviewCounts) . " cafés\n";
-        Logger::info('ReviewSeeder: inserted reviews', ['count' => $insertedCount, 'cafes' => \count($cafeReviewCounts)]);
+        Logger::info('[ReviewSeeder] inserted reviews', ['count' => $insertedCount, 'cafes' => \count($cafeReviewCounts)]);
 
         // Actualizar rating_avg de cafés
         $this->updateCafeRatings();
@@ -203,8 +198,8 @@ final class ReviewSeeder
         // Resetear cafés sin reseñas
         $this->db->exec("\n            UPDATE cafes\n            SET rating_avg = NULL, rating_count = 0\n            WHERE id NOT IN (\n                SELECT DISTINCT cafe_id FROM reviews WHERE status = 'approved'\n            )\n        ");
 
-        echo "[ReviewSeeder] Ratings actualizados\n";
-        echo "[ReviewSeeder] ✅ Completado\n";
+        Logger::info('[ReviewSeeder] ratings updated');
+        Logger::info('[ReviewSeeder] completed');
     }
 
     private function getCafesWithAnimalTypes(): array

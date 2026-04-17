@@ -183,7 +183,9 @@ final class EmailWorker
 
             Queue::push(
                 $jobData['job'],
-                $jobData['payload'] ?? [],
+                \array_merge($jobData['payload'] ?? [], [
+                    '_correlation_id' => ($jobData['payload']['_correlation_id'] ?? ''),
+                ]),
                 self::QUEUE_NAME,
                 self::RETRY_DELAY
             );

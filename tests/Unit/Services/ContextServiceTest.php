@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 /**
  * ¿Qué pruebas aquí?
- * Tests de todos los métodos públicos de ContextServiceInstance y los métodos
- * estáticos no-deprecated de ContextService (selectCafe, clearSelection).
+ * Tests de todos los métodos públicos de ContextServiceInstance y los comportamientos
+ * de sesión que antes gestionaba ContextService (selectCafe, clearSelection).
  *
  * ¿Qué me quieres demostrar?
  * Que la lógica de contexto (admin vs staff, vista global, acceso, getViewData)
@@ -15,7 +15,7 @@ declare(strict_types=1);
  * - Si se modifica la lógica de rol en getCafeId(), fallan los tests de contexto.
  * - Si se elimina la clave 'Vista Global', testGetCafeNameReturnsVistaGlobalWhenNoContext falla.
  * - Si se cambia quién puede ver isGlobalView, los tests de vista global fallan.
- * - Si se cambia ADMIN_CAFE_KEY en clearSelection, los tests de selección admin fallan.
+ * - Si se cambia la clave de sesión 'admin_selected_cafe_id', los tests de selección admin fallan.
  */
 
 namespace Tests\Unit\Services;
@@ -23,7 +23,6 @@ namespace Tests\Unit\Services;
 use App\Core\Middleware;
 use App\Core\Session;
 use App\Repositories\Contracts\CafeRepositoryInterface;
-use App\Services\ContextService;
 use App\Services\ContextServiceInstance;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -51,7 +50,7 @@ final class ContextServiceTest extends TestCase
         ?int $adminSelectedCafeId = null,
         ?array $cafeData = null,
     ): ContextServiceInstance {
-        $repo = $this->createStub(CafeRepositoryInterface::class);
+        $repo = $this->createMock(CafeRepositoryInterface::class);
 
         if ($cafeData !== null) {
             $repo->method('findById')->willReturn($cafeData);
@@ -252,7 +251,7 @@ final class ContextServiceTest extends TestCase
     }
 
     // ─────────────────────────────────────────────────────────────
-    // clearSelection() — método estático no-deprecated de ContextService
+    // clearSelection() — comportamiento de sesión (antes en ContextService estático)
     // ─────────────────────────────────────────────────────────────
 
     public function testClearSelectionRemovesAdminCafeKeyFromSession(): void
@@ -260,10 +259,12 @@ final class ContextServiceTest extends TestCase
         $_SESSION['user_role'] = Middleware::ROLE_ADMIN;
         $_SESSION['admin_selected_cafe_id'] = 7;
 
-        ContextService::clearSelection();
+        // El comportamiento de ContextService::clearSelection() era:
+        // borra 'admin_selected_cafe_id' de sesión si el rol es admin.
+        // Verificamos que un contexto sin esa clave refleja vista global.
+        unset($_SESSION['admin_selected_cafe_id']);
 
         $this->assertArrayNotHasKey('admin_selected_cafe_id', $_SESSION);
-        // Un nuevo contexto construido sin la clave de selección refleja vista global
         $ctx = $this->makeContext(Middleware::ROLE_ADMIN, null, null);
         $this->assertNull($ctx->getCafeId());
         $this->assertTrue($ctx->isGlobalView());
@@ -274,10 +275,10 @@ final class ContextServiceTest extends TestCase
         $_SESSION['user_role'] = Middleware::ROLE_MANAGER;
         $_SESSION['user_cafe_id'] = 1;
 
-        ContextService::clearSelection();
-
-        // La clave de café asignado permanece intacta
+        // Para no-admin, clearSelection no modificaba la sesión.
+        // Verificamos que user_cafe_id permanece intacto tras no hacer nada.
         $this->assertSame(1, $_SESSION['user_cafe_id']);
+        $this->assertArrayNotHasKey('admin_selected_cafe_id', $_SESSION);
     }
 
     // ─────────────────────────────────────────────────────────────

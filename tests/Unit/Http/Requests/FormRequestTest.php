@@ -270,7 +270,7 @@ final class FormRequestTest extends TestCase
 
     public function testFromRequestExtractsParsedBody(): void
     {
-        $psrRequest = $this->createStub(ServerRequestInterface::class);
+        $psrRequest = $this->createMock(ServerRequestInterface::class);
         $psrRequest->method('getParsedBody')->willReturn(['name' => 'Komorebi', 'ignored' => 'x']);
 
         // Use an inline subclass that only keeps 'name'
@@ -299,7 +299,7 @@ final class FormRequestTest extends TestCase
 
     public function testValidatedReturnsDataWhenValid(): void
     {
-        $psrRequest = $this->createStub(ServerRequestInterface::class);
+        $psrRequest = $this->createMock(ServerRequestInterface::class);
         $psrRequest->method('getParsedBody')->willReturn(['name' => '  Komorebi  ']);
 
         $class = new class () extends FormRequest {

@@ -29,7 +29,7 @@ final class AnimalRepositoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->db = $this->createStub(PDO::class);
+        $this->db = $this->createMock(PDO::class);
         $this->repository = new AnimalRepository($this->db);
     }
 
@@ -45,7 +45,7 @@ final class AnimalRepositoryTest extends TestCase
 
     public function testFindByIdReturnsAnimal(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'id' => 1,
@@ -67,7 +67,7 @@ final class AnimalRepositoryTest extends TestCase
 
     public function testFindByIdReturnsNullWhenNotFound(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(false);
 
@@ -80,7 +80,7 @@ final class AnimalRepositoryTest extends TestCase
 
     public function testFindActiveByCafeReturnsArray(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([
             ['id' => 1, 'name' => 'Luna', 'species_type' => 'cat', 'current_status' => 'active'],
@@ -98,7 +98,7 @@ final class AnimalRepositoryTest extends TestCase
 
     public function testFindActiveByCafeReturnsEmptyArrayWhenNone(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([]);
 
@@ -112,7 +112,7 @@ final class AnimalRepositoryTest extends TestCase
 
     public function testIsAvailableReturnsTrueWhenActive(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'current_status' => 'active',
@@ -127,7 +127,7 @@ final class AnimalRepositoryTest extends TestCase
 
     public function testIsAvailableReturnsFalseWhenResting(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'current_status' => 'resting',
@@ -142,7 +142,7 @@ final class AnimalRepositoryTest extends TestCase
 
     public function testIsAvailableReturnsFalseWhenNotFound(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(false);
 
@@ -155,7 +155,7 @@ final class AnimalRepositoryTest extends TestCase
 
     public function testIsRestingReturnsTrueWhenStatusResting(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'current_status' => 'resting',
@@ -171,7 +171,7 @@ final class AnimalRepositoryTest extends TestCase
 
     public function testIsRestingReturnsFalseWhenActive(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'current_status' => 'active',

@@ -2,14 +2,14 @@
 
 /**
  * ¿Qué pruebas aquí?
- * Verifica el contrato PSR-7 de Manager/CafeController.
+ * Verifica el contrato PSR-7 de Manager/CafeController: updateCapacity, updateSchedule, updateSettings.
  *
  * ¿Qué me quieres demostrar?
- * Que updateCapacity() devuelve 403 cuando el usuario no tiene café asignado,
- * y que devuelve 400 cuando la capacidad es inválida.
+ * Que los métodos devuelven 403 sin café asignado, 400 con datos inválidos,
+ * y que las reglas de negocio (rango de precios, formato de horas, longitud de descripción) se aplican.
  *
  * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina la validación de café asignado o de capacidad en updateCapacity().
+ * Si se elimina la validación de café asignado, de capacidad, de horario o de settings en CafeController.
  */
 
 declare(strict_types=1);
@@ -75,5 +75,93 @@ final class CafeControllerTest extends ControllerTestCase
         $this->assertTrue(\method_exists(CafeController::class, 'updateCapacity'));
         $this->assertTrue(\method_exists(CafeController::class, 'updateSchedule'));
         $this->assertTrue(\method_exists(CafeController::class, 'updateSettings'));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // updateSchedule()
+    // ─────────────────────────────────────────────────────────────
+
+    public function test_update_schedule_returns_400_when_time_format_is_invalid(): void
+    {
+        $_SESSION['user_id'] = 5;
+        $_SESSION['user_cafe_id'] = 1;
+
+        $result = $this->makeController()->updateSchedule(
+            new ServerRequest('POST', '/manager/cafe/schedule')
+                ->withParsedBody(['opening_time' => '25:00', 'closing_time' => '18:00'])
+        );
+
+        $this->assertSame(400, $result->getStatusCode());
+        $body = \json_decode((string) $result->getBody(), true);
+        $this->assertFalse($body['success']);
+        $this->assertStringContainsString('inválido', $body['error']);
+    }
+
+    public function test_update_schedule_returns_400_when_opening_after_closing(): void
+    {
+        $_SESSION['user_id'] = 5;
+        $_SESSION['user_cafe_id'] = 1;
+
+        $result = $this->makeController()->updateSchedule(
+            new ServerRequest('POST', '/manager/cafe/schedule')
+                ->withParsedBody(['opening_time' => '18:00', 'closing_time' => '09:00'])
+        );
+
+        $this->assertSame(400, $result->getStatusCode());
+        $body = \json_decode((string) $result->getBody(), true);
+        $this->assertFalse($body['success']);
+        $this->assertStringContainsString('menor que', $body['error']);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // updateSettings()
+    // ─────────────────────────────────────────────────────────────
+
+    public function test_update_settings_returns_400_when_description_too_long(): void
+    {
+        $_SESSION['user_id'] = 5;
+        $_SESSION['user_cafe_id'] = 1;
+
+        $result = $this->makeController()->updateSettings(
+            new ServerRequest('POST', '/manager/cafe/settings')
+                ->withParsedBody(['description' => \str_repeat('A', 2100)])
+        );
+
+        $this->assertSame(400, $result->getStatusCode());
+        $body = \json_decode((string) $result->getBody(), true);
+        $this->assertFalse($body['success']);
+        $this->assertStringContainsString('2000', $body['error']);
+    }
+
+    public function test_update_settings_returns_400_when_price_out_of_range(): void
+    {
+        $_SESSION['user_id'] = 5;
+        $_SESSION['user_cafe_id'] = 1;
+
+        $result = $this->makeController()->updateSettings(
+            new ServerRequest('POST', '/manager/cafe/settings')
+                ->withParsedBody(['price_per_hour' => 150])
+        );
+
+        $this->assertSame(400, $result->getStatusCode());
+        $body = \json_decode((string) $result->getBody(), true);
+        $this->assertFalse($body['success']);
+        $this->assertStringContainsString('0 y 100', $body['error']);
+    }
+
+    public function test_update_settings_returns_400_when_no_fields_provided(): void
+    {
+        $_SESSION['user_id'] = 5;
+        $_SESSION['user_cafe_id'] = 1;
+
+        $result = $this->makeController()->updateSettings(
+            new ServerRequest('POST', '/manager/cafe/settings')
+                ->withParsedBody([])
+        );
+
+        $this->assertSame(400, $result->getStatusCode());
+        $body = \json_decode((string) $result->getBody(), true);
+        $this->assertFalse($body['success']);
+        $this->assertStringContainsString('actualizar', $body['error']);
     }
 }

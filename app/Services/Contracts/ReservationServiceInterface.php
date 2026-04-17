@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Services\Contracts;
 
 use App\Core\Result;
-use App\Services\CartService;
 
 interface ReservationServiceInterface
 {
-    public function create(array $data, ?CartService $cart = null): Result;
+    public function create(array $data, ?CartServiceInterface $cart = null): Result;
 
     public function cancel(int $reservationId, int $userId): bool;
 

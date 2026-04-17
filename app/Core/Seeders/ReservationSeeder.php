@@ -27,8 +27,7 @@ final class ReservationSeeder
      */
     public function run(): void
     {
-        echo "Generando reservas realistas...\n";
-        Logger::info('ReservationSeeder: starting');
+        Logger::info('[ReservationSeeder] starting');
 
         // Obtener usuarios y cafés
         $userIds = $this->db->query('SELECT id FROM users WHERE id > 1 ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);
@@ -36,7 +35,7 @@ final class ReservationSeeder
         $passProduct = $this->db->query("SELECT id, name, price, duration_minutes FROM products WHERE product_type = 'pass' LIMIT 1")->fetch(PDO::FETCH_ASSOC);
 
         if (empty($userIds) || empty($cafeIds) || empty($passProduct)) {
-            echo "⚠️  Faltan datos base. Ejecuta UserSeeder, CafeSeeder y MenuSeeder primero.\n";
+            Logger::warning('[ReservationSeeder] missing base data — run UserSeeder, CafeSeeder and MenuSeeder first');
 
             return;
         }
@@ -51,18 +50,17 @@ final class ReservationSeeder
         ')->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($timeSlots)) {
-            echo "⚠️  No hay time_slots disponibles. Ejecuta migración 011.\n";
-            Logger::warning('ReservationSeeder: no time_slots available');
+            Logger::warning('[ReservationSeeder] no time_slots available');
 
             return;
         }
 
-        echo '  → ' . \count($timeSlots) . " time_slots disponibles\n";
+        Logger::info('[ReservationSeeder] time_slots found', ['count' => \count($timeSlots)]);
 
         $reservationsCreated = 0;
 
         // Generar reservas pasadas (últimos 15 días)
-        echo "  → Creando reservas pasadas...\n";
+        Logger::info('[ReservationSeeder] creating past reservations');
         for ($i = 0; $i < 25; $i++) {
             $userId = $userIds[\array_rand($userIds)];
             $cafeId = $cafeIds[\array_rand($cafeIds)];
@@ -93,7 +91,7 @@ final class ReservationSeeder
         }
 
         // Generar reservas futuras con time_slots
-        echo "  → Creando reservas futuras con time_slots...\n";
+        Logger::info('[ReservationSeeder] creating future reservations with time_slots');
         $usedSlots = [];
         foreach ($timeSlots as $slot) {
             // Evitar duplicados y limitar
@@ -139,8 +137,7 @@ final class ReservationSeeder
             ]);
         }
 
-        echo "✅ $reservationsCreated reservas creadas (" . \count($usedSlots) . " con time_slot)\n";
-        Logger::info('ReservationSeeder: completed', ['created' => $reservationsCreated]);
+        Logger::info('[ReservationSeeder] completed', ['created' => $reservationsCreated, 'with_slot' => \count($usedSlots)]);
     }
 
     private function insertReservation(

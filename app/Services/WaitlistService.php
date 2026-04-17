@@ -104,6 +104,8 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
         $waitlistId = $this->waitlistRepository->create($waitlistData);
 
         if ($waitlistId <= 0) {
+            Logger::warning('[WaitlistService::addToWaitlist] DB insert returned 0', ['time_slot_id' => $timeSlotId, 'user_id' => $userId]);
+
             return Result::fail('Error al añadir a la lista de espera');
         }
 
@@ -229,6 +231,8 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             if ($startedTransaction) {
                 $this->db->rollBack();
             }
+
+            Logger::warning('[WaitlistService::promoteNext] transaction failure', ['exception' => $e->getMessage()]);
 
             return Result::fail('Error al promocionar waitlist: ' . $e->getMessage());
         }
@@ -405,6 +409,8 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             if ($startedTransaction) {
                 $this->db->rollBack();
             }
+
+            Logger::warning('[WaitlistService::confirmPromotion] transaction failure', ['exception' => $e->getMessage()]);
 
             return Result::fail('Error al confirmar promoción: ' . $e->getMessage());
         }

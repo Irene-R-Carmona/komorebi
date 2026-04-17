@@ -27,7 +27,7 @@ final class WaitlistRepositoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->db = $this->createStub(PDO::class);
+        $this->db = $this->createMock(PDO::class);
         $this->repository = new WaitlistRepository($this->db);
     }
 
@@ -43,7 +43,7 @@ final class WaitlistRepositoryTest extends TestCase
 
     public function testFindByIdReturnsWaitlistEntry(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'id' => 1,
@@ -67,7 +67,7 @@ final class WaitlistRepositoryTest extends TestCase
 
     public function testGetPositionReturnsInt(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['position' => 5]);
 
@@ -81,7 +81,7 @@ final class WaitlistRepositoryTest extends TestCase
 
     public function testGetPositionReturnsNullWhenNotInList(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(false);
 
@@ -94,7 +94,7 @@ final class WaitlistRepositoryTest extends TestCase
 
     public function testFindActiveByUserIdReturnsArray(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([
             ['id' => 1, 'position' => 2, 'status' => 'waiting'],
@@ -111,7 +111,7 @@ final class WaitlistRepositoryTest extends TestCase
 
     public function testUserInWaitlistReturnsBool(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['1' => 1]);
 

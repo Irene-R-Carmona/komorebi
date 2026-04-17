@@ -127,7 +127,7 @@ if (!$force && !$seedersOnly) {
     fclose($handle);
 
     if ($line !== 'yes') {
-        logMsg('\n❌ Operación cancelada por el usuario.');
+        logMsg('Operación cancelada por el usuario.', 'warning');
         exit(0);
     }
 }
@@ -189,14 +189,14 @@ if (!$seedersOnly) {
                 logMsg('ERROR: ' . $e->getMessage());
 
                 if (!$force) {
-                    logMsg('\nERROR: Migración fallida. Detener ejecución.');
+                    logMsg('ERROR: Migración fallida. Detener ejecución.', 'error');
                     exit(1);
                 }
             }
         }
     }
 
-    logMsg('\n✅ Migraciones SQL aplicadas');
+    logMsg('OK: Migraciones SQL aplicadas');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -292,7 +292,7 @@ if (file_exists($seedLock) && !$force && $forceSeedEnv !== '1') {
 
 if ($shouldSeed) {
     // IMPORTANTE: Limpiar tablas antes de ejecutar seeders para evitar duplicados
-    logMsg("\n▶ Limpiando tablas antes de insertar datos...");
+    logMsg('Limpiando tablas antes de insertar datos...');
 
     $tablesToClean = [
         'newsletter_subscriptions',
@@ -338,7 +338,7 @@ if ($shouldSeed) {
         $db->exec('SET FOREIGN_KEY_CHECKS = 1');
         logMsg("OK Tablas limpiadas correctamente\n");
     } catch (Throwable $e) {
-        logMsg('⚠️  Error durante limpieza de tablas: ' . $e->getMessage());
+        logMsg('WARNING: Error durante limpieza de tablas: ' . $e->getMessage(), 'warning');
     }
 
     $pending = $seeders;
@@ -391,7 +391,7 @@ if ($shouldSeed) {
                 $results[$name] = 'failed';
 
                 if (!$force) {
-                    logMsg('\nERROR: Seeder fallido. Detener ejecución.');
+                    logMsg('ERROR: Seeder fallido. Detener ejecución.', 'error');
                     exit(1);
                 }
 
@@ -408,7 +408,7 @@ if ($shouldSeed) {
 
     // Informe final
     if (!empty($pending)) {
-        logMsg('\nWARNING: Algunos seeders no se ejecutaron tras ' . $max_passes . ' pasadas: ' . implode(', ', array_keys($pending)) . '\n');
+        logMsg('WARNING: Algunos seeders no se ejecutaron tras ' . $max_passes . ' pasadas: ' . implode(', ', array_keys($pending)), 'warning');
         foreach ($pending as $n => $m) {
             $results[$n] ??= 'pending';
         }
@@ -432,17 +432,17 @@ if ($shouldSeed) {
     }
 
     // Resumen
-    logMsg('\nResumen de seeders:');
+    logMsg('Resumen de seeders:');
     foreach ($results as $n => $status) {
         logMsg(" - $n : $status");
     }
 
     if (!$allOk) {
-        logMsg('\nWARNING: Atención: revisar logs y corregir errores antes de considerar el proceso completo.');
+        logMsg('WARNING: Atención: revisar logs y corregir errores antes de considerar el proceso completo.', 'warning');
     }
 }
 
-logMsg('\n✅ Seeders (intento) finalizado');
+logMsg('OK: Seeders (intento) finalizado');
 
 // ════════════════════════════════════════════════════════════════
 // PASO 3: VERIFICAR EVENTOS RGPD
@@ -480,10 +480,10 @@ try {
         }
     }
 
-    logMsg('\nTotal: ' . $totalFound . ' / ' . count($expectedEvents) . ' eventos RGPD activos');
+    logMsg('Total: ' . $totalFound . ' / ' . count($expectedEvents) . ' eventos RGPD activos');
 
     if ($totalFound < count($expectedEvents)) {
-        logMsg('\nWARNING: ADVERTENCIA: Algunos eventos RGPD no están activos.');
+        logMsg('WARNING: ADVERTENCIA: Algunos eventos RGPD no están activos.', 'warning');
         logMsg('   Verifica que MySQL tenga el event_scheduler habilitado: SET GLOBAL event_scheduler = ON;');
     }
 } catch (PDOException $e) {
@@ -498,7 +498,7 @@ logMsg(SEPARATOR);
 logMsg('  REDISEÑO DE BD APLICADO (resumen)');
 logMsg(SEPARATOR);
 
-logMsg('\nPróximos pasos recomendados:');
+logMsg('Próximos pasos recomendados:');
 logMsg('1. Verificar eventos MySQL: SHOW EVENTS;');
 logMsg("2. Verificar scheduler: SHOW VARIABLES LIKE 'event_scheduler';");
 logMsg('3. Habilitar scheduler: SET GLOBAL event_scheduler = ON;');

@@ -54,7 +54,7 @@ final class HealthCheckControllerTest extends TestCase
 
     private function makeHealthCheckService(array $overrides = []): HealthCheckService
     {
-        $repo = $this->createStub(HealthCheckRepositoryInterface::class);
+        $repo = $this->createMock(HealthCheckRepositoryInterface::class);
         $repo->method('getTodayChecks')->willReturn($overrides['todayChecks'] ?? []);
         $repo->method('getPendingAnimals')->willReturn($overrides['pendingAnimals'] ?? []);
         $repo->method('getCheckswithAlerts')->willReturn($overrides['alerts'] ?? []);
@@ -97,7 +97,7 @@ final class HealthCheckControllerTest extends TestCase
             'current_status' => 'activo',
             'age' => 3,
         ];
-        $repo = $this->createStub(AnimalRepositoryInterface::class);
+        $repo = $this->createMock(AnimalRepositoryInterface::class);
         $repo->method('findById')->willReturn($animal ?? $defaultAnimal);
 
         return $repo;
@@ -201,7 +201,7 @@ final class HealthCheckControllerTest extends TestCase
 
     public function test_store_redirects_with_warning_when_alerts_detected(): void
     {
-        $repo = $this->createStub(HealthCheckRepositoryInterface::class);
+        $repo = $this->createMock(HealthCheckRepositoryInterface::class);
         $repo->method('exists')->willReturn(false);
         $repo->method('findTodayByAnimalId')->willReturn(null);
         $repo->method('create')->willReturn(10);

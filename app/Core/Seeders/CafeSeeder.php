@@ -349,7 +349,7 @@ final class CafeSeeder
 
         $stmtTracker = $this->db->prepare('INSERT INTO trackers (cafe_id, code, type) VALUES (:cid, :code, :type) ON DUPLICATE KEY UPDATE type = VALUES(type)');
 
-        echo "Construyendo infraestructura de 14 sedes...\n";
+        Logger::info('[CafeSeeder] building infrastructure');
 
         foreach ($cafes as $cafe) {
             try {
@@ -433,7 +433,6 @@ final class CafeSeeder
             }
         }
 
-        echo "Infraestructura completada.\n";
-        Logger::info('CafeSeeder: completed');
+        Logger::info('[CafeSeeder] completed');
     }
 }

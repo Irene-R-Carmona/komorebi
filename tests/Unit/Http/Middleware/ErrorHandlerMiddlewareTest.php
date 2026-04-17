@@ -39,7 +39,7 @@ final class ErrorHandlerMiddlewareTest extends TestCase
         $request = $this->psr17->createServerRequest('GET', '/');
         $expectedResponse = $this->psr17->createResponse(200);
 
-        $handler = $this->createStub(RequestHandlerInterface::class);
+        $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn($expectedResponse);
 
         $mw = new ErrorHandlerMiddleware(new ExceptionRendererRegistry(), $this->responseFactory);
@@ -54,10 +54,10 @@ final class ErrorHandlerMiddlewareTest extends TestCase
         $exception = new \RuntimeException('boom');
         $renderedResponse = $this->psr17->createResponse(422);
 
-        $handler = $this->createStub(RequestHandlerInterface::class);
+        $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willThrowException($exception);
 
-        $renderer = $this->createStub(ExceptionRendererInterface::class);
+        $renderer = $this->createMock(ExceptionRendererInterface::class);
         $renderer->method('supports')->willReturn(true);
         $renderer->method('priority')->willReturn(10);
         $renderer->method('render')->willReturn($renderedResponse);
@@ -76,7 +76,7 @@ final class ErrorHandlerMiddlewareTest extends TestCase
         $request = $this->psr17->createServerRequest('GET', '/');
         $exception = new \RuntimeException('boom');
 
-        $handler = $this->createStub(RequestHandlerInterface::class);
+        $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willThrowException($exception);
 
         $mw = new ErrorHandlerMiddleware(new ExceptionRendererRegistry(), $this->responseFactory);
@@ -90,7 +90,7 @@ final class ErrorHandlerMiddlewareTest extends TestCase
         $request = $this->psr17->createServerRequest('GET', '/');
         $exception = new \RuntimeException('boom');
 
-        $handler = $this->createStub(RequestHandlerInterface::class);
+        $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willThrowException($exception);
 
         $mw = new ErrorHandlerMiddleware(new ExceptionRendererRegistry(), $this->responseFactory);
@@ -105,10 +105,10 @@ final class ErrorHandlerMiddlewareTest extends TestCase
         $exception = new \RuntimeException('boom');
         $fallbackResponse = $this->psr17->createResponse(503);
 
-        $handler = $this->createStub(RequestHandlerInterface::class);
+        $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willThrowException($exception);
 
-        $renderer = $this->createStub(ExceptionRendererInterface::class);
+        $renderer = $this->createMock(ExceptionRendererInterface::class);
         $renderer->method('supports')->willReturn(true);
         $renderer->method('priority')->willReturn(10);
         $renderer->method('render')->willReturn($fallbackResponse);

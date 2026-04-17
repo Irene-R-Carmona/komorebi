@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Core\Logger;
 use Override;
 use PDO;
 
@@ -47,11 +48,11 @@ abstract class AbstractRepository implements RepositoryInterface
     {
         $fields = \implode(', ', $this->getSelectFields());
         $table = $this->getTable();
+        $sql = "SELECT $fields FROM $table WHERE $this->primaryKey = :id LIMIT 1";
+        $params = ['id' => $id];
 
-        $stmt = $this->getDb()->prepare(
-            "SELECT $fields FROM $table WHERE $this->primaryKey = :id LIMIT 1"
-        );
-        $stmt->execute(['id' => $id]);
+        $stmt = $this->getDb()->prepare($sql);
+        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -63,19 +64,23 @@ abstract class AbstractRepository implements RepositoryInterface
     {
         $fields = \implode(', ', $this->getSelectFields());
         $table = $this->getTable();
+        $sql = "SELECT $fields FROM $table";
 
-        return $this->getDb()->query("SELECT $fields FROM $table")->fetchAll(PDO::FETCH_ASSOC);
+        /** @var \PDOStatement $stmt */
+        $stmt = $this->execTimed(fn() => $this->getDb()->query($sql), $sql);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     #[Override]
     public function exists(int $id): bool
     {
         $table = $this->getTable();
+        $sql = "SELECT 1 FROM $table WHERE $this->primaryKey = :id LIMIT 1";
+        $params = ['id' => $id];
 
-        $stmt = $this->getDb()->prepare(
-            "SELECT 1 FROM $table WHERE $this->primaryKey = :id LIMIT 1"
-        );
-        $stmt->execute(['id' => $id]);
+        $stmt = $this->getDb()->prepare($sql);
+        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
 
         return (bool) $stmt->fetch();
     }
@@ -95,7 +100,7 @@ abstract class AbstractRepository implements RepositoryInterface
         );
 
         $stmt = $this->getDb()->prepare($sql);
-        $stmt->execute($data);
+        $this->execTimed(fn() => $stmt->execute($data), $sql, $data);
 
         return (int) $this->getDb()->lastInsertId();
     }
@@ -115,19 +120,50 @@ abstract class AbstractRepository implements RepositoryInterface
 
         $data['id'] = $id;
 
-        return $this->getDb()->prepare($sql)->execute($data);
+        return (bool) $this->execTimed(
+            fn() => $this->getDb()->prepare($sql)->execute($data),
+            $sql,
+            $data
+        );
     }
 
     #[Override]
     public function delete(int $id): bool
     {
         $table = $this->getTable();
+        $sql = "DELETE FROM $table WHERE $this->primaryKey = :id";
+        $params = ['id' => $id];
 
-        $stmt = $this->getDb()->prepare(
-            "DELETE FROM $table WHERE $this->primaryKey = :id"
-        );
+        $stmt = $this->getDb()->prepare($sql);
 
-        return $stmt->execute(['id' => $id]);
+        return (bool) $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+    }
+
+    /**
+     * Ejecuta un callable midiendo su duración. Registra en canal 'db' si supera umbrales.
+     * NUNCA loguea los parámetros completos (pueden contener PII) — solo el count.
+     */
+    protected function execTimed(callable $fn, string $sql, array $params = []): mixed
+    {
+        $start = \hrtime(true);
+        $result = $fn();
+        $ms = (\hrtime(true) - $start) / 1_000_000;
+
+        if ($ms > 500) {
+            Logger::channel('db')->error('[DB] Slow query', [
+                'sql'          => \substr($sql, 0, 200),
+                'params_count' => \count($params),
+                'duration_ms'  => \round($ms, 2),
+            ]);
+        } elseif ($ms > 100) {
+            Logger::channel('db')->warning('[DB] Slow query', [
+                'sql'          => \substr($sql, 0, 200),
+                'params_count' => \count($params),
+                'duration_ms'  => \round($ms, 2),
+            ]);
+        }
+
+        return $result;
     }
 
     /**

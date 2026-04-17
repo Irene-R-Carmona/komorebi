@@ -35,14 +35,14 @@ final class PayloadSizeMiddlewareTest extends TestCase
 
         $this->handlerResponse = $this->responseFactory->createResponse(200);
 
-        $handler = $this->createStub(RequestHandlerInterface::class);
+        $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn($this->handlerResponse);
         $this->handler = $handler;
     }
 
     private function makeRequest(string $contentLength): ServerRequestInterface
     {
-        $request = $this->createStub(ServerRequestInterface::class);
+        $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getHeaderLine')
             ->willReturnCallback(static function (string $header) use ($contentLength): string {
                 return \strtolower($header) === 'content-length' ? $contentLength : '';

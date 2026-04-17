@@ -206,7 +206,7 @@ WHERE ts.is_blocked = FALSE
   AND c.is_active = TRUE
   AND c.has_reservations = TRUE
   AND ts.slot_date >= CURDATE()
-ORDER BY ts.slot_date ASC, ts.slot_time ASC;
+ORDER BY ts.slot_date, ts.slot_time;
 
 -- Vista: Estadísticas de waitlist por slot
 CREATE OR REPLACE VIEW v_waitlist_stats AS
@@ -282,7 +282,7 @@ CROSS JOIN (
 ) t
 WHERE c.is_active = TRUE
   AND c.has_reservations = TRUE
-  AND NOT EXISTS (SELECT 1 FROM time_slots LIMIT 1)
+  AND NOT EXISTS (SELECT 1 FROM time_slots)
 LIMIT 500; -- Limitar para no saturar en desarrollo
 
 -- ============================================

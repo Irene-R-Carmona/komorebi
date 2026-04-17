@@ -41,7 +41,7 @@ final class AuthTokenServiceTest extends TestCase
      */
     private function makePdoWithStmt(\PDOStatement $stmt): \PDO
     {
-        $pdo = $this->createStub(\PDO::class);
+        $pdo = $this->createMock(\PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('query')->willReturn($stmt);
 
@@ -55,7 +55,7 @@ final class AuthTokenServiceTest extends TestCase
         mixed $fetchReturn = false,
         mixed $fetchColumnReturn = 0
     ): \PDOStatement {
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createMock(\PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('fetchColumn')->willReturn($fetchColumnReturn);
@@ -113,7 +113,7 @@ final class AuthTokenServiceTest extends TestCase
     {
         // Contamos cuántas veces se llama execute(): SELECT (1) + dos UPDATEs (2,3)
         $executeCount = 0;
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createMock(\PDOStatement::class);
         $stmt->method('fetch')->willReturn(['id' => 1, 'user_id' => 5]);
         $stmt->method('execute')->willReturnCallback(function () use (&$executeCount): bool {
             $executeCount++;
@@ -121,7 +121,7 @@ final class AuthTokenServiceTest extends TestCase
             return true;
         });
 
-        $pdo = $this->createStub(\PDO::class);
+        $pdo = $this->createMock(\PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
 
         $service = new AuthTokenService($pdo);

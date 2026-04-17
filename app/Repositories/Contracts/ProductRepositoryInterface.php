@@ -4,8 +4,17 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
-interface ProductRepositoryInterface
+use App\Repositories\RepositoryInterface;
+
+interface ProductRepositoryInterface extends RepositoryInterface
 {
+    /**
+     * Soft delete: marca el producto como eliminado sin borrarlo físicamente.
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function softDelete(int $id): bool;
     /**
      * Find product by ID
      *

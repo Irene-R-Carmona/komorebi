@@ -41,14 +41,14 @@ final class UserControllerTest extends ControllerTestCase
 
     public function test_get_users_list_returns_json_response(): void
     {
-        $repoStub = $this->createStub(UserRepositoryInterface::class);
+        $repoStub = $this->createMock(UserRepositoryInterface::class);
         $repoStub->method('getActiveUsersList')->willReturn([
             ['id' => 1, 'name' => 'Ana', 'email' => 'ana@example.com'],
             ['id' => 2, 'name' => 'Juan', 'email' => 'juan@example.com'],
         ]);
 
         $controller = new UserController(
-            userManagementService: new UserManagementService($this->createStub(\PDO::class)),
+            userManagementService: new UserManagementService($this->createMock(\PDO::class)),
             userRepo: $repoStub,
             response: new ResponseFactory()
         );
@@ -66,11 +66,11 @@ final class UserControllerTest extends ControllerTestCase
 
     public function test_get_users_list_returns_empty_array_when_no_users(): void
     {
-        $repoStub = $this->createStub(UserRepositoryInterface::class);
+        $repoStub = $this->createMock(UserRepositoryInterface::class);
         $repoStub->method('getActiveUsersList')->willReturn([]);
 
         $controller = new UserController(
-            userManagementService: new UserManagementService($this->createStub(\PDO::class)),
+            userManagementService: new UserManagementService($this->createMock(\PDO::class)),
             userRepo: $repoStub,
             response: new ResponseFactory()
         );

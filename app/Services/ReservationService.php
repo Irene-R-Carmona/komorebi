@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Result;
+use App\Core\WideEvent;
 use App\Events\ReservationConfirmedEvent;
 use App\Exceptions\BusinessRuleException;
 use App\Exceptions\NotFoundException;
@@ -15,6 +16,7 @@ use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
@@ -74,11 +76,11 @@ final class ReservationService implements ReservationServiceInterface
      *     guests: int,
      *     comments?: string
      * } $data
-     * @param CartService|null $cart Carrito para añadir items
+     * @param CartServiceInterface|null $cart Carrito para añadir items
      * @return Result Result con el ID de la reserva creada (data), o fallo con error
      */
     #[\Override]
-    public function create(array $data, ?CartService $cart = null): Result
+    public function create(array $data, ?CartServiceInterface $cart = null): Result
     {
         // NOTE: Shared\ReservationController::store() no comprueba el resultado — actualizar a $result->ok
         // NOTE: Api\ReservationController::store() usa try/catch y $result->isSuccess() — actualizar a $result->ok
@@ -190,6 +192,13 @@ final class ReservationService implements ReservationServiceInterface
                     ]);
                 }
             }
+
+            WideEvent::setSection('reservation', [
+                'id'      => $reservationId,
+                'cafe_id' => $cafeId,
+                'date'    => $date,
+                'guests'  => $guests,
+            ]);
 
             return Result::ok($reservationId);
         } catch (ValidationException | BusinessRuleException $e) {

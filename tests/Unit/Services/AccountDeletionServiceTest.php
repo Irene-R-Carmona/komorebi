@@ -31,10 +31,10 @@ final class AccountDeletionServiceTest extends TestCase
 
     public function testDeleteAndAnonymizeRetornaOkCuandoTransaccionExitosa(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
 
-        $pdo = $this->createStub(PDO::class);
+        $pdo = $this->createMock(PDO::class);
         $pdo->method('beginTransaction')->willReturn(true);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('commit')->willReturn(true);
@@ -52,7 +52,7 @@ final class AccountDeletionServiceTest extends TestCase
 
     public function testDeleteAndAnonymizeRetornaFailCuandoPdoLanzaExcepcion(): void
     {
-        $pdo = $this->createStub(PDO::class);
+        $pdo = $this->createMock(PDO::class);
         $pdo->method('beginTransaction')
             ->willThrowException(new \RuntimeException('Connection refused'));
         $pdo->method('rollBack')->willReturn(true);
@@ -66,7 +66,7 @@ final class AccountDeletionServiceTest extends TestCase
 
     public function testDeleteAndAnonymizeRetornaFailCuandoPrepareDevuelveFalse(): void
     {
-        $pdo = $this->createStub(PDO::class);
+        $pdo = $this->createMock(PDO::class);
         $pdo->method('beginTransaction')->willReturn(true);
         $pdo->method('prepare')
             ->willThrowException(new \RuntimeException('Prepare failed'));

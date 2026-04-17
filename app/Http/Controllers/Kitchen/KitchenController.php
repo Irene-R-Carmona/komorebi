@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Kitchen;
 
+use App\Core\Container;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Middleware;
@@ -12,6 +13,7 @@ use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Services\ContextServiceInstance;
 use App\Services\KitchenService;
+use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -23,6 +25,14 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class KitchenController
 {
+    /** Minutos hasta mostrar aviso amarillo en tarjeta KDS */
+    private const KDS_WARN_MINUTES = 10;
+
+    /** Minutos hasta mostrar aviso naranja-rojo (crítico) en tarjeta KDS */
+    private const KDS_LATE_MINUTES = 15;
+
+    /** Segundos a partir de los cuales el formato de tiempo pasa a H:i:s */
+    private const KDS_FORMAT_SWITCH_SECONDS = 3600;
     private KitchenService $service;
 
     private ResponseFactory $response;
@@ -42,7 +52,7 @@ final class KitchenController
 
     private function context(): ContextServiceInstance
     {
-        return $this->context ??= \App\Core\Container::make(ContextServiceInstance::class);
+        return $this->context ??= Container::make(ContextServiceInstance::class);
     }
 
     /**
@@ -121,7 +131,7 @@ final class KitchenController
      * POST /ops/kitchen/ready
      * Marca un ítem de comanda como listo (AJAX KDS).
      *
-     * @throws ValidationException
+     * @throws ValidationException|JsonException
      */
     public function ready(ServerRequestInterface $request): ResponseInterface
     {
@@ -208,14 +218,14 @@ final class KitchenController
             $mins = (int) \round($seconds / 60);
 
             // Formatear tiempo para UI
-            $item['ui_time'] = \gmdate(($seconds > 3600 ? 'H:i:s' : 'i:s'), $seconds);
+            $item['ui_time'] = \gmdate(($seconds > self::KDS_FORMAT_SWITCH_SECONDS ? 'H:i:s' : 'i:s'), $seconds);
 
             // Asignar clase CSS según urgencia
             $item['ui_class'] = '';
 
-            if ($mins > 15) {
+            if ($mins > self::KDS_LATE_MINUTES) {
                 $item['ui_class'] = 'kds-card--late';
-            } elseif ($mins > 10) {
+            } elseif ($mins > self::KDS_WARN_MINUTES) {
                 $item['ui_class'] = 'kds-card--warn';
             }
 

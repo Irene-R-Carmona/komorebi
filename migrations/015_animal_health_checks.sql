@@ -88,8 +88,8 @@ WHERE a.deleted_at IS NULL
     AND a.current_status IN ('active', 'monitoring')
     AND hc.id IS NULL
 ORDER BY a.last_health_check IS NULL DESC,
-    a.last_health_check ASC,
-    a.name ASC;
+    a.last_health_check,
+    a.name;
 SET FOREIGN_KEY_CHECKS = 1;
 -- ============================================================================
 -- FIN MIGRACIÓN 015

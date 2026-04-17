@@ -48,7 +48,7 @@ final class KitchenServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdo = $this->createStub(\PDO::class);
+        $this->pdo = $this->createMock(\PDO::class);
         $this->injectPdoIntoDatabase($this->pdo);
     }
 
@@ -89,7 +89,7 @@ final class KitchenServiceTest extends TestCase
         mixed $fetchColumnReturn = 0,
         int   $rowCountReturn = 0
     ): \PDOStatement {
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createMock(\PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);

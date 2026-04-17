@@ -26,12 +26,12 @@ final class ProductServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $stmtStub = $this->createStub(PDOStatement::class);
+        $stmtStub = $this->createMock(PDOStatement::class);
         $stmtStub->method('execute')->willReturn(true);
-        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub = $this->createMock(PDO::class);
         $pdoStub->method('prepare')->willReturn($stmtStub);
 
-        $repoStub = $this->createStub(ProductRepositoryInterface::class);
+        $repoStub = $this->createMock(ProductRepositoryInterface::class);
         $repoStub->method('findFiltered')->willReturnCallback(
             static function (array $filters, int $page, int $perPage): array {
                 return ['data' => [], 'total' => 0, 'page' => $page, 'perPage' => $perPage, 'totalPages' => 1];

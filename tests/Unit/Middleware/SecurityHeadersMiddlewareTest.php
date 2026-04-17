@@ -181,7 +181,7 @@ final class SecurityHeadersMiddlewareTest extends TestCase
         $request = $this->createMockRequest();
 
         // Handler que retorna response con header Server
-        $handler = $this->createStub(RequestHandlerInterface::class);
+        $handler = $this->createMock(RequestHandlerInterface::class);
         $responseWithServer = $this->factory->createResponse(200)
             ->withHeader('Server', 'Apache/2.4.51');
         $handler->method('handle')->willReturn($responseWithServer);
@@ -293,7 +293,7 @@ final class SecurityHeadersMiddlewareTest extends TestCase
 
     private function createMockHandler(): RequestHandlerInterface
     {
-        $handler = $this->createStub(RequestHandlerInterface::class);
+        $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn(new Response(200));
 
         return $handler;

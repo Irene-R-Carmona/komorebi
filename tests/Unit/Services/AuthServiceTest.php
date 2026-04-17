@@ -39,15 +39,15 @@ final class AuthServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->userRepoMock = $this->createStub(UserRepositoryInterface::class);
-        $this->rateLimiterStub = $this->createStub(RateLimitingServiceInterface::class);
-        $this->sessionServiceStub = $this->createStub(SessionManagementServiceInterface::class);
-        $this->userModelStub = $this->createStub(UserModelInterface::class);
+        $this->userRepoMock = $this->createMock(UserRepositoryInterface::class);
+        $this->rateLimiterStub = $this->createMock(RateLimitingServiceInterface::class);
+        $this->sessionServiceStub = $this->createMock(SessionManagementServiceInterface::class);
+        $this->userModelStub = $this->createMock(UserModelInterface::class);
 
         // PDO stub: prepare() devuelve un statement que ejecuta sin errores
-        $stmtStub = $this->createStub(PDOStatement::class);
+        $stmtStub = $this->createMock(PDOStatement::class);
         $stmtStub->method('execute')->willReturn(true);
-        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub = $this->createMock(PDO::class);
         $pdoStub->method('prepare')->willReturn($stmtStub);
 
         $this->service = new AuthService(
@@ -174,9 +174,9 @@ final class AuthServiceTest extends TestCase
             ->with($this->equalTo('test@example.com'))
             ->willReturn(null);
 
-        $stmtStub = $this->createStub(PDOStatement::class);
+        $stmtStub = $this->createMock(PDOStatement::class);
         $stmtStub->method('execute')->willReturn(true);
-        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub = $this->createMock(PDO::class);
         $pdoStub->method('prepare')->willReturn($stmtStub);
 
         // Usar servicio construido con el mock que verifica el argumento

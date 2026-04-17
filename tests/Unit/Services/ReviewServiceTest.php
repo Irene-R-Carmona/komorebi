@@ -44,7 +44,7 @@ final class ReviewServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->userModelMock = $this->createStub(UserModelInterface::class);
+        $this->userModelMock = $this->createMock(UserModelInterface::class);
         $this->reviewRepoMock = $this->createMock(ReviewRepositoryInterface::class);
         $this->service = new ReviewService($this->userModelMock, $this->reviewRepoMock);
     }

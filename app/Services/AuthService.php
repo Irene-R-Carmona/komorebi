@@ -10,6 +10,7 @@ use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Result;
 use App\Core\Session;
+use App\Core\WideEvent;
 use App\Events\UserRegisteredEvent;
 use App\Exceptions\ValidationException;
 use App\Models\Contracts\UserModelInterface;
@@ -151,6 +152,8 @@ final class AuthService extends BaseService implements AuthServiceInterface
 
             return Result::ok(['user_id' => $userId]);
         } catch (RuntimeException $e) {
+            Logger::warning('[AuthService::register] unexpected failure', ['exception' => $e->getMessage()]);
+
             return Result::fail($e->getMessage());
         }
     }
@@ -452,6 +455,8 @@ final class AuthService extends BaseService implements AuthServiceInterface
 
         // Determinar redirección basada en el rol del usuario
         $redirect = $this->determineRedirectUrl();
+
+        WideEvent::setSection('auth', ['user_id' => $userId, 'method' => 'login']);
 
         return Result::ok(['redirect' => $redirect]);
     }

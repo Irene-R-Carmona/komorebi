@@ -33,8 +33,8 @@ final class AnimalCareServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->repoStub = $this->createStub(AnimalRepositoryInterface::class);
-        $this->pdoStub = $this->createStub(PDO::class);
+        $this->repoStub = $this->createMock(AnimalRepositoryInterface::class);
+        $this->pdoStub = $this->createMock(PDO::class);
     }
 
     // ──────────────────────────────────────────────
@@ -118,7 +118,7 @@ final class AnimalCareServiceTest extends TestCase
 
     public function testUpdateAnimalCuandoNingunFilaAfectadaRetornaFail(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('rowCount')->willReturn(0); // ninguna fila afectada
 

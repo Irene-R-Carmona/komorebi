@@ -42,16 +42,16 @@ final class CafeScopeMiddlewareTest extends TestCase
         $this->middleware = new CafeScopeMiddleware($this->responseFactory);
 
         // Mock request
-        $this->request = $this->createStub(ServerRequestInterface::class);
-        $uriMock = $this->createStub(UriInterface::class);
+        $this->request = $this->createMock(ServerRequestInterface::class);
+        $uriMock = $this->createMock(UriInterface::class);
         $uriMock->method('getPath')->willReturn('/manager/cafe');
 
         $this->request->method('getUri')->willReturn($uriMock);
         $this->request->method('getHeaderLine')->willReturn('');
 
         // Mock handler
-        $this->handler = $this->createStub(RequestHandlerInterface::class);
-        $this->response = $this->createStub(ResponseInterface::class);
+        $this->handler = $this->createMock(RequestHandlerInterface::class);
+        $this->response = $this->createMock(ResponseInterface::class);
         $this->handler->method('handle')->willReturn($this->response);
 
         // Reset session
@@ -102,8 +102,8 @@ final class CafeScopeMiddlewareTest extends TestCase
         Session::set('user', ['cafe_id' => null]);
 
         // Mock API request
-        $this->request = $this->createStub(ServerRequestInterface::class);
-        $uriMock = $this->createStub(UriInterface::class);
+        $this->request = $this->createMock(ServerRequestInterface::class);
+        $uriMock = $this->createMock(UriInterface::class);
         $uriMock->method('getPath')->willReturn('/api/manager/cafe');
 
         $this->request->method('getUri')->willReturn($uriMock);
@@ -146,8 +146,8 @@ final class CafeScopeMiddlewareTest extends TestCase
         Session::start();
         Session::set('user_cafe_id', 1);
 
-        $request = $this->createStub(ServerRequestInterface::class);
-        $uriMock = $this->createStub(UriInterface::class);
+        $request = $this->createMock(ServerRequestInterface::class);
+        $uriMock = $this->createMock(UriInterface::class);
         $uriMock->method('getPath')->willReturn('/manager/cafe/2/settings');
         $request->method('getUri')->willReturn($uriMock);
         $request->method('getHeaderLine')->willReturn('');
@@ -166,8 +166,8 @@ final class CafeScopeMiddlewareTest extends TestCase
         Session::start();
         Session::set('user_cafe_id', 1);
 
-        $request = $this->createStub(ServerRequestInterface::class);
-        $uriMock = $this->createStub(UriInterface::class);
+        $request = $this->createMock(ServerRequestInterface::class);
+        $uriMock = $this->createMock(UriInterface::class);
         $uriMock->method('getPath')->willReturn('/manager/cafe/1/settings');
         $request->method('getUri')->willReturn($uriMock);
         $request->method('getHeaderLine')->willReturn('');

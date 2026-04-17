@@ -25,8 +25,7 @@ final class TimeSlotSeeder
 
     public function run(): void
     {
-        echo "Generando time_slots...\n";
-        Logger::info('TimeSlotSeeder: starting');
+        Logger::info('[TimeSlotSeeder] starting');
 
         // Obtener cafés con sus horarios
         $cafes = $this->db->query('
@@ -36,7 +35,7 @@ final class TimeSlotSeeder
         ')->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($cafes)) {
-            echo "⚠️  No hay cafés activos\n";
+            Logger::warning('[TimeSlotSeeder] no active cafes found');
 
             return;
         }
@@ -46,12 +45,12 @@ final class TimeSlotSeeder
 
         if ($existingSlots === 0) {
             // Crear slots nuevos
-            echo "  → Creando slots para los próximos 14 días...\n";
+            Logger::info('[TimeSlotSeeder] creating slots for next 14 days');
             $this->createTimeSlots($cafes);
         } else {
             // Resetear reserved_spots (las reservas se crearán después)
             $this->db->exec('UPDATE time_slots SET reserved_spots = 0');
-            echo "  → reserved_spots reseteados\n";
+            Logger::info('[TimeSlotSeeder] reserved_spots reset');
         }
 
         $updated = 0;
@@ -111,8 +110,7 @@ final class TimeSlotSeeder
         // Bloquear algunos slots aleatoriamente (mantenimiento, eventos privados)
         $this->blockRandomSlots();
 
-        echo "✅ $updated time_slots actualizados\n";
-        Logger::info('TimeSlotSeeder: completed', ['updated' => $updated]);
+        Logger::info('[TimeSlotSeeder] completed', ['updated' => $updated]);
     }
 
     private function blockRandomSlots(): void
@@ -154,7 +152,7 @@ final class TimeSlotSeeder
             }
         }
 
-        echo "  📅 $blocked slots bloqueados por eventos/mantenimiento\n";
+        Logger::info('[TimeSlotSeeder] slots blocked', ['count' => $blocked]);
     }
 
     private function createTimeSlots(array $cafes): void
@@ -211,7 +209,7 @@ final class TimeSlotSeeder
             }
         }
 
-        echo "  ✓ $created slots creados\n";
+        Logger::info('[TimeSlotSeeder] slots created', ['count' => $created]);
     }
 
     private function getSlotCapacity(int $baseCapacity, string $hour): int

@@ -52,12 +52,12 @@ final class WaitlistServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->dbMock = $this->createStub(PDO::class);
-        $this->waitlistMock = $this->createStub(WaitlistRepositoryInterface::class);
-        $this->emailServiceStub = $this->createStub(EmailServiceInterface::class);
+        $this->dbMock = $this->createMock(PDO::class);
+        $this->waitlistMock = $this->createMock(WaitlistRepositoryInterface::class);
+        $this->emailServiceStub = $this->createMock(EmailServiceInterface::class);
 
         // Ensure prepare() always returns a usable PDOStatement stub by default
-        $stmtDefault = $this->createStub(PDOStatement::class);
+        $stmtDefault = $this->createMock(PDOStatement::class);
         $this->dbMock->method('prepare')->willReturn($stmtDefault);
 
         $this->service = new WaitlistService($this->dbMock, $this->emailServiceStub, $this->waitlistMock);
@@ -93,13 +93,13 @@ final class WaitlistServiceTest extends TestCase
         ];
 
         // Use a fresh PDO stub so fetch() returns the slot (can't reconfigure an already-configured stub)
-        $stmt = $this->createStub(PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('fetch')->willReturn($slot);
 
-        $dbMock = $this->createStub(PDO::class);
+        $dbMock = $this->createMock(PDO::class);
         $dbMock->method('prepare')->willReturn($stmt);
 
-        $service = new WaitlistService($dbMock, $this->createStub(EmailServiceInterface::class), $this->waitlistMock);
+        $service = new WaitlistService($dbMock, $this->createMock(EmailServiceInterface::class), $this->waitlistMock);
         $result = $service->joinWaitlist(1, 1, [
             'email' => 'test@example.com',
             'guest_count' => 2,

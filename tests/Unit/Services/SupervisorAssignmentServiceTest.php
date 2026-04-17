@@ -26,7 +26,7 @@ final class SupervisorAssignmentServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->repo = $this->createStub(SupervisorAssignmentRepositoryInterface::class);
+        $this->repo = $this->createMock(SupervisorAssignmentRepositoryInterface::class);
         $this->service = new SupervisorAssignmentService($this->repo);
     }
 

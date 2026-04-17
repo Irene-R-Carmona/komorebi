@@ -40,10 +40,10 @@ final class RequestLogMiddlewareTest extends TestCase
 
     private function makeRequest(string $method = 'GET', string $path = '/test', ?array $parsedBody = null): ServerRequestInterface
     {
-        $uri = $this->createStub(UriInterface::class);
+        $uri = $this->createMock(UriInterface::class);
         $uri->method('getPath')->willReturn($path);
 
-        $request = $this->createStub(ServerRequestInterface::class);
+        $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getMethod')->willReturn($method);
         $request->method('getUri')->willReturn($uri);
         $request->method('getServerParams')->willReturn([]);
@@ -54,10 +54,10 @@ final class RequestLogMiddlewareTest extends TestCase
 
     private function makeHandler(int $statusCode = 200, ?callable $onHandle = null): RequestHandlerInterface
     {
-        $response = $this->createStub(ResponseInterface::class);
+        $response = $this->createMock(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn($statusCode);
 
-        $handler = $this->createStub(RequestHandlerInterface::class);
+        $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willReturnCallback(function () use ($response, $onHandle) {
             if ($onHandle !== null) {
                 ($onHandle)();

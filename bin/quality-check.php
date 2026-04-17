@@ -15,31 +15,31 @@ declare(strict_types=1);
 $startTime = microtime(true);
 
 echo "\n";
-echo "╔════════════════════════════════════════════════════════════════╗\n";
-echo "║  QUALITY CHECK - Komorebi Café PFC                           ║\n";
-echo "╚════════════════════════════════════════════════════════════════╝\n";
+echo "================================================================\n";
+echo "  QUALITY CHECK - Komorebi Cafe PFC\n";
+echo "================================================================\n";
 echo "\n";
 
 $autoFix = in_array('--fix', $argv, true);
 
 if ($autoFix) {
-    echo "🔧 Modo: AUTO-FIX ACTIVADO\n\n";
+    echo "[MODE] AUTO-FIX ACTIVADO\n\n";
 } else {
-    echo "🔍 Modo: VERIFICACIÓN (usa --fix para corregir)\n\n";
+    echo "[MODE] VERIFICACION (usa --fix para corregir)\n\n";
 }
 
 $results = [];
 $hasErrors = false;
 
 // 1. Complejidad del código
-echo "📊 [1/5] Analizando complejidad del código...\n";
+echo "[STEP] [1/5] Analizando complejidad del codigo...\n";
 $complexityOutput = [];
 $complexityCode = 0;
 exec('php ' . __DIR__ . '/analyze-complexity.php 2>&1', $complexityOutput, $complexityCode);
 
 $criticalMethods = 0;
 foreach ($complexityOutput as $line) {
-    if (preg_match('/Críticos:\s*(\d+)/', $line, $matches)) {
+    if (preg_match('/Criticos:\s*(\d+)/', $line, $matches)) {
         $criticalMethods = (int) $matches[1];
         break;
     }
@@ -49,8 +49,8 @@ $results['complexity'] = [
     'status' => $criticalMethods === 0 ? 'PASS' : 'FAIL',
     'critical_methods' => $criticalMethods,
     'message' => $criticalMethods === 0
-        ? '✅ Sin métodos críticos'
-        : "❌ $criticalMethods método(s) crítico(s) detectado(s)",
+        ? '[OK] Sin metodos criticos'
+        : "[FAIL] $criticalMethods metodo(s) critico(s) detectado(s)",
 ];
 
 if ($criticalMethods > 0) {
@@ -60,13 +60,13 @@ if ($criticalMethods > 0) {
 echo $results['complexity']['message'] . "\n\n";
 
 // 2. PHP-CS-Fixer
-echo "🎨 [2/5] Verificando estilo de código (PHP-CS-Fixer)...\n";
+echo "[STEP] [2/5] Verificando estilo de codigo (PHP-CS-Fixer)...\n";
 
 if ($autoFix) {
     exec('vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php 2>&1', $csFixerOutput, $csFixerCode);
     $results['cs-fixer'] = [
         'status' => 'FIXED',
-        'message' => '✅ Estilo corregido automáticamente',
+        'message' => '[OK] Estilo corregido automaticamente',
     ];
     echo $results['cs-fixer']['message'] . "\n\n";
 } else {
@@ -76,8 +76,8 @@ if ($autoFix) {
     $results['cs-fixer'] = [
         'status' => $needsFixes ? 'NEEDS_FIX' : 'PASS',
         'message' => $needsFixes
-            ? '⚠️  Estilo necesita corrección (ejecuta con --fix)'
-            : '✅ Estilo correcto',
+            ? '[WARN] Estilo necesita correccion (ejecuta con --fix)'
+            : '[OK] Estilo correcto',
     ];
 
     if ($needsFixes) {
@@ -88,7 +88,7 @@ if ($autoFix) {
 }
 
 // 3. PHPCS
-echo "📏 [3/5] Verificando estándares PSR-12 (PHPCS)...\n";
+echo "[STEP] [3/5] Verificando estandares PSR-12 (PHPCS)...\n";
 
 if ($autoFix) {
     exec('vendor/bin/phpcbf --report=summary 2>&1', $phpcsOutput, $phpcsCode);
@@ -103,7 +103,7 @@ if ($autoFix) {
     $results['phpcs'] = [
         'status' => 'FIXED',
         'fixed_count' => $fixedCount,
-        'message' => "✅ $fixedCount violación(es) corregida(s)",
+        'message' => "[OK] $fixedCount violacion(es) corregida(s)",
     ];
     echo $results['phpcs']['message'] . "\n\n";
 } else {
@@ -124,8 +124,8 @@ if ($autoFix) {
         'errors' => $errorCount,
         'warnings' => $warningCount,
         'message' => $errorCount === 0
-            ? '✅ Sin violaciones PSR-12'
-            : "⚠️  $errorCount error(es), $warningCount warning(s) (usa --fix)",
+            ? '[OK] Sin violaciones PSR-12'
+            : "[WARN] $errorCount error(es), $warningCount warning(s) (usa --fix)",
     ];
 
     if ($errorCount > 0) {
@@ -136,7 +136,7 @@ if ($autoFix) {
 }
 
 // 4. PHPStan
-echo "🔎 [4/5] Análisis estático (PHPStan)...\n";
+echo "[STEP] [4/5] Analisis estatico (PHPStan)...\n";
 exec('vendor/bin/phpstan analyse --memory-limit=1G --no-progress 2>&1', $phpstanOutput, $phpstanCode);
 
 $phpstanErrors = 0;
@@ -151,8 +151,8 @@ $results['phpstan'] = [
     'status' => $phpstanCode === 0 ? 'PASS' : 'FAIL',
     'errors' => $phpstanErrors,
     'message' => $phpstanCode === 0
-        ? '✅ Sin errores de tipo'
-        : "❌ $phpstanErrors error(es) de tipo detectado(s)",
+        ? '[OK] Sin errores de tipo'
+        : "[FAIL] $phpstanErrors error(es) de tipo detectado(s)",
 ];
 
 if ($phpstanCode !== 0) {
@@ -161,72 +161,73 @@ if ($phpstanCode !== 0) {
 
 echo $results['phpstan']['message'] . "\n\n";
 
-// 5. Psalm
-echo "🔬 [5/5] Análisis semántico (Psalm)...\n";
-exec('vendor/bin/psalm --no-progress 2>&1', $psalmOutput, $psalmCode);
+// 5. Tests (Psalm eliminado — decision 2026-04-16)
+echo "[STEP] [5/5] Ejecutando tests (PHPUnit)...\n";
+exec('vendor/bin/phpunit --no-coverage 2>&1', $phpunitOutput, $phpunitCode);
 
-$psalmErrors = 0;
-$psalmInfo = 0;
-foreach ($psalmOutput as $line) {
-    if (preg_match('/No errors found/', $line)) {
-        $psalmErrors = 0;
-        break;
+$phpunitFailed = 0;
+foreach ($phpunitOutput as $line) {
+    if (preg_match('/Failures:\s*(\d+)/', $line, $matches)) {
+        $phpunitFailed += (int) $matches[1];
     }
-    if (preg_match('/(\d+) other issues? found/', $line, $matches)) {
-        $psalmInfo = (int) $matches[1];
+    if (preg_match('/Errors:\s*(\d+)/', $line, $matches)) {
+        $phpunitFailed += (int) $matches[1];
     }
 }
 
-$results['psalm'] = [
-    'status' => $psalmErrors === 0 ? 'PASS' : 'FAIL',
-    'errors' => $psalmErrors,
-    'info' => $psalmInfo,
-    'message' => $psalmErrors === 0
-        ? "✅ Sin errores ($psalmInfo sugerencias info)"
-        : "❌ $psalmErrors error(es) detectado(s)",
+$results['phpunit'] = [
+    'status' => $phpunitCode === 0 ? 'PASS' : 'FAIL',
+    'errors' => $phpunitFailed,
+    'message' => $phpunitCode === 0
+        ? '[OK] Todos los tests pasan'
+        : "[FAIL] $phpunitFailed fallo(s) detectado(s)",
 ];
 
-echo $results['psalm']['message'] . "\n\n";
+if ($phpunitCode !== 0) {
+    $hasErrors = true;
+}
+
+echo $results['phpunit']['message'] . "\n\n";
 
 // Resumen final
 $duration = round(microtime(true) - $startTime, 2);
 
-echo "════════════════════════════════════════════════════════════════\n";
-echo "📈 RESUMEN:\n";
-echo "────────────────────────────────────────────────────────────────\n";
+echo "================================================================\n";
+echo "[STEP] RESUMEN:\n";
+echo "----------------------------------------------------------------\n";
 
 foreach ($results as $tool => $result) {
     $icon = match ($result['status']) {
-        'PASS' => '✅',
-        'FIXED' => '🔧',
-        'NEEDS_FIX' => '⚠️',
-        'FAIL' => '❌',
-        default => '❓'
+        'PASS'      => '[OK]  ',
+        'FIXED'     => '[FIX] ',
+        'NEEDS_FIX' => '[WARN]',
+        'FAIL'      => '[FAIL]',
+        default     => '[?]   '
     };
 
     $toolName = match ($tool) {
         'complexity' => 'Complejidad',
-        'cs-fixer' => 'CS-Fixer',
-        'phpcs' => 'PHPCS',
-        'phpstan' => 'PHPStan',
-        'psalm' => 'Psalm',
-        default => $tool
+        'cs-fixer'   => 'CS-Fixer  ',
+        'phpcs'      => 'PHPCS     ',
+        'phpstan'    => 'PHPStan   ',
+        'phpunit'    => 'PHPUnit   ',
+        default      => $tool
     };
 
     echo sprintf("   %s %-15s %s\n", $icon, $toolName, $result['message']);
 }
 
-echo "────────────────────────────────────────────────────────────────\n";
+echo "----------------------------------------------------------------\n";
 
 if ($hasErrors) {
-    echo "❌ QUALITY CHECK FALLÓ - Corrige los errores antes de continuar\n";
+    echo "[FAIL] QUALITY CHECK FALLO - Corrige los errores antes de continuar\n";
     if (!$autoFix) {
-        echo "💡 Tip: Ejecuta con --fix para corregir automáticamente\n";
+        echo "[TIP]  Ejecuta con --fix para corregir automaticamente\n";
     }
-    echo "════════════════════════════════════════════════════════════════\n\n";
+    echo "================================================================\n\n";
     exit(1);
 }
-echo "✅ QUALITY CHECK PASÓ - Código listo para commit\n";
-echo "════════════════════════════════════════════════════════════════\n";
-echo "⏱️  Tiempo total: {$duration}s\n\n";
+echo "[OK] QUALITY CHECK PASO - Codigo listo para commit\n";
+echo "================================================================\n";
+echo "[TIME] Tiempo total: {$duration}s\n\n";
 exit(0);

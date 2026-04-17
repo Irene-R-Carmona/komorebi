@@ -38,16 +38,16 @@ final class AuthorizationMiddlewareTest extends TestCase
         $this->middleware = new AuthorizationMiddleware($this->responseFactory, 'cafe.edit');
 
         // Mock request
-        $this->request = $this->createStub(ServerRequestInterface::class);
-        $uriMock = $this->createStub(UriInterface::class);
+        $this->request = $this->createMock(ServerRequestInterface::class);
+        $uriMock = $this->createMock(UriInterface::class);
         $uriMock->method('getPath')->willReturn('/manager/cafe/edit');
 
         $this->request->method('getUri')->willReturn($uriMock);
         $this->request->method('getHeaderLine')->willReturn('');
 
         // Mock handler
-        $this->handler = $this->createStub(RequestHandlerInterface::class);
-        $this->response = $this->createStub(ResponseInterface::class);
+        $this->handler = $this->createMock(RequestHandlerInterface::class);
+        $this->response = $this->createMock(ResponseInterface::class);
         $this->handler->method('handle')->willReturn($this->response);
 
         // Reset session antes de cada test
@@ -108,8 +108,8 @@ final class AuthorizationMiddlewareTest extends TestCase
         Session::set('user_roles', ['user']);
 
         // Mock API request (Accept: application/json)
-        $this->request = $this->createStub(ServerRequestInterface::class);
-        $uriMock = $this->createStub(UriInterface::class);
+        $this->request = $this->createMock(ServerRequestInterface::class);
+        $uriMock = $this->createMock(UriInterface::class);
         $uriMock->method('getPath')->willReturn('/api/manager/stats');
 
         $this->request->method('getUri')->willReturn($uriMock);

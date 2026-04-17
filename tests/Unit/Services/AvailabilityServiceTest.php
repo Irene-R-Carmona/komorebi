@@ -39,10 +39,10 @@ final class AvailabilityServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->mockStmt = $this->createStub(\PDOStatement::class);
+        $this->mockStmt = $this->createMock(\PDOStatement::class);
         $this->mockStmt->method('execute')->willReturn(true);
 
-        $this->mockPdo = $this->createStub(\PDO::class);
+        $this->mockPdo = $this->createMock(\PDO::class);
         $this->mockPdo->method('prepare')->willReturn($this->mockStmt);
 
         // maxDaysAhead=999 para que los tests no fallen por rango de fechas

@@ -36,7 +36,7 @@ INNER JOIN time_slots ts ON w.time_slot_id = ts.id
 INNER JOIN cafes c ON ts.cafe_id = c.id
 WHERE w.status IN ('waiting', 'notified')
   AND w.expires_at > NOW()
-ORDER BY w.position ASC;
+ORDER BY w.position;
 
 SET FOREIGN_KEY_CHECKS = 1;
 

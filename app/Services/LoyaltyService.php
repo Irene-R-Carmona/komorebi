@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Database;
+use App\Core\Logger;
 use App\Core\Queue;
 use App\Core\Result;
 use App\Core\WideEvent;
@@ -108,6 +109,12 @@ final class LoyaltyService implements LoyaltyServiceInterface
                 ]);
             }
 
+            WideEvent::setSection('loyalty', [
+                'user_id' => $userId,
+                'stamps'  => $newStamps,
+                'tier'    => $newTier,
+            ]);
+
             return Result::ok([
                 'card' => $updatedCard,
                 'stamps_added' => $stamps,
@@ -115,6 +122,8 @@ final class LoyaltyService implements LoyaltyServiceInterface
                 'tier_changed' => $newTier !== $card['current_tier'],
             ]);
         } catch (\Exception $e) {
+            Logger::warning('[LoyaltyService::addStamp] unexpected failure', ['exception' => $e->getMessage(), 'user_id' => $userId]);
+
             return Result::fail('Error al añadir sello: ' . $e->getMessage());
         }
     }
