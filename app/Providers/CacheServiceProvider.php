@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Core\Container;
 use App\Core\ServiceProvider;
 use App\Services\CacheService;
+use Override;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
@@ -16,7 +17,7 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 final class CacheServiceProvider extends ServiceProvider
 {
-    #[\Override]
+    #[Override]
     public function register(): void
     {
         Container::singleton(CacheItemPoolInterface::class, static function (): CacheService {
@@ -31,7 +32,7 @@ final class CacheServiceProvider extends ServiceProvider
         Container::alias('cache', CacheService::class);
     }
 
-    #[\Override]
+    #[Override]
     public function boot(): void
     {
         // No hay nada que hacer aquí

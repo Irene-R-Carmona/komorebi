@@ -21,21 +21,12 @@ use App\Core\Result;
 use App\Models\Contracts\UserModelInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Services\ReviewService;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * Tests para ReviewService
- *
- * Verifica:
- * - Creación de reseñas con validaciones
- * - Validación de ratings
- * - Sanitización de contenido
- * - Eliminación de reseñas
- */
-#[AllowMockObjectsWithoutExpectations]
+#[CoversClass(ReviewService::class)]
 final class ReviewServiceTest extends TestCase
 {
     private ReviewService $service;
@@ -230,9 +221,10 @@ final class ReviewServiceTest extends TestCase
 
     public function testDeleteReviewReturnsResult(): void
     {
+        $this->reviewRepoMock->method('findById')->willReturn(['id' => 123, 'user_id' => 1]);
         $this->reviewRepoMock->method('delete')->willReturn(true);
 
-        $result = $this->service->deleteReview(123);
+        $result = $this->service->deleteReview(123, 1);
 
         $this->assertInstanceOf(Result::class, $result);
         $this->assertTrue($result->ok);

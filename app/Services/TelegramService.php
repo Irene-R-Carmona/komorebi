@@ -10,6 +10,8 @@ use App\Core\Logger;
 use App\Core\Result;
 use App\Exceptions\CircuitOpenException;
 use App\Services\Contracts\TelegramServiceInterface;
+use Override;
+use RuntimeException;
 
 final class TelegramService implements TelegramServiceInterface
 {
@@ -23,7 +25,7 @@ final class TelegramService implements TelegramServiceInterface
         $this->chatId = Env::get('TELEGRAM_CHAT_ID', '');
     }
 
-    #[\Override]
+    #[Override]
     public function sendMessage(string $text, ?string $chatId = null): Result
     {
         if ($this->botToken === '' || $this->chatId === '') {
@@ -60,7 +62,7 @@ final class TelegramService implements TelegramServiceInterface
             $response = CircuitBreaker::call('telegram', static function () use ($url, $context): string {
                 $result = @\file_get_contents($url, false, $context);
                 if ($result === false) {
-                    throw new \RuntimeException('HTTP request failed');
+                    throw new RuntimeException('HTTP request failed');
                 }
 
                 return $result;
@@ -69,7 +71,7 @@ final class TelegramService implements TelegramServiceInterface
             Logger::warning('[TelegramService] Circuit breaker abierto, omitiendo notificación de Telegram');
 
             return Result::ok(null);
-        } catch (\RuntimeException) {
+        } catch (RuntimeException) {
             Logger::error('[TelegramService] Failed to send message', ['chat_id' => $targetChat]);
 
             return Result::fail('No se pudo enviar el mensaje de Telegram', 'telegram_send_failed');
@@ -87,7 +89,7 @@ final class TelegramService implements TelegramServiceInterface
         return Result::ok($data);
     }
 
-    #[\Override]
+    #[Override]
     public function sendAlert(string $emoji, string $title, string $body): Result
     {
         $text = "{$emoji} <b>{$title}</b>\n\n{$body}";

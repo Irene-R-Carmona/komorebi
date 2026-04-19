@@ -18,10 +18,13 @@ namespace Tests\Unit\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\LoyaltyController;
+use App\Repositories\Contracts\LoyaltyRepositoryInterface;
 use App\Services\LoyaltyService;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(LoyaltyController::class)]
 final class LoyaltyControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
@@ -34,10 +37,13 @@ final class LoyaltyControllerTest extends ControllerTestCase
         $_SESSION = [];
     }
 
-    /** LoyaltyService requiere DB; se ejecuta con dev stack activo */
     private function makeController(): LoyaltyController
     {
-        return new LoyaltyController(new ResponseFactory(), new LoyaltyService());
+        $service = new LoyaltyService(
+            loyaltyRepo: $this->createStub(LoyaltyRepositoryInterface::class),
+        );
+
+        return new LoyaltyController(new ResponseFactory(), $service);
     }
 
     public function test_redeem_returns_error_when_not_authenticated(): void

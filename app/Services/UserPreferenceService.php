@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\UserPreferenceServiceInterface;
+use Override;
 
 /**
  * Servicio de preferencias de usuario.
@@ -24,7 +25,7 @@ final class UserPreferenceService implements UserPreferenceServiceInterface
      *
      * @return array<string, mixed>
      */
-    #[\Override]
+    #[Override]
     public function getPreferences(int $userId): array
     {
         $user = $this->userRepo->findById($userId);
@@ -43,7 +44,7 @@ final class UserPreferenceService implements UserPreferenceServiceInterface
      *
      * @param array<string, mixed> $preferences
      */
-    #[\Override]
+    #[Override]
     public function updatePreferences(int $userId, array $preferences): bool
     {
         return $this->userRepo->updatePreferences($userId, $preferences);

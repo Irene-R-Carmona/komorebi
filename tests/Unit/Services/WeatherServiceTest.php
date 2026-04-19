@@ -23,9 +23,11 @@ namespace Tests\Unit\Services;
 
 use App\Core\Result;
 use App\Services\WeatherService;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
+#[CoversClass(WeatherService::class)]
 final class WeatherServiceTest extends TestCase
 {
     // ─────────────────────────────────────────────────────────────
@@ -39,8 +41,8 @@ final class WeatherServiceTest extends TestCase
         $result = $service->getWeather(-91.0, 0.0);
 
         $this->assertInstanceOf(Result::class, $result);
-        $this->assertTrue($result->isFail());
-        $this->assertStringContainsString('Coordenadas', $result->getMessage());
+        $this->assertTrue(!$result->ok);
+        $this->assertStringContainsString('Coordenadas', $result->error);
     }
 
     public function testGetWeatherFailsOnLatitudeTooHigh(): void
@@ -49,8 +51,8 @@ final class WeatherServiceTest extends TestCase
 
         $result = $service->getWeather(91.0, 0.0);
 
-        $this->assertTrue($result->isFail());
-        $this->assertStringContainsString('Coordenadas', $result->getMessage());
+        $this->assertTrue(!$result->ok);
+        $this->assertStringContainsString('Coordenadas', $result->error);
     }
 
     public function testGetWeatherFailsOnLongitudeTooLow(): void
@@ -59,8 +61,8 @@ final class WeatherServiceTest extends TestCase
 
         $result = $service->getWeather(0.0, -181.0);
 
-        $this->assertTrue($result->isFail());
-        $this->assertStringContainsString('Coordenadas', $result->getMessage());
+        $this->assertTrue(!$result->ok);
+        $this->assertStringContainsString('Coordenadas', $result->error);
     }
 
     public function testGetWeatherFailsOnLongitudeTooHigh(): void
@@ -69,8 +71,8 @@ final class WeatherServiceTest extends TestCase
 
         $result = $service->getWeather(0.0, 181.0);
 
-        $this->assertTrue($result->isFail());
-        $this->assertStringContainsString('Coordenadas', $result->getMessage());
+        $this->assertTrue(!$result->ok);
+        $this->assertStringContainsString('Coordenadas', $result->error);
     }
 
     public function testGetWeatherAcceptsBoundaryCoordinates(): void
@@ -102,7 +104,7 @@ final class WeatherServiceTest extends TestCase
         $service = new WeatherService($cache);
         $result = $service->getWeather($lat, $lon);
 
-        $this->assertTrue($result->isOk());
+        $this->assertTrue($result->ok);
         $this->assertIsArray($result->data);
         $this->assertTrue($result->data['cached']);
         $this->assertArrayHasKey('current', $result->data);
@@ -117,7 +119,7 @@ final class WeatherServiceTest extends TestCase
         $service = new WeatherService($cache);
         $result = $service->getWeather($lat, $lon);
 
-        $this->assertTrue($result->isOk());
+        $this->assertTrue($result->ok);
         $data = $result->data;
         $this->assertArrayHasKey('current', $data);
         $this->assertArrayHasKey('hourly', $data);
@@ -134,8 +136,8 @@ final class WeatherServiceTest extends TestCase
 
         $result = $service->getForecast(-200.0, 0.0, '2026-01-01', '2026-01-07');
 
-        $this->assertTrue($result->isFail());
-        $this->assertStringContainsString('Coordenadas', $result->getMessage());
+        $this->assertTrue(!$result->ok);
+        $this->assertStringContainsString('Coordenadas', $result->error);
     }
 
     public function testGetForecastFailsWhenStartDateAfterEndDate(): void
@@ -144,8 +146,8 @@ final class WeatherServiceTest extends TestCase
 
         $result = $service->getForecast(35.0, 139.0, '2026-01-10', '2026-01-01');
 
-        $this->assertTrue($result->isFail());
-        $this->assertStringContainsString('fecha', \strtolower($result->getMessage()));
+        $this->assertTrue(!$result->ok);
+        $this->assertStringContainsString('fecha', \strtolower($result->error));
     }
 
     public function testGetForecastFailsOnInvalidDateFormat(): void
@@ -154,7 +156,7 @@ final class WeatherServiceTest extends TestCase
 
         $result = $service->getForecast(35.0, 139.0, 'not-a-date', '2026-01-07');
 
-        $this->assertTrue($result->isFail());
+        $this->assertTrue(!$result->ok);
     }
 
     public function testGetForecastReturnsCachedResultWhenCacheHit(): void
@@ -172,7 +174,7 @@ final class WeatherServiceTest extends TestCase
         $service = new WeatherService($cache);
         $result = $service->getForecast($lat, $lon, $start, $end);
 
-        $this->assertTrue($result->isOk());
+        $this->assertTrue($result->ok);
         $this->assertTrue($result->data['cached']);
     }
 

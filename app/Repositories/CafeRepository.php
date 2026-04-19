@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\CafeCatalogRepositoryInterface;
+use Override;
 use PDO;
 
 /**
@@ -13,15 +14,15 @@ use PDO;
  * Encapsula la lógica de acceso a datos de cafés,
  * incluyendo búsquedas por categoría, ubicación y disponibilidad.
  */
-final class CafeRepository extends AbstractRepository implements CafeRepositoryInterface
+final class CafeRepository extends AbstractRepository implements CafeCatalogRepositoryInterface
 {
-    #[\Override]
+    #[Override]
     protected function getTable(): string
     {
         return 'cafes';
     }
 
-    #[\Override]
+    #[Override]
     protected function getSelectFields(): array
     {
         return [
@@ -170,36 +171,6 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
     }
 
     /**
-     * Buscar cafés cercanos (por coordenadas).
-     */
-    public function findNearby(float $latitude, float $longitude, float $radiusKm = 10): array
-    {
-        $fields = \implode(', ', $this->getSelectFields());
-
-        // Fórmula Haversine para distancia
-        $stmt = $this->getDb()->prepare(
-            "SELECT $fields,
-             (6371 * acos(cos(radians(:lat)) * cos(radians(latitude))
-             * cos(radians(longitude) - radians(:lng))
-             + sin(radians(:lat)) * sin(radians(latitude)))) AS distance
-             FROM cafes
-             WHERE is_active = 1
-             AND deleted_at IS NULL
-             AND latitude IS NOT NULL
-             AND longitude IS NOT NULL
-             HAVING distance <= :radius
-             ORDER BY distance "
-        );
-        $stmt->execute([
-            'lat' => $latitude,
-            'lng' => $longitude,
-            'radius' => $radiusKm,
-        ]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
      * Actualizar rating promedio (llamado desde triggers o manualmente).
      */
     public function updateRating(int $id): bool
@@ -223,75 +194,6 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
         );
 
         return $stmt->execute(['id' => $id]);
-    }
-
-    /**
-     * Obtener cafés mejor valorados.
-     */
-    public function findTopRated(int $limit = 5): array
-    {
-        $fields = \implode(', ', $this->getSelectFields());
-
-        $stmt = $this->getDb()->prepare(
-            "SELECT {$fields}
-             FROM cafes
-             WHERE is_active = 1
-             AND deleted_at IS NULL
-             AND rating_count > 0
-             ORDER BY rating_avg DESC, rating_count DESC
-             LIMIT :limit"
-        );
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Verificar si un café está abierto en un momento específico.
-     */
-    public function isOpenAt(int $id, string $time): bool
-    {
-        $cafe = $this->findById($id);
-
-        if (!$cafe || !$cafe['is_active']) {
-            return false;
-        }
-
-        return $time >= $cafe['opening_time'] && $time <= $cafe['closing_time'];
-    }
-
-    /**
-     * Obtener capacidad disponible en un momento dado.
-     */
-    public function getAvailableCapacity(int $id, string $date, string $time): int
-    {
-        $cafe = $this->findById($id);
-
-        if (!$cafe) {
-            return 0;
-        }
-
-        // Contar reservas activas en ese momento
-        $stmt = $this->getDb()->prepare(
-            "SELECT COALESCE(SUM(guest_count), 0) as occupied
-             FROM reservations
-             WHERE cafe_id = :cafe_id
-             AND reservation_date = :date
-             AND reservation_time = :time
-             AND status IN ('pending', 'confirmed', 'active')
-             AND deleted_at IS NULL"
-        );
-        $stmt->execute([
-            'cafe_id' => $id,
-            'date' => $date,
-            'time' => $time,
-        ]);
-
-        $occupied = (int) $stmt->fetchColumn();
-        $maxCapacity = (int) $cafe['capacity_max'];
-
-        return \max(0, $maxCapacity - $occupied);
     }
 
     /**
@@ -421,7 +323,7 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
 
         foreach ($data as $field => $value) {
             if (\in_array($field, $allowedFields, true)) {
-                $updates[] = "{$field} = :{$field}";
+                $updates[] = "$field = :$field";
                 $params[$field] = $value;
             }
         }
@@ -432,8 +334,165 @@ final class CafeRepository extends AbstractRepository implements CafeRepositoryI
 
         $sql = 'UPDATE cafes SET ' . \implode(', ', $updates) . ', updated_at = NOW() WHERE id = :id';
 
-        $stmt = $this->getDb()->prepare($sql);
+        return $this->getDb()->prepare($sql)->execute($params);
+    }
 
-        return $stmt->execute($params);
+    // ─────────────────────────────────────────────────────────────
+    // Métodos adicionales (absorbidos de Cafe model)
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Listado de cafés con filtros opcionales y orden configurable.
+     * Equivalente al antiguo Cafe::findAll() con validación de whitelist.
+     *
+     * @param string|null $category Filtrar por categoría
+     * @param string|null $animalType Filtrar por tipo de animal
+     * @param string $orderBy Campo de orden (whitelist: name, rating_avg, price_per_hour, capacity_max)
+     * @param string $order ASC | DESC
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAllFiltered(
+        ?string $category = null,
+        ?string $animalType = null,
+        string $orderBy = 'name',
+        string $order = 'ASC'
+    ): array {
+        $fields = \implode(', ', $this->getSelectFields());
+        $where = ['is_active = 1', 'deleted_at IS NULL'];
+        $params = [];
+
+        if ($category !== null) {
+            $where[] = 'category = :category';
+            $params['category'] = $category;
+        }
+
+        if ($animalType !== null) {
+            $where[] = 'animal_type = :animal_type';
+            $params['animal_type'] = $animalType;
+        }
+
+        // Whitelist explícita para prevenir SQL injection en ORDER BY
+        $validOrderBy = ['name', 'rating_avg', 'price_per_hour', 'capacity_max'];
+        if (!\in_array($orderBy, $validOrderBy, true)) {
+            $orderBy = 'name';
+        }
+        $order = \strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
+
+        $whereClause = \implode(' AND ', $where);
+        $sql = "SELECT $fields FROM cafes WHERE $whereClause ORDER BY $orderBy $order";
+
+        $stmt = $this->getDb()->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Obtiene un café con sus animales activos embebidos.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findWithAnimals(string $slug): ?array
+    {
+        $cafe = $this->findBySlug($slug);
+
+        if (!$cafe) {
+            return null;
+        }
+
+        $stmt = $this->getDb()->prepare(
+            "SELECT id, name, species_type, age, personality, description,
+                    interaction_level, image_url, current_status
+             FROM animals
+             WHERE cafe_id = :cafe_id AND current_status IN ('active', 'resting')
+             ORDER BY name"
+        );
+        $stmt->execute(['cafe_id' => $cafe['id']]);
+
+        $cafe['animals'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $cafe;
+    }
+
+    /**
+     * Obtiene las zonas de un café.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getZones(int $cafeId): array
+    {
+        $stmt = $this->getDb()->prepare(
+            'SELECT id, name, type, status, capacity, requires_briefing, requires_shoes_off
+             FROM cafe_zones
+             WHERE cafe_id = :cafe_id
+             ORDER BY type, name'
+        );
+        $stmt->execute(['cafe_id' => $cafeId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Número de veces que un café ha sido marcado como favorito.
+     */
+    public function getFavoritesCount(int $cafeId): int
+    {
+        $stmt = $this->getDb()->prepare(
+            'SELECT COUNT(*) FROM favorites WHERE cafe_id = :cafe_id'
+        );
+        $stmt->execute(['cafe_id' => $cafeId]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * Buscar cafés por múltiples IDs.
+     *
+     * @param array<int> $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function findByIds(array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        $ids = \array_map('intval', $ids);
+        $placeholders = \implode(',', \array_fill(0, \count($ids), '?'));
+        $fields = \implode(', ', $this->getSelectFields());
+
+        $stmt = $this->getDb()->prepare(
+            "SELECT $fields FROM cafes WHERE id IN ($placeholders) AND deleted_at IS NULL"
+        );
+        $stmt->execute($ids);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Búsqueda de texto libre en nombre, ubicación y descripción.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function search(string $query, int $limit = 10): array
+    {
+        $fields = \implode(', ', $this->getSelectFields());
+        $q = '%' . \mb_substr(\trim($query), 0, 100) . '%';
+
+        $sql = "SELECT $fields FROM cafes
+                WHERE is_active = 1 AND deleted_at IS NULL
+                  AND (name LIKE :q1 OR japanese_name LIKE :q2 OR location LIKE :q3 OR description LIKE :q4)
+                ORDER BY rating_avg DESC
+                LIMIT :limit";
+
+        $stmt = $this->getDb()->prepare($sql);
+        $stmt->bindValue('q1', $q);
+        $stmt->bindValue('q2', $q);
+        $stmt->bindValue('q3', $q);
+        $stmt->bindValue('q4', $q);
+        $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Core\Http\FormRequest;
+use Override;
 
 /**
  * Valida y sanitiza los datos para actualizar un usuario existente (backoffice).
@@ -13,7 +14,7 @@ final class UpdateUserRequest extends FormRequest
 {
     private const string VALID_ROLES = 'admin,manager,supervisor,reception,kitchen,keeper,user';
 
-    #[\Override]
+    #[Override]
     protected function rules(): array
     {
         return [
@@ -23,7 +24,7 @@ final class UpdateUserRequest extends FormRequest
         ];
     }
 
-    #[\Override]
+    #[Override]
     protected function sanitize(array $raw): array
     {
         return [

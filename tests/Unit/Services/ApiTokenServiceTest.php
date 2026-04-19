@@ -21,7 +21,9 @@ namespace Services;
 use App\Repositories\Contracts\ApiTokenRepositoryInterface;
 use App\Services\ApiTokenService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ApiTokenService::class)]
 final class ApiTokenServiceTest extends TestCase
 {
     /** @var \PHPUnit\Framework\MockObject\Stub&ApiTokenRepositoryInterface */

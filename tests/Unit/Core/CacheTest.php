@@ -10,10 +10,12 @@ declare(strict_types=1);
 
 use App\Core\Cache;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para el sistema de Cache Redis
  */
+#[CoversClass(Cache::class)]
 final class CacheTest extends TestCase
 {
     protected function setUp(): void

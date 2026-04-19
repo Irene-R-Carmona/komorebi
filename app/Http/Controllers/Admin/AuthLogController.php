@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\ExceptionLogger;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
-use App\Models\AuthAuditLog;
-use App\Repositories\AuthLogRepository;
 use App\Repositories\Contracts\AuthLogRepositoryInterface;
+use Error;
+use Exception;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Random\RandomException;
@@ -35,7 +36,7 @@ final class AuthLogController
     public function __construct(?ResponseFactory $response = null, ?AuthLogRepositoryInterface $authLogRepo = null)
     {
         $this->response = $response ?? new ResponseFactory();
-        $this->authLogRepo = $authLogRepo ?? new AuthLogRepository();
+        $this->authLogRepo = $authLogRepo ?? Container::make(AuthLogRepositoryInterface::class);
     }
 
     /**
@@ -90,8 +91,7 @@ final class AuthLogController
         $limit = \max(10, \min(100, (int) ($_GET['limit'] ?? 50)));
         $offset = ($page - 1) * $limit;
 
-        $authLogModel = new AuthAuditLog();
-        $result = $authLogModel->findAll($filters, $limit, $offset);
+        $result = $this->authLogRepo->findFiltered($filters, $limit, $offset);
 
         return $this->response->json(['ok' => true, 'data' => [
             'logs' => $result['data'],
@@ -113,8 +113,7 @@ final class AuthLogController
 
         $filters = \array_filter($filters, static fn ($v) => $v !== null && $v !== '');
 
-        $authLogModel = new AuthAuditLog();
-        $stats = $authLogModel->getStats($filters);
+        $stats = $this->authLogRepo->getStats($filters);
 
         return $this->response->json(['ok' => true, 'data' => ['stats' => $stats]]);
     }
@@ -185,8 +184,7 @@ final class AuthLogController
 
             $filters = \array_filter($filters, static fn ($v) => $v !== null && $v !== '');
 
-            $authLogModel = new AuthAuditLog();
-            $result = $authLogModel->findAll($filters, 10000, 0);
+            $result = $this->authLogRepo->findFiltered($filters, 10000, 0);
 
             $output = \fopen('php://memory', 'wb');
 
@@ -219,10 +217,10 @@ final class AuthLogController
             return $this->response->html($csv, 200)
                 ->withHeader('Content-Type', 'text/csv; charset=utf-8')
                 ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             ExceptionLogger::log($e, 'Admin\\AuthLogController::export');
             throw $e;
-        } catch (\Error $e) {
+        } catch (Error $e) {
             ExceptionLogger::log($e, 'Admin\\AuthLogController::export');
             throw $e;
         }

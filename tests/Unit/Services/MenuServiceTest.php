@@ -4,27 +4,36 @@ declare(strict_types=1);
 
 /**
  * ¿Qué pruebas aquí?
+ * MenuService: getCategories (con/sin experiencias), getProductsByCategory,
+ * getAllergens, getMenuForCafe y getProductDetail.
+ *
  * ¿Qué me quieres demostrar?
+ * Que MenuService delega correctamente en MenuRepositoryInterface y que
+ * los filtros (includeExperiences, cafeId) se propagan al repositorio.
+ *
  * ¿Qué va a fallar en este test si se cambia el código?
+ * Si se elimina el filtro de experiencias, si getProductsByCategory
+ * deja de pasar cafeId al repositorio, o si getMenuForCafe cambia su estructura.
  */
 
 namespace Tests\Unit\Services;
 
 use App\Repositories\Contracts\MenuRepositoryInterface;
 use App\Services\MenuService;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests Unitarios de MenuService
  *
  * Valida lógica de negocio sin tocar BD real (usa mocks).
  */
-#[AllowMockObjectsWithoutExpectations]
+#[CoversClass(MenuService::class)]
 final class MenuServiceTest extends TestCase
 {
     private MenuService $service;
-    /** @var \PHPUnit\Framework\MockObject\MockObject&MenuRepositoryInterface */
+    /** @var MockObject&MenuRepositoryInterface */
     private MenuRepositoryInterface $mockMenuRepo;
 
     protected function setUp(): void

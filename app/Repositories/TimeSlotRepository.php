@@ -156,4 +156,47 @@ final class TimeSlotRepository implements TimeSlotRepositoryInterface
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function findAvailableRange(int $cafeId, string $startDate, string $endDate, int $minSpots = 1): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT id, cafe_id, slot_date, slot_time, total_capacity,
+                    available_spots, reserved_spots, duration_minutes,
+                    ROUND((reserved_spots / total_capacity) * 100, 2) AS occupancy_percentage,
+                    CASE
+                        WHEN available_spots = 0 THEN \'full\'
+                        WHEN available_spots <= 5 THEN \'limited\'
+                        ELSE \'available\'
+                    END AS availability_status
+             FROM time_slots
+             WHERE cafe_id = :cafe_id
+               AND slot_date BETWEEN :start_date AND :end_date
+               AND is_blocked = FALSE
+               AND available_spots >= :min_spots
+             ORDER BY slot_date ASC, slot_time ASC'
+        );
+        $stmt->execute(['cafe_id' => $cafeId, 'start_date' => $startDate, 'end_date' => $endDate, 'min_spots' => $minSpots]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getOccupancyStats(int $cafeId, string $startDate, string $endDate): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT
+                COUNT(*) AS total_slots,
+                SUM(total_capacity) AS total_capacity_sum,
+                SUM(reserved_spots) AS total_reserved,
+                SUM(available_spots) AS total_available,
+                ROUND(AVG((reserved_spots / total_capacity) * 100), 2) AS avg_occupancy_percentage,
+                COUNT(CASE WHEN available_spots = 0 THEN 1 END) AS fully_booked_count,
+                COUNT(CASE WHEN is_blocked = TRUE THEN 1 END) AS blocked_count
+             FROM time_slots
+             WHERE cafe_id = :cafe_id
+               AND slot_date BETWEEN :start_date AND :end_date'
+        );
+        $stmt->execute(['cafe_id' => $cafeId, 'start_date' => $startDate, 'end_date' => $endDate]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Contracts;
 
+use RuntimeException;
+
 /**
  * Contrato para ContextServiceInstance.
  *
@@ -57,7 +59,7 @@ interface ContextServiceInterface
     /**
      * Requiere que el usuario tenga contexto de café.
      *
-     * @throws \RuntimeException Si no hay contexto de café definido.
+     * @throws RuntimeException Si no hay contexto de café definido.
      */
     public function requireCafeContext(): int;
 

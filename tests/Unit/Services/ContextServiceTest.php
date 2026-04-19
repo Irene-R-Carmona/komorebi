@@ -26,7 +26,9 @@ use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\ContextServiceInstance;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ContextServiceInstance::class)]
 final class ContextServiceTest extends TestCase
 {
     protected function setUp(): void

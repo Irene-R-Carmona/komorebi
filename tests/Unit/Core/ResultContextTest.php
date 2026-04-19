@@ -13,7 +13,10 @@ declare(strict_types=1);
 use App\Core\Result;
 use App\Core\ServiceErrorCode;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(Result::class)]
+#[CoversClass(ServiceErrorCode::class)]
 final class ResultContextTest extends TestCase
 {
     // ── context field ────────────────────────────────────────────────────

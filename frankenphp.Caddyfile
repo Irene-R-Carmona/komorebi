@@ -1,4 +1,10 @@
 :80 {
+	# HTTP → HTTPS redirect when Railway terminates TLS upstream
+	@http {
+		header X-Forwarded-Proto http
+	}
+	redir @http https://{host}{uri} 308
+
 	# Compression (gzip, zstd, brotli) para todos los responses
 	encode br gzip zstd
 

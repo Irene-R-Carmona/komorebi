@@ -15,6 +15,7 @@ use App\Listeners\LogUserRegisteredListener;
 use App\Listeners\TelegramNewUserListener;
 use App\Listeners\TelegramReservationListener;
 use App\Listeners\TelegramReviewListener;
+use Override;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
@@ -23,7 +24,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  */
 final class EventServiceProvider extends ServiceProvider
 {
-    #[\Override]
+    #[Override]
     public function register(): void
     {
         Container::singleton(EventDispatcherInterface::class, static function (): EventDispatcher {
@@ -31,7 +32,7 @@ final class EventServiceProvider extends ServiceProvider
         });
     }
 
-    #[\Override]
+    #[Override]
     public function boot(): void
     {
         $dispatcher = Container::make(EventDispatcherInterface::class);

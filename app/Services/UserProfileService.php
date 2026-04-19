@@ -11,6 +11,7 @@ use App\Exceptions\NotFoundException;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
+use Override;
 use RuntimeException;
 
 /**
@@ -33,7 +34,7 @@ final class UserProfileService implements UserProfileServiceInterface
      * @throws AuthenticationException
      * @throws NotFoundException
      */
-    #[\Override]
+    #[Override]
     public function getCurrentProfile(): array
     {
         $userId = Session::userId();
@@ -51,7 +52,7 @@ final class UserProfileService implements UserProfileServiceInterface
      * @return array<string, mixed>
      * @throws NotFoundException
      */
-    #[\Override]
+    #[Override]
     public function getProfile(int $userId): array
     {
         $user = $this->userRepo->findById($userId);
@@ -84,7 +85,7 @@ final class UserProfileService implements UserProfileServiceInterface
      *
      * @param string|array<string, mixed> $nameOrData
      */
-    #[\Override]
+    #[Override]
     public function updateProfile(int $userId, string|array $nameOrData, ?string $email = null): Result
     {
         $updatePayload = [];
@@ -137,7 +138,7 @@ final class UserProfileService implements UserProfileServiceInterface
     /**
      * Actualiza el avatar del usuario.
      */
-    #[\Override]
+    #[Override]
     public function updateAvatar(int $userId, ?string $filename): Result
     {
         try {
@@ -154,7 +155,7 @@ final class UserProfileService implements UserProfileServiceInterface
      *
      * @return array<int, array<string, mixed>>
      */
-    #[\Override]
+    #[Override]
     public function getUsersByRole(string $role): array
     {
         return $this->userRepo->findByRole($role);
@@ -163,7 +164,7 @@ final class UserProfileService implements UserProfileServiceInterface
     /**
      * Comprueba si un usuario tiene un permiso.
      */
-    #[\Override]
+    #[Override]
     public function hasPermission(int $userId, string $permission): bool
     {
         return (bool) $this->userRepo->hasPermission($userId, $permission);

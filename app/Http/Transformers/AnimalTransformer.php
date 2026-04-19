@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Transformers;
 
+use Override;
+
 /**
  * Transforma una fila de la tabla `animals` para la API pública.
  *
@@ -12,7 +14,7 @@ namespace App\Http\Transformers;
  */
 final class AnimalTransformer extends AbstractTransformer
 {
-    #[\Override]
+    #[Override]
     public function transform(array $data): array
     {
         return [

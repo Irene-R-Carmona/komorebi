@@ -23,6 +23,8 @@ use App\Models\Reservation;
 use App\Models\TimeSlot;
 use App\Models\Waitlist;
 use App\Services\ReservationTimeSlotService;
+use PDO;
+use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
@@ -37,8 +39,8 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
     private function makeStmt(
         mixed $fetchReturn = false,
         int $rowCountReturn = 1
-    ): \PDOStatement {
-        $stmt = $this->createMock(\PDOStatement::class);
+    ): PDOStatement {
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('fetchAll')->willReturn([]);
@@ -50,9 +52,9 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
     /**
      * PDO estándar para el servicio (solo transacciones).
      */
-    private function makeTransactionPdo(): \PDO
+    private function makeTransactionPdo(): PDO
     {
-        $pdo = $this->createMock(\PDO::class);
+        $pdo = $this->createMock(PDO::class);
         $pdo->method('beginTransaction')->willReturn(true);
         $pdo->method('commit')->willReturn(true);
         $pdo->method('rollBack')->willReturn(true);
@@ -82,12 +84,12 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
      * Construye el servicio con stubs de Reservation, TimeSlot y Waitlist ajustados
      * para cubrir el flujo de cancelReservationAndPromote hasta el paso de waitlist.
      *
-     * @param \PDOStatement $waitlistQueueStmt  Stmt que getNextInQueue devolverá.
-     * @param \PDOStatement|null $waitlistNotifyStmt  Stmt para markAsNotified (solo si se llama).
+     * @param PDOStatement $waitlistQueueStmt  Stmt que getNextInQueue devolverá.
+     * @param PDOStatement|null $waitlistNotifyStmt  Stmt para markAsNotified (solo si se llama).
      */
     private function buildService(
-        \PDOStatement $waitlistQueueStmt,
-        ?\PDOStatement $waitlistNotifyStmt = null
+        PDOStatement $waitlistQueueStmt,
+        ?PDOStatement $waitlistNotifyStmt = null
     ): ReservationTimeSlotService {
         $reservation = $this->reservationRow();
 
@@ -95,7 +97,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
         //   1ª prepare → findById (validateAndFetchReservation)
         //   2ª prepare → findById dentro de cancel()
         //   3ª prepare → updateStatus dentro de cancel()
-        $reservationDb = $this->createMock(\PDO::class);
+        $reservationDb = $this->createMock(PDO::class);
         $reservationDb->method('prepare')->willReturnOnConsecutiveCalls(
             $this->makeStmt($reservation),   // validateAndFetchReservation → findById
             $this->makeStmt($reservation),   // cancel() → findById
@@ -106,7 +108,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
         //   1ª prepare → SELECT FOR UPDATE (verificar capacidad)
         //   2ª prepare → UPDATE available_spots
         $slotRow = ['total_capacity' => 10, 'available_spots' => 3];
-        $timeSlotDb = $this->createMock(\PDO::class);
+        $timeSlotDb = $this->createMock(PDO::class);
         $timeSlotDb->method('beginTransaction')->willReturn(true);
         $timeSlotDb->method('commit')->willReturn(true);
         $timeSlotDb->method('prepare')->willReturnOnConsecutiveCalls(
@@ -117,7 +119,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
         // Waitlist PDO:
         //   1ª prepare → getNextInQueue SELECT
         //   2ª prepare → markAsNotified UPDATE (solo si getNextInQueue devuelve fila)
-        $waitlistDb = $this->createMock(\PDO::class);
+        $waitlistDb = $this->createMock(PDO::class);
         if ($waitlistNotifyStmt !== null) {
             $waitlistDb->method('prepare')->willReturnOnConsecutiveCalls(
                 $waitlistQueueStmt,

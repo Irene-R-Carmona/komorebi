@@ -6,10 +6,13 @@ namespace App\Core;
 
 use Monolog\Formatter\JsonFormatter;
 use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger as Monolog;
 use Psr\Log\LoggerInterface;
+use TypeError;
+use ValueError;
 
 /**
  * Logger 12-Factor: Streams a stdout/stderr, nunca archivos en contenedores.
@@ -38,9 +41,21 @@ final class Logger
         }
 
         $level = Env::get('LOG_LEVEL', 'info');
-        $isProd = Env::get('APP_ENV', 'production') === 'production';
+        $appEnv = Env::get('APP_ENV', 'production');
+        $isProd = $appEnv === 'production';
 
         $log = new Monolog($name);
+
+        // En testing + agente AI (pao activo): silenciar logs para no contaminar stdout
+        $isAiAgent = \getenv('CLAUDECODE') !== false
+            || \getenv('CLAUDE_CODE') !== false
+            || \getenv('AI_AGENT') !== false;
+
+        if ($appEnv === 'testing' && $isAiAgent) {
+            $log->pushHandler(new NullHandler());
+
+            return self::$channels[$name] = $log;
+        }
 
         // 12-Factor: Siempre a stdout
         $handler = new StreamHandler('php://stdout', self::parseLevel($level));
@@ -120,7 +135,7 @@ final class Logger
 
         try {
             return Level::fromName($name);
-        } catch (\TypeError | \ValueError $e) {
+        } catch (TypeError | ValueError $e) {
             return Level::Info;
         }
     }

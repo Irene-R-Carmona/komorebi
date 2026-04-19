@@ -20,7 +20,9 @@ namespace Tests\Unit\Services;
 
 use App\Services\MicroestacionesService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(MicroestacionesService::class)]
 final class MicroestacionesServiceTest extends TestCase
 {
     private MicroestacionesService $service;

@@ -6,8 +6,10 @@ namespace Tests\Unit\Http\Requests;
 
 use App\Core\Http\FormRequest;
 use App\Exceptions\ValidationException;
+use Override;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?
@@ -21,6 +23,7 @@ use Psr\Http\Message\ServerRequestInterface;
  * Cualquier cambio en la lógica de reglas, en el comportamiento no-fail-fast,
  * en sanitize() o en fromRequest() romperá estos tests.
  */
+#[CoversClass(FormRequest::class)]
 final class FormRequestTest extends TestCase
 {
     // ─────────────────────────────────────────────
@@ -36,13 +39,13 @@ final class FormRequestTest extends TestCase
             ) {
             }
 
-            #[\Override]
+            #[Override]
             protected function rules(): array
             {
                 return $this->testRules;
             }
 
-            #[\Override]
+            #[Override]
             protected function sanitize(array $raw): array
             {
                 return $this->testSanitized;
@@ -275,13 +278,13 @@ final class FormRequestTest extends TestCase
 
         // Use an inline subclass that only keeps 'name'
         $class = new class () extends FormRequest {
-            #[\Override]
+            #[Override]
             protected function rules(): array
             {
                 return ['name' => 'required'];
             }
 
-            #[\Override]
+            #[Override]
             protected function sanitize(array $raw): array
             {
                 return ['name' => \trim((string) ($raw['name'] ?? ''))];
@@ -303,13 +306,13 @@ final class FormRequestTest extends TestCase
         $psrRequest->method('getParsedBody')->willReturn(['name' => '  Komorebi  ']);
 
         $class = new class () extends FormRequest {
-            #[\Override]
+            #[Override]
             protected function rules(): array
             {
                 return ['name' => 'required'];
             }
 
-            #[\Override]
+            #[Override]
             protected function sanitize(array $raw): array
             {
                 return ['name' => \trim((string) ($raw['name'] ?? ''))];

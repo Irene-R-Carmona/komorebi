@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\BaseService;
 use App\Repositories\Contracts\MenuRepositoryInterface;
 use App\Services\Contracts\MenuServiceInterface;
+use Override;
 
 /**
  * Servicio de Menú
@@ -38,7 +39,7 @@ final class MenuService extends BaseService implements MenuServiceInterface
      * @param bool $includeExperiences Si incluir categoría "experiencias" (por defecto false)
      * @return array<int, array{id: int, name: string, slug: string, display_order: int}>
      */
-    #[\Override]
+    #[Override]
     public function getCategories(bool $includeExperiences = false): array
     {
         return $this->menuRepository->getCategories($includeExperiences);
@@ -48,7 +49,7 @@ final class MenuService extends BaseService implements MenuServiceInterface
      * Obtiene productos disponibles (items solo, no pases) agrupados por categoría.
      * Usa LEFT JOIN para cargar alérgenos en una sola query (elimina N+1)
      */
-    #[\Override]
+    #[Override]
     public function getProductsByCategory(array $excludeAllergens = []): array
     {
         $products = $this->menuRepository->getProductsByCategory($excludeAllergens);
@@ -93,7 +94,7 @@ final class MenuService extends BaseService implements MenuServiceInterface
      *
      * @return array<int, array{id: int, category_id: int, name: string, japanese_name: string, description: string, price: int, image_url: string, is_active: int, product_type: string, allergens_list: array}>
      */
-    #[\Override]
+    #[Override]
     public function getAllProducts(): array
     {
         return $this->menuRepository->getAllProducts();
@@ -102,7 +103,7 @@ final class MenuService extends BaseService implements MenuServiceInterface
     /**
      * Obtiene pases disponibles.
      */
-    #[\Override]
+    #[Override]
     public function getPasses(): array
     {
         return $this->menuRepository->getPasses();
@@ -117,7 +118,7 @@ final class MenuService extends BaseService implements MenuServiceInterface
      * @param string|null $animalType   Tipo de animal del café
      * @return array<int, array>
      */
-    #[\Override]
+    #[Override]
     public function getPassesForCafe(?string $cafeCategory = null, ?string $animalType = null): array
     {
         return $this->menuRepository->getPassesForCafe($cafeCategory, $animalType);
@@ -138,7 +139,7 @@ final class MenuService extends BaseService implements MenuServiceInterface
      *     cafeTypes: array<int, array>
      * }
      */
-    #[\Override]
+    #[Override]
     public function getMenuForView(array $excludeAllergens = []): array
     {
         return [
@@ -165,7 +166,7 @@ final class MenuService extends BaseService implements MenuServiceInterface
      *
      * @return array<int, array{id: int, name: string, name_jp: string, icon: string, icon_color: string, severity: string}>
      */
-    #[\Override]
+    #[Override]
     public function getAllergens(): array
     {
         return $this->menuRepository->getAllergens();

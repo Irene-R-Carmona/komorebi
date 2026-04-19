@@ -20,7 +20,9 @@ use App\Services\RateLimitingService;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(RateLimitingService::class)]
 final class RateLimitingServiceTest extends TestCase
 {
     private RateLimitingService $service;

@@ -20,7 +20,9 @@ namespace Tests\Unit\Services;
 
 use App\Services\SettingsService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(SettingsService::class)]
 final class SettingsServiceTest extends TestCase
 {
     private SettingsService $service;

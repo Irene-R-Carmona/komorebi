@@ -6,6 +6,8 @@ namespace Tests\Unit\Core;
 
 use App\Core\Queue;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?
@@ -24,6 +26,7 @@ use PHPUnit\Framework\TestCase;
  * - Si se cambia maxAttempts default de 10 → testJobSentToFailedAfterMaxAttempts puede fallar.
  * - Si pushToFailedQueue deja de usar la key 'queue:failed' → la assertion de lPush falla.
  */
+#[CoversClass(Queue::class)]
 final class QueueRetryTest extends TestCase
 {
     /** @var array<int, array{key: string, score: float, value: string}> */
@@ -70,13 +73,13 @@ final class QueueRetryTest extends TestCase
             }
         };
 
-        $prop = new \ReflectionClass(Queue::class)->getProperty('redis');
+        $prop = new ReflectionClass(Queue::class)->getProperty('redis');
         $prop->setValue(null, $fakeRedis);
     }
 
     protected function tearDown(): void
     {
-        new \ReflectionClass(Queue::class)->getProperty('redis')->setValue(null, null);
+        new ReflectionClass(Queue::class)->getProperty('redis')->setValue(null, null);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

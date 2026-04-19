@@ -109,10 +109,10 @@ final class Middleware
         $allowedRoles = \is_array($allowedRoles) ? $allowedRoles : [$allowedRoles];
         $userRoles = (array) Session::get('user_roles', []);
 
-        // Admin siempre tiene acceso (soportar roles como `super_admin`)
+        // Admin siempre tiene acceso
         foreach ($userRoles as $r) {
             $rStr = (string) $r;
-            if ($rStr === self::ROLE_ADMIN || \str_ends_with($rStr, '_admin')) {
+            if ($rStr === self::ROLE_ADMIN) {
                 return;
             }
         }
@@ -138,10 +138,10 @@ final class Middleware
 
         $userRoles = (array) Session::get('user_roles', []);
 
-        // Admin siempre tiene acceso completo (soportar roles como `super_admin`)
+        // Admin siempre tiene acceso completo
         foreach ($userRoles as $r) {
             $rStr = (string) $r;
-            if ($rStr === self::ROLE_ADMIN || \str_ends_with($rStr, '_admin')) {
+            if ($rStr === self::ROLE_ADMIN) {
                 return;
             }
         }

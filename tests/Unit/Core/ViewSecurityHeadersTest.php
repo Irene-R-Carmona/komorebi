@@ -18,7 +18,9 @@ namespace Tests\Unit\Core;
 
 use App\Core\View;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(View::class)]
 final class ViewSecurityHeadersTest extends TestCase
 {
     public function test_security_headers_array_contains_csp(): void

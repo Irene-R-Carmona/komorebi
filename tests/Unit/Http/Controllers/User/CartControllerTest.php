@@ -17,7 +17,9 @@ namespace Tests\Unit\Http\Controllers\User;
 
 use App\Http\Controllers\User\CartController;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(CartController::class)]
 final class CartControllerTest extends TestCase
 {
     #[\PHPUnit\Framework\Attributes\Test]

@@ -7,6 +7,7 @@ namespace App\Core\Seeders;
 use App\Core\Database;
 use App\Core\Logger;
 use PDO;
+use PDOException;
 use Random\RandomException;
 
 /**
@@ -199,7 +200,7 @@ final class ReservationSeeder
                     'message' => $errorInfo[2],
                 ]);
             }
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             Logger::error('ReservationSeeder: insert failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),

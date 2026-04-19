@@ -18,12 +18,14 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para AuthorizationMiddleware (RBAC)
  *
  * Valida el control de permisos granulares con caché Redis.
  */
+#[CoversClass(AuthorizationMiddleware::class)]
 final class AuthorizationMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;

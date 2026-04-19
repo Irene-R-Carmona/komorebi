@@ -33,6 +33,11 @@ if (!ob_get_level()) {
 // Autoload
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// Error tracking (Sentry — optional, only when SENTRY_DSN is set)
+if ($dsn = ($_ENV['SENTRY_DSN'] ?? $_SERVER['SENTRY_DSN'] ?? \getenv('SENTRY_DSN') ?: '')) {
+    \Sentry\init(['dsn' => $dsn, 'environment' => $env]);
+}
+
 use App\Core\Config;
 use App\Core\Csrf;
 use App\Core\ExceptionHandler;

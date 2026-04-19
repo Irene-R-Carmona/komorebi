@@ -4,35 +4,39 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
-use App\Models\AuditLog;
-use App\Models\Permission;
-use App\Models\Role;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
+use App\Repositories\Contracts\RoleRepositoryInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Random\RandomException;
 
 /**
  * Controlador de Gestión de Roles y Permisos (RBAC)
- *
- * Responsabilidad única: Gestión completa del sistema RBAC
  */
 final class RoleController
 {
+    private RoleRepositoryInterface $roleRepo;
+    private AuditLogRepositoryInterface $auditLogRepo;
     private ResponseFactory $response;
 
-    public function __construct(?ResponseFactory $response = null)
-    {
-        $this->response = $response ?? new ResponseFactory();
+    public function __construct(
+        ?RoleRepositoryInterface $roleRepo = null,
+        ?AuditLogRepositoryInterface $auditLogRepo = null,
+        ?ResponseFactory $response = null
+    ) {
+        $this->roleRepo     = $roleRepo     ?? Container::make(RoleRepositoryInterface::class);
+        $this->auditLogRepo = $auditLogRepo ?? Container::make(AuditLogRepositoryInterface::class);
+        $this->response     = $response     ?? new ResponseFactory();
     }
 
     /**
      * GET /admin/roles
-     * Vista principal de gestión de roles
      * @throws JsonException
      * @throws RandomException
      */
@@ -46,28 +50,20 @@ final class RoleController
             return $this->getRolesData();
         }
 
-        // Obtener datos para renderizar vista
-        $roleModel = new Role();
-        $permissionModel = new Permission();
-
-        $roles = $roleModel->findAllWithCounts();
-
-        // Cargar permisos de todos los roles en una única consulta (evita N+1)
-        $rolesWithPerms = $roleModel->getAllWithPermissions();
+        $roles          = $this->roleRepo->findAllWithCounts();
+        $rolesWithPerms = $this->roleRepo->getAllWithPermissions();
         $rolePermissions = [];
         foreach ($rolesWithPerms as $r) {
             $rolePermissions[$r['id']] = \array_column($r['permissions'], 'id');
         }
 
-        $allPermissions = $permissionModel->all();
-
         View::render('admin/roles/index', [
-            'titulo' => 'Gestión de Roles y Permisos',
-            'roles' => $roles,
-            'permissions' => $allPermissions,
+            'titulo'          => 'Gestión de Roles y Permisos',
+            'roles'           => $roles,
+            'permissions'     => $this->roleRepo->findAllPermissions(),
             'rolePermissions' => $rolePermissions,
-            'csrf_token' => Csrf::token(),
-            'extraJs' => ['admin/admin-roles.js'],
+            'csrf_token'      => Csrf::token(),
+            'extraJs'         => ['admin/admin-roles.js'],
         ], ['admin/admin-roles.css'], 'backoffice');
 
         return null;
@@ -75,57 +71,48 @@ final class RoleController
 
     /**
      * GET /admin/roles (AJAX)
-     * Obtener datos de roles con permisos
      * @throws JsonException
      */
     private function getRolesData(): ResponseInterface
     {
-        $roleModel = new Role();
-
-        $roles = $roleModel->findAllWithCounts();
-
-        // Cargar permisos de todos los roles en una única consulta (evita N+1)
-        $rolesWithPerms = $roleModel->getAllWithPermissions();
+        $rolesWithPerms  = $this->roleRepo->getAllWithPermissions();
         $rolePermissions = [];
         foreach ($rolesWithPerms as $r) {
             $rolePermissions[$r['id']] = \array_column($r['permissions'], 'id');
         }
 
         return $this->response->json(['ok' => true, 'data' => [
-            'roles' => $roles,
+            'roles'           => $this->roleRepo->findAllWithCounts(),
             'rolePermissions' => $rolePermissions,
         ]]);
     }
 
     /**
      * GET /admin/permissions
-     * Obtener lista de todos los permisos
      * @throws JsonException
      */
     public function getPermissions(): ResponseInterface
     {
-        $permissionModel = new Permission();
-        $permissions = $permissionModel->all();
-
-        return $this->response->json(['ok' => true, 'data' => ['permissions' => $permissions]]);
+        return $this->response->json([
+            'ok'   => true,
+            'data' => ['permissions' => $this->roleRepo->findAllPermissions()],
+        ]);
     }
 
     /**
      * GET /admin/roles/stats
-     * Obtener estadísticas de roles
      * @throws JsonException
      */
     public function rolesStats(): ResponseInterface
     {
-        $roleModel = new Role();
-        $stats = $roleModel->getStats();
-
-        return $this->response->json(['ok' => true, 'data' => ['stats' => $stats]]);
+        return $this->response->json([
+            'ok'   => true,
+            'data' => ['stats' => $this->roleRepo->getStats()],
+        ]);
     }
 
     /**
      * POST /admin/roles/create
-     * Crear nuevo rol
      * @throws JsonException
      * @throws RandomException
      * @throws ValidationException
@@ -145,7 +132,6 @@ final class RoleController
         if (empty($data['name'])) {
             $errors['name'] = 'Nombre es requerido';
         }
-
         if (!empty($errors)) {
             throw ValidationException::fromArray($errors);
         }
@@ -154,19 +140,13 @@ final class RoleController
             throw ValidationException::withMessage('El código solo puede contener letras minúsculas y guiones bajos', 422);
         }
 
-        $roleModel = new Role();
-
-        if ($roleModel->findByKey($data['code'])) {
+        if ($this->roleRepo->findByCode($data['code'])) {
             throw ValidationException::withMessage('Ya existe un rol con ese código', 422);
         }
 
-        $roleId = $roleModel->create(
-            $data['code'],
-            $data['name'],
-            $data['description'] ?? null
-        );
+        $roleId = $this->roleRepo->create($data['code'], $data['name'], $data['description'] ?? null);
 
-        AuditLog::log('create_role', 'role', $roleId, null, ['code' => $data['code'], 'name' => $data['name']]);
+        $this->auditLogRepo->log('create_role', 'role', $roleId, null, ['code' => $data['code'], 'name' => $data['name']]);
 
         return $this->response->json(['ok' => true, 'data' => [
             'message' => 'Rol creado correctamente',
@@ -176,8 +156,6 @@ final class RoleController
 
     /**
      * POST /admin/roles/{roleId}/edit
-     * Actualizar rol existente
-     * @param integer $roleId
      * @throws JsonException
      * @throws NotFoundException
      * @throws RandomException
@@ -190,10 +168,8 @@ final class RoleController
         }
 
         $data = \json_decode((string) \file_get_contents('php://input'), true);
+        $role = $this->roleRepo->findById($roleId);
 
-        $roleModel = new Role();
-
-        $role = $roleModel->findById($roleId);
         if (!$role) {
             throw NotFoundException::forResource('Rol', $roleId);
         }
@@ -202,17 +178,15 @@ final class RoleController
             throw ValidationException::withMessage('No se pueden editar roles del sistema', 403);
         }
 
-        $roleModel->update($roleId, $data['name'] ?? null, $data['description'] ?? null);
+        $this->roleRepo->update($roleId, $data['name'] ?? null, $data['description'] ?? null);
 
-        AuditLog::log('update_role', 'role', $roleId, null, ['name' => $data['name'], 'description' => $data['description']]);
+        $this->auditLogRepo->log('update_role', 'role', $roleId, null, ['name' => $data['name'], 'description' => $data['description']]);
 
         return $this->response->json(['ok' => true, 'data' => ['message' => 'Rol actualizado correctamente']]);
     }
 
     /**
      * POST /admin/roles/{roleId}/delete
-     * Eliminar rol
-     * @param integer $roleId
      * @throws JsonException
      * @throws RandomException
      * @throws ValidationException
@@ -224,9 +198,7 @@ final class RoleController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $roleModel = new Role();
-
-        $role = $roleModel->findById($roleId);
+        $role = $this->roleRepo->findById($roleId);
         if (!$role) {
             throw NotFoundException::forResource('Rol', $roleId);
         }
@@ -235,22 +207,19 @@ final class RoleController
             throw ValidationException::withMessage('No se pueden eliminar roles del sistema', 403);
         }
 
-        if ($roleModel->countUsers($roleId) > 0) {
+        if ($this->roleRepo->countUsers($roleId) > 0) {
             throw ValidationException::withMessage('No se puede eliminar un rol que tiene usuarios asignados', 422);
         }
 
-        $roleModel->delete($roleId);
+        $this->roleRepo->delete($roleId);
 
-        AuditLog::log('delete_role', 'role', $roleId, ['code' => $role['code'], 'name' => $role['name']], null);
+        $this->auditLogRepo->log('delete_role', 'role', $roleId, ['code' => $role['code'], 'name' => $role['name']], null);
 
         return $this->response->json(['ok' => true, 'data' => ['message' => 'Rol eliminado correctamente']]);
     }
 
     /**
      * POST /admin/roles/{roleId}/permissions/{permissionId}/grant
-     * Asignar permiso a rol
-     * @param integer $roleId
-     * @param integer $permissionId
      * @throws JsonException
      * @throws NotFoundException
      * @throws RandomException
@@ -262,28 +231,22 @@ final class RoleController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $roleModel = new Role();
-        $permissionModel = new Permission();
-
-        $role = $roleModel->findById($roleId);
-        $permission = $permissionModel->findById($permissionId);
+        $role       = $this->roleRepo->findById($roleId);
+        $permission = $this->roleRepo->findPermissionById($permissionId);
 
         if (!$role || !$permission) {
             throw NotFoundException::forResource('Rol o permiso', $roleId . '/' . $permissionId);
         }
 
-        $roleModel->grantPermission($roleId, $permissionId);
+        $this->roleRepo->grantPermission($roleId, $permissionId);
 
-        AuditLog::log('grant_permission', 'role', $roleId, null, ['permission_id' => $permissionId, 'permission_code' => $permission['code']]);
+        $this->auditLogRepo->log('grant_permission', 'role', $roleId, null, ['permission_id' => $permissionId, 'permission_code' => $permission['code']]);
 
         return $this->response->json(['ok' => true, 'data' => ['message' => 'Permiso asignado correctamente']]);
     }
 
     /**
      * POST /admin/roles/{roleId}/permissions/{permissionId}/revoke
-     * Revocar permiso de rol
-     * @param integer $roleId
-     * @param integer $permissionId
      * @throws JsonException
      * @throws NotFoundException
      * @throws RandomException
@@ -295,19 +258,16 @@ final class RoleController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $roleModel = new Role();
-        $permissionModel = new Permission();
-
-        $role = $roleModel->findById($roleId);
-        $permission = $permissionModel->findById($permissionId);
+        $role       = $this->roleRepo->findById($roleId);
+        $permission = $this->roleRepo->findPermissionById($permissionId);
 
         if (!$role || !$permission) {
             throw NotFoundException::forResource('Rol o permiso', $roleId . '/' . $permissionId);
         }
 
-        $roleModel->revokePermission($roleId, $permissionId);
+        $this->roleRepo->revokePermission($roleId, $permissionId);
 
-        AuditLog::log('revoke_permission', 'role', $roleId, ['permission_id' => $permissionId, 'permission_code' => $permission['code']], null);
+        $this->auditLogRepo->log('revoke_permission', 'role', $roleId, ['permission_id' => $permissionId, 'permission_code' => $permission['code']], null);
 
         return $this->response->json(['ok' => true, 'data' => ['message' => 'Permiso revocado correctamente']]);
     }

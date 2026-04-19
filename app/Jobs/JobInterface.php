@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use Throwable;
+
 /**
  * Interfaz para Jobs en el sistema de colas
  *
@@ -19,7 +21,7 @@ interface JobInterface
      *
      * @param array<string, mixed> $payload Datos necesarios para ejecutar el job
      * @return void
-     * @throws \Throwable Si ocurre un error durante la ejecución
+     * @throws Throwable Si ocurre un error durante la ejecución
      */
     public function handle(array $payload): void;
 }

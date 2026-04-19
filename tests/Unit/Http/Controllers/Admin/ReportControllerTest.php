@@ -17,18 +17,22 @@ namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\ReportController;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use App\Services\Contracts\AdminReportServiceInterface;
 use App\Services\Contracts\AdminStatisticsServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ReportController::class)]
 final class ReportControllerTest extends ControllerTestCase
 {
     private function makeController(): ReportController
     {
         return new ReportController(
-            $this->createStub(AdminStatisticsServiceInterface::class),
-            $this->createStub(AdminReportServiceInterface::class),
-            new ResponseFactory()
+            statisticsService: $this->createStub(AdminStatisticsServiceInterface::class),
+            reportService: $this->createStub(AdminReportServiceInterface::class),
+            auditLogRepo: $this->createStub(AuditLogRepositoryInterface::class),
+            response: new ResponseFactory(),
         );
     }
 

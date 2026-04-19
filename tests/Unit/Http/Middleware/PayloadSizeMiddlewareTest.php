@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?
@@ -23,6 +24,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  * Cualquier cambio en la lógica de comparación de Content-Length
  * o en el código HTTP retornado romperá estos tests.
  */
+#[CoversClass(PayloadSizeMiddleware::class)]
 final class PayloadSizeMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;

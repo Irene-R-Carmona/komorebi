@@ -37,6 +37,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
 #[CoversClass(ExceptionLogger::class)]
 #[UsesClass(Env::class)]
@@ -54,7 +55,7 @@ final class ExceptionLoggerTest extends TestCase
 
     private function clearEnvCache(): void
     {
-        $ref = new \ReflectionProperty(Env::class, 'cache');
+        $ref = new ReflectionProperty(Env::class, 'cache');
         $ref->setValue(null, []);
     }
 
@@ -62,6 +63,7 @@ final class ExceptionLoggerTest extends TestCase
     {
         // Garantizar entorno limpio para cada test
         $this->clearEnvCache();
+        Logger::reset();
         \putenv('TELEGRAM_BOT_TOKEN');
         \putenv('TELEGRAM_CHAT_ID');
         \putenv('APP_ENV=production');
@@ -76,6 +78,7 @@ final class ExceptionLoggerTest extends TestCase
         \putenv('APP_ENV');
         unset($_ENV['APP_ENV'], $_ENV['TELEGRAM_BOT_TOKEN'], $_ENV['TELEGRAM_CHAT_ID']);
         $this->clearEnvCache();
+        Logger::reset();
     }
 
     // ─────────────────────────────────────────────────────────────

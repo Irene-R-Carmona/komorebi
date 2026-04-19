@@ -12,7 +12,9 @@ namespace Tests\Unit\Core;
 
 use App\Core\Config;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(Config::class)]
 final class ConfigGettersTest extends TestCase
 {
     public function testGetIntReturnsDefaultWhenKeyMissing(): void

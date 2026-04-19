@@ -8,6 +8,7 @@ use App\Core\Database;
 use App\Core\Logger;
 use Override;
 use PDO;
+use PDOStatement;
 
 /**
  * Repositorio base abstracto con operaciones CRUD comunes.
@@ -52,7 +53,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $params = ['id' => $id];
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -66,8 +67,8 @@ abstract class AbstractRepository implements RepositoryInterface
         $table = $this->getTable();
         $sql = "SELECT $fields FROM $table";
 
-        /** @var \PDOStatement $stmt */
-        $stmt = $this->execTimed(fn() => $this->getDb()->query($sql), $sql);
+        /** @var PDOStatement $stmt */
+        $stmt = $this->execTimed(fn () => $this->getDb()->query($sql), $sql);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -80,7 +81,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $params = ['id' => $id];
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
 
         return (bool) $stmt->fetch();
     }
@@ -100,7 +101,7 @@ abstract class AbstractRepository implements RepositoryInterface
         );
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn() => $stmt->execute($data), $sql, $data);
+        $this->execTimed(fn () => $stmt->execute($data), $sql, $data);
 
         return (int) $this->getDb()->lastInsertId();
     }
@@ -121,7 +122,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $data['id'] = $id;
 
         return (bool) $this->execTimed(
-            fn() => $this->getDb()->prepare($sql)->execute($data),
+            fn () => $this->getDb()->prepare($sql)->execute($data),
             $sql,
             $data
         );
@@ -136,7 +137,7 @@ abstract class AbstractRepository implements RepositoryInterface
 
         $stmt = $this->getDb()->prepare($sql);
 
-        return (bool) $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+        return (bool) $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
     }
 
     /**
@@ -151,15 +152,15 @@ abstract class AbstractRepository implements RepositoryInterface
 
         if ($ms > 500) {
             Logger::channel('db')->error('[DB] Slow query', [
-                'sql'          => \substr($sql, 0, 200),
+                'sql' => \substr($sql, 0, 200),
                 'params_count' => \count($params),
-                'duration_ms'  => \round($ms, 2),
+                'duration_ms' => \round($ms, 2),
             ]);
         } elseif ($ms > 100) {
             Logger::channel('db')->warning('[DB] Slow query', [
-                'sql'          => \substr($sql, 0, 200),
+                'sql' => \substr($sql, 0, 200),
                 'params_count' => \count($params),
-                'duration_ms'  => \round($ms, 2),
+                'duration_ms' => \round($ms, 2),
             ]);
         }
 

@@ -27,10 +27,12 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para ApiAuthMiddleware (autenticación Bearer + sesión)
  */
+#[CoversClass(ApiAuthMiddleware::class)]
 final class ApiAuthMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;

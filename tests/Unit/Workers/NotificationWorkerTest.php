@@ -12,12 +12,14 @@ namespace Workers;
 
 use App\Workers\NotificationWorker;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para NotificationWorker
  *
  * Valida la lógica del worker de notificaciones (sin ejecutar loop real).
  */
+#[CoversClass(NotificationWorker::class)]
 final class NotificationWorkerTest extends TestCase
 {
     private NotificationWorker $worker;

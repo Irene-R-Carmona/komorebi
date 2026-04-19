@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Core\Logger;
 use App\Services\Contracts\TelegramServiceInterface;
+use Override;
 use Throwable;
 
 final class SendTelegramNotificationJob implements JobInterface
@@ -15,7 +16,7 @@ final class SendTelegramNotificationJob implements JobInterface
     }
 
     /** @param array{icon: string, title: string, message: string} $payload */
-    #[\Override]
+    #[Override]
     public function handle(array $payload): void
     {
         try {

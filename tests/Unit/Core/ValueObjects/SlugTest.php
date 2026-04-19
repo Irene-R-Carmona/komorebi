@@ -11,7 +11,9 @@ declare(strict_types=1);
 use App\Core\ValueObjects\Slug;
 use App\Exceptions\ValidationException;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(Slug::class)]
 final class SlugTest extends TestCase
 {
     public function testValidSlugIsAccepted(): void

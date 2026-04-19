@@ -22,14 +22,17 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Supervisor;
 
 use App\Http\Controllers\Supervisor\SupervisorController;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Repositories\ReservationRepository;
 use App\Services\Contracts\SupervisorAssignmentServiceInterface;
 use App\Services\KitchenService;
 use PDO;
 use PDOStatement;
-use Tests\Support\ControllerTestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(SupervisorController::class)]
 final class SupervisorControllerTest extends ControllerTestCase
 {
     /** @var PDO&\PHPUnit\Framework\MockObject\MockObject */
@@ -44,8 +47,8 @@ final class SupervisorControllerTest extends ControllerTestCase
     {
         $_SERVER['REQUEST_URI'] ??= '/supervisor/dashboard';
 
-        $this->pdoMock         = $this->createMock(PDO::class);
-        $this->stmtMock        = $this->createMock(PDOStatement::class);
+        $this->pdoMock = $this->createMock(PDO::class);
+        $this->stmtMock = $this->createMock(PDOStatement::class);
         $this->reservationRepo = new ReservationRepository($this->pdoMock);
         $this->assignmentService = $this->createMock(SupervisorAssignmentServiceInterface::class);
     }
@@ -71,14 +74,12 @@ final class SupervisorControllerTest extends ControllerTestCase
 
     private function makeKitchenService(): KitchenService
     {
-        $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetchAll')->willReturn([]);
+        $itemRepo = $this->createStub(ReservationItemRepositoryInterface::class);
+        $itemRepo->method('findAllPendingByCafe')->willReturn([]);
+        $itemRepo->method('findCompletedToday')->willReturn([]);
+        $itemRepo->method('getDailyStats')->willReturn([]);
 
-        $pdo = $this->createMock(PDO::class);
-        $pdo->method('prepare')->willReturn($stmt);
-
-        return new KitchenService($pdo);
+        return new KitchenService($itemRepo);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -96,15 +97,19 @@ final class SupervisorControllerTest extends ControllerTestCase
     {
         $controller = new SupervisorController(
             $this->assignmentService,
-            new ReservationRepository(),
-            new KitchenService(),
+            new ReservationRepository($this->pdoMock),
+            $this->makeKitchenService(),
         );
         $this->assertInstanceOf(SupervisorController::class, $controller);
     }
 
     public function test_instance_can_be_created_with_only_required_dependency(): void
     {
-        $controller = new SupervisorController($this->assignmentService);
+        $controller = new SupervisorController(
+            assignmentService: $this->assignmentService,
+            reservationRepo: new ReservationRepository($this->pdoMock),
+            kitchenService: $this->makeKitchenService(),
+        );
         $this->assertInstanceOf(SupervisorController::class, $controller);
     }
 
@@ -124,6 +129,7 @@ final class SupervisorControllerTest extends ControllerTestCase
         $controller = new SupervisorController(
             $this->assignmentService,
             new ReservationRepository($pdoStrict),
+            $this->makeKitchenService(),
         );
 
         \ob_start();
@@ -137,7 +143,7 @@ final class SupervisorControllerTest extends ControllerTestCase
     {
         $this->startSession();
         $_SESSION['user_cafe_id'] = 3;
-        $_SERVER['REQUEST_URI']   = '/supervisor/dashboard';
+        $_SERVER['REQUEST_URI'] = '/supervisor/dashboard';
 
         $this->stmtMock->method('execute')->willReturn(true);
         $this->stmtMock->method('fetchAll')->willReturn([]);
@@ -160,7 +166,7 @@ final class SupervisorControllerTest extends ControllerTestCase
     {
         $this->startSession();
         $_SESSION['user_cafe_id'] = 7;
-        $_SERVER['REQUEST_URI']   = '/supervisor/dashboard';
+        $_SERVER['REQUEST_URI'] = '/supervisor/dashboard';
 
         $rawRow = [
             'id' => 42, 'user_id' => 10, 'cafe_id' => 7,
@@ -198,7 +204,7 @@ final class SupervisorControllerTest extends ControllerTestCase
     {
         $this->startSession();
         $_SESSION['user_cafe_id'] = 7;
-        $_SERVER['REQUEST_URI']   = '/supervisor/dashboard';
+        $_SERVER['REQUEST_URI'] = '/supervisor/dashboard';
 
         $this->stmtMock->method('execute')->willReturn(true);
         $this->stmtMock->method('fetchAll')->willReturn([[

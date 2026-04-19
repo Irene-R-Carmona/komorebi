@@ -13,6 +13,7 @@ namespace Tests\Unit\Core;
 use App\Core\Csrf;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para Csrf
@@ -23,6 +24,7 @@ use PHPUnit\Framework\TestCase;
  * - Prevención de ataques CSRF
  * - Regeneración de tokens
  */
+#[CoversClass(Csrf::class)]
 final class CsrfTest extends TestCase
 {
     protected function setUp(): void

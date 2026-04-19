@@ -7,8 +7,10 @@ namespace App\Http\ExceptionRenderers;
 use App\Core\Env;
 use App\Core\View;
 use App\Exceptions\DatabaseException;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Renderiza DatabaseException → 500.
@@ -18,20 +20,20 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class DatabaseExceptionRenderer extends AbstractExceptionRenderer
 {
-    #[\Override]
-    public function supports(\Throwable $e): bool
+    #[Override]
+    public function supports(Throwable $e): bool
     {
         return $e instanceof DatabaseException;
     }
 
-    #[\Override]
+    #[Override]
     public function priority(): int
     {
         return 60;
     }
 
-    #[\Override]
-    public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
+    #[Override]
+    public function render(Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
         \assert($e instanceof DatabaseException);
 

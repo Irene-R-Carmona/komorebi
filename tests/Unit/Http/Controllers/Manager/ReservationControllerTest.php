@@ -28,7 +28,9 @@ use PDO;
 use PDOStatement;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ReservationController::class)]
 final class ReservationControllerTest extends TestCase
 {
     /** @var PDO&\PHPUnit\Framework\MockObject\Stub */
@@ -39,7 +41,7 @@ final class ReservationControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdoStub  = $this->createMock(PDO::class);
+        $this->pdoStub = $this->createMock(PDO::class);
         $this->stmtStub = $this->createMock(PDOStatement::class);
         $this->reservationRepo = new ReservationRepository($this->pdoStub);
     }
@@ -55,7 +57,7 @@ final class ReservationControllerTest extends TestCase
 
     private function makeRequest(array $queryParams = []): ServerRequestInterface
     {
-        return (new ServerRequest('GET', '/manager/reservations'))
+        return new ServerRequest('GET', '/manager/reservations')
             ->withQueryParams($queryParams);
     }
 
@@ -184,4 +186,3 @@ final class ReservationControllerTest extends TestCase
         $this->assertArrayNotHasKey('date', $capturedParams);
     }
 }
-

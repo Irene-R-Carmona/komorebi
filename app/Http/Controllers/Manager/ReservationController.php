@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Manager;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Session;
 use App\Core\View;
-use App\Repositories\ReservationRepository;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -19,11 +20,11 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class ReservationController
 {
-    private ReservationRepository $reservationRepo;
+    private ReservationRepositoryInterface $reservationRepo;
 
-    public function __construct(?ReservationRepository $reservationRepo = null)
+    public function __construct(?ReservationRepositoryInterface $reservationRepo = null)
     {
-        $this->reservationRepo = $reservationRepo ?? new ReservationRepository();
+        $this->reservationRepo = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
     }
 
     /**

@@ -18,16 +18,23 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Repositories\Contracts\UserManagementRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\UserManagementService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(UserManagementService::class)]
 final class UserManagementServiceTest extends TestCase
 {
     private UserManagementService $service;
 
     protected function setUp(): void
     {
-        $this->service = new UserManagementService($this->createStub(\PDO::class));
+        $this->service = new UserManagementService(
+            $this->createStub(UserRepositoryInterface::class),
+            $this->createStub(UserManagementRepositoryInterface::class),
+        );
     }
 
     // ──────────────────────────────────────────────

@@ -21,7 +21,10 @@ declare(strict_types=1);
  */
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use App\Core\Seeders\RbacSeeder;
 
+#[CoversClass(RbacSeeder::class)]
 final class RbacSeederCorrectionsTest extends TestCase
 {
     private string $seederSource;

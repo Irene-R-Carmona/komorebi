@@ -19,15 +19,23 @@ namespace Tests\Unit\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\CookieController;
+use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Services\Contracts\RecentlyViewedServiceInterface;
 use Nyholm\Psr7\ServerRequest;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(CookieController::class)]
 final class CookieControllerTest extends ControllerTestCase
 {
     private function makeController(): CookieController
     {
-        return new CookieController(new ResponseFactory());
+        return new CookieController(
+            new ResponseFactory(),
+            $this->createStub(RecentlyViewedServiceInterface::class),
+            $this->createStub(CafeRepositoryInterface::class),
+        );
     }
 
     public function test_accept_returns_success_json_response(): void

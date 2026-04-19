@@ -17,8 +17,12 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\DashboardController;
+use App\Services\Contracts\AdminActivityServiceInterface;
+use App\Services\Contracts\AdminStatisticsServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(DashboardController::class)]
 final class DashboardControllerTest extends ControllerTestCase
 {
     public function test_class_exists(): void
@@ -33,7 +37,10 @@ final class DashboardControllerTest extends ControllerTestCase
 
     public function test_can_be_instantiated_with_no_args(): void
     {
-        $controller = new DashboardController();
+        $controller = new DashboardController(
+            statisticsService: $this->createStub(AdminStatisticsServiceInterface::class),
+            activityService: $this->createStub(AdminActivityServiceInterface::class),
+        );
         $this->assertInstanceOf(DashboardController::class, $controller);
     }
 }

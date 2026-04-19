@@ -8,6 +8,7 @@ use App\Core\CircuitBreaker;
 use App\Exceptions\CircuitOpenException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?
@@ -27,6 +28,7 @@ use RuntimeException;
  * - Si el fallo en HALF_OPEN no reabre el circuito → testFailingProbeReopensCircuit falla.
  * - Si resetFailures() se elimina de on-success → testCircuitRemainsClosedBelowThreshold falla.
  */
+#[CoversClass(CircuitBreaker::class)]
 final class CircuitBreakerTest extends TestCase
 {
     private const string CIRCUIT = 'test-service';

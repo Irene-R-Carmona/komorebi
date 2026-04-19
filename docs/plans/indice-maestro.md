@@ -1,8 +1,12 @@
 # Índice Maestro — Komorebi Café: Plan de Cierre Pre-Defensa TFG
 
-**Fecha:** 16 de abril de 2026
-**Estado:** Índice maestro reordenado — prioridades aplicadas por auditoría TFG
+**Fecha:** 17 de abril de 2026
+**Estado:** Índice maestro reordenado — **verificado contra código real el 17/04/2026**
 **Criterio de orden:** lo que un evaluador puede reproducir o ver en < 5 minutos tiene prioridad absoluta
+
+> ⚠️ **ALERTA CRÍTICA (verificada 17/04):** `Result.php` ya no tiene `isOk()`, `isFail()`, `getDataOr()`,
+> pero **21 callers siguen usándolos** → errores fatales en runtime. S0-01 es la tarea más urgente.
+> ✅ **S0-01 RESUELTO (17/04):** 21 callers corregidos — 0 ocurrencias de métodos obsoletos en `app/`.
 
 ---
 
@@ -116,16 +120,16 @@ Este índice indica **en qué orden ejecutarlos y qué tareas de cada plan son p
 > **Urgencia: BAJA-MEDIA.** Visible si se muestra logs o se audita el código.
 > Plan origen: `2026-04-15-infra-calidad-integral.md` — Módulos C y D
 
-| #  | Tarea                                                                                    | Estado  |
-|----|------------------------------------------------------------------------------------------|---------|
-| 24 | **C1** — `scripts/apply-db.php`: emojis y `\n` literal → ASCII + Logger                  | - [x] ✅ |
-| 25 | **C2** — 7 seeders: `echo` + emojis → `Logger::*` con prefijo `[ClassName]`              | - [x] ✅ |
-| 26 | **C3** — `bin/quality-check.php`: emojis → marcadores ASCII                              | - [x] ✅ |
-| 27 | **D1** — AbstractRepository: añadir `execTimed()` + envolver 6 métodos CRUD              | - [x] ✅ |
-| 28 | **D2** — Logger.php: activar StreamHandler en canales `db` y `queue`                     | - [x] ✅ |
-| 29 | **D3** — WideEvent::setSection en 4 servicios clave (Reservation, Review, Auth, Loyalty) | - [x] ✅ |
-| 30 | **D4** — Logger::warning tipo B antes de Result::fail en 4 services                      | - [x] ✅ |
-| 31 | **D5** — Completar `_correlation_id` en re-push de workers                               | - [x] ✅ |
+| #  | Tarea                                                                                    | Estado                                                                                               |
+|----|------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
+| 24 | **C1** — `scripts/apply-db.php`: emojis y `\n` literal → ASCII + Logger                  | - [x] ✅                                                                                              |
+| 25 | **C2** — 7 seeders: `echo` + emojis → `Logger::*` con prefijo `[ClassName]`              | - [ ] ⚠️ Parcial: 4/9 migrados (Reservation, SystemSettings, TimeSlot, AnimalIncident); 5 pendientes |
+| 26 | **C3** — `bin/quality-check.php`: emojis → marcadores ASCII                              | - [x] ✅                                                                                              |
+| 27 | **D1** — AbstractRepository: añadir `execTimed()` + envolver 6 métodos CRUD              | - [x] ✅                                                                                              |
+| 28 | **D2** — Logger.php: activar StreamHandler en canales `db` y `queue`                     | - [x] ✅                                                                                              |
+| 29 | **D3** — WideEvent::setSection en 4 servicios clave (Reservation, Review, Auth, Loyalty) | - [x] ✅                                                                                              |
+| 30 | **D4** — Logger::warning tipo B antes de Result::fail en 4 services                      | - [x] ✅                                                                                              |
+| 31 | **D5** — Completar `_correlation_id` en re-push de workers                               | - [x] ✅                                                                                              |
 
 ---
 
@@ -134,31 +138,17 @@ Este índice indica **en qué orden ejecutarlos y qué tareas de cada plan son p
 >
 > **Urgencia: CRÍTICA para defensa.** El tribunal intentará romper la app.
 > Plan: `2026-04-17-business-rules-hardening.md`
-
-| #  | Sprint   | Descripción                                                                               | Estado   |
-|----|----------|-------------------------------------------------------------------------------------------|----------|
-| G0 | Sprint 0 | Zero legacy/deprecated/alias: Result API, password fallback, model injection, #[Override] | - [ ] 🔵 |
-| G1 | Sprint 1 | Seguridad HTTP + RBAC: IDOR, open redirect, CSRF, rate limit                              | - [ ] 🔵 |
-| G2 | Sprint 2 | Validación entrada: mb_strlen, htmlspecialchars, fechas, rangos, contraseña               | - [ ] 🔵 |
-| G3 | Sprint 3 | Reglas de dominio: reseña única, email verificado, stamp reversal, newsletter             | - [ ] 🔵 |
-| G4 | Sprint 4 | Arquitectura: SQL en repos, lazy init, tier constants                                     | - [ ] 🔵 |
-| G5 | Sprint 5 | Limpieza P3: logs, rutas legacy, endpoints públicos                                       | - [ ] 🔵 |
-
----
-
-## BLOQUE 9 — FrankenPHP + Stack Optimization (argumento de rendimiento)
-
 >
-> **Urgencia: BAJA.** Impacto narrativo alto si se activa Worker Mode para demo.
-> Plan origen: `2026-04-15-frankenphp-stack-optimization.md`
-> Ejecutar solo si el tiempo lo permite. FASE 5 primero, el resto es opcional.
+> ⚠️ **S0-01 es un BUG FATAL:** `Result::isOk()` ya no existe pero 14 controllers lo llaman.
 
-| #  | Tarea                                                                                         | Esfuerzo   | Estado |
-|----|-----------------------------------------------------------------------------------------------|------------|--------|
-| 32 | **FASE 0.7** — Migración CHECK Constraints + índices compuestos (`020_integrity_indexes.sql`) | Bajo       | - [ ]  |
-| 33 | **FASE 5** — Activar Worker Mode (`frankenphp_handle_request=1`)                              | Medio-alto | - [ ]  |
-| 34 | **FASE 7.2** — Redis Streams en lugar de LISTS (jobs con ACK)                                 | Alto       | - [ ]  |
-| 35 | Resto FASES 0-4, 6, 7.1, 7.3                                                                  | Varios     | - [ ]  |
+| #  | Sprint   | Descripción                                                                               | Estado                                                                                             |
+|----|----------|-------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| G0 | Sprint 0 | Zero legacy/deprecated/alias: Result API, password fallback, model injection, #[Override] | - [x] ✅ Sprint 0 completo — S0-01..06 todos ✅                                                      |
+| G1 | Sprint 1 | Seguridad HTTP + RBAC: IDOR, open redirect, CSRF, rate limit                              | - [x] ✅ (S1-02 IDOR completado en Sprint 2)                                                        |
+| G2 | Sprint 2 | Validación entrada: mb_strlen, htmlspecialchars, fechas, rangos, contraseña               | - [x] ✅ Sprint 2 completo — S2-01..07 todos ✅                                                      |
+| G3 | Sprint 3 | Reglas de dominio: reseña única, email verificado, stamp reversal, newsletter             | - [x] ✅ Sprint 3 completo — S3-01..14 todos ✅                                                      |
+| G4 | Sprint 4 | Arquitectura: SQL en repos, lazy init, tier constants                                     | - [x] ✅ Sprint 4 completo (S4-01 parcial: AuthService migrado, resto pendiente como deuda técnica) |
+| G5 | Sprint 5 | Limpieza P3: logs, rutas legacy, endpoints públicos                                       | - [x] ✅ Sprint 5 completo — S5-01..04 todos ✅                                                      |
 
 ---
 
@@ -198,20 +188,23 @@ Opcional → BLOQUE 7 restante + BLOQUE 9 (FrankenPHP)
 
 ## Planes de implementación detallados
 
-| Plan                                 | Archivo                                             | Estado                                                                                  |
-|--------------------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------|
-| **Preparación Entorno Inicial**      | `2026-04-17-preparacion-entorno-inicial.md`         | 🔵 Plan creado — pendiente ejecución                                                    |
-| **Business Rules Hardening**         | `2026-04-17-business-rules-hardening.md`            | 🔵 Plan creado — Sprint 0 (legacy/alias) + 13 Q decisions + 5 sprints (87 hallazgos)    |
-| **Unificación Estilos Globales PHP** | `2026-04-17-unificacion-estilos-globales-php.md`    | 🔵 Plan creado — pendiente inicio                                                       |
-| **Auditoría de Reglas de Negocio**   | `docs/business-rules-audit.md` (documento, no plan) | 🟢 Investigación completa — 14 P1, 23 P2, 6 P3, 8 decisiones pendientes                 |
-| FASE 1 — Seguridad de Datos + DTOs   | `2026-04-13-seguridad-datos-dto.md`                 | 🟢 Implementación completa — pendiente verificación final                               |
-| Auditoría Lógica de Negocio          | `docs/business-rules-audit.md`                      | 🟢 Investigación completa — 14 P1, 23 P2, 6 P3                                          |
-| FASE 3 — UI/UX Vistas Públicas       | `2026-04-13-uiux-vistas-publicas.md`                | 🟢 Implementación completa — todas las tareas ✅; pendiente verificación                 |
-| Brand Visual Unification             | `2026-04-14-brand-visual-unification.md`            | 🟢 Implementación completa — todas las tareas ✅; pendiente verificación                 |
-| Sprint QoL Holístico                 | `2026-04-14-qol-holistic-sprint.md`                 | 🟢 Implementación completa — OLA 0 ✅, OLA 1 ✅, OLA 2 ✅, OLA 3 ✅; pendiente verificación |
-| Infra + Calidad Integral             | `2026-04-15-infra-calidad-integral.md`              | 🟢 Implementación completa — A5/B4 requieren Docker; C1-C3/D1-D5 ✅                      |
-| FrankenPHP + Stack Optimization      | `2026-04-15-frankenphp-stack-optimization.md`       | 🔵 Pendiente inicio — Bloque 9                                                          |
-| Cierre de Gaps Arquitectónicos       | `2026-04-13-cierre-gaps-arquitectonicos.md`         | ✅ Completado — GAPs 1-4 resueltos                                                       |
-| FASE 0 — Principios Arquitectónicos  | `2026-04-12-principios-arquitectonicos.md`          | ✅ Implementado — decisiones en `docs/ARCHITECTURE.md`                                   |
-| Pre-defensa TFG                      | *(eliminado)*                                       | ✅ Completado — PHPStan L5 0 errores, PSR-12 0 violaciones                               |
-| Ecosystem Cleanup                    | *(eliminado)*                                       | ✅ Completado — commit `ecbae94`                                                         |
+| Plan                                 | Archivo                                             | Estado                                                                                                   |
+|--------------------------------------|-----------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| **Deploy en Railway (Defensa TFG)**  | `2026-04-17-deploy-railway.md`                      |  Plan creado — ÚLTIMO plan, ejecutar tras verificación completa                                         |
+| **Preparación Entorno Inicial**      | `2026-04-17-preparacion-entorno-inicial.md`         |  Plan creado — ejecutar para verificar Docker stack completo                                            |
+| **Business Rules Hardening**         | `2026-04-17-business-rules-hardening.md`            |  Sprint 0-5 completos — verificación grep OK; phpstan/cs-check/test-unit pendientes (requieren Docker) |
+| **Unificación Estilos Globales PHP** | `2026-04-17-unificacion-estilos-globales-php.md`    |  cs-fix ejecutado (262 archivos); pendiente cs-check + phpstan + DateTime manual                       |
+| **Auditoría de Reglas de Negocio**   | `docs/business-rules-audit.md` (documento, no plan) |  Investigación completa — sirvió de input para Business Rules Hardening                                 |
+| FASE 1 — Seguridad de Datos + DTOs   | `2026-04-13-seguridad-datos-dto.md`                 |  Implementación completa — pendiente verificación final                                                |
+| FASE 3 — UI/UX Vistas Públicas       | `2026-04-13-uiux-vistas-publicas.md`                |  Implementación completa — todas las tareas ✅; pendiente verificación                                  |
+| Brand Visual Unification             | `2026-04-14-brand-visual-unification.md`            |  Implementación completa — A-D ✅; E3-E7 verificación visual pendiente                                  |
+| Sprint QoL Holístico                 | `2026-04-14-qol-holistic-sprint.md`                 |  Implementación completa — OLA 0 ✅, OLA 1 pendiente (T1.1-T1.3), OLA 2 ✅, OLA 3 ✅                      |
+| Infra + Calidad Integral             | `2026-04-15-infra-calidad-integral.md`              |  Parcial — B1/B2 ✅, C1/C3 ✅, **C2 parcial** (5 seeders con echo), D1-D5 ✅; A4/A5/E/F pendientes Docker |
+| FrankenPHP + Stack Optimization      | `2026-04-15-frankenphp-stack-optimization.md`       |  Pendiente inicio — Bloque 9 (opcional, solo si hay tiempo)                                            |
+| **Consolidación Arquitectura Repos** | `2026-04-18-consolidacion-arquitectura-repositorios.md` |  BC allergen + hotfixes seguridad completos — BCs cafe/animal/user/loyalty pendientes            |
+| Observabilidad — Logging (FASE 2)    | *(eliminado 17/04)*                                 | ✅ Completado y eliminado                                                                                 |
+| Refuerzo Pre-Defensa TFG             | *(eliminado 17/04)*                                 | ✅ Completado y eliminado                                                                                 |
+| Cierre de Gaps Arquitectónicos       | *(eliminado 17/04)*                                 | ✅ Completado y eliminado — GAPs 1-4 resueltos                                                            |
+| FASE 0 — Principios Arquitectónicos  | *(eliminado 17/04)*                                 | ✅ Completado y eliminado — decisiones en `docs/ARCHITECTURE.md`                                          |
+| Pre-defensa TFG                      | *(eliminado)*                                       | ✅ Completado — PHPStan L5 0 errores, PSR-12 0 violaciones                                                |
+| Ecosystem Cleanup                    | *(eliminado)*                                       | ✅ Completado — commit `ecbae94`                                                                          |

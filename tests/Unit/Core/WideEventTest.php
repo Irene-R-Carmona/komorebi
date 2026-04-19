@@ -6,6 +6,7 @@ namespace Tests\Unit\Core;
 
 use App\Core\WideEvent;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?
@@ -18,6 +19,7 @@ use PHPUnit\Framework\TestCase;
  * ¿Qué va a fallar en este test si se cambia el código?
  * Si set/setSection dejan de acumular, si reset() no borra todo, o si has() falla.
  */
+#[CoversClass(WideEvent::class)]
 final class WideEventTest extends TestCase
 {
     protected function setUp(): void

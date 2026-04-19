@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Middleware;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\Contracts\ContextServiceInterface;
+use Override;
 use RuntimeException;
 
 /**
@@ -36,7 +37,7 @@ final class ContextServiceInstance implements ContextServiceInterface
     /**
      * Obtiene el ID del café activo para el usuario actual.
      */
-    #[\Override]
+    #[Override]
     public function getCafeId(): ?int
     {
         // Staff/Manager/Keeper: siempre su café asignado
@@ -55,7 +56,7 @@ final class ContextServiceInstance implements ContextServiceInterface
     /**
      * Verifica si el usuario tiene contexto de café definido.
      */
-    #[\Override]
+    #[Override]
     public function hasCafeContext(): bool
     {
         return $this->getCafeId() !== null;
@@ -64,7 +65,7 @@ final class ContextServiceInstance implements ContextServiceInterface
     /**
      * Verifica si el usuario puede ver todos los cafés (admin sin selección).
      */
-    #[\Override]
+    #[Override]
     public function isGlobalView(): bool
     {
         return $this->role === Middleware::ROLE_ADMIN
@@ -74,7 +75,7 @@ final class ContextServiceInstance implements ContextServiceInterface
     /**
      * Obtiene el café actual con todos sus datos.
      */
-    #[\Override]
+    #[Override]
     public function getCafe(): ?array
     {
         $cafeId = $this->getCafeId();
@@ -96,7 +97,7 @@ final class ContextServiceInstance implements ContextServiceInterface
     /**
      * Obtiene el nombre del café actual.
      */
-    #[\Override]
+    #[Override]
     public function getCafeName(): string
     {
         return $this->getCafe()['name'] ?? 'Vista Global';
@@ -105,7 +106,7 @@ final class ContextServiceInstance implements ContextServiceInterface
     /**
      * Obtiene el slug del café actual.
      */
-    #[\Override]
+    #[Override]
     public function getCafeSlug(): ?string
     {
         return $this->getCafe()['slug'] ?? null;
@@ -118,7 +119,7 @@ final class ContextServiceInstance implements ContextServiceInterface
     /**
      * Verifica si el usuario puede acceder a un café específico.
      */
-    #[\Override]
+    #[Override]
     public function canAccessCafe(int $cafeId): bool
     {
         // Admin puede acceder a cualquier café
@@ -134,7 +135,7 @@ final class ContextServiceInstance implements ContextServiceInterface
      * Requiere que el usuario tenga contexto de café.
      * Lanza excepción si no hay contexto.
      */
-    #[\Override]
+    #[Override]
     public function requireCafeContext(): int
     {
         $cafeId = $this->getCafeId();
@@ -153,7 +154,7 @@ final class ContextServiceInstance implements ContextServiceInterface
     /**
      * Obtiene datos de contexto para pasar a las vistas.
      */
-    #[\Override]
+    #[Override]
     public function getViewData(): array
     {
         return [

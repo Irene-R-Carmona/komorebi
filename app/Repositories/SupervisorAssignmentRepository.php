@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Repositories\Contracts\SupervisorAssignmentRepositoryInterface;
+use Override;
 use PDO;
 
 /**
@@ -14,13 +15,13 @@ use PDO;
  */
 final class SupervisorAssignmentRepository extends AbstractRepository implements SupervisorAssignmentRepositoryInterface
 {
-    #[\Override]
+    #[Override]
     protected function getTable(): string
     {
         return 'supervisor_assignments';
     }
 
-    #[\Override]
+    #[Override]
     protected function getSelectFields(): array
     {
         return [

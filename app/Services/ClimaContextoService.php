@@ -6,8 +6,10 @@ namespace App\Services;
 
 use App\Core\Logger;
 use App\Services\Contracts\ClimaContextoServiceInterface;
+use DateMalformedStringException;
 use DateTime;
 use DateTimeZone;
+use Override;
 
 /**
  * Servicio de Clima Contextual con Tokyo
@@ -96,18 +98,18 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
      * Añade condición normalizada, mensajes poéticos y efectos visuales.
      *
      * @return array{condicion: string, temperatura: float, temperatura_celsius: int, descripcion: string, mensaje_poetico: string, hora_tokyo: string, hora_local_tokyo: string, codigo_wmo: int, timestamp: int, desde_cache: bool}
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
-    #[\Override]
+    #[Override]
     public function obtenerClimaActual(): array
     {
         $horaTokyoObj = new DateTime('now', new DateTimeZone('Asia/Tokyo'));
 
         $result = $this->weatherService->getWeather(self::TOKYO_LAT, self::TOKYO_LON, 'Asia/Tokyo');
 
-        if ($result->isFail()) {
+        if ($result->error !== null) {
             Logger::warning('[ClimaContexto] WeatherService no disponible, usando datos por defecto', [
-                'error' => $result->getMessage(),
+                'error' => $result->error,
             ]);
 
             return \array_merge($this->obtenerClimaPorDefecto($horaTokyoObj), ['desde_cache' => false]);
@@ -143,7 +145,7 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
     /**
      * Clima por defecto cuando WeatherService no está disponible.
      *
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function obtenerClimaPorDefecto(DateTime $horaTokyoObj): array
     {
@@ -197,7 +199,7 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
      *   color_secundario: string
      * }
      */
-    #[\Override]
+    #[Override]
     public function obtenerConfiguracionEfectos(string $condicion): array
     {
         $configuraciones = [

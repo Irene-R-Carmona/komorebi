@@ -14,6 +14,7 @@ use App\Repositories\UserRepository;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para UserRepository
@@ -21,11 +22,12 @@ use PHPUnit\Framework\TestCase;
  * Demuestra el patrón Repository con mocks de PDO para unit testing,
  * sin necesidad de base de datos real.
  */
+#[CoversClass(UserRepository::class)]
 final class UserRepositoryTest extends TestCase
 {
-    /** @var \PHPUnit\Framework\MockObject\MockObject&\PDO */
+    /** @var \PHPUnit\Framework\MockObject\MockObject&PDO */
     private PDO $pdoMock;
-    /** @var \PHPUnit\Framework\MockObject\MockObject&\PDOStatement */
+    /** @var \PHPUnit\Framework\MockObject\MockObject&PDOStatement */
     private PDOStatement $stmtMock;
     private UserRepository $repository;
 

@@ -9,6 +9,7 @@ use App\Core\Result;
 use App\Models\User;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\EmailVerificationServiceInterface;
+use Override;
 use Random\RandomException;
 
 /**
@@ -31,7 +32,7 @@ final class EmailVerificationService implements EmailVerificationServiceInterfac
      * @return Result
      * @throws RandomException
      */
-    #[\Override]
+    #[Override]
     public function sendVerificationEmail(int $userId): Result
     {
         $user = $this->userModel->findById($userId);
@@ -64,7 +65,7 @@ final class EmailVerificationService implements EmailVerificationServiceInterfac
      *
      * @return Result<mixed>
      */
-    #[\Override]
+    #[Override]
     public function verifyEmailToken(string $token): Result
     {
         return $this->tokenService->verifyEmail($token);

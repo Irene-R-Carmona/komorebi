@@ -20,7 +20,9 @@ use App\Http\Controllers\Api\V1\MenuController;
 use App\Services\Contracts\MenuServiceInterface;
 use App\Services\Contracts\RecentlyViewedServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(MenuController::class)]
 final class MenuControllerTest extends ControllerTestCase
 {
     private function makeController(): MenuController

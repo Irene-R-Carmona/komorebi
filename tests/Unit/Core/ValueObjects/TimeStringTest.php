@@ -11,7 +11,9 @@ declare(strict_types=1);
 use App\Core\ValueObjects\TimeString;
 use App\Exceptions\ValidationException;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(TimeString::class)]
 final class TimeStringTest extends TestCase
 {
     public function testValidTimeIsAccepted(): void

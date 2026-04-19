@@ -29,22 +29,21 @@ namespace Tests\Unit\Services;
 
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use App\Services\HealthCheckService;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
-#[AllowMockObjectsWithoutExpectations]
-#[CoversClass(\App\Services\HealthCheckService::class)]
+#[CoversClass(HealthCheckService::class)]
 final class HealthCheckServiceTest extends TestCase
 {
-    /** @var \PHPUnit\Framework\MockObject\MockObject&HealthCheckRepositoryInterface */
+    /** @var Stub&HealthCheckRepositoryInterface */
     private HealthCheckRepositoryInterface $repo;
     private HealthCheckService $service;
 
     protected function setUp(): void
     {
-        $this->repo = $this->createMock(HealthCheckRepositoryInterface::class);
+        $this->repo = $this->createStub(HealthCheckRepositoryInterface::class);
         $this->service = new HealthCheckService($this->repo);
     }
 
@@ -62,7 +61,7 @@ final class HealthCheckServiceTest extends TestCase
         $result = $this->service->createHealthCheck(1, 1, []);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Ya existe un chequeo', $result->getMessage());
+        $this->assertStringContainsString('Ya existe un chequeo', $result->error);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -77,7 +76,7 @@ final class HealthCheckServiceTest extends TestCase
         $result = $this->service->createHealthCheck(1, 1, ['weight_kg' => 0.0]);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Peso fuera de rango', $result->getMessage());
+        $this->assertStringContainsString('Peso fuera de rango', $result->error);
     }
 
     #[Test]
@@ -88,7 +87,7 @@ final class HealthCheckServiceTest extends TestCase
         $result = $this->service->createHealthCheck(1, 1, ['weight_kg' => 100.0]);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Peso fuera de rango', $result->getMessage());
+        $this->assertStringContainsString('Peso fuera de rango', $result->error);
     }
 
     #[Test]
@@ -99,7 +98,7 @@ final class HealthCheckServiceTest extends TestCase
         $result = $this->service->createHealthCheck(1, 1, ['temperature_c' => 29.9]);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Temperatura fuera de rango viable', $result->getMessage());
+        $this->assertStringContainsString('Temperatura fuera de rango viable', $result->error);
     }
 
     #[Test]
@@ -110,7 +109,7 @@ final class HealthCheckServiceTest extends TestCase
         $result = $this->service->createHealthCheck(1, 1, ['temperature_c' => 45.1]);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Temperatura fuera de rango viable', $result->getMessage());
+        $this->assertStringContainsString('Temperatura fuera de rango viable', $result->error);
     }
 
     #[Test]
@@ -121,7 +120,7 @@ final class HealthCheckServiceTest extends TestCase
         $result = $this->service->createHealthCheck(1, 1, ['appetite' => 'starving']);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('apetito inválido', $result->getMessage());
+        $this->assertStringContainsString('apetito inválido', $result->error);
     }
 
     #[Test]
@@ -132,7 +131,7 @@ final class HealthCheckServiceTest extends TestCase
         $result = $this->service->createHealthCheck(1, 1, ['energy_level' => 'hyper']);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('energía inválido', $result->getMessage());
+        $this->assertStringContainsString('energía inválido', $result->error);
     }
 
     #[Test]
@@ -143,7 +142,7 @@ final class HealthCheckServiceTest extends TestCase
         $result = $this->service->createHealthCheck(1, 1, ['coat_condition' => 'shiny']);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('pelaje inválida', $result->getMessage());
+        $this->assertStringContainsString('pelaje inválida', $result->error);
     }
 
     // ─────────────────────────────────────────────────────────────

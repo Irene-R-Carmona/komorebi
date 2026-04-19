@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Http\Transformers\UserTransformer;
-use App\Models\AuditLog;
-use App\Models\Role;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
+use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
-use App\Repositories\UserRepository;
-use App\Services\UserManagementService;
+use App\Services\Contracts\UserManagementServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -35,21 +35,29 @@ use Random\RandomException;
  */
 final class UserController
 {
-    private Role $roleModel;
-    private UserManagementService $userManagementService;
+    private RoleRepositoryInterface $roleRepo;
+    private UserManagementServiceInterface $userManagementService;
     private UserRepositoryInterface $userRepo;
+    private AuditLogRepositoryInterface $auditLogRepo;
     private ResponseFactory $response;
     private UserTransformer $userTransformer;
 
     private const CSRF_INVALID = 'Token de seguridad inválido';
 
-    public function __construct(?UserManagementService $userManagementService = null, ?UserRepositoryInterface $userRepo = null, ?ResponseFactory $response = null, ?UserTransformer $userTransformer = null)
-    {
-        $this->roleModel = new Role();
-        $this->userManagementService = $userManagementService ?? new UserManagementService();
-        $this->userRepo = $userRepo ?? new UserRepository();
-        $this->response = $response ?? new ResponseFactory();
-        $this->userTransformer = $userTransformer ?? new UserTransformer();
+    public function __construct(
+        ?RoleRepositoryInterface $roleRepo = null,
+        ?UserManagementServiceInterface $userManagementService = null,
+        ?UserRepositoryInterface $userRepo = null,
+        ?AuditLogRepositoryInterface $auditLogRepo = null,
+        ?ResponseFactory $response = null,
+        ?UserTransformer $userTransformer = null,
+    ) {
+        $this->roleRepo              = $roleRepo              ?? Container::make(RoleRepositoryInterface::class);
+        $this->userManagementService = $userManagementService ?? Container::make(UserManagementServiceInterface::class);
+        $this->userRepo              = $userRepo              ?? Container::make(UserRepositoryInterface::class);
+        $this->auditLogRepo          = $auditLogRepo          ?? Container::make(AuditLogRepositoryInterface::class);
+        $this->response              = $response              ?? new ResponseFactory();
+        $this->userTransformer       = $userTransformer       ?? new UserTransformer();
     }
 
     /**
@@ -61,7 +69,7 @@ final class UserController
     {
         // Obtener usuarios con roles desde el servicio
         $rawUsers = $this->userManagementService->getUsersWithRoles();
-        $roles = $this->roleModel->all();
+        $roles = $this->roleRepo->findAllWithCounts();
 
         // Calcular estadísticas desde datos crudos (antes de transformar)
         $stats = [
@@ -121,7 +129,7 @@ final class UserController
         $result = $this->userManagementService->createUser($data);
 
         if ($result->ok) {
-            AuditLog::log(
+            $this->auditLogRepo->log(
                 'create_user',
                 'user',
                 \is_array($result->data) ? ($result->data['id'] ?? null) : null,
@@ -140,7 +148,7 @@ final class UserController
             throw ValidationException::fromArray($errors);
         }
 
-        return $this->response->problem(Result::fail($result->getMessage('Error al crear usuario'), 'validation'), 422);
+        return $this->response->problem(Result::fail($result->error ?? 'Error al crear usuario', 'validation'), 422);
     }
 
     /**
@@ -173,7 +181,7 @@ final class UserController
         $result = $this->userManagementService->updateUser($userId, $data);
 
         if ($result->ok) {
-            AuditLog::log(
+            $this->auditLogRepo->log(
                 'update_user',
                 'user',
                 $userId,
@@ -189,7 +197,7 @@ final class UserController
             throw ValidationException::fromArray($errors);
         }
 
-        return $this->response->problem(Result::fail($result->getMessage('Error al actualizar usuario'), 'validation'), 422);
+        return $this->response->problem(Result::fail($result->error ?? 'Error al actualizar usuario', 'validation'), 422);
     }
 
     /**
@@ -209,7 +217,7 @@ final class UserController
         $result = $this->userManagementService->deactivateUser($userId);
 
         if ($result->ok) {
-            AuditLog::log(
+            $this->auditLogRepo->log(
                 'delete_user',
                 'user',
                 $userId
@@ -218,7 +226,7 @@ final class UserController
             return $this->response->json(['ok' => true, 'data' => ['message' => 'Usuario eliminado exitosamente']]);
         }
 
-        return $this->response->problem(Result::fail($result->getMessage('Error al eliminar usuario'), 'validation'), 422);
+        return $this->response->problem(Result::fail($result->error ?? 'Error al eliminar usuario', 'validation'), 422);
     }
 
     /**
@@ -238,7 +246,7 @@ final class UserController
         $result = $this->userManagementService->toggleUserStatus($userId);
 
         if ($result->ok) {
-            AuditLog::log(
+            $this->auditLogRepo->log(
                 'toggle_user_active',
                 'user',
                 $userId
@@ -247,6 +255,6 @@ final class UserController
             return $this->response->json(['ok' => true, 'data' => $result->data]);
         }
 
-        return $this->response->problem(Result::fail($result->getMessage('Error al cambiar estado'), 'validation'), 422);
+        return $this->response->problem(Result::fail($result->error ?? 'Error al cambiar estado', 'validation'), 422);
     }
 }

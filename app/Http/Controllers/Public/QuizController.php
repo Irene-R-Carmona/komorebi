@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Core\Container;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Exceptions\ValidationException;
-use App\Models\Cafe;
+use App\Repositories\Contracts\CafeRepositoryInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -19,8 +20,13 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class QuizController
 {
-    public function __construct(private readonly ResponseFactory $response)
-    {
+    private CafeRepositoryInterface $cafeRepo;
+
+    public function __construct(
+        private readonly ResponseFactory $response,
+        ?CafeRepositoryInterface $cafeRepo = null,
+    ) {
+        $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
     }
 
     /**
@@ -174,9 +180,7 @@ final class QuizController
         // Encontrar el café que mejor coincide
         $mejorCafe = $this->encontrarMejorCafe($puntuaciones);
 
-        // Obtener datos reales del café
-        $cafeModel = new Cafe();
-        $cafeData = $cafeModel->findBySlug($mejorCafe['slug']);
+        $cafeData = $this->cafeRepo->findBySlug($mejorCafe['slug']);
 
         View::render('public/quiz/resultado', [
             'titulo' => 'Tu Café del Alma | Resultado',

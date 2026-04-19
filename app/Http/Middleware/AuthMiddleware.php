@@ -9,6 +9,7 @@ use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Session;
+use Override;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -31,7 +32,7 @@ final class AuthMiddleware implements MiddlewareInterface
         $this->response = $response;
     }
 
-    #[\Override]
+    #[Override]
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler

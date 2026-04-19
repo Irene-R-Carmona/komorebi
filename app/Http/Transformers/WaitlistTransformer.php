@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Transformers;
 
+use Override;
+
 /**
  * Transforma una fila del JOIN waitlist + time_slots + cafes para la API.
  *
@@ -11,7 +13,7 @@ namespace App\Http\Transformers;
  */
 final class WaitlistTransformer extends AbstractTransformer
 {
-    #[\Override]
+    #[Override]
     public function transform(array $data): array
     {
         return [

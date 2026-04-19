@@ -18,8 +18,12 @@ namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\RoleController;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
+use App\Repositories\Contracts\RoleRepositoryInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(RoleController::class)]
 final class RoleControllerTest extends ControllerTestCase
 {
     public function test_class_has_expected_methods(): void
@@ -35,14 +39,20 @@ final class RoleControllerTest extends ControllerTestCase
 
     public function test_instance_can_be_created_with_response_factory(): void
     {
-        $controller = new RoleController(new ResponseFactory());
+        $controller = new RoleController(
+            roleRepo: $this->createStub(RoleRepositoryInterface::class),
+            auditLogRepo: $this->createStub(AuditLogRepositoryInterface::class),
+            response: new ResponseFactory(),
+        );
         $this->assertInstanceOf(RoleController::class, $controller);
     }
 
     public function test_instance_can_be_created_without_arguments(): void
     {
-        // Constructor acepta null → usa ResponseFactory por defecto
-        $controller = new RoleController();
+        $controller = new RoleController(
+            roleRepo: $this->createStub(RoleRepositoryInterface::class),
+            auditLogRepo: $this->createStub(AuditLogRepositoryInterface::class),
+        );
         $this->assertInstanceOf(RoleController::class, $controller);
     }
 }

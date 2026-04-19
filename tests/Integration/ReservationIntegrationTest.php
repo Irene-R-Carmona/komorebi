@@ -3,15 +3,19 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * ¿Qué me quieres demostrar?
- * ¿Qué va a fallar en este test si se cambia el código?
- */
-/**
  * Tests de Integración de ReservationService
  *
- * Valida operaciones con MySQL real usando transacciones para aislamiento.
- * Estos tests NO usan mocks - ejecutan queries reales contra la BD.
+ * ¿Qué pruebas aquí?
+ * Operaciones CRUD de reservas contra MySQL 8.4 real: creación, cancelación,
+ * check-in, check-out, validación de estados del ciclo de vida.
+ *
+ * ¿Qué me quieres demostrar?
+ * Que ReservationService persiste correctamente en BD y que las transiciones
+ * de estado (pending→confirmed→active→completed) funcionan en integración.
+ *
+ * ¿Qué va a fallar en este test si se cambia el código?
+ * Si se modifica el ciclo de vida de estados, si las queries de reserva
+ * cambian, o si la validación de disponibilidad se elimina.
  */
 
 namespace Tests\Integration;
@@ -22,9 +26,13 @@ use App\Repositories\ReservationRepository;
 use App\Services\EmailService;
 use App\Services\InvoicePDFService;
 use App\Services\ReservationService;
+use Exception;
+use Override;
 use PDO;
 use Tests\Support\BaseIntegrationTest;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
+#[CoversNothing]
 final class ReservationIntegrationTest extends BaseIntegrationTest
 {
     private ReservationService $service;
@@ -34,7 +42,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
     private const TEST_CAFE_ID = 99998;
     private const TEST_PRODUCT_ID = 99997;
 
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -210,8 +218,8 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
         // ACT: Cancelar la reserva
         $result = $this->service->cancel($reservationId, self::TEST_USER_ID);
 
-        // ASSERT: Verificar que retorna true
-        $this->assertTrue($result);
+        // ASSERT: Verificar que retorna ok
+        $this->assertTrue($result->ok);
 
         // ASSERT: Verificar que el status cambió a 'cancelled' en BD
         $stmt = self::$db->prepare('SELECT status FROM reservations WHERE id = ?');
@@ -238,7 +246,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
         $result = $this->service->cancel($reservationId, 88888); // Usuario diferente
 
         // ASSERT: Debe retornar false (no pertenece al usuario)
-        $this->assertFalse($result);
+        $this->assertFalse($result->ok);
 
         // ASSERT: El status debe seguir siendo 'confirmed' (no se canceló)
         $stmt = self::$db->prepare('SELECT status FROM reservations WHERE id = ?');
@@ -327,7 +335,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
 
             // Si no lanza excepción, al menos no debe insertar
             $this->assertFalse($result->ok, 'No debe crear reserva en café inactivo');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Es válido que lance excepción (mensaje puede ser "no acepta reservas")
             $message = \strtolower($e->getMessage());
             $this->assertTrue(
@@ -352,7 +360,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
 
             // Si no lanza excepción, al menos no debe insertar
             $this->assertFalse($result->ok, 'No debe crear reserva con fecha pasada');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Es válido que lance excepción
             $this->assertStringContainsString('fecha', \strtolower($e->getMessage()));
         }

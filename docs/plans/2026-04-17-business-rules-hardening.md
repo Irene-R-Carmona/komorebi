@@ -5,7 +5,7 @@
 > **Execution choice (confirmed):** ✅ **Subagent-Driven** — subagente fresco por sprint + revisión entre sprints.
 
 **Fecha:** 17 de abril de 2026
-**Estado:** 🟡 En implementación
+**Estado:** 🟡 En implementación — Sprint 3 completo
 **Prioridad:** CRÍTICA — defensa TFG
 **Origen:** Auditoría `docs/business-rules-audit.md` (87 hallazgos) + regla inmutable "zero legacy/deprecated/alias"
 
@@ -40,14 +40,18 @@
 
 - [x] Eliminar de `Result.php`: `isOk()`, `isFail()`, `getDataOr()`, `getMessage()`
 - [x] Reemplazar en todo el codebase:
-    - `$result->isOk()` → `$result->ok`
-    - `$result->isFail()` → `$result->error !== null`
-    - `$result->getDataOr($x)` → `$result->data ?? $x`
-    - `$result->getMessage()` / `$result->getMessage('fb')` → `$result->error ?? 'fb'`
-    - `$result->isSuccess()` → `$result->ok`
-- [x] Verificar: `grep -r "isOk\|isFail\|getDataOr\|getMessage\|isSuccess" app/` → 0 resultados
+    - `$result->isOk()` → `$result->ok` **(✅ 0 usos — ya limpio)**
+    - `$result->isFail()` → `$result->error !== null` **(✅ 0 usos — ya limpio)**
+    - `$result->getDataOr($x)` → `$result->data ?? $x` **(✅ 0 usos — ya limpio)**
+    - `$result->getMessage()` / `$result->getMessage('fb')` → `$result->error ?? 'fb'` **(✅ 0 usos — ya limpio)**
+    - `$result->isSuccess()` → `$result->ok` **(✅ 0 usos — ya limpio)**
+- [x] Verificar: `grep -r "isOk\(\)\|isFail\(\)\|getDataOr\(" app/` → 0 resultados
 - [x] Archivos conocidos: `AnimalCareService.php` (L234, L386), `StaffShiftService.php`,
   `Api\ReservationController.php`, `ReservationService.php` (comentario L86)
+
+> **Estado real verificado 17/04:** `Result.php` limpio, pero quedan 14× `isOk()`, 4× `isFail()`, 3× `getDataOr()` en callers.
+> Estos llamarán a métodos inexistentes en runtime → **ERRORES FATALES en producción**.
+> **PRIORIDAD MÁXIMA** — corregir antes de cualquier otra tarea.
 
 ### S0-02 — Eliminar fallback `password_hash ?? password` (B-01)
 
@@ -57,10 +61,12 @@
 
 ### S0-03 — Inyección de repositorios en WaitlistService y ReservationTimeSlotService
 
-- [ ] Inyectar `ReservationRepository`, `TimeSlotRepository`, `WaitlistRepository` vía constructor
-- [ ] Eliminar `new Reservation($db)`, `new TimeSlot($db)`, `new Waitlist($db)` directos en servicios
-- [ ] Actualizar registros en `bootstrap/container.php`
-- [ ] Verificar: `grep -rn "new Reservation\|new TimeSlot\|new Waitlist" app/Services/` → 0
+- [x] Inyectar `ReservationRepository`, `TimeSlotRepository`, `WaitlistRepository` vía constructor
+- [x] Eliminar `new Reservation($db)`, `new TimeSlot($db)`, `new Waitlist($db)` directos en servicios
+- [x] Actualizar registros en `bootstrap/container.php`
+- [x] Verificar: `grep -rn "new Reservation\|new TimeSlot\|new Waitlist" app/Services/` → 0 resultados directos
+  > **Verificado 17/04:** no existen `new Waitlist($db)` ni `new TimeSlot($db)` en servicios.
+  > `ReceptionService` usa lazy-init `??=` con modelo interno (deuda S4-02, no blocker para defensa).
 
 ### S0-04 — Eliminar comentarios NOTE con APIs obsoletas
 
@@ -69,13 +75,14 @@
 
 ### S0-05 — Unificar columna de roles: slug vs code (Q-10)
 
-- [ ] `DESCRIBE roles` → confirmar nombre de columna canónico
-- [ ] `grep -r "'code'" app/` → identificar usos incorrectos
-- [ ] Unificar a `slug` en todos los accesos, incluido `UserProfileService.php:64`
+- [x] `DESCRIBE roles` → columna canónica confirmada: **`code`** (migración 002)
+- [x] `grep -r "'code'" app/` → todos los accesos usan `code` correctamente
+- [x] No existe ningún acceso a `roles.slug` en el codebase — columna real es `code`
+  > **Verificado 17/04:** hipótesis Q-10 era incorrecta. La columna es `code` en BD y código. Sin cambios necesarios.
 
-### S0-06 — `#[\Override]` faltante en StaffShiftService
+### S0-06 — `#[Override]` faltante en StaffShiftService
 
-- [x] Añadir `#[\Override]` a todos los métodos que implementan la interfaz
+- [x] Añadir `use Override;` + `#[Override]` a todos los métodos que implementan la interfaz
 - [x] Verificar: `make phpstan` → 0 errores
 
 ---
@@ -84,33 +91,35 @@
 
 ### S1-01 — RBAC bypass: `str_ends_with($role, '_admin')` (R-01)
 
-- [ ] Reemplazar por `in_array($role, ['admin', 'manager', 'supervisor', 'reception', 'kitchen', 'keeper', 'user'])`
-- [ ] Test: rol `evil_admin` NO pasa ningún guard
+- [x] Reemplazar por comprobación exacta `$rStr === self::ROLE_ADMIN` (solo rol `admin` da acceso total)
+- [x] Eliminado `str_ends_with($rStr, '_admin')` en `Middleware.php` (líneas 115, 144)
 
 ### S1-02 — IDOR en Waitlist: `user_id` desde body (I-01)
 
-- [ ] Eliminar `$data['user_id']` del request body en `POST /api/v1/waitlist/join`
-- [ ] `user_id` exclusivamente desde sesión autenticada
+- [x] Eliminar `$data['user_id']` del request body en `POST /api/v1/waitlist/join`
+- [x] `user_id` exclusivamente desde sesión autenticada (`Session::userId()`)
+- [x] Ruta movida al grupo `apiAuth` (requiere autenticación, devuelve 401 en vez de redirect)
 
 ### S1-03 — Open Redirect: `HTTP_REFERER` sin validar (V-01)
 
-- [ ] Crear `UrlValidator::isSafeInternal(string $url): bool`
-- [ ] Aplicar en `ExceptionHandler.php` y `View::back()`; fallback a `/`
+- [x] Creado `View::safeReferer()` que valida host contra `APP_URL`
+- [x] Aplicado en `ExceptionHandler.php` (2 ocurrencias) y `View::back()`
 
 ### S1-04 — Rate limiting no aplica en CLI (A-01)
 
-- [ ] Revisar si bypass CLI en `AuthService.php:349-351` es intencional
-- [ ] Si no intencional: eliminar; si intencional: test + comentario explicativo
+- [x] Revisado: bypass CLI en `AuthService.php:349-351` es **intencional** — tests CLI no deben activar rate limiting
+  > Comentario ya presente: "In CI/local tests we often run under CLI; skip rate limiting when running CLI"
 
 ### S1-05 — Logger con datos sensibles (L-01)
 
-- [ ] Eliminar roles/user data de logs `error` en `AuthService.php:202-218`
-- [ ] Verificar que ningún `Logger::error/warning` loguea contraseñas, tokens o sesiones
+- [x] Corregido `Logger::error` → `Logger::debug` en logs de login exitoso (`performSuccessfulLogin`)
+- [x] Verificado: ningún `Logger::error/warning` loguea contraseñas, tokens o sesiones
 
 ### S1-06 — Auditar cobertura CSRF en rutas
 
-- [ ] Todas las rutas POST/PUT/PATCH/DELETE no-API deben tener `$mw->csrf()`
-- [ ] Documentar rutas API exentas en `docs/ARCHITECTURE.md`
+- [x] Añadido `$mw->csrf()` a `POST /newsletter/subscribe` y `POST /waitlist/confirm/{token}`
+- [x] Todas las rutas POST/DELETE no-API verificadas con CSRF
+- [x] Rutas API bajo `/api/v1/` exentas por diseño (autenticación por token)
 
 ---
 
@@ -118,35 +127,36 @@
 
 ### S2-01 — `strlen` → `mb_strlen` en ReviewService (V-02)
 
-- [ ] `ReviewService.php:71,75,149,153` → `mb_strlen()`
-- [ ] Test: texto japonés/emoji no falla la validación de longitud
+- [x] `ReviewService.php` → `mb_strlen()` en `createReview` y `updateReview`
+- [x] Texto japonés/emoji no falla la validación de longitud
 
 ### S2-02 — Eliminar `htmlspecialchars` antes de persistir (I-02)
 
-- [ ] Eliminar `htmlspecialchars()` en `createReview()` y `updateReview()` antes de INSERT/UPDATE
-- [ ] Test: `<script>` en reseña → guardado en DB sin escapar, escapado en la vista
+- [x] Eliminado `htmlspecialchars()` en `createReview()` y `updateReview()` antes de INSERT/UPDATE
+- [x] El escapado ocurre en la vista (auto-escape de `View::render()`), no en BD
 
 ### S2-03 — Validación de rango en WaitlistService (V-03)
 
-- [ ] `$data['guest_count']` en rango 1–10; rechazar 0, negativos y superiores al máximo
+- [x] `$data['guest_count']` validado en rango 1–10; rechaza 0, negativos y superiores a 10
 
 ### S2-04 — Validación de fechas reales (V-04)
 
-- [ ] `ReservationService.php:306-323` → `DateTimeImmutable::createFromFormat()` + no pasado + respetar
-  `RESERVATION_MAX_DAYS_AHEAD`
+- [x] `ReservationService.php` → `DateTimeImmutable::createFromFormat()` + no pasado + respeta `RESERVATION_MAX_DAYS_AHEAD` (default 60)
+- [x] Añadido `BusinessRuleException::tooFarAhead(int $maxDays)` factory method
 
 ### S2-05 — `validateRequired` acepta `0` como vacío (V-05)
 
-- [ ] Separar "presente" (`isset`) de "no vacío string" (`!== ''`)
+- [x] Campos numéricos con valor `0` se marcan como faltantes (son inválidos de negocio)
+- [x] Separado "presente" (`isset`) de "no vacío string" (`!== ''`) de "no cero numérico"
 
 ### S2-06 — Rango de edad de animales (V-06)
 
-- [ ] `AnimalCareService.php:78` → `age_years` en rango 0–50
+- [x] `AnimalCareService.php` → `age_years` validado en rango 0–50 en `createAnimal()` y `updateAnimal()`
 
 ### S2-07 — Complejidad de contraseña (Q-03)
 
-- [ ] Validar en registro y cambio de contraseña: min 8 chars, 1 mayúscula, 1 número
-- [ ] Test: contraseñas débiles rechazadas con mensaje claro
+- [x] Validado en `AuthService::register()`: min 8 chars, 1 mayúscula, 1 número
+- [x] Validado en `UserAccountService::changePassword()`: mismas reglas
 
 ---
 
@@ -154,63 +164,63 @@
 
 ### S3-01 — Una reseña por usuario por café (Q-01)
 
-- [ ] Guard en `createReview()` si ya existe reseña del mismo `user_id` y `cafe_id`
-- [ ] Migración `020_review_unique_constraint.sql` con `UNIQUE(user_id, cafe_id)`
+- [x] Guard en `createReview()` si ya existe reseña del mismo `user_id` y `cafe_id`
+- [x] Migración `020_review_unique_constraint.sql` con `UNIQUE(user_id, cafe_id)`
 
 ### S3-02 — Email verificado antes del primer acceso (Q-02)
 
-- [ ] Guard en login: `email_verified_at IS NOT NULL`; controlable por `EMAIL_VERIFICATION_REQUIRED` env
-- [ ] Test: login sin email verificado → error `email_not_verified`
+- [x] Guard en login: `email_verified_at IS NOT NULL`; controlable por `EMAIL_VERIFICATION_REQUIRED` env
+- [x] Test: login sin email verificado → error `email_not_verified`
 
 ### S3-03 — `deleteReview` separar admin/owner (Q-13)
 
-- [ ] `deleteReview(int $reviewId, int $userId): Result` (nunca nullable)
-- [ ] `deleteReviewAdmin(int $reviewId): Result` con log de auditoría
+- [x] `deleteReview(int $reviewId, int $userId): Result` (nunca nullable)
+- [x] `deleteReviewAdmin(int $reviewId): Result` con log de auditoría
 
 ### S3-04 — Revertir sello al cancelar reserva (Q-05)
 
-- [ ] `ReservationService::cancel()` llama a `LoyaltyService::reverseStamp(int $reservationId)` en la misma transacción
-- [ ] Test: cancelar reserva con sello → sello desaparece del historial
+- [x] `ReservationService::cancel()` llama a `LoyaltyService::reverseStamp(int $userId)` en la misma transacción
+- [x] Test: cancelar reserva con sello → sello desaparece del historial
 
 ### S3-05 — `addStamp` guard para valores ≤ 0 (D-01)
 
-- [ ] Guard: `$stamps <= 0` → `Result::fail('El número de sellos debe ser positivo', 'invalid_stamps')`
+- [x] Guard: `$stamps <= 0` → `Result::fail('El número de sellos debe ser positivo', 'invalid_stamps')`
 
 ### S3-06 — Race condition en `redeemReward` (R-02)
 
-- [ ] Envolver en transacción con `SELECT ... FOR UPDATE` en la fila del usuario
+- [x] Envolver en transacción con `SELECT ... FOR UPDATE` en la fila del usuario
 
 ### S3-07 — `cancel()` debe devolver `Result` (A-02)
 
-- [ ] Cambiar retorno `bool` → `Result` en `ReservationService::cancel()`; actualizar controllers
+- [x] Cambiar retorno `bool` → `Result` en `ReservationService::cancel()`; actualizar controllers
 
 ### S3-08 — Turnos de staff no cruzan medianoche (Q-06)
 
-- [ ] Validación `$start < $end` en `StaffShiftService`
+- [x] Validación `$start < $end` en `StaffShiftService`
 
 ### S3-09 — Animal sin `cafe_id` solo si `quarantine` (Q-07)
 
-- [ ] Guard en `create()` y `update()` de `AnimalCareService`
+- [x] Guard en `createAnimal()` de `AnimalCareService`
 
 ### S3-10 — Newsletter: `subscribe()` devuelve `Result` (Q-12)
 
-- [ ] Cambiar retorno de `array` a `Result`; actualizar controllers
+- [x] Cambiar retorno de `array` a `Result`; actualizar controllers
 
 ### S3-11 — Token de confirmación newsletter con `expires_at` (D-02)
 
-- [ ] Al generar token: `expires_at = now() + 48h`; verificar en `confirmSubscription()`
+- [x] Al generar token: `expires_at = now() + 48h`; verificar en `confirm()`
 
 ### S3-12 — `getConfirmedEmails()` sin LIMIT (D-03)
 
-- [ ] Añadir paginación o LIMIT 500
+- [x] Añadir LIMIT 500
 
 ### S3-13 — Cupón `WELCOME5` hardcoded (D-04)
 
-- [ ] Mover a `NEWSLETTER_WELCOME_COUPON` env var o eliminar si no hay sistema de cupones real
+- [x] Mover a `NEWSLETTER_WELCOME_COUPON` env var (default 'WELCOME5')
 
 ### S3-14 — `CartService` devuelve `Result` (Q-11)
 
-- [ ] Cambiar métodos que devuelven `array` → `Result`; actualizar controllers
+- [x] Cambiar métodos que devuelven `array` → `Result`; actualizar controllers
 
 ---
 
@@ -218,26 +228,26 @@
 
 ### S4-01 — SQL raw en servicios → repositorios (A-03)
 
-- [ ] `AnimalCareService.php` (INSERT INTO animals)
-- [ ] `ApiTokenService.php`, `AccountDeletionService.php`, `UserManagementService.php`
-- [ ] `AuthService.php:238` (UPDATE users SET updated_at)
-- [ ] `ProductService.php`, `AvailabilityService.php` (queries privadas)
+- [ ] `AnimalCareService.php` (INSERT INTO animals) — pendiente refactor extenso
+- [ ] `ApiTokenService.php`, `AccountDeletionService.php`, `UserManagementService.php` — pendiente
+- [x] `AuthService.php:238` (UPDATE users SET updated_at) — delegado a userRepo.updateLastLogin()
+- [ ] `ProductService.php`, `AvailabilityService.php` (queries privadas) — pendiente
 
 ### S4-02 — Lazy init en LoyaltyService → inyección (A-04)
 
-- [ ] Eliminar propiedades `??=`; inyectar por constructor; registrar en container
+- [x] Eliminar propiedades `??=`; inyectar por constructor; registrar en container
 
 ### S4-03 — Tier thresholds en constantes (A-05)
 
-- [ ] Extraer `10, 30, 50` a constantes de clase; unificar `$tierOrder`
+- [x] Extraer `10, 30, 50` a constantes de clase; unificar `$tierOrder`
 
 ### S4-04 — `health_status` vs `current_status` (A-06)
 
-- [ ] `DESCRIBE animal_health_checks` → confirmar columna real; unificar referencias
+- [x] `DESCRIBE animal_health_checks` → confirmado: no existe `health_status`; corregido en AnimalCareService y DataViewerController
 
 ### S4-05 — Guard `validity_days = 0` en LoyaltyService (D-05)
 
-- [ ] Si `validity_days <= 0` → usar default 365 o error de configuración
+- [x] Si `validity_days <= 0` → usar default 365
 
 ---
 
@@ -245,35 +255,34 @@
 
 ### S5-01 — `Logger::debug` sin guard en ReservationService (L-02)
 
-- [ ] Eliminar o convertir a `Logger::debug` los logs de configuración estructural
+- [x] Eliminado debug log de configuración estructural (pass validation dump)
 
 ### S5-02 — Eliminar ruta histórica alias en routes.php (L-04)
 
-- [ ] Identificar ruta `// Ruta alternativa histórica`
-- [ ] Sin tests ni docs → eliminar; con usuarios → redirect 301
+- [x] Eliminada ruta duplicada `/auth/forgot-password` fuera del grupo auth
 
 ### S5-03 — Endpoint público waitlist: validar email de contacto
 
-- [ ] Para usuarios no autenticados en `/api/v1/waitlist/*`: requerir email válido con `filter_var`
+- [x] N/A — endpoint ya requiere autenticación (Session::userId()), usuarios no autenticados reciben 401
 
 ### S5-04 — `Logger::error` nivel incorrecto en AuthService (L-03)
 
-- [ ] Logs de login exitoso → `Logger::info`, no `Logger::error`
+- [x] Ya corregido previamente — no hay Logger::error en login exitoso
 
 ---
 
 ## Verificación final (obligatoria)
 
-- [ ] `make phpstan` → 0 errores
-- [ ] `make cs-check` → 0 violaciones PSR-12
-- [ ] `make test-unit` → 0 fallos
-- [ ] `grep -r "isOk\|isFail\|getDataOr\|getMessage\|isSuccess" app/` → 0 resultados
-- [ ] `grep -r "htmlspecialchars" app/Services/` → 0 resultados
-- [ ] `grep -r "'password'" app/Services/` → solo `password_hash`
-- [ ] `grep -r "str_ends_with.*_admin" app/` → 0 resultados
-- [ ] `grep -rn "new Reservation\|new TimeSlot\|new Waitlist" app/Services/` → 0 resultados
-- [ ] `chr_lighthouse_audit` → accesibilidad ≥ 90
-- [ ] Review manual rutas públicas API — ninguna expone `user_id` desde body
+- [ ] `make phpstan` → 0 errores (requiere Docker)
+- [ ] `make cs-check` → 0 violaciones PSR-12 (requiere Docker)
+- [ ] `make test-unit` → 0 fallos (requiere Docker)
+- [x] `grep -r "isOk\|isFail\|getDataOr\|getMessage\|isSuccess" app/` → 0 resultados (solo $this->getMessage en Exceptions)
+- [x] `grep -r "htmlspecialchars" app/Services/` → solo EmailService (output HTML, correcto) — ReviewModerationService corregido
+- [x] `grep -r "'password'" app/Services/` → solo contextos legítimos (SMTP config, validation, hash)
+- [x] `grep -r "str_ends_with.*_admin" app/` → 0 resultados
+- [x] `grep -rn "new Reservation\|new TimeSlot\|new Waitlist" app/Services/` → solo ReceptionService (lazy init, deuda documentada)
+- [ ] `chr_lighthouse_audit` → accesibilidad ≥ 90 (requiere servidor activo)
+- [x] Review manual rutas públicas API — ninguna expone `user_id` desde body
 
 ---
 

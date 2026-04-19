@@ -19,8 +19,10 @@ namespace Tests\Unit\Core;
 
 use App\Core\Container;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 // Fixtures locales para los tests
+#[CoversClass(Container::class)]
 final class DummyServiceA
 {
     public int $value = 42;

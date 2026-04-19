@@ -19,7 +19,9 @@ use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\AuthLogController;
 use App\Repositories\Contracts\AuthLogRepositoryInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(AuthLogController::class)]
 final class AuthLogControllerTest extends ControllerTestCase
 {
     protected function setUp(): void

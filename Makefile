@@ -107,7 +107,7 @@ test: ## Ciclo completo de tests (build → migraciones → phpunit → down)
 	docker compose -f docker-compose.test.yml build php-test
 	@echo "$(GREEN)Ejecutando tests...$(NC)"
 	@docker compose -f docker-compose.test.yml run --rm php-test \
-		sh -c "php scripts/apply-db.php && php vendor/bin/phpunit --testdox"; \
+		sh -c "php scripts/apply-db.php --force && php vendor/bin/phpunit --testdox"; \
 		EXIT=$$?; \
 		docker compose -f docker-compose.test.yml down -v --remove-orphans; \
 		exit $$EXIT
@@ -119,14 +119,14 @@ test-integration: ## Tests de integración con BD efímera
 	@echo "$(GREEN)Construyendo imagen de test...$(NC)"
 	docker compose -f docker-compose.test.yml build php-test
 	@docker compose -f docker-compose.test.yml run --rm php-test \
-		sh -c "php scripts/apply-db.php && php vendor/bin/phpunit --testsuite 'Integration Tests' --testdox"; \
+		sh -c "php scripts/apply-db.php --force && php vendor/bin/phpunit --testsuite 'Integration Tests' --testdox"; \
 		EXIT=$$?; docker compose -f docker-compose.test.yml down -v; exit $$EXIT
 
 test-coverage: ## Tests con cobertura de código (genera HTML + Clover)
 	@echo "$(GREEN)Construyendo imagen de test...$(NC)"
 	docker compose -f docker-compose.test.yml build php-test
 	@docker compose -f docker-compose.test.yml run --rm php-test \
-		sh -c "php scripts/apply-db.php && php vendor/bin/phpunit --coverage-text --coverage-clover tests/reports/coverage.xml --coverage-html tests/reports/coverage/"; \
+		sh -c "php scripts/apply-db.php --force && php vendor/bin/phpunit --coverage-text --coverage-clover tests/reports/coverage.xml --coverage-html tests/reports/coverage/"; \
 		EXIT=$$?; docker compose -f docker-compose.test.yml down -v; exit $$EXIT
 
 test-build: ## Construir imagen de test sin ejecutar
@@ -143,8 +143,6 @@ ci: ## Suite completa de calidad (phpstan + test + cs)
 	$(MAKE) test
 	$(MAKE) cs-check
 
-coverage: ## Cobertura de tests (genera HTML en tests/reports/coverage)
-	docker compose exec app vendor/bin/phpunit --coverage-html tests/reports/coverage --coverage-text
 
 cs-check: ## Verificar estilo de código con PHP CS Fixer
 	docker compose exec app composer run check:cs-fixer

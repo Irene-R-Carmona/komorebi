@@ -21,14 +21,16 @@ namespace Tests\Unit\Repositories;
 use App\Repositories\ProductRepository;
 use PDO;
 use PDOStatement;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-#[\PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations]
+#[CoversClass(ProductRepository::class)]
 final class ProductRepositoryTest extends TestCase
 {
-    /** @var \PHPUnit\Framework\MockObject\MockObject&\PDO */
+    /** @var MockObject&PDO */
     private PDO $pdoMock;
-    /** @var \PHPUnit\Framework\MockObject\MockObject&\PDOStatement */
+    /** @var MockObject&PDOStatement */
     private PDOStatement $stmtMock;
     private ProductRepository $repository;
 

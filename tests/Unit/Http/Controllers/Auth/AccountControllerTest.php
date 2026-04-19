@@ -26,7 +26,9 @@ use App\Services\Contracts\SessionManagementServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(AccountController::class)]
 final class AccountControllerTest extends ControllerTestCase
 {
     protected function setUp(): void

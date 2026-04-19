@@ -16,6 +16,7 @@ use App\Models\Waitlist;
 use App\Repositories\Contracts\WaitlistRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\WaitlistServiceInterface;
+use Exception;
 use Override;
 use PDO;
 use Random\RandomException;
@@ -88,6 +89,12 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             return Result::fail('Ya estás en la lista de espera para este horario');
         }
 
+        // Validar guest_count: rango 1–10
+        $guestCount = (int) ($data['guest_count'] ?? 1);
+        if ($guestCount < 1 || $guestCount > 10) {
+            return Result::fail('El número de comensales debe estar entre 1 y 10', 'invalid_guest_count');
+        }
+
         // Generar token único
         $token = \bin2hex(\random_bytes(16));
         $responseTimeout = (int) ($data['response_timeout_minutes'] ?? Waitlist::DEFAULT_RESPONSE_TIMEOUT);
@@ -99,7 +106,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             'time_slot_id' => $timeSlotId,
             'contact_email' => $data['email'] ?? $data['contact_email'] ?? '',
             'contact_phone' => $data['phone'] ?? $data['contact_phone'] ?? null,
-            'guest_count' => $data['guest_count'] ?? 1,
+            'guest_count' => $guestCount,
             'special_requests' => $data['special_requests'] ?? null,
             'confirmation_token' => $token,
             'expires_at' => $expiresAt,
@@ -134,7 +141,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                     ]
                 );
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Log error but don't fail the waitlist join
             Logger::warning('[WaitlistService] Error enviando email de waitlist', ['error' => $e->getMessage()]);
         }
@@ -232,7 +239,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 'user_id' => $userId,
                 'expires_at' => $expiresAt,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if ($startedTransaction) {
                 $this->db->rollBack();
             }
@@ -410,7 +417,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 'waitlist_id' => $waitlistId,
                 'message' => '¡Reserva confirmada desde lista de espera!',
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if ($startedTransaction) {
                 $this->db->rollBack();
             }
@@ -439,7 +446,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 'expired_count' => $expiredCount,
                 'message' => "Se expiraron {$expiredCount} tokens y se promovieron los siguientes en cola",
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return Result::fail('Error al expirar tokens: ' . $e->getMessage());
         }
     }

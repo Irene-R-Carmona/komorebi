@@ -21,7 +21,9 @@ namespace Tests\Unit\Services;
 use App\Core\CookieManager;
 use App\Services\RecentlyViewedService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(RecentlyViewedService::class)]
 final class RecentlyViewedServiceTest extends TestCase
 {
     private RecentlyViewedService $service;

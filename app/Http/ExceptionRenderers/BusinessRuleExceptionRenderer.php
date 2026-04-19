@@ -8,8 +8,10 @@ use App\Core\Flash;
 use App\Core\Result;
 use App\Core\ServiceErrorCode;
 use App\Exceptions\BusinessRuleException;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Renderiza BusinessRuleException → HTTP code de la excepción (por defecto 400).
@@ -18,20 +20,20 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class BusinessRuleExceptionRenderer extends AbstractExceptionRenderer
 {
-    #[\Override]
-    public function supports(\Throwable $e): bool
+    #[Override]
+    public function supports(Throwable $e): bool
     {
         return $e instanceof BusinessRuleException;
     }
 
-    #[\Override]
+    #[Override]
     public function priority(): int
     {
         return 70;
     }
 
-    #[\Override]
-    public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
+    #[Override]
+    public function render(Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
         \assert($e instanceof BusinessRuleException);
 

@@ -4,21 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Keeper;
 
+use App\Core\Container;
 use App\Core\Csrf;
-use App\Core\Database;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Exceptions\ValidationException;
-use App\Repositories\AnimalRepository;
-use App\Repositories\HealthCheckRepository;
-use App\Services\AnimalCareService;
-use App\Services\HealthCheckService;
+use App\Services\Contracts\AnimalCareServiceInterface;
+use App\Services\Contracts\HealthCheckServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
-use function trim;
 
 /**
  * Controlador de Cuidado Animal — Mutaciones y acciones de cuidado.
@@ -28,31 +25,18 @@ use function trim;
  */
 final class AnimalCareController
 {
-    private AnimalCareService $animalCareService;
-    private HealthCheckService $healthCheckService;
+    private AnimalCareServiceInterface $animalCareService;
+    private HealthCheckServiceInterface $healthCheckService;
     private ResponseFactory $response;
 
     public function __construct(
-        ?AnimalCareService $animalCareService = null,
-        ?HealthCheckService $healthCheckService = null,
+        ?AnimalCareServiceInterface $animalCareService = null,
+        ?HealthCheckServiceInterface $healthCheckService = null,
         ?ResponseFactory $response = null,
     ) {
-        $this->response = $response ?? new ResponseFactory();
-
-        if ($animalCareService !== null && $healthCheckService !== null) {
-            $this->animalCareService = $animalCareService;
-            $this->healthCheckService = $healthCheckService;
-
-            return;
-        }
-
-        $db = Database::getConnection();
-        $animalRepo = new AnimalRepository($db);
-
-        $this->animalCareService = $animalCareService ?? new AnimalCareService($db, $animalRepo);
-        $this->healthCheckService = $healthCheckService ?? new HealthCheckService(
-            new HealthCheckRepository($db)
-        );
+        $this->animalCareService  = $animalCareService ?? Container::make(AnimalCareServiceInterface::class);
+        $this->healthCheckService = $healthCheckService ?? Container::make(HealthCheckServiceInterface::class);
+        $this->response           = $response ?? new ResponseFactory();
     }
 
     /**
@@ -93,7 +77,7 @@ final class AnimalCareController
         $data = [
             'animal_id' => $id,
             'activity_type' => 'feeding',
-            'notes' => isset($body['notes']) ? trim((string) $body['notes']) : null,
+            'notes' => isset($body['notes']) ? \trim((string) $body['notes']) : null,
             'duration_minutes' => isset($body['duration_minutes']) ? (int) $body['duration_minutes'] : null,
             'mood_before' => $body['mood_before'] ?? null,
             'mood_after' => $body['mood_after'] ?? null,
@@ -103,7 +87,7 @@ final class AnimalCareController
         $result = $this->animalCareService->createCareLog($data);
 
         if (!$result->ok) {
-            Flash::error($result->getMessage());
+            Flash::error($result->error ?? 'Error al registrar alimentación');
 
             return $this->response->redirect('/keeper/animals/' . $id);
         }
@@ -128,7 +112,7 @@ final class AnimalCareController
         $result = $this->healthCheckService->createHealthCheck($id, $keeperId, $body);
 
         if (!$result->ok) {
-            Flash::error($result->getMessage());
+            Flash::error($result->error ?? 'Error al registrar control de salud');
 
             return $this->response->redirect('/keeper/animals/' . $id);
         }

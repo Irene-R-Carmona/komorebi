@@ -16,19 +16,22 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
+use App\Core\Result;
 use App\Http\Controllers\Api\V1\NewsletterApiController;
 use App\Services\Contracts\NewsletterServiceInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(NewsletterApiController::class)]
 final class NewsletterApiControllerTest extends ControllerTestCase
 {
     private function makeController(?NewsletterServiceInterface $service = null): NewsletterApiController
     {
         if ($service === null) {
             $service = $this->createMock(NewsletterServiceInterface::class);
-            $service->method('subscribe')->willReturn(['success' => true, 'message' => 'Suscrito correctamente']);
+            $service->method('subscribe')->willReturn(Result::ok(['message' => 'Suscrito correctamente']));
         }
 
         return new NewsletterApiController($service, new ResponseFactory());
@@ -65,7 +68,7 @@ final class NewsletterApiControllerTest extends ControllerTestCase
     public function test_subscribe_returns_400_when_service_fails(): void
     {
         $service = $this->createMock(NewsletterServiceInterface::class);
-        $service->method('subscribe')->willReturn(['success' => false, 'message' => 'Ya suscrito']);
+        $service->method('subscribe')->willReturn(Result::fail('Ya suscrito'));
 
         $response = $this->makeController($service)->subscribe(
             $this->makeJsonRequest('/api/newsletter/subscribe', ['email' => 'test@example.com'])

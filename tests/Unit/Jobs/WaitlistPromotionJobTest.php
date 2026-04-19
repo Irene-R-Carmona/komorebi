@@ -27,6 +27,8 @@ use App\Core\LogContext;
 use App\Core\LogContextProcessor;
 use App\Core\Logger;
 use App\Jobs\WaitlistPromotionJob;
+use PDO;
+use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -47,9 +49,9 @@ final class WaitlistPromotionJobTest extends TestCase
      * Crea un PDO stub cuyo prepare() devuelve el stmt indicado para
      * la primera llamada a execute()/fetch().
      */
-    private function makePdo(\PDOStatement $stmt): \PDO
+    private function makePdo(PDOStatement $stmt): PDO
     {
-        $pdo = $this->createMock(\PDO::class);
+        $pdo = $this->createMock(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
 
         return $pdo;
@@ -59,17 +61,17 @@ final class WaitlistPromotionJobTest extends TestCase
      * Crea un PDO stub con dos prepare() consecutivos: primero para
      * hidratar (SELECT) y luego para marcar como expirado (UPDATE).
      */
-    private function makePdoWithTwoStmts(\PDOStatement $first, \PDOStatement $second): \PDO
+    private function makePdoWithTwoStmts(PDOStatement $first, PDOStatement $second): PDO
     {
-        $pdo = $this->createMock(\PDO::class);
+        $pdo = $this->createMock(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($first, $second);
 
         return $pdo;
     }
 
-    private function makeStmt(mixed $fetchReturn = false): \PDOStatement
+    private function makeStmt(mixed $fetchReturn = false): PDOStatement
     {
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('rowCount')->willReturn(1);

@@ -6,6 +6,7 @@ namespace App\Core;
 
 use Monolog\LogRecord;
 use Monolog\Processor\ProcessorInterface;
+use Override;
 
 /**
  * Monolog processor que inyecta LogContext::all() en el campo extra de cada log record.
@@ -15,7 +16,7 @@ use Monolog\Processor\ProcessorInterface;
  */
 final class LogContextProcessor implements ProcessorInterface
 {
-    #[\Override]
+    #[Override]
     public function __invoke(LogRecord $record): LogRecord
     {
         $extra = LogContext::all();

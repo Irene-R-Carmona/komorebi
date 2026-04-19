@@ -8,8 +8,10 @@ use App\Core\Result;
 use App\Core\ServiceErrorCode;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Renderiza NotFoundException → 404.
@@ -18,20 +20,20 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class NotFoundExceptionRenderer extends AbstractExceptionRenderer
 {
-    #[\Override]
-    public function supports(\Throwable $e): bool
+    #[Override]
+    public function supports(Throwable $e): bool
     {
         return $e instanceof NotFoundException;
     }
 
-    #[\Override]
+    #[Override]
     public function priority(): int
     {
         return 80;
     }
 
-    #[\Override]
-    public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
+    #[Override]
+    public function render(Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
         \assert($e instanceof NotFoundException);
 

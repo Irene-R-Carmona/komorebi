@@ -22,6 +22,7 @@ parameters:
     excludePaths:
         - vendor
         - storage
+        - scripts/inject-covers-class.php
 
     # ── PHP objetivo ───────────────────────────────────────────
     phpVersion: 80400  # PHP 8.4
@@ -47,14 +48,14 @@ parameters:
         # de todos los métodos de acción (AGENTS.md). Los métodos que renderizan
         # vistas llaman View::render() y devuelven null; los que redirigen devuelven
         # ResponseInterface. PHPStan detecta que la mitad del union nunca se usa,
-        # pero es in tentional por diseño de framework.
+        # pero es intencional por diseño de framework.
         -
             identifier: return.unusedType
             paths:
                 - app/Http/Controllers/**
 
         # En tests, assertInstanceOf/assertTrue/assertSame se usan para documentar
-        # el tipo esperado aunque PHPStan ya lo haya inferido. PHPUnit 10 no tiene
+        # el tipo esperado aunque PHPStan ya lo haya inferido. PHPUnit 13 no tiene
         # anotaciones de tipo en los stubs que eviten este falso positivo.
         -
             identifier: method.alreadyNarrowedType

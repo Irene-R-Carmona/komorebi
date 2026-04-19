@@ -18,8 +18,11 @@ namespace Tests\Integration;
 
 use App\Repositories\MenuRepository;
 use App\Services\MenuService;
+use Override;
 use Tests\Support\BaseIntegrationTest;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
+#[CoversNothing]
 final class MenuIntegrationTest extends BaseIntegrationTest
 {
     private MenuService $service;
@@ -30,7 +33,7 @@ final class MenuIntegrationTest extends BaseIntegrationTest
     private const TEST_PASS_ID = 99992;
     private const TEST_ALLERGEN_ID = 9991;
 
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();

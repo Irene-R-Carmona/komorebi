@@ -8,7 +8,11 @@ use App\Core\Container;
 use App\Core\Database;
 use App\Core\ServiceProvider;
 use App\Models\User;
+use App\Repositories\AuthLogRepository;
+use App\Repositories\Contracts\AuthLogRepositoryInterface;
+use App\Repositories\Contracts\SessionRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\SessionRepository;
 use App\Services\AccountDeletionService;
 use App\Services\AuthService;
 use App\Services\AuthTokenService;
@@ -24,6 +28,7 @@ use App\Services\EmailService;
 use App\Services\EmailVerificationService;
 use App\Services\PasswordResetService;
 use App\Services\SessionManagementService;
+use Override;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -34,7 +39,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
  */
 final class AuthServiceProvider extends ServiceProvider
 {
-    #[\Override]
+    #[Override]
     public function register(): void
     {
         Container::singleton(AuthTokenService::class, fn () => new AuthTokenService(
@@ -49,8 +54,21 @@ final class AuthServiceProvider extends ServiceProvider
 
         Container::singleton(AccountDeletionServiceInterface::class, fn () => Container::make(AccountDeletionService::class));
 
-        Container::singleton(SessionManagementService::class, fn () => new SessionManagementService(
+        Container::singleton(SessionRepository::class, fn () => new SessionRepository(
             Database::getConnection()
+        ));
+        Container::singleton(SessionRepositoryInterface::class, fn () => Container::make(SessionRepository::class));
+
+        // AuthLogRepository ya se registra en StaffServiceProvider; si no está disponible
+        // (FEATURE_BACKOFFICE=false), registramos un fallback aquí para garantizar DI.
+        Container::singleton(AuthLogRepository::class, fn () => new AuthLogRepository(
+            Database::getConnection()
+        ));
+        Container::singleton(AuthLogRepositoryInterface::class, fn () => Container::make(AuthLogRepository::class));
+
+        Container::singleton(SessionManagementService::class, fn () => new SessionManagementService(
+            Container::make(SessionRepositoryInterface::class),
+            Container::make(AuthLogRepositoryInterface::class)
         ));
 
         Container::singleton(SessionManagementServiceInterface::class, fn () => Container::make(SessionManagementService::class));
@@ -79,14 +97,13 @@ final class AuthServiceProvider extends ServiceProvider
             new User(),
             Container::make(SessionManagementService::class),
             Container::make(RateLimitingServiceInterface::class),
-            Database::getConnection(),
             Container::make(EventDispatcherInterface::class)
         ));
 
         Container::singleton(AuthServiceInterface::class, fn () => Container::make(AuthService::class));
     }
 
-    #[\Override]
+    #[Override]
     public function boot(): void
     {
         // Sin bootstrap específico

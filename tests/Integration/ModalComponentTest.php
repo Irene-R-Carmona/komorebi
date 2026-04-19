@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * Modal Component Test Suite
@@ -21,6 +22,7 @@ use PHPUnit\Framework\TestCase;
  * Run with:
  * docker compose exec app php vendor/bin/phpunit tests/Integration/ModalComponentTest.php --testdox
  */
+#[CoversNothing]
 final class ModalComponentTest extends TestCase
 {
     private string $componentPath;

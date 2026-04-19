@@ -18,7 +18,9 @@ namespace Tests\Unit\Core;
 use App\Core\Database;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(Database::class)]
 final class DatabaseCharsetValidationTest extends TestCase
 {
     public function test_valid_charset_utf8mb4_passes(): void

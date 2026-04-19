@@ -41,9 +41,6 @@ $router->get('/menu', 'Public\MenuController@index');
 $router->get('/quiz', 'Public\QuizController@index');
 $router->post('/quiz/resultado', 'Public\QuizController@resultado', [$mw->csrf()]);
 
-// Ruta alternativa histórica para formulario de recuperación (renderiza el mismo controlador)
-$router->get('/auth/forgot-password', 'Auth\PasswordResetController@forgotPasswordForm');
-
 // Páginas estáticas
 $router->get('/historia', 'Public\PageController@historia');
 $router->get('/faq', 'Public\PageController@faq');
@@ -63,7 +60,7 @@ $router->get('/legal/terminos', function () use ($renderView) {
 });
 
 // Newsletter
-$router->post('/newsletter/subscribe', 'Public\NewsletterController@subscribe', [$mw->rateLimit('newsletter')]);
+$router->post('/newsletter/subscribe', 'Public\NewsletterController@subscribe', [$mw->csrf(), $mw->rateLimit('newsletter')]);
 $router->get('/newsletter/verify', 'Public\NewsletterController@verify');
 $router->get('/newsletter/unsubscribe', 'Public\NewsletterController@unsubscribe');
 
@@ -82,8 +79,7 @@ $router->group(['prefix' => '/api/v1', 'middleware' => [$mw->cors()]], function 
     $r->get('/time-slots/available', 'Api\V1\TimeSlotController@available');
     $r->get('/time-slots/stats', 'Api\V1\TimeSlotController@stats');
 
-    // Waitlist API
-    $r->post('/waitlist/join', 'Api\V1\WaitlistController@join');
+    // Waitlist API — position y confirm son públicas (token como auth)
     $r->get('/waitlist/position/{token}', 'Api\V1\WaitlistController@position');
     $r->post('/waitlist/confirm/{token}', 'Api\V1\WaitlistController@confirm');
 });
@@ -91,7 +87,7 @@ $router->group(['prefix' => '/api/v1', 'middleware' => [$mw->cors()]], function 
 // Waitlist Views
 $router->get('/waitlist/status/{token}', 'Public\WaitlistViewController@status');
 $router->get('/waitlist/confirm/{token}', 'Public\WaitlistViewController@confirmView');
-$router->post('/waitlist/confirm/{token}', 'Public\WaitlistViewController@confirmSubmit');
+$router->post('/waitlist/confirm/{token}', 'Public\WaitlistViewController@confirmSubmit', [$mw->csrf()]);
 
 // Cookies API, cart guest y newsletter — todos bajo /api/v1/
 $router->group(['prefix' => '/api/v1'], function (Router $r): void {
@@ -187,6 +183,8 @@ $router->group(['prefix' => '/api/v1', 'middleware' => $apiAuthMiddleware], func
     $r->get('/loyalty/validate/{code}', 'Api\V1\LoyaltyController@validateCode');
     $r->post('/loyalty/use', 'Api\V1\LoyaltyController@use', [$mw->csrf()]);
     $r->post('/loyalty/redeem', 'Api\V1\LoyaltyController@redeem', [$mw->csrf()]);
+    // Waitlist join — requiere autenticación para evitar IDOR con user_id (S1-02)
+    $r->post('/waitlist/join', 'Api\V1\WaitlistController@join', [$mw->csrf()]);
 });
 
 // ============================================================================
@@ -457,7 +455,16 @@ $router->get('/health', function () use ($responseFactory) {
 
     try {
         $queueSize = Queue::size();
-        $checks['queue'] = ['status' => 'ok', 'pending_jobs' => $queueSize];
+        $failedSize = Queue::size('failed');
+        $queueStatus = 'ok';
+
+        if ($failedSize > 50) {
+            $queueStatus = 'degraded';
+            $status = $status === 'healthy' ? 'degraded' : $status;
+            $httpCode = $httpCode === 200 ? 503 : $httpCode;
+        }
+
+        $checks['queue'] = ['status' => $queueStatus, 'pending_jobs' => $queueSize, 'failed_jobs' => $failedSize];
     } catch (Throwable $e) {
         $checks['queue'] = ['status' => 'degraded', 'error' => $e->getMessage()];
     }
@@ -465,7 +472,7 @@ $router->get('/health', function () use ($responseFactory) {
     return $responseFactory->json([
         'status' => $status,
         'timestamp' => date('c'),
-        'version' => '1.0.0',
+        'version' => \App\Core\Env::get('APP_VERSION', 'unknown'),
         'checks' => $checks,
     ], $httpCode);
 });

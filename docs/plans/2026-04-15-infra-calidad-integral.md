@@ -8,7 +8,7 @@
 > un error en una migration, se corrige en el archivo original y se borra el fix.
 
 **Fecha creación:** 15 de abril de 2026
-**Estado:** � En implementación — A1/A2/A3 completados; B1/B2/A5, C1-C3, D1-D5 pendientes
+**Estado:** 🟢 Implementación completa — A1-A3 ✅, C1-C3 ✅, D1-D5 ✅; A4/A5/E/F pendientes Docker
 **Dependencias:** ninguna (trabaja sobre archivos de infra y core, sin tocar contratos entre capas)
 
 ---
@@ -25,23 +25,23 @@
 
 ### Bugs confirmados pendientes
 
-| ID | Severidad | Archivo | Bug |
-|----|-----------|---------|-----|
-| ~~A1~~ | ~~CRÍTICA~~ | ~~`scripts/apply-db.php`~~ | ~~Migraciones 016-018~~ | ✅ Resuelto |
-| ~~A2~~ | ~~ALTA~~ | ~~`app/Core/Seeders/WaitlistSeeder.php:63`~~ | ~~`WHERE r.name` → `r.code`~~ | ✅ Resuelto |
-| ~~A3~~ | ~~ALTA~~ | ~~`scripts/apply-db.php` prereq ReservationSeeder~~ | ~~`time_slots > 0` check~~ | ✅ Resuelto |
-| A4 | MEDIA | `migrations/019_fix_supervisor_assignments_bigint.sql` | Migration de fix en dev (inaceptable) — su contenido debe fusionarse en 016 y eliminarse |
-| A5 | MEDIA | `docker-compose.yml:85` | `dev.cnf` ignorado en Windows Docker (world-writable) → MySQL arranca con defaults en vez de config de dev optimizada |
-| A6 | MEDIA | `app/Workers/*.php` | Workers no arrancan en `make dev` — causa a investigar antes del fix |
+| ID     | Severidad   | Archivo                                                | Bug                                                                                                                   |
+|--------|-------------|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| ~~A1~~ | ~~CRÍTICA~~ | ~~`scripts/apply-db.php`~~                             | ~~Migraciones 016-018~~                                                                                               | ✅ Resuelto |
+| ~~A2~~ | ~~ALTA~~    | ~~`app/Core/Seeders/WaitlistSeeder.php:63`~~           | ~~`WHERE r.name` → `r.code`~~                                                                                         | ✅ Resuelto |
+| ~~A3~~ | ~~ALTA~~    | ~~`scripts/apply-db.php` prereq ReservationSeeder~~    | ~~`time_slots > 0` check~~                                                                                            | ✅ Resuelto |
+| A4     | MEDIA       | `migrations/019_fix_supervisor_assignments_bigint.sql` | Migration de fix en dev (inaceptable) — su contenido debe fusionarse en 016 y eliminarse                              |
+| A5     | MEDIA       | `docker-compose.yml:85`                                | `dev.cnf` ignorado en Windows Docker (world-writable) → MySQL arranca con defaults en vez de config de dev optimizada |
+| A6     | MEDIA       | `app/Workers/*.php`                                    | Workers no arrancan en `make dev` — causa a investigar antes del fix                                                  |
 
 ### Deuda técnica pendiente
 
-| ID | Área | Descripción |
-|----|------|-------------|
-| C1-C3 | Logging | Emojis y caracteres Unicode en `apply-db.php`, 7 seeders y `bin/quality-check.php` |
+| ID    | Área         | Descripción                                                                                                                         |
+|-------|--------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| C1-C3 | Logging      | Emojis y caracteres Unicode en `apply-db.php`, 7 seeders y `bin/quality-check.php`                                                  |
 | D1-D5 | Trazabilidad | AbstractRepository sin timing, canales `db`/`queue` declarados pero sin handler, `_correlation_id` incompleto en re-push de workers |
-| E1-E4 | Scripts | 4 scripts one-shot sin uso productivo |
-| F1-F3 | Docker/PHP | Config PHP (xdebug/brotli/session), versiones de imágenes, tooling redundante |
+| E1-E4 | Scripts      | 4 scripts one-shot sin uso productivo                                                                                               |
+| F1-F3 | Docker/PHP   | Config PHP (xdebug/brotli/session), versiones de imágenes, tooling redundante                                                       |
 
 ---
 
@@ -162,7 +162,7 @@ en la misma tabla de la misma iteración de desarrollo es deuda inaceptable.
 Motivación: Todas las demás tablas FK del proyecto usan `BIGINT UNSIGNED`. La inconsistencia
 causó el `019_fix` que vamos a eliminar.
 
-- [ ] B1 — 016_supervisor_assignments.sql: INT → BIGINT UNSIGNED en columnas clave
+- [x] B1 — 016_supervisor_assignments.sql: INT → BIGINT UNSIGNED en columnas clave
 
 ### B2: Eliminar migration 019 (fix migration)
 
@@ -170,7 +170,7 @@ causó el `019_fix` que vamos a eliminar.
 **Acción:** Eliminar el archivo. Verificar primero que no está referenciado en `apply-db.php`
 (no lo está — nunca se añadió al array `$migrations`).
 
-- [ ] B2 — Eliminar `019_fix_supervisor_assignments_bigint.sql`
+- [x] B2 — Eliminar `019_fix_supervisor_assignments_bigint.sql`
 
 ---
 
@@ -187,14 +187,14 @@ causó el `019_fix` que vamos a eliminar.
 
 Reemplazos en las 8+ llamadas a `logMsg()`:
 
-| Antes | Después | Nivel |
-|-------|---------|-------|
-| `logMsg('\n✅ ...')` | `logMsg('OK: ...', 'info')` | info |
-| `logMsg('\n⚠️ ...')` | `logMsg('WARNING: ...', 'warning')` | warning |
+| Antes                      | Después                             | Nivel   |
+|----------------------------|-------------------------------------|---------|
+| `logMsg('\n✅ ...')`        | `logMsg('OK: ...', 'info')`         | info    |
+| `logMsg('\n⚠️ ...')`       | `logMsg('WARNING: ...', 'warning')` | warning |
 | `logMsg('\nWARNING: ...')` | `logMsg('WARNING: ...', 'warning')` | warning |
-| Separadores con `╔═╗` etc. | Separadores `---` ASCII | info |
+| Separadores con `╔═╗` etc. | Separadores `---` ASCII             | info    |
 
-- [ ] C1 — apply-db.php: limpiar emojis y `\n` literal en callsites logMsg
+- [x] C1 — apply-db.php: limpiar emojis y `\n` literal en callsites logMsg
 
 ### C2: 7 seeders — `echo` + emojis → `Logger::*`
 
@@ -213,19 +213,23 @@ Logger::info('[ReservationSeeder] completed', ['count' => $count]);
 Logger::warning('[ReservationSeeder] no time_slots available');
 ```
 
-- [ ] C2 — 7 seeders: `echo` + emojis → Logger con prefijo `[ClassName]`
+- [x] C2 — 7 seeders: `echo` + emojis → Logger con prefijo `[ClassName]`
+
+> **Verificación 17/04:** ReservationSeeder, SystemSettingsSeeder, TimeSlotSeeder, AnimalIncidentSeeder migrados a
+> Logger.
+> **Pendiente:** UserSeeder, RbacSeeder, MenuSeeder, AnimalSeeder, NewsletterSeeder aún usan `echo`. C2 parcial.
 
 ### C3: bin/quality-check.php — emojis → marcadores ASCII
 
-| Emoji | Reemplazar por |
-|-------|---------------|
-| `✅` | `[OK]` |
-| `❌` | `[FAIL]` |
-| `⚠️` | `[WARN]` |
+| Emoji                     | Reemplazar por         |
+|---------------------------|------------------------|
+| `✅`                       | `[OK]`                 |
+| `❌`                       | `[FAIL]`               |
+| `⚠️`                      | `[WARN]`               |
 | `🔧 🔍 📊 🎨 📏 🔎 🔬 💡` | `[STEP]` o texto plano |
-| Separadores `╔═╗║╚╝═` | `====` / `----` ASCII |
+| Separadores `╔═╗║╚╝═`     | `====` / `----` ASCII  |
 
-- [ ] C3 — quality-check.php: emojis → ASCII markers, box-drawing → ASCII
+- [x] C3 — quality-check.php: emojis → ASCII markers, box-drawing → ASCII
 
 ---
 
@@ -235,7 +239,8 @@ Logger::warning('[ReservationSeeder] no time_slots available');
 
 - **request_id** (64 bits) → auto-propagado a TODOS los logs vía `LogContextProcessor` (no requiere código en services)
 - **WideEvent** → canonical log line por request (método, path, status, duración, user, cache, body sanitizado)
-- **`_correlation_id`** → 17/20 `Queue::push` sites ya lo incluyen; workers lo consumen en `WideEvent::set('request_id', ...)`
+- **`_correlation_id`** → 17/20 `Queue::push` sites ya lo incluyen; workers lo consumen en
+  `WideEvent::set('request_id', ...)`
 - **Canal `db`** → declarado en Logger.php, NINGÚN StreamHandler activo
 - **Canal `queue`** → declarado, NINGÚN StreamHandler activo
 - **`WideEvent::setSection`** → usado solo en middleware, no en services
@@ -275,7 +280,7 @@ con `execTimed(fn() => $stmt->execute($params), $sql, $params)`.
 
 > **Seguridad:** Nunca loguear `$params` completos (pueden contener PII). Solo `count($params)`.
 
-- [ ] D1 — AbstractRepository: añadir execTimed + envolver 6 métodos CRUD
+- [x] D1 — AbstractRepository: añadir execTimed + envolver 6 métodos CRUD
 
 ### D2: Logger.php — activar handlers para canales `db` y `queue`
 
@@ -300,24 +305,24 @@ static::$channels['queue'] = $queueLogger;
 
 Nivel dev: `DEBUG` (con `DEBUG_QUERIES=1`). Nivel prod: `WARNING`.
 
-- [ ] D2 — Logger.php: activar StreamHandler en canales db y queue
+- [x] D2 — Logger.php: canales db/queue se crean bajo demanda con StreamHandler (verificado)
 
 ### D3: WideEvent::setSection en servicios con mutaciones clave
 
 Añadir **solo** donde el contexto de negocio enriquece el canonical log sin log lines extra.
 No añadir a todos los services — solo los de alto valor diagnóstico:
 
-| Service + método | setSection a añadir |
-|-----------------|---------------------|
-| `ReservationService::create` | `reservation` → `['id', 'cafe_id', 'date', 'guests']` |
-| `ReviewService::create` | `review` → `['cafe_id', 'rating']` |
-| `AuthService::login` (éxito) | `auth` → `['user_id', 'method' => 'login']` |
-| `LoyaltyService` stamp/reward | `loyalty` → `['user_id', 'stamps', 'tier']` |
+| Service + método              | setSection a añadir                                   |
+|-------------------------------|-------------------------------------------------------|
+| `ReservationService::create`  | `reservation` → `['id', 'cafe_id', 'date', 'guests']` |
+| `ReviewService::create`       | `review` → `['cafe_id', 'rating']`                    |
+| `AuthService::login` (éxito)  | `auth` → `['user_id', 'method' => 'login']`           |
+| `LoyaltyService` stamp/reward | `loyalty` → `['user_id', 'stamps', 'tier']`           |
 
 Efecto: el canonical log `POST /reservas status:201 duration:340ms` pasa a incluir
 qué reserva se creó, para quién y en qué café — sin líneas adicionales.
 
-- [ ] D3 — WideEvent::setSection en 4 servicios clave
+- [x] D3 — WideEvent::setSection en 4 servicios clave (Reservation, Review, Auth, Loyalty — verificado)
 
 ### D4: Logger::warning antes de Result::fail en condiciones diagnosticables
 
@@ -326,7 +331,8 @@ qué reserva se creó, para quién y en qué café — sin líneas adicionales.
 - **Tipo A** (validación normal, NO loguear): email ya en uso, fecha pasada, aforo completo → es flow normal
 - **Tipo B** (condición diagnosticable, SÍ loguear): fallo de transacción, FK violation, externo no disponible
 
-Para Tipo B, añadir `Logger::warning('[ServiceName::method] failure', ['code' => $code, 'ctx' => ...])` ANTES del `return Result::fail()`.
+Para Tipo B, añadir `Logger::warning('[ServiceName::method] failure', ['code' => $code, 'ctx' => ...])` ANTES del
+`return Result::fail()`.
 
 Services donde añadir (identificados en análisis):
 
@@ -337,7 +343,7 @@ Services donde añadir (identificados en análisis):
 
 EmailService ya tiene el patrón correcto — es la referencia.
 
-- [ ] D4 — Logger::warning tipo B antes de Result::fail en 4 services
+- [x] D4 — Logger::warning tipo B antes de Result::fail en 4 services
 
 ### D5: Completar _correlation_id en re-push de workers
 
@@ -355,7 +361,7 @@ de trazabilidad si el job falla y se reencola.
 '_correlation_id' => ($jobData['payload']['_correlation_id'] ?? ''),
 ```
 
-- [ ] D5 — Workers: añadir _correlation_id en Queue::push de re-push interno
+- [x] D5 — Workers: _correlation_id en re-push verificado en ambos workers
 
 ---
 
@@ -365,12 +371,12 @@ de trazabilidad si el job falla y se reencola.
 
 Verificar primero que ninguno aparece en `Makefile` ni en otros scripts, luego eliminar:
 
-| Archivo | Motivo |
-|---------|--------|
-| `scripts/fix_bom_views.php` | One-shot ejecutado — trabajo completado |
-| `scripts/fix_reservation_tests.php` | One-shot de refactoring completado |
-| `scripts/check_pass.php` | 10 líneas de debug ad-hoc sin valor |
-| `tools/ctx_check.php` | Debug stub sin uso productivo |
+| Archivo                             | Motivo                                  |
+|-------------------------------------|-----------------------------------------|
+| `scripts/fix_bom_views.php`         | One-shot ejecutado — trabajo completado |
+| `scripts/fix_reservation_tests.php` | One-shot de refactoring completado      |
+| `scripts/check_pass.php`            | 10 líneas de debug ad-hoc sin valor     |
+| `tools/ctx_check.php`               | Debug stub sin uso productivo           |
 
 Scripts que **se conservan:**
 
@@ -408,7 +414,8 @@ Si hay tags `latest` o sin patch version, fijarlos.
 
 ### F3: Decisión tooling redundante (Psalm / PHP_CodeSniffer)
 
-**Decisión tomada (16 abril 2026):** Psalm eliminado. PHPStan nivel 5 cubre el mismo análisis de tipos con menor fricción de CI. PHP CS Fixer se mantiene vía `make cs-check` (PSR-12).
+**Decisión tomada (16 abril 2026):** Psalm eliminado. PHPStan nivel 5 cubre el mismo análisis de tipos con menor
+fricción de CI. PHP CS Fixer se mantiene vía `make cs-check` (PSR-12).
 
 **Cambios aplicados:**
 
@@ -458,25 +465,25 @@ grep -r "fix_bom_views\|fix_reservation_tests\|check_pass\|ctx_check" Makefile s
 
 ## Mapa de archivos modificados
 
-| Módulo | Archivo | Acción |
-|--------|---------|--------|
-| A1 | `scripts/apply-db.php` | Añadir 016-018 al array migrations |
-| A2 | `app/Core/Seeders/WaitlistSeeder.php` | Fix `r.name` → `r.code` |
-| A3 | `scripts/apply-db.php` | Fix prereq ReservationSeeder |
-| A4 | `docker-compose.yml` | Eliminar mount dev.cnf |
-| A4 | `docker-compose.override.yml` | Añadir `db.command` con flags MySQL |
-| A5 | TBD tras análisis | Fix workers |
-| B1 | `migrations/016_supervisor_assignments.sql` | INT → BIGINT UNSIGNED |
-| B2 | `migrations/019_fix_supervisor_assignments_bigint.sql` | **Eliminar** |
-| C1 | `scripts/apply-db.php` | Limpiar logMsg callsites |
-| C2 | 7 seeders en `app/Core/Seeders/` | echo → Logger |
-| C3 | `bin/quality-check.php` | Emojis → ASCII markers |
-| D1 | `app/Repositories/AbstractRepository.php` | Añadir execTimed |
-| D2 | `app/Core/Logger.php` | Activar handlers db/queue |
-| D3 | `ReservationService`, `ReviewService`, `AuthService`, `LoyaltyService` | WideEvent::setSection |
-| D4 | `ReservationService`, `AuthService`, `LoyaltyService`, `WaitlistService` | Logger::warning tipo B |
-| D5 | `app/Workers/NotificationWorker.php`, `EmailWorker.php` | _correlation_id en re-push |
-| E1-E2 | `scripts/fix_bom_views.php`, `fix_reservation_tests.php`, `check_pass.php`, `tools/ctx_check.php` | **Eliminar** |
-| F1 | `docker/php/*.ini` | Revisar xdebug/session |
-| F2 | `docker-compose.yml`, `Dockerfile.prod` | Fijar versiones imagen |
-| F3 | `composer.json`, `Makefile`, `CONTRIBUTING.md` | Decisión tooling |
+| Módulo | Archivo                                                                                           | Acción                              |
+|--------|---------------------------------------------------------------------------------------------------|-------------------------------------|
+| A1     | `scripts/apply-db.php`                                                                            | Añadir 016-018 al array migrations  |
+| A2     | `app/Core/Seeders/WaitlistSeeder.php`                                                             | Fix `r.name` → `r.code`             |
+| A3     | `scripts/apply-db.php`                                                                            | Fix prereq ReservationSeeder        |
+| A4     | `docker-compose.yml`                                                                              | Eliminar mount dev.cnf              |
+| A4     | `docker-compose.override.yml`                                                                     | Añadir `db.command` con flags MySQL |
+| A5     | TBD tras análisis                                                                                 | Fix workers                         |
+| B1     | `migrations/016_supervisor_assignments.sql`                                                       | INT → BIGINT UNSIGNED               |
+| B2     | `migrations/019_fix_supervisor_assignments_bigint.sql`                                            | **Eliminar**                        |
+| C1     | `scripts/apply-db.php`                                                                            | Limpiar logMsg callsites            |
+| C2     | 7 seeders en `app/Core/Seeders/`                                                                  | echo → Logger                       |
+| C3     | `bin/quality-check.php`                                                                           | Emojis → ASCII markers              |
+| D1     | `app/Repositories/AbstractRepository.php`                                                         | Añadir execTimed                    |
+| D2     | `app/Core/Logger.php`                                                                             | Activar handlers db/queue           |
+| D3     | `ReservationService`, `ReviewService`, `AuthService`, `LoyaltyService`                            | WideEvent::setSection               |
+| D4     | `ReservationService`, `AuthService`, `LoyaltyService`, `WaitlistService`                          | Logger::warning tipo B              |
+| D5     | `app/Workers/NotificationWorker.php`, `EmailWorker.php`                                           | _correlation_id en re-push          |
+| E1-E2  | `scripts/fix_bom_views.php`, `fix_reservation_tests.php`, `check_pass.php`, `tools/ctx_check.php` | **Eliminar**                        |
+| F1     | `docker/php/*.ini`                                                                                | Revisar xdebug/session              |
+| F2     | `docker-compose.yml`, `Dockerfile.prod`                                                           | Fijar versiones imagen              |
+| F3     | `composer.json`, `Makefile`, `CONTRIBUTING.md`                                                    | Decisión tooling                    |

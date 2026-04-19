@@ -30,7 +30,9 @@ use App\Services\Contracts\ReviewModerationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ReviewController::class)]
 final class ReviewControllerTest extends TestCase
 {
     /** @var ReviewQueryServiceInterface&\PHPUnit\Framework\MockObject\Stub */
@@ -40,7 +42,7 @@ final class ReviewControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->queryService      = $this->createMock(ReviewQueryServiceInterface::class);
+        $this->queryService = $this->createMock(ReviewQueryServiceInterface::class);
         $this->moderationService = $this->createMock(ReviewModerationServiceInterface::class);
     }
 
@@ -81,7 +83,7 @@ final class ReviewControllerTest extends TestCase
     {
         $this->startSession();
         $_SESSION['user_cafe_id'] = 3;
-        $_SERVER['REQUEST_URI']   = '/manager/reviews';
+        $_SERVER['REQUEST_URI'] = '/manager/reviews';
 
         $this->queryService->method('getReviewsByCafeId')->willReturn([]);
         $this->queryService->method('getCafeRatingStats')->willReturn([
@@ -107,10 +109,10 @@ final class ReviewControllerTest extends TestCase
     {
         $this->startSession();
         $_SESSION['_csrf_token'] = 'real_token';
-        $_POST['csrf_token']     = 'wrong_token';
-        $_POST['id']             = '7';
+        $_POST['csrf_token'] = 'wrong_token';
+        $_POST['id'] = '7';
 
-        $response = (new ReviewController($this->queryService, $this->moderationService))->approve();
+        $response = new ReviewController($this->queryService, $this->moderationService)->approve();
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $this->assertSame(302, $response->getStatusCode());
@@ -122,13 +124,13 @@ final class ReviewControllerTest extends TestCase
         $this->startSession();
         $token = 'valid_csrf';
         $_SESSION['_csrf_token'] = $token;
-        $_POST['csrf_token']     = $token;
-        $_POST['id']             = '999';
+        $_POST['csrf_token'] = $token;
+        $_POST['id'] = '999';
 
         $this->moderationService->method('approveReview')
             ->willReturn(Result::fail('Reseña no encontrada', 'not_found'));
 
-        $response = (new ReviewController($this->queryService, $this->moderationService))->approve();
+        $response = new ReviewController($this->queryService, $this->moderationService)->approve();
 
         $this->assertSame(302, $response->getStatusCode());
         $this->assertSame('/manager/reviews', $response->getHeaderLine('Location'));
@@ -139,13 +141,13 @@ final class ReviewControllerTest extends TestCase
         $this->startSession();
         $token = 'valid_csrf';
         $_SESSION['_csrf_token'] = $token;
-        $_POST['csrf_token']     = $token;
-        $_POST['id']             = '5';
+        $_POST['csrf_token'] = $token;
+        $_POST['id'] = '5';
 
         $this->moderationService->method('approveReview')
             ->willReturn(Result::ok(['id' => 5]));
 
-        $response = (new ReviewController($this->queryService, $this->moderationService))->approve();
+        $response = new ReviewController($this->queryService, $this->moderationService)->approve();
 
         $this->assertSame(302, $response->getStatusCode());
         $this->assertSame('/manager/reviews', $response->getHeaderLine('Location'));
@@ -159,11 +161,11 @@ final class ReviewControllerTest extends TestCase
     {
         $this->startSession();
         $_SESSION['_csrf_token'] = 'real_token';
-        $_POST['csrf_token']     = 'tampered_token';
-        $_POST['id']             = '7';
-        $_POST['reason']         = 'Spam';
+        $_POST['csrf_token'] = 'tampered_token';
+        $_POST['id'] = '7';
+        $_POST['reason'] = 'Spam';
 
-        $response = (new ReviewController($this->queryService, $this->moderationService))->reject();
+        $response = new ReviewController($this->queryService, $this->moderationService)->reject();
 
         $this->assertSame(302, $response->getStatusCode());
         $this->assertSame('/manager/reviews', $response->getHeaderLine('Location'));
@@ -174,14 +176,14 @@ final class ReviewControllerTest extends TestCase
         $this->startSession();
         $token = 'valid_csrf';
         $_SESSION['_csrf_token'] = $token;
-        $_POST['csrf_token']     = $token;
-        $_POST['id']             = '42';
-        $_POST['reason']         = 'Contenido inapropiado';
+        $_POST['csrf_token'] = $token;
+        $_POST['id'] = '42';
+        $_POST['reason'] = 'Contenido inapropiado';
 
         $this->moderationService->method('rejectReview')
             ->willReturn(Result::fail('Reseña no encontrada', 'not_found'));
 
-        $response = (new ReviewController($this->queryService, $this->moderationService))->reject();
+        $response = new ReviewController($this->queryService, $this->moderationService)->reject();
 
         $this->assertSame(302, $response->getStatusCode());
         $this->assertSame('/manager/reviews', $response->getHeaderLine('Location'));
@@ -192,17 +194,16 @@ final class ReviewControllerTest extends TestCase
         $this->startSession();
         $token = 'valid_csrf';
         $_SESSION['_csrf_token'] = $token;
-        $_POST['csrf_token']     = $token;
-        $_POST['id']             = '12';
-        $_POST['reason']         = 'Lenguaje inapropiado';
+        $_POST['csrf_token'] = $token;
+        $_POST['id'] = '12';
+        $_POST['reason'] = 'Lenguaje inapropiado';
 
         $this->moderationService->method('rejectReview')
             ->willReturn(Result::ok(['id' => 12]));
 
-        $response = (new ReviewController($this->queryService, $this->moderationService))->reject();
+        $response = new ReviewController($this->queryService, $this->moderationService)->reject();
 
         $this->assertSame(302, $response->getStatusCode());
         $this->assertSame('/manager/reviews', $response->getHeaderLine('Location'));
     }
 }
-

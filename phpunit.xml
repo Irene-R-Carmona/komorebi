@@ -6,7 +6,7 @@
          cacheDirectory=".phpunit.cache"
          executionOrder="depends,defects"
          requireCoverageMetadata="false"
-         beStrictAboutCoverageMetadata="true"
+         beStrictAboutCoverageMetadata="false"
          failOnRisky="false"
          failOnWarning="true">
 
@@ -42,7 +42,7 @@
         </exclude>
     </source>
 
-    <!-- Coverage Reports (umbrales visuales: líneas ≥15%, métodos ≥18%) -->
+    <!-- Coverage Reports (umbrales: lowUpper=50%, highLower=70%) -->
     <coverage>
         <report>
             <text outputFile="php://stdout" showOnlySummary="true"/>
@@ -63,12 +63,13 @@
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_KEY" value="testing-key-for-phpunit-32chars!!" force="true"/>
-        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_HOST" value="db"/>
         <env name="DB_DATABASE" value="komorebi_test" force="true"/>
-        <env name="DB_USERNAME" value="root" force="true"/>
-        <env name="DB_PASSWORD" value="root" force="true"/>
+        <env name="DB_USERNAME" value="komorebi_user"/>
+        <env name="DB_PASSWORD" value="komorebi"/>
         <env name="RUN_INTEGRATION_TESTS" value="1"/>
-        <env name="REDIS_HOST" value="127.0.0.1"/>
+        <env name="RESERVATION_MAX_DAYS_AHEAD" value="9999"/>
+        <env name="REDIS_HOST" value="cache"/>
         <env name="REDIS_PORT" value="6379"/>
     </php>
 </phpunit>

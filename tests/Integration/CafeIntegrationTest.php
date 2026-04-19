@@ -17,9 +17,13 @@ declare(strict_types=1);
 namespace Tests\Integration;
 
 use App\Repositories\CafeRepository;
+use App\Repositories\StatisticsRepository;
 use App\Services\CafeService;
+use Override;
 use Tests\Support\BaseIntegrationTest;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
+#[CoversNothing]
 final class CafeIntegrationTest extends BaseIntegrationTest
 {
     private CafeService $service;
@@ -27,12 +31,12 @@ final class CafeIntegrationTest extends BaseIntegrationTest
     // IDs únicos para tests
     private const TEST_CAFE_ID_BASE = 77700;
 
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
         $this->seedTestData();
-        $this->service = new CafeService(new CafeRepository(self::$db));
+        $this->service = new CafeService(new CafeRepository(self::$db), new StatisticsRepository(self::$db));
     }
 
     /**

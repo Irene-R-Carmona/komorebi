@@ -20,13 +20,16 @@ namespace Tests\Integration;
 
 use App\Core\Queue;
 use App\Services\EmailService;
+use Override;
 use Tests\Support\BaseIntegrationTest;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
+#[CoversNothing]
 final class EmailIntegrationTest extends BaseIntegrationTest
 {
     private EmailService $service;
 
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -36,7 +39,7 @@ final class EmailIntegrationTest extends BaseIntegrationTest
         \putenv('MAIL_FROM_NAME=Komorebi Integration Test');
     }
 
-    #[\Override]
+    #[Override]
     protected function tearDown(): void
     {
         \putenv('MAIL_FROM_ADDRESS');

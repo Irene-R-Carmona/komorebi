@@ -20,13 +20,17 @@ namespace Tests\Unit\Middleware;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Middleware\CorsMiddleware;
+use InvalidArgumentException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\ServerRequest;
+use Override;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(CorsMiddleware::class)]
 final class CorsMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;
@@ -67,7 +71,7 @@ final class CorsMiddlewareTest extends TestCase
             {
             }
 
-            #[\Override]
+            #[Override]
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
                 $this->callCount++;
@@ -200,7 +204,7 @@ final class CorsMiddlewareTest extends TestCase
 
     public function testCredentialsPlusWildcardThrows(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         new CorsMiddleware($this->responseFactory, ['*'], credentials: true);
     }

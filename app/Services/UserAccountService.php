@@ -10,6 +10,7 @@ use App\Core\Session;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
+use Override;
 use RuntimeException;
 
 /**
@@ -28,7 +29,7 @@ final class UserAccountService implements UserAccountServiceInterface
     /**
      * Cambia la contraseña del usuario.
      */
-    #[\Override]
+    #[Override]
     public function changePassword(
         int $userId,
         string $currentPassword,
@@ -41,6 +42,14 @@ final class UserAccountService implements UserAccountServiceInterface
 
         if (\mb_strlen($newPassword) < 8) {
             return Result::fail('La contraseña debe tener al menos 8 caracteres.');
+        }
+
+        if (!\preg_match('/[A-Z]/', $newPassword)) {
+            return Result::fail('La contraseña debe contener al menos una letra mayúscula.');
+        }
+
+        if (!\preg_match('/[0-9]/', $newPassword)) {
+            return Result::fail('La contraseña debe contener al menos un número.');
         }
 
         // Preferir el modelo legacy; fallback al repo si no devuelve usuario
@@ -70,7 +79,7 @@ final class UserAccountService implements UserAccountServiceInterface
     /**
      * Elimina (anonimiza) la cuenta del usuario previa verificación de contraseña.
      */
-    #[\Override]
+    #[Override]
     public function deleteAccount(int $userId, string $password): Result
     {
         $user = $this->userRepo->findById($userId);
@@ -101,7 +110,7 @@ final class UserAccountService implements UserAccountServiceInterface
     /**
      * Marca el email del usuario como verificado.
      */
-    #[\Override]
+    #[Override]
     public function verifyEmail(int $userId): Result
     {
         try {
@@ -118,7 +127,7 @@ final class UserAccountService implements UserAccountServiceInterface
     /**
      * Desactiva la cuenta de un usuario.
      */
-    #[\Override]
+    #[Override]
     public function deactivateAccount(int $userId): Result
     {
         try {
@@ -137,7 +146,7 @@ final class UserAccountService implements UserAccountServiceInterface
     /**
      * Reactiva la cuenta de un usuario.
      */
-    #[\Override]
+    #[Override]
     public function reactivateAccount(int $userId): Result
     {
         try {

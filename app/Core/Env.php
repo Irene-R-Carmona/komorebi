@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Core;
 
-use RuntimeException;
-
 /**
  * Utilidad para gestionar variables de entorno (.env).
  *
@@ -99,7 +97,7 @@ final class Env
     {
         $val = self::get($key);
         if ($val === '') {
-            throw new RuntimeException("Variable de entorno requerida: $key");
+            throw new \RuntimeException("Variable de entorno requerida: $key");
         }
 
         return $val;

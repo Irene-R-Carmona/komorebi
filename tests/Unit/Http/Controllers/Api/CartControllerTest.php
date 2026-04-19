@@ -17,17 +17,20 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
+use App\Core\Result;
 use App\Http\Controllers\Api\V1\CartController;
 use App\Services\Contracts\CartServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(CartController::class)]
 final class CartControllerTest extends ControllerTestCase
 {
     private function makeController(): CartController
     {
         $service = $this->createMock(CartServiceInterface::class);
         $service->method('getWithDetails')->willReturn(['items' => [], 'totalQty' => 0, 'totalPrice' => 0.0]);
-        $service->method('add')->willReturn(['items' => [], 'totalQty' => 1, 'totalPrice' => 0.0]);
+        $service->method('add')->willReturn(Result::ok(['items' => [], 'totalQty' => 1, 'totalPrice' => 0.0]));
 
         return new CartController(new ResponseFactory(), $service);
     }

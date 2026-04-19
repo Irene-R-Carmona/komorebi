@@ -19,12 +19,15 @@ namespace Tests\Unit\Core;
 
 use App\Core\LoggingPDOStatement;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(LoggingPDOStatement::class)]
 final class LoggingPDOStatementTest extends TestCase
 {
     private function callTruncateSql(string $sql): string
     {
-        $method = new \ReflectionMethod(LoggingPDOStatement::class, 'truncateSql');
+        $method = new ReflectionMethod(LoggingPDOStatement::class, 'truncateSql');
 
         return (string) $method->invoke(null, $sql);
     }

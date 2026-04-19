@@ -13,6 +13,7 @@ use App\Models\Reservation;
 use App\Models\TimeSlot;
 use App\Models\Waitlist;
 use App\Services\Contracts\ReservationTimeSlotServiceInterface;
+use Override;
 use PDO;
 
 /**
@@ -57,7 +58,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
      * } $data
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function createReservationWithSlot(array $data): Result
     {
         return $this->transact(function () use ($data): Result {
@@ -126,7 +127,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
      * @param integer $reservationId
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function cancelReservationAndPromote(int $reservationId): Result
     {
         return $this->transact(function () use ($reservationId): Result {
@@ -229,7 +230,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
      * } $data
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function addToWaitlist(array $data): Result
     {
         return $this->waitlist->addToWaitlist((int) $data['time_slot_id'], (int) $data['user_id'], $data);
@@ -241,7 +242,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
      * @param string $token
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function confirmWaitlistEntry(string $token): Result
     {
         return $this->transact(function () use ($token): Result {

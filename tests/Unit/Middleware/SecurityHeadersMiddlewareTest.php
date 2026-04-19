@@ -17,6 +17,7 @@ use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para SecurityHeadersMiddleware
@@ -27,6 +28,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  * - CSP con nonce dinámico
  * - Exposición del nonce en $GLOBALS['cspNonce']
  */
+#[CoversClass(SecurityHeadersMiddleware::class)]
 final class SecurityHeadersMiddlewareTest extends TestCase
 {
     private SecurityHeadersMiddleware $middleware;

@@ -17,9 +17,9 @@ final class WaitlistViewController
 {
     private WaitlistServiceInterface $service;
 
-    public function __construct()
+    public function __construct(?WaitlistServiceInterface $service = null)
     {
-        $this->service = Container::make(WaitlistServiceInterface::class);
+        $this->service = $service ?? Container::make(WaitlistServiceInterface::class);
     }
 
     /**

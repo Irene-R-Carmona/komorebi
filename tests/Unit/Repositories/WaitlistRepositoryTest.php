@@ -14,15 +14,17 @@ use App\Repositories\WaitlistRepository;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para WaitlistRepository
  */
+#[CoversClass(WaitlistRepository::class)]
 final class WaitlistRepositoryTest extends TestCase
 {
     private WaitlistRepository $repository;
 
-    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    /** @var \PHPUnit\Framework\MockObject\Stub&PDO */
     private PDO $db;
 
     protected function setUp(): void

@@ -21,7 +21,9 @@ use App\Http\Controllers\Admin\ReviewController;
 use App\Services\Contracts\ReviewModerationServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ReviewController::class)]
 final class ReviewControllerTest extends ControllerTestCase
 {
     protected function setUp(): void

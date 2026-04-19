@@ -15,19 +15,31 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Models\LoyaltyCard;
+use App\Models\LoyaltyReward;
+use App\Models\LoyaltyRewardCatalog;
 use App\Services\LoyaltyService;
+use PDO;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 #[Group('unit')]
+#[CoversClass(LoyaltyService::class)]
 final class LoyaltyServiceTest extends TestCase
 {
     private LoyaltyService $service;
 
     protected function setUp(): void
     {
-        $this->service = new LoyaltyService();
+        $db = $this->createStub(PDO::class);
+        $this->service = new LoyaltyService(
+            $db,
+            $this->createStub(LoyaltyCard::class),
+            $this->createStub(LoyaltyReward::class),
+            $this->createStub(LoyaltyRewardCatalog::class),
+        );
     }
 
     // ─────────────────────────────────────────────────────────────

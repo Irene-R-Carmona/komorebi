@@ -20,7 +20,9 @@ namespace Tests\Unit\Core;
 
 use App\Core\Cache;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(Cache::class)]
 final class CacheStatsTest extends TestCase
 {
     protected function setUp(): void

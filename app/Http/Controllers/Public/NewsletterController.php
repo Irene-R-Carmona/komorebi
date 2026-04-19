@@ -34,7 +34,7 @@ final readonly class NewsletterController
         }
 
         $result = $this->newsletterService->subscribe($email);
-        View::render('public/newsletter/subscribe', ['success' => $result['success'], 'message' => $result['message']]);
+        View::render('public/newsletter/subscribe', ['success' => $result->ok, 'message' => $result->ok ? ($result->data['message'] ?? '') : ($result->error ?? '')]);
 
         return null;
     }

@@ -8,12 +8,15 @@ declare(strict_types=1);
  * ¿Qué va a fallar? Si se cambia el contrato icon/title/message del job.
  */
 
+namespace Tests\Unit\Jobs;
+
+use App\Core\Result;
 use App\Jobs\SendTelegramNotificationJob;
 use App\Services\Contracts\TelegramServiceInterface;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[AllowMockObjectsWithoutExpectations]
+#[CoversClass(SendTelegramNotificationJob::class)]
 final class SendTelegramNotificationJobTest extends TestCase
 {
     public function testHandleCallsTelegramServiceWithPayload(): void
@@ -21,7 +24,8 @@ final class SendTelegramNotificationJobTest extends TestCase
         $telegram = $this->createMock(TelegramServiceInterface::class);
         $telegram->expects($this->once())
             ->method('sendAlert')
-            ->with('🆕', 'Test title', 'Test body');
+            ->with('🆕', 'Test title', 'Test body')
+            ->willReturn(Result::ok(null));
 
         $job = new SendTelegramNotificationJob($telegram);
         $job->handle([

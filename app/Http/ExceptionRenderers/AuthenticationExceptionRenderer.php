@@ -9,8 +9,10 @@ use App\Core\Result;
 use App\Core\ServiceErrorCode;
 use App\Core\Session;
 use App\Exceptions\AuthenticationException;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Renderiza AuthenticationException → 401.
@@ -19,20 +21,20 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class AuthenticationExceptionRenderer extends AbstractExceptionRenderer
 {
-    #[\Override]
-    public function supports(\Throwable $e): bool
+    #[Override]
+    public function supports(Throwable $e): bool
     {
         return $e instanceof AuthenticationException;
     }
 
-    #[\Override]
+    #[Override]
     public function priority(): int
     {
         return 80;
     }
 
-    #[\Override]
-    public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
+    #[Override]
+    public function render(Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
         \assert($e instanceof AuthenticationException);
 

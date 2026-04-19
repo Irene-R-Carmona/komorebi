@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -39,7 +40,7 @@ final class GuestMiddleware implements MiddlewareInterface
         $this->redirectTo = $redirectTo;
     }
 
-    #[\Override]
+    #[Override]
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler

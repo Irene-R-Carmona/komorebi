@@ -8,8 +8,10 @@ use App\Core\Flash;
 use App\Core\Result;
 use App\Core\ServiceErrorCode;
 use App\Exceptions\ValidationException;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Renderiza ValidationException → 422.
@@ -18,20 +20,20 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class ValidationExceptionRenderer extends AbstractExceptionRenderer
 {
-    #[\Override]
-    public function supports(\Throwable $e): bool
+    #[Override]
+    public function supports(Throwable $e): bool
     {
         return $e instanceof ValidationException;
     }
 
-    #[\Override]
+    #[Override]
     public function priority(): int
     {
         return 90;
     }
 
-    #[\Override]
-    public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
+    #[Override]
+    public function render(Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
         \assert($e instanceof ValidationException);
 

@@ -65,10 +65,10 @@ final class PageController
     private function view(string $page): void
     {
         // Validar contra whitelist con strict comparison
-        if (!in_array($page, self::ALLOWED_PAGES, true)) {
+        if (!\in_array($page, self::ALLOWED_PAGES, true)) {
             Logger::error("Security Warning: Intento de acceso a página no permitida: $page", ['page' => $page]);
-            if (!headers_sent()) {
-                @http_response_code(404);
+            if (!\headers_sent()) {
+                @\http_response_code(404);
             } else {
                 Logger::error('[PageController::view] headers already sent; skipping http_response_code(404)', ['page' => $page]);
             }
@@ -78,11 +78,11 @@ final class PageController
         }
 
         // Ruta segura del archivo de contenido (Content está en app/, no en Controllers/)
-        $contentFile = dirname(__DIR__, 3) . "/Content/$page.php";
+        $contentFile = \dirname(__DIR__, 3) . "/Content/$page.php";
 
-        if (!file_exists($contentFile)) {
-            if (!headers_sent()) {
-                @http_response_code(404);
+        if (!\file_exists($contentFile)) {
+            if (!\headers_sent()) {
+                @\http_response_code(404);
             } else {
                 Logger::error('[PageController::view] headers already sent; skipping http_response_code(404)', ['page' => $page]);
             }
@@ -95,10 +95,10 @@ final class PageController
         $data = include $contentFile;
 
         // Validar que el archivo retorne array válido
-        if (!is_array($data) || !isset($data['titulo'])) {
+        if (!\is_array($data) || !isset($data['titulo'])) {
             Logger::error("Error: Content file $page.php no retornó data válida", ['page' => $page]);
-            if (!headers_sent()) {
-                @http_response_code(500);
+            if (!\headers_sent()) {
+                @\http_response_code(500);
             } else {
                 Logger::error('[PageController::view] headers already sent; skipping http_response_code(500)', ['page' => $page]);
             }

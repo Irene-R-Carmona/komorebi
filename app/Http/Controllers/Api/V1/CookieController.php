@@ -4,19 +4,28 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Core\Container;
 use App\Core\CookieManager;
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\AbstractApiController;
-use App\Models\Cafe;
-use App\Services\RecentlyViewedService;
+use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Services\Contracts\RecentlyViewedServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class CookieController extends AbstractApiController
 {
-    public function __construct(ResponseFactory $response)
-    {
+    private RecentlyViewedServiceInterface $recentlyViewed;
+    private CafeRepositoryInterface $cafeRepo;
+
+    public function __construct(
+        ResponseFactory $response,
+        ?RecentlyViewedServiceInterface $recentlyViewed = null,
+        ?CafeRepositoryInterface $cafeRepo = null,
+    ) {
         parent::__construct($response);
+        $this->recentlyViewed = $recentlyViewed ?? Container::make(RecentlyViewedServiceInterface::class);
+        $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
     }
 
     /**
@@ -164,8 +173,7 @@ final class CookieController extends AbstractApiController
             return $this->unprocessable('cafeId es requerido y debe ser numérico');
         }
 
-        $service = new RecentlyViewedService();
-        $result = $service->add((int) $input['cafeId']);
+        $result = $this->recentlyViewed->add((int) $input['cafeId']);
 
         return $this->success([
             'added' => $result,
@@ -179,11 +187,9 @@ final class CookieController extends AbstractApiController
      */
     public function getRecentlyViewed(ServerRequestInterface $request): ResponseInterface
     {
-        $service = new RecentlyViewedService();
-
         return $this->success([
-            'cafeIds' => $service->getAll(),
-            'maxItems' => $service->getMaxItems(),
+            'cafeIds' => $this->recentlyViewed->getAll(),
+            'maxItems' => $this->recentlyViewed->getMaxItems(),
         ]);
     }
 
@@ -193,16 +199,13 @@ final class CookieController extends AbstractApiController
      */
     public function getRecentlyViewedData(ServerRequestInterface $request): ResponseInterface
     {
-        $service = new RecentlyViewedService();
-        $cafeIds = $service->getAll();
+        $cafeIds = $this->recentlyViewed->getAll();
 
         if (empty($cafeIds)) {
             return $this->success(['cafes' => []]);
         }
 
-        $cafeModel = new Cafe();
-
-        return $this->success(['cafes' => $cafeModel->findByIds($cafeIds)]);
+        return $this->success(['cafes' => $this->cafeRepo->findByIds($cafeIds)]);
     }
 
     /**
@@ -211,8 +214,7 @@ final class CookieController extends AbstractApiController
      */
     public function clearRecentlyViewed(ServerRequestInterface $request): ResponseInterface
     {
-        $service = new RecentlyViewedService();
-        $result = $service->clear();
+        $result = $this->recentlyViewed->clear();
 
         return $this->success([
             'cleared' => $result,

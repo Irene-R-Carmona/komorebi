@@ -21,4 +21,9 @@ interface LoyaltyServiceInterface
     public function validateRedemptionCode(string $code): Result;
 
     public function useReward(string $code): Result;
+
+    /**
+     * Revierte 1 sello al cancelar una reserva (Q-05).
+     */
+    public function reverseStamp(int $userId): Result;
 }

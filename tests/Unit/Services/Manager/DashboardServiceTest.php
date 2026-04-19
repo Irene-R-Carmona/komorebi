@@ -16,22 +16,25 @@ declare(strict_types=1);
  * si se elimina algún método público, o si el constructor deja de aceptar PDO.
  */
 
-namespace Services\Manager;
+namespace Tests\Unit\Services\Manager;
 
 use App\Services\Manager\DashboardService;
 use PDO;
+use PDOStatement;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para DashboardService
  *
  * Service layer que proporciona métricas en tiempo real para el dashboard del manager.
  */
+#[CoversClass(DashboardService::class)]
 final class DashboardServiceTest extends TestCase
 {
     private DashboardService $service;
 
-    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    /** @var \PHPUnit\Framework\MockObject\Stub&PDO */
     private PDO $db;
 
     protected function setUp(): void
@@ -56,7 +59,7 @@ final class DashboardServiceTest extends TestCase
 
     public function testGetReservationsTodayReturnInteger(): void
     {
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['total' => 5]);
 
@@ -69,7 +72,7 @@ final class DashboardServiceTest extends TestCase
 
     public function testGetRevenueTodayReturnFloat(): void
     {
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['revenue' => 125.50]);
 
@@ -82,7 +85,7 @@ final class DashboardServiceTest extends TestCase
 
     public function testGetActiveStaffCountReturnInteger(): void
     {
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['total' => 3]);
 
@@ -95,7 +98,7 @@ final class DashboardServiceTest extends TestCase
 
     public function testGetAnimalsCountReturnInteger(): void
     {
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['total' => 8]);
 
@@ -108,7 +111,7 @@ final class DashboardServiceTest extends TestCase
 
     public function testGetDashboardMetricsReturnArray(): void
     {
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'total' => 10,
@@ -129,7 +132,7 @@ final class DashboardServiceTest extends TestCase
 
     public function testGetWeeklyRevenueReturnArray(): void
     {
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([
             ['date' => '2025-01-20', 'revenue' => 50.0],
@@ -145,7 +148,7 @@ final class DashboardServiceTest extends TestCase
 
     public function testGetMonthlyReservationsCountReturnInteger(): void
     {
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['total' => 42]);
 
@@ -158,7 +161,7 @@ final class DashboardServiceTest extends TestCase
 
     public function testGetAverageRatingReturnFloat(): void
     {
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['rating_avg' => 4.7]);
 
@@ -171,7 +174,7 @@ final class DashboardServiceTest extends TestCase
 
     public function testGetPendingReservationsCountReturnInteger(): void
     {
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn(['total' => 2]);
 
@@ -184,7 +187,7 @@ final class DashboardServiceTest extends TestCase
 
     public function testGetTopAnimalsReturnArray(): void
     {
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([
             ['id' => 1, 'name' => 'Luna', 'species' => 'Gato', 'interaction_count' => 15],
@@ -200,7 +203,7 @@ final class DashboardServiceTest extends TestCase
 
     public function testGetReservationStatusDistributionReturnArray(): void
     {
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([
             ['status' => 'confirmed', 'count' => 10],

@@ -17,8 +17,11 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Manager;
 
 use App\Http\Controllers\Manager\DashboardController;
+use ReflectionClass;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(DashboardController::class)]
 final class DashboardControllerTest extends ControllerTestCase
 {
     public function test_class_exists(): void
@@ -35,7 +38,7 @@ final class DashboardControllerTest extends ControllerTestCase
     {
         // No construir con args por defecto — DashboardService conecta a DB eagerly.
         // Verificamos solo la firma del constructor mediante reflexión.
-        $rc = new \ReflectionClass(DashboardController::class);
+        $rc = new ReflectionClass(DashboardController::class);
         $params = $rc->getConstructor()?->getParameters() ?? [];
         foreach ($params as $param) {
             $this->assertTrue($param->isOptional(), "Param {$param->getName()} should be optional");

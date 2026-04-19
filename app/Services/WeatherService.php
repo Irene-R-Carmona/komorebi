@@ -9,7 +9,9 @@ use App\Core\Logger;
 use App\Core\Result;
 use App\Exceptions\CircuitOpenException;
 use App\Services\Contracts\WeatherServiceInterface;
+use Override;
 use Psr\Cache\CacheItemPoolInterface;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -47,7 +49,7 @@ final class WeatherService implements WeatherServiceInterface
      *
      * @return Result Data contiene ['current' => array, 'hourly' => array|null, 'cached' => bool]
      */
-    #[\Override]
+    #[Override]
     public function getWeather(
         float $latitude,
         float $longitude,
@@ -238,7 +240,7 @@ final class WeatherService implements WeatherServiceInterface
      *
      * @return Result Data contiene ['forecast' => array, 'cached' => bool]
      */
-    #[\Override]
+    #[Override]
     public function getForecast(
         float $latitude,
         float $longitude,
@@ -403,11 +405,11 @@ final class WeatherService implements WeatherServiceInterface
                 \curl_close($ch);
 
                 if ($error) {
-                    throw new \RuntimeException("cURL: {$error}");
+                    throw new RuntimeException("cURL: {$error}");
                 }
 
                 if ($httpCode !== 200) {
-                    throw new \RuntimeException("HTTP {$httpCode}");
+                    throw new RuntimeException("HTTP {$httpCode}");
                 }
 
                 return (string) $result;
@@ -416,7 +418,7 @@ final class WeatherService implements WeatherServiceInterface
             Logger::warning('[WeatherService] Circuit breaker abierto, servicio meteorológico no disponible');
 
             return Result::fail('Servicio meteorológico temporalmente no disponible');
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             Logger::warning('Error de conexión con API meteorológica', [
                 'error' => $e->getMessage(),
                 'url' => $url,

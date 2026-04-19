@@ -22,7 +22,9 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Services\Contracts\AuthServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(AuthController::class)]
 final class AuthControllerTest extends ControllerTestCase
 {
     protected function setUp(): void

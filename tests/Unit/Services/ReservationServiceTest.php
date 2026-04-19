@@ -24,10 +24,13 @@ use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\ReservationService;
+use PDOException;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Throwable;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-#[\PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations]
+#[CoversClass(ReservationService::class)]
 final class ReservationServiceTest extends TestCase
 {
     // Test data constants (evitar duplicación)
@@ -522,7 +525,7 @@ final class ReservationServiceTest extends TestCase
                 'comments' => 'Test reservation',
             ]);
             $this->fail('Expected Database::transaction to fail in unit test environment');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Esperamos que falle en Database::transaction, no en validaciones
             $this->assertNotInstanceOf(\App\Exceptions\ValidationException::class, $e);
             $this->assertNotInstanceOf(\App\Exceptions\BusinessRuleException::class, $e);
@@ -546,7 +549,7 @@ final class ReservationServiceTest extends TestCase
         $result = $this->service->cancel(123, self::VALID_USER_ID);
 
         // ASSERT
-        $this->assertTrue($result);
+        $this->assertTrue($result->ok);
     }
 
     public function testCancelReturnsFalseWhenReservationNotOwnedByUser(): void
@@ -806,7 +809,7 @@ final class ReservationServiceTest extends TestCase
         // ARRANGE: Mock repositorio lanza excepción PDO (ej: constraint violation)
         $this->mockReservationRepo
             ->method('create')
-            ->willThrowException(new \PDOException('Database error: constraint violation'));
+            ->willThrowException(new PDOException('Database error: constraint violation'));
         // ACT
         $result = $this->service->create([
             'user_id' => self::VALID_USER_ID,

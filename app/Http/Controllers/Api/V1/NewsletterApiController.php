@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Core\Http\ResponseFactory;
-use App\Core\Result;
 use App\Http\Controllers\Api\AbstractApiController;
 use App\Services\Contracts\NewsletterServiceInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -35,13 +34,13 @@ final class NewsletterApiController extends AbstractApiController
 
         $result = $this->newsletterService->subscribe($email);
 
-        if (!$result['success']) {
+        if (!$result->ok) {
             return $this->response->problem(
-                Result::fail($result['message'], 'subscription_error'),
+                $result,
                 400
             );
         }
 
-        return $this->success(['message' => $result['message']]);
+        return $this->success(['message' => $result->data['message'] ?? 'Suscripción procesada']);
     }
 }

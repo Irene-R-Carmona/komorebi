@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Env;
 use App\Core\Logger;
+use Override;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Redis;
@@ -35,7 +36,7 @@ final class CacheService implements CacheItemPoolInterface
     {
         try {
             if (\extension_loaded('redis')) {
-                $redis = new \Redis();
+                $redis = new Redis();
                 $host = Env::get('REDIS_HOST', 'cache');
                 $port = (int) Env::get('REDIS_PORT', '6379');
                 $password = Env::get('REDIS_PASSWORD');
@@ -57,55 +58,55 @@ final class CacheService implements CacheItemPoolInterface
         return new FilesystemAdapter('komorebi', 3600, __DIR__ . '/../../storage/cache');
     }
 
-    #[\Override]
+    #[Override]
     public function getItem(string $key): CacheItemInterface
     {
         return $this->pool->getItem($key);
     }
 
-    #[\Override]
+    #[Override]
     public function getItems(array $keys = []): iterable
     {
         return $this->pool->getItems($keys);
     }
 
-    #[\Override]
+    #[Override]
     public function hasItem(string $key): bool
     {
         return $this->pool->hasItem($key);
     }
 
-    #[\Override]
+    #[Override]
     public function clear(): bool
     {
         return $this->pool->clear();
     }
 
-    #[\Override]
+    #[Override]
     public function deleteItem(string $key): bool
     {
         return $this->pool->deleteItem($key);
     }
 
-    #[\Override]
+    #[Override]
     public function deleteItems(array $keys): bool
     {
         return $this->pool->deleteItems($keys);
     }
 
-    #[\Override]
+    #[Override]
     public function save(CacheItemInterface $item): bool
     {
         return $this->pool->save($item);
     }
 
-    #[\Override]
+    #[Override]
     public function saveDeferred(CacheItemInterface $item): bool
     {
         return $this->pool->saveDeferred($item);
     }
 
-    #[\Override]
+    #[Override]
     public function commit(): bool
     {
         return $this->pool->commit();

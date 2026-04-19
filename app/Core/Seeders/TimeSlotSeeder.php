@@ -6,6 +6,7 @@ namespace App\Core\Seeders;
 
 use App\Core\Database;
 use App\Core\Logger;
+use DateTime;
 use PDO;
 
 /**
@@ -158,7 +159,7 @@ final class TimeSlotSeeder
     private function createTimeSlots(array $cafes): void
     {
         $created = 0;
-        $today = new \DateTime();
+        $today = new DateTime();
 
         // Slots cada 30 minutos durante el horario del café
         $slotDuration = 30;
@@ -172,8 +173,8 @@ final class TimeSlotSeeder
                 $dateStr = $date->format('Y-m-d');
 
                 // Parsear horarios del café
-                $opening = \DateTime::createFromFormat('H:i:s', $cafe['opening_time']);
-                $closing = \DateTime::createFromFormat('H:i:s', $cafe['closing_time']);
+                $opening = DateTime::createFromFormat('H:i:s', $cafe['opening_time']);
+                $closing = DateTime::createFromFormat('H:i:s', $cafe['closing_time']);
 
                 if (!$opening || !$closing) {
                     continue;

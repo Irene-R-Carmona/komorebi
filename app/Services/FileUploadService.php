@@ -10,6 +10,7 @@ use App\Exceptions\ConfigurationException;
 use App\Services\Contracts\FileUploadServiceInterface;
 use Exception;
 use finfo;
+use Override;
 use Random\RandomException;
 
 /**
@@ -56,7 +57,7 @@ final class FileUploadService implements FileUploadServiceInterface
      * @return Result URL relativa del avatar subido
      * @throws RandomException
      */
-    #[\Override]
+    #[Override]
     public function uploadAvatar(array $file, int $userId): Result
     {
         // Validar archivo
@@ -101,7 +102,7 @@ final class FileUploadService implements FileUploadServiceInterface
      * @param integer $userId ID del usuario
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function deleteAvatar(int $userId): Result
     {
         try {
@@ -125,7 +126,7 @@ final class FileUploadService implements FileUploadServiceInterface
      * @return Result URL relativa de la foto subida
      * @throws RandomException
      */
-    #[\Override]
+    #[Override]
     public function uploadAnimalPhoto(array $file, int $animalId): Result
     {
         // Validar archivo
@@ -269,7 +270,7 @@ final class FileUploadService implements FileUploadServiceInterface
      * @param string $relativeUrl URL relativa del archivo
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function deleteFile(string $relativeUrl): Result
     {
         // Construir ruta absoluta desde URL relativa
@@ -325,7 +326,7 @@ final class FileUploadService implements FileUploadServiceInterface
      * @param string $type Tipo de archivo ('avatar' o 'animal')
      * @return array{maxSize: int, maxSizeMB: float, allowedTypes: array, allowedExtensions: array}
      */
-    #[\Override]
+    #[Override]
     public function getUploadLimits(string $type = 'avatar'): array
     {
         if ($type === 'animal') {

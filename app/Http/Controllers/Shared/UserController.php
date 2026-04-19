@@ -11,39 +11,40 @@ use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
+use App\Services\Contracts\GamificationServiceInterface;
+use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
-use App\Services\GamificationService;
-use App\Services\ReservationService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Random\RandomException;
+use RuntimeException;
 
 final class UserController
 {
     private UserProfileServiceInterface $profileService;
     private UserAccountServiceInterface $accountService;
-    private ReservationService $reservations;
+    private ReservationServiceInterface $reservations;
     private ReviewQueryServiceInterface $reviews;
-    private GamificationService $gamification;
+    private GamificationServiceInterface $gamification;
     private ResponseFactory $response;
 
     public function __construct(
         ?UserProfileServiceInterface $profileService = null,
         ?UserAccountServiceInterface $accountService = null,
-        ?ReservationService $reservations = null,
+        ?ReservationServiceInterface $reservations = null,
         ?ReviewQueryServiceInterface $reviews = null,
-        ?GamificationService $gamification = null,
+        ?GamificationServiceInterface $gamification = null,
         ?ResponseFactory $response = null
     ) {
         $this->profileService = $profileService ?? Container::make(UserProfileServiceInterface::class);
         $this->accountService = $accountService ?? Container::make(UserAccountServiceInterface::class);
-        $this->reservations = $reservations ?? Container::make(ReservationService::class);
+        $this->reservations = $reservations ?? Container::make(ReservationServiceInterface::class);
         $this->reviews = $reviews ?? Container::make(ReviewQueryServiceInterface::class);
-        $this->gamification = $gamification ?? new GamificationService();
+        $this->gamification = $gamification ?? Container::make(GamificationServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
     }
 
@@ -220,7 +221,7 @@ final class UserController
         // Mover archivo con PSR-7
         try {
             $uploadedFile->moveTo($uploadPath);
-        } catch (\RuntimeException) {
+        } catch (RuntimeException) {
             return $this->response->json(['success' => false, 'message' => 'Error al guardar el archivo.'], 500);
         }
 

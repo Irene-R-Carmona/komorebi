@@ -198,20 +198,20 @@ echo "----------------------------------------------------------------\n";
 
 foreach ($results as $tool => $result) {
     $icon = match ($result['status']) {
-        'PASS'      => '[OK]  ',
-        'FIXED'     => '[FIX] ',
+        'PASS' => '[OK]  ',
+        'FIXED' => '[FIX] ',
         'NEEDS_FIX' => '[WARN]',
-        'FAIL'      => '[FAIL]',
-        default     => '[?]   '
+        'FAIL' => '[FAIL]',
+        default => '[?]   '
     };
 
     $toolName = match ($tool) {
         'complexity' => 'Complejidad',
-        'cs-fixer'   => 'CS-Fixer  ',
-        'phpcs'      => 'PHPCS     ',
-        'phpstan'    => 'PHPStan   ',
-        'phpunit'    => 'PHPUnit   ',
-        default      => $tool
+        'cs-fixer' => 'CS-Fixer  ',
+        'phpcs' => 'PHPCS     ',
+        'phpstan' => 'PHPStan   ',
+        'phpunit' => 'PHPUnit   ',
+        default => $tool
     };
 
     echo sprintf("   %s %-15s %s\n", $icon, $toolName, $result['message']);

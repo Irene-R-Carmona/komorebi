@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use PDOException;
+
 /**
  * Interfaz para el repositorio de chequeos de salud animal.
  * Define operaciones CRUD y consultas específicas del sistema de health checks.
@@ -76,7 +78,7 @@ interface HealthCheckRepositoryInterface
      *
      * @param array $data Datos del chequeo
      * @return int ID del chequeo creado
-     * @throws \PDOException Si falla la inserción
+     * @throws PDOException Si falla la inserción
      */
     public function create(array $data): int;
 
@@ -106,4 +108,20 @@ interface HealthCheckRepositoryInterface
      * @return array Estadísticas agrupadas por tipo de alerta
      */
     public function getAlertStatistics(int $days = 7): array;
+
+    /**
+     * Obtener logs recientes de las últimas 24 horas.
+     *
+     * @param int $limit Número máximo de resultados
+     * @return array<int, array<string, mixed>>
+     */
+    public function getRecentLogs(int $limit = 20): array;
+
+    /**
+     * Registrar un cuidado simple (upsert por día).
+     *
+     * @param array $data Debe contener: animal_id, notes, logged_by_user_id
+     * @return int ID del registro creado o actualizado
+     */
+    public function createCareLog(array $data): int;
 }

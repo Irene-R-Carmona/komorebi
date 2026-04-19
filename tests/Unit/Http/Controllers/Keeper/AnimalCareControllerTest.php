@@ -20,17 +20,17 @@ namespace Tests\Unit\Http\Controllers\Keeper;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Keeper\AnimalCareController;
+use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use App\Services\AnimalCareService;
-use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\HealthCheckService;
 use Nyholm\Psr7\ServerRequest;
-use PDO;
-use PDOStatement;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(AnimalCareController::class)]
 final class AnimalCareControllerTest extends TestCase
 {
     private const CSRF_TOKEN = 'test-csrf-abc123';
@@ -50,38 +50,22 @@ final class AnimalCareControllerTest extends TestCase
         $_SESSION = [];
     }
 
-    private function makePdoStub(): PDO
-    {
-        $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetchAll')->willReturn([]);
-        // toggleActive necesita fetch con current_status para alternar
-        $stmt->method('fetch')->willReturn(['current_status' => 'active']);
-
-        $pdo = $this->createMock(PDO::class);
-        $pdo->method('prepare')->willReturn($stmt);
-        $pdo->method('lastInsertId')->willReturn('42');
-        $pdo->method('beginTransaction')->willReturn(true);
-        $pdo->method('commit')->willReturn(true);
-
-        return $pdo;
-    }
-
     private function makeController(
-        ?PDO $pdo = null,
+        ?AnimalCareService $animalCareService = null,
         ?HealthCheckService $healthCheckService = null,
     ): AnimalCareController {
-        $pdo ??= $this->makePdoStub();
-        $animalCareService = new AnimalCareService($pdo, $this->createMock(AnimalRepositoryInterface::class));
+        $animalCareService ??= new AnimalCareService(
+            animalRepo: $this->createStub(AnimalRepositoryInterface::class),
+            incidentRepo: $this->createStub(AnimalIncidentRepositoryInterface::class),
+            healthCheckRepo: $this->createStub(HealthCheckRepositoryInterface::class),
+        );
         $healthCheckRepo = $this->createMock(HealthCheckRepositoryInterface::class);
         $healthCheckRepo->method('getTodayChecks')->willReturn([]);
         $healthCheckRepo->method('getPendingAnimals')->willReturn([]);
 
         return new AnimalCareController(
             $animalCareService,
-            $this->createMock(FileUploadServiceInterface::class),
             $healthCheckService ?? new HealthCheckService($healthCheckRepo),
-            $this->createMock(AnimalRepositoryInterface::class),
             new ResponseFactory(),
         );
     }
@@ -96,21 +80,14 @@ final class AnimalCareControllerTest extends TestCase
                 'notes' => 'ok',
             ]);
 
-        $result = $this->makeController()->logCare($request);
+        $result = $this->makeController()->recordFeeding($request);
 
         $this->assertInstanceOf(ResponseInterface::class, $result);
     }
 
     public function test_log_care_reads_from_psr7_body_not_post(): void
     {
-        // Asegurarse que $_POST está vacío: el controller debe leer de PSR-7
         $_POST = [];
-
-        $pdo = $this->makePdoStub();
-        $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $pdo->method('prepare')->willReturn($stmt);
-        $pdo->method('lastInsertId')->willReturn('7');
 
         $request = new ServerRequest('POST', '/keeper/log')
             ->withParsedBody([
@@ -119,17 +96,26 @@ final class AnimalCareControllerTest extends TestCase
                 'activity_type' => 'feeding',
             ]);
 
-        $result = $this->makeController($pdo)->logCare($request);
+        $result = $this->makeController()->recordFeeding($request);
 
         $this->assertInstanceOf(ResponseInterface::class, $result);
     }
 
     public function test_toggle_active_returns_json_on_success(): void
     {
+        $animalRepo = $this->createMock(AnimalRepositoryInterface::class);
+        $animalRepo->method('toggleStatus')->willReturn(['found' => true, 'current_status' => 'active']);
+
+        $service = new AnimalCareService(
+            animalRepo: $animalRepo,
+            incidentRepo: $this->createStub(AnimalIncidentRepositoryInterface::class),
+            healthCheckRepo: $this->createStub(HealthCheckRepositoryInterface::class),
+        );
+
         $request = new ServerRequest('POST', '/keeper/animal/5/toggle')
             ->withParsedBody(['csrf_token' => self::CSRF_TOKEN]);
 
-        $result = $this->makeController()->toggleActive($request, 5);
+        $result = $this->makeController(animalCareService: $service)->toggleActive($request, 5);
 
         $this->assertInstanceOf(ResponseInterface::class, $result);
     }
@@ -137,13 +123,14 @@ final class AnimalCareControllerTest extends TestCase
     public function test_update_health_returns_json_on_success(): void
     {
         $request = new ServerRequest('POST', '/keeper/animal/3/health')
+            ->withAttribute('id', 3)
             ->withParsedBody([
                 'csrf_token' => self::CSRF_TOKEN,
                 'health_status' => 'healthy',
                 'notes' => '',
             ]);
 
-        $result = $this->makeController()->updateHealth($request, 3);
+        $result = $this->makeController()->recordHealth($request);
 
         $this->assertInstanceOf(ResponseInterface::class, $result);
     }

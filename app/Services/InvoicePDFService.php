@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Services\Contracts\InvoicePDFServiceInterface;
+use tFPDF;
+use Throwable;
 
 /**
  * Servicio para generar billetes de reserva en PDF
@@ -31,7 +33,7 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
         }
 
         // Inicializar tFPDF con soporte UTF-8
-        $pdf = new \tFPDF();
+        $pdf = new tFPDF();
         $pdf->AddPage();
         $pdf->AddFont('DejaVu', '', 'DejaVuSans.ttf', true);
         $pdf->AddFont('DejaVu', 'B', 'DejaVuSans-Bold.ttf', true);
@@ -256,7 +258,7 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
     /**
      * Añade una fila de detalle (label + valor)
      */
-    private function addDetailRow(\tFPDF $pdf, float $x, float $y, string $label, string $value): void
+    private function addDetailRow(tFPDF $pdf, float $x, float $y, string $label, string $value): void
     {
         $pdf->SetXY($x, $y);
         $pdf->SetFont('DejaVu', '', 9);
@@ -286,7 +288,7 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
             $qrcode->render($code, $qrPath);
 
             return $qrPath;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Si falla QR, devolver string vacío
             return '';
         }

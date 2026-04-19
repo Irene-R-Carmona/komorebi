@@ -20,7 +20,6 @@ namespace Tests\Unit\Http\Controllers\Shared;
 use App\Core\Http\ResponseFactory;
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Shared\ReservationController;
-use App\Models\Reservation;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
@@ -32,7 +31,9 @@ use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\FestivosJaponesesService;
 use App\Services\ReservationService;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ReservationController::class)]
 final class ReservationControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
@@ -50,7 +51,6 @@ final class ReservationControllerTest extends ControllerTestCase
 
     private function makeController(): ReservationController
     {
-        $pdoStub = $this->createStub(\PDO::class);
         $reservations = new ReservationService(
             $this->createStub(ReservationRepositoryInterface::class),
             $this->createStub(CafeRepositoryInterface::class),
@@ -62,8 +62,12 @@ final class ReservationControllerTest extends ControllerTestCase
         return new ReservationController(
             cartService: $this->createStub(CartServiceInterface::class),
             reservationService: $reservations,
-            availabilityService: new AvailabilityService($pdoStub),
-            reservationModel: new Reservation($pdoStub),
+            availabilityService: new AvailabilityService(
+                cafeRepo: $this->createStub(CafeRepositoryInterface::class),
+                productRepo: $this->createStub(ProductRepositoryInterface::class),
+                reservationRepo: $this->createStub(ReservationRepositoryInterface::class),
+            ),
+            reservationRepo: $this->createStub(ReservationRepositoryInterface::class),
             climaService: $this->createStub(ClimaContextoServiceInterface::class),
             festivosService: new FestivosJaponesesService(),
             response: new ResponseFactory(),

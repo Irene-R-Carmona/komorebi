@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Container;
 use App\Core\Database;
 use App\Core\Result;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\AccountDeletionServiceInterface;
-use PDO;
+use Override;
+use Throwable;
 
 /**
  * Servicio de eliminación de cuenta conforme a GDPR.
@@ -17,11 +20,11 @@ use PDO;
  */
 final class AccountDeletionService implements AccountDeletionServiceInterface
 {
-    private PDO $db;
+    private UserRepositoryInterface $userRepo;
 
-    public function __construct(?PDO $db = null)
+    public function __construct(?UserRepositoryInterface $userRepo = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        $this->userRepo = $userRepo ?? Container::make(UserRepositoryInterface::class);
     }
 
     /**
@@ -31,34 +34,21 @@ final class AccountDeletionService implements AccountDeletionServiceInterface
      * 1. Soft delete (deleted_at + is_active = 0)
      * 2. Anonimización GDPR (name, email, phone)
      */
-    #[\Override]
+    #[Override]
     public function deleteAndAnonymize(int $userId): Result
     {
         try {
-            $this->db->beginTransaction();
+            return Database::transaction(function () use ($userId): Result {
+                $this->userRepo->update($userId, [
+                    'deleted_at' => \date('Y-m-d H:i:s'),
+                    'is_active'  => 0,
+                ]);
 
-            // Soft delete
-            $stmt = $this->db->prepare(
-                'UPDATE users SET deleted_at = NOW(), is_active = 0 WHERE id = :id'
-            );
-            $stmt->execute(['id' => $userId]);
+                $this->userRepo->anonymize($userId);
 
-            // Anonimización GDPR
-            $stmt = $this->db->prepare(
-                "UPDATE users
-                 SET name = 'Usuario eliminado',
-                     email = CONCAT('deleted_', id, '@deleted.local'),
-                     phone = NULL
-                 WHERE id = :id"
-            );
-            $stmt->execute(['id' => $userId]);
-
-            $this->db->commit();
-
-            return Result::ok(true);
-        } catch (\Throwable $e) {
-            $this->db->rollBack();
-
+                return Result::ok(true);
+            });
+        } catch (Throwable $e) {
             return Result::fail('No se pudo eliminar la cuenta: ' . $e->getMessage());
         }
     }

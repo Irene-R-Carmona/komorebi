@@ -22,7 +22,9 @@ use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\EmailVerificationServiceInterface;
 use App\Services\Contracts\PasswordResetServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(PasswordResetController::class)]
 final class PasswordResetControllerTest extends ControllerTestCase
 {
     protected function setUp(): void

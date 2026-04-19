@@ -10,6 +10,7 @@ use App\Exceptions\ValidationException;
 use App\Models\Contracts\UserModelInterface;
 use App\Models\Traits\HasUuid;
 use Exception;
+use Override;
 use PDO;
 use Random\RandomException;
 
@@ -43,23 +44,17 @@ final class User implements UserModelInterface
     /** Roles válidos del sistema (canónicos) */
     public const array VALID_ROLES = ['user', 'reception', 'kitchen', 'keeper', 'manager', 'supervisor', 'admin'];
 
-    /** Campos seleccionables (evita SELECT *) */
+    /** Campos seguros para consultas generales (sin datos de autenticación) */
     private const array SELECT_FIELDS = [
-        'id',
-        'uuid',
-        'name',
-        'email',
-        'password',
-        'is_active',
-        'cafe_id',
-        'avatar',
-        'preferences',
-        'login_attempts',
-        'locked_until',
-        'deleted_at',
-        'anonymized_at',
-        'created_at',
-        'updated_at',
+        'id', 'uuid', 'name', 'email', 'is_active', 'cafe_id',
+        'avatar', 'preferences', 'deleted_at', 'anonymized_at',
+        'created_at', 'updated_at',
+    ];
+
+    /** Campos de autenticación — solo para findByEmail() usado en login */
+    private const array AUTH_FIELDS = [
+        'id', 'uuid', 'name', 'email', 'password', 'is_active',
+        'cafe_id', 'login_attempts', 'locked_until', 'deleted_at',
     ];
 
     /** Campos públicos (sin datos sensibles) */
@@ -93,7 +88,7 @@ final class User implements UserModelInterface
      *
      * @return array<string,mixed>|null
      */
-    #[\Override]
+    #[Override]
     public function findById(int $id): ?array
     {
         $fields = \implode(', ', self::SELECT_FIELDS);
@@ -103,6 +98,7 @@ final class User implements UserModelInterface
         );
         $stmt->execute(['id' => $id]);
 
+        // findById: PDO::FETCH_ASSOC
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $row === false ? null : (array) $row;
@@ -137,7 +133,7 @@ final class User implements UserModelInterface
     {
         $email = $this->normalizeEmail($email);
 
-        $fields = \implode(', ', self::SELECT_FIELDS);
+        $fields = \implode(', ', self::AUTH_FIELDS);
 
         $stmt = $this->db->prepare(
             "SELECT $fields FROM users WHERE email = :email LIMIT 1"
@@ -386,7 +382,7 @@ final class User implements UserModelInterface
      * Verifica la contraseña de un usuario.
      * Incluye rehash automático si el algoritmo cambió.
      */
-    #[\Override]
+    #[Override]
     public function verifyPassword(array $user, string $password): bool
     {
         if (!isset($user['password'], $user['id'])) {
@@ -408,7 +404,7 @@ final class User implements UserModelInterface
     /**
      * Verifica si el usuario está bloqueado.
      */
-    #[\Override]
+    #[Override]
     public function isLocked(array $user): bool
     {
         if (empty($user['locked_until'])) {
@@ -421,7 +417,7 @@ final class User implements UserModelInterface
     /**
      * Obtiene los minutos restantes de bloqueo.
      */
-    #[\Override]
+    #[Override]
     public function lockoutMinutesRemaining(array $user): int
     {
         if (!$this->isLocked($user)) {
@@ -437,7 +433,7 @@ final class User implements UserModelInterface
      * Registra un intento de login fallido.
      * Bloquea la cuenta si se superan los intentos máximos.
      */
-    #[\Override]
+    #[Override]
     public function registerFailedAttempt(int $id): void
     {
         // Incrementar contador
@@ -449,7 +445,7 @@ final class User implements UserModelInterface
         // Verificar si hay que bloquear
         $user = $this->findById($id);
 
-        if ($user && (int) $user['login_attempts'] >= self::MAX_LOGIN_ATTEMPTS) {
+        if ($user && (int) ($user['login_attempts'] ?? 0) >= self::MAX_LOGIN_ATTEMPTS) {
             $lockUntil = \date('Y-m-d H:i:s', \strtotime('+' . self::LOCKOUT_MINUTES . ' minutes'));
 
             $stmt = $this->db->prepare(
@@ -462,7 +458,7 @@ final class User implements UserModelInterface
     /**
      * Resetea los intentos de login tras login exitoso.
      */
-    #[\Override]
+    #[Override]
     public function clearLoginAttempts(int $id): void
     {
         $stmt = $this->db->prepare(
@@ -585,12 +581,12 @@ final class User implements UserModelInterface
      *
      * @return array<array{id: int, code: string, name: string}>
      */
-    #[\Override]
+    #[Override]
     public function getRoles(int $userId): array
     {
         try {
             $stmt = $this->db->prepare('
-                SELECT r.id, r.code, r.name
+                SELECT r.id, r.code AS slug, r.name
                 FROM roles r
                 INNER JOIN user_roles ur ON r.id = ur.role_id
                 WHERE ur.user_id = :user_id

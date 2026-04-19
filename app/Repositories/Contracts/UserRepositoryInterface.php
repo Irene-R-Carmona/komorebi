@@ -162,4 +162,5 @@ interface UserRepositoryInterface extends RepositoryInterface
      * @return array<string, mixed>|null
      */
     public function getStaffBasicById(int $userId, int $cafeId): ?array;
+
 }

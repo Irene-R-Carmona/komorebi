@@ -11,7 +11,9 @@ declare(strict_types=1);
 use App\Core\ValueObjects\Email;
 use App\Exceptions\ValidationException;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(Email::class)]
 final class EmailTest extends TestCase
 {
     public function testValidEmailIsAccepted(): void

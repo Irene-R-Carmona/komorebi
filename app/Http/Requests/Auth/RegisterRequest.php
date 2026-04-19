@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Requests\Auth;
 
 use App\Core\Http\FormRequest;
+use Override;
 
 /**
  * Valida y sanitiza los datos del formulario de registro.
  */
 final class RegisterRequest extends FormRequest
 {
-    #[\Override]
+    #[Override]
     protected function rules(): array
     {
         return [
@@ -22,7 +23,7 @@ final class RegisterRequest extends FormRequest
         ];
     }
 
-    #[\Override]
+    #[Override]
     protected function sanitize(array $raw): array
     {
         return [

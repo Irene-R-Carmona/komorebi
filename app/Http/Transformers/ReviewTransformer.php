@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Transformers;
 
+use Override;
+
 /**
  * Transforma una fila del JOIN reviews + users + cafes para la API.
  *
@@ -11,7 +13,7 @@ namespace App\Http\Transformers;
  */
 final class ReviewTransformer extends AbstractTransformer
 {
-    #[\Override]
+    #[Override]
     public function transform(array $data): array
     {
         return [

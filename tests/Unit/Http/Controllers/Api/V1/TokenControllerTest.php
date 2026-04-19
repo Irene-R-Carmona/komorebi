@@ -27,7 +27,9 @@ use App\Http\Controllers\Api\V1\TokenController;
 use App\Services\Contracts\ApiTokenServiceInterface;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(TokenController::class)]
 final class TokenControllerTest extends ControllerTestCase
 {
     private function makeController(): TokenController
@@ -87,7 +89,7 @@ final class TokenControllerTest extends ControllerTestCase
         $controller = new TokenController(new ResponseFactory(), $tokenService);
 
         $response = $controller->create(
-            (new ServerRequest('POST', '/api/v1/tokens'))
+            new ServerRequest('POST', '/api/v1/tokens')
                 ->withParsedBody(['name' => 'My CLI token'])
                 ->withAttribute('user_id', 3)
         );
@@ -120,7 +122,7 @@ final class TokenControllerTest extends ControllerTestCase
         $controller = new TokenController(new ResponseFactory(), $tokenService);
 
         $response = $controller->revoke(
-            (new ServerRequest('DELETE', '/api/v1/tokens/1'))
+            new ServerRequest('DELETE', '/api/v1/tokens/1')
                 ->withAttribute('id', 1)
                 ->withAttribute('user_id', 5)
         );
@@ -138,7 +140,7 @@ final class TokenControllerTest extends ControllerTestCase
         $controller = new TokenController(new ResponseFactory(), $tokenService);
 
         $response = $controller->revoke(
-            (new ServerRequest('DELETE', '/api/v1/tokens/99'))
+            new ServerRequest('DELETE', '/api/v1/tokens/99')
                 ->withAttribute('id', 99)
                 ->withAttribute('user_id', 5)
         );

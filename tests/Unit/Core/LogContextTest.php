@@ -6,6 +6,7 @@ namespace Tests\Unit\Core;
 
 use App\Core\LogContext;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?
@@ -17,6 +18,7 @@ use PHPUnit\Framework\TestCase;
  * ¿Qué va a fallar en este test si se cambia el código?
  * Cualquier cambio a la mutabilidad del estado o nombres de métodos.
  */
+#[CoversClass(LogContext::class)]
 final class LogContextTest extends TestCase
 {
     protected function setUp(): void

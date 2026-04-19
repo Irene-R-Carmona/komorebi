@@ -20,7 +20,9 @@ use App\Core\Result;
 use App\Http\Controllers\Api\V1\SupervisorController;
 use App\Services\Contracts\SupervisorAssignmentServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(SupervisorController::class)]
 final class SupervisorControllerTest extends ControllerTestCase
 {
     protected function setUp(): void

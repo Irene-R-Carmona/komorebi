@@ -9,12 +9,12 @@ use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
 use App\Http\Transformers\ReservationTransformer;
-use App\Services\AdminActivityService;
-use App\Services\AdminStatisticsService;
+use App\Core\Container;
 use App\Services\Contracts\AdminActivityServiceInterface;
 use App\Services\Contracts\AdminStatisticsServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Controlador de Dashboard Administrativo
@@ -33,8 +33,8 @@ final class DashboardController
         ?AdminActivityServiceInterface $activityService = null,
         ?ReservationTransformer $reservationTransformer = null
     ) {
-        $this->statisticsService = $statisticsService ?? new AdminStatisticsService();
-        $this->activityService = $activityService ?? new AdminActivityService();
+        $this->statisticsService = $statisticsService ?? Container::make(AdminStatisticsServiceInterface::class);
+        $this->activityService = $activityService ?? Container::make(AdminActivityServiceInterface::class);
         $this->reservationTransformer = $reservationTransformer ?? new ReservationTransformer();
     }
 
@@ -95,7 +95,7 @@ final class DashboardController
                 'system_status' => $systemStatus,
                 'extraJs' => ['admin/admin-dashboard.js'],
             ], ['admin/admin-dashboard.css'], 'backoffice');
-        } catch (\Throwable $e) { // NOSONAR
+        } catch (Throwable $e) { // NOSONAR
             if (Env::get('APP_ENV') === 'local') {
                 Logger::error('[DashboardController::index] FATAL ERROR: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
                 Logger::error('[DashboardController::index] Stack trace: ' . $e->getTraceAsString(), ['trace' => $e->getTraceAsString()]);

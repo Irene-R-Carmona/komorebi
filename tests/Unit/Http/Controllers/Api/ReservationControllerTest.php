@@ -20,7 +20,9 @@ use App\Http\Controllers\Api\V1\ReservationController;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\TimeSlotServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ReservationController::class)]
 final class ReservationControllerTest extends ControllerTestCase
 {
     private function makeController(): ReservationController

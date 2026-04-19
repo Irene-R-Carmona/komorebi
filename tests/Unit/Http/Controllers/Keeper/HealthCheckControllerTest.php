@@ -28,7 +28,9 @@ use App\Services\HealthCheckService;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(HealthCheckController::class)]
 final class HealthCheckControllerTest extends TestCase
 {
     private const CSRF_TOKEN = 'test-csrf-xyz';

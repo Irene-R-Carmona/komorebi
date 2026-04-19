@@ -10,9 +10,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
-use App\Core\Queue;
 use App\Services\EmailService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para EmailService
@@ -22,6 +22,7 @@ use PHPUnit\Framework\TestCase;
  * - Generación de templates
  * - Configuración de from/to
  */
+#[CoversClass(EmailService::class)]
 final class EmailServiceTest extends TestCase
 {
     private EmailService $service;
@@ -115,8 +116,9 @@ final class EmailServiceTest extends TestCase
     public function testEmailServiceUsesCorrectFromConfiguration(): void
     {
         // Verificar que el servicio usa las variables de entorno correctas
-        $this->assertEquals('test@komorebi.test', \getenv('MAIL_FROM_ADDRESS'));
-        $this->assertEquals('Komorebi Test', \getenv('MAIL_FROM_NAME'));
+        // phpunit.xml inyecta estas vars en $_ENV via <env name="...">
+        $this->assertSame('test@komorebi.test', $_ENV['MAIL_FROM_ADDRESS'] ?? \getenv('MAIL_FROM_ADDRESS'));
+        $this->assertSame('Komorebi Test', $_ENV['MAIL_FROM_NAME'] ?? \getenv('MAIL_FROM_NAME'));
     }
 
     public function testSendReservationConfirmationHandlesMissingDataGracefully(): void

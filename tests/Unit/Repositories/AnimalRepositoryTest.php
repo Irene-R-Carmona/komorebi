@@ -14,17 +14,19 @@ use App\Repositories\AnimalRepository;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para AnimalRepository
  *
  * Verifica acceso a datos de animales con prepared statements
  */
+#[CoversClass(AnimalRepository::class)]
 final class AnimalRepositoryTest extends TestCase
 {
     private AnimalRepository $repository;
 
-    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    /** @var \PHPUnit\Framework\MockObject\Stub&PDO */
     private PDO $db;
 
     protected function setUp(): void

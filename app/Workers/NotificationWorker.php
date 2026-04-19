@@ -93,6 +93,8 @@ final class NotificationWorker
 
         $this->lastHeartbeat = $now;
 
+        \file_put_contents('/tmp/worker-notification-heartbeat', (string) (int) $now);
+
         Logger::info('[NotificationWorker] Heartbeat', [
             'queue' => self::QUEUE_NAME,
             'pending' => Queue::size(self::QUEUE_NAME),

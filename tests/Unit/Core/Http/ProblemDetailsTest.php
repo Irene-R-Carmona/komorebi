@@ -14,7 +14,9 @@ use App\Core\Http\ProblemDetails;
 use App\Core\Result;
 use App\Core\ServiceErrorCode;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ProblemDetails::class)]
 final class ProblemDetailsTest extends TestCase
 {
     // ── type URI ─────────────────────────────────────────────────────────

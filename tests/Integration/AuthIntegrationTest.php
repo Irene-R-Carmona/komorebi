@@ -3,27 +3,36 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * ¿Qué me quieres demostrar?
- * ¿Qué va a fallar en este test si se cambia el código?
- */
-/**
  * Tests de Integración de AuthService
  *
- * Valida operaciones con MySQL 8.4 real usando transacciones para aislamiento.
- * Estos tests NO usan mocks - ejecutan queries reales contra la BD.
+ * ¿Qué pruebas aquí?
+ * Operaciones de autenticación con MySQL 8.4 real: login correcto,
+ * login fallido, bloqueo por intentos, verificación de contraseña.
+ *
+ * ¿Qué me quieres demostrar?
+ * Que AuthService interactúa correctamente con la BD real (UserRepository)
+ * y que las reglas de negocio (bloqueo, hash) funcionan en integración.
+ *
+ * ¿Qué va a fallar en este test si se cambia el código?
+ * Si findByEmail() deja de retornar el usuario, si el hash ARGON2ID cambia,
+ * o si se elimina la lógica de bloqueo por intentos fallidos.
  */
 
 namespace Tests\Integration;
 
 use App\Models\User;
+use App\Repositories\AuthLogRepository;
+use App\Repositories\SessionRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
 use App\Services\Contracts\RateLimitingServiceInterface;
 use App\Services\SessionManagementService;
+use Override;
 use PDO;
 use Tests\Support\BaseIntegrationTest;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
+#[CoversNothing]
 final class AuthIntegrationTest extends BaseIntegrationTest
 {
     private AuthService $service;
@@ -33,7 +42,7 @@ final class AuthIntegrationTest extends BaseIntegrationTest
     private const TEST_USER_ID = 77777;
     private const TEST_EMAIL = 'auth-integration-test@komorebi.test';
 
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -44,9 +53,11 @@ final class AuthIntegrationTest extends BaseIntegrationTest
         $this->service = new AuthService(
             $this->userRepo,
             new User(),
-            new SessionManagementService(self::$db),
-            $rateLimiter,
-            self::$db
+            new SessionManagementService(
+                new SessionRepository(self::$db),
+                new AuthLogRepository(self::$db),
+            ),
+            $rateLimiter
         );
     }
 

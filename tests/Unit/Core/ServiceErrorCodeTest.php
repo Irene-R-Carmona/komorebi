@@ -12,7 +12,9 @@ declare(strict_types=1);
 
 use App\Core\ServiceErrorCode;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ServiceErrorCode::class)]
 final class ServiceErrorCodeTest extends TestCase
 {
     // ── typeUri ──────────────────────────────────────────────────────────

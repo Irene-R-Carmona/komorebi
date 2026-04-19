@@ -13,8 +13,8 @@ use App\Core\Middleware;
  */
 final class NavigationService
 {
-    private const string URL_OPS_RECEPTION    = self::URL_OPS_RECEPTION;
-    private const string URL_KEEPER_DASHBOARD = self::URL_KEEPER_DASHBOARD;
+    private const string URL_OPS_RECEPTION    = '/ops/reception';
+    private const string URL_KEEPER_DASHBOARD = '/keeper/dashboard';
 
     /**
      * Iconos disponibles (Bootstrap Icons).

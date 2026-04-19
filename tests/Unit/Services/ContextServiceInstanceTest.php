@@ -20,7 +20,10 @@ use App\Core\Middleware;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\ContextServiceInstance;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ContextServiceInstance::class)]
 final class ContextServiceInstanceTest extends TestCase
 {
     private function makeService(
@@ -101,7 +104,7 @@ final class ContextServiceInstanceTest extends TestCase
     public function test_require_cafe_context_throws_when_no_context(): void
     {
         $service = $this->makeService(Middleware::ROLE_ADMIN, null, null);
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $service->requireCafeContext();
     }
 

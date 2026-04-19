@@ -4,8 +4,15 @@ declare(strict_types=1);
 
 /**
  * ¿Qué pruebas aquí?
+ * ProductService: getAllPaginated con diferentes filtros y tamaños de página.
+ *
  * ¿Qué me quieres demostrar?
+ * Que la paginación respeta los parámetros page/perPage y que la estructura
+ * de respuesta (data, total, page, perPage, totalPages) es consistente.
+ *
  * ¿Qué va a fallar en este test si se cambia el código?
+ * Si getAllPaginated elimina alguna clave de la respuesta, si cambia el
+ * tipo de page/perPage a string, o si la validación de página negativa desaparece.
  */
 
 namespace Tests\Unit\Services;
@@ -15,10 +22,12 @@ use App\Services\ProductService;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para ProductService - enfoque en paginación
  */
+#[CoversClass(ProductService::class)]
 final class ProductServiceTest extends TestCase
 {
     private ProductService $service;

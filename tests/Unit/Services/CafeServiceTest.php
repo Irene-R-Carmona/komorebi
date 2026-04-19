@@ -4,8 +4,16 @@ declare(strict_types=1);
 
 /**
  * ¿Qué pruebas aquí?
+ * CafeService: getAll (con filtro activos), getBySlug, getCafeWithStats,
+ * create, update, toggleStatus y delete.
+ *
  * ¿Qué me quieres demostrar?
+ * Que CafeService valida datos, delega en CafeRepositoryInterface y
+ * devuelve Result::ok/fail según el resultado del repositorio.
+ *
  * ¿Qué va a fallar en este test si se cambia el código?
+ * Si se elimina la validación de slug duplicado, si create deja de retornar
+ * Result::ok con el ID creado, o si toggleStatus cambia su lógica de estado.
  */
 
 namespace Tests\Unit\Services;
@@ -13,19 +21,20 @@ namespace Tests\Unit\Services;
 use App\Core\Result;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\CafeService;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests Unitarios de CafeService
  *
  * Valida lógica de negocio sin tocar BD real (usa mocks).
  */
-#[AllowMockObjectsWithoutExpectations]
+#[CoversClass(CafeService::class)]
 final class CafeServiceTest extends TestCase
 {
     private CafeService $service;
-    /** @var \PHPUnit\Framework\MockObject\MockObject&CafeRepositoryInterface */
+    /** @var MockObject&CafeRepositoryInterface */
     private CafeRepositoryInterface $mockRepo;
 
     protected function setUp(): void

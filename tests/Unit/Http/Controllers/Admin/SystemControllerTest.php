@@ -17,18 +17,22 @@ namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\SystemController;
-use App\Services\EmailService;
-use App\Services\SettingsService;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
+use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\SettingsServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(SystemController::class)]
 final class SystemControllerTest extends ControllerTestCase
 {
     private function makeController(): SystemController
     {
         return new SystemController(
-            new SettingsService(),
-            new EmailService(),
-            new ResponseFactory()
+            settingsService: $this->createStub(SettingsServiceInterface::class),
+            emailService: $this->createStub(EmailServiceInterface::class),
+            auditLogRepo: $this->createStub(AuditLogRepositoryInterface::class),
+            response: new ResponseFactory(),
         );
     }
 

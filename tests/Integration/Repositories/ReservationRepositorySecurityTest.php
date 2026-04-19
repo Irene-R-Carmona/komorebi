@@ -21,7 +21,9 @@ use App\Repositories\ReservationRepository;
 use Override;
 use ReflectionClass;
 use Tests\Support\BaseIntegrationTest;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
+#[CoversNothing]
 final class ReservationRepositorySecurityTest extends BaseIntegrationTest
 {
     private const int TEST_RESERVATION_ID = 79001;

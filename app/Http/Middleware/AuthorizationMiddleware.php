@@ -9,6 +9,8 @@ use App\Core\Database;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Session;
+use JsonException;
+use Override;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -39,7 +41,7 @@ final class AuthorizationMiddleware implements MiddlewareInterface
         $this->permission = $permission;
     }
 
-    #[\Override]
+    #[Override]
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
@@ -149,7 +151,7 @@ final class AuthorizationMiddleware implements MiddlewareInterface
                     'error' => 'No tienes permisos para realizar esta acción.',
                     'required_permission' => $this->permission,
                 ], 403);
-            } catch (\JsonException) {
+            } catch (JsonException) {
                 return $this->response->createResponse(403);
             }
         }

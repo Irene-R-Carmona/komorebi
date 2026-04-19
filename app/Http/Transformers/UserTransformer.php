@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Transformers;
 
+use Override;
+
 /**
  * Transforma una fila de la tabla `users` para la API y para vistas HTML de backoffice.
  *
@@ -16,7 +18,7 @@ namespace App\Http\Transformers;
  */
 final class UserTransformer extends AbstractTransformer
 {
-    #[\Override]
+    #[Override]
     public function transform(array $data): array
     {
         return [

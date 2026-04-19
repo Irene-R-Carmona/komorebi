@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use Override;
 use PDOStatement;
 
 /**
@@ -31,7 +32,7 @@ final class LoggingPDOStatement extends PDOStatement
      *
      * @param array<mixed>|null $params Parámetros de binding opcionales.
      */
-    #[\Override]
+    #[Override]
     public function execute(?array $params = null): bool
     {
         $start = \hrtime(true);

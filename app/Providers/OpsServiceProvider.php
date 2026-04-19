@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Core\ServiceProvider;
+use Override;
 
 /**
  * Service Provider para el módulo Ops (turnos, asignaciones de supervisores).
@@ -13,13 +14,13 @@ use App\Core\ServiceProvider;
  */
 final class OpsServiceProvider extends ServiceProvider
 {
-    #[\Override]
+    #[Override]
     public function register(): void
     {
         // Registrar servicios y repositorios del módulo Ops aquí
     }
 
-    #[\Override]
+    #[Override]
     public function boot(): void
     {
         // Arranque del módulo Ops aquí

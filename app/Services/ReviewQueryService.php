@@ -8,6 +8,7 @@ use App\Core\Logger;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use Exception;
+use Override;
 
 final class ReviewQueryService implements ReviewQueryServiceInterface
 {
@@ -16,25 +17,25 @@ final class ReviewQueryService implements ReviewQueryServiceInterface
     ) {
     }
 
-    #[\Override]
+    #[Override]
     public function getReviewsByUserId(int $userId): array
     {
         return $this->reviewRepository->findByUserId($userId);
     }
 
-    #[\Override]
+    #[Override]
     public function getReviewsByCafeId(int $cafeId): array
     {
         return $this->reviewRepository->findByCafeId($cafeId, 'approved');
     }
 
-    #[\Override]
+    #[Override]
     public function calculateAverageRating(int $cafeId): float
     {
         return $this->reviewRepository->calculateAverageRating($cafeId);
     }
 
-    #[\Override]
+    #[Override]
     public function listApprovedReviews(int $cafeId, int $page = 1): array
     {
         try {
@@ -51,7 +52,7 @@ final class ReviewQueryService implements ReviewQueryServiceInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     public function listUserReviews(int $userId): array
     {
         try {
@@ -67,7 +68,7 @@ final class ReviewQueryService implements ReviewQueryServiceInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getCafeRatingStats(int $cafeId): array
     {
         try {
@@ -99,7 +100,7 @@ final class ReviewQueryService implements ReviewQueryServiceInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getReview(int $reviewId): ?array
     {
         try {

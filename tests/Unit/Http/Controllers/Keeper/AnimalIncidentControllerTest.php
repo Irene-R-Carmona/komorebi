@@ -20,16 +20,17 @@ namespace Tests\Unit\Http\Controllers\Keeper;
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Http\Controllers\Keeper\AnimalIncidentController;
-use App\Repositories\AnimalRepository;
+use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
+use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use App\Services\AnimalCareService;
 use App\Services\Contracts\AnimalCareServiceInterface;
 use Nyholm\Psr7\ServerRequest;
-use PDO;
-use PDOStatement;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(AnimalIncidentController::class)]
 final class AnimalIncidentControllerTest extends TestCase
 {
     private const CSRF_TOKEN = 'test-incident-csrf-xyz';
@@ -49,27 +50,14 @@ final class AnimalIncidentControllerTest extends TestCase
         $_SESSION = [];
     }
 
-    private function makePdoStub(): PDO
-    {
-        $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetchAll')->willReturn([]);
-        $stmt->method('fetch')->willReturn(['current_status' => 'active']);
-
-        $pdo = $this->createMock(PDO::class);
-        $pdo->method('prepare')->willReturn($stmt);
-        $pdo->method('lastInsertId')->willReturn('99');
-        $pdo->method('beginTransaction')->willReturn(true);
-        $pdo->method('commit')->willReturn(true);
-
-        return $pdo;
-    }
-
     private function makeController(?AnimalCareServiceInterface $service = null): AnimalIncidentController
     {
-        $pdo = $this->makePdoStub();
-        $animalRepo = new AnimalRepository($pdo);
-        $service ??= new AnimalCareService($pdo, $animalRepo);
+        $animalRepo = $this->createStub(AnimalRepositoryInterface::class);
+        $service ??= new AnimalCareService(
+            animalRepo: $animalRepo,
+            incidentRepo: $this->createStub(AnimalIncidentRepositoryInterface::class),
+            healthCheckRepo: $this->createStub(HealthCheckRepositoryInterface::class),
+        );
 
         return new AnimalIncidentController(
             $service,
@@ -85,13 +73,16 @@ final class AnimalIncidentControllerTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_index_renders_view_and_returns_null(): void
     {
-        $animalRepo = $this->createMock(AnimalRepositoryInterface::class);
-        $animalRepo->method('getActiveIncidents')->willReturn([
+        $incidentRepo = $this->createMock(AnimalIncidentRepositoryInterface::class);
+        $incidentRepo->method('getActiveIncidents')->willReturn([
             ['id' => 1, 'animal_name' => 'Leo', 'severity' => 'high', 'description' => 'Injury', 'status' => 'open', 'created_at' => '2024-01-15 10:30:00'],
         ]);
 
-        $pdo = $this->makePdoStub();
-        $service = new AnimalCareService($pdo, $animalRepo);
+        $service = new AnimalCareService(
+            animalRepo: $this->createStub(AnimalRepositoryInterface::class),
+            incidentRepo: $incidentRepo,
+            healthCheckRepo: $this->createStub(HealthCheckRepositoryInterface::class),
+        );
 
         \ob_start();
         $result = $this->makeController($service)->index(new ServerRequest('GET', '/keeper/incidents'));

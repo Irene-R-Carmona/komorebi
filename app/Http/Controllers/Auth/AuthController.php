@@ -14,7 +14,6 @@ use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
-use App\Services\AuthService;
 use App\Services\Contracts\AuthServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -40,7 +39,7 @@ final class AuthController
 
     public function __construct(?AuthServiceInterface $authService = null, ?ResponseFactory $response = null)
     {
-        $this->authService = $authService ?? Container::make(AuthService::class);
+        $this->authService = $authService ?? Container::make(AuthServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
     }
 
@@ -130,7 +129,7 @@ final class AuthController
         // Error de credenciales: volver a mostrar el formulario
         View::render('auth/login', [
             'titulo' => 'Iniciar Sesión',
-            'error' => $result->getMessage(),
+            'error' => $result->error ?? 'Error de autenticación',
             'old' => ['email' => $data['email']],
         ], ['auth.css']);
 
@@ -178,7 +177,7 @@ final class AuthController
         // Error de negocio: volver a mostrar el formulario
         View::render('auth/register', [
             'titulo' => 'Crear Cuenta',
-            'error' => $result->getMessage(),
+            'error' => $result->error ?? 'Error al crear cuenta',
             'old' => ['name' => $data['name'], 'email' => $data['email']],
         ], ['auth.css']);
 

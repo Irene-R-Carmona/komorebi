@@ -60,6 +60,11 @@ final class Database
             PDO::ATTR_EMULATE_PREPARES => false,
         ];
 
+        if (($sslCa = Env::get('DB_SSL_CA')) !== '') {
+            $options[PDO::MYSQL_ATTR_SSL_CA] = $sslCa;
+            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+        }
+
         try {
             $this->connection = new LoggingPDO($dsn, $user, $pass, $options);
 
@@ -129,18 +134,18 @@ final class Database
     /**
      * Valida charset y collation contra whitelist para prevenir inyección en SET NAMES.
      *
-     * @throws \RuntimeException si el charset o collation no son válidos
+     * @throws RuntimeException si el charset o collation no son válidos
      */
     public static function validateCharset(string $charset, string $collation): void
     {
         $allowedCharsets = ['utf8mb4', 'utf8', 'latin1', 'ascii', 'binary'];
 
         if (!\in_array($charset, $allowedCharsets, true)) {
-            throw new \RuntimeException("Charset inválido: '$charset'. Permitidos: " . \implode(', ', $allowedCharsets));
+            throw new RuntimeException("Charset inválido: '$charset'. Permitidos: " . \implode(', ', $allowedCharsets));
         }
 
         if (!\preg_match('/^[a-z0-9_]+$/i', $collation)) {
-            throw new \RuntimeException("Collation inválida: '$collation'. Solo caracteres alfanuméricos y guiones bajos.");
+            throw new RuntimeException("Collation inválida: '$collation'. Solo caracteres alfanuméricos y guiones bajos.");
         }
     }
 

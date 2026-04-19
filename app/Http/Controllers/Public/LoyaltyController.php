@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Core\Container;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
-use App\Services\LoyaltyService;
+use App\Services\Contracts\LoyaltyServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -17,11 +18,14 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class LoyaltyController
 {
-    private LoyaltyService $loyaltyService;
+    private LoyaltyServiceInterface $loyaltyService;
 
-    public function __construct(private readonly ResponseFactory $response)
+    private ResponseFactory $response;
+
+    public function __construct(?LoyaltyServiceInterface $loyaltyService = null, ?ResponseFactory $response = null)
     {
-        $this->loyaltyService = new LoyaltyService();
+        $this->loyaltyService = $loyaltyService ?? Container::make(LoyaltyServiceInterface::class);
+        $this->response       = $response ?? new ResponseFactory();
     }
 
     /**

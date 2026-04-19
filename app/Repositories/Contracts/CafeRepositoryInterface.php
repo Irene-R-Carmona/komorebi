@@ -127,4 +127,19 @@ interface CafeRepositoryInterface
      * @return bool
      */
     public function updateRating(int $id): bool;
+
+    /**
+     * Búsqueda de texto libre en nombre, ubicación y descripción.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function search(string $query, int $limit = 10): array;
+
+    /**
+     * Buscar cafés por múltiples IDs.
+     *
+     * @param array<int> $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function findByIds(array $ids): array;
 }

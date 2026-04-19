@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
-use App\Core\Database;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Http\Transformers\AnimalTransformer;
-use App\Repositories\AnimalRepository;
-use App\Services\AnimalCareService;
 use App\Services\Contracts\AnimalCareServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -35,12 +33,8 @@ final class AnimalController
         ?ResponseFactory $response = null,
         ?AnimalTransformer $animalTransformer = null,
     ) {
-        if ($animalCareService === null) {
-            $db = Database::getConnection();
-            $animalCareService = new AnimalCareService($db, new AnimalRepository($db));
-        }
-        $this->animalCareService = $animalCareService;
-        $this->response = $response ?? new ResponseFactory();
+        $this->animalCareService = $animalCareService ?? Container::make(AnimalCareServiceInterface::class);
+        $this->response          = $response          ?? new ResponseFactory();
         $this->animalTransformer = $animalTransformer ?? new AnimalTransformer();
     }
 

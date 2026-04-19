@@ -287,7 +287,7 @@ final class Waitlist
     {
         try {
             // Detectar driver para timestamp correcto
-            $driver = $this->db->getAttribute(\PDO::ATTR_DRIVER_NAME);
+            $driver = $this->db->getAttribute(PDO::ATTR_DRIVER_NAME);
             $timestamp = $driver === 'sqlite' ? "datetime('now')" : 'CURRENT_TIMESTAMP';
 
             $set = ['status = :status', "updated_at = {$timestamp}"];

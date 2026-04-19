@@ -10,6 +10,7 @@ use App\Services\Contracts\RateLimitingServiceInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?
@@ -23,6 +24,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  * Cualquier cambio en la integración con RateLimitingService,
  * en el código HTTP retornado, o en el header Retry-After romperá estos tests.
  */
+#[CoversClass(HttpRateLimitMiddleware::class)]
 final class HttpRateLimitMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;

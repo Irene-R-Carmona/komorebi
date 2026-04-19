@@ -11,7 +11,7 @@ use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Core\Container;
-use App\Models\AuditLog;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use App\Services\Contracts\AdminReportServiceInterface;
 use App\Services\Contracts\AdminStatisticsServiceInterface;
 use Error;
@@ -30,16 +30,19 @@ final class ReportController
 {
     private AdminStatisticsServiceInterface $statisticsService;
     private AdminReportServiceInterface $reportService;
+    private AuditLogRepositoryInterface $auditLogRepo;
     private ResponseFactory $response;
 
     public function __construct(
         ?AdminStatisticsServiceInterface $statisticsService = null,
         ?AdminReportServiceInterface $reportService = null,
+        ?AuditLogRepositoryInterface $auditLogRepo = null,
         ?ResponseFactory $response = null
     ) {
         $this->statisticsService = $statisticsService ?? Container::make(AdminStatisticsServiceInterface::class);
-        $this->reportService = $reportService ?? Container::make(AdminReportServiceInterface::class);
-        $this->response = $response ?? new ResponseFactory();
+        $this->reportService     = $reportService     ?? Container::make(AdminReportServiceInterface::class);
+        $this->auditLogRepo      = $auditLogRepo      ?? Container::make(AuditLogRepositoryInterface::class);
+        $this->response          = $response          ?? new ResponseFactory();
     }
 
     /**
@@ -184,7 +187,7 @@ final class ReportController
             $csvContent = \stream_get_contents($tmp);
             \fclose($tmp);
 
-            AuditLog::log(
+            $this->auditLogRepo->log(
                 'export_reports',
                 'report',
                 null,

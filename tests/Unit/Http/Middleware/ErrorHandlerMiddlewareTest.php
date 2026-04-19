@@ -22,7 +22,10 @@ use App\Http\Middleware\ErrorHandlerMiddleware;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Server\RequestHandlerInterface;
+use RuntimeException;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ErrorHandlerMiddleware::class)]
 final class ErrorHandlerMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;
@@ -51,7 +54,7 @@ final class ErrorHandlerMiddlewareTest extends TestCase
     public function testCatchesExceptionAndUsesRenderer(): void
     {
         $request = $this->psr17->createServerRequest('GET', '/');
-        $exception = new \RuntimeException('boom');
+        $exception = new RuntimeException('boom');
         $renderedResponse = $this->psr17->createResponse(422);
 
         $handler = $this->createMock(RequestHandlerInterface::class);
@@ -74,7 +77,7 @@ final class ErrorHandlerMiddlewareTest extends TestCase
     public function testFallsBackTo500WhenNoRendererFound(): void
     {
         $request = $this->psr17->createServerRequest('GET', '/');
-        $exception = new \RuntimeException('boom');
+        $exception = new RuntimeException('boom');
 
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willThrowException($exception);
@@ -88,7 +91,7 @@ final class ErrorHandlerMiddlewareTest extends TestCase
     public function testFallback500ResponseIsJson(): void
     {
         $request = $this->psr17->createServerRequest('GET', '/');
-        $exception = new \RuntimeException('boom');
+        $exception = new RuntimeException('boom');
 
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willThrowException($exception);
@@ -102,7 +105,7 @@ final class ErrorHandlerMiddlewareTest extends TestCase
     public function testHandlerIsNotCalledOnSecondTimeAfterExceptionCaught(): void
     {
         $request = $this->psr17->createServerRequest('GET', '/');
-        $exception = new \RuntimeException('boom');
+        $exception = new RuntimeException('boom');
         $fallbackResponse = $this->psr17->createResponse(503);
 
         $handler = $this->createMock(RequestHandlerInterface::class);

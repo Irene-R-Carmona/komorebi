@@ -7,6 +7,7 @@ namespace App\Core\Seeders;
 use App\Core\Database;
 use App\Core\Logger;
 use PDO;
+use PDOException;
 use Random\RandomException;
 
 /**
@@ -119,7 +120,7 @@ final class ReviewSeeder
                     $insertedCount++;
                     $cafeReviewCounts[$cafeId] = ($cafeReviewCounts[$cafeId] ?? 0) + 1;
                     $ratingsUsed[$requiredRating] = true;
-                } catch (\PDOException $e) {
+                } catch (PDOException $e) {
                     Logger::error('ReviewSeeder: mandatory rating insert failed', ['rating' => $requiredRating, 'exception' => $e->getMessage()]);
                 }
             }
@@ -166,7 +167,7 @@ final class ReviewSeeder
 
                 $insertedCount++;
                 $cafeReviewCounts[$cafeId] = ($cafeReviewCounts[$cafeId] ?? 0) + 1;
-            } catch (\PDOException $e) {
+            } catch (PDOException $e) {
                 Logger::error('ReviewSeeder: insert failed', ['exception' => $e->getMessage(), 'cafe_id' => $cafeId]);
                 continue;
             }

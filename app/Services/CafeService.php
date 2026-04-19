@@ -6,13 +6,15 @@ namespace App\Services;
 
 use App\Core\BaseService;
 use App\Core\Cache;
-use App\Core\Database;
+use App\Core\Container;
 use App\Core\Result;
 use App\Models\AuditLog;
 use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\StatisticsRepositoryInterface;
 use App\Services\Contracts\CafeServiceInterface;
-use PDO;
+use Override;
 use PDOException;
+use RuntimeException;
 
 /**
  * Servicio de gestión de cafés
@@ -24,16 +26,14 @@ use PDOException;
 final class CafeService extends BaseService implements CafeServiceInterface
 {
     private CafeRepositoryInterface $cafeRepo;
-    private ?PDO $db = null; // Inicialización lazy: se obtiene solo cuando se necesita
+    private StatisticsRepositoryInterface $statsRepo;
 
-    public function __construct(CafeRepositoryInterface $cafeRepo)
-    {
-        $this->cafeRepo = $cafeRepo;
-    }
-
-    private function getDb(): PDO
-    {
-        return $this->db ??= Database::getConnection();
+    public function __construct(
+        CafeRepositoryInterface $cafeRepo,
+        ?StatisticsRepositoryInterface $statsRepo = null,
+    ) {
+        $this->cafeRepo   = $cafeRepo;
+        $this->statsRepo  = $statsRepo ?? Container::make(StatisticsRepositoryInterface::class);
     }
 
     /**
@@ -44,7 +44,7 @@ final class CafeService extends BaseService implements CafeServiceInterface
      * @param integer $offset  Offset para paginación
      * @return array Lista de cafés
      */
-    #[\Override]
+    #[Override]
     public function getAll(array $filters = [], int $limit = 100, int $offset = 0): array
     {
         // Para filtros simples, usar métodos específicos del repositorio
@@ -65,7 +65,7 @@ final class CafeService extends BaseService implements CafeServiceInterface
      * @param integer $id ID del café
      * @return array|null Datos del café o null si no existe
      */
-    #[\Override]
+    #[Override]
     public function getById(int $id): ?array
     {
         return $this->cafeRepo->findById($id);
@@ -76,9 +76,9 @@ final class CafeService extends BaseService implements CafeServiceInterface
      *
      * @param array $data Datos del café
      * @return Result
-     * @throws \RuntimeException Si falla la creación en base de datos
+     * @throws RuntimeException Si falla la creación en base de datos
      */
-    #[\Override]
+    #[Override]
     public function create(array $data): Result
     {
         // Validación de campos requeridos
@@ -125,9 +125,9 @@ final class CafeService extends BaseService implements CafeServiceInterface
      * @param integer $id   ID del café
      * @param array   $data Datos a actualizar
      * @return Result
-     * @throws \RuntimeException Si falla la actualización en base de datos
+     * @throws RuntimeException Si falla la actualización en base de datos
      */
-    #[\Override]
+    #[Override]
     public function update(int $id, array $data): Result
     {
         // Verificar que el café existe (usa repositorio)
@@ -195,9 +195,9 @@ final class CafeService extends BaseService implements CafeServiceInterface
      *
      * @param integer $id ID del café
      * @return Result
-     * @throws \RuntimeException Si falla la actualización en base de datos
+     * @throws RuntimeException Si falla la actualización en base de datos
      */
-    #[\Override]
+    #[Override]
     public function toggleActive(int $id): Result
     {
         $cafe = $this->cafeRepo->findById($id);
@@ -229,9 +229,9 @@ final class CafeService extends BaseService implements CafeServiceInterface
      *
      * @param integer $id ID del café
      * @return Result
-     * @throws \RuntimeException Si falla la eliminación en base de datos
+     * @throws RuntimeException Si falla la eliminación en base de datos
      */
-    #[\Override]
+    #[Override]
     public function delete(int $id): Result
     {
         $cafe = $this->cafeRepo->findById($id);
@@ -263,24 +263,10 @@ final class CafeService extends BaseService implements CafeServiceInterface
      * @param integer $limit Límite de resultados
      * @return array Lista de cafés encontrados
      */
-    #[\Override]
+    #[Override]
     public function search(string $query, int $limit = 20): array
     {
-        $searchTerm = "%$query%";
-
-        $sql = '
-            SELECT *
-            FROM cafes
-            WHERE (name LIKE ? OR location LIKE ? OR animal_type LIKE ?)
-            AND is_active = 1
-            ORDER BY name
-            LIMIT ?
-        ';
-
-        $stmt = $this->getDb()->prepare($sql);
-        $stmt->execute([$searchTerm, $searchTerm, $searchTerm, $limit]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->cafeRepo->search($query, $limit);
     }
 
     /**
@@ -290,19 +276,9 @@ final class CafeService extends BaseService implements CafeServiceInterface
      *
      * @psalm-return array<string, null|scalar>|false
      */
-    #[\Override]
+    #[Override]
     public function getStats(): array|false
     {
-        $sql = '
-            SELECT
-                COUNT(*) as total,
-                SUM(IF(is_active = 1, 1, 0)) as active,
-                SUM(IF(has_reservations = 1, 1, 0)) as with_reservations,
-                COUNT(DISTINCT category) as categories,
-                COUNT(DISTINCT animal_type) as animal_types
-            FROM cafes
-        ';
-
-        return $this->getDb()->query($sql)->fetch(PDO::FETCH_ASSOC);
+        return $this->statsRepo->getCafeStats();
     }
 }

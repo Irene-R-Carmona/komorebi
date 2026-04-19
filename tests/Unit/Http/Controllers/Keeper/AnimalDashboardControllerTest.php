@@ -21,16 +21,17 @@ namespace Tests\Unit\Http\Controllers\Keeper;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Keeper\AnimalDashboardController;
+use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use App\Services\AnimalCareService;
 use App\Services\HealthCheckService;
 use Nyholm\Psr7\ServerRequest;
-use PDO;
-use PDOStatement;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(AnimalDashboardController::class)]
 final class AnimalDashboardControllerTest extends TestCase
 {
     protected function setUp(): void
@@ -50,25 +51,14 @@ final class AnimalDashboardControllerTest extends TestCase
         unset($_SERVER['REQUEST_URI']);
     }
 
-    private function makePdoStub(): PDO
-    {
-        $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetchAll')->willReturn([]);
-        $stmt->method('fetch')->willReturn(false);
-
-        $pdo = $this->createMock(PDO::class);
-        $pdo->method('prepare')->willReturn($stmt);
-        $pdo->method('query')->willReturn($stmt);
-
-        return $pdo;
-    }
-
     private function makeController(
         ?AnimalRepositoryInterface $animalRepository = null,
     ): AnimalDashboardController {
-        $pdo = $this->makePdoStub();
-        $animalCareService = new AnimalCareService($pdo, $this->createMock(AnimalRepositoryInterface::class));
+        $animalCareService = new AnimalCareService(
+            animalRepo: $this->createStub(AnimalRepositoryInterface::class),
+            incidentRepo: $this->createStub(AnimalIncidentRepositoryInterface::class),
+            healthCheckRepo: $this->createStub(HealthCheckRepositoryInterface::class),
+        );
         $healthCheckRepo = $this->createMock(HealthCheckRepositoryInterface::class);
         $healthCheckRepo->method('getTodayChecks')->willReturn([]);
         $healthCheckRepo->method('getPendingAnimals')->willReturn([]);

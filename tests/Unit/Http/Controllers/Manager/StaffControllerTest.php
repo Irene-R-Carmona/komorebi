@@ -25,10 +25,11 @@ use App\Core\Result;
 use App\Http\Controllers\Manager\StaffController;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\StaffShiftServiceInterface;
-use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(StaffController::class)]
 final class StaffControllerTest extends TestCase
 {
     /** @var UserRepositoryInterface&\PHPUnit\Framework\MockObject\Stub */
@@ -40,10 +41,10 @@ final class StaffControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->userRepo        = $this->createMock(UserRepositoryInterface::class);
+        $this->userRepo = $this->createMock(UserRepositoryInterface::class);
         $this->responseFactory = new ResponseFactory();
-        $this->request         = $this->createMock(ServerRequestInterface::class);
-        $this->controller      = new StaffController(
+        $this->request = $this->createMock(ServerRequestInterface::class);
+        $this->controller = new StaffController(
             $this->userRepo,
             $this->responseFactory,
             $this->createMock(StaffShiftServiceInterface::class),
@@ -112,7 +113,7 @@ final class StaffControllerTest extends TestCase
     public function test_assign_shift_validates_user_id(): void
     {
         $this->startSession();
-        $_SESSION['user_id']     = 10;
+        $_SESSION['user_id'] = 10;
         $_SESSION['user_cafe_id'] = 1;
 
         $this->request->method('getParsedBody')->willReturn([
@@ -131,7 +132,7 @@ final class StaffControllerTest extends TestCase
     public function test_assign_shift_validates_date_format(): void
     {
         $this->startSession();
-        $_SESSION['user_id']     = 10;
+        $_SESSION['user_id'] = 10;
         $_SESSION['user_cafe_id'] = 1;
 
         $this->request->method('getParsedBody')->willReturn([
@@ -150,7 +151,7 @@ final class StaffControllerTest extends TestCase
     public function test_assign_shift_validates_start_time_format(): void
     {
         $this->startSession();
-        $_SESSION['user_id']     = 10;
+        $_SESSION['user_id'] = 10;
         $_SESSION['user_cafe_id'] = 1;
 
         $this->request->method('getParsedBody')->willReturn([
@@ -168,7 +169,7 @@ final class StaffControllerTest extends TestCase
     public function test_assign_shift_validates_end_time_format(): void
     {
         $this->startSession();
-        $_SESSION['user_id']     = 10;
+        $_SESSION['user_id'] = 10;
         $_SESSION['user_cafe_id'] = 1;
 
         $this->request->method('getParsedBody')->willReturn([
@@ -186,7 +187,7 @@ final class StaffControllerTest extends TestCase
     public function test_assign_shift_validates_start_before_end(): void
     {
         $this->startSession();
-        $_SESSION['user_id']     = 10;
+        $_SESSION['user_id'] = 10;
         $_SESSION['user_cafe_id'] = 1;
 
         $this->request->method('getParsedBody')->willReturn([
@@ -204,7 +205,7 @@ final class StaffControllerTest extends TestCase
     public function test_assign_shift_returns_400_when_shift_overlaps(): void
     {
         $this->startSession();
-        $_SESSION['user_id']     = 10;
+        $_SESSION['user_id'] = 10;
         $_SESSION['user_cafe_id'] = 1;
 
         $this->userRepo->method('existsInCafe')->willReturn(true);
@@ -245,4 +246,3 @@ final class StaffControllerTest extends TestCase
         $this->assertStringContainsString('café asignado', $body['error']);
     }
 }
-

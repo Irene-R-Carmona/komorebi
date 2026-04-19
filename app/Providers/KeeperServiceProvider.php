@@ -7,6 +7,8 @@ namespace App\Providers;
 use App\Core\Container;
 use App\Core\Database;
 use App\Core\ServiceProvider;
+use App\Repositories\AnimalIncidentRepository;
+use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use App\Repositories\HealthCheckRepository;
@@ -14,6 +16,7 @@ use App\Services\AnimalCareService;
 use App\Services\Contracts\AnimalCareServiceInterface;
 use App\Services\Contracts\HealthCheckServiceInterface;
 use App\Services\HealthCheckService;
+use Override;
 
 /**
  * Service Provider para el módulo Keeper (control de salud de animales).
@@ -24,7 +27,7 @@ use App\Services\HealthCheckService;
  */
 final class KeeperServiceProvider extends ServiceProvider
 {
-    #[\Override]
+    #[Override]
     public function register(): void
     {
         Container::singleton(HealthCheckRepository::class, fn () => new HealthCheckRepository(
@@ -41,15 +44,19 @@ final class KeeperServiceProvider extends ServiceProvider
 
         Container::singleton(HealthCheckServiceInterface::class, fn () => Container::make(HealthCheckService::class));
 
+        Container::singleton(AnimalIncidentRepository::class, fn () => new AnimalIncidentRepository());
+        Container::singleton(AnimalIncidentRepositoryInterface::class, fn () => Container::make(AnimalIncidentRepository::class));
+
         Container::singleton(AnimalCareService::class, fn () => new AnimalCareService(
-            Database::getConnection(),
-            Container::make(AnimalRepositoryInterface::class)
+            Container::make(AnimalRepositoryInterface::class),
+            Container::make(AnimalIncidentRepositoryInterface::class),
+            Container::make(HealthCheckRepositoryInterface::class),
         ));
 
         Container::singleton(AnimalCareServiceInterface::class, fn () => Container::make(AnimalCareService::class));
     }
 
-    #[\Override]
+    #[Override]
     public function boot(): void
     {
         // Sin bootstrap específico

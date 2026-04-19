@@ -12,6 +12,9 @@ namespace Tests\Integration;
 
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * Accessibility Test Suite - HTML Structure & ARIA Validation
@@ -26,6 +29,7 @@ use PHPUnit\Framework\TestCase;
  * docker compose exec app php vendor/bin/phpunit tests/Integration/AccessibilityTest.php --testdox
  */
 #[Group('accessibility')]
+#[CoversNothing]
 final class AccessibilityTest extends TestCase
 {
     /**
@@ -198,8 +202,8 @@ final class AccessibilityTest extends TestCase
     public function testImagesHaveAltText(): void
     {
         $componentDir = __DIR__ . '/../../resources/views/components';
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($componentDir, \RecursiveDirectoryIterator::SKIP_DOTS)
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($componentDir, RecursiveDirectoryIterator::SKIP_DOTS)
         );
 
         $violations = [];

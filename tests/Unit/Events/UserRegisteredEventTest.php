@@ -13,7 +13,10 @@ namespace Events;
 use App\Events\UserRegisteredEvent;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(UserRegisteredEvent::class)]
 final class UserRegisteredEventTest extends TestCase
 {
     public function testEventCanBeCreated(): void
@@ -40,7 +43,7 @@ final class UserRegisteredEventTest extends TestCase
             new DateTimeImmutable()
         );
 
-        $ref = new \ReflectionClass($event);
+        $ref = new ReflectionClass($event);
         $this->assertTrue($ref->isReadOnly());
     }
 

@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Services\Contracts\TimeSlotServiceInterface;
+use Override;
 use PDO;
 
 /**
@@ -31,7 +32,7 @@ final class TimeSlotService implements TimeSlotServiceInterface
      * @param int|null $guests  Filtrar por plazas mínimas necesarias (opcional)
      * @return array<int, array<string, mixed>>
      */
-    #[\Override]
+    #[Override]
     public function getAvailableSlots(string $date, ?int $cafeId = null, ?int $guests = null): array
     {
         $sql = '

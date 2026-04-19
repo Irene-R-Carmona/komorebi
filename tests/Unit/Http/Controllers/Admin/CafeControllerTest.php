@@ -21,7 +21,9 @@ use App\Exceptions\ValidationException;
 use App\Http\Controllers\Admin\CafeController;
 use App\Services\Contracts\CafeServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(CafeController::class)]
 final class CafeControllerTest extends ControllerTestCase
 {
     protected function setUp(): void

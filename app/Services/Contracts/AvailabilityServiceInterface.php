@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace App\Services\Contracts;
 
 use App\Core\Result;
+use DateMalformedStringException;
 
 interface AvailabilityServiceInterface
 {
     /**
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function getAvailableSlots(int $cafeId, int $passId, string $dateYmd, int $guests): Result;
 
     /**
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function assertSlotAvailable(int $cafeId, int $passId, string $dateYmd, string $timeHHMM, int $guests): Result;
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use DateTimeImmutable;
+
 /**
  * Contrato para ApiTokenRepository.
  *
@@ -33,7 +35,7 @@ interface ApiTokenRepositoryInterface
         int $userId,
         string $name,
         string $tokenHash,
-        ?\DateTimeImmutable $expiresAt = null
+        ?DateTimeImmutable $expiresAt = null
     ): int;
 
     /**

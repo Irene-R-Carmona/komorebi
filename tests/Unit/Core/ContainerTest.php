@@ -8,8 +8,10 @@ declare(strict_types=1);
  * ¿Qué va a fallar en este test si se cambia el código?
  */
 use App\Core\Container;
+use App\Repositories\Contracts\NewsletterSubscriptionRepositoryInterface;
 use App\Services\NewsletterService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Test del DI Container - Auto-wiring.
@@ -19,6 +21,7 @@ use PHPUnit\Framework\TestCase;
  * - Instanciar servicios con type-hints
  * - Singletons compartir instancia
  */
+#[CoversClass(Container::class)]
 final class ContainerTest extends TestCase
 {
     protected function tearDown(): void
@@ -58,11 +61,11 @@ final class ContainerTest extends TestCase
      */
     public function testAutoWiringResolvesConstructorDependencies(): void
     {
-        // Mock PDO
-        $mockPdo = $this->createStub(PDO::class);
-        Container::instance(PDO::class, $mockPdo);
+        Container::instance(
+            NewsletterSubscriptionRepositoryInterface::class,
+            $this->createStub(NewsletterSubscriptionRepositoryInterface::class)
+        );
 
-        // NewsletterService tiene PDO en su constructor
         $service = Container::make(NewsletterService::class);
 
         $this->assertInstanceOf(NewsletterService::class, $service);

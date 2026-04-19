@@ -17,7 +17,10 @@ namespace Tests\Unit\Providers;
 
 use App\Core\Env;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(Env::class)]
 final class FeatureFlagTest extends TestCase
 {
     public function test_feature_keeper_env_var_is_boolean(): void
@@ -59,7 +62,7 @@ final class FeatureFlagTest extends TestCase
      */
     private function clearEnvCache(): void
     {
-        $ref = new \ReflectionClass(Env::class);
+        $ref = new ReflectionClass(Env::class);
         $prop = $ref->getProperty('cache');
         $prop->setValue(null, []);
     }

@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use App\Core\Database;
+use Override;
 use PDO;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
@@ -46,12 +47,12 @@ abstract class BaseIntegrationTest extends TestCase
     // Ciclo de vida de la clase (una vez por test-class)
     // -------------------------------------------------------------------------
 
-    #[\Override]
+    #[Override]
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
 
-        if (!\getenv('RUN_INTEGRATION_TESTS')) {
+        if (!($_ENV['RUN_INTEGRATION_TESTS'] ?? \getenv('RUN_INTEGRATION_TESTS'))) {
             self::markTestSkipped(
                 'Tests de integración desactivados. ' .
                     'Define la variable de entorno RUN_INTEGRATION_TESTS=1 o usa make test.'
@@ -74,7 +75,7 @@ abstract class BaseIntegrationTest extends TestCase
      *
      * Las subclases DEBEN llamar parent::setUp() al inicio de su setUp().
      */
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -87,7 +88,7 @@ abstract class BaseIntegrationTest extends TestCase
      * Las subclases que sobreescriban tearDown() DEBEN llamar parent::tearDown()
      * al final de su implementación.
      */
-    #[\Override]
+    #[Override]
     protected function tearDown(): void
     {
         if (static::$db->inTransaction()) {

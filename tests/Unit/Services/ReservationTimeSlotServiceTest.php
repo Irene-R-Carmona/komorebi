@@ -25,8 +25,12 @@ use App\Models\Reservation;
 use App\Models\TimeSlot;
 use App\Models\Waitlist;
 use App\Services\ReservationTimeSlotService;
+use PDO;
+use PDOStatement;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ReservationTimeSlotService::class)]
 final class ReservationTimeSlotServiceTest extends TestCase
 {
     private ReservationTimeSlotService $service;
@@ -46,9 +50,9 @@ final class ReservationTimeSlotServiceTest extends TestCase
         // para queries (fetch → null, fetchAll → []).
         // Todos los code paths bajo test terminan ANTES de que un query real
         // sea necesario (validación de input o "no row found").
-        $stmtStub = $this->createMock(\PDOStatement::class);
+        $stmtStub = $this->createMock(PDOStatement::class);
 
-        $pdoStub = $this->createMock(\PDO::class);
+        $pdoStub = $this->createMock(PDO::class);
         $pdoStub->method('prepare')->willReturn($stmtStub);
 
         $this->service = new ReservationTimeSlotService(

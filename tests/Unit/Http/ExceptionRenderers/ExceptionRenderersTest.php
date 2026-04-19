@@ -30,10 +30,15 @@ use App\Http\ExceptionRenderers\FallbackExceptionRenderer;
 use App\Http\ExceptionRenderers\NotFoundExceptionRenderer;
 use App\Http\ExceptionRenderers\RateLimitExceptionRenderer;
 use App\Http\ExceptionRenderers\ValidationExceptionRenderer;
+use Error;
+use LogicException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
+#[CoversNothing]
 final class ExceptionRenderersTest extends TestCase
 {
     private ResponseFactory     $responseFactory;
@@ -62,7 +67,7 @@ final class ExceptionRenderersTest extends TestCase
     public function testValidationRendererDoesNotSupportOtherExceptions(): void
     {
         $r = new ValidationExceptionRenderer($this->responseFactory);
-        $this->assertFalse($r->supports(new \RuntimeException()));
+        $this->assertFalse($r->supports(new RuntimeException()));
     }
 
     public function testValidationRendererReturns422(): void
@@ -92,7 +97,7 @@ final class ExceptionRenderersTest extends TestCase
     public function testNotFoundRendererDoesNotSupportOtherExceptions(): void
     {
         $r = new NotFoundExceptionRenderer($this->responseFactory);
-        $this->assertFalse($r->supports(new \RuntimeException()));
+        $this->assertFalse($r->supports(new RuntimeException()));
     }
 
     public function testNotFoundRendererReturns404(): void
@@ -115,7 +120,7 @@ final class ExceptionRenderersTest extends TestCase
     public function testAuthenticationRendererDoesNotSupportOtherExceptions(): void
     {
         $r = new AuthenticationExceptionRenderer($this->responseFactory);
-        $this->assertFalse($r->supports(new \RuntimeException()));
+        $this->assertFalse($r->supports(new RuntimeException()));
     }
 
     public function testAuthenticationRendererReturns401(): void
@@ -138,7 +143,7 @@ final class ExceptionRenderersTest extends TestCase
     public function testAuthorizationRendererDoesNotSupportOtherExceptions(): void
     {
         $r = new AuthorizationExceptionRenderer($this->responseFactory);
-        $this->assertFalse($r->supports(new \RuntimeException()));
+        $this->assertFalse($r->supports(new RuntimeException()));
     }
 
     public function testAuthorizationRendererReturns403(): void
@@ -161,7 +166,7 @@ final class ExceptionRenderersTest extends TestCase
     public function testBusinessRuleRendererDoesNotSupportOtherExceptions(): void
     {
         $r = new BusinessRuleExceptionRenderer($this->responseFactory);
-        $this->assertFalse($r->supports(new \RuntimeException()));
+        $this->assertFalse($r->supports(new RuntimeException()));
     }
 
     public function testBusinessRuleRendererReturnsHttpCode(): void
@@ -184,7 +189,7 @@ final class ExceptionRenderersTest extends TestCase
     public function testRateLimitRendererDoesNotSupportOtherExceptions(): void
     {
         $r = new RateLimitExceptionRenderer($this->responseFactory);
-        $this->assertFalse($r->supports(new \RuntimeException()));
+        $this->assertFalse($r->supports(new RuntimeException()));
     }
 
     public function testRateLimitRendererReturns429(): void
@@ -214,7 +219,7 @@ final class ExceptionRenderersTest extends TestCase
     public function testDatabaseRendererDoesNotSupportOtherExceptions(): void
     {
         $r = new DatabaseExceptionRenderer($this->responseFactory);
-        $this->assertFalse($r->supports(new \RuntimeException()));
+        $this->assertFalse($r->supports(new RuntimeException()));
     }
 
     public function testDatabaseRendererReturns500(): void
@@ -231,16 +236,16 @@ final class ExceptionRenderersTest extends TestCase
     public function testFallbackRendererSupportsAnyThrowable(): void
     {
         $r = new FallbackExceptionRenderer($this->responseFactory);
-        $this->assertTrue($r->supports(new \RuntimeException()));
-        $this->assertTrue($r->supports(new \LogicException()));
-        $this->assertTrue($r->supports(new \Error()));
+        $this->assertTrue($r->supports(new RuntimeException()));
+        $this->assertTrue($r->supports(new LogicException()));
+        $this->assertTrue($r->supports(new Error()));
         $this->assertTrue($r->supports(new ValidationException()));
     }
 
     public function testFallbackRendererReturns500(): void
     {
         $r = new FallbackExceptionRenderer($this->responseFactory);
-        $res = $r->render(new \RuntimeException('boom'), $this->apiRequest);
+        $res = $r->render(new RuntimeException('boom'), $this->apiRequest);
         $this->assertSame(500, $res->getStatusCode());
     }
 

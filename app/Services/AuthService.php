@@ -19,7 +19,7 @@ use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\RateLimitingServiceInterface;
 use App\Services\Contracts\SessionManagementServiceInterface;
 use DateTimeImmutable;
-use PDO;
+use Override;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Random\RandomException;
 use RuntimeException;
@@ -33,7 +33,6 @@ final class AuthService extends BaseService implements AuthServiceInterface
     private UserModelInterface $userModel;
     private SessionManagementServiceInterface $sessionService;
     private RateLimitingServiceInterface $rateLimiter;
-    private PDO $db;
     private ?EventDispatcherInterface $eventDispatcher;
 
     public function __construct(
@@ -41,14 +40,12 @@ final class AuthService extends BaseService implements AuthServiceInterface
         UserModelInterface $userModel,
         SessionManagementServiceInterface $sessionService,
         RateLimitingServiceInterface $rateLimiter,
-        PDO $db,
         ?EventDispatcherInterface $eventDispatcher = null
     ) {
         $this->userRepo = $userRepo;
         $this->userModel = $userModel;
         $this->sessionService = $sessionService;
         $this->rateLimiter = $rateLimiter;
-        $this->db = $db;
         $this->eventDispatcher = $eventDispatcher;
     }
 
@@ -64,7 +61,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
      * @return Result Data contiene ['redirect' => string] si exitoso
      * @throws RandomException
      */
-    #[\Override]
+    #[Override]
     public function login(string $email, string $password): Result
     {
         $email = \strtolower(\trim($email));
@@ -105,7 +102,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
      * @throws RandomException
      * @throws ValidationException
      */
-    #[\Override]
+    #[Override]
     public function register(string $name, string $email, string $password, string $confirmPassword): Result
     {
         $name = \trim($name);
@@ -122,6 +119,14 @@ final class AuthService extends BaseService implements AuthServiceInterface
 
         if (\mb_strlen($password) < 8) {
             return Result::fail('La contraseña debe tener al menos 8 caracteres.');
+        }
+
+        if (!\preg_match('/[A-Z]/', $password)) {
+            return Result::fail('La contraseña debe contener al menos una letra mayúscula.');
+        }
+
+        if (!\preg_match('/[0-9]/', $password)) {
+            return Result::fail('La contraseña debe contener al menos un número.');
         }
 
         if ($password !== $confirmPassword) {
@@ -166,7 +171,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
      * Cierra la sesión del usuario.
      * @throws RandomException
      */
-    #[\Override]
+    #[Override]
     public function logout(): void
     {
         $user = Session::user();
@@ -202,8 +207,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
         Session::start();
 
         if (Env::get('APP_ENV') === 'local') {
-            Logger::error('[AuthService::createSession] START - Session ID: ' . \session_id(), []);
-            Logger::error('[AuthService::createSession] User: ' . \json_encode($user), []);
+            Logger::debug('[AuthService::createSession] START - Session ID: ' . \session_id(), []);
         }
 
         if (!$user || !isset($user['id'])) {
@@ -218,7 +222,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
         $rolesCodes = \is_array($roles) ? \array_column($roles, 'code') : [];
 
         if (Env::get('APP_ENV') === 'local') {
-            Logger::error('[AuthService::createSession] Roles: ' . \json_encode($rolesCodes), []);
+            Logger::debug('[AuthService::createSession] Roles: ' . \json_encode($rolesCodes), []);
         }
 
         // Crear ID de sesión
@@ -235,8 +239,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
         $this->sessionService->logAuthEvent($userId, 'login', $ipAddress, $userAgent, $deviceName, true);
 
         // Actualizar last_login_at en usuarios
-        $stmt = $this->db->prepare('UPDATE users SET updated_at = NOW() WHERE id = :id');
-        $stmt->execute(['id' => $userId]);
+        $this->userRepo->updateLastLogin($userId, $ipAddress);
 
         // 1. Establecer datos básicos de usuario en sesión
         // Seleccionar rol principal (si existe) o 'user' por defecto
@@ -295,7 +298,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
     /**
      * Verifica si el usuario actual está autenticado.
      */
-    #[\Override]
+    #[Override]
     public function check(): bool
     {
         return Session::isAuthenticated();
@@ -304,7 +307,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
     /**
      * Obtiene el usuario actual.
      */
-    #[\Override]
+    #[Override]
     public function user(): ?array
     {
         if (!$this->check()) {
@@ -406,6 +409,13 @@ final class AuthService extends BaseService implements AuthServiceInterface
             return Result::fail('Tu cuenta está desactivada.');
         }
 
+        // Email no verificado (controlable por EMAIL_VERIFICATION_REQUIRED env var)
+        if (Env::bool('EMAIL_VERIFICATION_REQUIRED', false) && empty($user['email_verified_at'])) {
+            $this->sessionService->logAuthEvent($userId, 'failed_login', $ipAddress, $userAgent, null, false, 'Email no verificado');
+
+            return Result::fail('Debes verificar tu email antes de iniciar sesión.', 'email_not_verified');
+        }
+
         // Verificar contraseña
         if (!$this->userModel->verifyPassword($user, $password)) {
             $this->userModel->registerFailedAttempt($userId);
@@ -437,7 +447,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
         $userId = (int) $user['id'];
 
         if (Env::get('APP_ENV') === 'local') {
-            Logger::error('[AuthService::login] Password verified successfully for user ID: ' . $userId, []);
+            Logger::debug('[AuthService::login] Password verified successfully for user ID: ' . $userId, []);
         }
 
         // Limpiar intentos fallidos
@@ -446,11 +456,11 @@ final class AuthService extends BaseService implements AuthServiceInterface
         $this->rateLimiter->clearAttempts('login', $ipAddress);
 
         if (Env::get('APP_ENV') === 'local') {
-            Logger::error('[AuthService::login] About to call createSession', []);
+            Logger::debug('[AuthService::login] About to call createSession', []);
         }
         $this->createSession($user);
         if (Env::get('APP_ENV') === 'local') {
-            Logger::error('[AuthService::login] createSession completed', []);
+            Logger::debug('[AuthService::login] createSession completed', []);
         }
 
         // Determinar redirección basada en el rol del usuario

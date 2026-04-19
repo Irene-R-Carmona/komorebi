@@ -15,7 +15,9 @@
 #   - Ningún servicio expone puertos al host (red interna test-net).
 #   - Los datos de MySQL viven en tmpfs: desaparecen al detener el contenedor.
 #   - Redis no tiene contraseña ni persistencia en este entorno.
-#   - Los límites de recursos son conservadores para una máquina de 16 GB.
+#   - Los límites de recursos están dimensionados para una máquina de 16 GB.
+#   - db-test y cache-test usan restart: "no" — se levantan solo bajo demanda
+#     y no resurgen si el proceso php-test termina.
 # =============================================================================
 
 services:
@@ -25,6 +27,7 @@ services:
   # --------------------------------------------------------------------------
   db-test:
     image: mysql:8.4
+    restart: "no"
     tmpfs:
       - /var/lib/mysql
     environment:
@@ -39,10 +42,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1g
+          memory: 512m
           cpus: "1.0"
         reservations:
-          memory: 256m
+          memory: 128m
     networks:
       - test-net
 
@@ -51,6 +54,7 @@ services:
   # --------------------------------------------------------------------------
   cache-test:
     image: redis:8-alpine
+    restart: "no"
     command: redis-server --appendonly no --save ""
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -60,8 +64,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 128m
+          memory: 64m
           cpus: "0.5"
+        reservations:
+          memory: 32m
     networks:
       - test-net
 
@@ -88,6 +94,8 @@ services:
       MAIL_HOST: localhost
       MAIL_PORT: 1025
       RUN_INTEGRATION_TESTS: "1"
+      RESERVATION_MAX_DAYS_AHEAD: "9999"
+      CLAUDECODE: "1"
     depends_on:
       db-test:
         condition: service_healthy
@@ -96,12 +104,13 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512m
+          memory: 1g
           cpus: "2.0"
         reservations:
-          memory: 128m
-    # El comando se sobreescribe desde el Makefile (migrations + phpunit)
-    command: ["php", "vendor/bin/phpunit", "--testdox"]
+          memory: 256m
+    # Migra la BD antes de ejecutar PHPUnit — ambos pasos en el mismo contenedor
+    # --force: evita la confirmación interactiva (sin TTY en Docker)
+    command: ["sh", "-c", "php scripts/apply-db.php --force && php vendor/bin/phpunit --testdox"]
     networks:
       - test-net
 

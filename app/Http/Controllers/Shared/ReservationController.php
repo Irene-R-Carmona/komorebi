@@ -15,17 +15,18 @@ use App\Core\WideEvent;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Http\Transformers\ReservationTransformer;
-use App\Models\Reservation;
-use App\Services\AvailabilityService;
-use App\Services\CartService;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Services\Contracts\AvailabilityServiceInterface;
 use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\ClimaContextoServiceInterface;
+use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\FestivosJaponesesService;
-use App\Services\ReservationService;
+use DateMalformedStringException;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -37,28 +38,28 @@ use Throwable;
 final class ReservationController
 {
     private CartServiceInterface $cartService;
-    private ReservationService $reservationService;
-    private AvailabilityService $availabilityService;
-    private Reservation $reservationModel;
+    private ReservationServiceInterface $reservationService;
+    private AvailabilityServiceInterface $availabilityService;
+    private ReservationRepositoryInterface $reservationRepo;
     private ClimaContextoServiceInterface $climaService;
     private FestivosJaponesesService $festivosService;
     private ResponseFactory $response;
 
     public function __construct(
         ?CartServiceInterface $cartService = null,
-        ?ReservationService $reservationService = null,
-        ?AvailabilityService $availabilityService = null,
-        ?Reservation $reservationModel = null,
+        ?ReservationServiceInterface $reservationService = null,
+        ?AvailabilityServiceInterface $availabilityService = null,
+        ?ReservationRepositoryInterface $reservationRepo = null,
         ?ClimaContextoServiceInterface $climaService = null,
         ?FestivosJaponesesService $festivosService = null,
         ?ResponseFactory $response = null
     ) {
-        $this->cartService = $cartService ?? new CartService();
-        $this->reservationService = $reservationService ?? Container::make(ReservationService::class);
-        $this->availabilityService = $availabilityService ?? new AvailabilityService();
-        $this->reservationModel = $reservationModel ?? new Reservation();
+        $this->cartService = $cartService ?? Container::make(CartServiceInterface::class);
+        $this->reservationService = $reservationService ?? Container::make(ReservationServiceInterface::class);
+        $this->availabilityService = $availabilityService ?? Container::make(AvailabilityServiceInterface::class);
+        $this->reservationRepo = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
         $this->climaService = $climaService ?? Container::make(ClimaContextoServiceInterface::class);
-        $this->festivosService = $festivosService ?? new FestivosJaponesesService();
+        $this->festivosService = $festivosService ?? Container::make(FestivosJaponesesService::class);
         $this->response = $response ?? new ResponseFactory();
     }
 
@@ -66,7 +67,7 @@ final class ReservationController
      * GET /reservas
      * Muestra la página principal de reservas
      * @throws JsonException
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
@@ -80,7 +81,7 @@ final class ReservationController
 
         $userId = Session::userId();
 
-        $result = $this->reservationModel->findByUser($userId);
+        $result = $this->reservationRepo->findByUser($userId);
         $misReservas = new ReservationTransformer()->collection($result['data'] ?? []);
 
         $cafes = $this->availabilityService->getAvailableCafesForReservation();
@@ -179,7 +180,7 @@ final class ReservationController
         ], $this->cartService);
 
         if (!$result->ok) {
-            Flash::error($result->getMessage());
+            Flash::error($result->error ?? 'Error al crear reserva');
 
             return $this->response->redirect('/reservas');
         }
@@ -213,7 +214,7 @@ final class ReservationController
             throw ValidationException::withMessage('Reserva inválida');
         }
 
-        $reservation = $this->reservationModel->findById($reservationId);
+        $reservation = $this->reservationRepo->findById($reservationId);
         if (!$reservation) {
             throw NotFoundException::forResource('Reserva', $reservationId);
         }
@@ -228,9 +229,13 @@ final class ReservationController
         }
 
         try {
-            $this->reservationService->cancel($reservationId, $userId);
-            Flash::success('Reserva cancelada correctamente. Se procesará el reembolso en 3-5 días hábiles.');
-        } catch (\RuntimeException $e) {
+            $result = $this->reservationService->cancel($reservationId, $userId);
+            if ($result->ok) {
+                Flash::success('Reserva cancelada correctamente. Se procesará el reembolso en 3-5 días hábiles.');
+            } else {
+                Flash::error($result->error ?? 'No se pudo cancelar la reserva');
+            }
+        } catch (RuntimeException $e) {
             Flash::error($e->getMessage());
         }
 
@@ -252,7 +257,7 @@ final class ReservationController
             return $this->response->redirect('/reservas');
         }
 
-        $reservation = $this->reservationModel->findByIdAndUser($id, $userId);
+        $reservation = $this->reservationRepo->findByIdAndUser($id, $userId);
 
         if (!$reservation) {
             Flash::error('Reserva no encontrada.');

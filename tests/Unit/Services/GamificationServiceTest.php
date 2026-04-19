@@ -16,16 +16,19 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Services\GamificationService;
+use Override;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 #[Group('unit')]
+#[CoversClass(GamificationService::class)]
 final class GamificationServiceTest extends TestCase
 {
     private GamificationService $service;
 
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         $this->service = new GamificationService();

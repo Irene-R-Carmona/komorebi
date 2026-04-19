@@ -23,26 +23,30 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Services\AvailabilityService;
+use PDO;
+use PDOStatement;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
-#[\PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations]
+#[CoversClass(AvailabilityService::class)]
 final class AvailabilityServiceTest extends TestCase
 {
     /** Fecha futura bien dentro de maxDaysAhead=999 para tests normales. */
     private const FUTURE_DATE = '2027-06-15';
 
-    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    /** @var Stub&PDO */
     private PDO $mockPdo;
-    /** @var \PHPUnit\Framework\MockObject\Stub&\PDOStatement */
+    /** @var Stub&PDOStatement */
     private PDOStatement $mockStmt;
     private AvailabilityService $service;
 
     protected function setUp(): void
     {
-        $this->mockStmt = $this->createMock(\PDOStatement::class);
+        $this->mockStmt = $this->createStub(PDOStatement::class);
         $this->mockStmt->method('execute')->willReturn(true);
 
-        $this->mockPdo = $this->createMock(\PDO::class);
+        $this->mockPdo = $this->createStub(PDO::class);
         $this->mockPdo->method('prepare')->willReturn($this->mockStmt);
 
         // maxDaysAhead=999 para que los tests no fallen por rango de fechas

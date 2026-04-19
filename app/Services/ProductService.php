@@ -13,6 +13,7 @@ use App\Exceptions\ValidationException;
 use App\Models\AuditLog;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\Contracts\ProductServiceInterface;
+use Override;
 use PDO;
 use PDOException;
 
@@ -37,7 +38,7 @@ final class ProductService extends TransactionalService implements ProductServic
      *
      * @return array
      */
-    #[\Override]
+    #[Override]
     public function getAll(): array
     {
         $cacheKey = 'products:all';
@@ -72,7 +73,7 @@ final class ProductService extends TransactionalService implements ProductServic
      * @param array   $filters Filtros opcionales: category_id, product_type, is_active, search
      * @return array{data: array, total: int, page: int, perPage: int, totalPages: int}
      */
-    #[\Override]
+    #[Override]
     public function getAllPaginated(int $page = 1, int $perPage = 20, array $filters = []): array
     {
         $page = \max(1, $page);
@@ -87,7 +88,7 @@ final class ProductService extends TransactionalService implements ProductServic
      * @param integer $id
      * @return array|null
      */
-    #[\Override]
+    #[Override]
     public function getById(int $id): ?array
     {
         return $this->productRepo->findById($id);
@@ -100,7 +101,7 @@ final class ProductService extends TransactionalService implements ProductServic
      * @throws ValidationException Si faltan campos obligatorios
      * @throws DatabaseException Si falla la creación
      */
-    #[\Override]
+    #[Override]
     public function create(array $data): int
     {
         // Validación de campos obligatorios
@@ -160,7 +161,7 @@ final class ProductService extends TransactionalService implements ProductServic
      * @throws ValidationException Si faltan campos obligatorios
      * @throws DatabaseException Si falla la actualización
      */
-    #[\Override]
+    #[Override]
     public function update(int $id, array $data): bool
     {
         // Validación de campos obligatorios
@@ -220,7 +221,7 @@ final class ProductService extends TransactionalService implements ProductServic
      * @return boolean
      * @throws DatabaseException Si falla la eliminación
      */
-    #[\Override]
+    #[Override]
     public function delete(int $id): bool
     {
         try {
@@ -252,7 +253,7 @@ final class ProductService extends TransactionalService implements ProductServic
      * @param integer $id
      * @return boolean
      */
-    #[\Override]
+    #[Override]
     public function toggleActive(int $id): bool
     {
         try {
@@ -278,7 +279,7 @@ final class ProductService extends TransactionalService implements ProductServic
      * @param integer $categoryId
      * @return array
      */
-    #[\Override]
+    #[Override]
     public function getByCategory(int $categoryId): array
     {
         $stmt = $this->db->prepare('
@@ -299,7 +300,7 @@ final class ProductService extends TransactionalService implements ProductServic
      * @param string $query
      * @return array
      */
-    #[\Override]
+    #[Override]
     public function search(string $query): array
     {
         $stmt = $this->db->prepare('
@@ -329,7 +330,7 @@ final class ProductService extends TransactionalService implements ProductServic
      * @return boolean
      * @throws DatabaseException Si falla la sincronización
      */
-    #[\Override]
+    #[Override]
     public function syncAllergens(int $productId, array $allergenIds): bool
     {
         try {
@@ -388,7 +389,7 @@ final class ProductService extends TransactionalService implements ProductServic
      * @param integer|null $categoryId
      * @return array
      */
-    #[\Override]
+    #[Override]
     public function getWithoutAllergens(array $excludeAllergenIds, ?int $categoryId = null): array
     {
         if (empty($excludeAllergenIds)) {
@@ -428,7 +429,7 @@ final class ProductService extends TransactionalService implements ProductServic
      * @param integer|null $categoryId
      * @return array
      */
-    #[\Override]
+    #[Override]
     public function getAllWithAllergens(?int $categoryId = null): array
     {
         $sql = 'SELECT p.*, c.name as category_name
@@ -463,7 +464,7 @@ final class ProductService extends TransactionalService implements ProductServic
      * @param integer $productId
      * @return array
      */
-    #[\Override]
+    #[Override]
     public function getAllergensByProduct(int $productId): array
     {
         $stmt = $this->db->prepare('

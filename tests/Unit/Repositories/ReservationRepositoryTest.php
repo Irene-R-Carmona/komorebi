@@ -15,6 +15,7 @@ use PDO;
 use PDOStatement;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para ReservationRepository.
@@ -22,6 +23,7 @@ use PHPUnit\Framework\TestCase;
  * Demuestra cómo testear repositorios mockeando solo PDO,
  * sin necesidad de base de datos real.
  */
+#[CoversClass(ReservationRepository::class)]
 final class ReservationRepositoryTest extends TestCase
 {
     private PDO&MockObject $pdoMock;

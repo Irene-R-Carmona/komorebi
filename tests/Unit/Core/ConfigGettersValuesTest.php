@@ -13,7 +13,9 @@ namespace Tests\Unit\Core;
 use App\Core\Config;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(Config::class)]
 final class ConfigGettersValuesTest extends TestCase
 {
     private function setConfigCache(array $cache): void

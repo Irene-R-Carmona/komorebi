@@ -21,7 +21,9 @@ namespace Tests\Unit\Services;
 use App\Core\Middleware;
 use App\Services\NavigationService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(NavigationService::class)]
 final class NavigationServiceTest extends TestCase
 {
     // ──────────────────────────────────────────────

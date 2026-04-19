@@ -96,7 +96,7 @@ final class ReservationController extends AbstractApiController
         $result = $this->reservationService->create($data);
 
         if (!$result->ok) {
-            return $this->unprocessable($result->getMessage(), 'reservation_error');
+            return $this->unprocessable($result->error ?? 'Error al crear reserva', 'reservation_error');
         }
 
         return $this->success([

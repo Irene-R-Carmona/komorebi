@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Services\Contracts\GamificationServiceInterface;
+use Override;
 
 /**
  * Servicio de gamificación de usuarios
@@ -31,7 +32,7 @@ final class GamificationService implements GamificationServiceInterface
      *
      * @return array{nivel: int, nombre: string, progreso: int, siguiente: int}
      */
-    #[\Override]
+    #[Override]
     public function calculateUserLevel(int $reservasCount): array
     {
         $nivel = 1;
@@ -61,7 +62,7 @@ final class GamificationService implements GamificationServiceInterface
      *
      * @return string
      */
-    #[\Override]
+    #[Override]
     public function getLevelName(int $nivelNumero): string
     {
         return self::LEVELS[$nivelNumero]['nombre'] ?? 'Desconocido';
@@ -75,7 +76,7 @@ final class GamificationService implements GamificationServiceInterface
      *
      * @return array{level_up: bool, new_level?: int, new_level_name?: string}
      */
-    #[\Override]
+    #[Override]
     public function checkLevelUp(int $reservasAntes, int $reservasDespues): array
     {
         $levelAntes = $this->calculateUserLevel($reservasAntes);

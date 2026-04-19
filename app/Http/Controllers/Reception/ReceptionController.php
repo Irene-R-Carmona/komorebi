@@ -11,7 +11,7 @@ use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Services\ContextServiceInstance;
-use App\Services\ReceptionService;
+use App\Services\Contracts\ReceptionServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
@@ -23,19 +23,19 @@ use Throwable;
  */
 final class ReceptionController
 {
-    private ReceptionService $service;
+    private ReceptionServiceInterface $service;
 
     private ResponseFactory $response;
 
     private ?ContextServiceInstance $context = null;
 
     public function __construct(
-        ?ReceptionService $service = null,
+        ?ReceptionServiceInterface $service = null,
         ?ResponseFactory $response = null,
         ?ContextServiceInstance $context = null,
     ) {
         Middleware::auth();
-        $this->service = $service ?? new ReceptionService();
+        $this->service = $service ?? \App\Core\Container::make(ReceptionServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
         $this->context = $context;
     }
@@ -133,7 +133,7 @@ final class ReceptionController
         $result = $this->service->processCheckin($id, $trackId);
 
         if (!$result->ok) {
-            Flash::error($result->getMessage());
+            Flash::error($result->error ?? 'Error al realizar check-in');
 
             return $this->response->redirect('/ops/reception');
         }
@@ -160,7 +160,7 @@ final class ReceptionController
         $result = $this->service->processCheckout($id);
 
         if (!$result->ok) {
-            Flash::error($result->getMessage());
+            Flash::error($result->error ?? 'Error al realizar check-out');
 
             return $this->response->redirect('/ops/reception');
         }

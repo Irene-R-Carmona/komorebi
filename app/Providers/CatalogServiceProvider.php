@@ -7,6 +7,8 @@ namespace App\Providers;
 use App\Core\Container;
 use App\Core\Database;
 use App\Core\ServiceProvider;
+use App\Repositories\AllergenRepository;
+use App\Repositories\Contracts\AllergenRepositoryInterface;
 use App\Repositories\Contracts\MenuRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\MenuRepository;
@@ -16,6 +18,7 @@ use App\Services\Contracts\MenuServiceInterface;
 use App\Services\Contracts\ProductServiceInterface;
 use App\Services\MenuService;
 use App\Services\ProductService;
+use Override;
 
 /**
  * Service Provider para el catálogo: menú y productos.
@@ -26,7 +29,7 @@ use App\Services\ProductService;
  */
 final class CatalogServiceProvider extends ServiceProvider
 {
-    #[\Override]
+    #[Override]
     public function register(): void
     {
         // ── Repositorios ────────────────────────────────────────────
@@ -52,12 +55,18 @@ final class CatalogServiceProvider extends ServiceProvider
 
         Container::singleton(ProductServiceInterface::class, fn () => Container::make(ProductService::class));
 
-        Container::singleton(AllergenService::class, fn () => new AllergenService());
+        Container::singleton(AllergenRepositoryInterface::class, fn () => new AllergenRepository(
+            Database::getConnection()
+        ));
+
+        Container::singleton(AllergenService::class, fn () => new AllergenService(
+            Container::make(AllergenRepositoryInterface::class)
+        ));
 
         Container::singleton(AllergenServiceInterface::class, fn () => Container::make(AllergenService::class));
     }
 
-    #[\Override]
+    #[Override]
     public function boot(): void
     {
         // Sin bootstrap específico

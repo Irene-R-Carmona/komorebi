@@ -20,7 +20,9 @@ namespace Tests\Unit\Services;
 
 use App\Services\CartService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(CartService::class)]
 final class CartServiceTest extends TestCase
 {
     private CartService $service;

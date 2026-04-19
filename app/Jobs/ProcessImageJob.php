@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Core\ImageProcessor;
 use App\Core\Logger;
 use App\Exceptions\FilesystemException;
+use Override;
 use Throwable;
 
 /**
@@ -57,7 +58,7 @@ final class ProcessImageJob implements JobInterface
      * @return void
      * @throws FilesystemException Si falla el procesamiento
      */
-    #[\Override]
+    #[Override]
     public function handle(array $payload): void
     {
         $this->validatePayload($payload);

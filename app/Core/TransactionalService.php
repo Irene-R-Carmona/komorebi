@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core;
 
 use PDO;
+use Throwable;
 
 /**
  * Clase base para Services que requieren transacciones de base de datos.
@@ -42,7 +43,7 @@ abstract class TransactionalService extends BaseService
             $this->db->commit();
 
             return $result;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->db->rollBack();
             $this->logError('Transaction failed', ['exception' => $e->getMessage()]);
 

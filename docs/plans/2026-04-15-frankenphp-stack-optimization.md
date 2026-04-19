@@ -507,7 +507,7 @@ Semana 2:
 
 ## Verificación final
 
-1. `make ci` → PHPStan + Psalm + tests + cs-check todo en verde
+1. `make ci` → PHPStan + tests + cs-check todo en verde
 2. `make e2e` → Playwright sin regresiones
 3. `docker compose exec app curl http://localhost:2019/metrics` → métricas Prometheus activas
 4. `docker compose exec app php -r "var_dump(function_exists('frankenphp_handle_request'));"` → `true`

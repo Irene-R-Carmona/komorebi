@@ -14,7 +14,9 @@ use App\Events\UserRegisteredEvent;
 use App\Listeners\LogUserRegisteredListener;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(LogUserRegisteredListener::class)]
 final class LogUserRegisteredListenerTest extends TestCase
 {
     public function testListenerCanBeInvoked(): void

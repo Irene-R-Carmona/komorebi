@@ -19,12 +19,14 @@ namespace Tests\Unit\Http\Controllers\Shared;
 
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Shared\ReviewController;
-use App\Models\Cafe;
+use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\Contracts\ReviewModerationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\ReviewServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ReviewController::class)]
 final class ReviewControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
@@ -48,7 +50,7 @@ final class ReviewControllerTest extends ControllerTestCase
             reviewService: $this->createStub(ReviewServiceInterface::class),
             queryService: $this->createStub(ReviewQueryServiceInterface::class),
             moderationService: $this->createStub(ReviewModerationServiceInterface::class),
-            cafeModel: new Cafe(),
+            cafeRepo: $this->createStub(CafeRepositoryInterface::class),
         );
     }
 

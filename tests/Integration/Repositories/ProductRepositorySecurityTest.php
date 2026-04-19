@@ -20,7 +20,9 @@ use App\Repositories\ProductRepository;
 use Override;
 use ReflectionClass;
 use Tests\Support\BaseIntegrationTest;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
+#[CoversNothing]
 final class ProductRepositorySecurityTest extends BaseIntegrationTest
 {
     private const int TEST_PRODUCT_ID = 79002;

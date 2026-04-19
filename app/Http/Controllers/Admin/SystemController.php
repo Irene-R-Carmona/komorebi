@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Core\Cache;
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
@@ -12,9 +13,9 @@ use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\DatabaseException;
 use App\Exceptions\ValidationException;
-use App\Models\AuditLog;
-use App\Services\EmailService;
-use App\Services\SettingsService;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
+use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\SettingsServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -27,18 +28,21 @@ use Random\RandomException;
  */
 final class SystemController
 {
-    private SettingsService $settingsService;
-    private EmailService $emailService;
+    private SettingsServiceInterface $settingsService;
+    private EmailServiceInterface $emailService;
+    private AuditLogRepositoryInterface $auditLogRepo;
     private ResponseFactory $response;
 
     public function __construct(
-        ?SettingsService $settingsService = null,
-        ?EmailService $emailService = null,
+        ?SettingsServiceInterface $settingsService = null,
+        ?EmailServiceInterface $emailService = null,
+        ?AuditLogRepositoryInterface $auditLogRepo = null,
         ?ResponseFactory $response = null
     ) {
-        $this->settingsService = $settingsService ?? new SettingsService();
-        $this->emailService = $emailService ?? new EmailService();
-        $this->response = $response ?? new ResponseFactory();
+        $this->settingsService = $settingsService ?? Container::make(SettingsServiceInterface::class);
+        $this->emailService    = $emailService    ?? Container::make(EmailServiceInterface::class);
+        $this->auditLogRepo    = $auditLogRepo    ?? Container::make(AuditLogRepositoryInterface::class);
+        $this->response        = $response        ?? new ResponseFactory();
     }
 
     /**
@@ -190,7 +194,7 @@ final class SystemController
             throw ValidationException::withMessage('Error al enviar el email. Revisa la configuración SMTP y los logs del servidor.', 500);
         }
 
-        AuditLog::log(
+        $this->auditLogRepo->log(
             'test_email',
             'setting',
             null,

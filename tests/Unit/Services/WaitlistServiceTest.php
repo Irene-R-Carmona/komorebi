@@ -43,7 +43,7 @@ use PHPUnit\Framework\TestCase;
 final class WaitlistServiceTest extends TestCase
 {
     private WaitlistService $service;
-    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    /** @var \PHPUnit\Framework\MockObject\Stub&PDO */
     private PDO $dbMock;
     /** @var \PHPUnit\Framework\MockObject\Stub&WaitlistRepositoryInterface */
     private WaitlistRepositoryInterface $waitlistMock;
@@ -60,7 +60,13 @@ final class WaitlistServiceTest extends TestCase
         $stmtDefault = $this->createMock(PDOStatement::class);
         $this->dbMock->method('prepare')->willReturn($stmtDefault);
 
-        $this->service = new WaitlistService($this->dbMock, $this->emailServiceStub, $this->waitlistMock);
+        $this->service = new WaitlistService(
+            $this->dbMock,
+            $this->emailServiceStub,
+            $this->waitlistMock,
+            new TimeSlot($this->dbMock),
+            new Reservation($this->dbMock),
+        );
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -77,8 +83,8 @@ final class WaitlistServiceTest extends TestCase
             'guest_count' => 2,
         ]);
 
-        $this->assertFalse($result->isOk());
-        $this->assertStringContainsString('no encontrado', $result->getMessage());
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('no encontrado', $result->error);
     }
 
     #[TestDox('joinWaitlist falla cuando el time slot tiene plazas disponibles')]
@@ -99,14 +105,20 @@ final class WaitlistServiceTest extends TestCase
         $dbMock = $this->createMock(PDO::class);
         $dbMock->method('prepare')->willReturn($stmt);
 
-        $service = new WaitlistService($dbMock, $this->createMock(EmailServiceInterface::class), $this->waitlistMock);
+        $service = new WaitlistService(
+            $dbMock,
+            $this->createMock(EmailServiceInterface::class),
+            $this->waitlistMock,
+            new TimeSlot($dbMock),
+            new Reservation($dbMock),
+        );
         $result = $service->joinWaitlist(1, 1, [
             'email' => 'test@example.com',
             'guest_count' => 2,
         ]);
 
-        $this->assertFalse($result->isOk());
-        $this->assertStringContainsString('plazas disponibles', $result->getMessage());
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('plazas disponibles', $result->error);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -119,7 +131,7 @@ final class WaitlistServiceTest extends TestCase
         // waitlistMock::findByToken() returns null by default → 'Token de waitlist no válido'
         $result = $this->service->confirmPromotion('token-invalido', []);
 
-        $this->assertFalse($result->isOk());
+        $this->assertFalse($result->ok);
     }
 
     #[TestDox('confirmPromotion falla con token expirado')]
@@ -139,8 +151,8 @@ final class WaitlistServiceTest extends TestCase
 
         $result = $this->service->confirmPromotion('token-expirado', []);
 
-        $this->assertFalse($result->isOk());
-        $this->assertStringContainsString('expirado', $result->getMessage());
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('expirado', $result->error);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -155,8 +167,8 @@ final class WaitlistServiceTest extends TestCase
         $result = $this->service->getPosition(99999, 1);
 
         $this->assertInstanceOf(Result::class, $result);
-        $this->assertTrue($result->isOk()); // getPosition ALWAYS returns ok
-        $this->assertNull($result->getDataOr([])['position'] ?? null);
+        $this->assertTrue($result->ok); // getPosition ALWAYS returns ok
+        $this->assertNull(($result->data ?? [])['position'] ?? null);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -169,8 +181,8 @@ final class WaitlistServiceTest extends TestCase
         // PDOStatement::fetch() returns null (default) → 'Entrada de waitlist no encontrada o no autorizada'
         $result = $this->service->cancelWaitlist(99999, 1);
 
-        $this->assertFalse($result->isOk());
-        $this->assertStringContainsString('no encontrada', $result->getMessage());
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('no encontrada', $result->error);
     }
 
     #[TestDox('cancelWaitlist falla cuando el usuario no es propietario')]
@@ -179,7 +191,7 @@ final class WaitlistServiceTest extends TestCase
         // The query uses WHERE id = ? AND user_id = ?; wrong user returns no row (null fetch)
         $result = $this->service->cancelWaitlist(1, 9999);
 
-        $this->assertFalse($result->isOk());
+        $this->assertFalse($result->ok);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -193,8 +205,8 @@ final class WaitlistServiceTest extends TestCase
         $result = $this->service->getUserWaitlists(99999);
 
         $this->assertInstanceOf(Result::class, $result);
-        $this->assertTrue($result->isOk());
-        $this->assertIsArray($result->getDataOr([])['waitlists'] ?? null);
+        $this->assertTrue($result->ok);
+        $this->assertIsArray(($result->data ?? [])['waitlists'] ?? null);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -207,6 +219,6 @@ final class WaitlistServiceTest extends TestCase
         // waitlistMock::findByToken() returns null by default
         $result = $this->service->getWaitlistStatus('token-invalido');
 
-        $this->assertFalse($result->isOk());
+        $this->assertFalse($result->ok);
     }
 }

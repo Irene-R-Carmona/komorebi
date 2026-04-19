@@ -18,10 +18,12 @@ namespace Tests\Unit\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\FavoriteController;
-use App\Models\Favorite;
+use App\Repositories\Contracts\FavoriteRepositoryInterface;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(FavoriteController::class)]
 final class FavoriteControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
@@ -36,10 +38,9 @@ final class FavoriteControllerTest extends ControllerTestCase
 
     private function makeController(): FavoriteController
     {
-        // Favorite acepta ?PDO, así que inyectamos un stub para evitar conexión DB
         return new FavoriteController(
             new ResponseFactory(),
-            new Favorite($this->createStub(\PDO::class))
+            $this->createStub(FavoriteRepositoryInterface::class),
         );
     }
 

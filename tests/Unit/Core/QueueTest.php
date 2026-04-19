@@ -9,6 +9,7 @@ declare(strict_types=1);
  */
 use App\Core\Queue;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Test unitario básico para Queue
@@ -16,6 +17,7 @@ use PHPUnit\Framework\TestCase;
  * NOTA: Este test requiere Redis disponible. Para ejecutar sin Redis,
  * mockear Cache::getRedis() en setUp().
  */
+#[CoversClass(Queue::class)]
 final class QueueTest extends TestCase
 {
     private const string TEST_QUEUE = 'test_queue_phpunit';

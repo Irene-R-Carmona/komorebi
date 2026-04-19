@@ -20,7 +20,9 @@ namespace Tests\Unit\Services;
 
 use App\Services\AllergenService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(AllergenService::class)]
 final class AllergenServiceTest extends TestCase
 {
     private AllergenService $service;

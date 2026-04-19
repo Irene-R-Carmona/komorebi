@@ -6,7 +6,9 @@ namespace App\Models;
 
 use App\Core\Database;
 use App\Models\Traits\ValidatesData;
+use JsonException;
 use PDO;
+use Throwable;
 
 /**
  * Modelo Animal
@@ -291,7 +293,7 @@ final class Animal
 
     /**
      * Registra un log de estado del animal.
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function logStatus(
         int $animalId,
@@ -315,7 +317,7 @@ final class Animal
 
         try {
             $reason = \json_encode($reasonPayload, JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
+        } catch (JsonException) {
             // Fallback silencioso para entornos sin soporte de JSON_THROW_ON_ERROR
             $reason = \json_encode($reasonPayload);
         }
@@ -346,7 +348,7 @@ final class Animal
             $this->getDb()->commit();
 
             return $logId;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->getDb()->rollBack();
             throw $e;
         }
@@ -475,53 +477,12 @@ final class Animal
     /**
      * Resuelve un incidente.
      *
-     * Nota: Actualmente la tabla `animal_incidents` definida en las migraciones no contiene
-     * una columna `status`. El módulo "keeper" que podría introducir estados (open/resolved)
-     * no está implementado aún y está sujeto a cambios. Para mantener compatibilidad con
-     * el esquema actual y evitar dependencias frágiles, esta función elimina el incidente
-     * (borrado) como acción temporal para marcarlo resuelto. Cuando el módulo keeper esté
-     * implementado, cambiar a un soft-delete o actualizar la columna de estado según el esquema.
      */
     public function resolveIncident(int $incidentId): bool
     {
-        // Comprobar esquema en runtime y construir UPDATE dinámico si las columnas existen
-        $hasStatus = false;
-        $hasResolvedAt = false;
-
-        try {
-            $check = $this->getDb()->query(
-                "SELECT COLUMN_NAME FROM information_schema.COLUMNS
-                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'animal_incidents'
-                 AND COLUMN_NAME IN ('status','resolved_at')"
-            );
-            $cols = $check->fetchAll(PDO::FETCH_COLUMN);
-            $hasStatus = \in_array('status', $cols, true);
-            $hasResolvedAt = \in_array('resolved_at', $cols, true);
-        } catch (\Throwable) {
-            // ignore and fallback to delete below
-        }
-
-        if ($hasStatus) {
-            $parts = [];
-            $parts[] = "status = 'resolved'";
-            if ($hasResolvedAt) {
-                $parts[] = 'resolved_at = NOW()';
-            }
-            $sql = 'UPDATE animal_incidents SET ' . \implode(', ', $parts) . ' WHERE id = :id';
-
-            try {
-                $stmt = $this->getDb()->prepare($sql);
-                $ok = $stmt->execute(['id' => $incidentId]);
-                if ($ok) {
-                    return true;
-                }
-            } catch (\Throwable) {
-                // fallthrough to delete
-            }
-        }
-
-        // Fallback: eliminar el incidente (temporal)
-        $stmt = $this->getDb()->prepare('DELETE FROM animal_incidents WHERE id = :id');
+        $stmt = $this->getDb()->prepare(
+            "UPDATE animal_incidents SET status = 'resolved', resolved_at = NOW() WHERE id = :id"
+        );
         $stmt->bindValue('id', $incidentId, PDO::PARAM_INT);
 
         return $stmt->execute();
@@ -616,7 +577,7 @@ final class Animal
             $check->bindValue('cafe_id', $cafeId, PDO::PARAM_INT);
             $check->execute();
             $openIncidents = (int) $check->fetchColumn();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Fallback
             $stmt = $this->getDb()->prepare(
                 'SELECT COUNT(*) FROM animal_incidents i

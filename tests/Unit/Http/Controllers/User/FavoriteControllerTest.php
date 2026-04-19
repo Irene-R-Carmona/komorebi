@@ -17,7 +17,9 @@ namespace Tests\Unit\Http\Controllers\User;
 
 use App\Http\Controllers\User\FavoriteController;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(FavoriteController::class)]
 final class FavoriteControllerTest extends TestCase
 {
     #[\PHPUnit\Framework\Attributes\Test]

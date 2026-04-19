@@ -31,10 +31,12 @@ use App\Http\Middleware\RoleMiddleware;
 use App\Middleware\SecurityHeadersMiddleware;
 use App\Services\Contracts\ApiTokenServiceInterface;
 use App\Services\Contracts\RateLimitingServiceInterface;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Throwable;
 
 /**
  * Factory para crear middlewares PSR-15 con sintaxis simplificada.
@@ -78,7 +80,7 @@ final class MiddlewareFactory
     {
         try {
             $tokenService = Container::make(ApiTokenServiceInterface::class);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $tokenService = null;
         }
 
@@ -178,7 +180,7 @@ final class MiddlewareFactory
             ) {
             }
 
-            #[\Override]
+            #[Override]
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
             {
                 return new HttpRateLimitMiddleware(

@@ -4,60 +4,53 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Env;
 use App\Core\ExceptionLogger;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
-use App\Models\AuditLog;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
+use Error;
+use Exception;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
-/**
- * Controlador de Logs de Auditoría
- *
- * Responsabilidad única: Visualización y exportación de logs de auditoría
- *
- * Métodos:
- * - index() - Vista principal de logs
- * - getAuditLogsData() - API lista logs con filtros
- * - stats() - Estadísticas de auditoría
- * - export() - Exportar a CSV
- */
 final class AuditLogController
 {
+    private AuditLogRepositoryInterface $auditLogRepo;
     private ResponseFactory $response;
 
-    public function __construct(?ResponseFactory $response = null)
-    {
+    public function __construct(
+        ?AuditLogRepositoryInterface $auditLogRepo = null,
+        ?ResponseFactory $response = null
+    ) {
+        $this->auditLogRepo = $auditLogRepo ?? Container::make(AuditLogRepositoryInterface::class);
         $this->response = $response ?? new ResponseFactory();
     }
+
     /**
      * GET /admin/logs/audit
-     * Vista de logs de auditoría
      * @throws JsonException
      * @throws RandomException
      */
     public function index(): ?ResponseInterface
     {
-        // Si es petición AJAX, devolver datos JSON
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && \strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
             return $this->getAuditLogsData();
         }
 
-        // Renderizar vista
-        $auditLogModel = new AuditLog();
-        $rawStats = $auditLogModel->getStats();
+        $rawStats = $this->auditLogRepo->getStats();
         View::render('admin/logs/audit', [
-            'titulo' => 'Logs de Auditoría',
+            'titulo'     => 'Logs de Auditoría',
             'csrf_token' => Csrf::token(),
-            'stats' => [
-                'total_logs' => (int) ($rawStats['totals']['total_actions'] ?? 0),
-                'last_24h' => (int) ($rawStats['totals']['last_24h'] ?? 0),
+            'stats'      => [
+                'total_logs'       => (int) ($rawStats['totals']['total_actions'] ?? 0),
+                'last_24h'         => (int) ($rawStats['totals']['last_24h'] ?? 0),
                 'critical_actions' => (int) ($rawStats['totals']['critical_actions'] ?? 0),
-                'active_users' => (int) ($rawStats['totals']['unique_users'] ?? 0),
+                'active_users'     => (int) ($rawStats['totals']['unique_users'] ?? 0),
             ],
             'extraJs' => ['admin/admin-logs.js'],
         ], ['admin/admin-logs.css'], 'backoffice');
@@ -67,87 +60,69 @@ final class AuditLogController
 
     /**
      * GET /admin/logs/audit (AJAX)
-     * Obtener datos de logs de auditoría con filtros
      * @throws JsonException
      */
     private function getAuditLogsData(): ResponseInterface
     {
-        $filters = [
-            'user_id' => !empty($_GET['user_id']) ? (int) $_GET['user_id'] : null,
-            'action' => $_GET['action'] ?? null,
+        $filters = \array_filter([
+            'user_id'       => !empty($_GET['user_id']) ? (int) $_GET['user_id'] : null,
+            'action'        => $_GET['action'] ?? null,
             'resource_type' => $_GET['resource_type'] ?? null,
-            'date_from' => $_GET['date_from'] ?? null,
-            'date_to' => $_GET['date_to'] ?? null,
-            'ip_address' => $_GET['ip_address'] ?? null,
-        ];
+            'date_from'     => $_GET['date_from'] ?? null,
+            'date_to'       => $_GET['date_to'] ?? null,
+            'ip_address'    => $_GET['ip_address'] ?? null,
+        ], static fn ($v) => $v !== null);
 
-        // Remover valores nulos
-        $filters = \array_filter($filters, static fn ($v) => $v !== null);
-
-        $page = \max(1, (int) ($_GET['page'] ?? 1));
-        $limit = \max(10, \min(100, (int) ($_GET['limit'] ?? 50)));
+        $page   = \max(1, (int) ($_GET['page'] ?? 1));
+        $limit  = \max(10, \min(100, (int) ($_GET['limit'] ?? 50)));
         $offset = ($page - 1) * $limit;
 
-        $auditLogModel = new AuditLog();
-        $result = $auditLogModel->findAll($filters, $limit, $offset);
+        $result = $this->auditLogRepo->findAll($filters, $limit, $offset);
 
         return $this->response->json(['ok' => true, 'data' => [
-            'logs' => $result['data'],
+            'logs'  => $result['data'],
             'total' => $result['total'],
         ]]);
     }
 
     /**
      * GET /admin/logs/audit/stats
-     * Obtener estadísticas de auditoría
      * @throws JsonException
      */
     public function stats(): ResponseInterface
     {
-        $filters = [
+        $filters = \array_filter([
             'date_from' => $_GET['date_from'] ?? null,
-            'date_to' => $_GET['date_to'] ?? null,
-        ];
+            'date_to'   => $_GET['date_to'] ?? null,
+        ], static fn ($v) => $v !== null && $v !== '');
 
-        $filters = \array_filter($filters, static fn ($v) => $v !== null && $v !== '');
-
-        $auditLogModel = new AuditLog();
-        $stats = $auditLogModel->getStats($filters);
+        $stats = $this->auditLogRepo->getStats($filters);
 
         return $this->response->json(['ok' => true, 'data' => ['stats' => $stats]]);
     }
 
     /**
      * GET /admin/logs/audit/export
-     * Exportar logs de auditoría a CSV
      */
     public function export(ServerRequestInterface $request): ResponseInterface
     {
         try {
             $queryParams = $request->getQueryParams();
-            $filters = [
-                'user_id' => !empty($queryParams['user_id']) ? (int) $queryParams['user_id'] : null,
-                'action' => $queryParams['action'] ?? null,
+            $filters = \array_filter([
+                'user_id'       => !empty($queryParams['user_id']) ? (int) $queryParams['user_id'] : null,
+                'action'        => $queryParams['action'] ?? null,
                 'resource_type' => $queryParams['resource_type'] ?? null,
-                'date_from' => $queryParams['date_from'] ?? null,
-                'date_to' => $queryParams['date_to'] ?? null,
-                'ip_address' => $queryParams['ip_address'] ?? null,
-            ];
+                'date_from'     => $queryParams['date_from'] ?? null,
+                'date_to'       => $queryParams['date_to'] ?? null,
+                'ip_address'    => $queryParams['ip_address'] ?? null,
+            ], static fn ($v) => $v !== null && $v !== '');
 
-            $filters = \array_filter($filters, static fn ($v) => $v !== null && $v !== '');
-
-            $auditLogModel = new AuditLog();
-            $result = $auditLogModel->findAll($filters, 10000, 0);
+            $result = $this->auditLogRepo->findAll($filters, 10000, 0);
 
             $tmp = \fopen('php://temp', 'rw+');
-
-            // BOM para UTF-8
             \fprintf($tmp, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));
-
-            // Encabezados
             \fputcsv($tmp, ['ID', 'Timestamp', 'Usuario', 'Acción', 'Tipo Recurso', 'ID Recurso', 'IP', 'User Agent'], ',', '"');
 
-            // Datos
             foreach ($result['data'] as $log) {
                 \fputcsv($tmp, [
                     $log['id'],
@@ -171,22 +146,12 @@ final class AuditLogController
             $response->getBody()->write((string) $csvContent);
 
             return $response;
-        } catch (\Exception $e) {
+        } catch (Exception | Error $e) {
             ExceptionLogger::log($e, 'Admin\\AuditLogController::export');
             $isDebug = Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production');
             $response = $this->response->createResponse(500);
             View::render('errors/500', [
-                'message' => $isDebug ? $e->getMessage() : 'Error al generar el archivo de exportación',
-                'show_details' => $isDebug,
-            ]);
-
-            return $response;
-        } catch (\Error $e) {
-            ExceptionLogger::log($e, 'Admin\\AuditLogController::export');
-            $isDebug = Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production');
-            $response = $this->response->createResponse(500);
-            View::render('errors/500', [
-                'message' => $isDebug ? $e->getMessage() : 'Error al generar el archivo de exportación',
+                'message'      => $isDebug ? $e->getMessage() : 'Error al generar el archivo de exportación',
                 'show_details' => $isDebug,
             ]);
 

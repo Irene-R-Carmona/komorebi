@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Core\Http\ResponseFactory;
+use JsonException;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -25,9 +27,9 @@ final class ApiMiddleware implements MiddlewareInterface
     }
 
     /**
-     * @throws \JsonException
+     * @throws JsonException
      */
-    #[\Override]
+    #[Override]
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler

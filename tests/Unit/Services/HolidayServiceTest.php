@@ -20,7 +20,9 @@ namespace Tests\Unit\Services;
 
 use App\Services\HolidayService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(HolidayService::class)]
 final class HolidayServiceTest extends TestCase
 {
     private HolidayService $service;

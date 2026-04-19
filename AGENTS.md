@@ -24,10 +24,27 @@ resources/views/          → Templates grouped by role; layouts/ holds main, ba
 
 **Every PHP file** must start with `declare(strict_types=1);`.
 
-**Global PHP functions and classes** — always use the FQFN `\` prefix inside namespaced files.
-Never use `use function trim;` or `use RuntimeException;` — write `\trim()`, `\RuntimeException`,
-`\PDO::FETCH_ASSOC`, `\DateTimeImmutable` directly. This applies to all global functions,
-built-in exceptions, `PDO`, `DateTime*`, `DateTimeZone`, `DateTimeInterface`, etc.
+**Global PHP classes** — import with `use` statements at the top of the file, then reference unqualified:
+
+```php
+use PDO;
+use Throwable;
+use DateTimeImmutable;
+use RuntimeException;
+use Override;
+// Then use: PDO::FETCH_ASSOC, catch (Throwable $e), new DateTimeImmutable(), #[Override]
+```
+
+Never use FQFN `\` prefix for global classes (`\PDO`, `\Throwable`) — always `use` import them.
+
+**Global PHP functions** — always use the `\` prefix for native functions inside namespaced files
+(enforced by `php-cs-fixer` `native_function_invocation`). Never use `use function`:
+
+```php
+\time(), \trim(), \array_map(), \sprintf(), \urlencode()  // ✅
+time(), trim()                                             // ❌ — triggers namespace lookup
+use function time;                                         // ❌ — unnecessary
+```
 
 **Result pattern** — all service methods return `Result`, never throw for expected failures:
 
@@ -108,8 +125,8 @@ $mw->rateLimit('key')     // Redis-backed rate limiting per named bucket
 ```php
 final class CafeRepository extends AbstractRepository
 {
-    #[\Override] protected function getTable(): string { return 'cafes'; }
-    #[\Override] protected function getSelectFields(): array { return ['id', 'slug', 'name', 'is_active']; }
+    #[Override] protected function getTable(): string { return 'cafes'; }
+    #[Override] protected function getSelectFields(): array { return ['id', 'slug', 'name', 'is_active']; }
     // Custom queries go here using $this->db (PDO)
 }
 // Obtain PDO directly: Database::getConnection()  (not Container::make(PDO::class))
@@ -145,7 +162,8 @@ Container::singleton(MyService::class, fn() => new MyService(Container::make(PDO
 
 **Value objects** are `final readonly` classes: `Result`, `Raw`, all `app/Events/*`.
 
-**`#[\Override]`** attribute is required on every method that overrides a parent or implements an interface.
+**`#[Override]`** attribute is required on every method that overrides a parent or implements an interface.
+Always import: `use Override;` — then use `#[Override]` (not `#[\Override]`).
 
 **DTOs** — live in `app/Domain/DTO/`, are `final readonly` classes. Always implement `fromArray()` + `toViewArray()`:
 

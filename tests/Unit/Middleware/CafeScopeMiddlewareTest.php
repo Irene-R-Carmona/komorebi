@@ -18,12 +18,14 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para CafeScopeMiddleware
  *
  * Validación de ownership sobre café asignado (Manager scope).
  */
+#[CoversClass(CafeScopeMiddleware::class)]
 final class CafeScopeMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;

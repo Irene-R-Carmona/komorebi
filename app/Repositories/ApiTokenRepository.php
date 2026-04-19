@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Repositories\Contracts\ApiTokenRepositoryInterface;
+use DateTimeImmutable;
+use Override;
 use PDO;
 
 /**
@@ -15,14 +17,14 @@ use PDO;
  */
 final class ApiTokenRepository extends AbstractRepository implements ApiTokenRepositoryInterface
 {
-    #[\Override]
+    #[Override]
     protected function getTable(): string
     {
         return 'api_tokens';
     }
 
     /** @return array<string> */
-    #[\Override]
+    #[Override]
     protected function getSelectFields(): array
     {
         return ['id', 'user_id', 'name', 'token_hash', 'last_used_at', 'expires_at', 'revoked_at', 'created_at'];
@@ -69,7 +71,7 @@ final class ApiTokenRepository extends AbstractRepository implements ApiTokenRep
     /**
      * Crea un nuevo token y retorna el ID insertado.
      */
-    public function createToken(int $userId, string $name, string $tokenHash, ?\DateTimeImmutable $expiresAt = null): int
+    public function createToken(int $userId, string $name, string $tokenHash, ?DateTimeImmutable $expiresAt = null): int
     {
         $stmt = $this->getDb()->prepare(
             'INSERT INTO api_tokens (user_id, name, token_hash, expires_at)

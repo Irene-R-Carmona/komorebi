@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Core\Container;
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
+use App\Core\Session;
 use App\Services\Contracts\WaitlistServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -24,10 +25,10 @@ final class WaitlistController
 
     private ResponseFactory $response;
 
-    public function __construct()
+    public function __construct(?WaitlistServiceInterface $service = null, ?ResponseFactory $response = null)
     {
-        $this->service = Container::make(WaitlistServiceInterface::class);
-        $this->response = new ResponseFactory();
+        $this->service   = $service ?? Container::make(WaitlistServiceInterface::class);
+        $this->response  = $response ?? new ResponseFactory();
     }
 
     /**
@@ -38,12 +39,13 @@ final class WaitlistController
      * Body:
      * {
      *   "time_slot_id": 123,
-     *   "user_id": 45,
      *   "guest_count": 2,
      *   "contact_email": "user@example.com",
      *   "contact_phone": "+34666123456",
      *   "special_requests": "Mesa junto a ventana"
      * }
+     *
+     * Requiere autenticación — user_id se obtiene de la sesión (no del body).
      *
      * Response 201:
      * {
@@ -62,15 +64,23 @@ final class WaitlistController
         $raw = $raw === false ? '' : $raw;
         $input = \json_decode($raw, true) ?? [];
 
-        if (!isset($input['time_slot_id'], $input['user_id'])) {
+        // user_id exclusivamente desde sesión — nunca del body (previene IDOR)
+        $userId = Session::userId();
+        if ($userId === null) {
             return $this->response->problem(
-                Result::fail('Faltan campos requeridos: time_slot_id, user_id', 'bad_request'),
+                Result::fail('Autenticación requerida', 'unauthenticated'),
+                401
+            );
+        }
+
+        if (!isset($input['time_slot_id'])) {
+            return $this->response->problem(
+                Result::fail('Falta campo requerido: time_slot_id', 'bad_request'),
                 400
             );
         }
 
         $timeSlotId = (int) $input['time_slot_id'];
-        $userId = (int) $input['user_id'];
 
         $data = [
             'guest_count' => (int) ($input['guest_count'] ?? 1),
@@ -81,11 +91,11 @@ final class WaitlistController
 
         $result = $this->service->joinWaitlist($timeSlotId, $userId, $data);
 
-        if (!$result->isOk()) {
+        if (!$result->ok) {
             return $this->response->problem($result, 400);
         }
 
-        $waitlistData = (array) $result->getDataOr([]);
+        $waitlistData = (array) ($result->data ?? []);
         $position = isset($waitlistData['position']) ? (int) $waitlistData['position'] : 0;
 
         return $this->response->json([
@@ -130,11 +140,11 @@ final class WaitlistController
 
         $result = $this->service->getWaitlistStatus($token);
 
-        if (!$result->isOk()) {
+        if (!$result->ok) {
             return $this->response->problem($result, 404);
         }
 
-        $data = (array) $result->getDataOr([]);
+        $data = (array) ($result->data ?? []);
         if (isset($data['position'])) {
             $data['position'] = (int) $data['position'];
         }
@@ -171,11 +181,11 @@ final class WaitlistController
 
         $result = $this->service->confirmPromotion($token, $input);
 
-        if (!$result->isOk()) {
+        if (!$result->ok) {
             return $this->response->problem($result, 400);
         }
 
-        $data = (array) $result->getDataOr([]);
+        $data = (array) ($result->data ?? []);
 
         return $this->response->json([
             'ok' => true,

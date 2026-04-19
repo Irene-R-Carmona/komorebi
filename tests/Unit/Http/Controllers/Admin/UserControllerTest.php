@@ -19,11 +19,16 @@ namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\UserController;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
+use App\Repositories\Contracts\RoleRepositoryInterface;
+use App\Repositories\Contracts\UserManagementRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\UserManagementService;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(UserController::class)]
 final class UserControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
@@ -47,10 +52,16 @@ final class UserControllerTest extends ControllerTestCase
             ['id' => 2, 'name' => 'Juan', 'email' => 'juan@example.com'],
         ]);
 
+        $mgmtService = new UserManagementService(
+            userRepo: $this->createStub(UserRepositoryInterface::class),
+            userMgmtRepo: $this->createStub(UserManagementRepositoryInterface::class),
+        );
         $controller = new UserController(
-            userManagementService: new UserManagementService($this->createMock(\PDO::class)),
+            roleRepo: $this->createStub(RoleRepositoryInterface::class),
+            userManagementService: $mgmtService,
             userRepo: $repoStub,
-            response: new ResponseFactory()
+            auditLogRepo: $this->createStub(AuditLogRepositoryInterface::class),
+            response: new ResponseFactory(),
         );
 
         $result = $controller->getUsersList($this->makeGetRequest('/admin/users/list'));
@@ -69,10 +80,16 @@ final class UserControllerTest extends ControllerTestCase
         $repoStub = $this->createMock(UserRepositoryInterface::class);
         $repoStub->method('getActiveUsersList')->willReturn([]);
 
+        $mgmtService = new UserManagementService(
+            userRepo: $this->createStub(UserRepositoryInterface::class),
+            userMgmtRepo: $this->createStub(UserManagementRepositoryInterface::class),
+        );
         $controller = new UserController(
-            userManagementService: new UserManagementService($this->createMock(\PDO::class)),
+            roleRepo: $this->createStub(RoleRepositoryInterface::class),
+            userManagementService: $mgmtService,
             userRepo: $repoStub,
-            response: new ResponseFactory()
+            auditLogRepo: $this->createStub(AuditLogRepositoryInterface::class),
+            response: new ResponseFactory(),
         );
 
         $result = $controller->getUsersList($this->makeGetRequest('/admin/users/list'));

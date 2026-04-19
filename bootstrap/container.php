@@ -124,7 +124,10 @@ Container::singleton(ClimaContextoService::class, static function (): ClimaConte
 
 // Tokens Bearer opacos para la API
 Container::singleton(ApiTokenRepositoryInterface::class, fn () => new ApiTokenRepository());
-Container::singleton(ApiTokenServiceInterface::class, fn () => new ApiTokenService(Container::make(ApiTokenRepositoryInterface::class)));
+Container::singleton(ApiTokenServiceInterface::class, fn () => new ApiTokenService(
+    Container::make(ApiTokenRepositoryInterface::class),
+    Container::make(UserRepositoryInterface::class)
+));
 // Alias por concrete class (para compatibilidad interna si fuera necesario)
 Container::singleton(ApiTokenRepository::class, fn () => Container::make(ApiTokenRepositoryInterface::class));
 Container::singleton(ApiTokenService::class, fn () => Container::make(ApiTokenServiceInterface::class));

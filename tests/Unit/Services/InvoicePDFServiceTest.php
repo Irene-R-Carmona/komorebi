@@ -22,7 +22,9 @@ namespace Tests\Unit\Services;
 use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\InvoicePDFService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(InvoicePDFService::class)]
 final class InvoicePDFServiceTest extends TestCase
 {
     private InvoicePDFService $service;

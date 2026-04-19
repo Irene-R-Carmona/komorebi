@@ -10,6 +10,8 @@ use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
 use App\Services\Contracts\CafeServiceInterface;
+use App\Support\TimeHelper;
+use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -116,7 +118,7 @@ final class CafeController
                 'message' => 'Capacidad actualizada correctamente',
                 'capacity_max' => $capacityMax,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->response->json([
                 'success' => false,
                 'error' => 'Error al actualizar capacidad: ' . $e->getMessage(),
@@ -146,7 +148,7 @@ final class CafeController
         $closingTime = $body['closing_time'] ?? '';
 
         // Validar formato HH:MM o HH:MM:SS
-        if (!$this->isValidTime($openingTime) || !$this->isValidTime($closingTime)) {
+        if (!TimeHelper::isValid($openingTime) || !TimeHelper::isValid($closingTime)) {
             return $this->response->json([
                 'success' => false,
                 'error' => 'Formato de hora inválido. Use HH:MM',
@@ -154,7 +156,7 @@ final class CafeController
         }
 
         // Validar que apertura < cierre
-        if ($this->compareTime($openingTime, $closingTime) >= 0) {
+        if (TimeHelper::compare($openingTime, $closingTime) >= 0) {
             return $this->response->json([
                 'success' => false,
                 'error' => 'La hora de apertura debe ser menor que la de cierre',
@@ -163,17 +165,17 @@ final class CafeController
 
         try {
             $this->cafeService->update($cafeId, [
-                'opening_time' => $this->normalizeTime($openingTime),
-                'closing_time' => $this->normalizeTime($closingTime),
+                'opening_time' => TimeHelper::normalize($openingTime),
+                'closing_time' => TimeHelper::normalize($closingTime),
             ]);
 
             return $this->response->json([
                 'success' => true,
                 'message' => 'Horarios actualizados correctamente',
-                'opening_time' => $this->normalizeTime($openingTime),
-                'closing_time' => $this->normalizeTime($closingTime),
+                'opening_time' => TimeHelper::normalize($openingTime),
+                'closing_time' => TimeHelper::normalize($closingTime),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->response->json([
                 'success' => false,
                 'error' => 'Error al actualizar horarios: ' . $e->getMessage(),
@@ -241,7 +243,7 @@ final class CafeController
                 'message' => 'Configuración actualizada correctamente',
                 'updates' => $updates,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->response->json([
                 'success' => false,
                 'error' => 'Error al actualizar configuración: ' . $e->getMessage(),
@@ -249,35 +251,4 @@ final class CafeController
         }
     }
 
-    /**
-     * Valida formato de tiempo HH:MM o HH:MM:SS
-     */
-    private function isValidTime(string $time): bool
-    {
-        return (bool) \preg_match('/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/', $time);
-    }
-
-    /**
-     * Compara dos tiempos (HH:MM)
-     * Retorna: < 0 si time1 < time2, 0 si iguales, > 0 si time1 > time2
-     */
-    private function compareTime(string $time1, string $time2): int
-    {
-        $t1 = \strtotime($this->normalizeTime($time1));
-        $t2 = \strtotime($this->normalizeTime($time2));
-
-        return $t1 <=> $t2;
-    }
-
-    /**
-     * Normaliza tiempo a formato HH:MM:SS
-     */
-    private function normalizeTime(string $time): string
-    {
-        if (\preg_match('/^\d{2}:\d{2}$/', $time)) {
-            return $time . ':00';
-        }
-
-        return $time;
-    }
 }

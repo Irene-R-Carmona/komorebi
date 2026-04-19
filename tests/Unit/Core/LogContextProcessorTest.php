@@ -6,9 +6,11 @@ namespace Tests\Unit\Core;
 
 use App\Core\LogContext;
 use App\Core\LogContextProcessor;
+use DateTimeImmutable;
 use Monolog\Level;
 use Monolog\LogRecord;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?
@@ -20,6 +22,7 @@ use PHPUnit\Framework\TestCase;
  * ¿Qué va a fallar en este test si se cambia el código?
  * Si el processor deja de usar LogContext::all() o escribe en el lugar equivocado.
  */
+#[CoversClass(LogContextProcessor::class)]
 final class LogContextProcessorTest extends TestCase
 {
     protected function setUp(): void
@@ -35,7 +38,7 @@ final class LogContextProcessorTest extends TestCase
     private function makeRecord(array $extra = []): LogRecord
     {
         return new LogRecord(
-            datetime: new \DateTimeImmutable(),
+            datetime: new DateTimeImmutable(),
             channel: 'test',
             level: Level::Info,
             message: 'test message',

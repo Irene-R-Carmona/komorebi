@@ -72,10 +72,10 @@ final class ReviewController
 
         $result = $this->moderationService->approveReview($id);
 
-        if ($result->isOk()) {
+        if ($result->ok) {
             Flash::success('Reseña aprobada correctamente');
         } else {
-            Flash::error($result->getMessage('Error al aprobar reseña'));
+            Flash::error($result->error ?? 'Error al aprobar reseña');
         }
 
         return $this->response->redirect(self::ADMIN_REVIEWS_URL);
@@ -100,10 +100,10 @@ final class ReviewController
 
         $result = $this->moderationService->rejectReview($id, $reason);
 
-        if ($result->isOk()) {
+        if ($result->ok) {
             Flash::success('Reseña rechazada');
         } else {
-            Flash::error($result->getMessage('Error al rechazar reseña'));
+            Flash::error($result->error ?? 'Error al rechazar reseña');
         }
 
         return $this->response->redirect(self::ADMIN_REVIEWS_URL);

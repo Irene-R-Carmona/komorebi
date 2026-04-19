@@ -66,7 +66,7 @@ final class CartController extends AbstractApiController
             ? (int) $body['quantity']
             : 1;
 
-        return $this->success($this->service->add($productId, $quantity));
+        return $this->success($this->service->add($productId, $quantity)->data);
     }
 
     /**
@@ -84,7 +84,7 @@ final class CartController extends AbstractApiController
             return $this->unprocessable('product_id requerido y debe ser numérico');
         }
 
-        return $this->success($this->service->remove($productId));
+        return $this->success($this->service->remove($productId)->data);
     }
 
     /**
@@ -106,7 +106,7 @@ final class CartController extends AbstractApiController
             return $this->unprocessable('change debe estar entre -10 y 10');
         }
 
-        return $this->success($this->service->updateItem($productId, $change));
+        return $this->success($this->service->updateItem($productId, $change)->data);
     }
 
     /**

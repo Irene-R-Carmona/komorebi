@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tools\PHPStan;
 
+use Override;
 use PhpParser\Node;
 use PhpParser\Node\Expr\StaticCall;
 use PHPStan\Analyser\Scope;
@@ -22,7 +23,7 @@ final class LoggerContextRule implements Rule
 {
     private const array REQUIRED_CONTEXT_METHODS = ['error', 'critical', 'alert', 'emergency'];
 
-    #[\Override]
+    #[Override]
     public function getNodeType(): string
     {
         return StaticCall::class;
@@ -32,7 +33,7 @@ final class LoggerContextRule implements Rule
      * @param StaticCall $node
      * @return list<\PHPStan\Rules\RuleError>
      */
-    #[\Override]
+    #[Override]
     public function processNode(Node $node, Scope $scope): array
     {
         if (!$node->class instanceof Node\Name) {

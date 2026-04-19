@@ -14,15 +14,17 @@ use App\Repositories\ReviewRepository;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para ReviewRepository
  */
+#[CoversClass(ReviewRepository::class)]
 final class ReviewRepositoryTest extends TestCase
 {
     private ReviewRepository $repository;
 
-    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    /** @var \PHPUnit\Framework\MockObject\Stub&PDO */
     private PDO $db;
 
     protected function setUp(): void

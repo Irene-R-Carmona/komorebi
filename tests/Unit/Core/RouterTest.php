@@ -41,8 +41,10 @@ namespace {
     use App\Exceptions\MiddlewareException;
     use App\Exceptions\RouterException;
     use App\Exceptions\RouterParameterException;
+    use PHPUnit\Framework\Attributes\CoversClass;
     use PHPUnit\Framework\TestCase;
 
+    #[CoversClass(Router::class)]
     final class RouterTest extends TestCase
     {
         private Router $router;

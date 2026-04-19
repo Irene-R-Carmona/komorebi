@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Repositories\Contracts\ProductRepositoryInterface;
+use Override;
 use PDO;
 
 /**
@@ -15,13 +16,13 @@ use PDO;
  */
 final class ProductRepository extends AbstractRepository implements ProductRepositoryInterface
 {
-    #[\Override]
+    #[Override]
     protected function getTable(): string
     {
         return 'products';
     }
 
-    #[\Override]
+    #[Override]
     protected function getSelectFields(): array
     {
         return [
@@ -297,6 +298,31 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function findByIds(array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        $ids          = \array_map('intval', $ids);
+        $placeholders = \implode(',', \array_fill(0, \count($ids), '?'));
+
+        $stmt = $this->getDb()->prepare(
+            "SELECT id, name, japanese_name, price, product_type,
+                    is_active, image_url, station
+             FROM products
+             WHERE id IN ($placeholders)"
+        );
+        $stmt->execute($ids);
+
+        $products = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $products[(int) $row['id']] = $row;
+        }
+
+        return $products;
+    }
+
     /*
      * ==========================================================================
      * MÉTODOS DE GESTIÓN DE STOCK - COMPORTAMIENTO PLACEHOLDER
@@ -556,7 +582,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      * @param int $perPage Items por página
      * @return array{data: array, total: int, page: int, perPage: int, totalPages: int}
      */
-    #[\Override]
+    #[Override]
     public function findFiltered(array $filters = [], int $page = 1, int $perPage = 20): array
     {
         // Validar parámetros

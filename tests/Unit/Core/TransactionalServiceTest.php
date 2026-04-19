@@ -11,7 +11,9 @@ declare(strict_types=1);
 use App\Core\Result;
 use App\Core\TransactionalService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(TransactionalService::class)]
 final class ConcreteTransactionalService extends TransactionalService
 {
     public function __construct(PDO $db)
@@ -58,7 +60,7 @@ final class TransactionalServiceTest extends TestCase
         });
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('DB error', $result->getMessage());
+        $this->assertStringContainsString('DB error', $result->error);
     }
 
     public function testTransactPropagatesFailResultWithRollback(): void
@@ -69,6 +71,6 @@ final class TransactionalServiceTest extends TestCase
         $result = $this->service->runTransact(fn () => Result::fail('negocio falló', 'business_error'));
 
         $this->assertFalse($result->ok);
-        $this->assertSame('negocio falló', $result->getMessage());
+        $this->assertSame('negocio falló', $result->error);
     }
 }

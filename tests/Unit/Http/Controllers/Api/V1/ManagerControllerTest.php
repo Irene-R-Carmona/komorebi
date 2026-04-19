@@ -19,7 +19,9 @@ use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\ManagerController;
 use App\Services\Contracts\DashboardServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ManagerController::class)]
 final class ManagerControllerTest extends ControllerTestCase
 {
     protected function setUp(): void

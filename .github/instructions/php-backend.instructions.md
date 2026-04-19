@@ -15,6 +15,35 @@ Every PHP file starts with:
 declare(strict_types=1);
 ```
 
+## Imports convention
+
+**Global classes** — always import with `use` at the top of the file:
+
+```php
+use PDO;
+use Throwable;
+use DateTimeImmutable;
+use RuntimeException;
+use Override;
+```
+
+Then reference them unqualified: `PDO::FETCH_ASSOC`, `catch (Throwable $e)`, `#[Override]`.
+
+**Global functions** — always use `\` prefix inline (enforced by `php-cs-fixer`):
+
+```php
+\time(), \trim(), \array_map(), \sprintf()  // ✅
+time(), trim()                               // ❌
+use function time;                           // ❌
+```
+
+**Project classes** — standard `use` imports:
+
+```php
+use App\Core\Result;
+use App\Core\Logger;
+```
+
 ## Result pattern
 
 Service methods **never throw for expected failures** — always return `Result`:
@@ -109,13 +138,13 @@ Extend `AbstractRepository`; implement the two required abstract methods:
 ```php
 final class CafeRepository extends AbstractRepository
 {
-    #[\Override]
+    #[Override]
     protected function getTable(): string
     {
         return 'cafes';
     }
 
-    #[\Override]
+    #[Override]
     protected function getSelectFields(): array
     {
         return ['id', 'slug', 'name', 'is_active'];  // never SELECT *
@@ -125,9 +154,10 @@ final class CafeRepository extends AbstractRepository
 
 Obtain `PDO` via `Database::getConnection()` in repository constructors — not `Container::make(PDO::class)`.
 
-## #[\Override] attribute
+## #[Override] attribute
 
 Required on **every** method that overrides a parent method or implements an interface method. PHPStan level 5 enforces this.
+Always import the attribute: `use Override;` — then use `#[Override]` (not `#[\Override]`).
 
 ## Dependency injection
 

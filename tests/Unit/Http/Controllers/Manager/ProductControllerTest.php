@@ -17,9 +17,13 @@ namespace Tests\Unit\Http\Controllers\Manager;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Manager\ProductController;
+use App\Repositories\Contracts\MenuCategoryRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\Contracts\ProductServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ProductController::class)]
 final class ProductControllerTest extends ControllerTestCase
 {
     #[\PHPUnit\Framework\Attributes\Test]
@@ -35,8 +39,12 @@ final class ProductControllerTest extends ControllerTestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function test_instance_can_be_created_with_response_factory(): void
     {
-        $productService = $this->createStub(ProductServiceInterface::class);
-        $controller = new ProductController($productService, new ResponseFactory());
+        $controller = new ProductController(
+            productService: $this->createStub(ProductServiceInterface::class),
+            productRepo: $this->createStub(ProductRepositoryInterface::class),
+            categoryRepo: $this->createStub(MenuCategoryRepositoryInterface::class),
+            response: new ResponseFactory(),
+        );
         $this->assertInstanceOf(ProductController::class, $controller);
     }
 }

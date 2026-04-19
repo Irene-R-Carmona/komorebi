@@ -20,8 +20,10 @@ Cuando haya ≥ 1 % de probabilidad de que una skill aplique → **invócala sin
 | Patrón                    | Regla                                                                                                |
 |---------------------------|------------------------------------------------------------------------------------------------------|
 | `declare(strict_types=1)` | **Primera línea** de cada archivo PHP                                                                |
+| Imports de clases globales | `use PDO;`, `use Throwable;`, `use Override;` — **nunca** FQFN `\PDO`, `\Throwable` para clases     |
+| Funciones globales con `\` | `\time()`, `\trim()`, `\array_map()` — siempre prefijo `\` para funciones nativas                   |
 | `Result` pattern          | Todos los servicios devuelven `Result::ok()` / `Result::fail()` — nunca lanzan excepciones esperadas |
-| `#[\Override]`            | Obligatorio en **todo** método que sobreescribe o implementa interfaz                                |
+| `#[Override]`             | Obligatorio en **todo** método que sobreescribe o implementa interfaz (con `use Override;`)          |
 | CSRF                      | Requerido en **todas** las rutas mutantes (POST/PUT/PATCH/DELETE)                                    |
 | Interfaces de servicio    | Los controllers inyectan interfaces desde `app/Services/Contracts/`, no clases concretas             |
 | DTOs                      | `final readonly class` en `app/Domain/DTO/`, implementan `fromArray()` + `toViewArray()`             |

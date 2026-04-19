@@ -18,8 +18,11 @@ namespace Tests\Integration;
 
 use App\Repositories\ProductRepository;
 use App\Services\ProductService;
+use Override;
 use Tests\Support\BaseIntegrationTest;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
+#[CoversNothing]
 final class ProductIntegrationTest extends BaseIntegrationTest
 {
     private ProductService $service;
@@ -28,7 +31,7 @@ final class ProductIntegrationTest extends BaseIntegrationTest
     private const TEST_CATEGORY_ID = 88880;
     private const TEST_PRODUCT_ID_BASE = 88881;
 
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();

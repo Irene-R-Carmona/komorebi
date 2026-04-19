@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * Button Component Test Suite
@@ -21,6 +22,7 @@ use PHPUnit\Framework\TestCase;
  * Run with:
  * docker compose exec app php vendor/bin/phpunit tests/Integration/ButtonComponentTest.php --testdox
  */
+#[CoversNothing]
 final class ButtonComponentTest extends TestCase
 {
     private string $componentPath;

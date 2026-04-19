@@ -19,12 +19,14 @@ use PDO;
 use PDOStatement;
 use PHPUnit\Framework\TestCase;
 use Random\RandomException;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para AuthService usando Result Pattern
  *
  * AuthService NO lanza excepciones, retorna Result{ok:bool, data, error}
  */
+#[CoversClass(AuthService::class)]
 final class AuthServiceTest extends TestCase
 {
     private AuthService $service;

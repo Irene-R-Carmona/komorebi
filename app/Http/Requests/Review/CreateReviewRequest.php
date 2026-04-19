@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Requests\Review;
 
 use App\Core\Http\FormRequest;
+use Override;
 
 /**
  * Valida y sanitiza los datos para crear una nueva reseña.
  */
 final class CreateReviewRequest extends FormRequest
 {
-    #[\Override]
+    #[Override]
     protected function rules(): array
     {
         return [
@@ -22,7 +23,7 @@ final class CreateReviewRequest extends FormRequest
         ];
     }
 
-    #[\Override]
+    #[Override]
     protected function sanitize(array $raw): array
     {
         return [

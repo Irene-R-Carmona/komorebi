@@ -11,7 +11,9 @@ declare(strict_types=1);
 use App\Core\ValueObjects\DateString;
 use App\Exceptions\ValidationException;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(DateString::class)]
 final class DateStringTest extends TestCase
 {
     public function testValidDateIsAccepted(): void

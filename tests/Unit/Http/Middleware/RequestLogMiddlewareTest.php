@@ -12,6 +12,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use ReflectionMethod;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?
@@ -24,6 +26,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  * ¿Qué va a fallar en este test si se cambia el código?
  * Si el middleware deja de generar request_id, de poblar WideEvent, o de llamar reset().
  */
+#[CoversClass(RequestLogMiddleware::class)]
 final class RequestLogMiddlewareTest extends TestCase
 {
     protected function setUp(): void
@@ -181,7 +184,7 @@ final class RequestLogMiddlewareTest extends TestCase
     public function testSensitiveFieldsRedactedIn4xxBody(): void
     {
         // Accedemos al método privado estático via Reflection (PHP 8.1+ no requiere setAccessible)
-        $ref = new \ReflectionMethod(RequestLogMiddleware::class, 'sanitizeBody');
+        $ref = new ReflectionMethod(RequestLogMiddleware::class, 'sanitizeBody');
 
         $body = [
             'email' => 'user@example.com',

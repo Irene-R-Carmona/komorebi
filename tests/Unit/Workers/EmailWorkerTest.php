@@ -12,12 +12,14 @@ namespace Workers;
 
 use App\Workers\EmailWorker;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para EmailWorker
  *
  * Valida la lógica del worker de emails (sin ejecutar loop real).
  */
+#[CoversClass(EmailWorker::class)]
 final class EmailWorkerTest extends TestCase
 {
     private EmailWorker $worker;

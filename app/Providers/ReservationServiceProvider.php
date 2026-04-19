@@ -23,6 +23,7 @@ use App\Repositories\TimeSlotRepository;
 use App\Repositories\WaitlistRepository;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Services\Contracts\LoyaltyServiceInterface;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\ReservationTimeSlotServiceInterface;
 use App\Services\Contracts\TimeSlotServiceInterface;
@@ -34,6 +35,7 @@ use App\Services\ReservationService;
 use App\Services\ReservationTimeSlotService;
 use App\Services\TimeSlotService;
 use App\Services\WaitlistService;
+use Override;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -41,7 +43,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
  */
 final class ReservationServiceProvider extends ServiceProvider
 {
-    #[\Override]
+    #[Override]
     public function register(): void
     {
         // Repositorios de reservas
@@ -74,7 +76,8 @@ final class ReservationServiceProvider extends ServiceProvider
             Container::make(InvoicePDFServiceInterface::class),
             Container::make(EmailServiceInterface::class),
             Container::make(EventDispatcherInterface::class),
-            Container::make(UserProfileServiceInterface::class)
+            Container::make(UserProfileServiceInterface::class),
+            Container::make(LoyaltyServiceInterface::class)
         ));
 
         Container::singleton(ReservationServiceInterface::class, fn () => Container::make(ReservationService::class));
@@ -127,7 +130,7 @@ final class ReservationServiceProvider extends ServiceProvider
         Container::singleton(TimeSlotServiceInterface::class, fn () => Container::make(TimeSlotService::class));
     }
 
-    #[\Override]
+    #[Override]
     public function boot(): void
     {
         // No hay bootstrap específico

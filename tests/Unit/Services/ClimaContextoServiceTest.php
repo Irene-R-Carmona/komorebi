@@ -24,9 +24,14 @@ namespace Tests\Unit\Services;
 
 use App\Services\ClimaContextoService;
 use App\Services\WeatherService;
+use DateTime;
+use DateTimeZone;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ClimaContextoService::class)]
 final class ClimaContextoServiceTest extends TestCase
 {
     // ─────────────────────────────────────────────────────────────
@@ -176,8 +181,8 @@ final class ClimaContextoServiceTest extends TestCase
 
         // Usamos reflection para acceder al método privado y no depender del fallo de red.
         $clima = new ClimaContextoService($weatherService);
-        $ref = new \ReflectionMethod($clima, 'obtenerClimaPorDefecto');
-        $horaObj = new \DateTime('now', new \DateTimeZone('Asia/Tokyo'));
+        $ref = new ReflectionMethod($clima, 'obtenerClimaPorDefecto');
+        $horaObj = new DateTime('now', new DateTimeZone('Asia/Tokyo'));
         $fallback = $ref->invoke($clima, $horaObj);
 
         $requiredKeys = [
@@ -200,8 +205,8 @@ final class ClimaContextoServiceTest extends TestCase
     public function testFallbackUsaCondicionClouds(): void
     {
         $clima = new ClimaContextoService(new WeatherService());
-        $ref = new \ReflectionMethod($clima, 'obtenerClimaPorDefecto');
-        $horaObj = new \DateTime('now', new \DateTimeZone('Asia/Tokyo'));
+        $ref = new ReflectionMethod($clima, 'obtenerClimaPorDefecto');
+        $horaObj = new DateTime('now', new DateTimeZone('Asia/Tokyo'));
         $fallback = $ref->invoke($clima, $horaObj);
 
         $this->assertSame('clouds', $fallback['condicion']);

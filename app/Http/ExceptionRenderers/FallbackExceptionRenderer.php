@@ -8,8 +8,10 @@ use App\Core\Env;
 use App\Core\Result;
 use App\Core\ServiceErrorCode;
 use App\Core\View;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Renderer de último recurso: captura cualquier Throwable no cubierto.
@@ -17,20 +19,20 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class FallbackExceptionRenderer extends AbstractExceptionRenderer
 {
-    #[\Override]
-    public function supports(\Throwable $e): bool
+    #[Override]
+    public function supports(Throwable $e): bool
     {
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function priority(): int
     {
         return 1;
     }
 
-    #[\Override]
-    public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
+    #[Override]
+    public function render(Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
         $isDebug = (bool) (Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production'));
 

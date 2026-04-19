@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use Override;
 use PDO;
+use PDOStatement;
 
 /**
  * PDO extendido que registra queries lentas.
@@ -42,7 +44,7 @@ final class LoggingPDO extends PDO
      * @inheritDoc
      * Mide la duración de exec() y loguea si supera DB_SLOW_QUERY_MS.
      */
-    #[\Override]
+    #[Override]
     public function exec(string $statement): int|false
     {
         $slowMs = Env::int('DB_SLOW_QUERY_MS', 100);
@@ -72,8 +74,8 @@ final class LoggingPDO extends PDO
      * @param int|null   $fetchMode
      * @param mixed      ...$fetchModeArgs
      */
-    #[\Override]
-    public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): \PDOStatement|false
+    #[Override]
+    public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
     {
         $slowMs = Env::int('DB_SLOW_QUERY_MS', 100);
         $start = \hrtime(true);

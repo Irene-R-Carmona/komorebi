@@ -12,6 +12,7 @@ use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Services\Contracts\ReviewModerationServiceInterface;
 use DateTimeImmutable;
 use Exception;
+use Override;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 final class ReviewModerationService implements ReviewModerationServiceInterface
@@ -23,7 +24,7 @@ final class ReviewModerationService implements ReviewModerationServiceInterface
     ) {
     }
 
-    #[\Override]
+    #[Override]
     public function approveReview(int $reviewId): Result
     {
         try {
@@ -66,7 +67,7 @@ final class ReviewModerationService implements ReviewModerationServiceInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     public function rejectReview(int $reviewId, string $reason): Result
     {
         try {
@@ -80,7 +81,7 @@ final class ReviewModerationService implements ReviewModerationServiceInterface
                 return Result::fail('Reseña no encontrada');
             }
 
-            $reason = \htmlspecialchars($reason, ENT_QUOTES, 'UTF-8');
+            $reason = \trim($reason);
             $this->reviewRepository->updateStatus($reviewId, 'rejected');
 
             Logger::info('Reseña rechazada', [
@@ -101,7 +102,7 @@ final class ReviewModerationService implements ReviewModerationServiceInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     public function moderateReview(int $reviewId, string $status): bool
     {
         try {
@@ -126,7 +127,7 @@ final class ReviewModerationService implements ReviewModerationServiceInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     public function listPendingReviews(int $page = 1): array
     {
         try {
@@ -142,7 +143,7 @@ final class ReviewModerationService implements ReviewModerationServiceInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     public function deleteReviewById(int $reviewId): bool
     {
         try {

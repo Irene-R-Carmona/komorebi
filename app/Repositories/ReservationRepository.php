@@ -6,6 +6,8 @@ namespace App\Repositories;
 
 use App\Domain\Reservation\ReservationStateMachine;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
+use DateTimeImmutable;
+use Override;
 use PDO;
 
 /**
@@ -16,13 +18,13 @@ use PDO;
  */
 final class ReservationRepository extends AbstractRepository implements ReservationRepositoryInterface
 {
-    #[\Override]
+    #[Override]
     protected function getTable(): string
     {
         return 'reservations';
     }
 
-    #[\Override]
+    #[Override]
     protected function getSelectFields(): array
     {
         return [
@@ -67,47 +69,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         $stmt->execute(['user_id' => $userId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Buscar reserva con todos los datos operativos (tracker, zona, protocolos, notas de pago).
-     * Usar SOLO desde KitchenService, ReceptionService y controllers de staff.
-     */
-    public function findWithOperationalData(int $id): ?array
-    {
-        $stmt = $this->getDb()->prepare(
-            'SELECT id, user_id, cafe_id, pass_product_id, pass_name, pass_unit_price,
-                    pass_duration_minutes, tracker_id, current_zone_id, reservation_date,
-                    reservation_time, guest_count, status, check_in_at, check_out_at,
-                    protocol_hygiene, protocol_briefing, protocol_shoes, final_amount,
-                    payment_status, payment_method, payment_notes, notes,
-                    deleted_at, created_at, updated_at
-             FROM reservations
-             WHERE id = :id
-             LIMIT 1'
-        );
-        $stmt->execute(['id' => $id]);
-
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $result ?: null;
-    }
-
-    /**
-     * Buscar reserva por UUID público.
-     */
-    public function findByUuid(string $uuid): ?array
-    {
-        $fields = \implode(', ', $this->getSelectFields());
-
-        $stmt = $this->getDb()->prepare(
-            "SELECT $fields FROM reservations WHERE uuid = :uuid LIMIT 1"
-        );
-        $stmt->execute(['uuid' => $uuid]);
-
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $result ?: null;
     }
 
     /**
@@ -205,29 +166,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     }
 
     /**
-     * Verificar disponibilidad en un slot de tiempo.
-     */
-    public function isSlotAvailable(int $cafeId, string $date, string $time): bool
-    {
-        $stmt = $this->getDb()->prepare(
-            "SELECT COUNT(*)
-             FROM reservations
-             WHERE cafe_id = :cafe_id
-             AND reservation_date = :date
-             AND reservation_time = :time
-             AND status IN ('pending', 'confirmed', 'active')
-             AND deleted_at IS NULL"
-        );
-        $stmt->execute([
-            'cafe_id' => $cafeId,
-            'date' => $date,
-            'time' => $time,
-        ]);
-
-        return (int) $stmt->fetchColumn() === 0;
-    }
-
-    /**
      * Actualizar estado de una reserva.
      */
     public function updateStatus(int $id, string $status): bool
@@ -317,57 +255,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
             'deleted_at' => \date('Y-m-d H:i:s'),
             'updated_at' => \date('Y-m-d H:i:s'),
         ]);
-    }
-
-    /**
-     * Marcar como no-show.
-     */
-    public function markAsNoShow(int $id): bool
-    {
-        return $this->update($id, [
-            'status' => 'no_show',
-            'updated_at' => \date('Y-m-d H:i:s'),
-        ]);
-    }
-
-    /**
-     * Contar reservas de un usuario.
-     */
-    public function countByUser(int $userId, ?string $status = null): int
-    {
-        $conditions = ['user_id' => $userId];
-
-        if ($status !== null) {
-            $conditions['status'] = $status;
-        }
-
-        return $this->count($conditions);
-    }
-
-    /**
-     * Obtener estadísticas de reservas de un café.
-     */
-    public function getStatsForCafe(int $cafeId, string $startDate, string $endDate): array
-    {
-        $stmt = $this->getDb()->prepare(
-            'SELECT
-                status,
-                COUNT(*) as count,
-                SUM(final_amount) as total_amount,
-                AVG(guest_count) as avg_guests
-             FROM reservations
-             WHERE cafe_id = :cafe_id
-             AND reservation_date BETWEEN :start_date AND :end_date
-             AND deleted_at IS NULL
-             GROUP BY status'
-        );
-        $stmt->execute([
-            'cafe_id' => $cafeId,
-            'start_date' => $startDate,
-            'end_date' => $endDate,
-        ]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -476,8 +363,8 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
         // Generar slots
         $slots = [];
-        $opening = new \DateTimeImmutable($cafe['opening_time']);
-        $closing = new \DateTimeImmutable($cafe['closing_time']);
+        $opening = new DateTimeImmutable($cafe['opening_time']);
+        $closing = new DateTimeImmutable($cafe['closing_time']);
         $current = $opening;
 
         while ($current < $closing) {
@@ -524,23 +411,137 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         return (bool) $stmt->fetch();
     }
 
-    /**
-     * Get all reservations for a user
-     */
-    public function findByUserId(int $userId): array
+
+    public function findActiveByCafe(int $cafeId): array
     {
         $fields = \implode(', ', $this->getSelectFields());
 
         $stmt = $this->getDb()->prepare(
-            "SELECT {$fields}
-             FROM reservations
-             WHERE user_id = :user_id
-             AND deleted_at IS NULL
-             ORDER BY reservation_date DESC, reservation_time DESC"
+            "SELECT {$fields},
+                    u.name AS user_name,
+                    t.code AS tracker_code,
+                    cz.name AS zone_name
+             FROM reservations r
+             JOIN users u ON u.id = r.user_id
+             LEFT JOIN trackers t ON t.id = r.tracker_id
+             LEFT JOIN cafe_zones cz ON cz.id = r.current_zone_id
+             WHERE r.cafe_id = :cafe_id
+               AND r.status = 'active'
+             ORDER BY r.check_in_at"
         );
-
-        $stmt->execute(['user_id' => $userId]);
+        $stmt->execute(['cafe_id' => $cafeId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function assignTracker(int $reservationId, int $trackerId): bool
+    {
+        $this->getDb()->prepare(
+            "UPDATE trackers SET status = 'in_use' WHERE id = :id AND status = 'available'"
+        )->execute(['id' => $trackerId]);
+
+        return $this->getDb()->prepare(
+            'UPDATE reservations SET tracker_id = :tracker_id WHERE id = :id'
+        )->execute(['id' => $reservationId, 'tracker_id' => $trackerId]);
+    }
+
+    public function completeProtocol(int $id, string $protocol): bool
+    {
+        $column = 'protocol_' . $protocol;
+
+        return $this->getDb()->prepare(
+            "UPDATE reservations SET {$column} = TRUE WHERE id = :id"
+        )->execute(['id' => $id]);
+    }
+
+    public function findByIdAndUser(int $id, int $userId): ?array
+    {
+        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
+
+        $stmt = $this->getDb()->prepare(
+            "SELECT $fields, c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
+             FROM reservations r
+             JOIN cafes c ON c.id = r.cafe_id
+             WHERE r.id = :id AND r.user_id = :user_id
+             LIMIT 1"
+        );
+        $stmt->execute(['id' => $id, 'user_id' => $userId]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ?: null;
+    }
+
+    public function getDailyStats(int $cafeId, string $date): array
+    {
+        $stmt = $this->getDb()->prepare(
+            "SELECT
+                COUNT(*) as total,
+                SUM(IF(status = 'completed', 1, 0)) as completed,
+                SUM(IF(status = 'cancelled', 1, 0)) as cancelled,
+                SUM(IF(status = 'no_show', 1, 0)) as no_shows,
+                SUM(IF(status IN ('confirmed', 'active'), guest_count, 0)) as current_guests,
+                COALESCE(SUM(final_amount), 0) as total_revenue
+             FROM reservations
+             WHERE cafe_id = :cafe_id AND reservation_date = :date"
+        );
+        $stmt->execute(['cafe_id' => $cafeId, 'date' => $date]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    public function findByUuid(string $uuid): ?array
+    {
+        $fields = \implode(', ', $this->getSelectFields());
+
+        $stmt = $this->getDb()->prepare(
+            "SELECT {$fields} FROM reservations WHERE uuid = :uuid LIMIT 1"
+        );
+        $stmt->execute(['uuid' => $uuid]);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ?: null;
+    }
+
+    public function isSlotAvailable(int $cafeId, string $date, string $time): bool
+    {
+        $stmt = $this->getDb()->prepare(
+            "SELECT COUNT(*)
+             FROM reservations
+             WHERE cafe_id = :cafe_id
+               AND reservation_date = :date
+               AND reservation_time = :time
+               AND status IN ('pending', 'confirmed', 'active')
+               AND deleted_at IS NULL"
+        );
+        $stmt->execute(['cafe_id' => $cafeId, 'date' => $date, 'time' => $time]);
+
+        return (int) $stmt->fetchColumn() === 0;
+    }
+
+    public function countByUser(int $userId): int
+    {
+        $stmt = $this->getDb()->prepare(
+            'SELECT COUNT(*) FROM reservations WHERE user_id = :user_id AND deleted_at IS NULL'
+        );
+        $stmt->execute(['user_id' => $userId]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function findWithOperationalData(int $id): ?array
+    {
+        $stmt = $this->getDb()->prepare(
+            'SELECT *
+             FROM reservations
+             WHERE id = :id
+             LIMIT 1'
+        );
+        $stmt->execute(['id' => $id]);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ?: null;
     }
 }

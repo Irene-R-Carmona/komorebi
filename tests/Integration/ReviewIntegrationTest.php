@@ -3,28 +3,36 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * ¿Qué me quieres demostrar?
- * ¿Qué va a fallar en este test si se cambia el código?
- */
-/**
  * Tests de Integración de ReviewService, ReviewQueryService y ReviewModerationService
  *
- * Valida operaciones con MySQL 8.4 real usando transacciones para aislamiento.
- * Estos tests NO usan mocks - ejecutan queries reales contra la BD.
+ * ¿Qué pruebas aquí?
+ * Ciclo completo de reseñas contra MySQL 8.4 real: creación, consulta,
+ * moderación (aprobación/rechazo) y estadísticas de café.
+ *
+ * ¿Qué me quieres demostrar?
+ * Que los tres servicios de review colaboran correctamente con el repositorio
+ * y que las reglas de negocio (una reseña por usuario/café, reserva requerida)
+ * se aplican a nivel de BD.
+ *
+ * ¿Qué va a fallar en este test si se cambia el código?
+ * Si se elimina la constraint unique de reseñas, si la moderación deja de
+ * actualizar el estado, o si getAverageRating cambia su cálculo.
  */
 
 namespace Tests\Integration;
 
-use App\Models\User;
 use App\Repositories\CafeRepository;
 use App\Repositories\ReviewRepository;
+use App\Repositories\UserRepository;
 use App\Services\ReviewModerationService;
 use App\Services\ReviewQueryService;
 use App\Services\ReviewService;
+use Override;
 use PDO;
 use Tests\Support\BaseIntegrationTest;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
+#[CoversNothing]
 final class ReviewIntegrationTest extends BaseIntegrationTest
 {
     private ReviewService $service;
@@ -38,14 +46,14 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
     private const TEST_PASS_ID = 99984;
     private const TEST_RESERVATION_ID = 99985;
 
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
         $this->seedTestData();
         $reviewRepo = new ReviewRepository(self::$db);
         $cafeRepo = new CafeRepository(self::$db);
-        $this->service = new ReviewService(new User(), $reviewRepo);
+        $this->service = new ReviewService(new UserRepository(self::$db), $reviewRepo, self::$db);
         $this->queryService = new ReviewQueryService($reviewRepo);
         $this->moderationService = new ReviewModerationService($reviewRepo, $cafeRepo);
     }

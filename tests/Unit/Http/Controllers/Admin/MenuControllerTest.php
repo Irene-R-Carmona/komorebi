@@ -19,9 +19,13 @@ namespace Tests\Unit\Http\Controllers\Admin;
 use App\Core\Http\ResponseFactory;
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Admin\MenuController;
+use App\Repositories\Contracts\MenuCategoryRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\Contracts\ProductServiceInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(MenuController::class)]
 final class MenuControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
@@ -43,6 +47,8 @@ final class MenuControllerTest extends ControllerTestCase
     {
         return new MenuController(
             productService: $this->createStub(ProductServiceInterface::class),
+            productRepo: $this->createStub(ProductRepositoryInterface::class),
+            categoryRepo: $this->createStub(MenuCategoryRepositoryInterface::class),
             response: new ResponseFactory(),
         );
     }

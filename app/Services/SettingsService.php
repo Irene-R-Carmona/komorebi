@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Container;
 use App\Exceptions\ConfigurationException;
 use App\Exceptions\DatabaseException;
 use App\Models\AuditLog;
 use App\Models\Setting;
+use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Services\Contracts\SettingsServiceInterface;
 use Exception;
+use Override;
 
 /**
  * Servicio de gestión de configuración del sistema
@@ -21,11 +24,11 @@ use Exception;
  */
 final class SettingsService implements SettingsServiceInterface
 {
-    private Setting $settingModel;
+    private SettingRepositoryInterface $settingRepo;
 
-    public function __construct()
+    public function __construct(?SettingRepositoryInterface $settingRepo = null)
     {
-        $this->settingModel = new Setting();
+        $this->settingRepo = $settingRepo ?? Container::make(SettingRepositoryInterface::class);
     }
 
     /**
@@ -33,10 +36,10 @@ final class SettingsService implements SettingsServiceInterface
      *
      * @return array Configuraciones como array asociativo [key => value]
      */
-    #[\Override]
+    #[Override]
     public function getAll(): array
     {
-        $allSettings = $this->settingModel->findAll();
+        $allSettings = $this->settingRepo->findAll();
 
         $settings = [];
         foreach ($allSettings as $setting) {
@@ -53,7 +56,7 @@ final class SettingsService implements SettingsServiceInterface
      * @param mixed|null $default Valor por defecto si no existe
      * @return mixed Valor de la configuración
      */
-    #[\Override]
+    #[Override]
     public function get(string $key, mixed $default = null): mixed
     {
         return Setting::get($key, $default);
@@ -68,7 +71,7 @@ final class SettingsService implements SettingsServiceInterface
      * @return boolean True si se actualizó correctamente
      * @throws DatabaseException Si falla la actualización
      */
-    #[\Override]
+    #[Override]
     public function update(string $key, mixed $value, ?int $userId = null): bool
     {
         // Obtener valor antiguo para auditoría
@@ -103,7 +106,7 @@ final class SettingsService implements SettingsServiceInterface
      * @return integer Número de configuraciones actualizadas
      * @throws DatabaseException Si falla la actualización masiva
      */
-    #[\Override]
+    #[Override]
     public function updateBulk(array $settings, ?string $group = null, ?int $userId = null): int
     {
         $updated = 0;
@@ -149,7 +152,7 @@ final class SettingsService implements SettingsServiceInterface
      * @param string $group Prefijo del grupo (ej: 'smtp_', 'app_')
      * @return array Configuraciones del grupo
      */
-    #[\Override]
+    #[Override]
     public function getByGroup(string $group): array
     {
         $allSettings = $this->getAll();
@@ -164,7 +167,7 @@ final class SettingsService implements SettingsServiceInterface
      *
      * @return boolean True si SMTP está habilitado
      */
-    #[\Override]
+    #[Override]
     public function isSmtpEnabled(): bool
     {
         return (bool) Setting::get('smtp_enabled', false);
@@ -175,7 +178,7 @@ final class SettingsService implements SettingsServiceInterface
      *
      * @return array Configuración SMTP
      */
-    #[\Override]
+    #[Override]
     public function getSmtpConfig(): array
     {
         return [
@@ -195,7 +198,7 @@ final class SettingsService implements SettingsServiceInterface
      *
      * @return array Resultados de validación
      */
-    #[\Override]
+    #[Override]
     public function validate(): array
     {
         $issues = [];
@@ -233,10 +236,10 @@ final class SettingsService implements SettingsServiceInterface
      *
      * @return array Estadísticas
      */
-    #[\Override]
+    #[Override]
     public function getStats(): array
     {
-        $allSettings = $this->settingModel->findAll();
+        $allSettings = $this->settingRepo->findAll();
 
         $groups = [];
         foreach ($allSettings as $setting) {
@@ -258,7 +261,7 @@ final class SettingsService implements SettingsServiceInterface
      * @return boolean
      * @throws ConfigurationException Si no existe valor por defecto
      */
-    #[\Override]
+    #[Override]
     public function resetToDefault(string $key): bool
     {
         $defaultValue = $this->getDefaults()[$key] ?? null;

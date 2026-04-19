@@ -20,6 +20,7 @@ declare(strict_types=1);
 use App\Repositories\Contracts\StaffShiftRepositoryInterface;
 use App\Services\StaffShiftService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests unitarios para StaffShiftService.
@@ -27,6 +28,7 @@ use PHPUnit\Framework\TestCase;
  * El repositorio es stubbed; no se toca base de datos.
  * Todos los métodos del servicio retornan Result{ok, data, error, code}.
  */
+#[CoversClass(StaffShiftService::class)]
 final class StaffShiftServiceTest extends TestCase
 {
     private StaffShiftService $service;

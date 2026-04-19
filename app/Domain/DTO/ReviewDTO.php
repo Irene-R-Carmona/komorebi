@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\DTO;
 
+use Override;
+
 final readonly class ReviewDTO implements DomainTransferObject
 {
     public function __construct(
@@ -19,7 +21,7 @@ final readonly class ReviewDTO implements DomainTransferObject
     ) {
     }
 
-    #[\Override]
+    #[Override]
     public static function fromArray(array $data): static
     {
         return new static(
@@ -35,7 +37,7 @@ final readonly class ReviewDTO implements DomainTransferObject
         );
     }
 
-    #[\Override]
+    #[Override]
     public function toViewArray(): array
     {
         return [

@@ -93,6 +93,8 @@ final class EmailWorker
 
         $this->lastHeartbeat = $now;
 
+        \file_put_contents('/tmp/worker-email-heartbeat', (string) (int) $now);
+
         Logger::info('[EmailWorker] Heartbeat', [
             'queue' => self::QUEUE_NAME,
             'pending' => Queue::size(self::QUEUE_NAME),

@@ -10,6 +10,7 @@ use App\Core\Logger;
 use App\Core\Result;
 use App\Core\Session;
 use App\Services\Contracts\ApiTokenServiceInterface;
+use Override;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -31,7 +32,7 @@ final class ApiAuthMiddleware implements MiddlewareInterface
     ) {
     }
 
-    #[\Override]
+    #[Override]
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler

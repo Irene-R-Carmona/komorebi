@@ -6,7 +6,9 @@ namespace App\Core;
 
 use Closure;
 use DI\ContainerBuilder;
+use Override;
 use Psr\Container\ContainerInterface;
+use RuntimeException;
 
 /**
  * Dependency Injection Container (PSR-11 compatible)
@@ -68,7 +70,7 @@ final class Container implements ContainerInterface
      */
     public static function bind(string $abstract, ?Closure $concrete = null): void
     {
-        $concrete ??= static fn () => throw new \RuntimeException("No hay factory concreta para: $abstract");
+        $concrete ??= static fn () => throw new RuntimeException("No hay factory concreta para: $abstract");
         self::$prototypeClosures[$abstract] = $concrete;
     }
 
@@ -78,7 +80,7 @@ final class Container implements ContainerInterface
     public static function singleton(string $abstract, ?Closure $concrete = null): void
     {
         $concrete ??= static function () use ($abstract): object {
-            throw new \RuntimeException("No hay factory concreta para: $abstract");
+            throw new RuntimeException("No hay factory concreta para: $abstract");
         };
         self::$pendingDefinitions[$abstract] = [$concrete, true];
     }
@@ -111,7 +113,7 @@ final class Container implements ContainerInterface
     /**
      * PSR-11: get(). Construye PHP-DI si aún no está construido.
      */
-    #[\Override]
+    #[Override]
     public function get(string $id): mixed
     {
         // Resolver alias antes de todo
@@ -135,7 +137,7 @@ final class Container implements ContainerInterface
     /**
      * PSR-11: has().
      */
-    #[\Override]
+    #[Override]
     public function has(string $id): bool
     {
         $id = self::$pendingAliases[$id] ?? $id;

@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Container;
+use App\Core\Result;
 use App\Core\Session;
-use App\Models\Product;
-use App\Models\ReservationItem;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Services\Contracts\CartServiceInterface;
+use Override;
 
 /**
  * Servicio de Carrito de Compras
@@ -21,14 +24,15 @@ final class CartService implements CartServiceInterface
     private const int MAX_QTY_PER_ITEM = 99;
     private const int MAX_UNIQUE_ITEMS = 50;
 
-    private Product $productModel;
+    private ProductRepositoryInterface $productRepo;
+    private ReservationItemRepositoryInterface $itemRepo;
 
-    public function __construct(?Product $productModel = null)
-    {
-        // NOTE: Product es un modelo-entidad sin repositorio propio.
-        // Inyección directa aceptable (no hace queries complejas — solo lookup por ID).
-        // Ver Plan 3 D1: decisión explícita de mantener este patrón hasta extraer ProductRepository.
-        $this->productModel = $productModel ?? new Product();
+    public function __construct(
+        ?ProductRepositoryInterface $productRepo = null,
+        ?ReservationItemRepositoryInterface $itemRepo = null,
+    ) {
+        $this->productRepo = $productRepo ?? Container::make(ProductRepositoryInterface::class);
+        $this->itemRepo    = $itemRepo ?? Container::make(ReservationItemRepositoryInterface::class);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -40,7 +44,7 @@ final class CartService implements CartServiceInterface
      *
      * @return array{items: array<int, int>, totalQty: int, totalPrice: float}
      */
-    #[\Override]
+    #[Override]
     public function get(): array
     {
         $cart = Session::get(self::SESSION_KEY);
@@ -62,7 +66,7 @@ final class CartService implements CartServiceInterface
      *
      * @return array{items: array, totalQty: int, totalPrice: float}
      */
-    #[\Override]
+    #[Override]
     public function getWithDetails(): array
     {
         $cart = $this->get();
@@ -76,7 +80,7 @@ final class CartService implements CartServiceInterface
         }
 
         $productIds = \array_keys($cart['items']);
-        $products = $this->productModel->findByIds($productIds);
+        $products = $this->productRepo->findByIds($productIds);
 
         $detailedItems = [];
         foreach ($cart['items'] as $productId => $qty) {
@@ -107,7 +111,7 @@ final class CartService implements CartServiceInterface
     /**
      * Verifica si el carrito está vacío.
      */
-    #[\Override]
+    #[Override]
     public function isEmpty(): bool
     {
         $cart = $this->get();
@@ -118,7 +122,7 @@ final class CartService implements CartServiceInterface
     /**
      * Obtiene la cantidad de un producto específico.
      */
-    #[\Override]
+    #[Override]
     public function getQuantity(int $productId): int
     {
         $cart = $this->get();
@@ -133,8 +137,8 @@ final class CartService implements CartServiceInterface
     /**
      * Añade un producto al carrito.
      */
-    #[\Override]
-    public function add(int $productId, int $quantity = 1): array
+    #[Override]
+    public function add(int $productId, int $quantity = 1): Result
     {
         return $this->updateItem($productId, $quantity);
     }
@@ -142,8 +146,8 @@ final class CartService implements CartServiceInterface
     /**
      * Establece la cantidad exacta de un producto.
      */
-    #[\Override]
-    public function setQuantity(int $productId, int $quantity): array
+    #[Override]
+    public function setQuantity(int $productId, int $quantity): Result
     {
         $cart = $this->get();
         $currentQty = (int) ($cart['items'][$productId] ?? 0);
@@ -155,8 +159,8 @@ final class CartService implements CartServiceInterface
     /**
      * Elimina un producto del carrito.
      */
-    #[\Override]
-    public function remove(int $productId): array
+    #[Override]
+    public function remove(int $productId): Result
     {
         $cart = $this->get();
 
@@ -166,7 +170,7 @@ final class CartService implements CartServiceInterface
             $this->recalculate();
         }
 
-        return $this->get();
+        return Result::ok($this->get());
     }
 
     /**
@@ -174,15 +178,15 @@ final class CartService implements CartServiceInterface
      *
      * @param integer $change Cambio en cantidad (+/-)
      */
-    #[\Override]
-    public function updateItem(int $productId, int $change): array
+    #[Override]
+    public function updateItem(int $productId, int $change): Result
     {
         if ($productId <= 0 || $change === 0) {
-            return $this->get();
+            return Result::ok($this->get());
         }
 
         // Validar que el producto existe y es un item disponible
-        $product = $this->productModel->findById($productId);
+        $product = $this->productRepo->findById($productId);
 
         $cart = $this->get();
 
@@ -192,7 +196,7 @@ final class CartService implements CartServiceInterface
             !$product || !$isAvailable || $product['product_type'] !== 'item' ||
             (!isset($cart['items'][$productId]) && \count($cart['items']) >= self::MAX_UNIQUE_ITEMS)
         ) {
-            return $this->get();
+            return Result::ok($this->get());
         }
 
         $currentQty = (int) ($cart['items'][$productId] ?? 0);
@@ -207,13 +211,13 @@ final class CartService implements CartServiceInterface
         Session::set(self::SESSION_KEY, $cart);
         $this->recalculate();
 
-        return $this->get();
+        return Result::ok($this->get());
     }
 
     /**
      * Vacía el carrito.
      */
-    #[\Override]
+    #[Override]
     public function clear(): void
     {
         Session::remove(self::SESSION_KEY);
@@ -228,7 +232,7 @@ final class CartService implements CartServiceInterface
      *
      * @return array<int, array{product_id: int, quantity: int, unit_price: float}>
      */
-    #[\Override]
+    #[Override]
     public function getItemsForReservation(): array
     {
         $cart = $this->getWithDetails();
@@ -248,7 +252,7 @@ final class CartService implements CartServiceInterface
     /**
      * Transfiere el carrito a una reserva y lo vacía.
      */
-    #[\Override]
+    #[Override]
     public function transferToReservation(int $reservationId): bool
     {
         $items = $this->getItemsForReservation();
@@ -257,10 +261,8 @@ final class CartService implements CartServiceInterface
             return true;
         }
 
-        $reservationItem = new ReservationItem();
-
         foreach ($items as $item) {
-            $reservationItem->add(
+            $this->itemRepo->add(
                 $reservationId,
                 $item['product_id'],
                 $item['quantity'],
@@ -291,7 +293,7 @@ final class CartService implements CartServiceInterface
         }
 
         $productIds = \array_keys($cart['items']);
-        $products = $this->productModel->findByIds($productIds);
+        $products = $this->productRepo->findByIds($productIds);
 
         $totalQty = 0;
         $totalPrice = 0.0;

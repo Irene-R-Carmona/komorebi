@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use RuntimeException;
+
 /**
  * Loader de secrets compatible con 12-Factor.
  *
@@ -67,7 +69,7 @@ final class SecretLoader
         $value = self::get($name);
 
         if (empty($value)) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Secret requerido no encontrado: $name. " .
                     'Configura la variable de entorno ' . \strtoupper($name) . ' ' .
                     "o monta el archivo en /run/secrets/$name"

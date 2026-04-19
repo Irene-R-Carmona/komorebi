@@ -27,14 +27,18 @@ use App\Core\Database;
 use App\Models\Reservation;
 use App\Models\Tracker;
 use App\Services\ReceptionService;
+use PDO;
+use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
-#[CoversClass(\App\Services\ReceptionService::class)]
+#[CoversClass(ReceptionService::class)]
 final class ReceptionServiceTest extends TestCase
 {
-    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    /** @var MockObject&PDO */
     private PDO $pdoStub;
 
     // ─────────────────────────────────────────────────────────────
@@ -43,7 +47,7 @@ final class ReceptionServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdoStub = $this->createMock(\PDO::class);
+        $this->pdoStub = $this->createMock(PDO::class);
 
         // Inyectamos el mismo stub en el singleton de Database para que
         // Database::transaction() también use nuestro PDO de prueba.
@@ -63,17 +67,15 @@ final class ReceptionServiceTest extends TestCase
      * Reemplaza la conexión PDO del singleton Database::$instance
      * por el stub proporcionado, evitando toda conexión real a BD.
      */
-    private function injectPdoIntoDatabase(\PDO $pdo): void
+    private function injectPdoIntoDatabase(PDO $pdo): void
     {
-        $reflection = new \ReflectionClass(Database::class);
+        $reflection = new ReflectionClass(Database::class);
 
         $instanceProp = $reflection->getProperty('instance');
-        $instanceProp->setAccessible(true);
 
         $fakeInstance = $reflection->newInstanceWithoutConstructor();
 
         $connectionProp = $reflection->getProperty('connection');
-        $connectionProp->setAccessible(true);
         $connectionProp->setValue($fakeInstance, $pdo);
 
         $instanceProp->setValue(null, $fakeInstance);
@@ -84,9 +86,8 @@ final class ReceptionServiceTest extends TestCase
      */
     private function resetDatabaseSingleton(): void
     {
-        $reflection = new \ReflectionClass(Database::class);
+        $reflection = new ReflectionClass(Database::class);
         $instanceProp = $reflection->getProperty('instance');
-        $instanceProp->setAccessible(true);
         $instanceProp->setValue(null, null);
     }
 
@@ -97,8 +98,8 @@ final class ReceptionServiceTest extends TestCase
         mixed $fetchReturn = false,
         mixed $fetchAllReturn = [],
         mixed $fetchColumnReturn = 0
-    ): \PDOStatement {
-        $stmt = $this->createMock(\PDOStatement::class);
+    ): PDOStatement {
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);

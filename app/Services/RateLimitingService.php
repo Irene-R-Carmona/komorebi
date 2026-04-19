@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Services\Contracts\RateLimitingServiceInterface;
+use Override;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
@@ -51,7 +52,7 @@ final class RateLimitingService implements RateLimitingServiceInterface
      * Registrar intento de una acción.
      * Devuelve true si el intento fue registrado correctamente.
      */
-    #[\Override]
+    #[Override]
     public function recordAttempt(string $action, string $identifier, ?string $ipAddress = null): bool
     {
         $config = $this->getConfig($action);
@@ -84,7 +85,7 @@ final class RateLimitingService implements RateLimitingServiceInterface
      *
      * @return array{blocked: bool, minutes_remaining?: int}
      */
-    #[\Override]
+    #[Override]
     public function isBlocked(string $action, string $identifier): array
     {
         $key = $this->cacheKey($action, $identifier);
@@ -127,7 +128,7 @@ final class RateLimitingService implements RateLimitingServiceInterface
     /**
      * Limpiar intentos fallidos (después de login exitoso, etc).
      */
-    #[\Override]
+    #[Override]
     public function clearAttempts(string $action, string $identifier): void
     {
         $key = $this->cacheKey($action, $identifier);

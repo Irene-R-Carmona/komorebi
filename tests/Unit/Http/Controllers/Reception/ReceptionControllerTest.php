@@ -19,10 +19,15 @@ namespace Tests\Unit\Http\Controllers\Reception;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Reception\ReceptionController;
+use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Repositories\Contracts\TrackerRepositoryInterface;
 use App\Services\ReceptionService;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ReceptionController::class)]
 final class ReceptionControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
@@ -46,7 +51,11 @@ final class ReceptionControllerTest extends ControllerTestCase
     private function makeController(): ReceptionController
     {
         return new ReceptionController(
-            service: new ReceptionService(),
+            service: new ReceptionService(
+                reservationRepo: $this->createStub(ReservationRepositoryInterface::class),
+                trackerRepo: $this->createStub(TrackerRepositoryInterface::class),
+                cafeRepo: $this->createStub(CafeRepositoryInterface::class),
+            ),
             response: new ResponseFactory(),
         );
     }

@@ -72,4 +72,18 @@ interface TimeSlotRepositoryInterface
      * @return array Lista de slots disponibles con su capacidad
      */
     public function findAvailableSlots(int $cafeId, string $date): array;
+
+    /**
+     * Slots disponibles en un rango de fechas con mínimo de plazas.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAvailableRange(int $cafeId, string $startDate, string $endDate, int $minSpots = 1): array;
+
+    /**
+     * Estadísticas de ocupación de un café en un rango de fechas.
+     *
+     * @return array<string, mixed>
+     */
+    public function getOccupancyStats(int $cafeId, string $startDate, string $endDate): array;
 }

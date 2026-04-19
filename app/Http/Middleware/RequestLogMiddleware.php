@@ -9,6 +9,9 @@ use App\Core\LogContext;
 use App\Core\Logger;
 use App\Core\Session;
 use App\Core\WideEvent;
+use DateTimeImmutable;
+use DateTimeInterface;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -37,7 +40,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 final class RequestLogMiddleware implements MiddlewareInterface
 {
-    #[\Override]
+    #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         WideEvent::reset();
@@ -48,7 +51,7 @@ final class RequestLogMiddleware implements MiddlewareInterface
 
         // Contexto de infraestructura
         WideEvent::set('request_id', $requestId);
-        WideEvent::set('timestamp', new \DateTimeImmutable()->format(\DateTimeInterface::RFC3339_EXTENDED));
+        WideEvent::set('timestamp', new DateTimeImmutable()->format(DateTimeInterface::RFC3339_EXTENDED));
         WideEvent::set('method', $request->getMethod());
         WideEvent::set('path', $request->getUri()->getPath());
         WideEvent::set('ip', self::anonymizeIp((string) ($serverParams['REMOTE_ADDR'] ?? 'N/A')));

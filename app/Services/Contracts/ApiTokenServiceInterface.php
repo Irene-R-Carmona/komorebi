@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Contracts;
 
 use App\Core\Result;
+use DateTimeImmutable;
 
 /**
  * Contrato para ApiTokenService.
@@ -17,7 +18,7 @@ interface ApiTokenServiceInterface
      * Genera un nuevo token opaco para el usuario y retorna el texto plano.
      * El plain token solo se devuelve en este método — nunca se vuelve a recuperar.
      */
-    public function generate(int $userId, string $name, ?\DateTimeImmutable $expiresAt = null): string;
+    public function generate(int $userId, string $name, ?DateTimeImmutable $expiresAt = null): string;
 
     /**
      * Valida un token opaco y retorna los datos del usuario asociado.

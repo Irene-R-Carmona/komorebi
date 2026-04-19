@@ -23,12 +23,14 @@ use App\Services\AnimalCareService;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(AnimalCareService::class)]
 final class AnimalCareServiceTest extends TestCase
 {
     /** @var \PHPUnit\Framework\MockObject\Stub&AnimalRepositoryInterface */
     private AnimalRepositoryInterface $repoStub;
-    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    /** @var \PHPUnit\Framework\MockObject\Stub&PDO */
     private PDO $pdoStub;
 
     protected function setUp(): void

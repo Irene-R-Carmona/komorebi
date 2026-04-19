@@ -14,17 +14,19 @@ use App\Repositories\CafeRepository;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para CafeRepository
  *
  * Valida la capa de acceso a datos de cafés con mocks de PDO.
  */
+#[CoversClass(CafeRepository::class)]
 final class CafeRepositoryTest extends TestCase
 {
-    /** @var \PHPUnit\Framework\MockObject\MockObject&\PDO */
+    /** @var \PHPUnit\Framework\MockObject\MockObject&PDO */
     private PDO $pdoMock;
-    /** @var \PHPUnit\Framework\MockObject\MockObject&\PDOStatement */
+    /** @var \PHPUnit\Framework\MockObject\MockObject&PDOStatement */
     private PDOStatement $stmtMock;
     private CafeRepository $repository;
 

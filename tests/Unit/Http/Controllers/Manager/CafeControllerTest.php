@@ -21,7 +21,9 @@ use App\Http\Controllers\Manager\CafeController;
 use App\Services\Contracts\CafeServiceInterface;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(CafeController::class)]
 final class CafeControllerTest extends ControllerTestCase
 {
     protected function setUp(): void

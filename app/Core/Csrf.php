@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use JsonException;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
+use Throwable;
 
 /**
  * Protección CSRF basada en sesión.
@@ -61,7 +63,7 @@ final class Csrf
         // Asegurar que el token existe (lazy-init)
         try {
             self::init();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return '';
         }
 
@@ -115,7 +117,7 @@ final class Csrf
      * @param ServerRequestInterface|null $request Request PSR-7 (opcional, usa $_POST si null)
      * @return boolean True si válido, false si inválido.
      * @throws RandomException
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function validate(?ServerRequestInterface $request = null): bool
     {
@@ -158,7 +160,7 @@ final class Csrf
      *
      * @param ServerRequestInterface|null $request Request PSR-7 (opcional, usa $_POST si null)
      * @throws RandomException
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function verify(?ServerRequestInterface $request = null): void
     {
@@ -178,7 +180,7 @@ final class Csrf
      *
      * @param ServerRequestInterface|null $request Request PSR-7 (opcional, usa $_POST si null)
      * @return string|null
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function extractToken(?ServerRequestInterface $request = null): ?string
     {
@@ -251,7 +253,7 @@ final class Csrf
     /**
      * Extrae token del body JSON.
      * @return string|null
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function extractFromJsonBody(): ?string
     {
@@ -270,7 +272,7 @@ final class Csrf
      * Responde con error 419 (Page Expired).
      * Formato según tipo de petición (JSON o HTML).
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function abort419(): never
     {

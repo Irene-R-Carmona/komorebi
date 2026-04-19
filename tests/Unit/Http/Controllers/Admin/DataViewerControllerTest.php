@@ -18,14 +18,28 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\DataViewerController;
+use App\Repositories\Contracts\StatisticsRepositoryInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(DataViewerController::class)]
 final class DataViewerControllerTest extends ControllerTestCase
 {
     public function test_index_returns_null(): void
     {
+        $statsRepo = $this->createStub(StatisticsRepositoryInterface::class);
+        $statsRepo->method('getDataViewerStats')->willReturn(\array_fill_keys(
+            ['users', 'staff', 'cafes', 'animals', 'products', 'reservations',
+             'reservations_with_slot', 'time_slots', 'time_slots_available', 'reviews', 'incidents'],
+            0
+        ));
+        $statsRepo->method('getDataViewerSamples')->willReturn(\array_fill_keys(
+            ['cafes', 'products', 'staff', 'users', 'reservations', 'time_slots', 'reviews', 'incidents'],
+            []
+        ));
+
         \ob_start();
-        $result = new DataViewerController()->index($this->makeGetRequest('/admin/data-viewer'));
+        $result = (new DataViewerController($statsRepo))->index($this->makeGetRequest('/admin/data-viewer'));
         \ob_end_clean();
 
         $this->assertNull($result);

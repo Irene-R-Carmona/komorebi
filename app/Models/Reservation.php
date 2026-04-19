@@ -9,7 +9,9 @@ use App\Core\Result;
 use App\Domain\Reservation\ReservationStateMachine;
 use App\Exceptions\DateMalformedStringException;
 use DateTimeImmutable;
+use Exception;
 use PDO;
+use PDOException;
 use RuntimeException;
 
 /**
@@ -329,14 +331,14 @@ final class Reservation
 
         try {
             $this->validateRequired($data, $required);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return Result::fail('Datos requeridos faltantes: ' . $e->getMessage());
         }
 
         // Validar fecha y hora
         try {
             $this->validateDateTime($data['reservation_date'], $data['reservation_time']);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return Result::fail($e->getMessage());
         }
 
@@ -386,7 +388,7 @@ final class Reservation
                 'reservation_id' => $reservationId,
                 'time_slot_id' => $data['time_slot_id'] ?? null,
             ]);
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             return Result::fail('Error al crear reserva: ' . $e->getMessage());
         }
     }
@@ -749,7 +751,7 @@ final class Reservation
         try {
             $opening = new DateTimeImmutable($cafe['opening_time']);
             $closing = new DateTimeImmutable($cafe['closing_time']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Fecha/horario malformed: no generar slots
             return [];
         }

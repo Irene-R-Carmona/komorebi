@@ -22,7 +22,10 @@ use App\Services\AccountDeletionService;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(AccountDeletionService::class)]
 final class AccountDeletionServiceTest extends TestCase
 {
     // ──────────────────────────────────────────────
@@ -54,7 +57,7 @@ final class AccountDeletionServiceTest extends TestCase
     {
         $pdo = $this->createMock(PDO::class);
         $pdo->method('beginTransaction')
-            ->willThrowException(new \RuntimeException('Connection refused'));
+            ->willThrowException(new RuntimeException('Connection refused'));
         $pdo->method('rollBack')->willReturn(true);
 
         $service = new AccountDeletionService($pdo);
@@ -69,7 +72,7 @@ final class AccountDeletionServiceTest extends TestCase
         $pdo = $this->createMock(PDO::class);
         $pdo->method('beginTransaction')->willReturn(true);
         $pdo->method('prepare')
-            ->willThrowException(new \RuntimeException('Prepare failed'));
+            ->willThrowException(new RuntimeException('Prepare failed'));
         $pdo->method('rollBack')->willReturn(true);
 
         $service = new AccountDeletionService($pdo);

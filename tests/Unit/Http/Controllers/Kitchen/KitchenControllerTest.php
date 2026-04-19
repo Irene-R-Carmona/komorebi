@@ -20,10 +20,13 @@ namespace Tests\Unit\Http\Controllers\Kitchen;
 use App\Core\Http\ResponseFactory;
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Kitchen\KitchenController;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Services\KitchenService;
 use Nyholm\Psr7\ServerRequest;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(KitchenController::class)]
 final class KitchenControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
@@ -47,7 +50,7 @@ final class KitchenControllerTest extends ControllerTestCase
     private function makeController(): KitchenController
     {
         return new KitchenController(
-            service: new KitchenService($this->createStub(\PDO::class)),
+            service: new KitchenService($this->createStub(ReservationItemRepositoryInterface::class)),
             response: new ResponseFactory(),
         );
     }

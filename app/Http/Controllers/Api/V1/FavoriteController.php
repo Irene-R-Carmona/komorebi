@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Http\Controllers\Api\AbstractApiController;
-use App\Models\Favorite;
+use App\Repositories\Contracts\FavoriteRepositoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -22,7 +22,7 @@ final class FavoriteController extends AbstractApiController
 {
     public function __construct(
         ResponseFactory $response,
-        private readonly Favorite $favoriteModel,
+        private readonly FavoriteRepositoryInterface $favoriteRepo,
     ) {
         parent::__construct($response);
     }
@@ -38,14 +38,14 @@ final class FavoriteController extends AbstractApiController
             return $this->unauthorized('Debes iniciar sesión');
         }
 
-        $body = $request->getParsedBody() ?? [];
+        $body   = $request->getParsedBody() ?? [];
         $cafeId = $body['cafe_id'] ?? null;
 
         if (!\is_numeric($cafeId)) {
             return $this->unprocessable('cafe_id inválido');
         }
 
-        $added = $this->favoriteModel->toggle($userId, (int) $cafeId);
+        $added = $this->favoriteRepo->toggle($userId, (int) $cafeId);
 
         return $this->success(['status' => $added ? 'added' : 'removed']);
     }
@@ -60,7 +60,7 @@ final class FavoriteController extends AbstractApiController
             return $this->unauthorized('Debes iniciar sesión');
         }
 
-        $favorites = $this->favoriteModel->getByUser($userId);
+        $favorites = $this->favoriteRepo->getByUser($userId);
 
         return $this->success(['items' => $favorites, 'total' => \count($favorites)]);
     }

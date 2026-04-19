@@ -8,6 +8,7 @@ use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Session;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -35,7 +36,7 @@ final class RoleMiddleware implements MiddlewareInterface
         $this->allowedRoles = \is_array($allowedRoles) ? $allowedRoles : [$allowedRoles];
     }
 
-    #[\Override]
+    #[Override]
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler

@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Keeper;
 
+use App\Core\Container;
 use App\Core\Csrf;
-use App\Core\Database;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
-use App\Repositories\AnimalRepository;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
-use App\Repositories\HealthCheckRepository;
-use App\Services\AnimalCareService;
-use App\Services\HealthCheckService;
+use App\Services\Contracts\AnimalCareServiceInterface;
+use App\Services\Contracts\HealthCheckServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -24,27 +22,21 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class AnimalDashboardController
 {
-    private AnimalCareService $animalCareService;
-    private HealthCheckService $healthCheckService;
+    private AnimalCareServiceInterface $animalCareService;
+    private HealthCheckServiceInterface $healthCheckService;
     private AnimalRepositoryInterface $animalRepository;
     private ResponseFactory $response;
 
     public function __construct(
-        ?AnimalCareService $animalCareService = null,
-        ?HealthCheckService $healthCheckService = null,
+        ?AnimalCareServiceInterface $animalCareService = null,
+        ?HealthCheckServiceInterface $healthCheckService = null,
         ?AnimalRepositoryInterface $animalRepository = null,
         ?ResponseFactory $response = null,
     ) {
-        $db = null;
-        $this->animalCareService = $animalCareService ?? new AnimalCareService(
-            ($db = Database::getConnection()),
-            new AnimalRepository($db)
-        );
-        $this->healthCheckService = $healthCheckService ?? new HealthCheckService(
-            new HealthCheckRepository($db ??= Database::getConnection())
-        );
-        $this->animalRepository = $animalRepository ?? new AnimalRepository($db ??= Database::getConnection());
-        $this->response = $response ?? new ResponseFactory();
+        $this->animalCareService  = $animalCareService ?? Container::make(AnimalCareServiceInterface::class);
+        $this->healthCheckService = $healthCheckService ?? Container::make(HealthCheckServiceInterface::class);
+        $this->animalRepository   = $animalRepository ?? Container::make(AnimalRepositoryInterface::class);
+        $this->response           = $response ?? new ResponseFactory();
     }
 
     /**

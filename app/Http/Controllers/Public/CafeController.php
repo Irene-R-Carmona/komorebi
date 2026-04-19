@@ -11,11 +11,12 @@ use App\Core\View;
 use App\Exceptions\NotFoundException;
 use App\Http\Transformers\AnimalTransformer;
 use App\Http\Transformers\CafeTransformer;
-use App\Models\Cafe;
-use App\Models\Favorite;
+use App\Repositories\Contracts\CafeCatalogRepositoryInterface;
+use App\Repositories\Contracts\FavoriteRepositoryInterface;
 use App\Services\Contracts\MenuServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\ReviewServiceInterface;
+use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -29,9 +30,9 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class CafeController
 {
-    private Cafe $cafeModel;
+    private CafeCatalogRepositoryInterface $cafeRepo;
 
-    private Favorite $favoriteModel;
+    private FavoriteRepositoryInterface $favoriteRepo;
 
     private MenuServiceInterface $menuService;
 
@@ -40,14 +41,16 @@ final class CafeController
     private ReviewServiceInterface $reviewService;
 
     public function __construct(
+        ?CafeCatalogRepositoryInterface $cafeRepo = null,
+        ?FavoriteRepositoryInterface $favoriteRepo = null,
         ?MenuServiceInterface $menuService = null,
         ?ReviewQueryServiceInterface $queryService = null,
         ?ReviewServiceInterface $reviewService = null
     ) {
-        $this->cafeModel = new Cafe();
-        $this->favoriteModel = new Favorite();
-        $this->menuService = $menuService ?? Container::make(MenuServiceInterface::class);
-        $this->queryService = $queryService ?? Container::make(ReviewQueryServiceInterface::class);
+        $this->cafeRepo      = $cafeRepo ?? Container::make(CafeCatalogRepositoryInterface::class);
+        $this->favoriteRepo  = $favoriteRepo ?? Container::make(FavoriteRepositoryInterface::class);
+        $this->menuService   = $menuService ?? Container::make(MenuServiceInterface::class);
+        $this->queryService  = $queryService ?? Container::make(ReviewQueryServiceInterface::class);
         $this->reviewService = $reviewService ?? Container::make(ReviewServiceInterface::class);
     }
 
@@ -64,17 +67,17 @@ final class CafeController
         $orderBy = $this->getQueryParam($queryParams, 'orden', 'name');
 
         // Obtener cafés
-        $cafes = $this->cafeModel->findAll(
+        $cafes = $this->cafeRepo->findAllFiltered(
             category: $category,
             animalType: $animalType,
-            orderBy: $orderBy
+            orderBy: $orderBy ?? 'name'
         );
 
         // Obtener favoritos del usuario si está logueado
         $favoritos = [];
 
         if (Session::isAuthenticated()) {
-            $favoritos = $this->favoriteModel->getCafeIds(Session::userId());
+            $favoritos = $this->favoriteRepo->getCafeIds(Session::userId());
         }
 
         // Obtener categorías y tipos de animal únicos (para filtros)
@@ -105,7 +108,7 @@ final class CafeController
     {
 
         // Obtener café con sus animales
-        $cafe = $this->cafeModel->findWithAnimals($slug);
+        $cafe = $this->cafeRepo->findWithAnimals($slug);
 
         // Si no existe, lanzar excepción
         // ExceptionHandler automáticamente renderiza errors/404
@@ -123,14 +126,14 @@ final class CafeController
         $isFavorite = false;
 
         if (Session::isAuthenticated()) {
-            $isFavorite = $this->favoriteModel->exists(
+            $isFavorite = $this->favoriteRepo->exists(
                 Session::userId(),
                 (int) $cafe['id']
             );
         }
 
         // Obtener zonas del café
-        $zones = $this->cafeModel->getZones((int) $cafe['id']);
+        $zones = $this->cafeRepo->getZones((int) $cafe['id']);
 
         // Obtener estadísticas de reseñas
         $ratingStats = $this->queryService->getCafeRatingStats((int) $cafe['id']);
@@ -160,7 +163,7 @@ final class CafeController
                 $rawAnimals,
                 static fn ($a) => $a['current_status'] === 'active'
             )),
-            'favorites_count' => $this->cafeModel->getFavoritesCount((int) $cafe['id']),
+            'favorites_count' => $this->cafeRepo->getFavoritesCount((int) $cafe['id']),
         ];
 
         // Decorar animales: merge JSON attributes en el objeto
@@ -171,7 +174,7 @@ final class CafeController
 
             try {
                 $attrs = \json_decode($a['attributes'], true, 512, \JSON_THROW_ON_ERROR) ?? [];
-            } catch (\JsonException $e) {
+            } catch (JsonException $e) {
                 Logger::warning('[CafeController] Error decodificando atributos de animal', [
                     'exception' => $e::class,
                     'message' => $e->getMessage(),
@@ -229,8 +232,7 @@ final class CafeController
      */
     private function getAvailableFilters(): array
     {
-        // Esto podría cachearse o moverse al modelo
-        $cafes = $this->cafeModel->findAll();
+        $cafes = $this->cafeRepo->findAllFiltered();
 
         $categories = \array_unique(\array_column($cafes, 'category'));
         $animalTypes = \array_unique(\array_column($cafes, 'animal_type'));

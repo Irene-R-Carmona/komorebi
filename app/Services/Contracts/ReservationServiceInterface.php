@@ -10,7 +10,11 @@ interface ReservationServiceInterface
 {
     public function create(array $data, ?CartServiceInterface $cart = null): Result;
 
-    public function cancel(int $reservationId, int $userId): bool;
+    public function cancel(int $reservationId, int $userId): Result;
+
+    public function cancelAdmin(int $reservationId): Result;
+
+    public function confirmAdmin(int $reservationId): Result;
 
     /**
      * @return array

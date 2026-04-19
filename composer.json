@@ -50,7 +50,10 @@
     "phpstan/phpstan": "^2.0",
     "friendsofphp/php-cs-fixer": "^3.0",
     "brianium/paratest": "^7.22",
-    "phpstan/phpstan-phpunit": "^2.0"
+    "phpstan/phpstan-phpunit": "^2.0",
+    "nunomaduro/pao": "^1.0",
+    "nunomaduro/collision": "^8.9",
+    "qossmic/deptrac": "^2.0"
   },
   "scripts": {
     "test": "vendor/bin/phpunit --testdox",

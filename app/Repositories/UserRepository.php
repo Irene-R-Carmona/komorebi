@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Repositories\Contracts\UserManagementRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use Override;
 use PDO;
 
 /**
@@ -13,15 +15,15 @@ use PDO;
  * Encapsula toda la lógica de acceso a datos de usuarios,
  * incluyendo búsquedas por email, roles y gestión de perfil.
  */
-final class UserRepository extends AbstractRepository implements UserRepositoryInterface
+final class UserRepository extends AbstractRepository implements UserRepositoryInterface, UserManagementRepositoryInterface
 {
-    #[\Override]
+    #[Override]
     protected function getTable(): string
     {
         return 'users';
     }
 
-    #[\Override]
+    #[Override]
     protected function getSelectFields(): array
     {
         return [
@@ -45,7 +47,7 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
      * @param array<string, mixed> $data
      * @return int User ID insertado
      */
-    #[\Override]
+    #[Override]
     public function create(array $data): int
     {
         // Generar UUID si no viene en $data
@@ -339,7 +341,7 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
              FROM users u
              INNER JOIN user_roles ur ON u.id = ur.user_id
              INNER JOIN roles r ON ur.role_id = r.id
-             WHERE r.slug = :role_slug
+             WHERE r.code = :role_slug
              AND u.is_active = 1
              AND u.deleted_at IS NULL
              ORDER BY u.name"
@@ -352,7 +354,7 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
     /**
      * Soft delete (RGPD compliance).
      */
-    #[\Override]
+    #[Override]
     public function softDelete(int $id): bool
     {
         return $this->update($id, [
@@ -419,7 +421,7 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         );
         $stmt->execute();
 
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -442,7 +444,7 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         );
         $stmt->execute(['cafe_id' => $cafeId]);
 
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -465,7 +467,7 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         );
         $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
 
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $result ?: null;
     }
@@ -496,8 +498,31 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         );
         $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
 
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $result ?: null;
+    }
+
+    public function getUsersWithRoles(): array
+    {
+        $stmt = $this->getDb()->query("
+            SELECT u.id, u.uuid, u.name, u.email, u.is_active, u.created_at, u.last_login,
+                   GROUP_CONCAT(r.name SEPARATOR ', ') AS roles,
+                   GROUP_CONCAT(r.id)                  AS role_ids
+            FROM users u
+            LEFT JOIN user_roles ur ON u.id = ur.user_id
+            LEFT JOIN roles r ON ur.role_id = r.id
+            GROUP BY u.id, u.uuid, u.name, u.email, u.is_active, u.created_at, u.last_login
+            ORDER BY u.created_at DESC
+        ");
+
+        return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    }
+
+    public function clearRoles(int $userId): bool
+    {
+        $stmt = $this->getDb()->prepare('DELETE FROM user_roles WHERE user_id = :user_id');
+
+        return $stmt->execute(['user_id' => $userId]);
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use LogicException;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -57,13 +59,13 @@ final class MiddlewarePipeline implements RequestHandlerInterface
      *
      * @return ResponseInterface Response PSR-7
      */
-    #[\Override]
+    #[Override]
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         // Si no hay middlewares, delegar directamente al handler final
         if (empty($this->middlewares)) {
             if ($this->finalHandler === null) {
-                throw new \LogicException('No hay middlewares ni finalHandler configurado en el pipeline');
+                throw new LogicException('No hay middlewares ni finalHandler configurado en el pipeline');
             }
 
             return $this->finalHandler->handle($request);
@@ -84,7 +86,7 @@ final class MiddlewarePipeline implements RequestHandlerInterface
                 $this->finalHandler = $finalHandler;
             }
 
-            #[\Override]
+            #[Override]
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
                 $pipeline = new MiddlewarePipeline($this->finalHandler);

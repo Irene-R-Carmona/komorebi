@@ -19,9 +19,14 @@ namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\ReservationController;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
+use App\Services\Contracts\AdminActivityServiceInterface;
+use App\Services\Contracts\ReservationServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(ReservationController::class)]
 final class ReservationControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
@@ -41,7 +46,12 @@ final class ReservationControllerTest extends ControllerTestCase
 
     private function makeController(): ReservationController
     {
-        return new ReservationController(response: new ResponseFactory());
+        return new ReservationController(
+            activityService: $this->createStub(AdminActivityServiceInterface::class),
+            reservationService: $this->createStub(ReservationServiceInterface::class),
+            auditLogRepo: $this->createStub(AuditLogRepositoryInterface::class),
+            response: new ResponseFactory(),
+        );
     }
 
     public function test_cancel_redirects_when_csrf_is_invalid(): void

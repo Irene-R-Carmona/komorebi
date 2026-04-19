@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use JsonException;
+use RuntimeException;
+
 // Cargar helpers globales
 require_once __DIR__ . '/Helpers.php';
-
-use RuntimeException;
 
 /**
  * Sistema de renderizado de vistas.
@@ -135,7 +136,7 @@ final class View
      * @param mixed   $data   Datos a serializar
      * @param integer $status Código HTTP
      * @return never
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function json(mixed $data, int $status = 200): never
     {
@@ -151,7 +152,7 @@ final class View
 
     /**
      * Respuesta JSON de éxito.
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function jsonSuccess(mixed $data = null, string $message = 'OK'): never
     {
@@ -164,7 +165,7 @@ final class View
 
     /**
      * Respuesta JSON de error.
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function jsonError(string $message, int $status = 400, array $errors = []): never
     {
@@ -223,8 +224,28 @@ final class View
      */
     public static function back(): never
     {
-        $referer = $_SERVER['HTTP_REFERER'] ?? '/';
+        $referer = self::safeReferer();
         self::redirect($referer);
+    }
+
+    /**
+     * Obtiene el HTTP_REFERER solo si es una URL interna segura.
+     * Previene open-redirect usando referers externos.
+     */
+    public static function safeReferer(string $fallback = '/'): string
+    {
+        $referer = $_SERVER['HTTP_REFERER'] ?? $fallback;
+        $parsed = \parse_url($referer);
+
+        // Solo aceptar URLs relativas o del mismo host
+        if (isset($parsed['host'])) {
+            $appHost = \parse_url(Env::get('APP_URL', 'http://localhost'), PHP_URL_HOST);
+            if ($parsed['host'] !== $appHost) {
+                return $fallback;
+            }
+        }
+
+        return $referer;
     }
 
     // ─────────────────────────────────────────────────────────────

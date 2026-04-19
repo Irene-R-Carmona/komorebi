@@ -12,10 +12,12 @@ use App\Core\Middleware;
 use App\Core\Session;
 use App\Exceptions\MiddlewareException;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para Middleware RBAC (can, role, auth)
  */
+#[CoversClass(Middleware::class)]
 final class MiddlewareTest extends TestCase
 {
     protected function setUp(): void
@@ -68,8 +70,8 @@ final class MiddlewareTest extends TestCase
     public function testCanWithWildcardPermissionPasses(): void
     {
         $_SESSION['user_id'] = 1;
-        $_SESSION['user_roles'] = ['super_admin'];
-        $_SESSION['user_permissions'] = ['*' => true]; // Wildcard
+        $_SESSION['user_roles'] = ['admin'];
+        $_SESSION['user_permissions'] = ['*' => true]; // Admin bypasses permission check
 
         // Admin puede acceder a cualquier permiso
         Middleware::can('admin.users.delete');

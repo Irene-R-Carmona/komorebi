@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * ¿Qué pruebas aquí?
  * Verifica que Public/HomeController puede cargarse correctamente.
@@ -12,13 +14,17 @@
  * Si se elimina el método index() o se rompe el namespace/autoload.
  */
 
-declare(strict_types=1);
 
 namespace Tests\Unit\Http\Controllers\Public;
 
 use App\Http\Controllers\Public\HomeController;
+use App\Repositories\Contracts\AnimalRepositoryInterface;
+use App\Repositories\Contracts\CafeCatalogRepositoryInterface;
+use App\Repositories\Contracts\FavoriteRepositoryInterface;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(HomeController::class)]
 final class HomeControllerTest extends TestCase
 {
     public function test_class_exists(): void
@@ -33,7 +39,11 @@ final class HomeControllerTest extends TestCase
 
     public function test_can_be_instantiated(): void
     {
-        $controller = new HomeController();
+        $controller = new HomeController(
+            cafeRepo: $this->createStub(CafeCatalogRepositoryInterface::class),
+            favoriteRepo: $this->createStub(FavoriteRepositoryInterface::class),
+            animalRepo: $this->createStub(AnimalRepositoryInterface::class),
+        );
         $this->assertInstanceOf(HomeController::class, $controller);
     }
 }

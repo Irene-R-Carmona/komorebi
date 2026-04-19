@@ -37,7 +37,6 @@ README*
 Jenkinsfile
 
 # Herramientas y scripts de desarrollo
-scripts/
 tools/
 .agents/
 screenshots/

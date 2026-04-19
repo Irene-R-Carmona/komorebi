@@ -23,7 +23,9 @@ namespace Tests\Unit\Services;
 use App\Services\AdminStatisticsService;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(AdminStatisticsService::class)]
 final class AdminServiceTest extends TestCase
 {
     private AdminStatisticsService $service;

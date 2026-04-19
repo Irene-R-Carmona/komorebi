@@ -23,6 +23,7 @@ declare(strict_types=1);
 use App\Core\Env;
 use App\Services\TelegramService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests unitarios para TelegramService.
@@ -31,6 +32,7 @@ use PHPUnit\Framework\TestCase;
  * Los tests manipulan el entorno y limpian el caché estático de Env entre ejecuciones.
  * No se realizan llamadas HTTP reales.
  */
+#[CoversClass(TelegramService::class)]
 final class TelegramServiceTest extends TestCase
 {
     protected function setUp(): void

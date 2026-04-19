@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use DateMalformedStringException;
 use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
@@ -117,7 +118,7 @@ final class FestivosJaponesesService
      *
      * @param DateTimeInterface|string|null $fecha Fecha a consultar (default: hoy en Tokyo)
      * @return array|null Datos del festivo o null si no es festivo
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function obtenerFestivo(DateTimeInterface|string|null $fecha = null): ?array
     {
@@ -147,7 +148,7 @@ final class FestivosJaponesesService
      *
      * @param DateTimeInterface|string|null $fecha Fecha a verificar
      * @return boolean True si es festivo
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function esFestivo(DateTimeInterface|string|null $fecha = null): bool
     {
@@ -159,7 +160,7 @@ final class FestivosJaponesesService
      *
      * @param integer|null $anio Año (default: año actual en Tokyo)
      * @return array Lista de festivos del año
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function obtenerFestivosDelAnio(?int $anio = null): array
     {
@@ -206,7 +207,7 @@ final class FestivosJaponesesService
      *
      * @param DateTimeInterface|string|null $fecha Fecha a consultar
      * @return string Mensaje poético o información
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function obtenerMensajeContextual(DateTimeInterface|string|null $fecha = null): string
     {
@@ -243,7 +244,7 @@ final class FestivosJaponesesService
      *
      * @param DateTimeInterface|string|null $fecha Fecha a verificar
      * @return boolean True si se permiten reservas
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function permiteReservas(DateTimeInterface|string|null $fecha = null): bool
     {
@@ -312,7 +313,7 @@ final class FestivosJaponesesService
      * Segundo lunes de enero - Día de la Mayoría de Edad (成人の日)
      * @param integer $anio
      * @return array
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function calcularSegundoLunesEnero(int $anio): array
     {
@@ -334,7 +335,7 @@ final class FestivosJaponesesService
      * Tercer lunes de julio - Día del Mar (海の日)
      * @param integer $anio
      * @return array
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function calcularTercerLunesJulio(int $anio): array
     {
@@ -357,7 +358,7 @@ final class FestivosJaponesesService
      * Tercer lunes de septiembre - Día del Respeto a los Ancianos (敬老の日)
      * @param integer $anio
      * @return array
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function calcularTercerLunesSeptiembre(int $anio): array
     {
@@ -379,7 +380,7 @@ final class FestivosJaponesesService
      * Segundo lunes de octubre - Día del Deporte (スポーツの日)
      * @param integer $anio
      * @return array
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function calcularSegundoLunesOctubre(int $anio): array
     {
@@ -445,7 +446,7 @@ final class FestivosJaponesesService
      * @param integer $mes
      * @param integer $numero
      * @return DateTime
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function calcularNesimoLunes(int $anio, int $mes, int $numero): DateTime
     {
@@ -468,7 +469,7 @@ final class FestivosJaponesesService
      * Normaliza una fecha a DateTime en timezone Tokyo
      * @param DateTimeInterface|string|null $fecha
      * @return DateTime
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function normalizarFecha(DateTimeInterface|string|null $fecha): DateTime
     {

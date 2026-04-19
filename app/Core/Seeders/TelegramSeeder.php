@@ -7,6 +7,7 @@ namespace App\Core\Seeders;
 use App\Core\Database;
 use App\Core\Logger;
 use PDO;
+use PDOException;
 
 /**
  * TelegramSeeder
@@ -67,7 +68,7 @@ final class TelegramSeeder
             try {
                 $stmt->execute([$userId, $telegramId, $chatId, $username, $firstName]);
                 $count++;
-            } catch (\PDOException $e) {
+            } catch (PDOException $e) {
                 Logger::error('TelegramSeeder: insert failed', ['user_id' => $userId, 'exception' => $e->getMessage()]);
                 // Skip duplicados
                 continue;

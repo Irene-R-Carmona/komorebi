@@ -6,6 +6,7 @@ namespace App\Services\Manager;
 
 use App\Core\Database;
 use App\Services\Contracts\DashboardServiceInterface;
+use Override;
 use PDO;
 
 /**
@@ -26,7 +27,7 @@ final class DashboardService implements DashboardServiceInterface
     /**
      * Obtiene todas las métricas del dashboard en una sola llamada
      */
-    #[\Override]
+    #[Override]
     public function getDashboardMetrics(int $cafeId): array
     {
         return [
@@ -44,7 +45,7 @@ final class DashboardService implements DashboardServiceInterface
     /**
      * Número de reservas de hoy para el café
      */
-    #[\Override]
+    #[Override]
     public function getReservationsToday(int $cafeId): int
     {
         $stmt = $this->db->prepare(
@@ -65,7 +66,7 @@ final class DashboardService implements DashboardServiceInterface
     /**
      * Ingresos totales de hoy (reservas completadas)
      */
-    #[\Override]
+    #[Override]
     public function getRevenueToday(int $cafeId): float
     {
         $stmt = $this->db->prepare(
@@ -87,7 +88,7 @@ final class DashboardService implements DashboardServiceInterface
     /**
      * Número de staff activo asignado al café
      */
-    #[\Override]
+    #[Override]
     public function getActiveStaffCount(int $cafeId): int
     {
         $stmt = $this->db->prepare(
@@ -109,7 +110,7 @@ final class DashboardService implements DashboardServiceInterface
     /**
      * Número total de animales en el café
      */
-    #[\Override]
+    #[Override]
     public function getAnimalsCount(int $cafeId): int
     {
         $stmt = $this->db->prepare(
@@ -128,7 +129,7 @@ final class DashboardService implements DashboardServiceInterface
     /**
      * Ingresos de los últimos 7 días (para gráfico Chart.js)
      */
-    #[\Override]
+    #[Override]
     public function getWeeklyRevenue(int $cafeId): array
     {
         $stmt = $this->db->prepare(
@@ -152,7 +153,7 @@ final class DashboardService implements DashboardServiceInterface
     /**
      * Número de reservas por mes actual
      */
-    #[\Override]
+    #[Override]
     public function getMonthlyReservationsCount(int $cafeId): int
     {
         $stmt = $this->db->prepare(
@@ -174,7 +175,7 @@ final class DashboardService implements DashboardServiceInterface
     /**
      * Promedio de rating del café
      */
-    #[\Override]
+    #[Override]
     public function getAverageRating(int $cafeId): float
     {
         $stmt = $this->db->prepare(
@@ -192,7 +193,7 @@ final class DashboardService implements DashboardServiceInterface
     /**
      * Reservas pendientes de confirmación
      */
-    #[\Override]
+    #[Override]
     public function getPendingReservationsCount(int $cafeId): int
     {
         $stmt = $this->db->prepare(
@@ -212,7 +213,7 @@ final class DashboardService implements DashboardServiceInterface
     /**
      * Obtiene los 5 animales más populares (más interacciones)
      */
-    #[\Override]
+    #[Override]
     public function getTopAnimals(int $cafeId, int $limit = 5): array
     {
         $stmt = $this->db->prepare(
@@ -239,7 +240,7 @@ final class DashboardService implements DashboardServiceInterface
     /**
      * Distribución de estados de reservas (para gráfico de dona)
      */
-    #[\Override]
+    #[Override]
     public function getReservationStatusDistribution(int $cafeId): array
     {
         $stmt = $this->db->prepare(
@@ -268,7 +269,7 @@ final class DashboardService implements DashboardServiceInterface
      * @param string|null $to       Fecha fin   (YYYY-MM-DD); por defecto hoy
      * @param int|null    $limit    Máximo de filas (null = sin límite, para export)
      */
-    #[\Override]
+    #[Override]
     public function getReservationReport(
         int $cafeId,
         ?string $from = null,

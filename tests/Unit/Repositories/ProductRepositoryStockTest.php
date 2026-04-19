@@ -18,22 +18,23 @@ declare(strict_types=1);
  * - Si incrementStock() modifica filas cuando stock_quantity es NULL.
  */
 
-namespace Repositories;
+namespace Tests\Unit\Repositories;
 
 use App\Repositories\ProductRepository;
 use PDO;
 use PDOStatement;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Tests unitarios para los métodos de stock de ProductRepository.
  */
-#[AllowMockObjectsWithoutExpectations]
+#[CoversClass(ProductRepository::class)]
 final class ProductRepositoryStockTest extends TestCase
 {
     private ProductRepository $repository;
-    /** @var \PHPUnit\Framework\MockObject\MockObject&\PDO */
+    /** @var MockObject&PDO */
     private PDO $db;
 
     protected function setUp(): void

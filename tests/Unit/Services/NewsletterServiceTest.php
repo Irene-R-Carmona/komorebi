@@ -4,8 +4,17 @@ declare(strict_types=1);
 
 /**
  * ¿Qué pruebas aquí?
+ * NewsletterService: subscribe (email válido, email inválido, duplicado),
+ * unsubscribe y getSubscribers.
+ *
  * ¿Qué me quieres demostrar?
+ * Que subscribe valida formato de email, que los duplicados retornan
+ * Result::fail con código apropiado, y que unsubscribe actualiza el estado.
+ *
  * ¿Qué va a fallar en este test si se cambia el código?
+ * Si se elimina la validación de formato de email, si el manejo de
+ * duplicados deja de retornar Result::fail, o si subscribe cambia
+ * el código de error de duplicado.
  */
 
 namespace Tests\Unit\Services;
@@ -14,6 +23,7 @@ use App\Services\NewsletterService;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para NewsletterService
@@ -23,10 +33,11 @@ use PHPUnit\Framework\TestCase;
  * - Validación de emails
  * - Prevención de duplicados
  */
+#[CoversClass(NewsletterService::class)]
 final class NewsletterServiceTest extends TestCase
 {
     private NewsletterService $service;
-    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    /** @var \PHPUnit\Framework\MockObject\Stub&PDO */
     private PDO $dbMock;
 
     protected function setUp(): void
@@ -45,23 +56,22 @@ final class NewsletterServiceTest extends TestCase
 
         $result = $this->service->subscribe('test@example.com');
 
-        $this->assertTrue($result['success']);
+        $this->assertTrue($result->ok);
     }
 
     public function testSubscribeWithInvalidEmailReturnsError(): void
     {
         $result = $this->service->subscribe('invalid-email');
 
-        $this->assertFalse($result['success']);
-        $this->assertStringContainsString('válido', \strtolower($result['message'] ?? ''));
+        $this->assertNotNull($result->error);
+        $this->assertStringContainsString('válido', \strtolower($result->error ?? ''));
     }
 
     public function testSubscribeWithEmptyEmailReturnsError(): void
     {
         $result = $this->service->subscribe('');
 
-        $this->assertFalse($result['success']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertNotNull($result->error);
     }
 
     public function testConfirmWithValidTokenReturnsSuccess(): void

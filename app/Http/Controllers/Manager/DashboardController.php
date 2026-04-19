@@ -9,7 +9,7 @@ use App\Core\Csrf;
 use App\Core\Session;
 use App\Core\View;
 use App\Services\Contracts\CafeServiceInterface;
-use App\Services\Manager\DashboardService;
+use App\Services\Contracts\DashboardServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
@@ -26,14 +26,14 @@ final class DashboardController
 {
     private CafeServiceInterface $cafeService;
 
-    private DashboardService $dashboardService;
+    private DashboardServiceInterface $dashboardService;
 
     public function __construct(
         ?CafeServiceInterface $cafeService = null,
-        ?DashboardService $dashboardService = null
+        ?DashboardServiceInterface $dashboardService = null
     ) {
         $this->cafeService = $cafeService ?? Container::make(CafeServiceInterface::class);
-        $this->dashboardService = $dashboardService ?? Container::make(DashboardService::class);
+        $this->dashboardService = $dashboardService ?? Container::make(DashboardServiceInterface::class);
     }
 
     /**

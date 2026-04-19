@@ -12,7 +12,7 @@ use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Services\ContextServiceInstance;
-use App\Services\KitchenService;
+use App\Services\Contracts\KitchenServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -33,19 +33,19 @@ final class KitchenController
 
     /** Segundos a partir de los cuales el formato de tiempo pasa a H:i:s */
     private const KDS_FORMAT_SWITCH_SECONDS = 3600;
-    private KitchenService $service;
+    private KitchenServiceInterface $service;
 
     private ResponseFactory $response;
 
     private ?ContextServiceInstance $context;
 
     public function __construct(
-        ?KitchenService $service = null,
+        ?KitchenServiceInterface $service = null,
         ?ResponseFactory $response = null,
         ?ContextServiceInstance $context = null,
     ) {
         Middleware::auth();
-        $this->service = $service ?? new KitchenService();
+        $this->service = $service ?? Container::make(KitchenServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
         $this->context = $context;
     }

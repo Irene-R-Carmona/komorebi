@@ -18,7 +18,8 @@ log "━━━━━━━━━━━━━━━━━━━━━━━━━
 
 log "Creando directorios de almacenamiento..."
 mkdir -p "$STORAGE_DIR/uploads" "$STORAGE_DIR/logs" "$STORAGE_DIR/cache"
-chmod -R 775 "$STORAGE_DIR" 2>/dev/null || true
+chmod -R 755 "$STORAGE_DIR" 2>/dev/null || true
+chmod -R u+w "$STORAGE_DIR/logs" "$STORAGE_DIR/cache" "$STORAGE_DIR/uploads" 2>/dev/null || true
 chown -R www-data:www-data "$STORAGE_DIR" 2>/dev/null || true
 log "Directorios listos."
 

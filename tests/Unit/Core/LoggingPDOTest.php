@@ -17,8 +17,12 @@ declare(strict_types=1);
 namespace Tests\Unit\Core;
 
 use App\Core\LoggingPDO;
+use PDO;
+use PDOStatement;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(LoggingPDO::class)]
 final class LoggingPDOTest extends TestCase
 {
     public function testLogginPDOExtendsPDO(): void
@@ -26,7 +30,7 @@ final class LoggingPDOTest extends TestCase
         $parents = \class_parents(LoggingPDO::class);
 
         $this->assertIsArray($parents);
-        $this->assertContains(\PDO::class, $parents);
+        $this->assertContains(PDO::class, $parents);
     }
 
     public function testLogginPDOIsInAppCoreNamespace(): void
@@ -39,6 +43,6 @@ final class LoggingPDOTest extends TestCase
         $parents = \class_parents(\App\Core\LoggingPDOStatement::class);
 
         $this->assertIsArray($parents);
-        $this->assertContains(\PDOStatement::class, $parents);
+        $this->assertContains(PDOStatement::class, $parents);
     }
 }

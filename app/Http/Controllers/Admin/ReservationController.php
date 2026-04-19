@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Exceptions\BusinessRuleException;
 use App\Http\Transformers\ReservationTransformer;
-use App\Models\AuditLog;
-use App\Models\Reservation;
-use App\Services\AdminActivityService;
+use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use App\Services\Contracts\AdminActivityServiceInterface;
+use App\Services\Contracts\ReservationServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Random\RandomException;
@@ -30,15 +30,24 @@ use Random\RandomException;
 final class ReservationController
 {
     private AdminActivityServiceInterface $activityService;
+    private ReservationServiceInterface $reservationService;
+    private AuditLogRepositoryInterface $auditLogRepo;
     private ResponseFactory $response;
     private ReservationTransformer $reservationTransformer;
 
     private const ADMIN_RESERVATIONS_URL = '/admin/reservations';
 
-    public function __construct(?AdminActivityServiceInterface $activityService = null, ?ResponseFactory $response = null, ?ReservationTransformer $reservationTransformer = null)
-    {
-        $this->activityService = $activityService ?? new AdminActivityService();
-        $this->response = $response ?? new ResponseFactory();
+    public function __construct(
+        ?AdminActivityServiceInterface $activityService = null,
+        ?ReservationServiceInterface $reservationService = null,
+        ?AuditLogRepositoryInterface $auditLogRepo = null,
+        ?ResponseFactory $response = null,
+        ?ReservationTransformer $reservationTransformer = null
+    ) {
+        $this->activityService    = $activityService    ?? Container::make(AdminActivityServiceInterface::class);
+        $this->reservationService = $reservationService ?? Container::make(ReservationServiceInterface::class);
+        $this->auditLogRepo       = $auditLogRepo       ?? Container::make(AuditLogRepositoryInterface::class);
+        $this->response           = $response           ?? new ResponseFactory();
         $this->reservationTransformer = $reservationTransformer ?? new ReservationTransformer();
     }
 
@@ -96,16 +105,14 @@ final class ReservationController
             return $this->response->redirect(self::ADMIN_RESERVATIONS_URL);
         }
 
-        $reservationModel = new Reservation();
+        $result = $this->reservationService->cancelAdmin($id);
 
-        $result = $reservationModel->cancel($id);
-
-        if (!$result->isOk()) {
+        if (!$result->ok) {
             throw BusinessRuleException::withMessage($result->error, 'cancel_failed');
         }
 
         // Registrar acción en audit log
-        AuditLog::log('cancel_reservation', 'reservation', $id, null, ['cancelled_at' => \date('Y-m-d H:i:s')]);
+        $this->auditLogRepo->log('cancel_reservation', 'reservation', $id, null, ['cancelled_at' => \date('Y-m-d H:i:s')]);
 
         Flash::success('Reserva cancelada correctamente');
 
@@ -143,16 +150,14 @@ final class ReservationController
             return $this->response->redirect(self::ADMIN_RESERVATIONS_URL);
         }
 
-        $reservationModel = new Reservation();
+        $result = $this->reservationService->confirmAdmin($id);
 
-        $result = $reservationModel->confirm($id);
-
-        if (!$result->isOk()) {
+        if (!$result->ok) {
             throw BusinessRuleException::withMessage($result->error, 'confirm_failed');
         }
 
         // Registrar acción en audit log
-        AuditLog::log('confirm_reservation', 'reservation', $id, null, ['confirmed_at' => \date('Y-m-d H:i:s')]);
+        $this->auditLogRepo->log('confirm_reservation', 'reservation', $id, null, ['confirmed_at' => \date('Y-m-d H:i:s')]);
 
         Flash::success('Reserva confirmada correctamente');
 

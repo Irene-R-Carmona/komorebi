@@ -17,7 +17,9 @@ declare(strict_types=1);
 use App\Repositories\Contracts\SupervisorAssignmentRepositoryInterface;
 use App\Services\SupervisorAssignmentService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(SupervisorAssignmentService::class)]
 final class SupervisorAssignmentServiceTest extends TestCase
 {
     /** @var \PHPUnit\Framework\MockObject\Stub&SupervisorAssignmentRepositoryInterface */

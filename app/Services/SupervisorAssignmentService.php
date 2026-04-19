@@ -9,6 +9,9 @@ use App\Core\Result;
 use App\Core\Session;
 use App\Repositories\Contracts\SupervisorAssignmentRepositoryInterface;
 use App\Services\Contracts\SupervisorAssignmentServiceInterface;
+use JsonException;
+use Override;
+use Throwable;
 
 /**
  * Servicio que encapsula la lógica de creación y consulta de asignaciones
@@ -31,14 +34,14 @@ final class SupervisorAssignmentService implements SupervisorAssignmentServiceIn
     /**
      * Crea una asignación leyendo el cuerpo JSON de la petición HTTP.
      */
-    #[\Override]
+    #[Override]
     public function createFromRequest(): Result
     {
         $raw = (string) \file_get_contents('php://input');
 
         try {
             $input = \json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
+        } catch (JsonException) {
             return Result::fail('JSON inválido en el cuerpo de la petición', 'invalid_json');
         }
 
@@ -57,7 +60,7 @@ final class SupervisorAssignmentService implements SupervisorAssignmentServiceIn
      *
      * @param array<string, mixed> $input
      */
-    #[\Override]
+    #[Override]
     public function createFromArray(array $input): Result
     {
         $reservationId = isset($input['reservation_id']) ? (int) $input['reservation_id'] : 0;
@@ -102,7 +105,7 @@ final class SupervisorAssignmentService implements SupervisorAssignmentServiceIn
             ]);
 
             return Result::ok($record);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Logger::error('[SupervisorAssignmentService] Error al crear asignación', [
                 'exception' => $e->getMessage(),
             ]);
@@ -114,14 +117,14 @@ final class SupervisorAssignmentService implements SupervisorAssignmentServiceIn
     /**
      * Devuelve todas las asignaciones registradas.
      */
-    #[\Override]
+    #[Override]
     public function listAssignments(): Result
     {
         try {
             $rows = $this->repo->findAll();
 
             return Result::ok($rows);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Logger::error('[SupervisorAssignmentService] Error al listar asignaciones', [
                 'exception' => $e->getMessage(),
             ]);

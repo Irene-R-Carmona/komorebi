@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Core\Cache;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Exceptions\ExternalServiceException;
+use Override;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\PHPMailer;
-use Throwable;
 
 /**
  * Job para envío de emails asíncrono
@@ -37,10 +38,19 @@ final class SendEmailJob implements JobInterface
      * @return void
      * @throws ExternalServiceException Si falla el envío del email
      */
-    #[\Override]
+    #[Override]
     public function handle(array $payload): void
     {
         $this->validatePayload($payload);
+
+        $idempotencyKey = 'email_sent:' . ($payload['_correlation_id'] ?? \md5(\serialize($payload)));
+
+        if (Cache::has($idempotencyKey)) {
+            Logger::info('[SendEmailJob] Skipped duplicate (idempotency key already set)', [
+                'key' => $idempotencyKey,
+            ]);
+            return;
+        }
 
         try {
             $mail = $this->createMailer();
@@ -48,6 +58,7 @@ final class SendEmailJob implements JobInterface
             $this->configureEmailContent($mail, $payload);
             $this->configureEmailAttachments($mail, $payload);
             $this->sendEmail($mail, $payload);
+            Cache::set($idempotencyKey, true, 86400);
         } catch (PHPMailerException $e) {
             $this->handleMailerException($e, $payload);
         } catch (Throwable $e) {

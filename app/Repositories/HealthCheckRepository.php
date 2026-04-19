@@ -236,6 +236,40 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
         return $result !== false ? (int) $result['count'] : 0;
     }
 
+    public function getRecentLogs(int $limit = 20): array
+    {
+        $stmt = $this->db->prepare('
+            SELECT hc.*, a.name AS animal_name, a.species_type AS species, u.name AS keeper_name
+            FROM animal_health_checks hc
+            JOIN animals a ON hc.animal_id = a.id
+            LEFT JOIN users u ON hc.checked_by = u.id
+            WHERE hc.created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            ORDER BY hc.created_at DESC
+            LIMIT :limit
+        ');
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function createCareLog(array $data): int
+    {
+        $stmt = $this->db->prepare('
+            INSERT INTO animal_health_checks (animal_id, checked_by, check_date, notes, created_at)
+            VALUES (:animal_id, :checked_by, CURDATE(), :notes, NOW())
+            ON DUPLICATE KEY UPDATE notes = CONCAT(notes, "\n---\n", :notes_upd), created_at = NOW()
+        ');
+        $stmt->execute([
+            'animal_id'  => $data['animal_id'],
+            'checked_by' => $data['logged_by_user_id'] ?? 1,
+            'notes'      => $data['notes'],
+            'notes_upd'  => $data['notes'],
+        ]);
+
+        return (int) $this->db->lastInsertId();
+    }
+
     public function getAlertStatistics(int $days = 7): array
     {
         $stmt = $this->db->prepare("

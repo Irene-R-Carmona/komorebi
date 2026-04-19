@@ -32,14 +32,18 @@ use App\Core\Database;
 use App\Models\Product;
 use App\Models\ReservationItem;
 use App\Services\KitchenService;
+use PDO;
+use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
-#[CoversClass(\App\Services\KitchenService::class)]
+#[CoversClass(KitchenService::class)]
 final class KitchenServiceTest extends TestCase
 {
-    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    /** @var MockObject&PDO */
     private PDO $pdo;
 
     // ─────────────────────────────────────────────────────────────
@@ -48,7 +52,7 @@ final class KitchenServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdo = $this->createMock(\PDO::class);
+        $this->pdo = $this->createMock(PDO::class);
         $this->injectPdoIntoDatabase($this->pdo);
     }
 
@@ -61,15 +65,13 @@ final class KitchenServiceTest extends TestCase
     // Helpers de infraestructura
     // ─────────────────────────────────────────────────────────────
 
-    private function injectPdoIntoDatabase(\PDO $pdo): void
+    private function injectPdoIntoDatabase(PDO $pdo): void
     {
-        $reflection = new \ReflectionClass(Database::class);
+        $reflection = new ReflectionClass(Database::class);
         $instanceProp = $reflection->getProperty('instance');
-        $instanceProp->setAccessible(true);
 
         $fakeInstance = $reflection->newInstanceWithoutConstructor();
         $connectionProp = $reflection->getProperty('connection');
-        $connectionProp->setAccessible(true);
         $connectionProp->setValue($fakeInstance, $pdo);
 
         $instanceProp->setValue(null, $fakeInstance);
@@ -77,9 +79,8 @@ final class KitchenServiceTest extends TestCase
 
     private function resetDatabaseSingleton(): void
     {
-        $reflection = new \ReflectionClass(Database::class);
+        $reflection = new ReflectionClass(Database::class);
         $instanceProp = $reflection->getProperty('instance');
-        $instanceProp->setAccessible(true);
         $instanceProp->setValue(null, null);
     }
 
@@ -88,8 +89,8 @@ final class KitchenServiceTest extends TestCase
         array $fetchAllReturn = [],
         mixed $fetchColumnReturn = 0,
         int   $rowCountReturn = 0
-    ): \PDOStatement {
-        $stmt = $this->createMock(\PDOStatement::class);
+    ): PDOStatement {
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);

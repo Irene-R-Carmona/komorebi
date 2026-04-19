@@ -38,8 +38,7 @@ final class Result
         ?string $error = null,
         ?string $code = null,
         array   $context = [],
-    )
-    {
+    ) {
         $this->data = $data;
         $this->error = $error;
         $this->code = $code;
@@ -72,8 +71,7 @@ final class Result
         string|ServiceErrorCode $code = 'error',
         mixed                   $data = null,
         array                   $context = [],
-    ): self
-    {
+    ): self {
         $codeStr = $code instanceof ServiceErrorCode ? $code->value : $code;
 
         return new self($data, $error, $codeStr, $context);

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services\Contracts;
 
+use App\Core\Result;
+
 interface NewsletterServiceInterface
 {
-    public function subscribe(string $email): array;
+    public function subscribe(string $email): Result;
 
     public function confirm(string $token): array;
 

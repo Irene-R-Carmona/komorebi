@@ -23,6 +23,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Services\AuthTokenService;
+use PDO;
+use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -39,9 +41,9 @@ final class AuthTokenServiceTest extends TestCase
      * Útil cuando todos los prepare() del método bajo prueba
      * necesitan el mismo comportamiento.
      */
-    private function makePdoWithStmt(\PDOStatement $stmt): \PDO
+    private function makePdoWithStmt(PDOStatement $stmt): PDO
     {
-        $pdo = $this->createMock(\PDO::class);
+        $pdo = $this->createMock(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('query')->willReturn($stmt);
 
@@ -54,8 +56,8 @@ final class AuthTokenServiceTest extends TestCase
     private function makeStmt(
         mixed $fetchReturn = false,
         mixed $fetchColumnReturn = 0
-    ): \PDOStatement {
-        $stmt = $this->createMock(\PDOStatement::class);
+    ): PDOStatement {
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('fetchColumn')->willReturn($fetchColumnReturn);
@@ -113,7 +115,7 @@ final class AuthTokenServiceTest extends TestCase
     {
         // Contamos cuántas veces se llama execute(): SELECT (1) + dos UPDATEs (2,3)
         $executeCount = 0;
-        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('fetch')->willReturn(['id' => 1, 'user_id' => 5]);
         $stmt->method('execute')->willReturnCallback(function () use (&$executeCount): bool {
             $executeCount++;
@@ -121,7 +123,7 @@ final class AuthTokenServiceTest extends TestCase
             return true;
         });
 
-        $pdo = $this->createMock(\PDO::class);
+        $pdo = $this->createMock(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
 
         $service = new AuthTokenService($pdo);

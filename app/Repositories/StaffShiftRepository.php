@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Repositories\Contracts\StaffShiftRepositoryInterface;
+use Override;
 use PDO;
 
 /**
@@ -14,13 +15,13 @@ use PDO;
  */
 final class StaffShiftRepository extends AbstractRepository implements StaffShiftRepositoryInterface
 {
-    #[\Override]
+    #[Override]
     protected function getTable(): string
     {
         return 'staff_shifts';
     }
 
-    #[\Override]
+    #[Override]
     protected function getSelectFields(): array
     {
         return [
@@ -37,7 +38,7 @@ final class StaffShiftRepository extends AbstractRepository implements StaffShif
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function findByCafeAndDateRange(int $cafeId, string $from, string $to): array
     {
         $stmt = $this->getDb()->prepare(
@@ -56,7 +57,7 @@ final class StaffShiftRepository extends AbstractRepository implements StaffShif
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    #[\Override]
+    #[Override]
     public function findRecentByUserAndCafe(int $userId, int $cafeId, int $limit = 50): array
     {
         $stmt = $this->getDb()->prepare(
@@ -78,7 +79,7 @@ final class StaffShiftRepository extends AbstractRepository implements StaffShif
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    #[\Override]
+    #[Override]
     public function hasOverlap(int $userId, string $date, string $start, string $end): bool
     {
         $stmt = $this->getDb()->prepare(
@@ -103,7 +104,7 @@ final class StaffShiftRepository extends AbstractRepository implements StaffShif
         return (bool) $stmt->fetch();
     }
 
-    #[\Override]
+    #[Override]
     public function getPerformanceMetrics(int $userId, int $cafeId): array
     {
         $stmt = $this->getDb()->prepare(

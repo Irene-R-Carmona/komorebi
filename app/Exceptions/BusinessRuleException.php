@@ -118,6 +118,22 @@ final class BusinessRuleException extends Exception
     }
 
     /**
+     * Factory method: Fecha demasiado lejana en el futuro
+     *
+     * @param integer $maxDays Máximo de días permitido
+     *
+     * @return self
+     */
+    public static function tooFarAhead(int $maxDays): self
+    {
+        return new self(
+            "No puedes reservar con más de {$maxDays} días de antelación",
+            'too_far_ahead',
+            ['max_days' => $maxDays]
+        );
+    }
+
+    /**
      * Factory method: Café no acepta reservas
      *
      * @return self

@@ -8,6 +8,8 @@ use App\Core\Logger;
 use App\Core\Result;
 use App\Repositories\Contracts\StaffShiftRepositoryInterface;
 use App\Services\Contracts\StaffShiftServiceInterface;
+use Override;
+use Throwable;
 
 /**
  * Servicio de gestión de turnos de staff.
@@ -24,7 +26,7 @@ final class StaffShiftService implements StaffShiftServiceInterface
     /**
      * Obtiene los turnos de un café para la semana actual (hoy + 7 días).
      */
-    #[\Override]
+    #[Override]
     public function getWeekShifts(int $cafeId): Result
     {
         $from = \date('Y-m-d');
@@ -38,7 +40,7 @@ final class StaffShiftService implements StaffShiftServiceInterface
     /**
      * Obtiene el historial de turnos recientes de un staff en un café.
      */
-    #[\Override]
+    #[Override]
     public function getStaffHistory(int $userId, int $cafeId): Result
     {
         $history = $this->repo->findRecentByUserAndCafe($userId, $cafeId);
@@ -52,7 +54,7 @@ final class StaffShiftService implements StaffShiftServiceInterface
      * @param string $start Hora inicio normalizada (HH:MM:SS)
      * @param string $end   Hora fin normalizada (HH:MM:SS)
      */
-    #[\Override]
+    #[Override]
     public function assignShift(
         int $userId,
         int $cafeId,
@@ -63,6 +65,14 @@ final class StaffShiftService implements StaffShiftServiceInterface
         int $createdBy,
     ): Result {
         try {
+            // S3-08: Turno no puede cruzar medianoche (start < end obligatorio)
+            if ($start >= $end) {
+                return Result::fail(
+                    'La hora de inicio debe ser anterior a la hora de fin (no se permiten turnos que crucen medianoche)',
+                    'invalid_shift_hours'
+                );
+            }
+
             if ($this->repo->hasOverlap($userId, $date, $start, $end)) {
                 return Result::fail(
                     'El staff member ya tiene un turno asignado en ese horario',
@@ -88,7 +98,7 @@ final class StaffShiftService implements StaffShiftServiceInterface
             ]);
 
             return Result::ok(['shift_id' => $shiftId]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Logger::error('[StaffShiftService] Error al asignar turno', [
                 'exception' => $e->getMessage(),
                 'user_id' => $userId,
@@ -101,14 +111,14 @@ final class StaffShiftService implements StaffShiftServiceInterface
     /**
      * Obtiene métricas de performance de un staff en un café (últimos 30 días).
      */
-    #[\Override]
+    #[Override]
     public function getPerformanceMetrics(int $userId, int $cafeId): Result
     {
         try {
             $metrics = $this->repo->getPerformanceMetrics($userId, $cafeId);
 
             return Result::ok($metrics);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Logger::error('[StaffShiftService] Error al obtener métricas', [
                 'exception' => $e->getMessage(),
                 'user_id' => $userId,
