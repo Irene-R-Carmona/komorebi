@@ -12,38 +12,42 @@ use App\Core\Raw;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
-use App\Models\MenuCategory;
-use App\Models\Product;
+use App\Repositories\Contracts\MenuCategoryRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\Contracts\ProductServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Gestión de productos del catálogo (scope: café del manager)
- *
- * Permite al manager gestionar los productos de su café asignado.
- * Scope: Solo opera sobre productos del café especificado en user.cafe_id.
  */
 final class ProductController
 {
+    private const string CSRF_INVALID = 'Token de seguridad inválido';
+
     private ProductServiceInterface $productService;
+    private ProductRepositoryInterface $productRepo;
+    private MenuCategoryRepositoryInterface $categoryRepo;
     private ResponseFactory $response;
 
     public function __construct(
         ?ProductServiceInterface $productService = null,
+        ?ProductRepositoryInterface $productRepo = null,
+        ?MenuCategoryRepositoryInterface $categoryRepo = null,
         ?ResponseFactory $response = null
     ) {
         $this->productService = $productService ?? Container::make(ProductServiceInterface::class);
-        $this->response = $response ?? new ResponseFactory();
+        $this->productRepo    = $productRepo ?? Container::make(ProductRepositoryInterface::class);
+        $this->categoryRepo   = $categoryRepo ?? Container::make(MenuCategoryRepositoryInterface::class);
+        $this->response       = $response ?? new ResponseFactory();
     }
 
     /**
      * GET /manager/products
-     * Lista de productos con categorías para el café del manager.
      */
-    public function index(ServerRequestInterface $request): ?ResponseInterface
+    public function index(): ?ResponseInterface
     {
-        $user = Session::user();
+        $user   = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
 
         if (!$cafeId) {
@@ -52,23 +56,20 @@ final class ProductController
             return null;
         }
 
-        $productModel = new Product();
-        $categoryModel = new MenuCategory();
-
-        $productsData = $productModel->findAllAdmin();
-        $categories = $categoryModel->findAll();
+        $productsData = $this->productRepo->findFiltered([], 1, 200);
+        $categories   = $this->categoryRepo->findAll();
 
         $alpineConfig = Raw::json([
-            'products' => $productsData['data'] ?? [],
+            'products'   => $productsData['data'] ?? [],
             'categories' => $categories,
-            'cafeId' => $cafeId,
-            'csrfToken' => Csrf::token(),
+            'cafeId'     => $cafeId,
+            'csrfToken'  => Csrf::token(),
         ]);
 
         View::render('manager/products/index', [
-            'titulo' => 'Gestión de Productos',
+            'titulo'      => 'Gestión de Productos',
             'alpineConfig' => $alpineConfig,
-            'total' => $productsData['total'] ?? 0,
+            'total'       => $productsData['total'] ?? 0,
         ], ['admin/admin-products.css'], 'backoffice');
 
         return null;
@@ -76,18 +77,15 @@ final class ProductController
 
     /**
      * POST /manager/products/create
-     * Crear nuevo producto para el café del manager.
      */
     public function create(ServerRequestInterface $request): ResponseInterface
     {
         if (!Csrf::validate($request)) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
-        $body = $request->getParsedBody();
-
         try {
-            $productId = $this->productService->create($body);
+            $productId = $this->productService->create($request->getParsedBody());
 
             Logger::info('[Manager\ProductController] Producto creado', [
                 'manager_id' => Session::get('user_id'),
@@ -95,7 +93,7 @@ final class ProductController
             ]);
 
             return $this->response->json(['ok' => true, 'data' => [
-                'message' => 'El producto se ha creado correctamente.',
+                'message'    => 'El producto se ha creado correctamente.',
                 'product_id' => $productId,
             ]]);
         } catch (ValidationException $e) {
@@ -105,18 +103,15 @@ final class ProductController
 
     /**
      * POST /manager/products/{productId}/update
-     * Actualizar producto existente.
      */
     public function update(ServerRequestInterface $request, int $productId): ResponseInterface
     {
         if (!Csrf::validate($request)) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
-        $body = $request->getParsedBody();
-
         try {
-            $this->productService->update($productId, $body);
+            $this->productService->update($productId, $request->getParsedBody());
 
             Logger::info('[Manager\ProductController] Producto actualizado', [
                 'manager_id' => Session::get('user_id'),
@@ -133,17 +128,14 @@ final class ProductController
 
     /**
      * POST /manager/products/{productId}/toggle
-     * Activar/desactivar disponibilidad de un producto.
      */
     public function toggleAvailability(ServerRequestInterface $request, int $productId): ResponseInterface
     {
         if (!Csrf::validate($request)) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
-        $success = $this->productService->toggleActive($productId);
-
-        if ($success) {
+        if ($this->productService->toggleActive($productId)) {
             return $this->response->json(['ok' => true, 'data' => [
                 'message' => 'Estado de disponibilidad actualizado.',
             ]]);
@@ -154,12 +146,11 @@ final class ProductController
 
     /**
      * POST /manager/products/{productId}/delete
-     * Eliminar producto.
      */
     public function delete(ServerRequestInterface $request, int $productId): ResponseInterface
     {
         if (!Csrf::validate($request)) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         $this->productService->delete($productId);

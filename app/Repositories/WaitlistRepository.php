@@ -337,4 +337,67 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
+
+    public function getAllWithDetails(array $filters = []): array
+    {
+        $sql = "SELECT w.id, w.time_slot_id, w.user_id, w.position, w.status,
+                       w.guest_count, w.special_requests, w.created_at,
+                       w.notified_at, w.expires_at,
+                       ts.slot_date, ts.slot_time, ts.cafe_id,
+                       c.name AS cafe_name,
+                       u.name AS user_name, u.email AS user_email
+                FROM waitlist w
+                INNER JOIN time_slots ts ON w.time_slot_id = ts.id
+                INNER JOIN cafes c ON ts.cafe_id = c.id
+                INNER JOIN users u ON w.user_id = u.id
+                WHERE 1=1";
+
+        $params = [];
+
+        if (!empty($filters['cafe_id'])) {
+            $sql .= ' AND ts.cafe_id = :cafe_id';
+            $params['cafe_id'] = $filters['cafe_id'];
+        }
+        if (!empty($filters['status'])) {
+            $sql .= ' AND w.status = :status';
+            $params['status'] = $filters['status'];
+        }
+        if (!empty($filters['date'])) {
+            $sql .= ' AND ts.slot_date = :date';
+            $params['date'] = $filters['date'];
+        }
+
+        $sql .= ' ORDER BY ts.slot_date, ts.slot_time, w.position';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    public function getSummaryByStatus(): array
+    {
+        $stmt = $this->db->query(
+            "SELECT status, COUNT(*) AS count
+             FROM waitlist
+             WHERE status IN ('waiting','notified','confirmed','cancelled','expired')
+             GROUP BY status"
+        );
+
+        $summary = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $summary[$row['status']] = (int) $row['count'];
+        }
+
+        return $summary;
+    }
+
+    public function cancelById(int $id): bool
+    {
+        $stmt = $this->db->prepare(
+            "UPDATE waitlist SET status = 'cancelled' WHERE id = :id"
+        );
+
+        return $stmt->execute(['id' => $id]);
+    }
 }

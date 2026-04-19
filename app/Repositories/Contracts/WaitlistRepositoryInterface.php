@@ -131,4 +131,24 @@ interface WaitlistRepositoryInterface
      * @return bool
      */
     public function userInWaitlist(int $userId, int $timeSlotId): bool;
+
+    /**
+     * Obtener waitlists con detalle de slot, café y usuario.
+     *
+     * @param array<string, mixed> $filters  Claves: cafe_id, status, date
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAllWithDetails(array $filters = []): array;
+
+    /**
+     * Resumen de entradas agrupadas por estado.
+     *
+     * @return array<string, int>  status => count
+     */
+    public function getSummaryByStatus(): array;
+
+    /**
+     * Cancelar una entrada de waitlist por ID (acción admin).
+     */
+    public function cancelById(int $id): bool;
 }

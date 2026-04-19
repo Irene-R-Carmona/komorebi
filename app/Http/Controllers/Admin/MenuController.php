@@ -11,8 +11,8 @@ use App\Core\View;
 use App\Exceptions\DatabaseException;
 use App\Exceptions\ValidationException;
 use App\Http\Transformers\ProductTransformer;
-use App\Models\MenuCategory;
-use App\Models\Product;
+use App\Repositories\Contracts\MenuCategoryRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\Contracts\ProductServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -27,15 +27,24 @@ use Random\RandomException;
 final class MenuController
 {
     private ProductServiceInterface $productService;
+    private ProductRepositoryInterface $productRepo;
+    private MenuCategoryRepositoryInterface $categoryRepo;
     private ResponseFactory $response;
     private ProductTransformer $productTransformer;
 
     private const CSRF_INVALID = 'Token de seguridad inválido';
 
-    public function __construct(?ProductServiceInterface $productService = null, ?ResponseFactory $response = null, ?ProductTransformer $productTransformer = null)
-    {
-        $this->productService = $productService ?? Container::make(ProductServiceInterface::class);
-        $this->response = $response ?? new ResponseFactory();
+    public function __construct(
+        ?ProductServiceInterface $productService = null,
+        ?ProductRepositoryInterface $productRepo = null,
+        ?MenuCategoryRepositoryInterface $categoryRepo = null,
+        ?ResponseFactory $response = null,
+        ?ProductTransformer $productTransformer = null
+    ) {
+        $this->productService     = $productService ?? Container::make(ProductServiceInterface::class);
+        $this->productRepo        = $productRepo ?? Container::make(ProductRepositoryInterface::class);
+        $this->categoryRepo       = $categoryRepo ?? Container::make(MenuCategoryRepositoryInterface::class);
+        $this->response           = $response ?? new ResponseFactory();
         $this->productTransformer = $productTransformer ?? new ProductTransformer();
     }
 
@@ -45,25 +54,22 @@ final class MenuController
      *
      * @throws RandomException
      */
-    public function index(ServerRequestInterface $request): ?ResponseInterface
+    public function index(): ?ResponseInterface
     {
-        $productModel = new Product();
-        $categoryModel = new MenuCategory();
-
-        $productsData = $productModel->findAllAdmin();
-        $categories = $categoryModel->findAll();
+        $productsData = $this->productRepo->findFiltered([], 1, 200);
+        $categories   = $this->categoryRepo->findAll();
 
         // Mapeo de categorías de café para UI
         $cafeTypeLabels = [
-            'lounge' => 'Lounge',
+            'lounge'   => 'Lounge',
             'playroom' => 'Playroom',
-            'farm' => 'Farm',
-            'zen' => 'Zen',
+            'farm'     => 'Farm',
+            'zen'      => 'Zen',
         ];
 
         // Cargar alérgenos y formatear disponibilidad por café para cada producto
         foreach ($productsData['data'] as &$product) {
-            $product['allergens_list'] = $productModel->getAllergensNormalized((int) $product['id']);
+            $product['allergens_list'] = $this->productRepo->getAllergens((int) $product['id']);
 
             // Formatear target_cafe_types
             if (!empty($product['target_cafe_types']) && \is_array($product['target_cafe_types'])) {

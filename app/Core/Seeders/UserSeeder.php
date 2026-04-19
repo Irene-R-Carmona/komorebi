@@ -113,16 +113,17 @@ final class UserSeeder
         // Crear usuario con avatar y preferences cuando se provean
         $uuid = $this->generateUuid();
         $stmt = $this->db->prepare(
-            'INSERT INTO users (uuid, name, email, password, is_active, avatar, preferences, created_at) VALUES (:uuid, :name, :email, :password, 1, :avatar, :prefs, NOW())'
+            'INSERT INTO users (uuid, name, email, password, is_active, avatar, preferences, email_verified_at, created_at)
+             VALUES (:uuid, :name, :email, :password, 1, :avatar, :prefs, NOW(), NOW())'
         );
 
         $stmt->execute([
-            'uuid' => $uuid,
-            'name' => $name,
-            'email' => $email,
+            'uuid'     => $uuid,
+            'name'     => $name,
+            'email'    => $email,
             'password' => $hashedPass,
-            'avatar' => $avatar,
-            'prefs' => $preferences,
+            'avatar'   => $avatar,
+            'prefs'    => $preferences,
         ]);
 
         $userId = (int) $this->db->lastInsertId();

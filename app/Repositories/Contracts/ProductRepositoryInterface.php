@@ -89,4 +89,20 @@ interface ProductRepositoryInterface extends RepositoryInterface
      * @return array{data: array, total: int, page: int, perPage: int, totalPages: int}
      */
     public function findFiltered(array $filters = [], int $page = 1, int $perPage = 20): array;
+
+    /**
+     * Buscar productos por sus IDs, devuelve mapa keyed por ID.
+     * Incluye todos los campos de presentación (name, japanese_name, price, image_url, station, etc.)
+     *
+     * @param  int[] $ids
+     * @return array<int, array<string, mixed>> Mapa product_id => product_data
+     */
+    public function findByIds(array $ids): array;
+
+    /**
+     * Obtener alérgenos de un producto ordenados por severidad.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAllergens(int $productId): array;
 }
