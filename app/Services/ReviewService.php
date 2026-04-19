@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\BaseService;
-use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Result;
 use App\Core\WideEvent;
-use App\Models\Contracts\UserModelInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\ReviewServiceInterface;
 use Exception;
+use Override;
+use PDO;
 use RuntimeException;
 
 /**
@@ -23,16 +24,20 @@ use RuntimeException;
  */
 final class ReviewService extends BaseService implements ReviewServiceInterface
 {
-    private UserModelInterface $userModel;
+    private UserRepositoryInterface $userRepo;
 
     private ReviewRepositoryInterface $reviewRepository;
 
+    private PDO $db;
+
     public function __construct(
-        UserModelInterface $userModel,
-        ReviewRepositoryInterface $reviewRepository
+        UserRepositoryInterface $userRepo,
+        ReviewRepositoryInterface $reviewRepository,
+        PDO $db
     ) {
-        $this->userModel = $userModel;
+        $this->userRepo      = $userRepo;
         $this->reviewRepository = $reviewRepository;
+        $this->db            = $db;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -44,7 +49,7 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
      *
      * @return Result Data contiene ['id' => int] si exitoso
      */
-    #[\Override]
+    #[Override]
     public function createReview(
         int $userId,
         int $cafeId,
@@ -54,7 +59,7 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
     ): Result {
         try {
             // 1. Validar usuario existe y está activo
-            $user = $this->userModel->findById($userId);
+            $user = $this->userRepo->findById($userId);
 
             if (!$user) {
                 return Result::fail('Usuario no encontrado');
@@ -69,19 +74,23 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
                 return Result::fail('Rating debe estar entre 1 y 5');
             }
 
-            if (\strlen(\trim($title)) < 3 || \strlen(\trim($title)) > 100) {
+            $title = \trim($title);
+            $body = \trim($body);
+
+            if (\mb_strlen($title) < 3 || \mb_strlen($title) > 100) {
                 return Result::fail('Título debe tener entre 3 y 100 caracteres');
             }
 
-            if (\strlen(\trim($body)) < 10 || \strlen(\trim($body)) > 5000) {
+            if (\mb_strlen($body) < 10 || \mb_strlen($body) > 5000) {
                 return Result::fail('Descripción debe tener entre 10 y 5000 caracteres');
             }
 
-            // 3. Sanitizar HTML
-            $title = \htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
-            $body = \htmlspecialchars($body, ENT_QUOTES, 'UTF-8');
+            // 3. Guard: una sola reseña por usuario por café (Q-01)
+            if ($this->reviewRepository->userHasReview($userId, $cafeId)) {
+                return Result::fail('Ya has dejado una reseña para este café', 'duplicate_review');
+            }
 
-            // 4. Crear reseña usando repository
+            // 4. Crear reseña usando repository (el escapado se realiza en la vista, no en BD)
             $reviewId = $this->reviewRepository->create([
                 'user_id' => $userId,
                 'cafe_id' => $cafeId,
@@ -93,7 +102,7 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
 
             WideEvent::setSection('review', [
                 'cafe_id' => $cafeId,
-                'rating'  => $rating,
+                'rating' => $rating,
             ]);
 
             return Result::ok(['id' => $reviewId]);
@@ -127,7 +136,7 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
      *
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function updateReview(
         int $reviewId,
         int $userId,
@@ -152,19 +161,18 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
                 return Result::fail('Rating debe estar entre 1 y 5');
             }
 
-            if (\strlen(\trim($title)) < 3 || \strlen(\trim($title)) > 100) {
+            $title = \trim($title);
+            $body = \trim($body);
+
+            if (\mb_strlen($title) < 3 || \mb_strlen($title) > 100) {
                 return Result::fail('Título debe tener entre 3 y 100 caracteres');
             }
 
-            if (\strlen(\trim($body)) < 10 || \strlen(\trim($body)) > 5000) {
+            if (\mb_strlen($body) < 10 || \mb_strlen($body) > 5000) {
                 return Result::fail('Descripción debe tener entre 10 y 5000 caracteres');
             }
 
-            // Sanitizar
-            $title = \htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
-            $body = \htmlspecialchars($body, ENT_QUOTES, 'UTF-8');
-
-            // Actualizar (vuelve a pending)
+            // Actualizar (vuelve a pending) — escapado se hace en la vista, no en BD
             $this->reviewRepository->update($reviewId, [
                 'rating' => $rating,
                 'title' => $title,
@@ -186,31 +194,13 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
     }
 
     /**
-     * Elimina una reseña (solo propietario).
+     * Elimina una reseña verificando que el userId sea el propietario.
      *
      * @return Result
      */
-    #[\Override]
-    public function deleteReview(int $reviewId, ?int $userId = null): Result
+    #[Override]
+    public function deleteReview(int $reviewId, int $userId): Result
     {
-        // Si no se pasa userId, eliminar directamente sin verificar propiedad
-        if ($userId === null) {
-            try {
-                $deleted = $this->reviewRepository->delete($reviewId);
-
-                return $deleted ? Result::ok(null) : Result::fail('No se pudo eliminar la reseña', 'delete_failed');
-            } catch (Exception $e) {
-                Logger::error('Error al eliminar reseña (byId)', [
-                    'exception' => \get_class($e),
-                    'message' => $e->getMessage(),
-                    'review_id' => $reviewId,
-                ]);
-
-                return Result::fail('Error al eliminar reseña', 'delete_error');
-            }
-        }
-
-        // Si se pasa userId, comportamiento existente que retorna Result
         try {
             $review = $this->reviewRepository->findById($reviewId);
 
@@ -239,9 +229,37 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
     }
 
     /**
+     * Elimina una reseña como administrador (sin verificar propiedad).
+     * Registra log de auditoría.
+     *
+     * @return Result
+     */
+    #[Override]
+    public function deleteReviewAdmin(int $reviewId): Result
+    {
+        try {
+            $deleted = $this->reviewRepository->delete($reviewId);
+
+            if ($deleted) {
+                Logger::info('[ReviewService] Reseña eliminada por admin', ['review_id' => $reviewId]);
+            }
+
+            return $deleted ? Result::ok(null) : Result::fail('No se pudo eliminar la reseña', 'delete_failed');
+        } catch (Exception $e) {
+            Logger::error('Error al eliminar reseña (admin)', [
+                'exception' => \get_class($e),
+                'message' => $e->getMessage(),
+                'review_id' => $reviewId,
+            ]);
+
+            return Result::fail('Error al eliminar reseña', 'delete_error');
+        }
+    }
+
+    /**
      * Verifica si usuario puede dejar reseña (tiene reserva completada).
      */
-    #[\Override]
+    #[Override]
     public function canUserReview(int $userId, int $cafeId): array
     {
         try {
@@ -271,12 +289,11 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
      *
      * @return boolean
      */
-    #[\Override]
+    #[Override]
     public function userHasCompletedReservation(int $userId, int $cafeId): bool
     {
         try {
-            $db = Database::getConnection();
-            $stmt = $db->prepare('
+            $stmt = $this->db->prepare('
                 SELECT COUNT(*)
                 FROM reservations
                 WHERE user_id = :user_id
@@ -306,7 +323,7 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
      *
      * @return boolean
      */
-    #[\Override]
+    #[Override]
     public function userHasReviewInCafe(int $userId, int $cafeId): bool
     {
         try {

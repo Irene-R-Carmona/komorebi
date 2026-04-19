@@ -10,11 +10,12 @@ use App\Core\ExceptionLogger;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Exceptions\ValidationException;
+use App\Core\Container;
 use App\Models\AuditLog;
-use App\Services\AdminReportService;
-use App\Services\AdminStatisticsService;
 use App\Services\Contracts\AdminReportServiceInterface;
 use App\Services\Contracts\AdminStatisticsServiceInterface;
+use Error;
+use Exception;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -36,8 +37,8 @@ final class ReportController
         ?AdminReportServiceInterface $reportService = null,
         ?ResponseFactory $response = null
     ) {
-        $this->statisticsService = $statisticsService ?? new AdminStatisticsService();
-        $this->reportService = $reportService ?? new AdminReportService();
+        $this->statisticsService = $statisticsService ?? Container::make(AdminStatisticsServiceInterface::class);
+        $this->reportService = $reportService ?? Container::make(AdminReportServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
     }
 
@@ -58,14 +59,17 @@ final class ReportController
             return $this->getReportesData();
         }
 
+        $systemStats  = $this->statisticsService->getSystemStatistics();
+        $monthlyStats = $this->statisticsService->getMonthlyStats((int) \date('n'), (int) \date('Y'));
+
         View::render('admin/reportes', [
             'titulo' => 'Reportes y Estadísticas',
             'csrf_token' => Csrf::token(),
             'stats' => [
-                'total_users' => 0,
-                'monthly_reservations' => 0,
-                'total_reviews' => 0,
-                'monthly_revenue' => 0,
+                'total_users'          => $systemStats['users'] ?? 0,
+                'monthly_reservations' => $monthlyStats['reservations'] ?? 0,
+                'total_reviews'        => $systemStats['reviews'] ?? 0,
+                'monthly_revenue'      => 0,
             ],
             'extraJs' => ['admin/admin-reports.js'],
         ], ['admin/admin-reports.css'], 'backoffice');
@@ -200,7 +204,7 @@ final class ReportController
             $response->getBody()->write((string) $csvContent);
 
             return $response;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             ExceptionLogger::log($e, 'Admin\\ReportController::exportReportes');
             $isDebug = Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production');
             $response = $this->response->createResponse(500);
@@ -210,7 +214,7 @@ final class ReportController
             ]);
 
             return $response;
-        } catch (\Error $e) {
+        } catch (Error $e) {
             ExceptionLogger::log($e, 'Admin\\ReportController::exportReportes');
             $isDebug = Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production');
             $response = $this->response->createResponse(500);

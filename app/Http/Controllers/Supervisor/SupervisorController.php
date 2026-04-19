@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Supervisor;
 
+use App\Core\Container;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
-use App\Repositories\ReservationRepository;
+use App\Domain\Reservation\ReservationStatus;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Services\Contracts\KitchenServiceInterface;
 use App\Services\Contracts\SupervisorAssignmentServiceInterface;
-use App\Services\KitchenService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -24,29 +26,21 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class SupervisorController
 {
-    private ReservationRepository $reservationRepo;
-    private KitchenService $kitchenService;
+    private SupervisorAssignmentServiceInterface $assignmentService;
+    private ReservationRepositoryInterface $reservationRepo;
+    private KitchenServiceInterface $kitchenService;
     private ResponseFactory $response;
 
-    /** @var array<string,string> */
-    private const STATUS_LABELS = [
-        'pending' => 'Pendiente',
-        'confirmed' => 'Confirmada',
-        'active' => 'Activa',
-        'completed' => 'Completada',
-        'cancelled' => 'Cancelada',
-        'no_show' => 'No Show',
-        'checked_in' => 'En local',
-    ];
-
     public function __construct(
-        private readonly SupervisorAssignmentServiceInterface $assignmentService,
-        ?ReservationRepository $reservationRepo = null,
-        ?KitchenService $kitchenService = null,
+        ?SupervisorAssignmentServiceInterface $assignmentService = null,
+        ?ReservationRepositoryInterface $reservationRepo = null,
+        ?KitchenServiceInterface $kitchenService = null,
+        ?ResponseFactory $response = null,
     ) {
-        $this->reservationRepo = $reservationRepo ?? new ReservationRepository();
-        $this->kitchenService = $kitchenService ?? new KitchenService();
-        $this->response = new ResponseFactory();
+        $this->assignmentService = $assignmentService ?? Container::make(SupervisorAssignmentServiceInterface::class);
+        $this->reservationRepo   = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
+        $this->kitchenService    = $kitchenService ?? Container::make(KitchenServiceInterface::class);
+        $this->response          = $response ?? new ResponseFactory();
     }
 
     /**
@@ -71,7 +65,7 @@ final class SupervisorController
                     'time' => \substr((string) ($r['reservation_time'] ?? ''), 0, 5),
                     'guests' => (int) ($r['guest_count'] ?? 0),
                     'status' => $status,
-                    'statusLabel' => self::STATUS_LABELS[$status] ?? \ucfirst($status),
+                    'statusLabel' => ReservationStatus::labelFor($status),
                     'table_code' => $r['table_code'] ?? null,
                 ];
             }, $raw);
@@ -113,7 +107,7 @@ final class SupervisorController
         $assignments = $result->ok ? \array_values((array) $result->data) : [];
 
         if (!$result->ok) {
-            Flash::error($result->getMessage());
+            Flash::error($result->error ?? 'Error al listar asignaciones');
         }
 
         View::render('supervisor/assignments', [
@@ -137,9 +131,9 @@ final class SupervisorController
 
         if (!$result->ok) {
             Logger::warning('[SupervisorController] Error al crear asignación', [
-                'error' => $result->getMessage(),
+                'error' => $result->error ?? 'desconocido',
             ]);
-            Flash::error($result->getMessage());
+            Flash::error($result->error ?? 'Error al crear asignación');
         } else {
             Flash::success('Asignación creada correctamente.');
         }

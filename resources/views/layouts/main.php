@@ -131,7 +131,6 @@ $extraJs ??= [];
     <header class="header" id="header">
         <div class="header__container">
             <!-- Logo izquierda -->
-            <!-- TODO: reemplazar src con /images/logos/komorebi-logo-horizontal.svg cuando esté listo -->
             <a class="header__logo" href="/" aria-label="Komorebi Café - Ir a inicio">
                 <span class="header__logo-icon" aria-hidden="true">
                     <img src="/images/logos/komorebi-logo-icon.svg" width="32" height="32" alt="">

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shared;
 
+use App\Core\Container;
 use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
+use App\Services\NavigationService;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,6 +20,13 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class ErrorController
 {
+    private NavigationService $nav;
+
+    public function __construct(?NavigationService $nav = null)
+    {
+        $this->nav = $nav ?? Container::make(NavigationService::class);
+    }
+
     /**
      * 404 - Not Found
      */
@@ -32,7 +41,7 @@ final class ErrorController
         View::render('errors/404', [
             'titulo' => '404 - Página no encontrada',
             'requestedPath' => $path,
-            'suggestedLink' => $this->getSuggestedLink($path),
+            'suggestedLink' => $this->nav->suggestedLink($path, Session::isAuthenticated(), Session::role()),
         ], [], 'errors');
 
         return null;
@@ -49,7 +58,7 @@ final class ErrorController
 
         View::render('errors/403', [
             'titulo' => '403 - Acceso denegado',
-            'suggestedLink' => $this->getSuggestedLink('/'),
+            'suggestedLink' => $this->nav->suggestedLink('/', Session::isAuthenticated(), Session::role()),
         ], [], 'errors');
 
         return null;
@@ -86,7 +95,7 @@ final class ErrorController
 
         View::render('errors/500', [
             'titulo' => '500 - Error interno',
-            'suggestedLink' => $this->getSuggestedLink('/'),
+            'suggestedLink' => $this->nav->suggestedLink('/', Session::isAuthenticated(), Session::role()),
         ], [], 'errors');
 
         return null;
@@ -107,54 +116,8 @@ final class ErrorController
         return null;
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Obtiene el path de la petición actual.
-     *
-     * @return false|string
-     */
     private function getRequestPath(): string|false
     {
         return \parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
-    }
-
-    /**
-     * Sugiere un enlace de retorno basado en el contexto.
-     *
-     * @return array{href: string, label: string}
-     */
-    private function getSuggestedLink(string $path): array
-    {
-        // Si está autenticado y en backoffice, sugerir su dashboard
-        if (Session::isAuthenticated()) {
-            $role = Session::role();
-
-            // Si la URL es del backoffice, sugerir dashboard del rol
-            if ($this->isBackofficePath($path)) {
-                return match ($role) {
-                    'admin' => ['href' => '/admin/dashboard', 'label' => 'Volver al Dashboard'],
-                    'manager' => ['href' => '/manager/dashboard', 'label' => 'Volver al Dashboard'],
-                    'keeper' => ['href' => '/keeper/dashboard', 'label' => 'Volver a Bienestar'],
-                    'staff' => ['href' => '/ops/reception', 'label' => 'Volver a Operaciones'],
-                    default => ['href' => '/', 'label' => 'Volver al inicio'],
-                };
-            }
-        }
-
-        // Por defecto, ir al inicio
-        return ['href' => '/', 'label' => 'Volver al inicio'];
-    }
-
-    /**
-     * Verifica si un path pertenece al backoffice.
-     */
-    private function isBackofficePath(string $path): bool
-    {
-        $backofficePrefix = ['/admin', '/manager', '/ops', '/keeper'];
-
-        return \array_any($backofficePrefix, static fn ($prefix) => \str_starts_with($path, $prefix));
     }
 }

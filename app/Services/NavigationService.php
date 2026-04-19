@@ -13,6 +13,9 @@ use App\Core\Middleware;
  */
 final class NavigationService
 {
+    private const string URL_OPS_RECEPTION    = self::URL_OPS_RECEPTION;
+    private const string URL_KEEPER_DASHBOARD = self::URL_KEEPER_DASHBOARD;
+
     /**
      * Iconos disponibles (Bootstrap Icons).
      * Migrado de Phosphor Icons a Bootstrap Icons.
@@ -72,9 +75,9 @@ final class NavigationService
                 self::item('reports', 'Reportes', '/manager/reports'),
             ],
             'Supervisión' => [
-                self::item('reception', 'Recepción', '/ops/reception'),
+                self::item('reception', 'Recepción', self::URL_OPS_RECEPTION),
                 self::item('kitchen', 'Cocina', '/ops/kitchen'),
-                self::item('animals', 'Animales', '/keeper/dashboard'),
+                self::item('animals', 'Animales', self::URL_KEEPER_DASHBOARD),
             ],
         ];
     }
@@ -83,7 +86,7 @@ final class NavigationService
     {
         return [
             'Bienestar Animal' => [
-                self::item('dashboard', 'Estado Diario', '/keeper/dashboard'),
+                self::item('dashboard', 'Estado Diario', self::URL_KEEPER_DASHBOARD),
                 self::item('animals', 'Animales', '/keeper/animals'),
                 self::item('health', 'Chequeos de Salud', '/keeper/health-checks'),
                 self::item('incidents', 'Incidentes', '/keeper/incidents'),
@@ -96,11 +99,11 @@ final class NavigationService
         return [
             'Supervisión' => [
                 self::item('dashboard', 'Dashboard', '/supervisor/dashboard'),
-                self::item('reception', 'Recepción', '/ops/reception'),
+                self::item('reception', 'Recepción', self::URL_OPS_RECEPTION),
                 self::item('kitchen', 'Cocina', '/ops/kitchen'),
             ],
             'Reporte' => [
-                self::item('animals', 'Animales', '/keeper/dashboard'),
+                self::item('animals', 'Animales', self::URL_KEEPER_DASHBOARD),
             ],
         ];
     }
@@ -109,7 +112,7 @@ final class NavigationService
     {
         return [
             'Operaciones' => [
-                self::item('reception', 'Panel de Recepción', '/ops/reception'),
+                self::item('reception', 'Panel de Recepción', self::URL_OPS_RECEPTION),
                 self::item('reservas', 'Reservas', '/ops/reservations'),
             ],
         ];
@@ -199,5 +202,35 @@ final class NavigationService
         }
 
         return \str_starts_with($currentUrl, $itemUrl) && $itemUrl !== '/';
+    }
+
+    /**
+     * Verifica si un path pertenece al backoffice.
+     */
+    public function isBackofficePath(string $path): bool
+    {
+        $prefixes = ['/admin', '/manager', '/ops', '/keeper'];
+
+        return \array_any($prefixes, static fn ($prefix) => \str_starts_with($path, $prefix));
+    }
+
+    /**
+     * Sugiere un enlace de retorno basado en el contexto del error.
+     *
+     * @return array{href: string, label: string}
+     */
+    public function suggestedLink(string $path, bool $isAuthenticated, string $role): array
+    {
+        if ($isAuthenticated && $this->isBackofficePath($path)) {
+            return match ($role) {
+                'admin'   => ['href' => '/admin/dashboard',   'label' => 'Volver al Dashboard'],
+                'manager' => ['href' => '/manager/dashboard', 'label' => 'Volver al Dashboard'],
+                'keeper'  => ['href' => self::URL_KEEPER_DASHBOARD,  'label' => 'Volver a Bienestar'],
+                'staff'   => ['href' => self::URL_OPS_RECEPTION,     'label' => 'Volver a Operaciones'],
+                default   => ['href' => '/',                  'label' => 'Volver al inicio'],
+            };
+        }
+
+        return ['href' => '/', 'label' => 'Volver al inicio'];
     }
 }
