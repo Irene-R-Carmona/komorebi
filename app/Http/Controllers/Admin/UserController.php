@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Http\Transformers\UserTransformer;
-use App\Repositories\Contracts\AuditLogRepositoryInterface;
-use App\Repositories\Contracts\RoleRepositoryInterface;
+use App\Models\AuditLog;
+use App\Models\Role;
 use App\Repositories\Contracts\UserRepositoryInterface;
-use App\Services\Contracts\UserManagementServiceInterface;
+use App\Repositories\UserRepository;
+use App\Services\UserManagementService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -35,29 +35,21 @@ use Random\RandomException;
  */
 final class UserController
 {
-    private RoleRepositoryInterface $roleRepo;
-    private UserManagementServiceInterface $userManagementService;
+    private Role $roleModel;
+    private UserManagementService $userManagementService;
     private UserRepositoryInterface $userRepo;
-    private AuditLogRepositoryInterface $auditLogRepo;
     private ResponseFactory $response;
     private UserTransformer $userTransformer;
 
     private const CSRF_INVALID = 'Token de seguridad inválido';
 
-    public function __construct(
-        ?RoleRepositoryInterface $roleRepo = null,
-        ?UserManagementServiceInterface $userManagementService = null,
-        ?UserRepositoryInterface $userRepo = null,
-        ?AuditLogRepositoryInterface $auditLogRepo = null,
-        ?ResponseFactory $response = null,
-        ?UserTransformer $userTransformer = null,
-    ) {
-        $this->roleRepo              = $roleRepo              ?? Container::make(RoleRepositoryInterface::class);
-        $this->userManagementService = $userManagementService ?? Container::make(UserManagementServiceInterface::class);
-        $this->userRepo              = $userRepo              ?? Container::make(UserRepositoryInterface::class);
-        $this->auditLogRepo          = $auditLogRepo          ?? Container::make(AuditLogRepositoryInterface::class);
-        $this->response              = $response              ?? new ResponseFactory();
-        $this->userTransformer       = $userTransformer       ?? new UserTransformer();
+    public function __construct(?UserManagementService $userManagementService = null, ?UserRepositoryInterface $userRepo = null, ?ResponseFactory $response = null, ?UserTransformer $userTransformer = null)
+    {
+        $this->roleModel = new Role();
+        $this->userManagementService = $userManagementService ?? new UserManagementService();
+        $this->userRepo = $userRepo ?? new UserRepository();
+        $this->response = $response ?? new ResponseFactory();
+        $this->userTransformer = $userTransformer ?? new UserTransformer();
     }
 
     /**
@@ -69,14 +61,14 @@ final class UserController
     {
         // Obtener usuarios con roles desde el servicio
         $rawUsers = $this->userManagementService->getUsersWithRoles();
-        $roles = $this->roleRepo->findAllWithCounts();
+        $roles = $this->roleModel->all();
 
         // Calcular estadísticas desde datos crudos (antes de transformar)
         $stats = [
             'total_users' => \count($rawUsers),
-            'active_users' => \count(\array_filter($rawUsers, static fn ($u) => !empty($u['is_active']))),
-            'admin_users' => \count(\array_filter($rawUsers, static fn ($u) => \stripos($u['roles'] ?? '', 'admin') !== false)),
-            'inactive_users' => \count(\array_filter($rawUsers, static fn ($u) => empty($u['is_active']))),
+            'active_users' => \count(\array_filter($rawUsers, static fn($u) => !empty($u['is_active']))),
+            'admin_users' => \count(\array_filter($rawUsers, static fn($u) => \stripos($u['roles'] ?? '', 'admin') !== false)),
+            'inactive_users' => \count(\array_filter($rawUsers, static fn($u) => empty($u['is_active']))),
         ];
 
         View::render('admin/users/index', [
@@ -129,7 +121,7 @@ final class UserController
         $result = $this->userManagementService->createUser($data);
 
         if ($result->ok) {
-            $this->auditLogRepo->log(
+            AuditLog::log(
                 'create_user',
                 'user',
                 \is_array($result->data) ? ($result->data['id'] ?? null) : null,
@@ -181,12 +173,12 @@ final class UserController
         $result = $this->userManagementService->updateUser($userId, $data);
 
         if ($result->ok) {
-            $this->auditLogRepo->log(
+            AuditLog::log(
                 'update_user',
                 'user',
                 $userId,
                 null,
-                \array_filter($data, static fn ($v) => $v !== null)
+                \array_filter($data, static fn($v) => $v !== null)
             );
 
             return $this->response->json(['ok' => true, 'data' => ['message' => 'Usuario actualizado exitosamente']]);
@@ -217,7 +209,7 @@ final class UserController
         $result = $this->userManagementService->deactivateUser($userId);
 
         if ($result->ok) {
-            $this->auditLogRepo->log(
+            AuditLog::log(
                 'delete_user',
                 'user',
                 $userId
@@ -246,7 +238,7 @@ final class UserController
         $result = $this->userManagementService->toggleUserStatus($userId);
 
         if ($result->ok) {
-            $this->auditLogRepo->log(
+            AuditLog::log(
                 'toggle_user_active',
                 'user',
                 $userId

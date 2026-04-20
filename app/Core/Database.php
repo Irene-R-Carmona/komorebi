@@ -32,13 +32,20 @@ final class Database
      */
     private function __construct()
     {
-        // Configuración crítica
-        $host = Env::require('DB_HOST');
-        $port = Env::get('DB_PORT', '3306');
-        $db = Env::require('DB_DATABASE');
-        $user = Env::require('DB_USERNAME');
-        $pass = Env::get('DB_PASSWORD');
-        $charset = Env::get('DB_CHARSET', 'utf8mb4');
+        // Railway inyecta MYSQL_URL / DATABASE_URL como cadena de conexión completa.
+        // Si está presente, tiene prioridad sobre las variables DB_* individuales.
+        $databaseUrl = Env::get('MYSQL_URL') !== '' ? Env::get('MYSQL_URL') : Env::get('DATABASE_URL');
+
+        if ($databaseUrl !== '') {
+            [$host, $port, $db, $user, $pass, $charset] = self::parseDatabaseUrl($databaseUrl);
+        } else {
+            $host    = Env::require('DB_HOST');
+            $port    = Env::get('DB_PORT', '3306');
+            $db      = Env::require('DB_DATABASE');
+            $user    = Env::require('DB_USERNAME');
+            $pass    = Env::get('DB_PASSWORD');
+            $charset = Env::get('DB_CHARSET', 'utf8mb4');
+        }
 
         if (\str_contains($charset, '_')) {
             throw new RuntimeException(
@@ -134,27 +141,59 @@ final class Database
     /**
      * Valida charset y collation contra whitelist para prevenir inyección en SET NAMES.
      *
-     * @throws RuntimeException si el charset o collation no son válidos
+     * @throws \RuntimeException si el charset o collation no son válidos
      */
     public static function validateCharset(string $charset, string $collation): void
     {
         $allowedCharsets = ['utf8mb4', 'utf8', 'latin1', 'ascii', 'binary'];
 
         if (!\in_array($charset, $allowedCharsets, true)) {
-            throw new RuntimeException("Charset inválido: '$charset'. Permitidos: " . \implode(', ', $allowedCharsets));
+            throw new \RuntimeException("Charset inválido: '$charset'. Permitidos: " . \implode(', ', $allowedCharsets));
         }
 
         if (!\preg_match('/^[a-z0-9_]+$/i', $collation)) {
-            throw new RuntimeException("Collation inválida: '$collation'. Solo caracteres alfanuméricos y guiones bajos.");
+            throw new \RuntimeException("Collation inválida: '$collation'. Solo caracteres alfanuméricos y guiones bajos.");
         }
+    }
+
+    /**
+     * Parsea una URL de conexión a base de datos (MySQL/MariaDB).
+     *
+     * Soporta los formatos que Railway inyecta en MYSQL_URL y DATABASE_URL:
+     *   mysql://user:password@host:port/dbname
+     *   mysql://user:password@host/dbname
+     *
+     * @return array{0: string, 1: string, 2: string, 3: string, 4: string|null, 5: string}
+     * @throws RuntimeException si la URL no se puede parsear
+     */
+    private static function parseDatabaseUrl(string $url): array
+    {
+        $parsed = \parse_url($url);
+
+        if ($parsed === false || !isset($parsed['host'])) {
+            throw new RuntimeException(
+                'MYSQL_URL/DATABASE_URL tiene formato inválido. Esperado: mysql://user:pass@host:port/dbname'
+            );
+        }
+
+        $host    = $parsed['host'];
+        $port    = isset($parsed['port']) ? (string) $parsed['port'] : '3306';
+        $db      = \ltrim($parsed['path'] ?? '', '/');
+        $user    = $parsed['user'] ?? '';
+        $pass    = isset($parsed['pass']) ? \urldecode($parsed['pass']) : null;
+        $charset = Env::get('DB_CHARSET', 'utf8mb4');
+
+        if ($db === '') {
+            throw new RuntimeException('MYSQL_URL/DATABASE_URL no contiene nombre de base de datos en la ruta.');
+        }
+
+        return [$host, $port, $db, $user, $pass, $charset];
     }
 
     /**
      * Prevenir clonación (Singleton).
      */
-    private function __clone(): void
-    {
-    }
+    private function __clone(): void {}
 
     /**
      * Prevenir deserialización (Singleton).

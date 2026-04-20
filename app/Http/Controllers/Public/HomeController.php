@@ -7,9 +7,9 @@ namespace App\Http\Controllers\Public;
 use App\Core\Container;
 use App\Core\Session;
 use App\Core\View;
-use App\Repositories\Contracts\AnimalRepositoryInterface;
-use App\Repositories\Contracts\CafeCatalogRepositoryInterface;
-use App\Repositories\Contracts\FavoriteRepositoryInterface;
+use App\Models\Animal;
+use App\Models\Cafe;
+use App\Models\Favorite;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -18,18 +18,13 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class HomeController
 {
-    private CafeCatalogRepositoryInterface $cafeRepo;
-    private FavoriteRepositoryInterface $favoriteRepo;
-    private AnimalRepositoryInterface $animalRepo;
+    private Cafe $cafeModel;
+    private Animal $animalModel;
 
-    public function __construct(
-        ?CafeCatalogRepositoryInterface $cafeRepo = null,
-        ?FavoriteRepositoryInterface $favoriteRepo = null,
-        ?AnimalRepositoryInterface $animalRepo = null,
-    ) {
-        $this->cafeRepo     = $cafeRepo     ?? Container::make(CafeCatalogRepositoryInterface::class);
-        $this->favoriteRepo = $favoriteRepo ?? Container::make(FavoriteRepositoryInterface::class);
-        $this->animalRepo   = $animalRepo   ?? Container::make(AnimalRepositoryInterface::class);
+    public function __construct(?Cafe $cafeModel = null, ?Animal $animalModel = null)
+    {
+        $this->cafeModel = $cafeModel ?? new Cafe(Container::make(\PDO::class));
+        $this->animalModel = $animalModel ?? new Animal(Container::make(\PDO::class));
     }
 
     /**
@@ -38,17 +33,17 @@ final class HomeController
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         // Estadísticas generales
-        $cafes = $this->cafeRepo->findAllFiltered();
+        $cafes = $this->cafeModel->findAll();
         $totalCafes = \count($cafes);
 
         // Calcular valoración media de todos los cafés activos
-        $ratings = \array_filter(\array_column($cafes, 'rating_avg'), fn ($r) => $r !== null && (float) $r > 0);
+        $ratings = \array_filter(\array_column($cafes, 'rating_avg'), fn($r) => $r !== null && (float) $r > 0);
         $ratingPromedio = $ratings !== []
             ? \number_format(\array_sum($ratings) / \count($ratings), 1)
             : '5.0';
 
         // Número de especies distintas en el sistema
-        $totalEspecies = $this->animalRepo->countDistinctSpecies();
+        $totalEspecies = $this->animalModel->countDistinctSpecies();
 
         // Cafés destacados (por rating)
         $featuredCafes = $this->getFeaturedCafes($cafes);
@@ -82,7 +77,7 @@ final class HomeController
     private function getFeaturedCafes(array $cafes): array
     {
         // Ordenar por rating descendente
-        \usort($cafes, static fn ($a, $b) => (float) ($b['rating_avg'] ?? 0) <=> (float) ($a['rating_avg'] ?? 0));
+        \usort($cafes, static fn($a, $b) => (float) ($b['rating_avg'] ?? 0) <=> (float) ($a['rating_avg'] ?? 0));
 
         return \array_slice($cafes, 0, 3);
     }
@@ -93,10 +88,11 @@ final class HomeController
     private function getUserHomeData(): array
     {
         $userId = Session::userId();
+        $favoriteModel = new Favorite();
 
         return [
-            'name'            => Session::userName(),
-            'favorites_count' => $this->favoriteRepo->countByUser($userId),
+            'name' => Session::userName(),
+            'favorites_count' => $favoriteModel->countByUser($userId),
         ];
     }
 
