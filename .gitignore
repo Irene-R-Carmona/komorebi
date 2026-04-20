@@ -106,3 +106,9 @@ docker/redis/data/
 docker/mysql/init-local/
 docker/redis/dump.rdb
 
+# Claude Code — configuración local del agente (no compartir)
+.claude/
+
+# Logs de desarrollo sueltos en raíz
+logs.txt
+
