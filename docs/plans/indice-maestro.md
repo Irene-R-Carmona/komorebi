@@ -190,6 +190,7 @@ Opcional → BLOQUE 7 restante + BLOQUE 9 (FrankenPHP)
 
 | Plan                                 | Archivo                                             | Estado                                                                                                   |
 |--------------------------------------|-----------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| **Infra Railway + SOLID cleanup**    | `2026-04-20-infra-railway-solid.md`                 | ✅ Bloques 1–4 Railway completados — SOLID parcial (ReviewService+WaitlistService); deuda AuthTokenService/DashboardService/ProductService pendiente |
 | **Deploy en Railway (Defensa TFG)**  | `2026-04-17-deploy-railway.md`                      |  Plan creado — ÚLTIMO plan, ejecutar tras verificación completa                                         |
 | **Preparación Entorno Inicial**      | `2026-04-17-preparacion-entorno-inicial.md`         |  Plan creado — ejecutar para verificar Docker stack completo                                            |
 | **Business Rules Hardening**         | `2026-04-17-business-rules-hardening.md`            |  Sprint 0-5 completos — verificación grep OK; phpstan/cs-check/test-unit pendientes (requieren Docker) |

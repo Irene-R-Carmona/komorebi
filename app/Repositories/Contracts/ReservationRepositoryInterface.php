@@ -141,4 +141,6 @@ interface ReservationRepositoryInterface
      * @return array<string, mixed>|null
      */
     public function findByIdAndUser(int $id, int $userId): ?array;
+
+    public function hasCompletedReservation(int $userId, int $cafeId): bool;
 }

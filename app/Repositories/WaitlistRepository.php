@@ -400,4 +400,21 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
 
         return $stmt->execute(['id' => $id]);
     }
+
+    public function findByIdAndUser(int $id, int $userId): ?array
+    {
+        $stmt = $this->db->prepare('SELECT * FROM waitlist WHERE id = ? AND user_id = ?');
+        $stmt->execute([$id, $userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ?: null;
+    }
+
+    public function countByTimeSlotAndStatus(int $timeSlotId, string $status): int
+    {
+        $stmt = $this->db->prepare('SELECT COUNT(*) FROM waitlist WHERE time_slot_id = ? AND status = ?');
+        $stmt->execute([$timeSlotId, $status]);
+
+        return (int) $stmt->fetchColumn();
+    }
 }

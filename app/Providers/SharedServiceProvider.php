@@ -140,7 +140,7 @@ final class SharedServiceProvider extends ServiceProvider
         Container::singleton(ReviewService::class, fn () => new ReviewService(
             Container::make(UserRepositoryInterface::class),
             Container::make(ReviewRepositoryInterface::class),
-            Database::getConnection()
+            Container::make(ReservationRepositoryInterface::class)
         ));
 
         Container::singleton(ReviewServiceInterface::class, fn () => Container::make(ReviewService::class));

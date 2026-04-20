@@ -22,6 +22,7 @@ declare(strict_types=1);
 namespace Tests\Integration;
 
 use App\Repositories\CafeRepository;
+use App\Repositories\ReservationRepository;
 use App\Repositories\ReviewRepository;
 use App\Repositories\UserRepository;
 use App\Services\ReviewModerationService;
@@ -53,7 +54,7 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         $this->seedTestData();
         $reviewRepo = new ReviewRepository(self::$db);
         $cafeRepo = new CafeRepository(self::$db);
-        $this->service = new ReviewService(new UserRepository(self::$db), $reviewRepo, self::$db);
+        $this->service = new ReviewService(new UserRepository(self::$db), $reviewRepo, new ReservationRepository(self::$db));
         $this->queryService = new ReviewQueryService($reviewRepo);
         $this->moderationService = new ReviewModerationService($reviewRepo, $cafeRepo);
     }

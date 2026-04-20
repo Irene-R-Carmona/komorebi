@@ -530,6 +530,17 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         return (int) $stmt->fetchColumn();
     }
 
+    public function hasCompletedReservation(int $userId, int $cafeId): bool
+    {
+        $stmt = $this->getDb()->prepare(
+            "SELECT COUNT(*) FROM reservations
+             WHERE user_id = :user_id AND cafe_id = :cafe_id AND status = 'completed'"
+        );
+        $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
+
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
     public function findWithOperationalData(int $id): ?array
     {
         $stmt = $this->getDb()->prepare(

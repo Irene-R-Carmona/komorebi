@@ -18,11 +18,11 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Core\Result;
-use App\Models\Contracts\UserModelInterface;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\ReviewService;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -30,23 +30,31 @@ use PHPUnit\Framework\Attributes\CoversClass;
 final class ReviewServiceTest extends TestCase
 {
     private ReviewService $service;
-    private UserModelInterface&Stub $userModelMock;
+    private UserRepositoryInterface&MockObject $userRepoMock;
     private ReviewRepositoryInterface&MockObject $reviewRepoMock;
+    private ReservationRepositoryInterface&MockObject $reservationRepoMock;
 
     protected function setUp(): void
     {
-        $this->userModelMock = $this->createMock(UserModelInterface::class);
-        $this->reviewRepoMock = $this->createMock(ReviewRepositoryInterface::class);
-        $this->service = new ReviewService($this->userModelMock, $this->reviewRepoMock);
+        $this->userRepoMock        = $this->createMock(UserRepositoryInterface::class);
+        $this->reviewRepoMock      = $this->createMock(ReviewRepositoryInterface::class);
+        $this->reservationRepoMock = $this->createMock(ReservationRepositoryInterface::class);
+        $this->service = new ReviewService(
+            $this->userRepoMock,
+            $this->reviewRepoMock,
+            $this->reservationRepoMock,
+        );
     }
 
     public function testCreateReviewWithValidDataReturnsSuccess(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
+        $this->userRepoMock->method('findById')->willReturn([
             'id' => 1,
             'is_active' => true,
         ]);
 
+        $this->reservationRepoMock->method('hasCompletedReservation')->willReturn(true);
+        $this->reviewRepoMock->method('findByUserAndCafe')->willReturn(null);
         $this->reviewRepoMock->method('create')->willReturn(123);
 
         $result = $this->service->createReview(
@@ -63,7 +71,7 @@ final class ReviewServiceTest extends TestCase
 
     public function testCreateReviewWithInvalidUserReturnsError(): void
     {
-        $this->userModelMock->method('findById')->willReturn(null);
+        $this->userRepoMock->method('findById')->willReturn(null);
 
         $result = $this->service->createReview(
             userId: 999,
@@ -79,7 +87,7 @@ final class ReviewServiceTest extends TestCase
 
     public function testCreateReviewWithInactiveUserReturnsError(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
+        $this->userRepoMock->method('findById')->willReturn([
             'id' => 1,
             'is_active' => false,
         ]);
@@ -98,12 +106,11 @@ final class ReviewServiceTest extends TestCase
 
     public function testCreateReviewWithInvalidRatingReturnsError(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
+        $this->userRepoMock->method('findById')->willReturn([
             'id' => 1,
             'is_active' => true,
         ]);
 
-        // Rating fuera de rango (< 1)
         $result = $this->service->createReview(
             userId: 1,
             cafeId: 5,
@@ -115,7 +122,6 @@ final class ReviewServiceTest extends TestCase
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Rating', $result->error);
 
-        // Rating fuera de rango (> 5)
         $result = $this->service->createReview(
             userId: 1,
             cafeId: 5,
@@ -130,7 +136,7 @@ final class ReviewServiceTest extends TestCase
 
     public function testCreateReviewWithShortTitleReturnsError(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
+        $this->userRepoMock->method('findById')->willReturn([
             'id' => 1,
             'is_active' => true,
         ]);
@@ -139,7 +145,7 @@ final class ReviewServiceTest extends TestCase
             userId: 1,
             cafeId: 5,
             rating: 5,
-            title: 'Ab', // Muy corto
+            title: 'Ab',
             body: 'This is a valid review body with enough characters.'
         );
 
@@ -149,18 +155,16 @@ final class ReviewServiceTest extends TestCase
 
     public function testCreateReviewWithLongTitleReturnsError(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
+        $this->userRepoMock->method('findById')->willReturn([
             'id' => 1,
             'is_active' => true,
         ]);
-
-        $longTitle = \str_repeat('A', 101); // Más de 100 caracteres
 
         $result = $this->service->createReview(
             userId: 1,
             cafeId: 5,
             rating: 5,
-            title: $longTitle,
+            title: \str_repeat('A', 101),
             body: 'This is a valid review body.'
         );
 
@@ -170,7 +174,7 @@ final class ReviewServiceTest extends TestCase
 
     public function testCreateReviewWithShortBodyReturnsError(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
+        $this->userRepoMock->method('findById')->willReturn([
             'id' => 1,
             'is_active' => true,
         ]);
@@ -180,7 +184,7 @@ final class ReviewServiceTest extends TestCase
             cafeId: 5,
             rating: 5,
             title: 'Valid Title',
-            body: 'Short' // Menos de 10 caracteres
+            body: 'Short'
         );
 
         $this->assertFalse($result->ok);
@@ -189,12 +193,13 @@ final class ReviewServiceTest extends TestCase
 
     public function testCreateReviewSanitizesHtmlContent(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
+        $this->userRepoMock->method('findById')->willReturn([
             'id' => 1,
             'is_active' => true,
         ]);
+        $this->reservationRepoMock->method('hasCompletedReservation')->willReturn(true);
+        $this->reviewRepoMock->method('findByUserAndCafe')->willReturn(null);
 
-        // Capturar los argumentos pasados al método create del repository
         $capturedData = null;
 
         $this->reviewRepoMock->expects($this->once())
@@ -213,7 +218,6 @@ final class ReviewServiceTest extends TestCase
             body: 'Body with <b>HTML</b> tags and <script>malicious</script> code'
         );
 
-        // Verificar que el HTML fue escapado
         $this->assertNotNull($capturedData);
         $this->assertStringContainsString('&lt;script&gt;', $capturedData['title'] ?? '');
         $this->assertStringContainsString('&lt;script&gt;', $capturedData['body'] ?? '');

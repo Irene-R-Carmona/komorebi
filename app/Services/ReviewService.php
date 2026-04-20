@@ -8,12 +8,12 @@ use App\Core\BaseService;
 use App\Core\Logger;
 use App\Core\Result;
 use App\Core\WideEvent;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\ReviewServiceInterface;
 use Exception;
 use Override;
-use PDO;
 use RuntimeException;
 
 /**
@@ -28,16 +28,16 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
 
     private ReviewRepositoryInterface $reviewRepository;
 
-    private PDO $db;
+    private ReservationRepositoryInterface $reservationRepo;
 
     public function __construct(
         UserRepositoryInterface $userRepo,
         ReviewRepositoryInterface $reviewRepository,
-        PDO $db
+        ReservationRepositoryInterface $reservationRepo
     ) {
-        $this->userRepo      = $userRepo;
+        $this->userRepo         = $userRepo;
         $this->reviewRepository = $reviewRepository;
-        $this->db            = $db;
+        $this->reservationRepo  = $reservationRepo;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -293,16 +293,7 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
     public function userHasCompletedReservation(int $userId, int $cafeId): bool
     {
         try {
-            $stmt = $this->db->prepare('
-                SELECT COUNT(*)
-                FROM reservations
-                WHERE user_id = :user_id
-                AND cafe_id = :cafe_id
-                AND status = "completed"
-            ');
-            $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
-
-            return (int) $stmt->fetchColumn() > 0;
+            return $this->reservationRepo->hasCompletedReservation($userId, $cafeId);
         } catch (Exception $e) {
             Logger::error('Error al verificar reserva completada', [
                 'exception' => \get_class($e),

@@ -462,13 +462,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
     public function getPosition(int $userId, int $timeSlotId): Result
     {
         $position = $this->waitlistRepository->getPosition($timeSlotId, $userId);
-
-        // Contar todos los que están esperando en este slot
-        $stmt = $this->db->prepare(
-            'SELECT COUNT(*) FROM waitlist WHERE time_slot_id = ? AND status = ?'
-        );
-        $stmt->execute([$timeSlotId, Waitlist::STATUS_WAITING]);
-        $totalWaiting = (int) $stmt->fetchColumn();
+        $totalWaiting = $this->waitlistRepository->countByTimeSlotAndStatus($timeSlotId, Waitlist::STATUS_WAITING);
 
         return Result::ok([
             'position' => $position,
@@ -490,12 +484,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
     public function cancelWaitlist(int $waitlistId, int $userId): Result
     {
         return $this->transact(function () use ($waitlistId, $userId): Result {
-            // Verificar que el waitlist pertenece al usuario
-            $stmt = $this->db->prepare('
-                SELECT * FROM waitlist WHERE id = ? AND user_id = ?
-            ');
-            $stmt->execute([$waitlistId, $userId]);
-            $entry = $stmt->fetch(PDO::FETCH_ASSOC);
+            $entry = $this->waitlistRepository->findByIdAndUser($waitlistId, $userId);
 
             if (!$entry) {
                 return Result::fail('Entrada de waitlist no encontrada o no autorizada');
