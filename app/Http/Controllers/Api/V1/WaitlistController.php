@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Api\V1;
 use App\Core\Container;
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
-use App\Core\Session;
 use App\Services\Contracts\WaitlistServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -25,10 +24,10 @@ final class WaitlistController
 
     private ResponseFactory $response;
 
-    public function __construct(?WaitlistServiceInterface $service = null, ?ResponseFactory $response = null)
+    public function __construct()
     {
-        $this->service   = $service ?? Container::make(WaitlistServiceInterface::class);
-        $this->response  = $response ?? new ResponseFactory();
+        $this->service = Container::make(WaitlistServiceInterface::class);
+        $this->response = new ResponseFactory();
     }
 
     /**
@@ -39,13 +38,12 @@ final class WaitlistController
      * Body:
      * {
      *   "time_slot_id": 123,
+     *   "user_id": 45,
      *   "guest_count": 2,
      *   "contact_email": "user@example.com",
      *   "contact_phone": "+34666123456",
      *   "special_requests": "Mesa junto a ventana"
      * }
-     *
-     * Requiere autenticación — user_id se obtiene de la sesión (no del body).
      *
      * Response 201:
      * {
@@ -64,23 +62,15 @@ final class WaitlistController
         $raw = $raw === false ? '' : $raw;
         $input = \json_decode($raw, true) ?? [];
 
-        // user_id exclusivamente desde sesión — nunca del body (previene IDOR)
-        $userId = Session::userId();
-        if ($userId === null) {
+        if (!isset($input['time_slot_id'], $input['user_id'])) {
             return $this->response->problem(
-                Result::fail('Autenticación requerida', 'unauthenticated'),
-                401
-            );
-        }
-
-        if (!isset($input['time_slot_id'])) {
-            return $this->response->problem(
-                Result::fail('Falta campo requerido: time_slot_id', 'bad_request'),
+                Result::fail('Faltan campos requeridos: time_slot_id, user_id', 'bad_request'),
                 400
             );
         }
 
         $timeSlotId = (int) $input['time_slot_id'];
+        $userId = (int) $input['user_id'];
 
         $data = [
             'guest_count' => (int) ($input['guest_count'] ?? 1),

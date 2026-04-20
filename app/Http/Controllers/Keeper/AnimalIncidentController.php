@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Keeper;
 
-use App\Core\Container;
 use App\Core\Csrf;
+use App\Core\Database;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
-use App\Repositories\Contracts\AnimalRepositoryInterface;
+use App\Repositories\AnimalRepository;
+use App\Services\AnimalCareService;
 use App\Services\Contracts\AnimalCareServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -26,16 +27,22 @@ final class AnimalIncidentController
 {
     private AnimalCareServiceInterface $service;
     private ResponseFactory $response;
-    private AnimalRepositoryInterface $animalRepository;
+    private AnimalRepository $animalRepository;
 
     public function __construct(
         ?AnimalCareServiceInterface $service = null,
         ?ResponseFactory $response = null,
-        ?AnimalRepositoryInterface $animalRepository = null,
+        ?AnimalRepository $animalRepository = null,
     ) {
-        $this->service          = $service ?? Container::make(AnimalCareServiceInterface::class);
-        $this->animalRepository = $animalRepository ?? Container::make(AnimalRepositoryInterface::class);
-        $this->response         = $response ?? new ResponseFactory();
+        if ($service === null || $animalRepository === null) {
+            $db = Database::getConnection();
+            $this->animalRepository = $animalRepository ?? new AnimalRepository($db);
+            $this->service = $service ?? new AnimalCareService($db, $this->animalRepository);
+        } else {
+            $this->animalRepository = $animalRepository;
+            $this->service = $service;
+        }
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**
@@ -95,7 +102,7 @@ final class AnimalIncidentController
         if ($result->ok) {
             Flash::success('Incidente reportado correctamente.');
         } else {
-            Flash::error($result->error ?? 'Error al reportar incidente');
+            Flash::error($result->error);
         }
 
         return $this->response->redirect('/keeper/incidents');
@@ -145,7 +152,7 @@ final class AnimalIncidentController
         if ($result->ok) {
             Flash::success('Incidente resuelto correctamente.');
         } else {
-            Flash::error($result->error ?? 'Error al resolver incidente');
+            Flash::error($result->error);
         }
 
         return $this->response->redirect('/keeper/incidents');

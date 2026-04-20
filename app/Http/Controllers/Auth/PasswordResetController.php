@@ -10,6 +10,7 @@ use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
+use App\Services\AuthService;
 use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\EmailVerificationServiceInterface;
 use App\Services\Contracts\PasswordResetServiceInterface;
@@ -17,7 +18,6 @@ use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
-use Throwable;
 
 /**
  * Controlador de Resteo de Contraseña
@@ -37,7 +37,7 @@ final class PasswordResetController
         ?EmailVerificationServiceInterface $emailVerificationService = null,
         ?ResponseFactory $response = null
     ) {
-        $this->authService = $authService ?? Container::make(AuthServiceInterface::class);
+        $this->authService = $authService ?? Container::make(AuthService::class);
         $this->passwordResetService = $passwordResetService ?? Container::make(PasswordResetServiceInterface::class);
         $this->emailVerificationService = $emailVerificationService ?? Container::make(EmailVerificationServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
@@ -89,7 +89,7 @@ final class PasswordResetController
             Flash::success('Si el email existe, recibirás instrucciones para recuperar tu contraseña.');
 
             return $this->response->redirect('/auth/forgot-password');
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             // Loguear para diagnóstico y evitar que una excepción externa provoque 500 no gestionado
             \App\Core\Logger::error('[PasswordReset] ' . $e->getMessage(), ['exception' => (string) $e]);
 
@@ -159,7 +159,7 @@ final class PasswordResetController
             return $this->response->redirect('/auth/login');
         }
 
-        Flash::error($result->error ?? 'Error al restablecer contraseña');
+        Flash::error($result->error);
 
         return $this->response->redirect('/auth/reset-password?token=' . \urlencode($token));
     }
@@ -192,7 +192,7 @@ final class PasswordResetController
             return $this->response->redirect('/auth/login');
         }
 
-        Flash::error($result->error ?? 'Error al verificar email');
+        Flash::error($result->error);
 
         return $this->response->redirect('/');
     }
@@ -220,7 +220,7 @@ final class PasswordResetController
         if ($result->ok) {
             Flash::success('Email de verificación enviado. Revisa tu bandeja de entrada.');
         } else {
-            Flash::error($result->error ?? 'Error al enviar verificación');
+            Flash::error($result->error);
         }
 
         return $this->response->redirect('/account');

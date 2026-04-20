@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Reception;
 
+use App\Core\Container;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
-use App\Core\Middleware;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
@@ -34,8 +34,7 @@ final class ReceptionController
         ?ResponseFactory $response = null,
         ?ContextServiceInstance $context = null,
     ) {
-        Middleware::auth();
-        $this->service = $service ?? \App\Core\Container::make(ReceptionServiceInterface::class);
+        $this->service = $service ?? Container::make(ReceptionServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
         $this->context = $context;
     }
@@ -133,7 +132,7 @@ final class ReceptionController
         $result = $this->service->processCheckin($id, $trackId);
 
         if (!$result->ok) {
-            Flash::error($result->error ?? 'Error al realizar check-in');
+            Flash::error($result->error ?? 'Error al realizar check-in.');
 
             return $this->response->redirect('/ops/reception');
         }
@@ -160,7 +159,7 @@ final class ReceptionController
         $result = $this->service->processCheckout($id);
 
         if (!$result->ok) {
-            Flash::error($result->error ?? 'Error al realizar check-out');
+            Flash::error($result->error ?? 'Error al realizar check-out.');
 
             return $this->response->redirect('/ops/reception');
         }

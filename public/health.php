@@ -77,8 +77,6 @@ if (getenv('REDIS_HOST')) {
 
 // 3. Espacio en disco (básico)
 $freeSpace = disk_free_space(__DIR__);
-// 3. Espacio en disco (básico)
-$freeSpace = disk_free_space(__DIR__);
 $totalSpace = disk_total_space(__DIR__);
 $usagePercent = $totalSpace > 0 ? round((1 - $freeSpace / $totalSpace) * 100, 2) : 0;
 

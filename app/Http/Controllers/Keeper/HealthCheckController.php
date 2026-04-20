@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Keeper;
 
-use App\Core\Container;
 use App\Core\Csrf;
+use App\Core\Database;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
+use App\Repositories\AnimalRepository;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
-use App\Services\Contracts\HealthCheckServiceInterface;
+use App\Repositories\HealthCheckRepository;
+use App\Services\HealthCheckService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -28,18 +30,24 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class HealthCheckController
 {
-    private HealthCheckServiceInterface $healthCheckService;
+    private HealthCheckService $healthCheckService;
     private AnimalRepositoryInterface $animalRepo;
     private ResponseFactory $response;
 
     public function __construct(
-        ?HealthCheckServiceInterface $healthCheckService = null,
+        ?HealthCheckService $healthCheckService = null,
         ?AnimalRepositoryInterface $animalRepo = null,
         ?ResponseFactory $response = null,
     ) {
-        $this->healthCheckService = $healthCheckService ?? Container::make(HealthCheckServiceInterface::class);
-        $this->animalRepo         = $animalRepo ?? Container::make(AnimalRepositoryInterface::class);
-        $this->response           = $response ?? new ResponseFactory();
+        if ($healthCheckService === null || $animalRepo === null) {
+            $db = Database::getConnection();
+            $this->healthCheckService = $healthCheckService ?? new HealthCheckService(new HealthCheckRepository($db));
+            $this->animalRepo = $animalRepo ?? new AnimalRepository($db);
+        } else {
+            $this->healthCheckService = $healthCheckService;
+            $this->animalRepo = $animalRepo;
+        }
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**
@@ -136,7 +144,7 @@ final class HealthCheckController
         $result = $this->healthCheckService->createHealthCheck($animalId, $keeperId, $checkData);
 
         if (!$result->ok) {
-            throw ValidationException::withMessage($result->error ?? 'Error de validación', 400);
+            throw ValidationException::withMessage($result->error ?? 'Error al registrar chequeo', 400);
         }
 
         $alerts = $result->data['alerts'] ?? [];

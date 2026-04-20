@@ -63,9 +63,10 @@ RUN addgroup -S appgroup && \
     chown -R appuser:appgroup /app && \
     chmod -R u+rw /app/storage
 
-ENV SKIP_COMPOSER=1
-
 USER appuser
+
+# Defensive: ensure Xdebug is never activated even if the extension were installed
+ENV XDEBUG_MODE=off
 
 EXPOSE 80
 

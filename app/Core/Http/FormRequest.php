@@ -32,6 +32,7 @@ abstract class FormRequest
         /** @var array<string,mixed> $body */
         $body = (array) ($request->getParsedBody() ?? []);
 
+        /** @phpstan-ignore new.static */
         $instance = new static();
         $instance->sanitizedData = $instance->sanitize($body);
 

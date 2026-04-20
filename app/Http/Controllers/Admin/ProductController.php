@@ -13,8 +13,9 @@ use App\Exceptions\DatabaseException;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Http\Transformers\ProductTransformer;
-use App\Repositories\Contracts\ProductRepositoryInterface;
-use App\Services\Contracts\AllergenServiceInterface;
+use App\Models\Allergen;
+use App\Models\Product;
+use App\Repositories\ProductRepository;
 use App\Services\Contracts\ProductServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -30,8 +31,9 @@ use Random\RandomException;
 final class ProductController
 {
     private ProductServiceInterface $productService;
-    private AllergenServiceInterface $allergenService;
-    private ProductRepositoryInterface $productRepo;
+    private Product $productModel;
+    private Allergen $allergenModel;
+    private ProductRepository $productRepo;
     private ResponseFactory $response;
     private ProductTransformer $productTransformer;
 
@@ -39,15 +41,17 @@ final class ProductController
 
     public function __construct(
         ?ProductServiceInterface $productService = null,
-        ?AllergenServiceInterface $allergenService = null,
-        ?ProductRepositoryInterface $productRepo = null,
+        ?Product $productModel = null,
+        ?Allergen $allergenModel = null,
+        ?ProductRepository $productRepo = null,
         ?ResponseFactory $response = null,
         ?ProductTransformer $productTransformer = null,
     ) {
-        $this->productService     = $productService ?? Container::make(ProductServiceInterface::class);
-        $this->allergenService    = $allergenService ?? Container::make(AllergenServiceInterface::class);
-        $this->productRepo        = $productRepo ?? Container::make(ProductRepositoryInterface::class);
-        $this->response           = $response ?? new ResponseFactory();
+        $this->productService = $productService ?? Container::make(ProductServiceInterface::class);
+        $this->productModel = $productModel ?? new Product(Container::make(\PDO::class));
+        $this->allergenModel = $allergenModel ?? new Allergen(Container::make(\PDO::class));
+        $this->productRepo = $productRepo ?? new ProductRepository(Container::make(\PDO::class));
+        $this->response = $response ?? new ResponseFactory();
         $this->productTransformer = $productTransformer ?? new ProductTransformer();
     }
 
@@ -134,8 +138,8 @@ final class ProductController
         // Obtener categorías
         $categories = $this->productRepo->getCategories();
 
-        // Obtener alérgenos via AllergenServiceInterface (DIP — sin acceso directo al modelo)
-        $allergens = $this->allergenService->listAll(true);
+        // Obtener alérgenos
+        $allergens = $this->allergenModel->getAll(true);
 
         View::render('admin/products/create', [
             'titulo' => 'Nuevo Producto | Komorebi Admin',
@@ -191,7 +195,7 @@ final class ProductController
      */
     public function edit(ServerRequestInterface $request, int $id): ?ResponseInterface
     {
-        $product = $this->productRepo->findById($id);
+        $product = $this->productModel->findById($id);
 
         if (!$product) {
             throw NotFoundException::product($id);
@@ -200,12 +204,11 @@ final class ProductController
         // Obtener categorías
         $categories = $this->productRepo->getCategories();
 
-        // Obtener alérgenos via AllergenServiceInterface (DIP — sin acceso directo al modelo)
-        $allergens = $this->allergenService->listAll(true);
+        // Obtener alérgenos
+        $allergens = $this->allergenModel->getAll(true);
 
-        // Obtener alérgenos asignados al producto via AllergenServiceInterface
-        $allergenResult = $this->allergenService->getByProduct($id);
-        $product_allergens = $allergenResult->ok ? $allergenResult->data : [];
+        // Obtener alérgenos asignados al producto
+        $product_allergens = $this->productModel->getAllergensNormalized($id);
 
         View::render('admin/products/edit', [
             'titulo' => 'Editar Producto | Komorebi Admin',
@@ -321,10 +324,9 @@ final class ProductController
             $products = $this->productService->getAll();
         }
 
-        // Cargar alérgenos via AllergenServiceInterface
+        // Cargar alérgenos
         foreach ($products as &$product) {
-            $allergenResult = $this->allergenService->getByProduct((int) $product['id']);
-            $product['allergens_list'] = $allergenResult->ok ? $allergenResult->data : [];
+            $product['allergens_list'] = $this->productModel->getAllergensNormalized((int) $product['id']);
         }
         unset($product); // Liberar referencia
 
@@ -340,15 +342,14 @@ final class ProductController
      */
     public function apiShow(int $id): ResponseInterface
     {
-        $product = $this->productRepo->findById($id);
+        $product = $this->productModel->findById($id);
 
         if (!$product) {
             throw NotFoundException::product($id);
         }
 
-        // Agregar alérgenos via AllergenServiceInterface
-        $allergenResult = $this->allergenService->getByProduct($id);
-        $product['allergens_list'] = $allergenResult->ok ? $allergenResult->data : [];
+        // Agregar alérgenos
+        $product['allergens_list'] = $this->productModel->getAllergensNormalized($id);
 
         return $this->response->json(['ok' => true, 'data' => $product]);
     }
@@ -363,7 +364,7 @@ final class ProductController
      */
     public function apiAllergens(): ResponseInterface
     {
-        $allergens = $this->allergenService->listAll(true);
+        $allergens = $this->allergenModel->getAll(true);
 
         return $this->response->json(['ok' => true, 'data' => ['allergens' => $allergens]]);
     }

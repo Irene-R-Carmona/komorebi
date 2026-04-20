@@ -35,6 +35,7 @@ use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Repositories\Contracts\StatisticsRepositoryInterface;
 use App\Repositories\Contracts\TrackerRepositoryInterface;
 use App\Repositories\LoyaltyRepository;
+use App\Repositories\TrackerRepository;
 use App\Repositories\SettingRepository;
 use App\Repositories\ReservationItemRepository;
 use App\Repositories\StatisticsRepository;
@@ -227,6 +228,11 @@ final class SharedServiceProvider extends ServiceProvider
             Container::make(ReservationItemRepositoryInterface::class)
         ));
         Container::singleton(KitchenServiceInterface::class, fn () => Container::make(KitchenService::class));
+
+        Container::singleton(TrackerRepository::class, fn () => new TrackerRepository(
+            Database::getConnection()
+        ));
+        Container::singleton(TrackerRepositoryInterface::class, fn () => Container::make(TrackerRepository::class));
 
         Container::singleton(ReceptionService::class, fn () => new ReceptionService(
             Container::make(ReservationRepositoryInterface::class),

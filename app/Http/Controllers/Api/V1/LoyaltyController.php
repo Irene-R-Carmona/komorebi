@@ -46,7 +46,7 @@ final class LoyaltyController extends AbstractApiController
         $result = $this->loyaltyService->redeemReward((int) $userId, $rewardType);
 
         if (!$result->ok) {
-            return $this->unprocessable($result->error ?? 'Error al canjear recompensa', 'redemption_error');
+            return $this->unprocessable($result->error, 'redemption_error');
         }
 
         return $this->success([
@@ -71,7 +71,7 @@ final class LoyaltyController extends AbstractApiController
         $result = $this->loyaltyService->validateRedemptionCode($code);
 
         if (!$result->ok) {
-            return $this->unprocessable($result->error ?? 'Código inválido', 'invalid_code');
+            return $this->unprocessable($result->error, 'invalid_code');
         }
 
         return $this->success($result->data);
@@ -92,7 +92,7 @@ final class LoyaltyController extends AbstractApiController
         $result = $this->loyaltyService->useReward($code);
 
         if (!$result->ok) {
-            return $this->unprocessable($result->error ?? 'Error al usar recompensa', 'use_error');
+            return $this->unprocessable($result->error, 'use_error');
         }
 
         return $this->success($result->data);

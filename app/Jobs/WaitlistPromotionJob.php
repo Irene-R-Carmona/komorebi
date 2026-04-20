@@ -10,7 +10,6 @@ use App\Core\Logger;
 use App\Core\Queue;
 use App\Core\WideEvent;
 use App\Exceptions\BusinessRuleException;
-use Override;
 use PDO;
 use Throwable;
 
@@ -49,7 +48,7 @@ final class WaitlistPromotionJob implements JobInterface
      * @return void
      * @throws BusinessRuleException Si el token ya expiró
      */
-    #[Override]
+    #[\Override]
     public function handle(array $payload): void
     {
         // Support lightweight push: just the entry ID — hydrate from DB
@@ -198,7 +197,7 @@ final class WaitlistPromotionJob implements JobInterface
      */
     private function generateConfirmUrl(string $token): string
     {
-        $baseUrl = Env::get('APP_URL', 'http://localhost:8080');
+        $baseUrl = Env::require('APP_URL');
 
         return $baseUrl . '/reservas/waitlist/confirm?token=' . \urlencode($token);
     }

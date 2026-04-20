@@ -10,8 +10,9 @@ use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\UserRepository;
 use App\Services\Contracts\StaffShiftServiceInterface;
-use App\Support\TimeHelper;
+use App\Services\StaffShiftService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -34,9 +35,9 @@ final class StaffController
         ?ResponseFactory $response = null,
         ?StaffShiftServiceInterface $shiftService = null,
     ) {
-        $this->userRepo     = $userRepo ?? Container::make(UserRepositoryInterface::class);
-        $this->response     = $response ?? new ResponseFactory();
-        $this->shiftService = $shiftService ?? Container::make(StaffShiftServiceInterface::class);
+        $this->userRepo = $userRepo ?? Container::make(UserRepository::class);
+        $this->response = $response ?? new ResponseFactory();
+        $this->shiftService = $shiftService ?? Container::make(StaffShiftService::class);
     }
 
     /**
@@ -158,21 +159,21 @@ final class StaffController
             ], 400);
         }
 
-        if (empty($shiftStart) || !TimeHelper::isValid($shiftStart)) {
+        if (empty($shiftStart) || !$this->isValidTime($shiftStart)) {
             return $this->response->json([
                 'success' => false,
                 'error' => 'Hora de inicio inválida (formato: HH:MM)',
             ], 400);
         }
 
-        if (empty($shiftEnd) || !TimeHelper::isValid($shiftEnd)) {
+        if (empty($shiftEnd) || !$this->isValidTime($shiftEnd)) {
             return $this->response->json([
                 'success' => false,
                 'error' => 'Hora de fin inválida (formato: HH:MM)',
             ], 400);
         }
 
-        if (TimeHelper::compare($shiftStart, $shiftEnd) >= 0) {
+        if ($this->compareTime($shiftStart, $shiftEnd) >= 0) {
             return $this->response->json([
                 'success' => false,
                 'error' => 'La hora de inicio debe ser menor que la hora de fin',
@@ -191,8 +192,8 @@ final class StaffController
             $userId,
             $cafeId,
             $shiftDate,
-            TimeHelper::normalize($shiftStart),
-            TimeHelper::normalize($shiftEnd),
+            $this->normalizeTime($shiftStart),
+            $this->normalizeTime($shiftEnd),
             $notes,
             (int) $user['id'],
         );
@@ -202,7 +203,7 @@ final class StaffController
 
             return $this->response->json([
                 'success' => false,
-                'error' => $result->error ?? 'Error al asignar turno',
+                'error' => $result->error,
             ], $status);
         }
 
@@ -269,7 +270,7 @@ final class StaffController
         if (!$metricsResult->ok) {
             return $this->response->json([
                 'success' => false,
-                'error' => $metricsResult->error ?? 'Error al obtener métricas',
+                'error' => $metricsResult->error,
             ], 500);
         }
 
@@ -280,4 +281,34 @@ final class StaffController
         ]);
     }
 
+    /**
+     * Valida formato de hora HH:MM o HH:MM:SS
+     */
+    private function isValidTime(string $time): bool
+    {
+        return (bool) \preg_match('/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/', $time);
+    }
+
+    /**
+     * Compara dos horas (retorna -1, 0, 1)
+     */
+    private function compareTime(string $time1, string $time2): int
+    {
+        $normalized1 = $this->normalizeTime($time1);
+        $normalized2 = $this->normalizeTime($time2);
+
+        return \strcmp($normalized1, $normalized2) <=> 0;
+    }
+
+    /**
+     * Normaliza hora a formato HH:MM:SS
+     */
+    private function normalizeTime(string $time): string
+    {
+        if (\preg_match('/^(\d{2}):(\d{2})$/', $time)) {
+            return $time . ':00';
+        }
+
+        return $time;
+    }
 }

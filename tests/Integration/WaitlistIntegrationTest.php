@@ -3,20 +3,15 @@
 declare(strict_types=1);
 
 /**
+ * ¿Qué pruebas aquí?
+ * ¿Qué me quieres demostrar?
+ * ¿Qué va a fallar en este test si se cambia el código?
+ */
+/**
  * Tests de Integración de WaitlistService
  *
- * ¿Qué pruebas aquí?
- * Ciclo completo de lista de espera contra MySQL real: unirse a waitlist,
- * confirmar promoción, cancelar, consultar posición y estado.
- *
- * ¿Qué me quieres demostrar?
- * Que WaitlistService interactúa correctamente con WaitlistRepository y TimeSlot
- * y que la lógica de promoción (slot lleno → waitlist → slot libera → promover)
- * funciona en integración con transacciones reales.
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * Si la lógica de tokens de confirmación cambia, si la posición en cola
- * se recalcula de forma distinta, o si confirmPromotion deja de validar expiración.
+ * Valida operaciones con MySQL real usando transacciones para aislamiento.
+ * Estos tests NO usan mocks - ejecutan queries reales contra la BD.
  */
 
 namespace Tests\Integration;
@@ -27,12 +22,9 @@ use App\Models\Waitlist;
 use App\Repositories\WaitlistRepository;
 use App\Services\EmailService;
 use App\Services\WaitlistService;
-use Override;
 use PDO;
 use Tests\Support\BaseIntegrationTest;
-use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversNothing]
 final class WaitlistIntegrationTest extends BaseIntegrationTest
 {
     private WaitlistService $service;
@@ -44,7 +36,7 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
     private const TEST_CAFE_ID = 88885;
     private const TEST_SLOT_ID = 88884;
 
-    #[Override]
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -54,7 +46,7 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
             new EmailService(),
             new WaitlistRepository(self::$db),
             new TimeSlot(self::$db),
-            new Reservation(self::$db),
+            new Reservation(self::$db)
         );
     }
 

@@ -127,7 +127,7 @@ final class Config
         // Validación especial para APP_KEY en producción
         if (self::get('app.env') === 'production') {
             $key = self::get('app.key');
-            if (\strlen($key) < 32) {
+            if (!\is_string($key) || \strlen($key) < 32) {
                 throw new RuntimeException('APP_KEY debe tener al menos 32 caracteres en producción');
             }
         }

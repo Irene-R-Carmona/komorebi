@@ -9,13 +9,6 @@ use App\Repositories\RepositoryInterface;
 interface ProductRepositoryInterface extends RepositoryInterface
 {
     /**
-     * Soft delete: marca el producto como eliminado sin borrarlo físicamente.
-     *
-     * @param int $id
-     * @return bool
-     */
-    public function softDelete(int $id): bool;
-    /**
      * Find product by ID
      *
      * @param int $id
@@ -90,19 +83,5 @@ interface ProductRepositoryInterface extends RepositoryInterface
      */
     public function findFiltered(array $filters = [], int $page = 1, int $perPage = 20): array;
 
-    /**
-     * Buscar productos por sus IDs, devuelve mapa keyed por ID.
-     * Incluye todos los campos de presentación (name, japanese_name, price, image_url, station, etc.)
-     *
-     * @param  int[] $ids
-     * @return array<int, array<string, mixed>> Mapa product_id => product_data
-     */
-    public function findByIds(array $ids): array;
-
-    /**
-     * Obtener alérgenos de un producto ordenados por severidad.
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    public function getAllergens(int $productId): array;
+    public function softDelete(int $id): bool;
 }

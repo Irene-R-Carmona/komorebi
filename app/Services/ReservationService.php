@@ -7,7 +7,6 @@ namespace App\Services;
 use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Result;
-use App\Core\WideEvent;
 use App\Events\ReservationConfirmedEvent;
 use App\Exceptions\BusinessRuleException;
 use App\Exceptions\NotFoundException;
@@ -18,12 +17,9 @@ use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
-use App\Services\Contracts\LoyaltyServiceInterface;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
 use DateTimeImmutable;
-use Override;
-use PDOException;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Throwable;
 
@@ -44,7 +40,6 @@ final class ReservationService implements ReservationServiceInterface
     private EmailServiceInterface $emailService;
     private ?EventDispatcherInterface $eventDispatcher;
     private ?UserProfileServiceInterface $userProfileService;
-    private ?LoyaltyServiceInterface $loyaltyService;
 
     public function __construct(
         ReservationRepositoryInterface $reservationRepo,
@@ -53,8 +48,7 @@ final class ReservationService implements ReservationServiceInterface
         InvoicePDFServiceInterface $invoiceService,
         EmailServiceInterface $emailService,
         ?EventDispatcherInterface $eventDispatcher = null,
-        ?UserProfileServiceInterface $userProfileService = null,
-        ?LoyaltyServiceInterface $loyaltyService = null
+        ?UserProfileServiceInterface $userProfileService = null
     ) {
         $this->reservationRepo = $reservationRepo;
         $this->cafeRepo = $cafeRepo;
@@ -63,7 +57,6 @@ final class ReservationService implements ReservationServiceInterface
         $this->emailService = $emailService;
         $this->eventDispatcher = $eventDispatcher;
         $this->userProfileService = $userProfileService;
-        $this->loyaltyService = $loyaltyService;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -85,8 +78,8 @@ final class ReservationService implements ReservationServiceInterface
      * @param CartServiceInterface|null $cart Carrito para añadir items
      * @return Result Result con el ID de la reserva creada (data), o fallo con error
      */
-    #[Override]
-    public function create(array $data, ?CartServiceInterface $cart = null): Result
+    #[\Override]
+    public function create(array $data, CartServiceInterface|null $cart = null): Result
     {
         try {
             // Validar datos requeridos
@@ -108,6 +101,16 @@ final class ReservationService implements ReservationServiceInterface
 
             // Obtener y validar pase
             $pass = $this->getPassOrFail($passId);
+
+            // DEBUG: Log de validación
+            Logger::debug('Pass obtenido para validación', [
+                'pass_id' => $passId,
+                'pass_name' => $pass['name'] ?? 'N/A',
+                'target_cafe_types' => $pass['target_cafe_types'] ?? null,
+                'target_cafe_types_type' => \gettype($pass['target_cafe_types'] ?? null),
+                'target_animal_types' => $pass['target_animal_types'] ?? null,
+                'is_active' => $pass['is_active'] ?? null,
+            ]);
 
             // Validar compatibilidad pase-café-guests
             $this->validatePassCompatibility($pass, $cafe, $guests);
@@ -187,13 +190,6 @@ final class ReservationService implements ReservationServiceInterface
                 }
             }
 
-            WideEvent::setSection('reservation', [
-                'id' => $reservationId,
-                'cafe_id' => $cafeId,
-                'date' => $date,
-                'guests' => $guests,
-            ]);
-
             return Result::ok($reservationId);
         } catch (ValidationException | BusinessRuleException $e) {
             $code = $e instanceof BusinessRuleException ? ($e->getRuleCode() ?? 'business_rule_error') : 'validation_error';
@@ -201,70 +197,20 @@ final class ReservationService implements ReservationServiceInterface
             return Result::fail($e->getMessage(), $code);
         } catch (NotFoundException $e) {
             return Result::fail($e->getMessage(), 'not_found');
-        } catch (PDOException $e) {
+        } catch (\PDOException $e) {
             Logger::error('[ReservationService] DB error in create()', ['exception' => $e->getMessage()]);
 
             return Result::fail('Error de base de datos', 'db_error');
-        } catch (Throwable $e) {
-            Logger::error('[ReservationService] Unexpected error in create()', [
-                'exception' => $e->getMessage(),
-                'class'     => $e::class,
-                'file'      => $e->getFile() . ':' . $e->getLine(),
-            ]);
-
-            return Result::fail('Error inesperado al crear la reserva', 'unexpected_error');
         }
     }
 
     /**
      * Cancela una reserva verificando que pertenezca al usuario.
      *     */
-    #[Override]
-    public function cancelAdmin(int $reservationId): Result
+    #[\Override]
+    public function cancel(int $reservationId, int $userId): bool
     {
-        $reservation = $this->reservationRepo->findById($reservationId);
-
-        if (!$reservation) {
-            return Result::fail('Reserva no encontrada.', 'not_found');
-        }
-
-        if (!\App\Domain\Reservation\ReservationStateMachine::isValidTransition($reservation['status'], 'cancelled')) {
-            return Result::fail('Esta reserva no puede ser cancelada.', 'invalid_transition');
-        }
-
-        $ok = $this->reservationRepo->update($reservationId, [
-            'status' => 'cancelled',
-            'deleted_at' => \date('Y-m-d H:i:s'),
-            'updated_at' => \date('Y-m-d H:i:s'),
-        ]);
-
-        return $ok ? Result::ok(['reservation_id' => $reservationId]) : Result::fail('Error al cancelar la reserva.', 'cancel_failed');
-    }
-
-    #[Override]
-    public function confirmAdmin(int $reservationId): Result
-    {
-        $reservation = $this->reservationRepo->findById($reservationId);
-
-        if (!$reservation) {
-            return Result::fail('Reserva no encontrada.', 'not_found');
-        }
-
-        if (!\App\Domain\Reservation\ReservationStateMachine::isValidTransition($reservation['status'], 'confirmed')) {
-            return Result::fail('Solo se pueden confirmar reservas pendientes.', 'invalid_transition');
-        }
-
-        $ok = $this->reservationRepo->update($reservationId, [
-            'status' => 'confirmed',
-            'updated_at' => \date('Y-m-d H:i:s'),
-        ]);
-
-        return $ok ? Result::ok(['reservation_id' => $reservationId]) : Result::fail('Error al confirmar la reserva.', 'confirm_failed');
-    }
-
-    #[Override]
-    public function cancel(int $reservationId, int $userId): Result
-    {
+        // Usando el nuevo repositorio
         $success = $this->reservationRepo->cancel($reservationId, $userId);
 
         if (!$success) {
@@ -272,16 +218,9 @@ final class ReservationService implements ReservationServiceInterface
                 'reservation_id' => $reservationId,
                 'user_id' => $userId,
             ]);
-
-            return Result::fail('No se pudo cancelar la reserva', 'cancel_failed');
         }
 
-        // S3-04: Revertir sello si LoyaltyService está inyectado
-        if ($this->loyaltyService !== null) {
-            $this->loyaltyService->reverseStamp($userId);
-        }
-
-        return Result::ok(null);
+        return $success;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -291,7 +230,7 @@ final class ReservationService implements ReservationServiceInterface
     /**
      * Obtiene las reservas de un usuario.
      */
-    #[Override]
+    #[\Override]
     public function getByUser(int $userId, ?string $status = null): array
     {
         // Usar siempre el repositorio (ya no hay lógica especial por status)
@@ -301,7 +240,7 @@ final class ReservationService implements ReservationServiceInterface
     /**
      * Obtiene las próximas reservas de un usuario.
      */
-    #[Override]
+    #[\Override]
     public function getUpcoming(int $userId, int $limit = 5): array
     {
         return $this->reservationRepo->findUpcomingByUser($userId, $limit);
@@ -313,7 +252,7 @@ final class ReservationService implements ReservationServiceInterface
      * @param array $cartItems Items del carrito [product_id => quantity]
      * @return array Productos con información completa
      */
-    #[Override]
+    #[\Override]
     public function enrichCartItems(array $cartItems): array
     {
         if (empty($cartItems)) {
@@ -338,12 +277,7 @@ final class ReservationService implements ReservationServiceInterface
 
         $missing = [];
         foreach ($required as $field) {
-            // isset detecta ausencia/null; comprobamos también string vacío pero NO confundimos 0 con vacío
             if (!isset($data[$field]) || $data[$field] === '') {
-                $missing[] = $field;
-            }
-            // Los campos numéricos (user_id, cafe_id, etc.) con valor 0 son inválidos de negocio
-            if (isset($data[$field]) && \is_numeric($data[$field]) && (int) $data[$field] === 0) {
                 $missing[] = $field;
             }
         }
@@ -371,21 +305,10 @@ final class ReservationService implements ReservationServiceInterface
             throw ValidationException::outOfRange('guests', 1, 10);
         }
 
-        // Validar que no sea fecha pasada y usar DateTimeImmutable::createFromFormat para fechas reales
-        $dateTime = DateTimeImmutable::createFromFormat('Y-m-d H:i', "$date $time");
-        if ($dateTime === false) {
-            throw ValidationException::invalidFormat('date', 'YYYY-MM-DD');
-        }
-
-        $now = new DateTimeImmutable();
-        if ($dateTime < $now) {
+        // Validar que no sea fecha pasada
+        $dateTime = \strtotime("$date $time:00");
+        if ($dateTime === false || $dateTime < \time()) {
             throw BusinessRuleException::pastDate();
-        }
-
-        $maxDays = (int) ($_ENV['RESERVATION_MAX_DAYS_AHEAD'] ?? 60);
-        $maxDate = $now->modify("+{$maxDays} days");
-        if ($dateTime > $maxDate) {
-            throw BusinessRuleException::tooFarAhead($maxDays);
         }
     }
 

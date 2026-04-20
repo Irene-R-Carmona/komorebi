@@ -8,13 +8,10 @@ use App\Core\BaseService;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Queue;
-use App\Core\Result;
 use App\Core\WideEvent;
 use App\Jobs\SendEmailJob;
-use App\Repositories\Contracts\NewsletterSubscriptionRepositoryInterface;
 use App\Services\Contracts\NewsletterServiceInterface;
-use Override;
-use Throwable;
+use PDO;
 
 /**
  * Newsletter Service - Gestión de suscripciones con double opt-in
@@ -22,48 +19,54 @@ use Throwable;
  */
 final class NewsletterService extends BaseService implements NewsletterServiceInterface
 {
+    private PDO $db;
+
     private string $baseUrl;
 
-    public function __construct(
-        private readonly NewsletterSubscriptionRepositoryInterface $subscriptionRepo
-    ) {
-        $this->baseUrl = Env::get('APP_URL', 'http://localhost:8080');
+    public function __construct(PDO $db)
+    {
+        $this->db = $db;
+        $this->baseUrl = Env::require('APP_URL');
     }
 
     /**
      * Suscribir email (paso 1: enviar confirmación)
      * @throws \Random\RandomException
      */
-    #[Override]
-    public function subscribe(string $email): Result
+    #[\Override]
+    public function subscribe(string $email): array
     {
         $email = \strtolower(\trim($email));
 
         if (!\filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return Result::fail('Email inválido', 'invalid_email');
+            return ['success' => false, 'message' => 'Email inválido'];
         }
 
-        $existing = $this->subscriptionRepo->findByEmail($email);
+        $stmt = $this->db->prepare('SELECT id, confirmed_at, unsubscribed_at FROM newsletter_subscriptions WHERE email = ?');
+        $stmt->execute([$email]);
+        $existing = $stmt->fetch();
 
         if ($existing) {
             if ($existing['confirmed_at']) {
-                return Result::fail('Este email ya está suscrito', 'already_subscribed');
+                return ['success' => false, 'message' => 'Este email ya está suscrito'];
             }
 
             if ($existing['unsubscribed_at']) {
-                // Reactivar suscripción — nuevo token con expires_at (S3-11)
+                // Reactivar suscripción
                 $token = \bin2hex(\random_bytes(32));
-                $expiresAt = \date('Y-m-d H:i:s', \strtotime('+48 hours'));
-                $this->subscriptionRepo->reactivate($email, $token, $expiresAt);
+                $stmt = $this->db->prepare('UPDATE newsletter_subscriptions SET token = ?, unsubscribed_at = NULL, updated_at = NOW() WHERE email = ?');
+                $stmt->execute([$token, $email]);
             } else {
-                // Reenviar email de confirmación — token existente
-                $token = $this->subscriptionRepo->getTokenByEmail($email) ?? '';
+                // Reenviar email de confirmación
+                $stmt = $this->db->prepare('SELECT token FROM newsletter_subscriptions WHERE email = ?');
+                $stmt->execute([$email]);
+                $token = $stmt->fetchColumn();
             }
         } else {
-            // Nueva suscripción — token con expires_at 48h (S3-11)
+            // Nueva suscripción
             $token = \bin2hex(\random_bytes(32));
-            $expiresAt = \date('Y-m-d H:i:s', \strtotime('+48 hours'));
-            $this->subscriptionRepo->create($email, $token, $expiresAt);
+            $stmt = $this->db->prepare('INSERT INTO newsletter_subscriptions (email, token) VALUES (?, ?)');
+            $stmt->execute([$email, $token]);
         }
 
         // Enviar email de confirmación
@@ -77,6 +80,8 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
         ];
 
         try {
+            // En desarrollo, enviar de forma síncrona (sin cola)
+            // En producción, usar cola asíncrona
             if ($this->shouldUseSyncEmail()) {
                 $this->sendEmailSync($emailPayload);
                 Logger::info('Email de confirmación newsletter enviado (sync)', ['email' => $email]);
@@ -86,30 +91,35 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
                 if (!$enqueued) {
                     Logger::error('Error encolando email de confirmación newsletter', ['email' => $email]);
 
-                    return Result::fail('Error al procesar la solicitud', 'queue_error');
+                    return ['success' => false, 'message' => 'Error al procesar la solicitud'];
                 }
 
                 Logger::info('Email de confirmación newsletter encolado', ['email' => $email]);
             }
 
-            return Result::ok(['message' => 'Revisa tu correo para confirmar la suscripción']);
-        } catch (Throwable $e) {
+            return [
+                'success' => true,
+                'message' => 'Revisa tu correo para confirmar la suscripción',
+            ];
+        } catch (\Throwable $e) {
             Logger::error('Error enviando email de confirmación newsletter', [
                 'email' => $email,
                 'error' => $e->getMessage(),
             ]);
 
-            return Result::fail('Error al enviar el email de confirmación', 'email_error');
+            return ['success' => false, 'message' => 'Error al enviar el email de confirmación'];
         }
     }
 
     /**
      * Confirmar suscripción (paso 2: click en email)
      */
-    #[Override]
+    #[\Override]
     public function confirm(string $token): array
     {
-        $subscription = $this->subscriptionRepo->findByToken($token);
+        $stmt = $this->db->prepare('SELECT id, email, confirmed_at FROM newsletter_subscriptions WHERE token = ?');
+        $stmt->execute([$token]);
+        $subscription = $stmt->fetch();
 
         if (!$subscription) {
             return ['success' => false, 'message' => 'Token inválido'];
@@ -119,12 +129,9 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
             return ['success' => false, 'message' => 'Esta suscripción ya fue confirmada'];
         }
 
-        // S3-11: Verificar expiración del token
-        if (!empty($subscription['expires_at']) && \strtotime($subscription['expires_at']) < \time()) {
-            return ['success' => false, 'message' => 'Este enlace de confirmación ha expirado. Suscríbete de nuevo.'];
-        }
-
-        $this->subscriptionRepo->markConfirmed($token);
+        // Confirmar
+        $stmt = $this->db->prepare('UPDATE newsletter_subscriptions SET confirmed_at = NOW() WHERE token = ?');
+        $stmt->execute([$token]);
 
         // Enviar email de bienvenida
         $emailPayload = [
@@ -142,7 +149,7 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
                 Queue::push(SendEmailJob::class, $emailPayload, 'default');
                 Logger::info('Email de bienvenida newsletter encolado', ['email' => $subscription['email']]);
             }
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             Logger::warning('Error enviando email de bienvenida (no crítico)', [
                 'email' => $subscription['email'],
                 'error' => $e->getMessage(),
@@ -159,16 +166,19 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
     /**
      * Cancelar suscripción
      */
-    #[Override]
+    #[\Override]
     public function unsubscribe(string $token): array
     {
-        $subscription = $this->subscriptionRepo->findByToken($token);
+        $stmt = $this->db->prepare('SELECT id, email FROM newsletter_subscriptions WHERE token = ?');
+        $stmt->execute([$token]);
+        $subscription = $stmt->fetch();
 
         if (!$subscription) {
             return ['success' => false, 'message' => 'Token inválido'];
         }
 
-        $this->subscriptionRepo->markUnsubscribed($token);
+        $stmt = $this->db->prepare('UPDATE newsletter_subscriptions SET unsubscribed_at = NOW() WHERE token = ?');
+        $stmt->execute([$token]);
 
         return [
             'success' => true,
@@ -259,7 +269,7 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
     private function getWelcomeTemplate(): string
     {
         $cafesUrl = $this->baseUrl . '/cafes';
-        $couponCode = Env::get('NEWSLETTER_WELCOME_COUPON', 'WELCOME5');
+        $couponCode = 'WELCOME5';
 
         return <<<HTML
             <!DOCTYPE html>
@@ -359,10 +369,18 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
     /**
      * Obtener lista de emails confirmados (para envío masivo)
      */
-    #[Override]
+    #[\Override]
     public function getConfirmedEmails(): array
     {
-        return $this->subscriptionRepo->getConfirmedEmails();
+        $stmt = $this->db->query('
+            SELECT email
+            FROM newsletter_subscriptions
+            WHERE confirmed_at IS NOT NULL
+            AND unsubscribed_at IS NULL
+            ORDER BY confirmed_at DESC
+        ');
+
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
     /**
@@ -382,7 +400,7 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
      * Envía un email de forma síncrona usando SendEmailJob
      *
      * @param array<string, mixed> $payload
-     * @throws Throwable
+     * @throws \Throwable
      */
     private function sendEmailSync(array $payload): void
     {

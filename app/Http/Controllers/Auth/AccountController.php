@@ -12,12 +12,14 @@ use App\Core\Result;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
+use App\Services\AuthService;
 use App\Services\Contracts\AccountDeletionServiceInterface;
 use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\Contracts\SessionManagementServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
+use App\Services\FileUploadService;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -49,8 +51,8 @@ final class AccountController
     ) {
         $this->accountDeletionService = $accountDeletionService ?? Container::make(AccountDeletionServiceInterface::class);
         $this->accountService = $accountService ?? Container::make(UserAccountServiceInterface::class);
-        $this->authService = $authService ?? Container::make(AuthServiceInterface::class);
-        $this->fileUploadService = $fileUploadService ?? Container::make(FileUploadServiceInterface::class);
+        $this->authService = $authService ?? Container::make(AuthService::class);
+        $this->fileUploadService = $fileUploadService ?? new FileUploadService();
         $this->profileService = $profileService ?? Container::make(UserProfileServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
         $this->sessionService = $sessionService ?? Container::make(SessionManagementServiceInterface::class);
@@ -228,7 +230,7 @@ final class AccountController
         $result = $this->accountDeletionService->deleteAndAnonymize($userId);
 
         if (!$result->ok) {
-            Flash::error($result->error ?? 'Error al eliminar cuenta');
+            Flash::error($result->error);
 
             return $this->response->redirect('/account');
         }

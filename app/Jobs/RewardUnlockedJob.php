@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Core\Env;
-use Exception;
-use Override;
 use PDO;
 use PHPMailer\PHPMailer\Exception as MailerException;
 use PHPMailer\PHPMailer\PHPMailer;
@@ -25,7 +23,7 @@ final class RewardUnlockedJob implements JobInterface
         $this->db = $db;
     }
 
-    #[Override]
+    #[\Override]
     public function handle(array $payload): void
     {
         $userId = $payload['user_id'] ?? null;
@@ -34,17 +32,17 @@ final class RewardUnlockedJob implements JobInterface
         $milestone = $payload['milestone'] ?? 0;
 
         if (!$userId) {
-            throw new Exception('user_id requerido en payload');
+            throw new \Exception('user_id requerido en payload');
         }
 
         // Obtener info del usuario
         $db = $this->db;
         $stmt = $db->prepare('SELECT name, email FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1');
         $stmt->execute([$userId]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         if (!$user) {
-            throw new Exception("Usuario no encontrado: $userId");
+            throw new \Exception("Usuario no encontrado: $userId");
         }
 
         // Determinar recompensa desbloqueada según milestone
@@ -99,7 +97,7 @@ final class RewardUnlockedJob implements JobInterface
 
             $mail->send();
         } catch (MailerException $e) {
-            throw new Exception('Error al enviar email: ' . $mail->ErrorInfo);
+            throw new \Exception('Error al enviar email: ' . $mail->ErrorInfo);
         }
     }
 
@@ -148,8 +146,7 @@ final class RewardUnlockedJob implements JobInterface
         ];
 
         $tierLabel = $tierLabels[$tier] ?? \ucfirst($tier);
-        $cardUrl = Env::get('APP_URL', 'http://localhost:8080');
-        $cardUrl .= '/loyalty/card';
+        $cardUrl = Env::require('APP_URL') . '/loyalty/card';
 
         return <<<HTML
             <!DOCTYPE html>
@@ -228,7 +225,7 @@ final class RewardUnlockedJob implements JobInterface
      */
     private function getEmailPlainText(array $user, int $stamps, string $tier, array $rewardInfo): string
     {
-        $cardUrl = Env::get('APP_URL', 'http://localhost:8080') . '/loyalty/card';
+        $cardUrl = Env::require('APP_URL') . '/loyalty/card';
 
         return <<<TEXT
             ¡Felicidades, {$user['name']}!

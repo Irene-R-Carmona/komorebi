@@ -7,13 +7,11 @@ namespace App\Http\Controllers\Kitchen;
 use App\Core\Container;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
-use App\Core\Middleware;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Services\ContextServiceInstance;
 use App\Services\Contracts\KitchenServiceInterface;
-use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -25,14 +23,6 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class KitchenController
 {
-    /** Minutos hasta mostrar aviso amarillo en tarjeta KDS */
-    private const KDS_WARN_MINUTES = 10;
-
-    /** Minutos hasta mostrar aviso naranja-rojo (crítico) en tarjeta KDS */
-    private const KDS_LATE_MINUTES = 15;
-
-    /** Segundos a partir de los cuales el formato de tiempo pasa a H:i:s */
-    private const KDS_FORMAT_SWITCH_SECONDS = 3600;
     private KitchenServiceInterface $service;
 
     private ResponseFactory $response;
@@ -44,7 +34,6 @@ final class KitchenController
         ?ResponseFactory $response = null,
         ?ContextServiceInstance $context = null,
     ) {
-        Middleware::auth();
         $this->service = $service ?? Container::make(KitchenServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
         $this->context = $context;
@@ -52,7 +41,7 @@ final class KitchenController
 
     private function context(): ContextServiceInstance
     {
-        return $this->context ??= Container::make(ContextServiceInstance::class);
+        return $this->context ??= \App\Core\Container::make(ContextServiceInstance::class);
     }
 
     /**
@@ -116,7 +105,7 @@ final class KitchenController
         }
 
         $completed = $this->service->getCompletedToday($cafeId);
-        $cafeName = $this->context->getCafeName();
+        $cafeName = $this->context()->getCafeName();
 
         View::render('kitchen/history', [
             'titulo' => "Historial de hoy - $cafeName",
@@ -131,7 +120,7 @@ final class KitchenController
      * POST /ops/kitchen/ready
      * Marca un ítem de comanda como listo (AJAX KDS).
      *
-     * @throws ValidationException|JsonException
+     * @throws ValidationException
      */
     public function ready(ServerRequestInterface $request): ResponseInterface
     {
@@ -218,14 +207,14 @@ final class KitchenController
             $mins = (int) \round($seconds / 60);
 
             // Formatear tiempo para UI
-            $item['ui_time'] = \gmdate(($seconds > self::KDS_FORMAT_SWITCH_SECONDS ? 'H:i:s' : 'i:s'), $seconds);
+            $item['ui_time'] = \gmdate(($seconds > 3600 ? 'H:i:s' : 'i:s'), $seconds);
 
             // Asignar clase CSS según urgencia
             $item['ui_class'] = '';
 
-            if ($mins > self::KDS_LATE_MINUTES) {
+            if ($mins > 15) {
                 $item['ui_class'] = 'kds-card--late';
-            } elseif ($mins > self::KDS_WARN_MINUTES) {
+            } elseif ($mins > 10) {
                 $item['ui_class'] = 'kds-card--warn';
             }
 
