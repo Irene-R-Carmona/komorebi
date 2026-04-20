@@ -8,12 +8,17 @@ use App\Core\Http\ResponseFactory;
 use App\Exceptions\RouterException;
 use App\Exceptions\RouterParameterException;
 use Closure;
+use JsonException;
 use Nyholm\Psr7\ServerRequest;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use ReflectionException;
 use ReflectionMethod;
+use ReflectionNamedType;
+use Throwable;
 
 /**
  * Router PSR-7/PSR-15 con soporte de grupos y middlewares.
@@ -38,7 +43,7 @@ final class Router implements RequestHandlerInterface
     /**
      * Despacha una ruta internamente para testing.
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function dispatch(string $path, string $method = 'GET'): mixed
     {
@@ -127,7 +132,7 @@ final class Router implements RequestHandlerInterface
     /**
      * PSR-15 RequestHandler
      */
-    #[\Override]
+    #[Override]
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $path = $this->normalizePath($request->getUri()->getPath());
@@ -243,7 +248,7 @@ final class Router implements RequestHandlerInterface
     {
         $router = $this;
 
-        return new class($router, $route) implements RequestHandlerInterface {
+        return new class ($router, $route) implements RequestHandlerInterface {
             private Router $router;
             /** @var array{handler: mixed, middleware: array<MiddlewareInterface>, params: array<string, string>} */
             private array $route;
@@ -254,7 +259,7 @@ final class Router implements RequestHandlerInterface
                 $this->route = $route;
             }
 
-            #[\Override]
+            #[Override]
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
                 // Añadir parámetros a la request
@@ -273,7 +278,7 @@ final class Router implements RequestHandlerInterface
 
     /**
      * @throws RouterException
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function executeHandler(callable|string $handler, ServerRequestInterface $request, array $params): ResponseInterface
     {
@@ -297,8 +302,8 @@ final class Router implements RequestHandlerInterface
      * @return ResponseInterface
      * @throws RouterException
      * @throws RouterParameterException
-     * @throws \JsonException
-     * @throws \ReflectionException
+     * @throws JsonException
+     * @throws ReflectionException
      */
     private function executeController(string $handler, ServerRequestInterface $request, array $params): ResponseInterface
     {
@@ -320,7 +325,7 @@ final class Router implements RequestHandlerInterface
         // Usar Container para instanciar con inyección de dependencias
         try {
             $controller = Container::make($controllerClass);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             throw new RouterException("Error al instanciar controller $controllerClass: " . $e->getMessage(), previous: $e);
         }
 
@@ -336,7 +341,7 @@ final class Router implements RequestHandlerInterface
         try {
             $result = $controller->$method(...$args);
             $output = \ob_get_clean();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             \ob_end_clean();
             throw $e;
         }
@@ -350,7 +355,7 @@ final class Router implements RequestHandlerInterface
     }
 
     /**
-     * @throws \ReflectionException
+     * @throws ReflectionException
      * @throws RouterParameterException
      */
     private function resolveMethodArguments(object $controller, string $method, ServerRequestInterface $request, array $params): array
@@ -362,7 +367,7 @@ final class Router implements RequestHandlerInterface
             $type = $param->getType();
             $paramName = $param->getName();
 
-            if ($type instanceof \ReflectionNamedType && $type->getName() === ServerRequestInterface::class) {
+            if ($type instanceof ReflectionNamedType && $type->getName() === ServerRequestInterface::class) {
                 $args[] = $request;
                 continue;
             }
@@ -371,7 +376,7 @@ final class Router implements RequestHandlerInterface
                 $value = $params[$paramName];
 
                 // Cast según tipo declarado (int/float/bool)
-                if ($type instanceof \ReflectionNamedType && $type->isBuiltin()) {
+                if ($type instanceof ReflectionNamedType && $type->isBuiltin()) {
                     $typeName = $type->getName();
                     if ($typeName === 'int') {
                         $value = (int) $value;
@@ -387,7 +392,7 @@ final class Router implements RequestHandlerInterface
             }
 
             // Si el parámetro espera un array y no existe en $params, pasar el array de params
-            if ($type instanceof \ReflectionNamedType && $type->getName() === 'array') {
+            if ($type instanceof ReflectionNamedType && $type->getName() === 'array') {
                 $args[] = $params;
                 continue;
             }
@@ -410,7 +415,7 @@ final class Router implements RequestHandlerInterface
 
     /**
      * @throws RouterException
-     * @throws \JsonException
+     * @throws JsonException
      */
     private function convertToResponse(mixed $result): ResponseInterface
     {

@@ -22,8 +22,8 @@ declare(strict_types=1);
 
 use App\Core\Env;
 use App\Services\TelegramService;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests unitarios para TelegramService.

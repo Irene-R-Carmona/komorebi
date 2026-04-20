@@ -18,7 +18,7 @@ use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\RateLimitingServiceInterface;
 use App\Services\Contracts\SessionManagementServiceInterface;
 use DateTimeImmutable;
-use PDO;
+use Override;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Random\RandomException;
 use RuntimeException;
@@ -32,7 +32,6 @@ final class AuthService extends BaseService implements AuthServiceInterface
     private UserModelInterface $userModel;
     private SessionManagementServiceInterface $sessionService;
     private RateLimitingServiceInterface $rateLimiter;
-    private PDO $db;
     private ?EventDispatcherInterface $eventDispatcher;
 
     public function __construct(
@@ -40,14 +39,12 @@ final class AuthService extends BaseService implements AuthServiceInterface
         UserModelInterface $userModel,
         SessionManagementServiceInterface $sessionService,
         RateLimitingServiceInterface $rateLimiter,
-        PDO $db,
         ?EventDispatcherInterface $eventDispatcher = null
     ) {
         $this->userRepo = $userRepo;
         $this->userModel = $userModel;
         $this->sessionService = $sessionService;
         $this->rateLimiter = $rateLimiter;
-        $this->db = $db;
         $this->eventDispatcher = $eventDispatcher;
     }
 
@@ -63,7 +60,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
      * @return Result Data contiene ['redirect' => string] si exitoso
      * @throws RandomException
      */
-    #[\Override]
+    #[Override]
     public function login(string $email, string $password): Result
     {
         $email = \strtolower(\trim($email));
@@ -104,7 +101,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
      * @throws RandomException
      * @throws ValidationException
      */
-    #[\Override]
+    #[Override]
     public function register(string $name, string $email, string $password, string $confirmPassword): Result
     {
         $name = \trim($name);
@@ -163,7 +160,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
      * Cierra la sesión del usuario.
      * @throws RandomException
      */
-    #[\Override]
+    #[Override]
     public function logout(): void
     {
         $user = Session::user();
@@ -232,8 +229,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
         $this->sessionService->logAuthEvent($userId, 'login', $ipAddress, $userAgent, $deviceName, true);
 
         // Actualizar last_login_at en usuarios
-        $stmt = $this->db->prepare('UPDATE users SET updated_at = NOW() WHERE id = :id');
-        $stmt->execute(['id' => $userId]);
+        $this->userRepo->update($userId, ['updated_at' => \date('Y-m-d H:i:s')]);
 
         // 1. Establecer datos básicos de usuario en sesión
         // Seleccionar rol principal (si existe) o 'user' por defecto
@@ -292,7 +288,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
     /**
      * Verifica si el usuario actual está autenticado.
      */
-    #[\Override]
+    #[Override]
     public function check(): bool
     {
         return Session::isAuthenticated();
@@ -301,7 +297,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
     /**
      * Obtiene el usuario actual.
      */
-    #[\Override]
+    #[Override]
     public function user(): ?array
     {
         if (!$this->check()) {

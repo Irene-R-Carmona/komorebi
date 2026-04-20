@@ -8,8 +8,8 @@ declare(strict_types=1);
  * ¿Qué va a fallar en este test si se cambia el código?
  */
 use App\Core\Queue;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Test unitario básico para Queue

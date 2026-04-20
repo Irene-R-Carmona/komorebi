@@ -36,8 +36,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 // Error tracking (Sentry — optional, only when sentry/sentry installed AND SENTRY_DSN is set)
 // package not in composer.json by default: composer require sentry/sentry
 if (
-    ($dsn = ($_ENV['SENTRY_DSN'] ?? $_SERVER['SENTRY_DSN'] ?? \getenv('SENTRY_DSN') ?: ''))
-    && \function_exists('\Sentry\init')
+    ($dsn = ($_ENV['SENTRY_DSN'] ?? $_SERVER['SENTRY_DSN'] ?? getenv('SENTRY_DSN') ?: ''))
+    && function_exists('\Sentry\init')
 ) {
     \Sentry\init(['dsn' => $dsn, 'environment' => $env]);
 }

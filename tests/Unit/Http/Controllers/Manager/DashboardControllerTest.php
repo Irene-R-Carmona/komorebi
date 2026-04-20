@@ -17,9 +17,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Manager;
 
 use App\Http\Controllers\Manager\DashboardController;
+use PHPUnit\Framework\Attributes\CoversClass;
 use ReflectionClass;
 use Tests\Support\ControllerTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(DashboardController::class)]
 final class DashboardControllerTest extends ControllerTestCase

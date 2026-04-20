@@ -8,8 +8,11 @@ use App\Core\Database;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Services\Contracts\AdminActivityServiceInterface;
+use Exception;
+use Override;
 use PDO;
 use PDOException;
+use Redis;
 
 final class AdminActivityService implements AdminActivityServiceInterface
 {
@@ -25,7 +28,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
         return $this->db ??= Database::getConnection();
     }
 
-    #[\Override]
+    #[Override]
     public function getRecentReservations(int $limit = 10): array
     {
         try {
@@ -52,7 +55,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getUsersWithRoles(): array
     {
         $stmt = $this->getDb()->query('
@@ -93,7 +96,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
         return \array_values($usersMap);
     }
 
-    #[\Override]
+    #[Override]
     public function getProductsWithCategories(): array
     {
         $stmt = $this->getDb()->query('
@@ -106,7 +109,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    #[\Override]
+    #[Override]
     public function getReservationsWithDetails(int $limit = 100): array
     {
         $stmt = $this->getDb()->prepare('
@@ -127,7 +130,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    #[\Override]
+    #[Override]
     public function getRecentActivity(int $limit = 10): array
     {
         try {
@@ -203,7 +206,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
     /**
      * @return array{database: string, cache: string, email: string}
      */
-    #[\Override]
+    #[Override]
     public function getSystemStatus(): array
     {
         $status = [];
@@ -218,7 +221,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
 
         try {
             if (\extension_loaded('redis')) {
-                $redis = new \Redis();
+                $redis = new Redis();
                 $host = Env::get('REDIS_HOST', 'cache');
                 $port = (int) Env::get('REDIS_PORT', '6379');
                 $password = Env::get('REDIS_PASSWORD');
@@ -236,7 +239,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
             } else {
                 $status['cache'] = 'offline';
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::error('[AdminActivityService] Redis check failed: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
             $status['cache'] = 'offline';
         }
@@ -249,7 +252,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
                 if ($socket) {
                     \fclose($socket);
                 }
-            } catch (\Exception) {
+            } catch (Exception) {
                 $status['email'] = 'offline';
             }
         } else {
@@ -262,7 +265,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
     /**
      * @return array{labels: array, values: array}
      */
-    #[\Override]
+    #[Override]
     public function getReservationsChartData(): array
     {
         try {
@@ -281,7 +284,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
             }
 
             return ['labels' => $labels, 'values' => $values];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::error('[AdminActivityService] Error generating chart data: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
 
             return [

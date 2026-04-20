@@ -24,11 +24,12 @@ use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use App\Services\AnimalCareService;
+use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\HealthCheckService;
 use Nyholm\Psr7\ServerRequest;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(AnimalCareController::class)]
 final class AnimalCareControllerTest extends TestCase
@@ -64,9 +65,11 @@ final class AnimalCareControllerTest extends TestCase
         $healthCheckRepo->method('getPendingAnimals')->willReturn([]);
 
         return new AnimalCareController(
-            $animalCareService,
-            $healthCheckService ?? new HealthCheckService($healthCheckRepo),
-            new ResponseFactory(),
+            animalCareService: $animalCareService,
+            fileUploadService: $this->createStub(FileUploadServiceInterface::class),
+            healthCheckService: $healthCheckService ?? new HealthCheckService($healthCheckRepo),
+            animalRepository: $this->createStub(AnimalRepositoryInterface::class),
+            response: new ResponseFactory(),
         );
     }
 

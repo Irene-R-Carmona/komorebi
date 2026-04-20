@@ -39,6 +39,16 @@
         <exclude>
             <directory>app/Views</directory>
             <file>app/routes.php</file>
+            <directory suffix=".php">app/Core/Seeders</directory>
+            <directory suffix=".php">app/Events</directory>
+            <directory suffix=".php">app/Domain/DTO</directory>
+            <directory suffix=".php">app/Listeners</directory>
+            <file>app/Jobs/JobInterface.php</file>
+            <file>app/Jobs/SendTelegramNotificationJob.php</file>
+            <file>app/Http/Controllers/Api/AbstractApiController.php</file>
+            <directory suffix=".php">app/Services/Contracts</directory>
+            <directory suffix=".php">app/Repositories/Contracts</directory>
+            <directory suffix=".php">app/Models/Contracts</directory>
         </exclude>
     </source>
 
@@ -71,5 +81,6 @@
         <env name="RESERVATION_MAX_DAYS_AHEAD" value="9999"/>
         <env name="REDIS_HOST" value="cache"/>
         <env name="REDIS_PORT" value="6379"/>
+        <env name="APP_URL" value="http://localhost"/>
     </php>
 </phpunit>

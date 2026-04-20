@@ -19,8 +19,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Core;
 
 use App\Core\Cache;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Cache::class)]
 final class CacheStatsTest extends TestCase

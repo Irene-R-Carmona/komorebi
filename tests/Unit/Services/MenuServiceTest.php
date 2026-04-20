@@ -20,9 +20,9 @@ namespace Tests\Unit\Services;
 
 use App\Repositories\Contracts\MenuRepositoryInterface;
 use App\Services\MenuService;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests Unitarios de MenuService

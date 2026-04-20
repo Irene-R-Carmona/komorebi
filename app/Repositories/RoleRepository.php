@@ -53,12 +53,12 @@ final class RoleRepository implements RoleRepositoryInterface
 
         return \array_map(static function (array $row): array {
             if ($row['permission_ids'] !== null) {
-                $ids   = \explode(',', (string) $row['permission_ids']);
+                $ids = \explode(',', (string) $row['permission_ids']);
                 $names = \explode(',', (string) $row['permission_names']);
 
                 $row['permissions'] = \array_map(
                     static fn (string $id, string $name): array => [
-                        'id'   => (int) $id,
+                        'id' => (int) $id,
                         'name' => $name,
                     ],
                     $ids,
@@ -122,11 +122,11 @@ final class RoleRepository implements RoleRepositoryInterface
         $params = ['id' => $id];
 
         if ($name !== null) {
-            $fields[]      = 'name = :name';
+            $fields[] = 'name = :name';
             $params['name'] = $name;
         }
         if ($description !== null) {
-            $fields[]             = 'description = :description';
+            $fields[] = 'description = :description';
             $params['description'] = $description;
         }
 

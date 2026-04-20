@@ -15,6 +15,7 @@ use App\Jobs\SendTelegramNotificationJob;
 use App\Services\Contracts\TelegramServiceInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 #[CoversClass(SendTelegramNotificationJob::class)]
 final class SendTelegramNotificationJobTest extends TestCase
@@ -38,7 +39,7 @@ final class SendTelegramNotificationJobTest extends TestCase
     public function testHandleLogsAndContinuesOnTelegramFailure(): void
     {
         $telegram = $this->createMock(TelegramServiceInterface::class);
-        $telegram->method('sendAlert')->willThrowException(new \RuntimeException('timeout'));
+        $telegram->method('sendAlert')->willThrowException(new RuntimeException('timeout'));
 
         $job = new SendTelegramNotificationJob($telegram);
 

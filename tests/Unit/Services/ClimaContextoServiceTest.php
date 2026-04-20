@@ -26,10 +26,10 @@ use App\Services\ClimaContextoService;
 use App\Services\WeatherService;
 use DateTime;
 use DateTimeZone;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ClimaContextoService::class)]
 final class ClimaContextoServiceTest extends TestCase

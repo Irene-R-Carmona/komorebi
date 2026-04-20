@@ -21,9 +21,9 @@ namespace Tests\Unit\Services;
 use App\Core\Result;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\CafeService;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests Unitarios de CafeService

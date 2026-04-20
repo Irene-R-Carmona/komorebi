@@ -26,7 +26,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
-          extensions: pdo_mysql, redis, gd, zip, bcmath, exif, pcntl
+          extensions: pcntl
           coverage: none
 
       - name: Cache Composer dependencies
@@ -60,7 +60,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
-          extensions: pdo_mysql, redis, gd, zip, bcmath, exif, pcntl
+          extensions: pcntl
           coverage: none
 
       - name: Cache Composer dependencies
@@ -126,7 +126,6 @@ jobs:
       - name: Run full test suite (migrate + phpunit + coverage)
         run: |
           docker compose -f docker-compose.test.yml run --rm \
-            -e SKIP_MIGRATIONS=0 \
             php-test \
             sh -c "
               php scripts/apply-db.php &&
@@ -135,7 +134,10 @@ jobs:
                 --log-junit tests/reports/junit.xml \
                 --coverage-text --colors=never \
                 --coverage-clover tests/reports/coverage.xml \
-              | tee /tmp/coverage.txt
+                > tests/reports/coverage.txt 2>&1
+              PHPUNIT_RC=\$?
+              cat tests/reports/coverage.txt
+              exit \$PHPUNIT_RC
             "
           EXIT=$?
           docker compose -f docker-compose.test.yml down -v --remove-orphans
@@ -144,17 +146,17 @@ jobs:
       - name: Check coverage threshold (≥ 70%)
         if: always()
         run: |
-          if [ ! -f /tmp/coverage.txt ]; then
-            echo "⚠️  No coverage report found — skipping threshold check"
+          if [ ! -f tests/reports/coverage.txt ]; then
+            echo "WARNING: No coverage report found — skipping threshold check"
             exit 0
           fi
-          LINES_PCT=$(grep -E "^\s+Lines:" /tmp/coverage.txt | head -1 | grep -oP '[0-9]+\.[0-9]+(?=%)')
+          LINES_PCT=$(grep -E "^\s+Lines:" tests/reports/coverage.txt | head -1 | grep -oP '[0-9]+\.[0-9]+(?=%)')
           echo "Line coverage: ${LINES_PCT}%"
           if [ $(echo "${LINES_PCT} < 70" | bc -l) -eq 1 ]; then
-            echo "❌ Coverage ${LINES_PCT}% is below the required 70%"
+            echo "FAIL: Coverage ${LINES_PCT}% is below the required 70%"
             exit 1
           fi
-          echo "✅ Coverage threshold met: ${LINES_PCT}%"
+          echo "PASS: Coverage threshold met: ${LINES_PCT}%"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4

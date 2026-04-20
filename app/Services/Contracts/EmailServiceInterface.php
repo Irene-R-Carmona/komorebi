@@ -67,4 +67,13 @@ interface EmailServiceInterface
      * @return bool
      */
     public function sendWaitlistConfirmation(string $userEmail, string $userName, string $token, array $waitlistData): bool;
+
+    /**
+     * Send test email to verify email configuration.
+     *
+     * @param string $recipientEmail
+     * @param string $recipientName
+     * @return bool
+     */
+    public function sendTestEmail(string $recipientEmail, string $recipientName = 'Administrador'): bool;
 }

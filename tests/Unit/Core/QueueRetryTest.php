@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Core;
 
 use App\Core\Queue;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?

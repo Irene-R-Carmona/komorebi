@@ -16,9 +16,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Providers;
 
 use App\Core\Env;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(Env::class)]
 final class FeatureFlagTest extends TestCase

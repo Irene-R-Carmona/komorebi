@@ -20,8 +20,8 @@ use App\Http\Controllers\Admin\SystemController;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\SettingsServiceInterface;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(SystemController::class)]
 final class SystemControllerTest extends ControllerTestCase

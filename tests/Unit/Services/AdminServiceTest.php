@@ -20,10 +20,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Repositories\Contracts\StatisticsRepositoryInterface;
 use App\Services\AdminStatisticsService;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(AdminStatisticsService::class)]
 final class AdminServiceTest extends TestCase
@@ -32,7 +33,9 @@ final class AdminServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->service = new AdminStatisticsService();
+        $this->service = new AdminStatisticsService(
+            $this->createStub(StatisticsRepositoryInterface::class)
+        );
     }
 
     // ──────────────────────────────────────────────

@@ -23,7 +23,7 @@ final class DataViewerController
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         try {
-            $stats   = $this->statsRepo->getDataViewerStats();
+            $stats = $this->statsRepo->getDataViewerStats();
             $samples = $this->statsRepo->getDataViewerSamples();
         } catch (Throwable) {
             $stats = \array_fill_keys(

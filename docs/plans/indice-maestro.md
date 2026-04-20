@@ -17,9 +17,9 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 
 | Nivel | Objetivo | Plan principal | Estado |
 |------|----------|----------------|--------|
-| P0 | Railway listo para producción (arranque, persistencia, env, workers) | `2026-04-20-railway-readiness.md` | 🔵 Plan creado — pendiente inicio |
-| P1 | Seguridad activa antes de tráfico real | `2026-04-17-business-rules-hardening.md` (Sprint 0-2) | 🟡 En implementación |
-| P2 | Hardening funcional de reglas de negocio | `2026-04-17-business-rules-hardening.md` (Sprint 3-5) | 🔵 Pendiente tras P1 |
+| P0 | Railway listo para producción (arranque, persistencia, env, workers) | `2026-04-20-railway-readiness.md` | ✅ Completo |
+| P1 | Seguridad activa antes de tráfico real | `2026-04-17-business-rules-hardening.md` (Sprint 0-2) | ✅ Completo |
+| P2 | Hardening funcional de reglas de negocio | `2026-04-17-business-rules-hardening.md` (Sprint 3-5) | ✅ Completo |
 | P3 | Observabilidad y deuda técnica controlada | `2026-04-15-infra-calidad-integral.md` (C, D, E) | 🟡 En implementación parcial |
 | P4 | Optimización de rendimiento y stack | `2026-04-15-frankenphp-stack-optimization.md` | 🔵 Plan creado — pendiente inicio |
 
@@ -29,9 +29,9 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 
 | Prioridad | Plan | Archivo | Estado actual | Alcance inmediato |
 |-----------|------|---------|---------------|-------------------|
-| P0 | Railway Readiness | `docs/plans/2026-04-20-railway-readiness.md` | 🔵 Plan creado | R1-R10 |
-| P1 | Business Rules Hardening (Seguridad) | `docs/plans/2026-04-17-business-rules-hardening.md` | 🟡 En implementación | S0, S1, S2 |
-| P2 | Business Rules Hardening (Calidad funcional) | `docs/plans/2026-04-17-business-rules-hardening.md` | 🟡 En implementación | S3, S4, S5 |
+| P0 | Railway Readiness | ~~`docs/plans/2026-04-20-railway-readiness.md`~~ | ✅ Completado y eliminado (2026-04-20) | R1-R10 + validación mínima |
+| P1 | Business Rules Hardening (Seguridad) | `docs/plans/2026-04-17-business-rules-hardening.md` | ✅ Completo | S0, S1, S2 |
+| P2 | Business Rules Hardening (Calidad funcional) | `docs/plans/2026-04-17-business-rules-hardening.md` | ✅ Completo | S3, S4, S5 |
 | P3 | Infra + Calidad Integral | `docs/plans/2026-04-15-infra-calidad-integral.md` | 🟡 En implementación | A5 + C1-C3 + D1-D5 + E1-E2 |
 | P4 | FrankenPHP + Stack Optimization | `docs/plans/2026-04-15-frankenphp-stack-optimization.md` | 🔵 Plan creado | Fase 5 primero |
 
@@ -41,8 +41,14 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 
 | Prioridad | Plan | Archivo | Estado actual | Alcance inmediato |
 |-----------|------|---------|---------------|-------------------|
-| P3b | Fix bugs diseño controllers | `docs/plans/2026-04-20-fix-controller-design-bugs.md` | 🟡 En implementación | Fases 1-5 (13 archivos) |
+| P3b | Fix bugs diseño controllers | `docs/plans/2026-04-20-fix-controller-design-bugs.md` | ✅ Completo | Fases 1-5 (13 archivos) |
 | P3c | Cobertura de tests al 85% | `docs/plans/2026-04-20-cobertura-85-porciento.md` | 🔵 Plan creado — pendiente inicio | Fase 0 primero (prerequisito: P3b) |
+
+## Planes de Infraestructura y CI/CD
+
+| Prioridad | Plan | Archivo | Estado actual | Alcance inmediato |
+|-----------|------|---------|---------------|-------------------|
+| P0-infra | Railway Deploy + GitHub Actions Fix | `docs/plans/2026-04-20-railway-deploy-github-actions.md` | 🟢 Código completado — pendiente pasos manuales Railway/GitHub (Fases 2, 3.1, 3.3, 4) | Fases 2 y 4 (Railway Dashboard + primer deploy) |
 
 ---
 
@@ -92,4 +98,4 @@ Cuando una tarea/fase cambie de estado:
 - 🟢 Implementación completa — pendiente verificación
 - ✅ Verificado y cerrado
 
-3. Si un plan termina y se elimina, mantener aquí una entrada histórica con fecha de cierre.
+1. Si un plan termina y se elimina, mantener aquí una entrada histórica con fecha de cierre.

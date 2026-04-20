@@ -17,8 +17,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Core;
 
 use App\Core\View;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(View::class)]
 final class ViewSecurityHeadersTest extends TestCase

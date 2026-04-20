@@ -41,7 +41,7 @@ final class AccountDeletionService implements AccountDeletionServiceInterface
             return Database::transaction(function () use ($userId): Result {
                 $this->userRepo->update($userId, [
                     'deleted_at' => \date('Y-m-d H:i:s'),
-                    'is_active'  => 0,
+                    'is_active' => 0,
                 ]);
 
                 $this->userRepo->anonymize($userId);

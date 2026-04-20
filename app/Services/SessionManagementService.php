@@ -14,7 +14,8 @@ final class SessionManagementService implements SessionManagementServiceInterfac
     public function __construct(
         private readonly SessionRepositoryInterface $sessionRepo,
         private readonly AuthLogRepositoryInterface $authLogRepo
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function createSession(
@@ -29,7 +30,13 @@ final class SessionManagementService implements SessionManagementServiceInterfac
         $expiresAt = \date('Y-m-d H:i:s', \time() + $expiresInSeconds);
 
         return $this->sessionRepo->createOrUpdate(
-            $userId, $sessionId, $ipAddress, $userAgent, $deviceName, $now, $expiresAt
+            $userId,
+            $sessionId,
+            $ipAddress,
+            $userAgent,
+            $deviceName,
+            $now,
+            $expiresAt
         );
     }
 
@@ -88,7 +95,13 @@ final class SessionManagementService implements SessionManagementServiceInterfac
         ?string $reason = null
     ): bool {
         return $this->authLogRepo->logEvent(
-            $userId, $eventType, $ipAddress, $userAgent, $deviceName, $success, $reason
+            $userId,
+            $eventType,
+            $ipAddress,
+            $userAgent,
+            $deviceName,
+            $success,
+            $reason
         );
     }
 

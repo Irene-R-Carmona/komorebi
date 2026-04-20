@@ -32,8 +32,8 @@ final class CafeService extends BaseService implements CafeServiceInterface
         CafeRepositoryInterface $cafeRepo,
         ?StatisticsRepositoryInterface $statsRepo = null,
     ) {
-        $this->cafeRepo   = $cafeRepo;
-        $this->statsRepo  = $statsRepo ?? Container::make(StatisticsRepositoryInterface::class);
+        $this->cafeRepo = $cafeRepo;
+        $this->statsRepo = $statsRepo ?? Container::make(StatisticsRepositoryInterface::class);
     }
 
     /**

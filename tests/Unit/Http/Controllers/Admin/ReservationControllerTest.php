@@ -19,12 +19,10 @@ namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\ReservationController;
-use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use App\Services\Contracts\AdminActivityServiceInterface;
-use App\Services\Contracts\ReservationServiceInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ReservationController::class)]
 final class ReservationControllerTest extends ControllerTestCase
@@ -48,8 +46,6 @@ final class ReservationControllerTest extends ControllerTestCase
     {
         return new ReservationController(
             activityService: $this->createStub(AdminActivityServiceInterface::class),
-            reservationService: $this->createStub(ReservationServiceInterface::class),
-            auditLogRepo: $this->createStub(AuditLogRepositoryInterface::class),
             response: new ResponseFactory(),
         );
     }

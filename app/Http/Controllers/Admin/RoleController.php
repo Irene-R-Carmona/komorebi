@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Core\Csrf;
 use App\Core\Container;
+use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
@@ -14,6 +14,7 @@ use App\Models\AuditLog;
 use App\Models\Permission;
 use App\Models\Role;
 use JsonException;
+use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Random\RandomException;
 
@@ -31,8 +32,8 @@ final class RoleController
     public function __construct(?ResponseFactory $response = null, ?Role $roleModel = null, ?Permission $permissionModel = null)
     {
         $this->response = $response ?? new ResponseFactory();
-        $this->roleModel = $roleModel ?? new Role(Container::make(\PDO::class));
-        $this->permissionModel = $permissionModel ?? new Permission(Container::make(\PDO::class));
+        $this->roleModel = $roleModel ?? new Role(Container::make(PDO::class));
+        $this->permissionModel = $permissionModel ?? new Permission(Container::make(PDO::class));
     }
 
     /**

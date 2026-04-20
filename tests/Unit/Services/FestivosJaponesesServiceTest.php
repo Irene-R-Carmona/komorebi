@@ -20,8 +20,8 @@ namespace Tests\Unit\Services;
 
 use App\Services\FestivosJaponesesService;
 use DateTime;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(FestivosJaponesesService::class)]
 final class FestivosJaponesesServiceTest extends TestCase

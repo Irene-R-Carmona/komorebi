@@ -33,10 +33,10 @@ final class AnimalDashboardController
         ?AnimalRepositoryInterface $animalRepository = null,
         ?ResponseFactory $response = null,
     ) {
-        $this->animalCareService  = $animalCareService ?? Container::make(AnimalCareServiceInterface::class);
+        $this->animalCareService = $animalCareService ?? Container::make(AnimalCareServiceInterface::class);
         $this->healthCheckService = $healthCheckService ?? Container::make(HealthCheckServiceInterface::class);
-        $this->animalRepository   = $animalRepository ?? Container::make(AnimalRepositoryInterface::class);
-        $this->response           = $response ?? new ResponseFactory();
+        $this->animalRepository = $animalRepository ?? Container::make(AnimalRepositoryInterface::class);
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**

@@ -18,8 +18,8 @@ use RuntimeException;
 final class TrackerRepository extends AbstractRepository implements TrackerRepositoryInterface
 {
     private const string STATUS_AVAILABLE = 'available';
-    private const string STATUS_IN_USE    = 'in_use';
-    private const string STATUS_LOST      = 'lost';
+    private const string STATUS_IN_USE = 'in_use';
+    private const string STATUS_LOST = 'lost';
 
     #[Override]
     protected function getTable(): string
@@ -136,8 +136,8 @@ final class TrackerRepository extends AbstractRepository implements TrackerRepos
 
         $stats = [
             self::STATUS_AVAILABLE => 0,
-            self::STATUS_IN_USE    => 0,
-            self::STATUS_LOST      => 0,
+            self::STATUS_IN_USE => 0,
+            self::STATUS_LOST => 0,
         ];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -149,4 +149,3 @@ final class TrackerRepository extends AbstractRepository implements TrackerRepos
         return $stats;
     }
 }
-

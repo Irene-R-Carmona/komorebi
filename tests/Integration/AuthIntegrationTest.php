@@ -29,8 +29,8 @@ use App\Services\Contracts\RateLimitingServiceInterface;
 use App\Services\SessionManagementService;
 use Override;
 use PDO;
-use Tests\Support\BaseIntegrationTest;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use Tests\Support\BaseIntegrationTest;
 
 #[CoversNothing]
 final class AuthIntegrationTest extends BaseIntegrationTest

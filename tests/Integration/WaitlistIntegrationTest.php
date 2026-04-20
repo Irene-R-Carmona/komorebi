@@ -22,6 +22,7 @@ use App\Models\Waitlist;
 use App\Repositories\WaitlistRepository;
 use App\Services\EmailService;
 use App\Services\WaitlistService;
+use Override;
 use PDO;
 use Tests\Support\BaseIntegrationTest;
 
@@ -36,7 +37,7 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
     private const TEST_CAFE_ID = 88885;
     private const TEST_SLOT_ID = 88884;
 
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();

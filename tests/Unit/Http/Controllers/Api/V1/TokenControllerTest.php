@@ -26,8 +26,8 @@ use App\Exceptions\ValidationException;
 use App\Http\Controllers\Api\V1\TokenController;
 use App\Services\Contracts\ApiTokenServiceInterface;
 use Nyholm\Psr7\ServerRequest;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(TokenController::class)]
 final class TokenControllerTest extends ControllerTestCase

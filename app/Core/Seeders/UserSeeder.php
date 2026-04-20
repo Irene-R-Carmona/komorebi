@@ -118,12 +118,12 @@ final class UserSeeder
         );
 
         $stmt->execute([
-            'uuid'     => $uuid,
-            'name'     => $name,
-            'email'    => $email,
+            'uuid' => $uuid,
+            'name' => $name,
+            'email' => $email,
             'password' => $hashedPass,
-            'avatar'   => $avatar,
-            'prefs'    => $preferences,
+            'avatar' => $avatar,
+            'prefs' => $preferences,
         ]);
 
         $userId = (int) $this->db->lastInsertId();

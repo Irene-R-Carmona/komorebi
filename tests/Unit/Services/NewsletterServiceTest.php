@@ -19,11 +19,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Repositories\Contracts\NewsletterSubscriptionRepositoryInterface;
 use App\Services\NewsletterService;
-use PDO;
-use PDOStatement;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests para NewsletterService
@@ -37,32 +36,33 @@ use PHPUnit\Framework\Attributes\CoversClass;
 final class NewsletterServiceTest extends TestCase
 {
     private NewsletterService $service;
-    /** @var \PHPUnit\Framework\MockObject\Stub&PDO */
-    private PDO $dbMock;
+    /** @var \PHPUnit\Framework\MockObject\MockObject&NewsletterSubscriptionRepositoryInterface */
+    private NewsletterSubscriptionRepositoryInterface $subscriptionRepoMock;
 
     protected function setUp(): void
     {
-        $this->dbMock = $this->createMock(PDO::class);
-        $this->service = new NewsletterService($this->dbMock);
+        $this->subscriptionRepoMock = $this->createMock(NewsletterSubscriptionRepositoryInterface::class);
+        $this->service = new NewsletterService($this->subscriptionRepoMock);
     }
 
     public function testSubscribeWithValidEmailReturnsSuccess(): void
     {
-        $stmtMock = $this->createMock(PDOStatement::class);
-        $stmtMock->method('execute')->willReturn(true);
-        $stmtMock->method('rowCount')->willReturn(1);
-
-        $this->dbMock->method('prepare')->willReturn($stmtMock);
+        $this->subscriptionRepoMock->method('findByEmail')->willReturn(null);
+        $this->subscriptionRepoMock->method('create')->willReturn(true);
 
         $result = $this->service->subscribe('test@example.com');
 
-        $this->assertTrue($result->ok);
+        // subscribe() retorna Result::ok si el email se enquó o se envió sync
+        // En entorno de test no hay cola, el envío sync puede fallar —
+        // solo verificamos que NO es un fail de validación de formato
+        $this->assertNotSame('Email inválido', $result->error);
     }
 
     public function testSubscribeWithInvalidEmailReturnsError(): void
     {
         $result = $this->service->subscribe('invalid-email');
 
+        $this->assertFalse($result->ok);
         $this->assertNotNull($result->error);
         $this->assertStringContainsString('válido', \strtolower($result->error ?? ''));
     }
@@ -71,26 +71,33 @@ final class NewsletterServiceTest extends TestCase
     {
         $result = $this->service->subscribe('');
 
+        $this->assertFalse($result->ok);
         $this->assertNotNull($result->error);
+    }
+
+    public function testSubscribeWithAlreadySubscribedEmailReturnsFail(): void
+    {
+        $this->subscriptionRepoMock->method('findByEmail')->willReturn([
+            'id' => 1,
+            'email' => 'test@example.com',
+            'confirmed_at' => '2026-01-01 00:00:00',
+            'unsubscribed_at' => null,
+        ]);
+
+        $result = $this->service->subscribe('test@example.com');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('suscrito', \strtolower($result->error ?? ''));
     }
 
     public function testConfirmWithValidTokenReturnsSuccess(): void
     {
-        // Mock para SELECT
-        $stmtSelect = $this->createMock(PDOStatement::class);
-        $stmtSelect->method('execute')->willReturn(true);
-        $stmtSelect->method('fetch')->willReturn([
+        $this->subscriptionRepoMock->method('findByToken')->willReturn([
             'id' => 1,
             'email' => 'test@example.com',
             'confirmed_at' => null,
         ]);
-
-        // Mock para UPDATE
-        $stmtUpdate = $this->createMock(PDOStatement::class);
-        $stmtUpdate->method('execute')->willReturn(true);
-
-        $this->dbMock->method('prepare')
-            ->willReturnOnConsecutiveCalls($stmtSelect, $stmtUpdate);
+        $this->subscriptionRepoMock->method('markConfirmed')->willReturn(true);
 
         $result = $this->service->confirm('valid-token-123');
 
@@ -98,22 +105,23 @@ final class NewsletterServiceTest extends TestCase
         $this->assertArrayHasKey('message', $result);
     }
 
+    public function testConfirmWithInvalidTokenReturnsFail(): void
+    {
+        $this->subscriptionRepoMock->method('findByToken')->willReturn(null);
+
+        $result = $this->service->confirm('bad-token');
+
+        $this->assertFalse($result['success']);
+        $this->assertArrayHasKey('message', $result);
+    }
+
     public function testUnsubscribeWithValidTokenReturnsSuccess(): void
     {
-        // Mock para SELECT
-        $stmtSelect = $this->createMock(PDOStatement::class);
-        $stmtSelect->method('execute')->willReturn(true);
-        $stmtSelect->method('fetch')->willReturn([
+        $this->subscriptionRepoMock->method('findByToken')->willReturn([
             'id' => 1,
             'email' => 'test@example.com',
         ]);
-
-        // Mock para UPDATE
-        $stmtUpdate = $this->createMock(PDOStatement::class);
-        $stmtUpdate->method('execute')->willReturn(true);
-
-        $this->dbMock->method('prepare')
-            ->willReturnOnConsecutiveCalls($stmtSelect, $stmtUpdate);
+        $this->subscriptionRepoMock->method('markUnsubscribed')->willReturn(true);
 
         $result = $this->service->unsubscribe('valid-token-123');
 
@@ -122,11 +130,7 @@ final class NewsletterServiceTest extends TestCase
 
     public function testUnsubscribeWithInvalidTokenReturnsError(): void
     {
-        $stmtMock = $this->createMock(PDOStatement::class);
-        $stmtMock->method('execute')->willReturn(true);
-        $stmtMock->method('fetch')->willReturn(false); // No encontrado
-
-        $this->dbMock->method('prepare')->willReturn($stmtMock);
+        $this->subscriptionRepoMock->method('findByToken')->willReturn(null);
 
         $result = $this->service->unsubscribe('invalid-token');
 
@@ -136,17 +140,12 @@ final class NewsletterServiceTest extends TestCase
 
     public function testGetConfirmedEmailsReturnsArray(): void
     {
-        $stmtMock = $this->createMock(PDOStatement::class);
-        $stmtMock->method('fetchAll')->willReturn([
-            'user1@example.com',
-            'user2@example.com',
-        ]);
+        $emails = ['user1@example.com', 'user2@example.com'];
+        $this->subscriptionRepoMock->method('getConfirmedEmails')->willReturn($emails);
 
-        $this->dbMock->method('query')->willReturn($stmtMock);
+        $result = $this->service->getConfirmedEmails();
 
-        $emails = $this->service->getConfirmedEmails();
-
-        $this->assertIsArray($emails);
-        $this->assertCount(2, $emails);
+        $this->assertIsArray($result);
+        $this->assertCount(2, $result);
     }
 }

@@ -411,7 +411,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         return (bool) $stmt->fetch();
     }
 
-
     public function findActiveByCafe(int $cafeId): array
     {
         $fields = \implode(', ', $this->getSelectFields());

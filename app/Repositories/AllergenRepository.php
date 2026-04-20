@@ -9,6 +9,7 @@ use App\Repositories\Contracts\AllergenRepositoryInterface;
 use InvalidArgumentException;
 use Override;
 use PDO;
+use PDOStatement;
 use Throwable;
 
 /**
@@ -46,7 +47,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
             ? "ORDER BY CASE severity WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 END, name ASC"
             : 'ORDER BY name ASC';
 
-        /** @var \PDOStatement $stmt */
+        /** @var PDOStatement $stmt */
         $stmt = $this->execTimed(
             fn () => $this->getDb()->query("SELECT $fields FROM allergens $order"),
             "SELECT $fields FROM allergens $order"
@@ -138,7 +139,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
                 GROUP BY a.id, a.name
                 ORDER BY product_count DESC, a.name';
 
-        /** @var \PDOStatement $stmt */
+        /** @var PDOStatement $stmt */
         $stmt = $this->execTimed(fn () => $this->getDb()->query($sql), $sql);
 
         return \array_map([$this, 'normalizeRow'], $stmt->fetchAll(PDO::FETCH_ASSOC));
@@ -175,13 +176,13 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
             $sql = 'INSERT INTO allergens (code, name, japanese_name, icon_class, icon_color, severity, description)
                     VALUES (:code, :name, :japanese_name, :icon_class, :icon_color, :severity, :description)';
             $params = [
-                'code'          => $code,
-                'name'          => $name,
+                'code' => $code,
+                'name' => $name,
                 'japanese_name' => $data['name_jp'] ?? $data['japanese_name'] ?? null,
-                'icon_class'    => $data['icon'] ?? $data['icon_class'] ?? null,
-                'icon_color'    => $data['icon_color'] ?? null,
-                'severity'      => $severity,
-                'description'   => $data['description'] ?? null,
+                'icon_class' => $data['icon'] ?? $data['icon_class'] ?? null,
+                'icon_color' => $data['icon_color'] ?? null,
+                'severity' => $severity,
+                'description' => $data['description'] ?? null,
             ];
 
             $stmt = $this->getDb()->prepare($sql);
@@ -221,14 +222,14 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
                 icon_class = :icon_class, icon_color = :icon_color, severity = :severity,
                 description = :description WHERE id = :id';
         $params = [
-            'id'            => $id,
-            'code'          => $code,
-            'name'          => $name,
+            'id' => $id,
+            'code' => $code,
+            'name' => $name,
             'japanese_name' => $data['name_jp'] ?? $data['japanese_name'] ?? null,
-            'icon_class'    => $data['icon'] ?? $data['icon_class'] ?? null,
-            'icon_color'    => $data['icon_color'] ?? null,
-            'severity'      => $severity,
-            'description'   => $data['description'] ?? null,
+            'icon_class' => $data['icon'] ?? $data['icon_class'] ?? null,
+            'icon_color' => $data['icon_color'] ?? null,
+            'severity' => $severity,
+            'description' => $data['description'] ?? null,
         ];
 
         $stmt = $this->getDb()->prepare($sql);
@@ -283,4 +284,3 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
         return $row;
     }
 }
-

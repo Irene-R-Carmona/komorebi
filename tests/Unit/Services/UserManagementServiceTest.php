@@ -21,8 +21,8 @@ namespace Tests\Unit\Services;
 use App\Repositories\Contracts\UserManagementRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\UserManagementService;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(UserManagementService::class)]
 final class UserManagementServiceTest extends TestCase

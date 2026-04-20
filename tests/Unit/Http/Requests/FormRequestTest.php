@@ -7,9 +7,9 @@ namespace Tests\Unit\Http\Requests;
 use App\Core\Http\FormRequest;
 use App\Exceptions\ValidationException;
 use Override;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?

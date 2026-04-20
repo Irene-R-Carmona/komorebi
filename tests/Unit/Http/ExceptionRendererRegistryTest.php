@@ -18,12 +18,12 @@ use App\Core\Http\ExceptionRendererInterface;
 use App\Core\Http\ExceptionRendererRegistry;
 use LogicException;
 use Override;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
 use Throwable;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ExceptionRendererRegistry::class)]
 final class ExceptionRendererRegistryTest extends TestCase

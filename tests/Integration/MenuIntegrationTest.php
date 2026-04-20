@@ -19,8 +19,8 @@ namespace Tests\Integration;
 use App\Repositories\MenuRepository;
 use App\Services\MenuService;
 use Override;
-use Tests\Support\BaseIntegrationTest;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use Tests\Support\BaseIntegrationTest;
 
 #[CoversNothing]
 final class MenuIntegrationTest extends BaseIntegrationTest

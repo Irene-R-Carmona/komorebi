@@ -13,8 +13,8 @@ namespace Tests\Unit\Listeners;
 use App\Events\UserRegisteredEvent;
 use App\Listeners\LogUserRegisteredListener;
 use DateTimeImmutable;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(LogUserRegisteredListener::class)]
 final class LogUserRegisteredListenerTest extends TestCase

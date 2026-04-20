@@ -19,8 +19,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Services\SettingsService;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(SettingsService::class)]
 final class SettingsServiceTest extends TestCase

@@ -11,8 +11,8 @@ declare(strict_types=1);
 use App\Core\Middleware;
 use App\Core\Session;
 use App\Exceptions\MiddlewareException;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests para Middleware RBAC (can, role, auth)

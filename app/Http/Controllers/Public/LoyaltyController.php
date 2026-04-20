@@ -25,7 +25,7 @@ final class LoyaltyController
     public function __construct(?LoyaltyServiceInterface $loyaltyService = null, ?ResponseFactory $response = null)
     {
         $this->loyaltyService = $loyaltyService ?? Container::make(LoyaltyServiceInterface::class);
-        $this->response       = $response ?? new ResponseFactory();
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**

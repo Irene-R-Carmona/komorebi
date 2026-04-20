@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Repositories\Contracts\TimeSlotRepositoryInterface;
+use Override;
 use PDO;
 
 /**
@@ -198,5 +199,45 @@ final class TimeSlotRepository implements TimeSlotRepositoryInterface
         $stmt->execute(['cafe_id' => $cafeId, 'start_date' => $startDate, 'end_date' => $endDate]);
 
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    #[Override]
+    public function findAvailableByDateFiltered(string $date, ?int $cafeId = null, ?int $guests = null): array
+    {
+        $sql = '
+            SELECT
+                ts.id,
+                ts.cafe_id,
+                ts.slot_date,
+                ts.slot_time,
+                ts.available_spots,
+                ts.total_capacity,
+                ts.duration_minutes
+            FROM time_slots ts
+            WHERE ts.slot_date      = :date
+              AND ts.is_blocked     = 0
+              AND ts.available_spots > 0
+        ';
+        $params = [':date' => $date];
+
+        if ($cafeId !== null) {
+            $sql .= ' AND ts.cafe_id = :cafe_id';
+            $params[':cafe_id'] = $cafeId;
+        }
+
+        if ($guests !== null) {
+            $sql .= ' AND ts.available_spots >= :guests';
+            $params[':guests'] = $guests;
+        }
+
+        $sql .= ' ORDER BY ts.slot_time ASC';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 }

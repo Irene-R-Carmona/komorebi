@@ -19,8 +19,8 @@ namespace Tests\Integration;
 use App\Repositories\ProductRepository;
 use App\Services\ProductService;
 use Override;
-use Tests\Support\BaseIntegrationTest;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use Tests\Support\BaseIntegrationTest;
 
 #[CoversNothing]
 final class ProductIntegrationTest extends BaseIntegrationTest

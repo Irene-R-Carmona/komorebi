@@ -23,7 +23,7 @@ final class UserManagementService extends BaseService implements UserManagementS
         ?UserRepositoryInterface $userRepo = null,
         ?UserManagementRepositoryInterface $userMgmtRepo = null,
     ) {
-        $this->userRepo     = $userRepo     ?? Container::make(UserRepositoryInterface::class);
+        $this->userRepo = $userRepo ?? Container::make(UserRepositoryInterface::class);
         $this->userMgmtRepo = $userMgmtRepo ?? Container::make(UserManagementRepositoryInterface::class);
     }
 
@@ -78,10 +78,10 @@ final class UserManagementService extends BaseService implements UserManagementS
         try {
             return Database::transaction(function () use ($data): Result {
                 $userId = $this->userRepo->create([
-                    'name'       => $data['name'],
-                    'email'      => $data['email'],
-                    'password'   => \password_hash($data['password'], PASSWORD_ARGON2ID),
-                    'is_active'  => 1,
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'password' => \password_hash($data['password'], PASSWORD_ARGON2ID),
+                    'is_active' => 1,
                     'created_at' => \date('Y-m-d H:i:s'),
                 ]);
                 $this->userRepo->assignRole($userId, (int) $data['role_id']);
@@ -145,8 +145,8 @@ final class UserManagementService extends BaseService implements UserManagementS
             return Result::fail('Usuario no encontrado');
         }
 
-        $existing    = $data['email'] !== $user['email'] ? $this->userRepo->findByEmail($data['email']) : null;
-        $emailTaken  = $existing && (int) $existing['id'] !== $userId;
+        $existing = $data['email'] !== $user['email'] ? $this->userRepo->findByEmail($data['email']) : null;
+        $emailTaken = $existing && (int) $existing['id'] !== $userId;
 
         return $emailTaken ? Result::fail('El email ya está registrado') : null;
     }
@@ -172,13 +172,13 @@ final class UserManagementService extends BaseService implements UserManagementS
             }
 
             $this->userRepo->toggleStatus($userId);
-            $updated    = $this->userRepo->findById($userId);
-            $newStatus  = (bool) ($updated['is_active'] ?? false);
+            $updated = $this->userRepo->findById($userId);
+            $newStatus = (bool) ($updated['is_active'] ?? false);
             $statusText = $newStatus ? 'activado' : 'desactivado';
 
             return Result::ok([
                 'is_active' => $newStatus,
-                'message'   => "Usuario $statusText exitosamente",
+                'message' => "Usuario $statusText exitosamente",
             ]);
         } catch (Exception $e) {
             return Result::fail('Error al cambiar estado: ' . $e->getMessage());

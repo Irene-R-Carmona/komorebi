@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Env;
 use App\Core\ExceptionLogger;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Exceptions\ValidationException;
-use App\Core\Container;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use App\Services\Contracts\AdminReportServiceInterface;
 use App\Services\Contracts\AdminStatisticsServiceInterface;
@@ -40,9 +40,9 @@ final class ReportController
         ?ResponseFactory $response = null
     ) {
         $this->statisticsService = $statisticsService ?? Container::make(AdminStatisticsServiceInterface::class);
-        $this->reportService     = $reportService     ?? Container::make(AdminReportServiceInterface::class);
-        $this->auditLogRepo      = $auditLogRepo      ?? Container::make(AuditLogRepositoryInterface::class);
-        $this->response          = $response          ?? new ResponseFactory();
+        $this->reportService = $reportService ?? Container::make(AdminReportServiceInterface::class);
+        $this->auditLogRepo = $auditLogRepo ?? Container::make(AuditLogRepositoryInterface::class);
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**
@@ -62,17 +62,17 @@ final class ReportController
             return $this->getReportesData();
         }
 
-        $systemStats  = $this->statisticsService->getSystemStatistics();
+        $systemStats = $this->statisticsService->getSystemStatistics();
         $monthlyStats = $this->statisticsService->getMonthlyStats((int) \date('n'), (int) \date('Y'));
 
         View::render('admin/reportes', [
             'titulo' => 'Reportes y Estadísticas',
             'csrf_token' => Csrf::token(),
             'stats' => [
-                'total_users'          => $systemStats['users'] ?? 0,
+                'total_users' => $systemStats['users'] ?? 0,
                 'monthly_reservations' => $monthlyStats['reservations'] ?? 0,
-                'total_reviews'        => $systemStats['reviews'] ?? 0,
-                'monthly_revenue'      => 0,
+                'total_reviews' => $systemStats['reviews'] ?? 0,
+                'monthly_revenue' => 0,
             ],
             'extraJs' => ['admin/admin-reports.js'],
         ], ['admin/admin-reports.css'], 'backoffice');

@@ -148,7 +148,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
         $service = $this->buildService($this->makeStmt(false));
         $result = $service->cancelReservationAndPromote(1);
 
-        $this->assertTrue($result->isOk());
+        $this->assertTrue($result->ok);
         $this->assertSame(0, $result->data['promoted_users']);
     }
 
@@ -165,7 +165,7 @@ final class ReservationTimeSlotServiceQueueTest extends TestCase
         $service = $this->buildService($queueStmt, $notifyStmt);
         $result = $service->cancelReservationAndPromote(1);
 
-        $this->assertTrue($result->isOk());
+        $this->assertTrue($result->ok);
         $this->assertSame(0, $result->data['promoted_users']);
     }
 }

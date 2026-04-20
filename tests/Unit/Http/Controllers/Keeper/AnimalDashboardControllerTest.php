@@ -27,9 +27,9 @@ use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use App\Services\AnimalCareService;
 use App\Services\HealthCheckService;
 use Nyholm\Psr7\ServerRequest;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(AnimalDashboardController::class)]
 final class AnimalDashboardControllerTest extends TestCase

@@ -22,9 +22,9 @@ use App\Http\Controllers\Api\V1\CookieController;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\Contracts\RecentlyViewedServiceInterface;
 use Nyholm\Psr7\ServerRequest;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(CookieController::class)]
 final class CookieControllerTest extends ControllerTestCase

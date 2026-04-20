@@ -20,10 +20,10 @@ use App\Core\Http\ExceptionRendererRegistry;
 use App\Core\Http\ResponseFactory;
 use App\Http\Middleware\ErrorHandlerMiddleware;
 use Nyholm\Psr7\Factory\Psr17Factory;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Server\RequestHandlerInterface;
 use RuntimeException;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ErrorHandlerMiddleware::class)]
 final class ErrorHandlerMiddlewareTest extends TestCase

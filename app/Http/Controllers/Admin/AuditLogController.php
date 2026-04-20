@@ -44,13 +44,13 @@ final class AuditLogController
 
         $rawStats = $this->auditLogRepo->getStats();
         View::render('admin/logs/audit', [
-            'titulo'     => 'Logs de Auditoría',
+            'titulo' => 'Logs de Auditoría',
             'csrf_token' => Csrf::token(),
-            'stats'      => [
-                'total_logs'       => (int) ($rawStats['totals']['total_actions'] ?? 0),
-                'last_24h'         => (int) ($rawStats['totals']['last_24h'] ?? 0),
+            'stats' => [
+                'total_logs' => (int) ($rawStats['totals']['total_actions'] ?? 0),
+                'last_24h' => (int) ($rawStats['totals']['last_24h'] ?? 0),
                 'critical_actions' => (int) ($rawStats['totals']['critical_actions'] ?? 0),
-                'active_users'     => (int) ($rawStats['totals']['unique_users'] ?? 0),
+                'active_users' => (int) ($rawStats['totals']['unique_users'] ?? 0),
             ],
             'extraJs' => ['admin/admin-logs.js'],
         ], ['admin/admin-logs.css'], 'backoffice');
@@ -65,22 +65,22 @@ final class AuditLogController
     private function getAuditLogsData(): ResponseInterface
     {
         $filters = \array_filter([
-            'user_id'       => !empty($_GET['user_id']) ? (int) $_GET['user_id'] : null,
-            'action'        => $_GET['action'] ?? null,
+            'user_id' => !empty($_GET['user_id']) ? (int) $_GET['user_id'] : null,
+            'action' => $_GET['action'] ?? null,
             'resource_type' => $_GET['resource_type'] ?? null,
-            'date_from'     => $_GET['date_from'] ?? null,
-            'date_to'       => $_GET['date_to'] ?? null,
-            'ip_address'    => $_GET['ip_address'] ?? null,
+            'date_from' => $_GET['date_from'] ?? null,
+            'date_to' => $_GET['date_to'] ?? null,
+            'ip_address' => $_GET['ip_address'] ?? null,
         ], static fn ($v) => $v !== null);
 
-        $page   = \max(1, (int) ($_GET['page'] ?? 1));
-        $limit  = \max(10, \min(100, (int) ($_GET['limit'] ?? 50)));
+        $page = \max(1, (int) ($_GET['page'] ?? 1));
+        $limit = \max(10, \min(100, (int) ($_GET['limit'] ?? 50)));
         $offset = ($page - 1) * $limit;
 
         $result = $this->auditLogRepo->findAll($filters, $limit, $offset);
 
         return $this->response->json(['ok' => true, 'data' => [
-            'logs'  => $result['data'],
+            'logs' => $result['data'],
             'total' => $result['total'],
         ]]);
     }
@@ -93,7 +93,7 @@ final class AuditLogController
     {
         $filters = \array_filter([
             'date_from' => $_GET['date_from'] ?? null,
-            'date_to'   => $_GET['date_to'] ?? null,
+            'date_to' => $_GET['date_to'] ?? null,
         ], static fn ($v) => $v !== null && $v !== '');
 
         $stats = $this->auditLogRepo->getStats($filters);
@@ -109,12 +109,12 @@ final class AuditLogController
         try {
             $queryParams = $request->getQueryParams();
             $filters = \array_filter([
-                'user_id'       => !empty($queryParams['user_id']) ? (int) $queryParams['user_id'] : null,
-                'action'        => $queryParams['action'] ?? null,
+                'user_id' => !empty($queryParams['user_id']) ? (int) $queryParams['user_id'] : null,
+                'action' => $queryParams['action'] ?? null,
                 'resource_type' => $queryParams['resource_type'] ?? null,
-                'date_from'     => $queryParams['date_from'] ?? null,
-                'date_to'       => $queryParams['date_to'] ?? null,
-                'ip_address'    => $queryParams['ip_address'] ?? null,
+                'date_from' => $queryParams['date_from'] ?? null,
+                'date_to' => $queryParams['date_to'] ?? null,
+                'ip_address' => $queryParams['ip_address'] ?? null,
             ], static fn ($v) => $v !== null && $v !== '');
 
             $result = $this->auditLogRepo->findAll($filters, 10000, 0);
@@ -151,7 +151,7 @@ final class AuditLogController
             $isDebug = Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production');
             $response = $this->response->createResponse(500);
             View::render('errors/500', [
-                'message'      => $isDebug ? $e->getMessage() : 'Error al generar el archivo de exportación',
+                'message' => $isDebug ? $e->getMessage() : 'Error al generar el archivo de exportación',
                 'show_details' => $isDebug,
             ]);
 

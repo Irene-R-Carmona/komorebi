@@ -18,8 +18,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Core;
 
 use App\Core\Container;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 // Fixtures locales para los tests
 #[CoversClass(Container::class)]

@@ -19,8 +19,8 @@ namespace Tests\Unit\Core;
 use App\Core\LoggingPDO;
 use PDO;
 use PDOStatement;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(LoggingPDO::class)]
 final class LoggingPDOTest extends TestCase

@@ -35,6 +35,10 @@ services:
   db:
     ports:
       - "3306:3306"
+    command:
+      - --performance-schema=OFF
+      - --innodb-buffer-pool-size=268435456
+      - --innodb-flush-log-at-trx-commit=2
 
   # ==========================================================================
   # PHPMYADMIN - Gestor web de MySQL (solo desarrollo)

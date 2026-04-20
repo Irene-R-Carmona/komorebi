@@ -16,8 +16,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\User;
 
 use App\Http\Controllers\User\CartController;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(CartController::class)]
 final class CartControllerTest extends TestCase

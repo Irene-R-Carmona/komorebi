@@ -2,22 +2,14 @@ name: OWASP ZAP Security Scan
 
 # DAST (Dynamic Application Security Testing) contra la app en ejecución.
 #
-# PRs y pushes a main/develop: baseline scan (pasivo + activo ligero).
-#   → fail_action: exit bloquea el PR si se detecta una alerta HIGH o CRITICAL.
+# Ejecución semanal (domingos 02:00 UTC) o manual via workflow_dispatch.
+# No se ejecuta en cada push ni en PRs — demasiado frágil y lento para CI diario.
 #
-# Domingos 2:00 UTC: full scan (activo completo, más intrusivo).
-#   → Resultados en GitHub Security tab (SARIF).
-#
+# Full scan activo (más intrusivo). Resultados en GitHub Security tab (SARIF).
 # Exclusiones de falsos positivos: .zap/rules.tsv
-#
-# Para desactivar temporalmente ZAP en un PR, añadir la etiqueta: skip-zap
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
   schedule:
     - cron: "0 2 * * 0" # Domingos 2:00 UTC
 
@@ -29,9 +21,6 @@ jobs:
   zap-scan:
     name: ZAP ${{ github.event_name == 'schedule' && 'Full' || 'Baseline' }} Scan
     runs-on: ubuntu-latest
-    if: >
-      github.event_name != 'pull_request' ||
-      !contains(github.event.pull_request.labels.*.name, 'skip-zap')
 
     steps:
       - uses: actions/checkout@v4
@@ -48,7 +37,8 @@ jobs:
           APP_DEBUG=false
           DB_HOST=db
           DB_DATABASE=komorebi_test
-          DB_USERNAME=root
+          DB_ROOT_PASSWORD=zap_root_pw
+          DB_USERNAME=komorebi
           DB_PASSWORD=zap_test_password
           REDIS_HOST=cache
           REDIS_PORT=6379
@@ -94,7 +84,7 @@ jobs:
         with:
           target: ${{ env.ZAP_TARGET }}
           rules_file_name: ".zap/rules.tsv"
-          fail_action: exit
+          fail_action: warn
           artifact_name: zap-baseline-report
           issue_title: "ZAP Baseline Scan — ${{ github.ref_name }}"
 

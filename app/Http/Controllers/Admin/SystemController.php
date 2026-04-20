@@ -40,9 +40,9 @@ final class SystemController
         ?ResponseFactory $response = null
     ) {
         $this->settingsService = $settingsService ?? Container::make(SettingsServiceInterface::class);
-        $this->emailService    = $emailService    ?? Container::make(EmailServiceInterface::class);
-        $this->auditLogRepo    = $auditLogRepo    ?? Container::make(AuditLogRepositoryInterface::class);
-        $this->response        = $response        ?? new ResponseFactory();
+        $this->emailService = $emailService ?? Container::make(EmailServiceInterface::class);
+        $this->auditLogRepo = $auditLogRepo ?? Container::make(AuditLogRepositoryInterface::class);
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**

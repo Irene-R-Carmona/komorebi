@@ -18,8 +18,8 @@ namespace Tests\Unit\Http\Controllers\Admin;
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(AuditLogController::class)]
 final class AuditLogControllerTest extends ControllerTestCase

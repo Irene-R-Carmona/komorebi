@@ -36,4 +36,3 @@ final class AllergenCodeGenerator
         return \substr($normalized, 0, self::MAX_LENGTH);
     }
 }
-

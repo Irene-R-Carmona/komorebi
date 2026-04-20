@@ -93,8 +93,8 @@ final class AuditLogRepository implements AuditLogRepositoryInterface
         $topResources = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return [
-            'totals'        => $totals,
-            'top_actions'   => $topActions,
+            'totals' => $totals,
+            'top_actions' => $topActions,
             'top_resources' => $topResources,
         ];
     }

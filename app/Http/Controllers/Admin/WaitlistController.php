@@ -26,8 +26,8 @@ final class WaitlistController
         ?ResponseFactory $response = null,
         ?WaitlistTransformer $waitlistTransformer = null,
     ) {
-        $this->waitlistRepo        = $waitlistRepo ?? Container::make(WaitlistRepositoryInterface::class);
-        $this->response            = $response ?? new ResponseFactory();
+        $this->waitlistRepo = $waitlistRepo ?? Container::make(WaitlistRepositoryInterface::class);
+        $this->response = $response ?? new ResponseFactory();
         $this->waitlistTransformer = $waitlistTransformer ?? new WaitlistTransformer();
     }
 
@@ -36,8 +36,8 @@ final class WaitlistController
         $queryParams = $request->getQueryParams();
         $filters = [
             'cafe_id' => $queryParams['cafe_id'] ?? null,
-            'status'  => $queryParams['status'] ?? 'waiting',
-            'date'    => $queryParams['date'] ?? null,
+            'status' => $queryParams['status'] ?? 'waiting',
+            'date' => $queryParams['date'] ?? null,
         ];
 
         $waitlists = $this->waitlistTransformer->collection(
@@ -48,8 +48,8 @@ final class WaitlistController
 
         View::render('admin/waitlist/index', [
             'waitlists' => $waitlists,
-            'summary'   => $summary,
-            'filters'   => $filters,
+            'summary' => $summary,
+            'filters' => $filters,
         ], [], 'backoffice');
 
         return null;

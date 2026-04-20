@@ -15,6 +15,7 @@ use App\Models\MenuCategory;
 use App\Models\Product;
 use App\Services\Contracts\ProductServiceInterface;
 use JsonException;
+use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
@@ -39,8 +40,8 @@ final class MenuController
         $this->productService = $productService ?? Container::make(ProductServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
         $this->productTransformer = $productTransformer ?? new ProductTransformer();
-        $this->productModel = $productModel ?? new Product(Container::make(\PDO::class));
-        $this->categoryModel = $categoryModel ?? new MenuCategory(Container::make(\PDO::class));
+        $this->productModel = $productModel ?? new Product(Container::make(PDO::class));
+        $this->categoryModel = $categoryModel ?? new MenuCategory(Container::make(PDO::class));
     }
 
     /**
@@ -69,7 +70,7 @@ final class MenuController
             // Formatear target_cafe_types
             if (!empty($product['target_cafe_types']) && \is_array($product['target_cafe_types'])) {
                 $product['cafe_types_display'] = \array_map(
-                    fn($type) => $cafeTypeLabels[$type] ?? $type,
+                    fn ($type) => $cafeTypeLabels[$type] ?? $type,
                     $product['target_cafe_types']
                 );
             } else {

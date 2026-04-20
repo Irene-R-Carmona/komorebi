@@ -51,4 +51,3 @@ interface TrackerRepositoryInterface
      */
     public function getStats(int $cafeId): array;
 }
-

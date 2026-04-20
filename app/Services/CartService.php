@@ -32,7 +32,7 @@ final class CartService implements CartServiceInterface
         ?ReservationItemRepositoryInterface $itemRepo = null,
     ) {
         $this->productRepo = $productRepo ?? Container::make(ProductRepositoryInterface::class);
-        $this->itemRepo    = $itemRepo ?? Container::make(ReservationItemRepositoryInterface::class);
+        $this->itemRepo = $itemRepo ?? Container::make(ReservationItemRepositoryInterface::class);
     }
 
     // ─────────────────────────────────────────────────────────────

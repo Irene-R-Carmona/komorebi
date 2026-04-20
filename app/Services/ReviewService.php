@@ -35,9 +35,9 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
         ReviewRepositoryInterface $reviewRepository,
         ReservationRepositoryInterface $reservationRepo
     ) {
-        $this->userRepo         = $userRepo;
+        $this->userRepo = $userRepo;
         $this->reviewRepository = $reviewRepository;
-        $this->reservationRepo  = $reservationRepo;
+        $this->reservationRepo = $reservationRepo;
     }
 
     // ─────────────────────────────────────────────────────────────

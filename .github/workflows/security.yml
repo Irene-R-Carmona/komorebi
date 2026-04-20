@@ -41,29 +41,18 @@ jobs:
         run: composer install --prefer-dist --no-scripts --no-interaction
 
       - name: Run Composer security audit
-        run: composer audit --format=json | tee /tmp/audit.json
-        continue-on-error: true
+        run: composer audit --format=json | tee /tmp/audit.json || true
 
       - name: Fail on HIGH / CRITICAL vulnerabilities
         run: |
-          HIGH=$(cat /tmp/audit.json | python3 -c "
-          import sys, json
-          data = json.load(sys.stdin)
-          advisories = data.get('advisories', {})
-          high_crit = [
-              a for pkg in advisories.values()
-              for a in (pkg if isinstance(pkg, list) else [pkg])
-              if a.get('severity', '').upper() in ('HIGH', 'CRITICAL')
-          ]
-          print(len(high_crit))
-          " 2>/dev/null || echo "0")
+          HIGH=$(jq '[.advisories | to_entries[].value[] | select((.severity // "") | ascii_upcase | . == "HIGH" or . == "CRITICAL")] | length' /tmp/audit.json 2>/dev/null || echo "0")
           echo "High/Critical vulnerabilities found: ${HIGH}"
           if [ "${HIGH}" -gt "0" ]; then
-            echo "❌ HIGH or CRITICAL vulnerabilities detected. Review composer audit output above."
+            echo "FAIL: HIGH or CRITICAL vulnerabilities detected. Review composer audit output above."
             cat /tmp/audit.json
             exit 1
           fi
-          echo "✅ No HIGH or CRITICAL vulnerabilities found."
+          echo "PASS: No HIGH or CRITICAL vulnerabilities found."
 
       - name: Upload audit report
         uses: actions/upload-artifact@v4

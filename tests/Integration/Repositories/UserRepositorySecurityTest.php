@@ -21,9 +21,9 @@ namespace Tests\Integration\Repositories;
 
 use App\Repositories\UserRepository;
 use Override;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use ReflectionClass;
 use Tests\Support\BaseIntegrationTest;
-use PHPUnit\Framework\Attributes\CoversNothing;
 
 #[CoversNothing]
 final class UserRepositorySecurityTest extends BaseIntegrationTest

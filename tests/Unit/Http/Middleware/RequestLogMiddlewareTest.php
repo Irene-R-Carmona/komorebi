@@ -7,13 +7,13 @@ namespace Tests\Unit\Http\Middleware;
 use App\Core\LogContext;
 use App\Core\WideEvent;
 use App\Http\Middleware\RequestLogMiddleware;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionMethod;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?

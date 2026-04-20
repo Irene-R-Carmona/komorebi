@@ -162,6 +162,7 @@ if (!$seedersOnly) {
         '016_supervisor_assignments.sql',
         '017_product_stock.sql',
         '018_api_tokens.sql',
+        '019_animal_incidents_status.sql',
     ];
 
     foreach ($migrations as $migration) {

@@ -261,10 +261,10 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
             ON DUPLICATE KEY UPDATE notes = CONCAT(notes, "\n---\n", :notes_upd), created_at = NOW()
         ');
         $stmt->execute([
-            'animal_id'  => $data['animal_id'],
+            'animal_id' => $data['animal_id'],
             'checked_by' => $data['logged_by_user_id'] ?? 1,
-            'notes'      => $data['notes'],
-            'notes_upd'  => $data['notes'],
+            'notes' => $data['notes'],
+            'notes_upd' => $data['notes'],
         ]);
 
         return (int) $this->db->lastInsertId();

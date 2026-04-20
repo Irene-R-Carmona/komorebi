@@ -37,8 +37,8 @@ final class ReceptionService implements ReceptionServiceInterface
         ?CafeRepositoryInterface $cafeRepo = null
     ) {
         $this->reservationRepo = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
-        $this->trackerRepo     = $trackerRepo ?? Container::make(TrackerRepositoryInterface::class);
-        $this->cafeRepo        = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
+        $this->trackerRepo = $trackerRepo ?? Container::make(TrackerRepositoryInterface::class);
+        $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -51,11 +51,11 @@ final class ReceptionService implements ReceptionServiceInterface
         $today = \date('Y-m-d');
 
         return [
-            'pending_arrivals'    => $this->getPendingArrivals($cafeId),
-            'active_groups'       => $this->getActiveGroups($cafeId),
-            'available_trackers'  => $this->trackerRepo->findAvailable($cafeId),
-            'capacity'            => $this->getCapacityInfo($cafeId),
-            'stats'               => $this->getDailyStats($cafeId, $today),
+            'pending_arrivals' => $this->getPendingArrivals($cafeId),
+            'active_groups' => $this->getActiveGroups($cafeId),
+            'available_trackers' => $this->trackerRepo->findAvailable($cafeId),
+            'capacity' => $this->getCapacityInfo($cafeId),
+            'stats' => $this->getDailyStats($cafeId, $today),
         ];
     }
 
@@ -164,16 +164,16 @@ final class ReceptionService implements ReceptionServiceInterface
                     } catch (Throwable $e) {
                         Logger::warning('Error al añadir sello de fidelización', [
                             'reservation_id' => $reservationId,
-                            'user_id'        => $updated['user_id'],
-                            'error'          => $e->getMessage(),
+                            'user_id' => $updated['user_id'],
+                            'error' => $e->getMessage(),
                         ]);
                     }
                 }
 
                 return [
-                    'success'     => true,
+                    'success' => true,
                     'final_price' => $updated['final_amount'] ?? 0,
-                    'duration'    => $this->calculateDuration($updated),
+                    'duration' => $this->calculateDuration($updated),
                 ];
             });
 
@@ -225,9 +225,9 @@ final class ReceptionService implements ReceptionServiceInterface
         }
 
         return Result::ok([
-            'hygiene'      => (bool) $reservation['protocol_hygiene'],
-            'briefing'     => (bool) $reservation['protocol_briefing'],
-            'shoes'        => (bool) $reservation['protocol_shoes'],
+            'hygiene' => (bool) $reservation['protocol_hygiene'],
+            'briefing' => (bool) $reservation['protocol_briefing'],
+            'shoes' => (bool) $reservation['protocol_shoes'],
             'all_complete' => $reservation['protocol_hygiene']
                            && $reservation['protocol_briefing']
                            && $reservation['protocol_shoes'],
@@ -241,18 +241,18 @@ final class ReceptionService implements ReceptionServiceInterface
     #[Override]
     public function getCapacityInfo(int $cafeId): array
     {
-        $cafe        = $this->cafeRepo->findById($cafeId);
+        $cafe = $this->cafeRepo->findById($cafeId);
         $maxCapacity = (int) ($cafe['capacity_max'] ?? 0);
 
-        $activeGroups  = $this->reservationRepo->findActiveByCafe($cafeId);
+        $activeGroups = $this->reservationRepo->findActiveByCafe($cafeId);
         $currentGuests = \array_sum(\array_column($activeGroups, 'guests'));
 
         return [
-            'max'        => $maxCapacity,
-            'current'    => $currentGuests,
-            'available'  => \max(0, $maxCapacity - $currentGuests),
+            'max' => $maxCapacity,
+            'current' => $currentGuests,
+            'available' => \max(0, $maxCapacity - $currentGuests),
             'percentage' => $maxCapacity > 0 ? \round(($currentGuests / $maxCapacity) * 100) : 0,
-            'is_full'    => $currentGuests >= $maxCapacity,
+            'is_full' => $currentGuests >= $maxCapacity,
         ];
     }
 
@@ -273,15 +273,15 @@ final class ReceptionService implements ReceptionServiceInterface
     private function enrichActiveGroup(array $group): array
     {
         if (!empty($group['check_in_at'])) {
-            $checkin  = \strtotime($group['check_in_at']);
-            $elapsed  = (\time() - $checkin) / 60;
+            $checkin = \strtotime($group['check_in_at']);
+            $elapsed = (\time() - $checkin) / 60;
             $duration = (int) ($group['pass_duration_minutes'] ?? 60);
             $remaining = $duration - $elapsed;
 
-            $group['elapsed_minutes']  = (int) $elapsed;
+            $group['elapsed_minutes'] = (int) $elapsed;
             $group['remaining_minutes'] = \max(0, (int) $remaining);
-            $group['is_overtime']       = $remaining < 0;
-            $group['overtime_minutes']  = $remaining < 0 ? \abs((int) $remaining) : 0;
+            $group['is_overtime'] = $remaining < 0;
+            $group['overtime_minutes'] = $remaining < 0 ? \abs((int) $remaining) : 0;
         }
 
         return $group;

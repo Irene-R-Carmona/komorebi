@@ -13,7 +13,7 @@ use App\Core\Middleware;
  */
 final class NavigationService
 {
-    private const string URL_OPS_RECEPTION    = '/ops/reception';
+    private const string URL_OPS_RECEPTION = '/ops/reception';
     private const string URL_KEEPER_DASHBOARD = '/keeper/dashboard';
 
     /**
@@ -223,11 +223,11 @@ final class NavigationService
     {
         if ($isAuthenticated && $this->isBackofficePath($path)) {
             return match ($role) {
-                'admin'   => ['href' => '/admin/dashboard',   'label' => 'Volver al Dashboard'],
+                'admin' => ['href' => '/admin/dashboard',   'label' => 'Volver al Dashboard'],
                 'manager' => ['href' => '/manager/dashboard', 'label' => 'Volver al Dashboard'],
-                'keeper'  => ['href' => self::URL_KEEPER_DASHBOARD,  'label' => 'Volver a Bienestar'],
-                'staff'   => ['href' => self::URL_OPS_RECEPTION,     'label' => 'Volver a Operaciones'],
-                default   => ['href' => '/',                  'label' => 'Volver al inicio'],
+                'keeper' => ['href' => self::URL_KEEPER_DASHBOARD,  'label' => 'Volver a Bienestar'],
+                'staff' => ['href' => self::URL_OPS_RECEPTION,     'label' => 'Volver a Operaciones'],
+                default => ['href' => '/',                  'label' => 'Volver al inicio'],
             };
         }
 

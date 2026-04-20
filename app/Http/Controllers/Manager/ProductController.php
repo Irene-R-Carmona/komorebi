@@ -37,9 +37,9 @@ final class ProductController
         ?ResponseFactory $response = null
     ) {
         $this->productService = $productService ?? Container::make(ProductServiceInterface::class);
-        $this->productRepo    = $productRepo ?? Container::make(ProductRepositoryInterface::class);
-        $this->categoryRepo   = $categoryRepo ?? Container::make(MenuCategoryRepositoryInterface::class);
-        $this->response       = $response ?? new ResponseFactory();
+        $this->productRepo = $productRepo ?? Container::make(ProductRepositoryInterface::class);
+        $this->categoryRepo = $categoryRepo ?? Container::make(MenuCategoryRepositoryInterface::class);
+        $this->response = $response ?? new ResponseFactory();
     }
 
     /**
@@ -47,7 +47,7 @@ final class ProductController
      */
     public function index(): ?ResponseInterface
     {
-        $user   = Session::user();
+        $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
 
         if (!$cafeId) {
@@ -57,19 +57,19 @@ final class ProductController
         }
 
         $productsData = $this->productRepo->findFiltered([], 1, 200);
-        $categories   = $this->categoryRepo->findAll();
+        $categories = $this->categoryRepo->findAll();
 
         $alpineConfig = Raw::json([
-            'products'   => $productsData['data'] ?? [],
+            'products' => $productsData['data'] ?? [],
             'categories' => $categories,
-            'cafeId'     => $cafeId,
-            'csrfToken'  => Csrf::token(),
+            'cafeId' => $cafeId,
+            'csrfToken' => Csrf::token(),
         ]);
 
         View::render('manager/products/index', [
-            'titulo'      => 'Gestión de Productos',
+            'titulo' => 'Gestión de Productos',
             'alpineConfig' => $alpineConfig,
-            'total'       => $productsData['total'] ?? 0,
+            'total' => $productsData['total'] ?? 0,
         ], ['admin/admin-products.css'], 'backoffice');
 
         return null;
@@ -93,7 +93,7 @@ final class ProductController
             ]);
 
             return $this->response->json(['ok' => true, 'data' => [
-                'message'    => 'El producto se ha creado correctamente.',
+                'message' => 'El producto se ha creado correctamente.',
                 'product_id' => $productId,
             ]]);
         } catch (ValidationException $e) {

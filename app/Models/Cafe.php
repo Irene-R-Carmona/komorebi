@@ -12,10 +12,10 @@ namespace App\Models;
  */
 final class Cafe
 {
-    public const string CATEGORY_LOUNGE   = 'lounge';
+    public const string CATEGORY_LOUNGE = 'lounge';
     public const string CATEGORY_PLAYROOM = 'playroom';
-    public const string CATEGORY_FARM     = 'farm';
-    public const string CATEGORY_ZEN      = 'zen';
+    public const string CATEGORY_FARM = 'farm';
+    public const string CATEGORY_ZEN = 'zen';
 
     public const array VALID_CATEGORIES = [
         self::CATEGORY_LOUNGE,

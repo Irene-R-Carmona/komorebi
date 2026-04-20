@@ -20,6 +20,7 @@ namespace Tests\Unit\Http\Controllers\Shared;
 use App\Core\Http\ResponseFactory;
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Shared\ReservationController;
+use App\Models\Reservation;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
@@ -27,11 +28,11 @@ use App\Services\AvailabilityService;
 use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\ClimaContextoServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\FestivosJaponesesServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
-use App\Services\FestivosJaponesesService;
 use App\Services\ReservationService;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(ReservationController::class)]
 final class ReservationControllerTest extends ControllerTestCase
@@ -67,9 +68,9 @@ final class ReservationControllerTest extends ControllerTestCase
                 productRepo: $this->createStub(ProductRepositoryInterface::class),
                 reservationRepo: $this->createStub(ReservationRepositoryInterface::class),
             ),
-            reservationRepo: $this->createStub(ReservationRepositoryInterface::class),
+            reservationModel: new Reservation(),
             climaService: $this->createStub(ClimaContextoServiceInterface::class),
-            festivosService: new FestivosJaponesesService(),
+            festivosService: $this->createStub(FestivosJaponesesServiceInterface::class),
             response: new ResponseFactory(),
         );
     }

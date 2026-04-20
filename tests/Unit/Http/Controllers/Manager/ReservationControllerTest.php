@@ -26,9 +26,9 @@ use App\Repositories\ReservationRepository;
 use Nyholm\Psr7\ServerRequest;
 use PDO;
 use PDOStatement;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ReservationController::class)]
 final class ReservationControllerTest extends TestCase

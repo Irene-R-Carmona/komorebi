@@ -16,15 +16,18 @@ use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Http\Transformers\ReservationTransformer;
 use App\Models\Reservation;
-use App\Services\AvailabilityService;
+use App\Services\Contracts\AvailabilityServiceInterface;
 use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\ClimaContextoServiceInterface;
-use App\Services\FestivosJaponesesService;
-use App\Services\ReservationService;
+use App\Services\Contracts\FestivosJaponesesServiceInterface;
+use App\Services\Contracts\ReservationServiceInterface;
+use DateMalformedStringException;
 use JsonException;
+use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -36,28 +39,28 @@ use Throwable;
 final class ReservationController
 {
     private CartServiceInterface $cartService;
-    private ReservationService $reservationService;
-    private AvailabilityService $availabilityService;
+    private ReservationServiceInterface $reservationService;
+    private AvailabilityServiceInterface $availabilityService;
     private Reservation $reservationModel;
     private ClimaContextoServiceInterface $climaService;
-    private FestivosJaponesesService $festivosService;
+    private FestivosJaponesesServiceInterface $festivosService;
     private ResponseFactory $response;
 
     public function __construct(
         ?CartServiceInterface $cartService = null,
-        ?ReservationService $reservationService = null,
-        ?AvailabilityService $availabilityService = null,
+        ?ReservationServiceInterface $reservationService = null,
+        ?AvailabilityServiceInterface $availabilityService = null,
         ?Reservation $reservationModel = null,
         ?ClimaContextoServiceInterface $climaService = null,
-        ?FestivosJaponesesService $festivosService = null,
+        ?FestivosJaponesesServiceInterface $festivosService = null,
         ?ResponseFactory $response = null
     ) {
         $this->cartService = $cartService ?? Container::make(CartServiceInterface::class);
-        $this->reservationService = $reservationService ?? Container::make(ReservationService::class);
-        $this->availabilityService = $availabilityService ?? Container::make(AvailabilityService::class);
-        $this->reservationModel = $reservationModel ?? new Reservation(Container::make(\PDO::class));
+        $this->reservationService = $reservationService ?? Container::make(ReservationServiceInterface::class);
+        $this->availabilityService = $availabilityService ?? Container::make(AvailabilityServiceInterface::class);
+        $this->reservationModel = $reservationModel ?? new Reservation(Container::make(PDO::class));
         $this->climaService = $climaService ?? Container::make(ClimaContextoServiceInterface::class);
-        $this->festivosService = $festivosService ?? Container::make(FestivosJaponesesService::class);
+        $this->festivosService = $festivosService ?? Container::make(FestivosJaponesesServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
     }
 
@@ -65,7 +68,7 @@ final class ReservationController
      * GET /reservas
      * Muestra la página principal de reservas
      * @throws JsonException
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
@@ -229,7 +232,7 @@ final class ReservationController
         try {
             $this->reservationService->cancel($reservationId, $userId);
             Flash::success('Reserva cancelada correctamente. Se procesará el reembolso en 3-5 días hábiles.');
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             Flash::error($e->getMessage());
         }
 

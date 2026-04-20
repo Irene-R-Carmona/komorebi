@@ -14,7 +14,7 @@ use App\Core\View;
 use App\Exceptions\BusinessRuleException;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
-use App\Models\Cafe;
+use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\Contracts\ReviewModerationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\ReviewServiceInterface;
@@ -36,7 +36,7 @@ final class ReviewController
     private ReviewServiceInterface $reviewService;
     private ReviewQueryServiceInterface $queryService;
     private ReviewModerationServiceInterface $moderationService;
-    private Cafe $cafeModel;
+    private CafeRepositoryInterface $cafeRepo;
     private ResponseFactory $response;
 
     // ─────────────────────────────────────────────────────────────
@@ -47,13 +47,13 @@ final class ReviewController
         ?ReviewServiceInterface $reviewService = null,
         ?ReviewQueryServiceInterface $queryService = null,
         ?ReviewModerationServiceInterface $moderationService = null,
-        ?Cafe $cafeModel = null,
+        ?CafeRepositoryInterface $cafeRepo = null,
         ?ResponseFactory $response = null
     ) {
         $this->reviewService = $reviewService ?? Container::make(ReviewServiceInterface::class);
         $this->queryService = $queryService ?? Container::make(ReviewQueryServiceInterface::class);
         $this->moderationService = $moderationService ?? Container::make(ReviewModerationServiceInterface::class);
-        $this->cafeModel = $cafeModel ?? new Cafe(Container::make(\PDO::class));
+        $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
         $this->response = $response ?? new ResponseFactory();
     }
 
@@ -134,7 +134,7 @@ final class ReviewController
         }
 
         // [x] VALIDACIÓN CONTEXTO: Café existe
-        $cafe = $this->cafeModel->findById($cafeId);
+        $cafe = $this->cafeRepo->findById($cafeId);
         if (!$cafe) {
             throw NotFoundException::forResource('Café', $cafeId);
         }

@@ -20,8 +20,8 @@ use App\Repositories\CafeRepository;
 use App\Repositories\StatisticsRepository;
 use App\Services\CafeService;
 use Override;
-use Tests\Support\BaseIntegrationTest;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use Tests\Support\BaseIntegrationTest;
 
 #[CoversNothing]
 final class CafeIntegrationTest extends BaseIntegrationTest

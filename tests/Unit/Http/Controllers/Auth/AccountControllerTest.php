@@ -25,8 +25,8 @@ use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\Contracts\SessionManagementServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(AccountController::class)]
 final class AccountControllerTest extends ControllerTestCase

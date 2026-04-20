@@ -125,10 +125,10 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
 
         return [
             'total_animals' => (int) $animalStats['total_animals'],
-            'healthy'       => (int) $animalStats['healthy'],
-            'monitoring'    => (int) $animalStats['monitoring'],
-            'sick'          => (int) $animalStats['sick'],
-            'logs_today'    => $logsToday,
+            'healthy' => (int) $animalStats['healthy'],
+            'monitoring' => (int) $animalStats['monitoring'],
+            'sick' => (int) $animalStats['sick'],
+            'logs_today' => $logsToday,
         ];
     }
 
@@ -162,10 +162,10 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
             VALUES (:cafe_id, :name, :species, :age, :personality, \'active\', NOW(), NOW())
         ');
         $stmt->execute([
-            'cafe_id'     => $data['cafe_id'] ?? null,
-            'name'        => $data['name'],
-            'species'     => $data['species'],
-            'age'         => $data['age_years'] ?? null,
+            'cafe_id' => $data['cafe_id'] ?? null,
+            'name' => $data['name'],
+            'species' => $data['species'],
+            'age' => $data['age_years'] ?? null,
             'personality' => $data['personality'] ?? null,
         ]);
 
@@ -183,12 +183,12 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
         ');
 
         return $stmt->execute([
-            'name'        => $data['name'] ?? '',
-            'species'     => $data['species'] ?? '',
-            'age'         => $data['age_years'] ?? null,
+            'name' => $data['name'] ?? '',
+            'species' => $data['species'] ?? '',
+            'age' => $data['age_years'] ?? null,
             'personality' => $data['personality'] ?? null,
-            'cafe_id'     => $data['cafe_id'] ?? null,
-            'id'          => $id,
+            'cafe_id' => $data['cafe_id'] ?? null,
+            'id' => $id,
         ]) && $stmt->rowCount() > 0;
     }
 

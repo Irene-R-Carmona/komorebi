@@ -25,9 +25,9 @@ use App\Core\Result;
 use App\Http\Controllers\Manager\StaffController;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\StaffShiftServiceInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(StaffController::class)]
 final class StaffControllerTest extends TestCase

@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\BaseService;
+use App\Core\Container;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Queue;
+use App\Core\Result;
 use App\Core\WideEvent;
 use App\Jobs\SendEmailJob;
+use App\Repositories\Contracts\NewsletterSubscriptionRepositoryInterface;
 use App\Services\Contracts\NewsletterServiceInterface;
-use PDO;
+use Override;
+use Throwable;
 
 /**
  * Newsletter Service - Gestión de suscripciones con double opt-in
@@ -19,13 +23,13 @@ use PDO;
  */
 final class NewsletterService extends BaseService implements NewsletterServiceInterface
 {
-    private PDO $db;
+    private NewsletterSubscriptionRepositoryInterface $subscriptionRepo;
 
     private string $baseUrl;
 
-    public function __construct(PDO $db)
+    public function __construct(?NewsletterSubscriptionRepositoryInterface $subscriptionRepo = null)
     {
-        $this->db = $db;
+        $this->subscriptionRepo = $subscriptionRepo ?? Container::make(NewsletterSubscriptionRepositoryInterface::class);
         $this->baseUrl = Env::require('APP_URL');
     }
 
@@ -33,40 +37,34 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
      * Suscribir email (paso 1: enviar confirmación)
      * @throws \Random\RandomException
      */
-    #[\Override]
-    public function subscribe(string $email): array
+    #[Override]
+    public function subscribe(string $email): Result
     {
         $email = \strtolower(\trim($email));
 
         if (!\filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return ['success' => false, 'message' => 'Email inválido'];
+            return Result::fail('Email inválido');
         }
 
-        $stmt = $this->db->prepare('SELECT id, confirmed_at, unsubscribed_at FROM newsletter_subscriptions WHERE email = ?');
-        $stmt->execute([$email]);
-        $existing = $stmt->fetch();
+        $existing = $this->subscriptionRepo->findByEmail($email);
 
         if ($existing) {
             if ($existing['confirmed_at']) {
-                return ['success' => false, 'message' => 'Este email ya está suscrito'];
+                return Result::fail('Este email ya está suscrito');
             }
 
             if ($existing['unsubscribed_at']) {
                 // Reactivar suscripción
                 $token = \bin2hex(\random_bytes(32));
-                $stmt = $this->db->prepare('UPDATE newsletter_subscriptions SET token = ?, unsubscribed_at = NULL, updated_at = NOW() WHERE email = ?');
-                $stmt->execute([$token, $email]);
+                $this->subscriptionRepo->reactivate($email, $token, \date('Y-m-d H:i:s', \strtotime('+1 year')));
             } else {
                 // Reenviar email de confirmación
-                $stmt = $this->db->prepare('SELECT token FROM newsletter_subscriptions WHERE email = ?');
-                $stmt->execute([$email]);
-                $token = $stmt->fetchColumn();
+                $token = $this->subscriptionRepo->getTokenByEmail($email);
             }
         } else {
             // Nueva suscripción
             $token = \bin2hex(\random_bytes(32));
-            $stmt = $this->db->prepare('INSERT INTO newsletter_subscriptions (email, token) VALUES (?, ?)');
-            $stmt->execute([$email, $token]);
+            $this->subscriptionRepo->create($email, $token, \date('Y-m-d H:i:s', \strtotime('+1 year')));
         }
 
         // Enviar email de confirmación
@@ -91,35 +89,30 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
                 if (!$enqueued) {
                     Logger::error('Error encolando email de confirmación newsletter', ['email' => $email]);
 
-                    return ['success' => false, 'message' => 'Error al procesar la solicitud'];
+                    return Result::fail('Error al procesar la solicitud');
                 }
 
                 Logger::info('Email de confirmación newsletter encolado', ['email' => $email]);
             }
 
-            return [
-                'success' => true,
-                'message' => 'Revisa tu correo para confirmar la suscripción',
-            ];
-        } catch (\Throwable $e) {
+            return Result::ok(['message' => 'Revisa tu correo para confirmar la suscripción']);
+        } catch (Throwable $e) {
             Logger::error('Error enviando email de confirmación newsletter', [
                 'email' => $email,
                 'error' => $e->getMessage(),
             ]);
 
-            return ['success' => false, 'message' => 'Error al enviar el email de confirmación'];
+            return Result::fail('Error al enviar el email de confirmación');
         }
     }
 
     /**
      * Confirmar suscripción (paso 2: click en email)
      */
-    #[\Override]
+    #[Override]
     public function confirm(string $token): array
     {
-        $stmt = $this->db->prepare('SELECT id, email, confirmed_at FROM newsletter_subscriptions WHERE token = ?');
-        $stmt->execute([$token]);
-        $subscription = $stmt->fetch();
+        $subscription = $this->subscriptionRepo->findByToken($token);
 
         if (!$subscription) {
             return ['success' => false, 'message' => 'Token inválido'];
@@ -130,8 +123,7 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
         }
 
         // Confirmar
-        $stmt = $this->db->prepare('UPDATE newsletter_subscriptions SET confirmed_at = NOW() WHERE token = ?');
-        $stmt->execute([$token]);
+        $this->subscriptionRepo->markConfirmed($token);
 
         // Enviar email de bienvenida
         $emailPayload = [
@@ -149,7 +141,7 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
                 Queue::push(SendEmailJob::class, $emailPayload, 'default');
                 Logger::info('Email de bienvenida newsletter encolado', ['email' => $subscription['email']]);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Logger::warning('Error enviando email de bienvenida (no crítico)', [
                 'email' => $subscription['email'],
                 'error' => $e->getMessage(),
@@ -166,19 +158,16 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
     /**
      * Cancelar suscripción
      */
-    #[\Override]
+    #[Override]
     public function unsubscribe(string $token): array
     {
-        $stmt = $this->db->prepare('SELECT id, email FROM newsletter_subscriptions WHERE token = ?');
-        $stmt->execute([$token]);
-        $subscription = $stmt->fetch();
+        $subscription = $this->subscriptionRepo->findByToken($token);
 
         if (!$subscription) {
             return ['success' => false, 'message' => 'Token inválido'];
         }
 
-        $stmt = $this->db->prepare('UPDATE newsletter_subscriptions SET unsubscribed_at = NOW() WHERE token = ?');
-        $stmt->execute([$token]);
+        $this->subscriptionRepo->markUnsubscribed($token);
 
         return [
             'success' => true,
@@ -369,18 +358,10 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
     /**
      * Obtener lista de emails confirmados (para envío masivo)
      */
-    #[\Override]
+    #[Override]
     public function getConfirmedEmails(): array
     {
-        $stmt = $this->db->query('
-            SELECT email
-            FROM newsletter_subscriptions
-            WHERE confirmed_at IS NOT NULL
-            AND unsubscribed_at IS NULL
-            ORDER BY confirmed_at DESC
-        ');
-
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        return $this->subscriptionRepo->getConfirmedEmails();
     }
 
     /**
@@ -400,7 +381,7 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
      * Envía un email de forma síncrona usando SendEmailJob
      *
      * @param array<string, mixed> $payload
-     * @throws \Throwable
+     * @throws Throwable
      */
     private function sendEmailSync(array $payload): void
     {

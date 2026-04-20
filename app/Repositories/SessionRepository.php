@@ -39,14 +39,14 @@ final class SessionRepository implements SessionRepositoryInterface
         );
 
         return $stmt->execute([
-            'user_id'    => $userId,
+            'user_id' => $userId,
             'session_id' => $sessionId,
-            'ip'         => $ipAddress,
-            'ua'         => $userAgent,
-            'device'     => $deviceName,
-            'last'       => $now,
-            'created'    => $now,
-            'expires'    => $expiresAt,
+            'ip' => $ipAddress,
+            'ua' => $userAgent,
+            'device' => $deviceName,
+            'last' => $now,
+            'created' => $now,
+            'expires' => $expiresAt,
         ]);
     }
 

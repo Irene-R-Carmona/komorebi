@@ -28,76 +28,26 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
-use App\Core\Database;
 use App\Models\Product;
 use App\Models\ReservationItem;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Services\KitchenService;
-use PDO;
-use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
 
 #[CoversClass(KitchenService::class)]
 final class KitchenServiceTest extends TestCase
 {
-    /** @var MockObject&PDO */
-    private PDO $pdo;
-
-    // ─────────────────────────────────────────────────────────────
-    // setUp / tearDown
-    // ─────────────────────────────────────────────────────────────
+    /** @var Stub&ReservationItemRepositoryInterface */
+    private ReservationItemRepositoryInterface $itemRepo;
+    private KitchenService $service;
 
     protected function setUp(): void
     {
-        $this->pdo = $this->createMock(PDO::class);
-        $this->injectPdoIntoDatabase($this->pdo);
-    }
-
-    protected function tearDown(): void
-    {
-        $this->resetDatabaseSingleton();
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Helpers de infraestructura
-    // ─────────────────────────────────────────────────────────────
-
-    private function injectPdoIntoDatabase(PDO $pdo): void
-    {
-        $reflection = new ReflectionClass(Database::class);
-        $instanceProp = $reflection->getProperty('instance');
-
-        $fakeInstance = $reflection->newInstanceWithoutConstructor();
-        $connectionProp = $reflection->getProperty('connection');
-        $connectionProp->setValue($fakeInstance, $pdo);
-
-        $instanceProp->setValue(null, $fakeInstance);
-    }
-
-    private function resetDatabaseSingleton(): void
-    {
-        $reflection = new ReflectionClass(Database::class);
-        $instanceProp = $reflection->getProperty('instance');
-        $instanceProp->setValue(null, null);
-    }
-
-    private function makeStmt(
-        mixed $fetchReturn = false,
-        array $fetchAllReturn = [],
-        mixed $fetchColumnReturn = 0,
-        int   $rowCountReturn = 0
-    ): PDOStatement {
-        $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetch')->willReturn($fetchReturn);
-        $stmt->method('fetchAll')->willReturn($fetchAllReturn);
-        $stmt->method('fetchColumn')->willReturn($fetchColumnReturn);
-        $stmt->method('rowCount')->willReturn($rowCountReturn);
-
-        return $stmt;
+        $this->itemRepo = $this->createStub(ReservationItemRepositoryInterface::class);
+        $this->service  = new KitchenService($this->itemRepo);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -133,22 +83,17 @@ final class KitchenServiceTest extends TestCase
     {
         $barItem = $this->sampleItem(Product::STATION_BAR);
 
-        // VALID_STATIONS = [bar, kitchen_hot, kitchen_cold, bakery, assembly]
-        $this->pdo->method('prepare')->willReturnOnConsecutiveCalls(
-            $this->makeStmt(fetchAllReturn: [$barItem]),  // bar → tiene items
-            $this->makeStmt(fetchAllReturn: []),           // kitchen_hot → vacío
-            $this->makeStmt(fetchAllReturn: []),           // kitchen_cold → vacío
-            $this->makeStmt(fetchAllReturn: []),           // bakery → vacío
-            $this->makeStmt(fetchAllReturn: [])            // assembly → vacío
-        );
+        $this->itemRepo->method('findPendingByStation')
+            ->willReturnCallback(
+                static fn (int $cafeId, string $station): array => $station === Product::STATION_BAR
+                    ? [$barItem]
+                    : []
+            );
 
-        $service = new KitchenService($this->pdo);
-        $result = $service->getPendingByStation(1);
+        $result = $this->service->getPendingByStation(1);
 
         $this->assertArrayHasKey(Product::STATION_BAR, $result);
         $this->assertCount(1, $result[Product::STATION_BAR]);
-
-        // Las estaciones sin items no deben aparecer en el resultado
         $this->assertArrayNotHasKey(Product::STATION_KITCHEN_HOT, $result);
         $this->assertArrayNotHasKey(Product::STATION_ASSEMBLY, $result);
     }
@@ -156,12 +101,9 @@ final class KitchenServiceTest extends TestCase
     #[Test]
     public function test_getPendingByStation_returns_empty_array_when_no_station_has_items(): void
     {
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(fetchAllReturn: [])
-        );
+        $this->itemRepo->method('findPendingByStation')->willReturn([]);
 
-        $service = new KitchenService($this->pdo);
-        $result = $service->getPendingByStation(1);
+        $result = $this->service->getPendingByStation(1);
 
         $this->assertSame([], $result);
     }
@@ -174,21 +116,14 @@ final class KitchenServiceTest extends TestCase
     public function test_getPendingForStation_returns_enriched_items_with_decoded_ingredients(): void
     {
         $item = $this->sampleItem(Product::STATION_BAR);
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(fetchAllReturn: [$item])
-        );
+        $this->itemRepo->method('findPendingByStation')->willReturn([$item]);
 
-        $service = new KitchenService($this->pdo);
-        $result = $service->getPendingForStation(1, Product::STATION_BAR);
+        $result = $this->service->getPendingForStation(1, Product::STATION_BAR);
 
         $this->assertCount(1, $result);
-
-        // enrichItems debe decodificar ingredients_list de JSON a array
         $this->assertIsArray($result[0]['ingredients_list']);
         $this->assertContains('leche', $result[0]['ingredients_list']);
         $this->assertContains('espresso', $result[0]['ingredients_list']);
-
-        // enrichItems debe calcular waiting_minutes y is_delayed
         $this->assertArrayHasKey('waiting_minutes', $result[0]);
         $this->assertIsInt($result[0]['waiting_minutes']);
         $this->assertGreaterThanOrEqual(0, $result[0]['waiting_minutes']);
@@ -199,14 +134,9 @@ final class KitchenServiceTest extends TestCase
     #[Test]
     public function test_getPendingForStation_returns_empty_array_when_no_items(): void
     {
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(fetchAllReturn: [])
-        );
+        $this->itemRepo->method('findPendingByStation')->willReturn([]);
 
-        $service = new KitchenService($this->pdo);
-        $result = $service->getPendingForStation(1, Product::STATION_BAR);
-
-        $this->assertSame([], $result);
+        $this->assertSame([], $this->service->getPendingForStation(1, Product::STATION_BAR));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -220,12 +150,9 @@ final class KitchenServiceTest extends TestCase
             $this->sampleItem(Product::STATION_BAR),
             $this->sampleItem(Product::STATION_KITCHEN_HOT),
         ];
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(fetchAllReturn: $items)
-        );
+        $this->itemRepo->method('findAllPendingByCafe')->willReturn($items);
 
-        $service = new KitchenService($this->pdo);
-        $result = $service->getAllPending(1);
+        $result = $this->service->getAllPending(1);
 
         $this->assertCount(2, $result);
         $this->assertArrayHasKey('waiting_minutes', $result[0]);
@@ -235,14 +162,9 @@ final class KitchenServiceTest extends TestCase
     #[Test]
     public function test_getAllPending_returns_empty_array_when_no_pending_items(): void
     {
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(fetchAllReturn: [])
-        );
+        $this->itemRepo->method('findAllPendingByCafe')->willReturn([]);
 
-        $service = new KitchenService($this->pdo);
-        $result = $service->getAllPending(1);
-
-        $this->assertSame([], $result);
+        $this->assertSame([], $this->service->getAllPending(1));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -252,31 +174,25 @@ final class KitchenServiceTest extends TestCase
     #[Test]
     public function test_startPreparing_delegates_to_model_and_returns_true(): void
     {
-        $this->pdo->method('prepare')->willReturn($this->makeStmt());
+        $this->itemRepo->method('updateStatus')->willReturn(true);
 
-        $service = new KitchenService($this->pdo);
-
-        $this->assertTrue($service->startPreparing(7));
+        $this->assertTrue($this->service->startPreparing(7));
     }
 
     #[Test]
     public function test_markReady_delegates_to_model_and_returns_true(): void
     {
-        $this->pdo->method('prepare')->willReturn($this->makeStmt());
+        $this->itemRepo->method('markReady')->willReturn(true);
 
-        $service = new KitchenService($this->pdo);
-
-        $this->assertTrue($service->markReady(7));
+        $this->assertTrue($this->service->markReady(7));
     }
 
     #[Test]
     public function test_markServed_delegates_to_model_and_returns_true(): void
     {
-        $this->pdo->method('prepare')->willReturn($this->makeStmt());
+        $this->itemRepo->method('markServed')->willReturn(true);
 
-        $service = new KitchenService($this->pdo);
-
-        $this->assertTrue($service->markServed(7));
+        $this->assertTrue($this->service->markServed(7));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -286,25 +202,17 @@ final class KitchenServiceTest extends TestCase
     #[Test]
     public function test_bumpTicket_returns_count_of_bumped_items(): void
     {
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(rowCountReturn: 3)
-        );
+        $this->itemRepo->method('bumpTicket')->willReturn(3);
 
-        $service = new KitchenService($this->pdo);
-
-        $this->assertSame(3, $service->bumpTicket(10));
+        $this->assertSame(3, $this->service->bumpTicket(10));
     }
 
     #[Test]
     public function test_bumpTicket_returns_zero_when_no_active_items(): void
     {
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(rowCountReturn: 0)
-        );
+        $this->itemRepo->method('bumpTicket')->willReturn(0);
 
-        $service = new KitchenService($this->pdo);
-
-        $this->assertSame(0, $service->bumpTicket(99));
+        $this->assertSame(0, $this->service->bumpTicket(99));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -314,44 +222,35 @@ final class KitchenServiceTest extends TestCase
     #[Test]
     public function test_getDailyStats_returns_correctly_typed_statistics(): void
     {
-        $statsRow = [
-            'pending' => '5',
-            'in_progress' => '2',
-            'ready' => '3',
-            'served' => '10',
+        $this->itemRepo->method('getDailyStats')->willReturn([
+            'pending'       => '5',
+            'in_progress'   => '2',
+            'ready'         => '3',
+            'served'        => '10',
             'avg_prep_time' => '7.456',
-        ];
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(fetchReturn: $statsRow)
-        );
+        ]);
 
-        $service = new KitchenService($this->pdo);
-        $stats = $service->getDailyStats(1);
+        $stats = $this->service->getDailyStats(1);
 
         $this->assertSame(5, $stats['pending']);
         $this->assertSame(2, $stats['in_progress']);
         $this->assertSame(3, $stats['ready']);
         $this->assertSame(10, $stats['served']);
-        $this->assertSame(7.5, $stats['avg_prep_time']);   // round(7.456, 1) = 7.5
+        $this->assertSame(7.5, $stats['avg_prep_time']);
     }
 
     #[Test]
     public function test_getDailyStats_handles_null_avg_prep_time_as_zero(): void
     {
-        // COUNT() siempre devuelve un número; AVG() retorna NULL si no hay filas
-        $statsRow = [
-            'pending' => '0',
-            'in_progress' => '0',
-            'ready' => '0',
-            'served' => '0',
+        $this->itemRepo->method('getDailyStats')->willReturn([
+            'pending'       => '0',
+            'in_progress'   => '0',
+            'ready'         => '0',
+            'served'        => '0',
             'avg_prep_time' => null,
-        ];
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(fetchReturn: $statsRow)
-        );
+        ]);
 
-        $service = new KitchenService($this->pdo);
-        $stats = $service->getDailyStats(1);
+        $stats = $this->service->getDailyStats(1);
 
         $this->assertSame(0, $stats['pending']);
         $this->assertSame(0, $stats['in_progress']);
@@ -367,26 +266,17 @@ final class KitchenServiceTest extends TestCase
     #[Test]
     public function test_getEstimatedWaitTime_returns_total_prep_minutes(): void
     {
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(fetchColumnReturn: '45')
-        );
+        $this->itemRepo->method('getEstimatedWaitTime')->willReturn(45);
 
-        $service = new KitchenService($this->pdo);
-
-        $this->assertSame(45, $service->getEstimatedWaitTime(1));
+        $this->assertSame(45, $this->service->getEstimatedWaitTime(1));
     }
 
     #[Test]
     public function test_getEstimatedWaitTime_returns_zero_when_no_pending_items(): void
     {
-        // SUM() retorna NULL cuando no hay filas; el código usa ?: 0
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(fetchColumnReturn: null)
-        );
+        $this->itemRepo->method('getEstimatedWaitTime')->willReturn(0);
 
-        $service = new KitchenService($this->pdo);
-
-        $this->assertSame(0, $service->getEstimatedWaitTime(1));
+        $this->assertSame(0, $this->service->getEstimatedWaitTime(1));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -396,15 +286,11 @@ final class KitchenServiceTest extends TestCase
     #[Test]
     public function test_getCompletedToday_returns_served_items_with_enriched_data(): void
     {
-        $servedItem = $this->sampleItem(Product::STATION_BAR);
+        $servedItem           = $this->sampleItem(Product::STATION_BAR);
         $servedItem['status'] = 'served';
+        $this->itemRepo->method('findCompletedToday')->willReturn([$servedItem]);
 
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(fetchAllReturn: [$servedItem])
-        );
-
-        $service = new KitchenService($this->pdo);
-        $result = $service->getCompletedToday(1);
+        $result = $this->service->getCompletedToday(1);
 
         $this->assertCount(1, $result);
         $this->assertArrayHasKey('ingredients_list', $result[0]);
@@ -415,13 +301,8 @@ final class KitchenServiceTest extends TestCase
     #[Test]
     public function test_getCompletedToday_returns_empty_array_when_no_served_items(): void
     {
-        $this->pdo->method('prepare')->willReturn(
-            $this->makeStmt(fetchAllReturn: [])
-        );
+        $this->itemRepo->method('findCompletedToday')->willReturn([]);
 
-        $service = new KitchenService($this->pdo);
-        $result = $service->getCompletedToday(1);
-
-        $this->assertSame([], $result);
+        $this->assertSame([], $this->service->getCompletedToday(1));
     }
 }

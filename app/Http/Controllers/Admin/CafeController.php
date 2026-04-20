@@ -13,13 +13,13 @@ use App\Core\Result;
 use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Http\Transformers\CafeTransformer;
-use App\Models\Cafe;
 use App\Services\Contracts\CafeServiceInterface;
 use InvalidArgumentException;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
+use Throwable;
 
 /**
  * Controlador de Gestión de Cafés
@@ -38,16 +38,14 @@ final class CafeController
     private CafeServiceInterface $cafeService;
     private ResponseFactory $response;
     private CafeTransformer $cafeTransformer;
-    private Cafe $cafeModel;
 
     private const CSRF_INVALID = 'Token de seguridad inválido';
 
-    public function __construct(?CafeServiceInterface $cafeService = null, ?ResponseFactory $response = null, ?CafeTransformer $cafeTransformer = null, ?Cafe $cafeModel = null)
+    public function __construct(?CafeServiceInterface $cafeService = null, ?ResponseFactory $response = null, ?CafeTransformer $cafeTransformer = null)
     {
         $this->cafeService = $cafeService ?? Container::make(CafeServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
         $this->cafeTransformer = $cafeTransformer ?? new CafeTransformer();
-        $this->cafeModel = $cafeModel ?? new Cafe(Container::make(\PDO::class));
     }
 
     /**
@@ -58,8 +56,8 @@ final class CafeController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        // Obtener todos los cafés desde el modelo
-        $cafes = $this->cafeTransformer->collection($this->cafeModel->findAll());
+        // Obtener todos los cafés desde el servicio
+        $cafes = $this->cafeTransformer->collection($this->cafeService->getAll());
 
         View::render('admin/cafes/index', [
             'titulo' => 'Gestión de Cafés',
@@ -93,7 +91,7 @@ final class CafeController
             ]], 201);
         } catch (InvalidArgumentException $e) {
             return $this->response->problem(Result::fail($e->getMessage(), 'validation'), 422); // NOSONAR
-        } catch (\Throwable $e) { // NOSONAR
+        } catch (Throwable $e) { // NOSONAR
             if (Env::get('APP_ENV') === 'local') {
                 Logger::error('[CafeManagementController::create] Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
             }
@@ -123,7 +121,7 @@ final class CafeController
             return $this->response->json(['ok' => true, 'data' => ['message' => 'Café actualizado correctamente']]);
         } catch (InvalidArgumentException $e) {
             return $this->response->problem(Result::fail($e->getMessage(), 'validation'), 422); // NOSONAR
-        } catch (\Throwable $e) { // NOSONAR
+        } catch (Throwable $e) { // NOSONAR
             if (Env::get('APP_ENV') === 'local') {
                 Logger::error('[CafeManagementController::update] Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
             }
@@ -153,7 +151,7 @@ final class CafeController
             return $this->response->json(['ok' => true, 'data' => ['message' => 'Estado del café actualizado']]);
         } catch (InvalidArgumentException $e) {
             return $this->response->problem(Result::fail($e->getMessage(), 'not_found'), 404); // NOSONAR
-        } catch (\Throwable $e) { // NOSONAR
+        } catch (Throwable $e) { // NOSONAR
             if (Env::get('APP_ENV') === 'local') {
                 Logger::error('[CafeManagementController::toggleStatus] Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
             }
@@ -183,7 +181,7 @@ final class CafeController
             return $this->response->json(['ok' => true, 'data' => ['message' => 'Café desactivado correctamente']]);
         } catch (InvalidArgumentException $e) {
             return $this->response->problem(Result::fail($e->getMessage(), 'not_found'), 404); // NOSONAR
-        } catch (\Throwable $e) { // NOSONAR
+        } catch (Throwable $e) { // NOSONAR
             if (Env::get('APP_ENV') === 'local') {
                 Logger::error('[CafeManagementController::delete] Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
             }

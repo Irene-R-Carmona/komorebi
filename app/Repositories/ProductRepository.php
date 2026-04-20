@@ -7,6 +7,7 @@ namespace App\Repositories;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use Override;
 use PDO;
+use Throwable;
 
 /**
  * Repositorio de Productos.
@@ -123,6 +124,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      * @param int|null $cafeId ID del café (opcional)
      * @return array
      */
+    #[Override]
     public function findByCategoryId(int $categoryId, ?int $cafeId = null): array
     {
         $fields = 'p.' . \implode(', p.', $this->getSelectFields());
@@ -304,7 +306,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             return [];
         }
 
-        $ids          = \array_map('intval', $ids);
+        $ids = \array_map('intval', $ids);
         $placeholders = \implode(',', \array_fill(0, \count($ids), '?'));
 
         $stmt = $this->getDb()->prepare(
@@ -488,6 +490,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     /**
      * Activar/desactivar producto.
      */
+    #[Override]
     public function toggleAvailability(int $id): bool
     {
         $product = $this->findById($id);
@@ -505,6 +508,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     /**
      * Obtener alérgenos de un producto.
      */
+    #[Override]
     public function getAllergens(int $productId): array
     {
         $stmt = $this->getDb()->prepare(
@@ -703,7 +707,8 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
      *
      * @return array<int, array<string, mixed>>
      */
-    public function getAllWithAllergens(): array
+    #[Override]
+    public function getAllWithAllergens(?int $categoryId = null): array
     {
         $sql = "
             SELECT p.*,
@@ -714,11 +719,23 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             FROM products p
             LEFT JOIN product_allergens pa ON pa.product_id = p.id
             LEFT JOIN allergens a ON a.id = pa.allergen_id
-            GROUP BY p.id
-            ORDER BY p.name
+            WHERE p.is_active = 1
         ";
 
-        $stmt = $this->getDb()->query($sql);
+        $params = [];
+
+        if ($categoryId !== null) {
+            $sql .= ' AND p.category_id = :category_id';
+            $params['category_id'] = $categoryId;
+        }
+
+        $sql .= '
+            GROUP BY p.id
+            ORDER BY p.name
+        ';
+
+        $stmt = $this->getDb()->prepare($sql);
+        $stmt->execute($params);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return \array_map(static function (array $row): array {
@@ -758,6 +775,127 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     public function getCategories(): array
     {
         $stmt = $this->getDb()->query('SELECT * FROM menu_categories ORDER BY display_order');
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Obtener todos los productos con nombre de categoría, sin filtro de estado.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    #[Override]
+    public function findAllWithCategoryName(): array
+    {
+        $stmt = $this->getDb()->query('
+            SELECT p.*, mc.name AS category_name
+            FROM products p
+            LEFT JOIN menu_categories mc ON p.category_id = mc.id
+            ORDER BY mc.name, p.name
+        ');
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Buscar productos por texto (nombre, descripción, nombre japonés).
+     *
+     * @param string $query
+     * @return array<int, array<string, mixed>>
+     */
+    #[Override]
+    public function search(string $query): array
+    {
+        $stmt = $this->getDb()->prepare('
+            SELECT p.*, mc.name AS category_name
+            FROM products p
+            LEFT JOIN menu_categories mc ON p.category_id = mc.id
+            WHERE p.name LIKE :query
+               OR p.description LIKE :query
+               OR p.japanese_name LIKE :query
+            ORDER BY p.name
+        ');
+
+        $stmt->execute(['query' => '%' . $query . '%']);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Sincronizar alérgenos de un producto (DELETE + INSERT en transacción).
+     *
+     * @param int   $productId
+     * @param int[] $allergenIds
+     * @return bool
+     */
+    #[Override]
+    public function syncAllergens(int $productId, array $allergenIds): bool
+    {
+        $db = $this->getDb();
+        $db->beginTransaction();
+
+        try {
+            $stmt = $db->prepare('DELETE FROM product_allergens WHERE product_id = :product_id');
+            $stmt->execute(['product_id' => $productId]);
+
+            if (!empty($allergenIds)) {
+                $insert = $db->prepare(
+                    'INSERT INTO product_allergens (product_id, allergen_id) VALUES (:product_id, :allergen_id)'
+                );
+
+                foreach ($allergenIds as $allergenId) {
+                    $insert->execute(['product_id' => $productId, 'allergen_id' => (int) $allergenId]);
+                }
+            }
+
+            $db->commit();
+
+            return true;
+        } catch (Throwable $e) {
+            $db->rollBack();
+
+            return false;
+        }
+    }
+
+    /**
+     * Buscar productos activos sin ciertos alérgenos, con filtro opcional por categoría.
+     *
+     * @param int[]    $allergenIds IDs de alérgenos a excluir
+     * @param int|null $categoryId  Filtrar por category_id (opcional)
+     * @return array<int, array<string, mixed>>
+     */
+    #[Override]
+    public function findWithoutAllergensByCategory(array $allergenIds, ?int $categoryId = null): array
+    {
+        if (empty($allergenIds)) {
+            return $this->findAllWithCategoryName();
+        }
+
+        $placeholders = \implode(',', \array_fill(0, \count($allergenIds), '?'));
+
+        $sql = "SELECT DISTINCT p.*, mc.name AS category_name
+                FROM products p
+                LEFT JOIN menu_categories mc ON p.category_id = mc.id
+                WHERE p.is_active = 1
+                  AND p.deleted_at IS NULL
+                  AND p.id NOT IN (
+                      SELECT pa.product_id
+                      FROM product_allergens pa
+                      WHERE pa.allergen_id IN ($placeholders)
+                  )";
+
+        $params = $allergenIds;
+
+        if ($categoryId !== null) {
+            $sql .= ' AND p.category_id = ?';
+            $params[] = $categoryId;
+        }
+
+        $sql .= ' ORDER BY mc.name, p.name';
+
+        $stmt = $this->getDb()->prepare($sql);
+        $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

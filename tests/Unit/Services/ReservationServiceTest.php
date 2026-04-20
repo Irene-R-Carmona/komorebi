@@ -25,10 +25,10 @@ use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\ReservationService;
 use PDOException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Throwable;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ReservationService::class)]
 final class ReservationServiceTest extends TestCase
@@ -564,7 +564,7 @@ final class ReservationServiceTest extends TestCase
         $result = $this->service->cancel(123, self::VALID_USER_ID);
 
         // ASSERT
-        $this->assertFalse($result);
+        $this->assertFalse($result->ok);
     }
 
     public function testCancelReturnsFalseWhenReservationNotCancellable(): void
@@ -579,7 +579,7 @@ final class ReservationServiceTest extends TestCase
         $result = $this->service->cancel(456, self::VALID_USER_ID);
 
         // ASSERT
-        $this->assertFalse($result);
+        $this->assertFalse($result->ok);
     }
 
     // ─────────────────────────────────────────────────────────────

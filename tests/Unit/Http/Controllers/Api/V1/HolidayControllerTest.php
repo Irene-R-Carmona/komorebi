@@ -17,8 +17,8 @@ namespace Tests\Unit\Http\Controllers\Api\V1;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\HolidayController;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(HolidayController::class)]
 final class HolidayControllerTest extends ControllerTestCase

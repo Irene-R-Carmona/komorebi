@@ -22,9 +22,9 @@ use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\ReviewService;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ReviewService::class)]
 final class ReviewServiceTest extends TestCase
@@ -36,8 +36,8 @@ final class ReviewServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->userRepoMock        = $this->createMock(UserRepositoryInterface::class);
-        $this->reviewRepoMock      = $this->createMock(ReviewRepositoryInterface::class);
+        $this->userRepoMock = $this->createMock(UserRepositoryInterface::class);
+        $this->reviewRepoMock = $this->createMock(ReviewRepositoryInterface::class);
         $this->reservationRepoMock = $this->createMock(ReservationRepositoryInterface::class);
         $this->service = new ReviewService(
             $this->userRepoMock,

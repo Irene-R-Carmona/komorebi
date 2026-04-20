@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Core\Result;
 use DateTimeImmutable;
+use Exception;
 use PDO;
 use PDOException;
 
@@ -554,7 +555,7 @@ final class TimeSlot
             $this->db->commit();
 
             return Result::ok($createdCount);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }

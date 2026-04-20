@@ -6,8 +6,10 @@ namespace App\Services;
 
 use App\Core\Logger;
 use App\Services\Contracts\ClimaContextoServiceInterface;
+use DateMalformedStringException;
 use DateTime;
 use DateTimeZone;
+use Override;
 
 /**
  * Servicio de Clima Contextual con Tokyo
@@ -85,7 +87,9 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
         ],
     ];
 
-    public function __construct(private readonly WeatherService $weatherService) {}
+    public function __construct(private readonly WeatherService $weatherService)
+    {
+    }
 
     /**
      * Obtiene el clima actual de Tokyo con contexto poético.
@@ -94,9 +98,9 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
      * Añade condición normalizada, mensajes poéticos y efectos visuales.
      *
      * @return array{condicion: string, temperatura: float, temperatura_celsius: int, descripcion: string, mensaje_poetico: string, hora_tokyo: string, hora_local_tokyo: string, codigo_wmo: int, timestamp: int, desde_cache: bool}
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
-    #[\Override]
+    #[Override]
     public function obtenerClimaActual(): array
     {
         $horaTokyoObj = new DateTime('now', new DateTimeZone('Asia/Tokyo'));
@@ -141,7 +145,7 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
     /**
      * Clima por defecto cuando WeatherService no está disponible.
      *
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function obtenerClimaPorDefecto(DateTime $horaTokyoObj): array
     {
@@ -195,7 +199,7 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
      *   color_secundario: string
      * }
      */
-    #[\Override]
+    #[Override]
     public function obtenerConfiguracionEfectos(string $condicion): array
     {
         $configuraciones = [

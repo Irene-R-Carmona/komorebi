@@ -23,16 +23,16 @@ use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
-use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\GamificationServiceInterface;
+use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
 use App\Services\ReservationService;
 use Nyholm\Psr7\ServerRequest;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(UserController::class)]
 final class UserControllerTest extends TestCase

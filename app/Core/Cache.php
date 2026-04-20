@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use Redis;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Psr16Cache;
+use Throwable;
 
 /**
  * Servicio de Cache con Redis
@@ -17,7 +19,7 @@ use Symfony\Component\Cache\Psr16Cache;
  */
 final class Cache
 {
-    private static ?\Redis $redis = null;
+    private static ?Redis $redis = null;
     private static ?Psr16Cache $pool = null;
     private static bool $initialized = false;
 
@@ -38,9 +40,9 @@ final class Cache
         $port = (int) Env::get('REDIS_PORT', '6379');
         $password = Env::get('REDIS_PASSWORD');
 
-        if (\class_exists(\Redis::class)) {
+        if (\class_exists(Redis::class)) {
             try {
-                $r = new \Redis();
+                $r = new Redis();
                 if ($r->connect($host, $port, 2.5)) {
                     if ($password && !$r->auth($password)) {
                         Logger::warning('[Cache] Redis auth failed');
@@ -50,7 +52,7 @@ final class Cache
 
                     return;
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Logger::warning('[Cache] Redis unavailable, fallback to ArrayAdapter', [
                     'message' => $e->getMessage(),
                 ]);
@@ -64,7 +66,7 @@ final class Cache
     /**
      * Obtiene la instancia de Redis (o null si no disponible)
      */
-    public static function getRedis(): ?\Redis
+    public static function getRedis(): ?Redis
     {
         self::init();
 
@@ -170,7 +172,7 @@ final class Cache
             } while ($cursor !== 0 && $cursor !== null);
 
             return $deleted;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Logger::warning('[Cache] deletePattern failed', ['exception' => $e->getMessage()]);
 
             return 0;
@@ -214,7 +216,7 @@ final class Cache
 
         try {
             return self::$redis->incrBy($key, $by);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Logger::warning('[Cache] increment failed', ['key' => $key, 'exception' => $e->getMessage()]);
 
             return false;
@@ -238,7 +240,7 @@ final class Cache
 
         try {
             return self::$redis->decrBy($key, $by);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Logger::warning('[Cache] decrement failed', ['key' => $key, 'exception' => $e->getMessage()]);
 
             return false;

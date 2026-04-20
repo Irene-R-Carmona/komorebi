@@ -18,7 +18,7 @@ use App\Core\Config;
 // Configuración mínima sin fallos si falta algo
 try {
     // Intentar cargar config, pero no fallar si falta APP_KEY (solo verificar conectividad)
-    if (getenv('DB_HOST')) {
+    if (getenv('DB_HOST') || getenv('MYSQL_URL') || getenv('DATABASE_URL')) {
         Config::init();
     }
 } catch (Throwable $e) {
@@ -33,16 +33,30 @@ $statusCode = 200;
 
 // 1. Verificar Base de Datos
 try {
-    $dbHost = getenv('DB_HOST') ?: 'db';
-    $dbName = getenv('DB_DATABASE') ?: 'komorebi';
-    $dbUser = getenv('DB_USERNAME') ?: 'root';
-    $dbPass = getenv('DB_PASSWORD') ?: '';
+    // Railway expone MYSQL_URL como variable primaria del plugin MySQL.
+    // Fallback a variables individuales DB_* para entornos locales y Docker.
+    $mysqlUrl = getenv('MYSQL_URL') ?: getenv('DATABASE_URL') ?: '';
+
+    if ($mysqlUrl !== '') {
+        $parts   = \parse_url($mysqlUrl);
+        $dbHost  = $parts['host'] ?? 'db';
+        $dbPort  = (int) ($parts['port'] ?? 3306);
+        $dbName  = \ltrim($parts['path'] ?? '/komorebi', '/');
+        $dbUser  = \urldecode($parts['user'] ?? 'root');
+        $dbPass  = \urldecode($parts['pass'] ?? '');
+    } else {
+        $dbHost = getenv('DB_HOST') ?: 'db';
+        $dbPort = (int) (getenv('DB_PORT') ?: 3306);
+        $dbName = getenv('DB_DATABASE') ?: 'komorebi';
+        $dbUser = getenv('DB_USERNAME') ?: 'root';
+        $dbPass = getenv('DB_PASSWORD') ?: '';
+    }
 
     $pdo = new PDO(
-        "mysql:host=$dbHost;dbname=$dbName;charset=utf8mb4",
+        "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4",
         $dbUser,
         $dbPass,
-        [PDO::ATTR_TIMEOUT => 2, PDO::ERRMODE_EXCEPTION => false]
+        [PDO::ATTR_TIMEOUT => 2, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
     $pdo->query('SELECT 1');
 
@@ -58,7 +72,7 @@ if (getenv('REDIS_HOST')) {
     try {
         $redis = new Redis();
         $redisHost = getenv('REDIS_HOST') ?: 'cache';
-        $redisPort = getenv('REDIS_PORT') ?: 6379;
+        $redisPort = (int) (getenv('REDIS_PORT') ?: 6379);
 
         $redis->connect($redisHost, $redisPort, 2);
 

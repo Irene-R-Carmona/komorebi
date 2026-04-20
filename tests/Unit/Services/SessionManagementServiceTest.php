@@ -9,39 +9,42 @@ declare(strict_types=1);
  * del historial de autenticación.
  *
  * ¿Qué me quieres demostrar?
- * Que cada método delega correctamente al PDO inyectado via constructor,
- * retorna el valor exacto que calcula (bool, int, array, null) según la
- * respuesta del statement, y que los valores por defecto (reason, limit) se
- * propagan al statement sin alteraciones.
+ * Que cada método delega correctamente a los repositorios inyectados,
+ * retorna el valor exacto que devuelve el repositorio (bool, int, array, null)
+ * y que los valores por defecto (reason, limit) se propagan al repositorio.
  *
  * ¿Qué va a fallar en este test si se cambia el código?
- * Si se rompe la inyección de PDO, si se cambia el tipo de retorno de algún
- * método, si los parámetros por defecto cambian de valor, o si la lógica
- * de "false → null / false → []" para fetch/fetchAll se elimina.
+ * Si se rompe la inyección de repositorios, si se cambia el tipo de retorno de algún
+ * método, si los parámetros por defecto cambian de valor, o si la delegación
+ * al repositorio correspondiente cambia.
  */
 
 namespace Tests\Unit\Services;
 
+use App\Repositories\Contracts\AuthLogRepositoryInterface;
+use App\Repositories\Contracts\SessionRepositoryInterface;
 use App\Services\SessionManagementService;
-use PDO;
-use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(SessionManagementService::class)]
 final class SessionManagementServiceTest extends TestCase
 {
     private SessionManagementService $service;
-    private PDO&Stub $pdoMock;
-    private PDOStatement&MockObject $stmtMock;
+    /** @var SessionRepositoryInterface&MockObject */
+    private SessionRepositoryInterface $sessionRepoMock;
+    /** @var AuthLogRepositoryInterface&MockObject */
+    private AuthLogRepositoryInterface $authLogRepoMock;
 
     protected function setUp(): void
     {
-        $this->pdoMock = $this->createStub(PDO::class);
-        $this->stmtMock = $this->createMock(PDOStatement::class);
-        $this->service = new SessionManagementService($this->pdoMock);
+        $this->sessionRepoMock = $this->createMock(SessionRepositoryInterface::class);
+        $this->authLogRepoMock = $this->createMock(AuthLogRepositoryInterface::class);
+        $this->service = new SessionManagementService(
+            $this->sessionRepoMock,
+            $this->authLogRepoMock
+        );
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -50,8 +53,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testCreateSessionReturnsTrueOnSuccess(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
+        $this->sessionRepoMock->method('createOrUpdate')->willReturn(true);
 
         $result = $this->service->createSession(1, 'sess-abc', '127.0.0.1');
 
@@ -60,8 +62,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testCreateSessionReturnsFalseWhenExecuteFails(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(false);
+        $this->sessionRepoMock->method('createOrUpdate')->willReturn(false);
 
         $result = $this->service->createSession(1, 'sess-abc', '127.0.0.1', 'Mozilla/5.0', 'Desktop', 3600);
 
@@ -79,9 +80,7 @@ final class SessionManagementServiceTest extends TestCase
             ['id' => 2, 'session_id' => 'def', 'ip_address' => '10.0.0.1'],
         ];
 
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
-        $this->stmtMock->method('fetchAll')->willReturn($rows);
+        $this->sessionRepoMock->method('findActiveByUserId')->willReturn($rows);
 
         $result = $this->service->getActiveSessions(42);
 
@@ -91,9 +90,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testGetActiveSessionsReturnsEmptyArrayWhenNoneFound(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
-        $this->stmtMock->method('fetchAll')->willReturn([]);
+        $this->sessionRepoMock->method('findActiveByUserId')->willReturn([]);
 
         $result = $this->service->getActiveSessions(99);
 
@@ -108,9 +105,7 @@ final class SessionManagementServiceTest extends TestCase
     {
         $row = ['id' => 7, 'user_id' => 3, 'session_id' => 'tok-xyz', 'ip_address' => '192.168.1.1'];
 
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
-        $this->stmtMock->method('fetch')->willReturn($row);
+        $this->sessionRepoMock->method('findById')->willReturn($row);
 
         $result = $this->service->getSessionById(7);
 
@@ -120,9 +115,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testGetSessionByIdReturnsNullWhenNotFound(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
-        $this->stmtMock->method('fetch')->willReturn(false);
+        $this->sessionRepoMock->method('findById')->willReturn(null);
 
         $result = $this->service->getSessionById(9999);
 
@@ -135,8 +128,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testUpdateSessionActivityReturnsTrueOnSuccess(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
+        $this->sessionRepoMock->method('updateActivity')->willReturn(true);
 
         $result = $this->service->updateSessionActivity('session-id-123');
 
@@ -149,8 +141,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testRevokeSessionReturnsTrueOnSuccess(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
+        $this->sessionRepoMock->method('revoke')->willReturn(true);
 
         $result = $this->service->revokeSession(5, 3, 'admin_revoke');
 
@@ -159,20 +150,13 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testRevokeSessionDefaultReasonIsUserRequested(): void
     {
-        $capturedParams = null;
-
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock
-            ->method('execute')
-            ->willReturnCallback(function (array $params) use (&$capturedParams): bool {
-                $capturedParams = $params;
-
-                return true;
-            });
+        $this->sessionRepoMock
+            ->expects($this->once())
+            ->method('revoke')
+            ->with(5, 3, 'user_requested')
+            ->willReturn(true);
 
         $this->service->revokeSession(5, 3);
-
-        $this->assertSame('user_requested', $capturedParams['reason']);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -181,9 +165,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testRevokeAllOtherSessionsReturnsRevokedCount(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
-        $this->stmtMock->method('rowCount')->willReturn(3);
+        $this->sessionRepoMock->method('revokeAllExcept')->willReturn(3);
 
         $result = $this->service->revokeAllOtherSessions(1, 'current-sess', 1);
 
@@ -192,9 +174,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testRevokeAllOtherSessionsReturnsZeroWhenNoneRevoked(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
-        $this->stmtMock->method('rowCount')->willReturn(0);
+        $this->sessionRepoMock->method('revokeAllExcept')->willReturn(0);
 
         $result = $this->service->revokeAllOtherSessions(1, 'only-session', 1);
 
@@ -207,8 +187,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testCleanupExpiredSessionsReturnsDeletedCount(): void
     {
-        $this->pdoMock->method('query')->willReturn($this->stmtMock);
-        $this->stmtMock->method('rowCount')->willReturn(5);
+        $this->sessionRepoMock->method('deleteExpired')->willReturn(5);
 
         $result = $this->service->cleanupExpiredSessions();
 
@@ -217,8 +196,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testCleanupExpiredSessionsReturnsZeroWhenNothingDeleted(): void
     {
-        $this->pdoMock->method('query')->willReturn($this->stmtMock);
-        $this->stmtMock->method('rowCount')->willReturn(0);
+        $this->sessionRepoMock->method('deleteExpired')->willReturn(0);
 
         $result = $this->service->cleanupExpiredSessions();
 
@@ -231,8 +209,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testLogAuthEventReturnsTrueOnSuccess(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
+        $this->authLogRepoMock->method('logEvent')->willReturn(true);
 
         $result = $this->service->logAuthEvent(1, 'login', '127.0.0.1');
 
@@ -241,8 +218,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testLogAuthEventWithNullUserIdReturnsTrueOnSuccess(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
+        $this->authLogRepoMock->method('logEvent')->willReturn(true);
 
         $result = $this->service->logAuthEvent(
             null,
@@ -257,40 +233,26 @@ final class SessionManagementServiceTest extends TestCase
         $this->assertTrue($result);
     }
 
-    public function testLogAuthEventStoresSuccessFlagAsInteger(): void
+    public function testLogAuthEventPassesSuccessFalseToRepo(): void
     {
-        $capturedParams = null;
-
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock
-            ->method('execute')
-            ->willReturnCallback(function (array $params) use (&$capturedParams): bool {
-                $capturedParams = $params;
-
-                return true;
-            });
+        $this->authLogRepoMock
+            ->expects($this->once())
+            ->method('logEvent')
+            ->with(1, 'login', '127.0.0.1', null, null, false, null)
+            ->willReturn(true);
 
         $this->service->logAuthEvent(1, 'login', '127.0.0.1', null, null, false);
-
-        $this->assertSame(0, $capturedParams['success']);
     }
 
-    public function testLogAuthEventStoresTrueSuccessAsOne(): void
+    public function testLogAuthEventPassesSuccessTrueToRepo(): void
     {
-        $capturedParams = null;
-
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock
-            ->method('execute')
-            ->willReturnCallback(function (array $params) use (&$capturedParams): bool {
-                $capturedParams = $params;
-
-                return true;
-            });
+        $this->authLogRepoMock
+            ->expects($this->once())
+            ->method('logEvent')
+            ->with(1, 'login', '127.0.0.1', null, null, true, null)
+            ->willReturn(true);
 
         $this->service->logAuthEvent(1, 'login', '127.0.0.1', null, null, true);
-
-        $this->assertSame(1, $capturedParams['success']);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -304,10 +266,7 @@ final class SessionManagementServiceTest extends TestCase
             ['event_type' => 'logout', 'ip_address' => '127.0.0.1', 'success' => 1],
         ];
 
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('bindValue')->willReturn(true);
-        $this->stmtMock->method('execute')->willReturn(true);
-        $this->stmtMock->method('fetchAll')->willReturn($rows);
+        $this->authLogRepoMock->method('getHistory')->willReturn($rows);
 
         $result = $this->service->getAuthHistory(1);
 
@@ -317,10 +276,7 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testGetAuthHistoryReturnsEmptyArrayWhenNoHistory(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('bindValue')->willReturn(true);
-        $this->stmtMock->method('execute')->willReturn(true);
-        $this->stmtMock->method('fetchAll')->willReturn([]);
+        $this->authLogRepoMock->method('getHistory')->willReturn([]);
 
         $result = $this->service->getAuthHistory(999);
 
@@ -329,16 +285,11 @@ final class SessionManagementServiceTest extends TestCase
 
     public function testGetAuthHistoryDefaultLimitIsApplied(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-
-        // Verify bindValue is called with limit=20 (default)
-        $this->stmtMock
-            ->expects($this->atLeastOnce())
-            ->method('bindValue')
-            ->willReturn(true);
-
-        $this->stmtMock->method('execute')->willReturn(true);
-        $this->stmtMock->method('fetchAll')->willReturn([]);
+        $this->authLogRepoMock
+            ->expects($this->once())
+            ->method('getHistory')
+            ->with(1, 20)
+            ->willReturn([]);
 
         $result = $this->service->getAuthHistory(1);
 

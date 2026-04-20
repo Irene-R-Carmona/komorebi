@@ -47,7 +47,21 @@ jobs:
         # SonarQube ejecuta igualmente el análisis sin datos de cobertura.
         continue-on-error: true
 
+      - name: Check required secrets
+        id: check-secrets
+        run: |
+          if [ -z "$SONAR_TOKEN" ] || [ -z "$SONAR_HOST_URL" ]; then
+            echo "WARN: SONAR_TOKEN or SONAR_HOST_URL not configured — skipping SonarQube scan"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
       - name: Run SonarQube analysis
+        if: steps.check-secrets.outputs.skip == 'false'
         uses: sonarsource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

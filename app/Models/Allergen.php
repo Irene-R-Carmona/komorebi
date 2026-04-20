@@ -12,9 +12,9 @@ namespace App\Models;
  */
 final class Allergen
 {
-    public const string SEVERITY_LOW    = 'low';
+    public const string SEVERITY_LOW = 'low';
     public const string SEVERITY_MEDIUM = 'medium';
-    public const string SEVERITY_HIGH   = 'high';
+    public const string SEVERITY_HIGH = 'high';
 
     public const array VALID_SEVERITIES = [
         self::SEVERITY_LOW,

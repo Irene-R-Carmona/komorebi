@@ -29,8 +29,8 @@ use App\Services\ReservationService;
 use Exception;
 use Override;
 use PDO;
-use Tests\Support\BaseIntegrationTest;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use Tests\Support\BaseIntegrationTest;
 
 #[CoversNothing]
 final class ReservationIntegrationTest extends BaseIntegrationTest

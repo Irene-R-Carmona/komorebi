@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
 use App\Http\Transformers\ReservationTransformer;
-use App\Core\Container;
 use App\Services\Contracts\AdminActivityServiceInterface;
 use App\Services\Contracts\AdminStatisticsServiceInterface;
 use Psr\Http\Message\ResponseInterface;

@@ -13,13 +13,13 @@ namespace App\Models;
 final class Tracker
 {
     public const string STATUS_AVAILABLE = 'available';
-    public const string STATUS_IN_USE    = 'in_use';
-    public const string STATUS_LOST      = 'lost';
+    public const string STATUS_IN_USE = 'in_use';
+    public const string STATUS_LOST = 'lost';
 
-    public const string TYPE_TOKEN  = 'token';
+    public const string TYPE_TOKEN = 'token';
     public const string TYPE_BEEPER = 'beeper';
-    public const string TYPE_NFC    = 'nfc';
-    public const string TYPE_QR     = 'qr';
+    public const string TYPE_NFC = 'nfc';
+    public const string TYPE_QR = 'qr';
 
     public const array VALID_STATUSES = [
         self::STATUS_AVAILABLE,

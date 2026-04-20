@@ -20,8 +20,8 @@ use App\Core\Http\ResponseFactory;
 use App\Exceptions\ValidationException;
 use App\Http\Controllers\Admin\CafeController;
 use App\Services\Contracts\CafeServiceInterface;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(CafeController::class)]
 final class CafeControllerTest extends ControllerTestCase

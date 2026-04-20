@@ -22,9 +22,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\AvailabilityService;
-use PDO;
-use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
@@ -35,22 +36,27 @@ final class AvailabilityServiceTest extends TestCase
     /** Fecha futura bien dentro de maxDaysAhead=999 para tests normales. */
     private const FUTURE_DATE = '2027-06-15';
 
-    /** @var Stub&PDO */
-    private PDO $mockPdo;
-    /** @var Stub&PDOStatement */
-    private PDOStatement $mockStmt;
+    /** @var Stub&CafeRepositoryInterface */
+    private CafeRepositoryInterface $cafeRepo;
+    /** @var Stub&ProductRepositoryInterface */
+    private ProductRepositoryInterface $productRepo;
+    /** @var Stub&ReservationRepositoryInterface */
+    private ReservationRepositoryInterface $reservationRepo;
     private AvailabilityService $service;
 
     protected function setUp(): void
     {
-        $this->mockStmt = $this->createStub(PDOStatement::class);
-        $this->mockStmt->method('execute')->willReturn(true);
-
-        $this->mockPdo = $this->createStub(PDO::class);
-        $this->mockPdo->method('prepare')->willReturn($this->mockStmt);
+        $this->cafeRepo        = $this->createStub(CafeRepositoryInterface::class);
+        $this->productRepo     = $this->createStub(ProductRepositoryInterface::class);
+        $this->reservationRepo = $this->createStub(ReservationRepositoryInterface::class);
 
         // maxDaysAhead=999 para que los tests no fallen por rango de fechas
-        $this->service = new AvailabilityService($this->mockPdo, 999, 30);
+        $this->service = new AvailabilityService($this->cafeRepo, $this->productRepo, $this->reservationRepo, 999, 30);
+    }
+
+    private function makeService(int $maxDaysAhead, int $stepMinutes = 30): AvailabilityService
+    {
+        return new AvailabilityService($this->cafeRepo, $this->productRepo, $this->reservationRepo, $maxDaysAhead, $stepMinutes);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -99,10 +105,7 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenDateIsPast(): void
     {
-        // daysAhead < 0 → out_of_range
-        $service = new AvailabilityService($this->mockPdo, 30, 30);
-
-        $result = $service->getAvailableSlots(1, 1, '2025-01-01', 2);
+        $result = $this->makeService(30)->getAvailableSlots(1, 1, '2025-01-01', 2);
 
         $this->assertFalse($result->ok);
         $this->assertSame('out_of_range', $result->code);
@@ -111,9 +114,7 @@ final class AvailabilityServiceTest extends TestCase
     public function testGetAvailableSlotsFailsWhenDateExceedsMaxDaysAhead(): void
     {
         // maxDaysAhead=5, target date is years ahead
-        $service = new AvailabilityService($this->mockPdo, 5, 30);
-
-        $result = $service->getAvailableSlots(1, 1, '2028-12-01', 2);
+        $result = $this->makeService(5)->getAvailableSlots(1, 1, '2028-12-01', 2);
 
         $this->assertFalse($result->ok);
         $this->assertSame('out_of_range', $result->code);
@@ -125,7 +126,7 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenCafeNotFound(): void
     {
-        $this->mockStmt->method('fetch')->willReturn(false);
+        $this->cafeRepo->method('findById')->willReturn(null);
 
         $result = $this->service->getAvailableSlots(99, 1, self::FUTURE_DATE, 2);
 
@@ -135,9 +136,7 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenCafeIsInactive(): void
     {
-        $this->mockStmt->method('fetch')->willReturn(
-            $this->buildCafeRow(['is_active' => 0])
-        );
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow(['is_active' => 0]));
 
         $result = $this->service->getAvailableSlots(1, 1, self::FUTURE_DATE, 2);
 
@@ -147,9 +146,7 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenCafeDoesNotAcceptReservations(): void
     {
-        $this->mockStmt->method('fetch')->willReturn(
-            $this->buildCafeRow(['has_reservations' => 0])
-        );
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow(['has_reservations' => 0]));
 
         $result = $this->service->getAvailableSlots(1, 1, self::FUTURE_DATE, 2);
 
@@ -163,10 +160,8 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenPassNotFound(): void
     {
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(),
-            false  // pass not found
-        );
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow());
+        $this->productRepo->method('findById')->willReturn(null);
 
         $result = $this->service->getAvailableSlots(1, 99, self::FUTURE_DATE, 2);
 
@@ -176,10 +171,8 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenPassIsInactive(): void
     {
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(),
-            $this->buildPassRow(['is_active' => 0])
-        );
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow());
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow(['is_active' => 0]));
 
         $result = $this->service->getAvailableSlots(1, 1, self::FUTURE_DATE, 2);
 
@@ -189,10 +182,8 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenPassIsNotPassType(): void
     {
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(),
-            $this->buildPassRow(['product_type' => 'merchandise'])
-        );
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow());
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow(['product_type' => 'merchandise']));
 
         $result = $this->service->getAvailableSlots(1, 1, self::FUTURE_DATE, 2);
 
@@ -206,10 +197,8 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenGuestsBelowMinPax(): void
     {
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(),
-            $this->buildPassRow(['min_pax' => 3])  // requiere mínimo 3
-        );
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow());
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow(['min_pax' => 3]));
 
         $result = $this->service->getAvailableSlots(1, 1, self::FUTURE_DATE, 1);
 
@@ -219,10 +208,8 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenGuestsExceedMaxPax(): void
     {
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(),
-            $this->buildPassRow(['max_pax' => 2])  // máximo 2
-        );
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow());
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow(['max_pax' => 2]));
 
         $result = $this->service->getAvailableSlots(1, 1, self::FUTURE_DATE, 5);
 
@@ -236,10 +223,8 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenPassNotCompatibleWithCafeCategory(): void
     {
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(['category' => 'cat']),
-            $this->buildPassRow(['target_cafe_types' => '["dog"]'])
-        );
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow(['category' => 'cat']));
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow(['target_cafe_types' => '["dog"]']));
 
         $result = $this->service->getAvailableSlots(1, 1, self::FUTURE_DATE, 2);
 
@@ -249,10 +234,8 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenPassNotCompatibleWithAnimalType(): void
     {
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(['animal_type' => 'cat']),
-            $this->buildPassRow(['target_animal_types' => '["rabbit"]'])
-        );
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow(['animal_type' => 'cat']));
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow(['target_animal_types' => '["rabbit"]']));
 
         $result = $this->service->getAvailableSlots(1, 1, self::FUTURE_DATE, 2);
 
@@ -266,10 +249,8 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenPassDurationIsZero(): void
     {
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(),
-            $this->buildPassRow(['duration_minutes' => 0])
-        );
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow());
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow(['duration_minutes' => 0]));
 
         $result = $this->service->getAvailableSlots(1, 1, self::FUTURE_DATE, 2);
 
@@ -279,10 +260,8 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenCafeCapacityIsZero(): void
     {
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(['capacity_max' => 0]),
-            $this->buildPassRow()
-        );
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow(['capacity_max' => 0]));
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow());
 
         $result = $this->service->getAvailableSlots(1, 1, self::FUTURE_DATE, 2);
 
@@ -292,10 +271,8 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testGetAvailableSlotsFailsWhenGuestsExceedCafeCapacity(): void
     {
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(['capacity_max' => 3]),
-            $this->buildPassRow()
-        );
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow(['capacity_max' => 3]));
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow());
 
         $result = $this->service->getAvailableSlots(1, 1, self::FUTURE_DATE, 5);
 
@@ -311,11 +288,9 @@ final class AvailabilityServiceTest extends TestCase
     {
         // Café 09:00–18:00, pase 60 min, step 30 min, sin reservas
         // → 17 slots: 09:00, 09:30, …, 17:00
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(),
-            $this->buildPassRow()
-        );
-        $this->mockStmt->method('fetchAll')->willReturn([]);
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow());
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow());
+        $this->reservationRepo->method('findByCafeAndDate')->willReturn([]);
 
         $result = $this->service->getAvailableSlots(1, 1, self::FUTURE_DATE, 2);
 
@@ -333,15 +308,13 @@ final class AvailabilityServiceTest extends TestCase
     public function testGetAvailableSlotsReturnsEmptyWhenCafeFullyBooked(): void
     {
         // capacity_max=2, reserva que ocupa todo el día, guests=2 → sin slots
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(['capacity_max' => 2]),
-            $this->buildPassRow(['duration_minutes' => 60])
-        );
-        $this->mockStmt->method('fetchAll')->willReturn([
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow(['capacity_max' => 2]));
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow(['duration_minutes' => 60]));
+        $this->reservationRepo->method('findByCafeAndDate')->willReturn([
             [
-                'reservation_time' => '09:00:00',
-                'pass_duration_minutes' => 540,  // 9h: cubre 09:00–18:00
-                'guests' => 2,
+                'reservation_time'      => '09:00:00',
+                'pass_duration_minutes' => 540,   // 9h: cubre 09:00–18:00
+                'guests'                => 2,
             ],
         ]);
 
@@ -355,15 +328,13 @@ final class AvailabilityServiceTest extends TestCase
     {
         // Una reserva ocupa 10:00–11:00; los slots que solapen deben eliminarse
         // capacity_max=2, guests=2, reserva de 2 pax → ningún slot solapado disponible
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(['capacity_max' => 2]),
-            $this->buildPassRow(['duration_minutes' => 60])
-        );
-        $this->mockStmt->method('fetchAll')->willReturn([
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow(['capacity_max' => 2]));
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow(['duration_minutes' => 60]));
+        $this->reservationRepo->method('findByCafeAndDate')->willReturn([
             [
-                'reservation_time' => '10:00:00',
+                'reservation_time'      => '10:00:00',
                 'pass_duration_minutes' => 60,
-                'guests' => 2,
+                'guests'                => 2,
             ],
         ]);
 
@@ -371,14 +342,12 @@ final class AvailabilityServiceTest extends TestCase
 
         $this->assertTrue($result->ok);
         $slots = $result->data['slots'];
-        // Los slots que solapen: 09:00(09:00–10:00), 09:30(09:30–10:30), 10:00(10:00–11:00)
-        // → eliminados; el resto permanece
+        // Los slots que solapen: 09:30(09:30–10:30), 10:00(10:00–11:00) → eliminados
         $this->assertNotContains('09:30', $slots);
         $this->assertNotContains('10:00', $slots);
-        // El slot 09:00 (fin=10:00, no hay solape con inicio=10:00 ya que resStart ≮ slotEnd=10:00)
-        // resStart=600 < slotEnd=600? NO → no solapa. 09:00 SÍ disponible.
+        // El slot 09:00 (fin=10:00) no solapa con resStart=10:00 → disponible
         $this->assertContains('09:00', $slots);
-        // 11:00 (10:60+60=720) → resStart=600 < slotEnd=720 AND resEnd=660 > 660? NO → no solapa
+        // 11:00 → disponible
         $this->assertContains('11:00', $slots);
     }
 
@@ -396,11 +365,9 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testAssertSlotAvailableFailsWhenTimeNotInAvailableSlots(): void
     {
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(),
-            $this->buildPassRow()
-        );
-        $this->mockStmt->method('fetchAll')->willReturn([]);
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow());
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow());
+        $this->reservationRepo->method('findByCafeAndDate')->willReturn([]);
 
         // '03:00' está antes de la apertura (09:00), nunca estará en los slots
         $result = $this->service->assertSlotAvailable(1, 1, self::FUTURE_DATE, '03:00', 2);
@@ -411,11 +378,9 @@ final class AvailabilityServiceTest extends TestCase
 
     public function testAssertSlotAvailableSucceedsForAvailableSlot(): void
     {
-        $this->mockStmt->method('fetch')->willReturnOnConsecutiveCalls(
-            $this->buildCafeRow(),
-            $this->buildPassRow()
-        );
-        $this->mockStmt->method('fetchAll')->willReturn([]);
+        $this->cafeRepo->method('findById')->willReturn($this->buildCafeRow());
+        $this->productRepo->method('findById')->willReturn($this->buildPassRow());
+        $this->reservationRepo->method('findByCafeAndDate')->willReturn([]);
 
         $result = $this->service->assertSlotAvailable(1, 1, self::FUTURE_DATE, '09:00', 2);
 
@@ -425,7 +390,7 @@ final class AvailabilityServiceTest extends TestCase
     public function testAssertSlotAvailableFailsWhenUnderlyingGetSlotsFails(): void
     {
         // getAvailableSlots fallará porque el café no existe
-        $this->mockStmt->method('fetch')->willReturn(false);
+        $this->cafeRepo->method('findById')->willReturn(null);
 
         $result = $this->service->assertSlotAvailable(99, 1, self::FUTURE_DATE, '09:00', 2);
 
@@ -444,13 +409,13 @@ final class AvailabilityServiceTest extends TestCase
     private function buildCafeRow(array $overrides = []): array
     {
         return \array_merge([
-            'id' => 1,
-            'category' => 'cat',
-            'animal_type' => 'cat',
-            'opening_time' => '09:00:00',
-            'closing_time' => '18:00:00',
-            'capacity_max' => 10,
-            'is_active' => 1,
+            'id'               => 1,
+            'category'         => 'cat',
+            'animal_type'      => 'cat',
+            'opening_time'     => '09:00:00',
+            'closing_time'     => '18:00:00',
+            'capacity_max'     => 10,
+            'is_active'        => 1,
             'has_reservations' => 1,
         ], $overrides);
     }
@@ -462,15 +427,15 @@ final class AvailabilityServiceTest extends TestCase
     private function buildPassRow(array $overrides = []): array
     {
         return \array_merge([
-            'id' => 1,
-            'product_type' => 'pass',
-            'is_active' => 1,
-            'duration_minutes' => 60,
-            'min_pax' => 1,
-            'max_pax' => 10,
-            'target_cafe_types' => null,
+            'id'                  => 1,
+            'product_type'        => 'pass',
+            'is_active'           => 1,
+            'duration_minutes'    => 60,
+            'min_pax'             => 1,
+            'max_pax'             => 10,
+            'target_cafe_types'   => null,
             'target_animal_types' => null,
-            'attributes' => '',
+            'attributes'          => '',
         ], $overrides);
     }
 }

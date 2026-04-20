@@ -21,8 +21,8 @@ namespace Tests\Unit\Services\Manager;
 use App\Services\Manager\DashboardService;
 use PDO;
 use PDOStatement;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests para DashboardService

@@ -16,9 +16,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Core;
 
 use App\Core\Database;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(Database::class)]
 final class DatabaseCharsetValidationTest extends TestCase

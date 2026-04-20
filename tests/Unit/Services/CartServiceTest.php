@@ -19,8 +19,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Services\CartService;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(CartService::class)]
 final class CartServiceTest extends TestCase

@@ -4,18 +4,13 @@ name: Deploy
 #
 # Siempre activo:
 #   • Build imagen de producción y push a GHCR
+#   • Deploy automático a Railway
 #
-# Activar cuando se elija plataforma de despliegue (descomentar la variante):
-#   • Variante A: VPS via SSH (appleboy/ssh-action)
-#   • Variante B: fly.io (flyctl)
+# Otras variantes comentadas (VPS via SSH, fly.io).
 #
-# Notificación Telegram al canal admin: descomentar último step y configurar secrets.
-#
-# Secrets necesarios según variante (Settings → Secrets and variables → Actions):
-#   GHCR (siempre):       GITHUB_TOKEN ya disponible (packages: write)
-#   Variante A (VPS):     SSH_HOST, SSH_USER, SSH_KEY, SSH_PORT (opcional, default 22)
-#   Variante B (fly.io):  FLY_API_TOKEN, FLY_APP_NAME
-#   Notificación:         TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+# Secrets necesarios (Settings → Secrets and variables → Actions):
+#   GITHUB_TOKEN      ya disponible (packages: write)
+#   RAILWAY_TOKEN     Railway Dashboard → Project Settings → Tokens
 
 on:
   workflow_dispatch:
@@ -57,7 +52,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build and push production image to GHCR
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/php/Dockerfile.prod
@@ -129,3 +124,33 @@ jobs:
       #       Branch: ${{ github.ref_name }}
       #       Actor: ${{ github.actor }}
       #       Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  # --------------------------------------------------------------------------
+  # Deploy a Railway (activo)
+  # --------------------------------------------------------------------------
+  deploy-railway:
+    name: Deploy to Railway
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli@latest
+
+      - name: Deploy app service to Railway
+        run: railway up --service app --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Deploy worker-email service to Railway
+        run: railway up --service worker-email --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Deploy worker-default service to Railway
+        run: railway up --service worker-default --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

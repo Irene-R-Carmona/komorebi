@@ -9,8 +9,8 @@ use App\Core\LogContextProcessor;
 use DateTimeImmutable;
 use Monolog\Level;
 use Monolog\LogRecord;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 /**
  * ¿Qué pruebas aquí?

@@ -19,8 +19,8 @@ namespace Tests\Unit\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Services\Contracts\AdminActivityServiceInterface;
 use App\Services\Contracts\AdminStatisticsServiceInterface;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(DashboardController::class)]
 final class DashboardControllerTest extends ControllerTestCase

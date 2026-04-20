@@ -19,9 +19,10 @@ declare(strict_types=1);
 namespace Services;
 
 use App\Repositories\Contracts\ApiTokenRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\ApiTokenService;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ApiTokenService::class)]
 final class ApiTokenServiceTest extends TestCase
@@ -33,7 +34,7 @@ final class ApiTokenServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repository = $this->createMock(ApiTokenRepositoryInterface::class);
-        $this->service = new ApiTokenService($this->repository);
+        $this->service = new ApiTokenService($this->repository, $this->createStub(UserRepositoryInterface::class));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -73,7 +74,7 @@ final class ApiTokenServiceTest extends TestCase
             )
             ->willReturn(1);
 
-        $service = new ApiTokenService($repo);
+        $service = new ApiTokenService($repo, $this->createStub(UserRepositoryInterface::class));
         $service->generate(42, 'My token');
     }
 
@@ -125,7 +126,7 @@ final class ApiTokenServiceTest extends TestCase
             ->with($this->equalTo(5), $this->equalTo(99)) // tokenId=5, userId=99 (ajeno)
             ->willReturn(false);
 
-        $service = new ApiTokenService($repo);
+        $service = new ApiTokenService($repo, $this->createStub(UserRepositoryInterface::class));
         $result = $service->revoke(5, 99);
 
         $this->assertFalse($result->ok);

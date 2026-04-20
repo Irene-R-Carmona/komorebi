@@ -19,9 +19,9 @@ namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\ReviewController;
 use App\Services\Contracts\ReviewModerationServiceInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ReviewController::class)]
 final class ReviewControllerTest extends ControllerTestCase

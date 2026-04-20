@@ -34,7 +34,7 @@ final class AnimalController
         ?AnimalTransformer $animalTransformer = null,
     ) {
         $this->animalCareService = $animalCareService ?? Container::make(AnimalCareServiceInterface::class);
-        $this->response          = $response          ?? new ResponseFactory();
+        $this->response = $response ?? new ResponseFactory();
         $this->animalTransformer = $animalTransformer ?? new AnimalTransformer();
     }
 

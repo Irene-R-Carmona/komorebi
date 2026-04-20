@@ -7,10 +7,10 @@ namespace Tests\Unit\Http\Middleware;
 use App\Core\Http\ResponseFactory;
 use App\Http\Middleware\HttpRateLimitMiddleware;
 use App\Services\Contracts\RateLimitingServiceInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?

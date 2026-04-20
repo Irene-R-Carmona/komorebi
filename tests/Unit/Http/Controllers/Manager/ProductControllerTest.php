@@ -20,8 +20,8 @@ use App\Http\Controllers\Manager\ProductController;
 use App\Repositories\Contracts\MenuCategoryRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\Contracts\ProductServiceInterface;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(ProductController::class)]
 final class ProductControllerTest extends ControllerTestCase

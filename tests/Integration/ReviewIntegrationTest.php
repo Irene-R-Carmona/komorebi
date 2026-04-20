@@ -30,8 +30,8 @@ use App\Services\ReviewQueryService;
 use App\Services\ReviewService;
 use Override;
 use PDO;
-use Tests\Support\BaseIntegrationTest;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use Tests\Support\BaseIntegrationTest;
 
 #[CoversNothing]
 final class ReviewIntegrationTest extends BaseIntegrationTest

@@ -159,11 +159,10 @@ abstract class ServiceTestCase extends TestCase
     protected function asSessionUser(int $userId = 1, string $role = 'user', ?int $cafeId = null): void
     {
         $this->startFreshSession();
-        $_SESSION['user_id']   = $userId;
+        $_SESSION['user_id'] = $userId;
         $_SESSION['user_role'] = $role;
         if ($cafeId !== null) {
             $_SESSION['user_cafe_id'] = $cafeId;
         }
     }
 }
-

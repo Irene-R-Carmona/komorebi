@@ -11,11 +11,13 @@ use App\Core\View;
 use App\Exceptions\NotFoundException;
 use App\Http\Transformers\AnimalTransformer;
 use App\Http\Transformers\CafeTransformer;
-use App\Models\Cafe;
 use App\Models\Favorite;
+use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\Contracts\MenuServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\ReviewServiceInterface;
+use JsonException;
+use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -29,7 +31,7 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class CafeController
 {
-    private Cafe $cafeModel;
+    private CafeRepositoryInterface $cafeRepo;
 
     private Favorite $favoriteModel;
 
@@ -39,18 +41,26 @@ final class CafeController
 
     private ReviewServiceInterface $reviewService;
 
+    private CafeTransformer $cafeTransformer;
+
+    private AnimalTransformer $animalTransformer;
+
     public function __construct(
         ?MenuServiceInterface $menuService = null,
         ?ReviewQueryServiceInterface $queryService = null,
         ?ReviewServiceInterface $reviewService = null,
-        ?Cafe $cafeModel = null,
+        ?CafeRepositoryInterface $cafeRepo = null,
         ?Favorite $favoriteModel = null,
+        ?CafeTransformer $cafeTransformer = null,
+        ?AnimalTransformer $animalTransformer = null,
     ) {
-        $this->cafeModel = $cafeModel ?? new Cafe(Container::make(\PDO::class));
-        $this->favoriteModel = $favoriteModel ?? new Favorite(Container::make(\PDO::class));
+        $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
+        $this->favoriteModel = $favoriteModel ?? new Favorite(Container::make(PDO::class));
         $this->menuService = $menuService ?? Container::make(MenuServiceInterface::class);
         $this->queryService = $queryService ?? Container::make(ReviewQueryServiceInterface::class);
         $this->reviewService = $reviewService ?? Container::make(ReviewServiceInterface::class);
+        $this->cafeTransformer = $cafeTransformer ?? new CafeTransformer();
+        $this->animalTransformer = $animalTransformer ?? new AnimalTransformer();
     }
 
     /**
@@ -66,11 +76,11 @@ final class CafeController
         $orderBy = $this->getQueryParam($queryParams, 'orden', 'name');
 
         // Obtener cafés
-        $cafes = $this->cafeModel->findAll(
-            category: $category,
-            animalType: $animalType,
-            orderBy: $orderBy
-        );
+        $queryFilters = \array_filter([
+            'category' => $category,
+            'animal_type' => $animalType,
+        ]);
+        $cafes = $this->cafeRepo->findFiltered($queryFilters);
 
         // Obtener favoritos del usuario si está logueado
         $favoritos = [];
@@ -107,7 +117,7 @@ final class CafeController
     {
 
         // Obtener café con sus animales
-        $cafe = $this->cafeModel->findWithAnimals($slug);
+        $cafe = $this->cafeRepo->findWithAnimals($slug);
 
         // Si no existe, lanzar excepción
         // ExceptionHandler automáticamente renderiza errors/404
@@ -119,7 +129,7 @@ final class CafeController
         $rawAnimals = $cafe['animals'] ?? [];
 
         // Aplicar CafeTransformer: presentación segura sin campos internos
-        $cafe = new CafeTransformer()->transform($cafe);
+        $cafe = $this->cafeTransformer->transform($cafe);
 
         // Verificar si es favorito del usuario actual
         $isFavorite = false;
@@ -132,7 +142,7 @@ final class CafeController
         }
 
         // Obtener zonas del café
-        $zones = $this->cafeModel->getZones((int) $cafe['id']);
+        $zones = $this->cafeRepo->getZones((int) $cafe['id']);
 
         // Obtener estadísticas de reseñas
         $ratingStats = $this->queryService->getCafeRatingStats((int) $cafe['id']);
@@ -160,9 +170,9 @@ final class CafeController
             'total_animals' => \count($rawAnimals),
             'active_animals' => \count(\array_filter(
                 $rawAnimals,
-                static fn($a) => $a['current_status'] === 'active'
+                static fn ($a) => $a['current_status'] === 'active'
             )),
-            'favorites_count' => $this->cafeModel->getFavoritesCount((int) $cafe['id']),
+            'favorites_count' => $this->cafeRepo->getFavoritesCount((int) $cafe['id']),
         ];
 
         // Decorar animales: merge JSON attributes en el objeto
@@ -173,7 +183,7 @@ final class CafeController
 
             try {
                 $attrs = \json_decode($a['attributes'], true, 512, \JSON_THROW_ON_ERROR) ?? [];
-            } catch (\JsonException $e) {
+            } catch (JsonException $e) {
                 Logger::warning('[CafeController] Error decodificando atributos de animal', [
                     'exception' => $e::class,
                     'message' => $e->getMessage(),
@@ -186,13 +196,12 @@ final class CafeController
         }, $rawAnimals);
 
         // Aplicar AnimalTransformer: excluye campos operativos/sensibles
-        $animalTransformer = new AnimalTransformer();
-        $animalesPrep = $animalTransformer->collection($animalesDecoded);
+        $animalesPrep = $this->animalTransformer->collection($animalesDecoded);
 
         View::render('public/cafes/show', [
             'titulo' => $cafe['name'],
             'cafe' => $cafe,
-            'animales' => $animalTransformer->collection($rawAnimals),
+            'animales' => $this->animalTransformer->collection($rawAnimals),
             'animalesPrep' => $animalesPrep,
             'zones' => $zones,
             'experiences' => $experiences,
@@ -231,8 +240,8 @@ final class CafeController
      */
     private function getAvailableFilters(): array
     {
-        // Esto podría cachearse o moverse al modelo
-        $cafes = $this->cafeModel->findAll();
+        // Esto podría cachearse o moverse al repositorio
+        $cafes = $this->cafeRepo->findFiltered([]);
 
         $categories = \array_unique(\array_column($cafes, 'category'));
         $animalTypes = \array_unique(\array_column($cafes, 'animal_type'));

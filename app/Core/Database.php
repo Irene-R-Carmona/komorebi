@@ -39,11 +39,11 @@ final class Database
         if ($databaseUrl !== '') {
             [$host, $port, $db, $user, $pass, $charset] = self::parseDatabaseUrl($databaseUrl);
         } else {
-            $host    = Env::require('DB_HOST');
-            $port    = Env::get('DB_PORT', '3306');
-            $db      = Env::require('DB_DATABASE');
-            $user    = Env::require('DB_USERNAME');
-            $pass    = Env::get('DB_PASSWORD');
+            $host = Env::require('DB_HOST');
+            $port = Env::get('DB_PORT', '3306');
+            $db = Env::require('DB_DATABASE');
+            $user = Env::require('DB_USERNAME');
+            $pass = Env::get('DB_PASSWORD');
             $charset = Env::get('DB_CHARSET', 'utf8mb4');
         }
 
@@ -141,18 +141,18 @@ final class Database
     /**
      * Valida charset y collation contra whitelist para prevenir inyección en SET NAMES.
      *
-     * @throws \RuntimeException si el charset o collation no son válidos
+     * @throws RuntimeException si el charset o collation no son válidos
      */
     public static function validateCharset(string $charset, string $collation): void
     {
         $allowedCharsets = ['utf8mb4', 'utf8', 'latin1', 'ascii', 'binary'];
 
         if (!\in_array($charset, $allowedCharsets, true)) {
-            throw new \RuntimeException("Charset inválido: '$charset'. Permitidos: " . \implode(', ', $allowedCharsets));
+            throw new RuntimeException("Charset inválido: '$charset'. Permitidos: " . \implode(', ', $allowedCharsets));
         }
 
         if (!\preg_match('/^[a-z0-9_]+$/i', $collation)) {
-            throw new \RuntimeException("Collation inválida: '$collation'. Solo caracteres alfanuméricos y guiones bajos.");
+            throw new RuntimeException("Collation inválida: '$collation'. Solo caracteres alfanuméricos y guiones bajos.");
         }
     }
 
@@ -176,11 +176,11 @@ final class Database
             );
         }
 
-        $host    = $parsed['host'];
-        $port    = isset($parsed['port']) ? (string) $parsed['port'] : '3306';
-        $db      = \ltrim($parsed['path'] ?? '', '/');
-        $user    = $parsed['user'] ?? '';
-        $pass    = isset($parsed['pass']) ? \urldecode($parsed['pass']) : null;
+        $host = $parsed['host'];
+        $port = isset($parsed['port']) ? (string) $parsed['port'] : '3306';
+        $db = \ltrim($parsed['path'] ?? '', '/');
+        $user = $parsed['user'] ?? '';
+        $pass = isset($parsed['pass']) ? \urldecode($parsed['pass']) : null;
         $charset = Env::get('DB_CHARSET', 'utf8mb4');
 
         if ($db === '') {
@@ -193,7 +193,9 @@ final class Database
     /**
      * Prevenir clonación (Singleton).
      */
-    private function __clone(): void {}
+    private function __clone(): void
+    {
+    }
 
     /**
      * Prevenir deserialización (Singleton).

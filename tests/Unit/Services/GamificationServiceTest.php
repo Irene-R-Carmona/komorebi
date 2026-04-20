@@ -17,10 +17,10 @@ namespace Tests\Unit\Services;
 
 use App\Services\GamificationService;
 use Override;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[Group('unit')]
 #[CoversClass(GamificationService::class)]

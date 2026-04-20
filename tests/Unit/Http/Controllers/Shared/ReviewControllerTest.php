@@ -23,8 +23,8 @@ use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\Contracts\ReviewModerationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\ReviewServiceInterface;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(ReviewController::class)]
 final class ReviewControllerTest extends ControllerTestCase

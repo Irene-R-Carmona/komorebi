@@ -19,9 +19,9 @@ namespace Tests\Unit\Services;
 use App\Core\Middleware;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\ContextServiceInstance;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ContextServiceInstance::class)]
 final class ContextServiceInstanceTest extends TestCase

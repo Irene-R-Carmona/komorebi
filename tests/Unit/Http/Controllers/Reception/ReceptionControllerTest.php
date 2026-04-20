@@ -24,8 +24,8 @@ use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\TrackerRepositoryInterface;
 use App\Services\ReceptionService;
 use Nyholm\Psr7\ServerRequest;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(ReceptionController::class)]
 final class ReceptionControllerTest extends ControllerTestCase

@@ -9,7 +9,9 @@ use App\Core\Database;
 use App\Core\ServiceProvider;
 use App\Models\User;
 use App\Repositories\AuthLogRepository;
+use App\Repositories\AuthTokenRepository;
 use App\Repositories\Contracts\AuthLogRepositoryInterface;
+use App\Repositories\Contracts\AuthTokenRepositoryInterface;
 use App\Repositories\Contracts\SessionRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\SessionRepository;
@@ -42,14 +44,20 @@ final class AuthServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
-        Container::singleton(AuthTokenService::class, fn () => new AuthTokenService(
+        Container::singleton(AuthTokenRepository::class, fn () => new AuthTokenRepository(
             Database::getConnection()
+        ));
+
+        Container::singleton(AuthTokenRepositoryInterface::class, fn () => Container::make(AuthTokenRepository::class));
+
+        Container::singleton(AuthTokenService::class, fn () => new AuthTokenService(
+            Container::make(AuthTokenRepositoryInterface::class)
         ));
 
         Container::singleton(AuthTokenServiceInterface::class, fn () => Container::make(AuthTokenService::class));
 
         Container::singleton(AccountDeletionService::class, fn () => new AccountDeletionService(
-            Database::getConnection()
+            Container::make(UserRepositoryInterface::class)
         ));
 
         Container::singleton(AccountDeletionServiceInterface::class, fn () => Container::make(AccountDeletionService::class));

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 /**
  * ¿Qué pruebas aquí?
- * AccountDeletionService::deleteAndAnonymize con PDO stubbeado para cubrir
- * el camino feliz (transacción exitosa) y el camino de fallo (excepción en DB).
+ * AccountDeletionService::deleteAndAnonymize con repositorio stubbeado para cubrir
+ * el camino feliz (transacción exitosa) y el camino de fallo (excepción en repo).
  *
  * ¿Qué me quieres demostrar?
  * Que la operación atómica devuelve Result::ok(true) cuando la transacción
- * se completa, y Result::fail con mensaje descriptivo cuando PDO lanza excepción.
+ * se completa, y Result::fail con mensaje descriptivo cuando el repositorio lanza excepción.
  *
  * ¿Qué va a fallar en este test si se cambia el código?
  * Si se elimina el rollBack en el catch, si se cambia el mensaje de error,
@@ -18,32 +18,50 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Core\Database;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\AccountDeletionService;
 use PDO;
-use PDOStatement;
-use PHPUnit\Framework\TestCase;
-use RuntimeException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use RuntimeException;
 
 #[CoversClass(AccountDeletionService::class)]
 final class AccountDeletionServiceTest extends TestCase
 {
+    private function injectPdo(PDO $pdo): void
+    {
+        $ref = new ReflectionClass(Database::class);
+        $fake = $ref->newInstanceWithoutConstructor();
+        $ref->getProperty('connection')->setValue($fake, $pdo);
+        $ref->getProperty('instance')->setValue(null, $fake);
+    }
+
+    protected function tearDown(): void
+    {
+        $ref = new ReflectionClass(Database::class);
+        $ref->getProperty('instance')->setValue(null, null);
+    }
+
     // ──────────────────────────────────────────────
     // deleteAndAnonymize — camino feliz
     // ──────────────────────────────────────────────
 
     public function testDeleteAndAnonymizeRetornaOkCuandoTransaccionExitosa(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-
         $pdo = $this->createMock(PDO::class);
+        $pdo->method('inTransaction')->willReturn(false);
         $pdo->method('beginTransaction')->willReturn(true);
-        $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('commit')->willReturn(true);
+        $this->injectPdo($pdo);
 
-        $service = new AccountDeletionService($pdo);
-        $result = $service->deleteAndAnonymize(42);
+        $userRepo = $this->createStub(UserRepositoryInterface::class);
+        $userRepo->method('update')->willReturn(true);
+        $userRepo->method('anonymize')->willReturn(true);
+
+        $service = new AccountDeletionService($userRepo);
+        $result  = $service->deleteAndAnonymize(42);
 
         $this->assertTrue($result->ok);
         $this->assertTrue($result->data);
@@ -56,27 +74,33 @@ final class AccountDeletionServiceTest extends TestCase
     public function testDeleteAndAnonymizeRetornaFailCuandoPdoLanzaExcepcion(): void
     {
         $pdo = $this->createMock(PDO::class);
+        $pdo->method('inTransaction')->willReturn(false);
         $pdo->method('beginTransaction')
             ->willThrowException(new RuntimeException('Connection refused'));
         $pdo->method('rollBack')->willReturn(true);
+        $this->injectPdo($pdo);
 
-        $service = new AccountDeletionService($pdo);
-        $result = $service->deleteAndAnonymize(42);
+        $service = new AccountDeletionService($this->createStub(UserRepositoryInterface::class));
+        $result  = $service->deleteAndAnonymize(42);
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('No se pudo eliminar la cuenta', $result->error);
     }
 
-    public function testDeleteAndAnonymizeRetornaFailCuandoPrepareDevuelveFalse(): void
+    public function testDeleteAndAnonymizeRetornaFailCuandoRepoLanzaExcepcion(): void
     {
         $pdo = $this->createMock(PDO::class);
+        $pdo->method('inTransaction')->willReturn(false);
         $pdo->method('beginTransaction')->willReturn(true);
-        $pdo->method('prepare')
-            ->willThrowException(new RuntimeException('Prepare failed'));
         $pdo->method('rollBack')->willReturn(true);
+        $this->injectPdo($pdo);
 
-        $service = new AccountDeletionService($pdo);
-        $result = $service->deleteAndAnonymize(99);
+        $userRepo = $this->createMock(UserRepositoryInterface::class);
+        $userRepo->method('update')
+            ->willThrowException(new RuntimeException('Repo failed'));
+
+        $service = new AccountDeletionService($userRepo);
+        $result  = $service->deleteAndAnonymize(99);
 
         $this->assertFalse($result->ok);
     }

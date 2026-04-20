@@ -49,37 +49,37 @@
 
 ### 0.1 Exclusiones en phpunit.xml (sección `<exclude>`)
 
-- [ ] Añadir `<directory suffix=".php">app/Core/Seeders</directory>`
-- [ ] Añadir `<directory suffix=".php">app/Events</directory>`
-- [ ] Añadir `<directory suffix=".php">app/Domain/DTO</directory>`
-- [ ] Añadir `<directory suffix=".php">app/Listeners</directory>`
-- [ ] Añadir `<file>app/Jobs/JobInterface.php</file>`
-- [ ] Añadir `<file>app/Jobs/SendTelegramNotificationJob.php</file>`
-- [ ] Añadir `<file>app/Http/Controllers/Api/AbstractApiController.php</file>`
-- [ ] Añadir `<directory suffix=".php">app/Services/Contracts</directory>`
-- [ ] Añadir `<directory suffix=".php">app/Repositories/Contracts</directory>`
-- [ ] Añadir `<directory suffix=".php">app/Models/Contracts</directory>`
+- [x] Añadir `<directory suffix=".php">app/Core/Seeders</directory>`
+- [x] Añadir `<directory suffix=".php">app/Events</directory>`
+- [x] Añadir `<directory suffix=".php">app/Domain/DTO</directory>`
+- [x] Añadir `<directory suffix=".php">app/Listeners</directory>`
+- [x] Añadir `<file>app/Jobs/JobInterface.php</file>`
+- [x] Añadir `<file>app/Jobs/SendTelegramNotificationJob.php</file>`
+- [x] Añadir `<file>app/Http/Controllers/Api/AbstractApiController.php</file>`
+- [x] Añadir `<directory suffix=".php">app/Services/Contracts</directory>`
+- [x] Añadir `<directory suffix=".php">app/Repositories/Contracts</directory>`
+- [x] Añadir `<directory suffix=".php">app/Models/Contracts</directory>`
 
 ### 0.2 Env var faltante en phpunit.xml
 
-- [ ] Añadir sección `<php>` con `<env name="APP_URL" value="http://localhost"/>`
+- [x] `APP_URL` ya presente en phpunit.xml — no requería cambio
 
 ### 0.3 Fix TransactionalServiceTest (2 tests)
 
-- [ ] `tests/Unit/Core/TransactionalServiceTest.php` líneas ~61 y ~72: `$result->getMessage()` → `$result->error`
+- [x] Ya usa `$result->error` — no requería cambio
 
 ### 0.4 Fix WaitlistServiceTest (9 tests)
 
-- [ ] `tests/Unit/Services/WaitlistServiceTest.php` setUp(): reemplazar `createStub(TimeSlot::class)` → `new TimeSlot($this->dbMock)` y `createStub(Reservation::class)` → `new Reservation($this->dbMock)`
+- [x] Ya pasa 9/9 — fix aplicado en sesión anterior
 
 ### 0.5 Fix controllers no inyectables (requiere plan fix-controller-design-bugs completado)
 
-*Ver `docs/plans/2026-04-20-fix-controller-design-bugs.md` — Fases 1–4 completas*
+- [x] Plan fix-controller-design-bugs completado — prerequisito cumplido
 
 ### 0.6 Verificación
 
-- [ ] `make test-unit` → todos los tests pasan, 0 errores
-- [ ] `make test-coverage` → cobertura ~24% sobre scope limpio
+- [x] 856 / 856 tests pasan, 0 errores
+- [x] Cobertura base real: **15.97%** (2,525 / 15,806 líneas) tras exclusiones
 
 ---
 

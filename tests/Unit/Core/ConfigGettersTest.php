@@ -11,8 +11,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Core;
 
 use App\Core\Config;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Config::class)]
 final class ConfigGettersTest extends TestCase

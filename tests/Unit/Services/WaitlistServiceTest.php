@@ -43,7 +43,7 @@ use PHPUnit\Framework\TestCase;
 final class WaitlistServiceTest extends TestCase
 {
     private WaitlistService $service;
-    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    /** @var \PHPUnit\Framework\MockObject\Stub&PDO */
     private PDO $dbMock;
     /** @var \PHPUnit\Framework\MockObject\Stub&WaitlistRepositoryInterface */
     private WaitlistRepositoryInterface $waitlistMock;
@@ -60,7 +60,7 @@ final class WaitlistServiceTest extends TestCase
         $stmtDefault = $this->createStub(PDOStatement::class);
         $this->dbMock->method('prepare')->willReturn($stmtDefault);
 
-        $this->service = new WaitlistService($this->dbMock, $this->emailServiceStub, $this->waitlistMock, $this->createStub(TimeSlot::class), $this->createStub(Reservation::class));
+        $this->service = new WaitlistService($this->dbMock, $this->emailServiceStub, $this->waitlistMock, new TimeSlot($this->dbMock), new Reservation($this->dbMock));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -99,7 +99,7 @@ final class WaitlistServiceTest extends TestCase
         $dbMock = $this->createStub(PDO::class);
         $dbMock->method('prepare')->willReturn($stmt);
 
-        $service = new WaitlistService($dbMock, $this->createStub(EmailServiceInterface::class), $this->waitlistMock, $this->createStub(TimeSlot::class), $this->createStub(Reservation::class));
+        $service = new WaitlistService($dbMock, $this->createStub(EmailServiceInterface::class), $this->waitlistMock, new TimeSlot($dbMock), new Reservation($dbMock));
         $result = $service->joinWaitlist(1, 1, [
             'email' => 'test@example.com',
             'guest_count' => 2,

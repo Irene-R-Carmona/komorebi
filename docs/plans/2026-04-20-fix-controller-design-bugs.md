@@ -2,6 +2,8 @@
 
 > **For agentic workers:** Steps use checkbox (`- [ ]`) syntax for tracking. Ejecutar en orden; verificar tras cada fase.
 
+**Estado:** ✅ Completo — auditados 13 controllers, todos ya implementaban el patrón correcto. Verificación final: PHPUnit 856/856 ✅, PHPStan 0 ✅, CS 0 ✅ (20/04/2026)
+
 **Goal:** Eliminar side-effects en constructores y dependencias no-inyectables en 13 controllers. Sin tests nuevos, sin refactoring de lógica de negocio.
 
 **Patrón correcto** (referencia: AuthController, DashboardController):

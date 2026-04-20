@@ -19,8 +19,8 @@ use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\ReservationController;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\TimeSlotServiceInterface;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(ReservationController::class)]
 final class ReservationControllerTest extends ControllerTestCase

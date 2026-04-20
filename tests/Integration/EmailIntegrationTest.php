@@ -21,8 +21,8 @@ namespace Tests\Integration;
 use App\Core\Queue;
 use App\Services\EmailService;
 use Override;
-use Tests\Support\BaseIntegrationTest;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use Tests\Support\BaseIntegrationTest;
 
 #[CoversNothing]
 final class EmailIntegrationTest extends BaseIntegrationTest

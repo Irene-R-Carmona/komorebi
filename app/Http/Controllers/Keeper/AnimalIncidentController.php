@@ -13,6 +13,7 @@ use App\Core\View;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Repositories\AnimalRepository;
+use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Services\AnimalCareService;
 use App\Services\Contracts\AnimalCareServiceInterface;
 use JsonException;
@@ -27,17 +28,17 @@ final class AnimalIncidentController
 {
     private AnimalCareServiceInterface $service;
     private ResponseFactory $response;
-    private AnimalRepository $animalRepository;
+    private AnimalRepositoryInterface $animalRepository;
 
     public function __construct(
         ?AnimalCareServiceInterface $service = null,
         ?ResponseFactory $response = null,
-        ?AnimalRepository $animalRepository = null,
+        ?AnimalRepositoryInterface $animalRepository = null,
     ) {
         if ($service === null || $animalRepository === null) {
             $db = Database::getConnection();
             $this->animalRepository = $animalRepository ?? new AnimalRepository($db);
-            $this->service = $service ?? new AnimalCareService($db, $this->animalRepository);
+            $this->service = $service ?? new AnimalCareService($this->animalRepository);
         } else {
             $this->animalRepository = $animalRepository;
             $this->service = $service;

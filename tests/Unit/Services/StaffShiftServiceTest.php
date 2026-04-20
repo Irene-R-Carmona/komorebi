@@ -19,8 +19,8 @@ declare(strict_types=1);
 
 use App\Repositories\Contracts\StaffShiftRepositoryInterface;
 use App\Services\StaffShiftService;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests unitarios para StaffShiftService.

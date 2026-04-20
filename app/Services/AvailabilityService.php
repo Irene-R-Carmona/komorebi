@@ -31,11 +31,11 @@ final class AvailabilityService implements AvailabilityServiceInterface
         int $maxDaysAhead = 30,
         int $stepMinutes = 30,
     ) {
-        $this->cafeRepo        = $cafeRepo        ?? Container::make(CafeRepositoryInterface::class);
-        $this->productRepo     = $productRepo     ?? Container::make(ProductRepositoryInterface::class);
+        $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
+        $this->productRepo = $productRepo ?? Container::make(ProductRepositoryInterface::class);
         $this->reservationRepo = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
-        $this->maxDaysAhead    = $maxDaysAhead;
-        $this->stepMinutes     = $stepMinutes;
+        $this->maxDaysAhead = $maxDaysAhead;
+        $this->stepMinutes = $stepMinutes;
     }
 
     /**
@@ -107,7 +107,7 @@ final class AvailabilityService implements AvailabilityServiceInterface
         }
 
         $allowedStart = null;
-        $allowedEnd   = null;
+        $allowedEnd = null;
 
         try {
             $attrs = $this->safeJsonObject((string) ($pass['attributes'] ?? ''));
@@ -121,12 +121,12 @@ final class AvailabilityService implements AvailabilityServiceInterface
             return Result::fail('Atributos del pase inválidos.', 'pass_config_invalid');
         }
 
-        $open  = $this->timeToMinutes((string) $cafe['opening_time']);
+        $open = $this->timeToMinutes((string) $cafe['opening_time']);
         $close = $this->timeToMinutes((string) $cafe['closing_time']);
         $first = (int) (\ceil($open / $this->stepMinutes) * $this->stepMinutes);
 
         if ($daysAhead === 0) {
-            $now     = Time::nowBusiness();
+            $now = Time::nowBusiness();
             $nowMins = ((int) $now->format('H') * 60) + (int) $now->format('i');
             $minStart = (int) (\ceil($nowMins / $this->stepMinutes) * $this->stepMinutes);
             if ($minStart > $first) {
@@ -146,11 +146,11 @@ final class AvailabilityService implements AvailabilityServiceInterface
             }
 
             $occupied = 0;
-            $slotEnd  = $t + $duration;
+            $slotEnd = $t + $duration;
 
             foreach ($reservations as $r) {
                 $resStart = $this->timeToMinutes((string) $r['reservation_time']);
-                $resEnd   = $resStart + (int) $r['pass_duration_minutes'];
+                $resEnd = $resStart + (int) $r['pass_duration_minutes'];
 
                 if ($resStart < $slotEnd && $resEnd > $t) {
                     $occupied += (int) $r['guests'];
@@ -166,14 +166,14 @@ final class AvailabilityService implements AvailabilityServiceInterface
         }
 
         return Result::ok([
-            'cafe_id'         => $cafeId,
+            'cafe_id' => $cafeId,
             'pass_product_id' => $passId,
-            'date'            => $dateYmd,
-            'guests'          => $guests,
-            'step_minutes'    => $this->stepMinutes,
-            'max_days_ahead'  => $this->maxDaysAhead,
-            'timezone'        => Env::get('APP_BUSINESS_TIMEZONE', 'Asia/Tokyo'),
-            'slots'           => $slots,
+            'date' => $dateYmd,
+            'guests' => $guests,
+            'step_minutes' => $this->stepMinutes,
+            'max_days_ahead' => $this->maxDaysAhead,
+            'timezone' => Env::get('APP_BUSINESS_TIMEZONE', 'Asia/Tokyo'),
+            'slots' => $slots,
         ]);
     }
 
@@ -258,8 +258,8 @@ final class AvailabilityService implements AvailabilityServiceInterface
     private function timeToMinutes(string $time): int
     {
         $parts = \explode(':', $time);
-        $h     = isset($parts[0]) ? (int) $parts[0] : 0;
-        $m     = isset($parts[1]) ? (int) $parts[1] : 0;
+        $h = isset($parts[0]) ? (int) $parts[0] : 0;
+        $m = isset($parts[1]) ? (int) $parts[1] : 0;
 
         return ($h * 60) + $m;
     }

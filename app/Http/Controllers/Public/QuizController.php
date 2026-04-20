@@ -8,7 +8,7 @@ use App\Core\Container;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
 use App\Exceptions\ValidationException;
-use App\Models\Cafe;
+use App\Repositories\Contracts\CafeRepositoryInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -21,12 +21,12 @@ use Psr\Http\Message\ServerRequestInterface;
 final class QuizController
 {
     private ResponseFactory $response;
-    private Cafe $cafeModel;
+    private CafeRepositoryInterface $cafeRepo;
 
-    public function __construct(?ResponseFactory $response = null, ?Cafe $cafeModel = null)
+    public function __construct(?ResponseFactory $response = null, ?CafeRepositoryInterface $cafeRepo = null)
     {
         $this->response = $response ?? new ResponseFactory();
-        $this->cafeModel = $cafeModel ?? new Cafe(Container::make(\PDO::class));
+        $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
     }
 
     /**
@@ -181,7 +181,7 @@ final class QuizController
         $mejorCafe = $this->encontrarMejorCafe($puntuaciones);
 
         // Obtener datos reales del café
-        $cafeData = $this->cafeModel->findBySlug($mejorCafe['slug']);
+        $cafeData = $this->cafeRepo->findBySlug($mejorCafe['slug']);
 
         View::render('public/quiz/resultado', [
             'titulo' => 'Tu Café del Alma | Resultado',
@@ -226,6 +226,6 @@ final class QuizController
      */
     private function obtenerPreguntaPorId(int $id): ?array
     {
-        return \array_find(self::PREGUNTAS, static fn($pregunta) => $pregunta['id'] === $id);
+        return \array_find(self::PREGUNTAS, static fn ($pregunta) => $pregunta['id'] === $id);
     }
 }

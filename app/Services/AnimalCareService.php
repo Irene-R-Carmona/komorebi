@@ -26,8 +26,8 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
         ?AnimalIncidentRepositoryInterface $incidentRepo = null,
         ?HealthCheckRepositoryInterface $healthCheckRepo = null,
     ) {
-        $this->animalRepo      = $animalRepo      ?? Container::make(AnimalRepositoryInterface::class);
-        $this->incidentRepo    = $incidentRepo    ?? Container::make(AnimalIncidentRepositoryInterface::class);
+        $this->animalRepo = $animalRepo ?? Container::make(AnimalRepositoryInterface::class);
+        $this->incidentRepo = $incidentRepo ?? Container::make(AnimalIncidentRepositoryInterface::class);
         $this->healthCheckRepo = $healthCheckRepo ?? Container::make(HealthCheckRepositoryInterface::class);
     }
 
@@ -108,9 +108,9 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
     public function getDashboardData(): array
     {
         return [
-            'animals'          => $this->animalRepo->getAnimalsWithCafeInfoOptimized(),
-            'stats'            => $this->animalRepo->getHealthStatistics(),
-            'recent_logs'      => $this->healthCheckRepo->getRecentLogs(20),
+            'animals' => $this->animalRepo->getAnimalsWithCafeInfoOptimized(),
+            'stats' => $this->animalRepo->getHealthStatistics(),
+            'recent_logs' => $this->healthCheckRepo->getRecentLogs(20),
             'active_incidents' => $this->incidentRepo->getActiveIncidents(),
         ];
     }
@@ -155,8 +155,8 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
 
         try {
             $activityType = $data['activity_type'] ?? 'general';
-            $userNotes    = $data['notes'] ?? '';
-            $fullNotes    = "[{$activityType}]";
+            $userNotes = $data['notes'] ?? '';
+            $fullNotes = "[{$activityType}]";
 
             if ($data['duration_minutes'] ?? null) {
                 $fullNotes .= " ({$data['duration_minutes']} min)";
@@ -172,9 +172,9 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
             }
 
             $logId = $this->healthCheckRepo->createCareLog([
-                'animal_id'          => $data['animal_id'],
-                'logged_by_user_id'  => $data['logged_by_user_id'] ?? 1,
-                'notes'              => $fullNotes,
+                'animal_id' => $data['animal_id'],
+                'logged_by_user_id' => $data['logged_by_user_id'] ?? 1,
+                'notes' => $fullNotes,
             ]);
 
             return Result::ok($logId);
@@ -192,9 +192,9 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
         }
 
         $statusMapping = [
-            'healthy'    => 'active',
+            'healthy' => 'active',
             'monitoring' => 'resting',
-            'sick'       => 'sick',
+            'sick' => 'sick',
             'recovering' => 'resting',
             'quarantine' => 'retired',
         ];
@@ -206,9 +206,9 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
 
                 if ($notes) {
                     $this->createCareLog([
-                        'animal_id'         => $animalId,
-                        'activity_type'     => 'health_check',
-                        'notes'             => $notes,
+                        'animal_id' => $animalId,
+                        'activity_type' => 'health_check',
+                        'notes' => $notes,
                         'logged_by_user_id' => $userId,
                     ]);
                 }
@@ -230,12 +230,12 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
                 return Result::fail('Animal no encontrado');
             }
 
-            $newStatus  = $result['current_status'];
+            $newStatus = $result['current_status'];
             $statusText = $newStatus === 'active' ? 'activado' : 'puesto en descanso';
 
             return Result::ok([
                 'current_status' => $newStatus,
-                'message'        => "Animal $statusText exitosamente",
+                'message' => "Animal $statusText exitosamente",
             ]);
         } catch (Exception $e) {
             return Result::fail('Error al cambiar estado: ' . $e->getMessage());

@@ -14,15 +14,14 @@ declare(strict_types=1);
  * Si se elimina el método index() o se rompe el namespace/autoload.
  */
 
-
 namespace Tests\Unit\Http\Controllers\Public;
 
 use App\Http\Controllers\Public\HomeController;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\Contracts\CafeCatalogRepositoryInterface;
 use App\Repositories\Contracts\FavoriteRepositoryInterface;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(HomeController::class)]
 final class HomeControllerTest extends TestCase

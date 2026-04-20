@@ -28,9 +28,9 @@ use App\Services\Contracts\SupervisorAssignmentServiceInterface;
 use App\Services\KitchenService;
 use PDO;
 use PDOStatement;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ServerRequestInterface;
 use Tests\Support\ControllerTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(SupervisorController::class)]
 final class SupervisorControllerTest extends ControllerTestCase

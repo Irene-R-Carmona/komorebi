@@ -18,9 +18,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Core;
 
 use App\Core\LoggingPDOStatement;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(LoggingPDOStatement::class)]
 final class LoggingPDOStatementTest extends TestCase

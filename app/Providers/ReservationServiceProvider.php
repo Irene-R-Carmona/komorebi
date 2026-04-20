@@ -22,14 +22,15 @@ use App\Repositories\ReservationRepository;
 use App\Repositories\TimeSlotRepository;
 use App\Repositories\WaitlistRepository;
 use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\FestivosJaponesesServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
-use App\Services\Contracts\LoyaltyServiceInterface;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\ReservationTimeSlotServiceInterface;
 use App\Services\Contracts\TimeSlotServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
 use App\Services\Contracts\WaitlistServiceInterface;
 use App\Services\EmailService;
+use App\Services\FestivosJaponesesService;
 use App\Services\InvoicePDFService;
 use App\Services\ReservationService;
 use App\Services\ReservationTimeSlotService;
@@ -76,8 +77,7 @@ final class ReservationServiceProvider extends ServiceProvider
             Container::make(InvoicePDFServiceInterface::class),
             Container::make(EmailServiceInterface::class),
             Container::make(EventDispatcherInterface::class),
-            Container::make(UserProfileServiceInterface::class),
-            Container::make(LoyaltyServiceInterface::class)
+            Container::make(UserProfileServiceInterface::class)
         ));
 
         Container::singleton(ReservationServiceInterface::class, fn () => Container::make(ReservationService::class));
@@ -126,8 +126,11 @@ final class ReservationServiceProvider extends ServiceProvider
 
         Container::singleton(WaitlistServiceInterface::class, fn () => Container::make(WaitlistService::class));
 
-        Container::singleton(TimeSlotService::class, fn () => new TimeSlotService(Database::getConnection()));
+        Container::singleton(TimeSlotService::class, fn () => new TimeSlotService(Container::make(TimeSlotRepositoryInterface::class)));
         Container::singleton(TimeSlotServiceInterface::class, fn () => Container::make(TimeSlotService::class));
+
+        Container::singleton(FestivosJaponesesService::class, fn () => new FestivosJaponesesService());
+        Container::singleton(FestivosJaponesesServiceInterface::class, fn () => Container::make(FestivosJaponesesService::class));
     }
 
     #[Override]

@@ -142,4 +142,28 @@ interface CafeRepositoryInterface
      * @return array<int, array<string, mixed>>
      */
     public function findByIds(array $ids): array;
+
+    /**
+     * Find a cafe with its animals by slug.
+     *
+     * @param string $slug
+     * @return array<string, mixed>|null
+     */
+    public function findWithAnimals(string $slug): ?array;
+
+    /**
+     * Get the zones of a cafe.
+     *
+     * @param int $cafeId
+     * @return array<int, array<string, mixed>>
+     */
+    public function getZones(int $cafeId): array;
+
+    /**
+     * Get the number of users who have marked a cafe as favorite.
+     *
+     * @param int $cafeId
+     * @return int
+     */
+    public function getFavoritesCount(int $cafeId): int;
 }

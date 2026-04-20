@@ -13,12 +13,12 @@ namespace Middleware;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Http\Middleware\CafeScopeMiddleware;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para CafeScopeMiddleware

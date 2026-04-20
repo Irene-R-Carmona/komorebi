@@ -20,8 +20,8 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use App\Services\Contracts\AdminReportServiceInterface;
 use App\Services\Contracts\AdminStatisticsServiceInterface;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(ReportController::class)]
 final class ReportControllerTest extends ControllerTestCase

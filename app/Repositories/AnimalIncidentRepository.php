@@ -52,10 +52,10 @@ final class AnimalIncidentRepository implements AnimalIncidentRepositoryInterfac
             VALUES (:animal_id, :severity, :description, :user_id, NOW(), "open")
         ');
         $stmt->execute([
-            'animal_id'   => $data['animal_id'],
-            'severity'    => $data['severity'],
+            'animal_id' => $data['animal_id'],
+            'severity' => $data['severity'],
             'description' => $data['description'],
-            'user_id'     => $data['reported_by_user_id'] ?? null,
+            'user_id' => $data['reported_by_user_id'] ?? null,
         ]);
 
         return (int) $this->db->lastInsertId();

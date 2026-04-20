@@ -10,8 +10,8 @@ declare(strict_types=1);
 
 use App\Core\Result;
 use App\Core\TransactionalService;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(TransactionalService::class)]
 final class ConcreteTransactionalService extends TransactionalService

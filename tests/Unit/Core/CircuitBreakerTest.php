@@ -6,9 +6,9 @@ namespace Tests\Unit\Core;
 
 use App\Core\CircuitBreaker;
 use App\Exceptions\CircuitOpenException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?

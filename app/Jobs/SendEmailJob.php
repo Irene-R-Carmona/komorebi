@@ -11,6 +11,7 @@ use App\Exceptions\ExternalServiceException;
 use Override;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\PHPMailer;
+use Throwable;
 
 /**
  * Job para envío de emails asíncrono
@@ -49,6 +50,7 @@ final class SendEmailJob implements JobInterface
             Logger::info('[SendEmailJob] Skipped duplicate (idempotency key already set)', [
                 'key' => $idempotencyKey,
             ]);
+
             return;
         }
 

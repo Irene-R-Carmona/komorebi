@@ -30,15 +30,14 @@ error_reporting(E_ALL);
 
 // Cargar todos los helpers de soporte en tests/Support/ de forma recursiva.
 $supportDir = __DIR__ . '/Support';
-if (\is_dir($supportDir)) {
+if (is_dir($supportDir)) {
     $iterator = new \RecursiveIteratorIterator(
         new \RecursiveDirectoryIterator($supportDir, \RecursiveDirectoryIterator::SKIP_DOTS)
     );
     foreach ($iterator as $file) {
         /** @var \SplFileInfo $file */
-        if ($file->isFile() && \str_ends_with($file->getFilename(), '.php')) {
+        if ($file->isFile() && str_ends_with($file->getFilename(), '.php')) {
             require_once $file->getPathname();
         }
     }
 }
-

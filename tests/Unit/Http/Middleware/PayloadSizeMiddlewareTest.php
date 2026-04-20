@@ -6,11 +6,11 @@ namespace Tests\Unit\Http\Middleware;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Middleware\PayloadSizeMiddleware;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * ¿Qué pruebas aquí?

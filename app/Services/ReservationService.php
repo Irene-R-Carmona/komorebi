@@ -20,6 +20,8 @@ use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
 use DateTimeImmutable;
+use Override;
+use PDOException;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Throwable;
 
@@ -78,7 +80,7 @@ final class ReservationService implements ReservationServiceInterface
      * @param CartServiceInterface|null $cart Carrito para añadir items
      * @return Result Result con el ID de la reserva creada (data), o fallo con error
      */
-    #[\Override]
+    #[Override]
     public function create(array $data, CartServiceInterface|null $cart = null): Result
     {
         try {
@@ -197,7 +199,7 @@ final class ReservationService implements ReservationServiceInterface
             return Result::fail($e->getMessage(), $code);
         } catch (NotFoundException $e) {
             return Result::fail($e->getMessage(), 'not_found');
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             Logger::error('[ReservationService] DB error in create()', ['exception' => $e->getMessage()]);
 
             return Result::fail('Error de base de datos', 'db_error');
@@ -207,8 +209,8 @@ final class ReservationService implements ReservationServiceInterface
     /**
      * Cancela una reserva verificando que pertenezca al usuario.
      *     */
-    #[\Override]
-    public function cancel(int $reservationId, int $userId): bool
+    #[Override]
+    public function cancel(int $reservationId, int $userId): Result
     {
         // Usando el nuevo repositorio
         $success = $this->reservationRepo->cancel($reservationId, $userId);
@@ -218,9 +220,11 @@ final class ReservationService implements ReservationServiceInterface
                 'reservation_id' => $reservationId,
                 'user_id' => $userId,
             ]);
+
+            return Result::fail('No se pudo cancelar la reserva');
         }
 
-        return $success;
+        return Result::ok(null);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -230,7 +234,7 @@ final class ReservationService implements ReservationServiceInterface
     /**
      * Obtiene las reservas de un usuario.
      */
-    #[\Override]
+    #[Override]
     public function getByUser(int $userId, ?string $status = null): array
     {
         // Usar siempre el repositorio (ya no hay lógica especial por status)
@@ -240,7 +244,7 @@ final class ReservationService implements ReservationServiceInterface
     /**
      * Obtiene las próximas reservas de un usuario.
      */
-    #[\Override]
+    #[Override]
     public function getUpcoming(int $userId, int $limit = 5): array
     {
         return $this->reservationRepo->findUpcomingByUser($userId, $limit);
@@ -252,7 +256,7 @@ final class ReservationService implements ReservationServiceInterface
      * @param array $cartItems Items del carrito [product_id => quantity]
      * @return array Productos con información completa
      */
-    #[\Override]
+    #[Override]
     public function enrichCartItems(array $cartItems): array
     {
         if (empty($cartItems)) {

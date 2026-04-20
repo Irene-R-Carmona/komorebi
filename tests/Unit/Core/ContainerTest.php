@@ -10,8 +10,8 @@ declare(strict_types=1);
 use App\Core\Container;
 use App\Repositories\Contracts\NewsletterSubscriptionRepositoryInterface;
 use App\Services\NewsletterService;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Test del DI Container - Auto-wiring.

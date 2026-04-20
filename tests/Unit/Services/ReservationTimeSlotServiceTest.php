@@ -27,8 +27,8 @@ use App\Models\Waitlist;
 use App\Services\ReservationTimeSlotService;
 use PDO;
 use PDOStatement;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ReservationTimeSlotService::class)]
 final class ReservationTimeSlotServiceTest extends TestCase
@@ -70,7 +70,7 @@ final class ReservationTimeSlotServiceTest extends TestCase
 
         $result = $this->service->createReservationWithSlot($data);
 
-        $this->assertFalse($result->isOk());
+        $this->assertFalse($result->ok);
     }
 
     public function testCreateFailsWhenDateIsEmpty(): void
@@ -80,7 +80,7 @@ final class ReservationTimeSlotServiceTest extends TestCase
 
         $result = $this->service->createReservationWithSlot($data);
 
-        $this->assertFalse($result->isOk());
+        $this->assertFalse($result->ok);
     }
 
     public function testCreateFailsWhenTimeIsEmpty(): void
@@ -90,7 +90,7 @@ final class ReservationTimeSlotServiceTest extends TestCase
 
         $result = $this->service->createReservationWithSlot($data);
 
-        $this->assertFalse($result->isOk());
+        $this->assertFalse($result->ok);
     }
 
     public function testCreateFailsWhenNoSlotsAvailable(): void
@@ -100,7 +100,7 @@ final class ReservationTimeSlotServiceTest extends TestCase
         // el servicio detecta que no hay slots → devuelve Result::fail.
         $result = $this->service->createReservationWithSlot(self::VALID_DATA);
 
-        $this->assertFalse($result->isOk());
+        $this->assertFalse($result->ok);
     }
 
     public function testCancelFailsWhenReservationNotFound(): void
@@ -110,6 +110,6 @@ final class ReservationTimeSlotServiceTest extends TestCase
         // cancelReservationAndPromote detecta ![] → devuelve Result::fail.
         $result = $this->service->cancelReservationAndPromote(999);
 
-        $this->assertFalse($result->isOk());
+        $this->assertFalse($result->ok);
     }
 }

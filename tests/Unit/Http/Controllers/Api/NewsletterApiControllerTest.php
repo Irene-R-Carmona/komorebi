@@ -21,8 +21,8 @@ use App\Http\Controllers\Api\V1\NewsletterApiController;
 use App\Services\Contracts\NewsletterServiceInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\ServerRequest;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(NewsletterApiController::class)]
 final class NewsletterApiControllerTest extends ControllerTestCase

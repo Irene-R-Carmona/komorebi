@@ -20,8 +20,8 @@ namespace Tests\Unit\Domain;
 
 use App\Domain\Reservation\ReservationStateMachine;
 use App\Exceptions\BusinessRuleException;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ReservationStateMachine::class)]
 final class ReservationStateMachineTest extends TestCase

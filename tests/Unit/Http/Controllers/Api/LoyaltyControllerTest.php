@@ -21,8 +21,8 @@ use App\Http\Controllers\Api\V1\LoyaltyController;
 use App\Repositories\Contracts\LoyaltyRepositoryInterface;
 use App\Services\LoyaltyService;
 use Nyholm\Psr7\ServerRequest;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(LoyaltyController::class)]
 final class LoyaltyControllerTest extends ControllerTestCase

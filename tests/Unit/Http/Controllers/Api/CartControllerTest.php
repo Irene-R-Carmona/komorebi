@@ -20,8 +20,8 @@ use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Http\Controllers\Api\V1\CartController;
 use App\Services\Contracts\CartServiceInterface;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(CartController::class)]
 final class CartControllerTest extends ControllerTestCase

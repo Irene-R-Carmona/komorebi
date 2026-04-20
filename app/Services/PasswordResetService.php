@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\PasswordResetServiceInterface;
 use App\Services\Contracts\RateLimitingServiceInterface;
+use Override;
 use Random\RandomException;
 use RuntimeException;
 
@@ -27,7 +28,8 @@ final class PasswordResetService implements PasswordResetServiceInterface
         private readonly SessionManagementService $sessionService,
         private readonly RateLimitingServiceInterface $rateLimiter,
         private readonly EmailServiceInterface $emailService,
-    ) {}
+    ) {
+    }
 
     /**
      * Solicitar reset de contraseña (forgot password).
@@ -35,7 +37,7 @@ final class PasswordResetService implements PasswordResetServiceInterface
      * @return Result
      * @throws RandomException
      */
-    #[\Override]
+    #[Override]
     public function requestPasswordReset(string $email, string $ipAddress, ?string $userAgent = null): Result
     {
         $email = \strtolower(\trim($email));
@@ -92,7 +94,7 @@ final class PasswordResetService implements PasswordResetServiceInterface
      *
      * @return Result<array<string,mixed>>
      */
-    #[\Override]
+    #[Override]
     public function validatePasswordResetToken(string $token): Result
     {
         return $this->tokenService->validatePasswordResetToken($token);
@@ -103,7 +105,7 @@ final class PasswordResetService implements PasswordResetServiceInterface
      *
      * @return Result
      */
-    #[\Override]
+    #[Override]
     public function resetPasswordWithToken(string $token, string $newPassword, string $confirmPassword): Result
     {
         // Validar token

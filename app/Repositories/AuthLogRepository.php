@@ -68,12 +68,12 @@ final class AuthLogRepository extends AbstractRepository implements AuthLogRepos
 
         return $stmt->execute([
             'user_id' => $userId,
-            'event'   => $eventType,
-            'ip'      => $ipAddress,
-            'ua'      => $userAgent,
-            'device'  => $deviceName,
+            'event' => $eventType,
+            'ip' => $ipAddress,
+            'ua' => $userAgent,
+            'device' => $deviceName,
             'success' => $success ? 1 : 0,
-            'reason'  => $reason,
+            'reason' => $reason,
         ]);
     }
 
@@ -191,9 +191,9 @@ final class AuthLogRepository extends AbstractRepository implements AuthLogRepos
         $topIpsStmt->execute($params);
 
         return [
-            'totals'        => $totalsStmt->fetch(PDO::FETCH_ASSOC),
+            'totals' => $totalsStmt->fetch(PDO::FETCH_ASSOC),
             'events_by_type' => $byTypeStmt->fetchAll(PDO::FETCH_ASSOC),
-            'top_ips'       => $topIpsStmt->fetchAll(PDO::FETCH_ASSOC),
+            'top_ips' => $topIpsStmt->fetchAll(PDO::FETCH_ASSOC),
         ];
     }
 }

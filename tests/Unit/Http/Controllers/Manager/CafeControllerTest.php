@@ -20,8 +20,8 @@ use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Manager\CafeController;
 use App\Services\Contracts\CafeServiceInterface;
 use Nyholm\Psr7\ServerRequest;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(CafeController::class)]
 final class CafeControllerTest extends ControllerTestCase

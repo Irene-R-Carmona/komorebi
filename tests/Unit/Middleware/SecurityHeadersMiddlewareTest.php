@@ -14,10 +14,10 @@ use App\Middleware\SecurityHeadersMiddleware;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para SecurityHeadersMiddleware

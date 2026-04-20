@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
@@ -13,8 +14,7 @@ use App\Http\Transformers\UserTransformer;
 use App\Models\AuditLog;
 use App\Models\Role;
 use App\Repositories\Contracts\UserRepositoryInterface;
-use App\Repositories\UserRepository;
-use App\Services\UserManagementService;
+use App\Services\Contracts\UserManagementServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -36,18 +36,18 @@ use Random\RandomException;
 final class UserController
 {
     private Role $roleModel;
-    private UserManagementService $userManagementService;
+    private UserManagementServiceInterface $userManagementService;
     private UserRepositoryInterface $userRepo;
     private ResponseFactory $response;
     private UserTransformer $userTransformer;
 
     private const CSRF_INVALID = 'Token de seguridad inválido';
 
-    public function __construct(?UserManagementService $userManagementService = null, ?UserRepositoryInterface $userRepo = null, ?ResponseFactory $response = null, ?UserTransformer $userTransformer = null)
+    public function __construct(?UserManagementServiceInterface $userManagementService = null, ?UserRepositoryInterface $userRepo = null, ?ResponseFactory $response = null, ?UserTransformer $userTransformer = null)
     {
         $this->roleModel = new Role();
-        $this->userManagementService = $userManagementService ?? new UserManagementService();
-        $this->userRepo = $userRepo ?? new UserRepository();
+        $this->userManagementService = $userManagementService ?? Container::make(UserManagementServiceInterface::class);
+        $this->userRepo = $userRepo ?? Container::make(UserRepositoryInterface::class);
         $this->response = $response ?? new ResponseFactory();
         $this->userTransformer = $userTransformer ?? new UserTransformer();
     }
@@ -66,9 +66,9 @@ final class UserController
         // Calcular estadísticas desde datos crudos (antes de transformar)
         $stats = [
             'total_users' => \count($rawUsers),
-            'active_users' => \count(\array_filter($rawUsers, static fn($u) => !empty($u['is_active']))),
-            'admin_users' => \count(\array_filter($rawUsers, static fn($u) => \stripos($u['roles'] ?? '', 'admin') !== false)),
-            'inactive_users' => \count(\array_filter($rawUsers, static fn($u) => empty($u['is_active']))),
+            'active_users' => \count(\array_filter($rawUsers, static fn ($u) => !empty($u['is_active']))),
+            'admin_users' => \count(\array_filter($rawUsers, static fn ($u) => \stripos($u['roles'] ?? '', 'admin') !== false)),
+            'inactive_users' => \count(\array_filter($rawUsers, static fn ($u) => empty($u['is_active']))),
         ];
 
         View::render('admin/users/index', [
@@ -178,7 +178,7 @@ final class UserController
                 'user',
                 $userId,
                 null,
-                \array_filter($data, static fn($v) => $v !== null)
+                \array_filter($data, static fn ($v) => $v !== null)
             );
 
             return $this->response->json(['ok' => true, 'data' => ['message' => 'Usuario actualizado exitosamente']]);

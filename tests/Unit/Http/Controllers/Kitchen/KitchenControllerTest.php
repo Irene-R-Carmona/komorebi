@@ -23,8 +23,8 @@ use App\Http\Controllers\Kitchen\KitchenController;
 use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Services\KitchenService;
 use Nyholm\Psr7\ServerRequest;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(KitchenController::class)]
 final class KitchenControllerTest extends ControllerTestCase

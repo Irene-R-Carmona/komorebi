@@ -15,7 +15,6 @@ namespace Tests\Unit\Repositories;
 
 use App\Repositories\AllergenRepository;
 use InvalidArgumentException;
-use Override;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -210,5 +209,3 @@ final class AllergenRepositoryTest extends RepositoryTestCase
         $this->assertTrue($result);
     }
 }
-
-

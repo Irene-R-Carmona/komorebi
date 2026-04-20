@@ -74,15 +74,14 @@ final class AllergenCodeGeneratorTest extends TestCase
     public static function nameProvider(): array
     {
         return [
-            'simple'       => ['Cacahuetes'],
-            'accented'     => ['Sésamo'],
-            'with spaces'  => ['Frutos secos'],
-            'mixed'        => ['Huevos (y derivados)'],
-            'numbers'      => ['Alérgeno 9'],
+            'simple' => ['Cacahuetes'],
+            'accented' => ['Sésamo'],
+            'with spaces' => ['Frutos secos'],
+            'mixed' => ['Huevos (y derivados)'],
+            'numbers' => ['Alérgeno 9'],
             'only numbers' => ['123'],
             // Caracteres japoneses no son transliterables a ASCII → devuelve ALLERGEN (fallback)
-            'japanese'     => ['アレルゲン'],
+            'japanese' => ['アレルゲン'],
         ];
     }
 }
-

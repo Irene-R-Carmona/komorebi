@@ -11,10 +11,10 @@ log() {
     printf '[INIT][%s] %s\n' "$(date +%H:%M:%S)" "$1"
 }
 
-log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-log "  Komorebi Café — Bootstrap del contenedor"
+log "==================================================="
+log "  Komorebi Cafe -- Bootstrap del contenedor"
 log "  Servicio: ${COMPOSE_SERVICE:-app} | Entorno: ${APP_ENV:-?}"
-log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+log "==================================================="
 
 log "Creando directorios de almacenamiento..."
 mkdir -p "$STORAGE_DIR/uploads" "$STORAGE_DIR/logs" "$STORAGE_DIR/cache"
@@ -40,11 +40,11 @@ if [ "${SKIP_COMPOSER:-0}" != "1" ]; then
         if command -v composer >/dev/null 2>&1; then
             log "PASO 1/4: vendor/ ausente — ejecutando composer install..."
             log "          ADVERTENCIA: Primera ejecución puede tardar 2-4 min."
-            log "          Toda la salida de Composer aparece a continuación:"
-            log "──────────────────────────────────────────────────────────────"
+            log "          Toda la salida de Composer aparece a continuacion:"
+            log "--------------------------------------------------------------"
             composer install --no-interaction --prefer-dist --optimize-autoloader 2>&1 | tee -a "$ACTIVE_LOG"
             composer_rc=${PIPESTATUS[0]}
-            log "──────────────────────────────────────────────────────────────"
+            log "--------------------------------------------------------------"
             if [ "$composer_rc" -ne 0 ]; then
                 log "ERROR: composer install falló (código $composer_rc)."
                 log "ERROR: Ver log completo en: $ACTIVE_LOG"
@@ -105,13 +105,13 @@ if [ "${SKIP_MIGRATIONS:-0}" = "0" ]; then
         while [ "$attempts" -lt "$max_attempts" ]; do
             attempts=$((attempts + 1))
             log "PASO 3/4: Ejecutando apply-db.php (intento $attempts/$max_attempts)..."
-            log "──────────────────────────────────────────────────────────────"
+            log "--------------------------------------------------------------"
 
             # Ejecutar con salida en tiempo real (tee) y capturar exit code con PIPESTATUS
             php "$MIGRATE_SCRIPT" --force 2>&1 | tee /tmp/migrate-attempt.log
             rc=${PIPESTATUS[0]:-1}
 
-            log "──────────────────────────────────────────────────────────────"
+            log "--------------------------------------------------------------"
             cat /tmp/migrate-attempt.log >> "$ACTIVE_LOG" 2>/dev/null || true
 
             if [ "$ACTIVE_LOG" = "$TMP_LOG" ]; then
@@ -140,5 +140,5 @@ fi
 
 # ── PASO 4/4: Listo ────────────────────────────────────────────
 log "PASO 4/4: Entorno listo. Arrancando proceso principal: $*"
-log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+log "==================================================="
 exec "$@"

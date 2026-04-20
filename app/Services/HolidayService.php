@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Logger;
 use App\Core\Result;
 use App\Services\Contracts\HolidayServiceInterface;
+use Override;
 use Throwable;
 
 /**
@@ -41,7 +42,7 @@ final class HolidayService implements HolidayServiceInterface
      * @param integer $year
      * @return Result Data contiene ['holidays' => array, 'cached' => bool]
      */
-    #[\Override]
+    #[Override]
     public function getHolidaysByYear(int $year): Result
     {
         try {
@@ -103,7 +104,7 @@ final class HolidayService implements HolidayServiceInterface
      * @param integer $endYear
      * @return Result Data contiene ['holidays' => array]
      */
-    #[\Override]
+    #[Override]
     public function getHolidaysByRange(int $startYear, int $endYear): Result
     {
         try {
@@ -131,7 +132,7 @@ final class HolidayService implements HolidayServiceInterface
             }
 
             // Ordenar por fecha
-            \usort($allHolidays, static fn($a, $b) => \strcmp($a['date'], $b['date']));
+            \usort($allHolidays, static fn ($a, $b) => \strcmp($a['date'], $b['date']));
 
             return Result::ok(['holidays' => $allHolidays]);
         } catch (Throwable $e) {
@@ -147,7 +148,7 @@ final class HolidayService implements HolidayServiceInterface
      * @param string $date Formato: Y-m-d
      * @return Result Data contiene ['is_holiday' => bool, 'holiday' => array|null]
      */
-    #[\Override]
+    #[Override]
     public function isHoliday(string $date): Result
     {
         try {
@@ -192,7 +193,7 @@ final class HolidayService implements HolidayServiceInterface
      * @param integer $limit Número máximo de festivos a retornar
      * @return Result Data contiene ['holidays' => array]
      */
-    #[\Override]
+    #[Override]
     public function getUpcomingHolidays(int $limit = 5): Result
     {
         try {
@@ -215,10 +216,10 @@ final class HolidayService implements HolidayServiceInterface
             }
 
             // Filtrar solo festivos futuros
-            $upcomingHolidays = \array_filter($allHolidays, static fn($h) => $h['date'] >= $today);
+            $upcomingHolidays = \array_filter($allHolidays, static fn ($h) => $h['date'] >= $today);
 
             // Ordenar por fecha
-            \usort($upcomingHolidays, static fn($a, $b) => \strcmp($a['date'], $b['date']));
+            \usort($upcomingHolidays, static fn ($a, $b) => \strcmp($a['date'], $b['date']));
 
             // Limitar resultados
             $upcomingHolidays = \array_slice($upcomingHolidays, 0, $limit);

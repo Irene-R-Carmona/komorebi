@@ -10,6 +10,7 @@ use App\Core\Logger;
 use App\Core\Queue;
 use App\Core\WideEvent;
 use App\Exceptions\BusinessRuleException;
+use Override;
 use PDO;
 use Throwable;
 
@@ -48,7 +49,7 @@ final class WaitlistPromotionJob implements JobInterface
      * @return void
      * @throws BusinessRuleException Si el token ya expiró
      */
-    #[\Override]
+    #[Override]
     public function handle(array $payload): void
     {
         // Support lightweight push: just the entry ID — hydrate from DB

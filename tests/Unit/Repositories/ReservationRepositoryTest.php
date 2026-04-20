@@ -13,9 +13,9 @@ namespace Repositories;
 use App\Repositories\ReservationRepository;
 use PDO;
 use PDOStatement;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para ReservationRepository.

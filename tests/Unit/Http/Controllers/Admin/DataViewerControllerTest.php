@@ -19,8 +19,8 @@ namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\DataViewerController;
 use App\Repositories\Contracts\StatisticsRepositoryInterface;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(DataViewerController::class)]
 final class DataViewerControllerTest extends ControllerTestCase
@@ -39,7 +39,7 @@ final class DataViewerControllerTest extends ControllerTestCase
         ));
 
         \ob_start();
-        $result = (new DataViewerController($statsRepo))->index($this->makeGetRequest('/admin/data-viewer'));
+        $result = new DataViewerController($statsRepo)->index($this->makeGetRequest('/admin/data-viewer'));
         \ob_end_clean();
 
         $this->assertNull($result);

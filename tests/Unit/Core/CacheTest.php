@@ -9,8 +9,8 @@ declare(strict_types=1);
  */
 
 use App\Core\Cache;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests para el sistema de Cache Redis

@@ -18,9 +18,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Repositories\Contracts\AllergenRepositoryInterface;
 use App\Services\AllergenService;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(AllergenService::class)]
 final class AllergenServiceTest extends TestCase
@@ -29,9 +30,9 @@ final class AllergenServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        // Pasamos null → el constructor creará el modelo (DB disponible)
-        // Pero todos los tests que aquí validamos retornan ANTES de tocar la DB
-        $this->service = new AllergenService();
+        $this->service = new AllergenService(
+            $this->createStub(AllergenRepositoryInterface::class)
+        );
     }
 
     // ──────────────────────────────────────────────

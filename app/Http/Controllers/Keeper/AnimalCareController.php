@@ -4,21 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Keeper;
 
-use App\Core\Csrf;
-use App\Core\Database;
 use App\Core\Container;
+use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Exceptions\DatabaseException;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
-use App\Repositories\AnimalRepository;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
-use App\Repositories\HealthCheckRepository;
-use App\Services\AnimalCareService;
+use App\Services\Contracts\AnimalCareServiceInterface;
 use App\Services\Contracts\FileUploadServiceInterface;
-use App\Services\HealthCheckService;
+use App\Services\Contracts\HealthCheckServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -33,38 +30,24 @@ use Random\RandomException;
  */
 final class AnimalCareController
 {
-    private AnimalCareService $animalCareService;
+    private AnimalCareServiceInterface $animalCareService;
     private FileUploadServiceInterface $fileUploadService;
-    private HealthCheckService $healthCheckService;
+    private HealthCheckServiceInterface $healthCheckService;
     private AnimalRepositoryInterface $animalRepository;
     private ResponseFactory $response;
 
     public function __construct(
-        ?AnimalCareService $animalCareService = null,
+        ?AnimalCareServiceInterface $animalCareService = null,
         ?FileUploadServiceInterface $fileUploadService = null,
-        ?HealthCheckService $healthCheckService = null,
+        ?HealthCheckServiceInterface $healthCheckService = null,
         ?AnimalRepositoryInterface $animalRepository = null,
         ?ResponseFactory $response = null,
     ) {
+        $this->animalCareService = $animalCareService ?? Container::make(AnimalCareServiceInterface::class);
         $this->fileUploadService = $fileUploadService ?? Container::make(FileUploadServiceInterface::class);
+        $this->healthCheckService = $healthCheckService ?? Container::make(HealthCheckServiceInterface::class);
+        $this->animalRepository = $animalRepository ?? Container::make(AnimalRepositoryInterface::class);
         $this->response = $response ?? new ResponseFactory();
-
-        if ($animalCareService !== null && $healthCheckService !== null && $animalRepository !== null) {
-            $this->animalCareService = $animalCareService;
-            $this->healthCheckService = $healthCheckService;
-            $this->animalRepository = $animalRepository;
-
-            return;
-        }
-
-        $db = Database::getConnection();
-        $animalRepo = $animalRepository ?? new AnimalRepository($db);
-
-        $this->animalCareService = $animalCareService ?? new AnimalCareService($db, $animalRepo);
-        $this->healthCheckService = $healthCheckService ?? new HealthCheckService(
-            new HealthCheckRepository($db)
-        );
-        $this->animalRepository = $animalRepo;
     }
 
     // TODO(plan7-cleanup): método legacy sin ruta activa — eliminar en fase2-psr7-migration

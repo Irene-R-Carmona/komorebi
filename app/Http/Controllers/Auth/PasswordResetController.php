@@ -18,6 +18,7 @@ use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
+use Throwable;
 
 /**
  * Controlador de Resteo de Contraseña
@@ -89,7 +90,7 @@ final class PasswordResetController
             Flash::success('Si el email existe, recibirás instrucciones para recuperar tu contraseña.');
 
             return $this->response->redirect('/auth/forgot-password');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Loguear para diagnóstico y evitar que una excepción externa provoque 500 no gestionado
             \App\Core\Logger::error('[PasswordReset] ' . $e->getMessage(), ['exception' => (string) $e]);
 

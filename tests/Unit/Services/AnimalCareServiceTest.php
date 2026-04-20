@@ -20,23 +20,18 @@ namespace Tests\Unit\Services;
 
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Services\AnimalCareService;
-use PDO;
-use PDOStatement;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(AnimalCareService::class)]
 final class AnimalCareServiceTest extends TestCase
 {
     /** @var \PHPUnit\Framework\MockObject\Stub&AnimalRepositoryInterface */
     private AnimalRepositoryInterface $repoStub;
-    /** @var \PHPUnit\Framework\MockObject\Stub&PDO */
-    private PDO $pdoStub;
 
     protected function setUp(): void
     {
         $this->repoStub = $this->createMock(AnimalRepositoryInterface::class);
-        $this->pdoStub = $this->createMock(PDO::class);
     }
 
     // ──────────────────────────────────────────────
@@ -53,8 +48,8 @@ final class AnimalCareServiceTest extends TestCase
             ->method('getAnimalsWithCafeInfoOptimized')
             ->willReturn($animalesEsperados);
 
-        $service = new AnimalCareService($this->pdoStub, $this->repoStub);
-        $result = $service->getAllAnimals();
+        $service = new AnimalCareService($this->repoStub);
+        $result  = $service->getAllAnimals();
 
         $this->assertSame($animalesEsperados, $result);
     }
@@ -67,10 +62,7 @@ final class AnimalCareServiceTest extends TestCase
     {
         $this->repoStub->method('findById')->willReturn(null);
 
-        $service = new AnimalCareService($this->pdoStub, $this->repoStub);
-        $result = $service->getAnimalById(999);
-
-        $this->assertNull($result);
+        $this->assertNull((new AnimalCareService($this->repoStub))->getAnimalById(999));
     }
 
     public function testGetAnimalByIdDevuelveArrayCuandoExiste(): void
@@ -78,10 +70,7 @@ final class AnimalCareServiceTest extends TestCase
         $animal = ['id' => 5, 'name' => 'Mochi', 'species_type' => 'rabbit'];
         $this->repoStub->method('findById')->willReturn($animal);
 
-        $service = new AnimalCareService($this->pdoStub, $this->repoStub);
-        $result = $service->getAnimalById(5);
-
-        $this->assertSame($animal, $result);
+        $this->assertSame($animal, (new AnimalCareService($this->repoStub))->getAnimalById(5));
     }
 
     // ──────────────────────────────────────────────
@@ -90,8 +79,7 @@ final class AnimalCareServiceTest extends TestCase
 
     public function testCreateAnimalSinNombreRetornaFail(): void
     {
-        $service = new AnimalCareService($this->pdoStub, $this->repoStub);
-        $result = $service->createAnimal(['species' => 'cat']);
+        $result = (new AnimalCareService($this->repoStub))->createAnimal(['species' => 'cat']);
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Nombre', $result->error);
@@ -99,8 +87,7 @@ final class AnimalCareServiceTest extends TestCase
 
     public function testCreateAnimalSinEspecieRetornaFail(): void
     {
-        $service = new AnimalCareService($this->pdoStub, $this->repoStub);
-        $result = $service->createAnimal(['name' => 'Neko']);
+        $result = (new AnimalCareService($this->repoStub))->createAnimal(['name' => 'Neko']);
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('especie', $result->error);
@@ -108,26 +95,21 @@ final class AnimalCareServiceTest extends TestCase
 
     public function testCreateAnimalConDatosVaciosRetornaFail(): void
     {
-        $service = new AnimalCareService($this->pdoStub, $this->repoStub);
-        $result = $service->createAnimal([]);
+        $result = (new AnimalCareService($this->repoStub))->createAnimal([]);
 
         $this->assertFalse($result->ok);
     }
 
     // ──────────────────────────────────────────────
-    // updateAnimal — fallo PDO
+    // updateAnimal — fallo de repositorio
     // ──────────────────────────────────────────────
 
     public function testUpdateAnimalCuandoNingunFilaAfectadaRetornaFail(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('rowCount')->willReturn(0); // ninguna fila afectada
+        $this->repoStub->method('updateAnimal')->willReturn(false);
 
-        $this->pdoStub->method('prepare')->willReturn($stmt);
-
-        $service = new AnimalCareService($this->pdoStub, $this->repoStub);
-        $result = $service->updateAnimal(999, ['name' => 'Ghost', 'species' => 'cat']);
+        $service = new AnimalCareService($this->repoStub);
+        $result  = $service->updateAnimal(999, ['name' => 'Ghost', 'species' => 'cat']);
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('no encontrado', $result->error);

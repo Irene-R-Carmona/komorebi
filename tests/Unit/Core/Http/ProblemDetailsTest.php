@@ -13,8 +13,8 @@ declare(strict_types=1);
 use App\Core\Http\ProblemDetails;
 use App\Core\Result;
 use App\Core\ServiceErrorCode;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ProblemDetails::class)]
 final class ProblemDetailsTest extends TestCase

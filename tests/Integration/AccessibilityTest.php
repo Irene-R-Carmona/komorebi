@@ -10,11 +10,11 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * Accessibility Test Suite - HTML Structure & ARIA Validation

@@ -10,8 +10,8 @@ declare(strict_types=1);
 
 use App\Core\ValueObjects\Slug;
 use App\Exceptions\ValidationException;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Slug::class)]
 final class SlugTest extends TestCase

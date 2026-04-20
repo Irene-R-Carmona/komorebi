@@ -41,4 +41,3 @@ abstract class AbstractModel
         return $this->db ??= Database::getConnection();
     }
 }
-

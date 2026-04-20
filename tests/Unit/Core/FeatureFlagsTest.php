@@ -23,10 +23,10 @@ namespace Tests\Unit\Core;
 
 use App\Core\Env;
 use App\Core\Router;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionProperty;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(Env::class)]
 #[CoversClass(Router::class)]

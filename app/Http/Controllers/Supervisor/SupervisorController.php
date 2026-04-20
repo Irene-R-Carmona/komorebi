@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Supervisor;
 
+use App\Core\Container;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Repositories\ReservationRepository;
 use App\Services\Contracts\SupervisorAssignmentServiceInterface;
 use App\Services\KitchenService;
@@ -45,7 +47,7 @@ final class SupervisorController
         ?KitchenService $kitchenService = null,
     ) {
         $this->reservationRepo = $reservationRepo ?? new ReservationRepository();
-        $this->kitchenService = $kitchenService ?? new KitchenService();
+        $this->kitchenService = $kitchenService ?? new KitchenService(Container::make(ReservationItemRepositoryInterface::class));
         $this->response = new ResponseFactory();
     }
 
@@ -79,7 +81,7 @@ final class SupervisorController
 
         // Mesas ocupadas = reservas con check-in activo ahora
         $activeTables = \array_values(
-            \array_filter($reservations, fn(array $r): bool => $r['status'] === 'checked_in')
+            \array_filter($reservations, fn (array $r): bool => $r['status'] === 'checked_in')
         );
 
         // Órdenes en curso desde el KDS

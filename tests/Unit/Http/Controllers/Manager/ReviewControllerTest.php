@@ -28,9 +28,9 @@ use App\Core\Result;
 use App\Http\Controllers\Manager\ReviewController;
 use App\Services\Contracts\ReviewModerationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ReviewController::class)]
 final class ReviewControllerTest extends TestCase

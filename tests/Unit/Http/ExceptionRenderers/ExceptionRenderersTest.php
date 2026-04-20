@@ -33,10 +33,10 @@ use App\Http\ExceptionRenderers\ValidationExceptionRenderer;
 use Error;
 use LogicException;
 use Nyholm\Psr7\Factory\Psr17Factory;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
-use PHPUnit\Framework\Attributes\CoversNothing;
 
 #[CoversNothing]
 final class ExceptionRenderersTest extends TestCase

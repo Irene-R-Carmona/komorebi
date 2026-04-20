@@ -20,9 +20,9 @@ declare(strict_types=1);
  * en RbacSeeder.php hará fallar los tests inmediatamente.
  */
 
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 use App\Core\Seeders\RbacSeeder;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(RbacSeeder::class)]
 final class RbacSeederCorrectionsTest extends TestCase

@@ -151,4 +151,16 @@ interface WaitlistRepositoryInterface
      * Cancelar una entrada de waitlist por ID (acción admin).
      */
     public function cancelById(int $id): bool;
+
+    /**
+     * Buscar una entrada de waitlist por ID y usuario (validación de ownership).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findByIdAndUser(int $id, int $userId): ?array;
+
+    /**
+     * Contar entradas de waitlist de un time slot por estado.
+     */
+    public function countByTimeSlotAndStatus(int $timeSlotId, string $status): int;
 }

@@ -13,8 +13,8 @@ namespace Repositories;
 use App\Repositories\CafeRepository;
 use PDO;
 use PDOStatement;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests para CafeRepository

@@ -86,4 +86,14 @@ interface TimeSlotRepositoryInterface
      * @return array<string, mixed>
      */
     public function getOccupancyStats(int $cafeId, string $startDate, string $endDate): array;
+
+    /**
+     * Buscar slots disponibles para una fecha con filtros opcionales.
+     *
+     * @param string   $date   Fecha en formato Y-m-d
+     * @param int|null $cafeId Filtrar por café (opcional)
+     * @param int|null $guests Filtrar por plazas mínimas disponibles (opcional)
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAvailableByDateFiltered(string $date, ?int $cafeId = null, ?int $guests = null): array;
 }

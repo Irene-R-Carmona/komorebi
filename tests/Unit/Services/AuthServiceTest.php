@@ -15,11 +15,9 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\AuthService;
 use App\Services\Contracts\RateLimitingServiceInterface;
 use App\Services\Contracts\SessionManagementServiceInterface;
-use PDO;
-use PDOStatement;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Random\RandomException;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para AuthService usando Result Pattern
@@ -46,18 +44,11 @@ final class AuthServiceTest extends TestCase
         $this->sessionServiceStub = $this->createMock(SessionManagementServiceInterface::class);
         $this->userModelStub = $this->createMock(UserModelInterface::class);
 
-        // PDO stub: prepare() devuelve un statement que ejecuta sin errores
-        $stmtStub = $this->createMock(PDOStatement::class);
-        $stmtStub->method('execute')->willReturn(true);
-        $pdoStub = $this->createMock(PDO::class);
-        $pdoStub->method('prepare')->willReturn($stmtStub);
-
         $this->service = new AuthService(
             $this->userRepoMock,
             $this->userModelStub,
             $this->sessionServiceStub,
-            $this->rateLimiterStub,
-            $pdoStub
+            $this->rateLimiterStub
         );
 
         // Simular superglobales (IP única por test para evitar rate-limits acumulados)
@@ -176,18 +167,12 @@ final class AuthServiceTest extends TestCase
             ->with($this->equalTo('test@example.com'))
             ->willReturn(null);
 
-        $stmtStub = $this->createMock(PDOStatement::class);
-        $stmtStub->method('execute')->willReturn(true);
-        $pdoStub = $this->createMock(PDO::class);
-        $pdoStub->method('prepare')->willReturn($stmtStub);
-
         // Usar servicio construido con el mock que verifica el argumento
         $service = new AuthService(
             $mock,
             $this->userModelStub,
             $this->sessionServiceStub,
-            $this->rateLimiterStub,
-            $pdoStub
+            $this->rateLimiterStub
         );
         $service->login('TEST@EXAMPLE.COM', 'password123');
 

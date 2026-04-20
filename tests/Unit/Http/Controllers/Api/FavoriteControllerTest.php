@@ -20,8 +20,8 @@ use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Repositories\Contracts\FavoriteRepositoryInterface;
 use Nyholm\Psr7\ServerRequest;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(FavoriteController::class)]
 final class FavoriteControllerTest extends ControllerTestCase

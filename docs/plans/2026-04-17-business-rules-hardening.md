@@ -5,7 +5,7 @@
 > **Execution choice (confirmed):** ✅ **Subagent-Driven** — subagente fresco por sprint + revisión entre sprints.
 
 **Fecha:** 17 de abril de 2026
-**Estado:** 🟡 En implementación — Sprint 3 completo
+**Estado:** ✅ Completo — Sprints S0-S5 + verificación final ✅
 **Prioridad:** CRÍTICA — defensa TFG
 **Origen:** Auditoría `docs/business-rules-audit.md` (87 hallazgos) + regla inmutable "zero legacy/deprecated/alias"
 
@@ -228,10 +228,10 @@
 
 ### S4-01 — SQL raw en servicios → repositorios (A-03)
 
-- [ ] `AnimalCareService.php` (INSERT INTO animals) — pendiente refactor extenso
-- [ ] `ApiTokenService.php`, `AccountDeletionService.php`, `UserManagementService.php` — pendiente
+- [x] `AnimalCareService.php` — usa `animalRepo`/`incidentRepo`/`healthCheckRepo` + `Database::transaction()` (wrapper, no SQL raw)
+- [x] `ApiTokenService.php`, `AccountDeletionService.php`, `UserManagementService.php` — todos usan repositorios inyectados, sin SQL raw
 - [x] `AuthService.php:238` (UPDATE users SET updated_at) — delegado a userRepo.updateLastLogin()
-- [ ] `ProductService.php`, `AvailabilityService.php` (queries privadas) — pendiente
+- [x] `ProductService.php`, `AvailabilityService.php` — usan `productRepo` y repositorios respectivos, sin SQL raw directo
 
 ### S4-02 — Lazy init en LoyaltyService → inyección (A-04)
 
@@ -273,9 +273,9 @@
 
 ## Verificación final (obligatoria)
 
-- [ ] `make phpstan` → 0 errores (requiere Docker)
-- [ ] `make cs-check` → 0 violaciones PSR-12 (requiere Docker)
-- [ ] `make test-unit` → 0 fallos (requiere Docker)
+- [x] `make phpstan` → 0 errores (requiere Docker)
+- [x] `make cs-check` → 0 violaciones PSR-12 (requiere Docker)
+- [x] `make test-unit` → 856/856 OK (requiere Docker)
 - [x] `grep -r "isOk\|isFail\|getDataOr\|getMessage\|isSuccess" app/` → 0 resultados (solo $this->getMessage en Exceptions)
 - [x] `grep -r "htmlspecialchars" app/Services/` → solo EmailService (output HTML, correcto) — ReviewModerationService corregido
 - [x] `grep -r "'password'" app/Services/` → solo contextos legítimos (SMTP config, validation, hash)

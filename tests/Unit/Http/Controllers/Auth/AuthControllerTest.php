@@ -20,9 +20,9 @@ namespace Tests\Unit\Http\Controllers\Auth;
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Auth\AuthController;
 use App\Services\Contracts\AuthServiceInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(AuthController::class)]
 final class AuthControllerTest extends ControllerTestCase

@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\BaseService;
 use App\Core\Cache;
-use App\Core\Database;
 use App\Core\Logger;
-use App\Core\TransactionalService;
 use App\Exceptions\DatabaseException;
 use App\Exceptions\ValidationException;
 use App\Models\AuditLog;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\Contracts\ProductServiceInterface;
 use Override;
-use PDO;
 use PDOException;
 
 /**
@@ -23,13 +21,12 @@ use PDOException;
  * Encapsula la lógica de negocio relacionada con productos del menú.
  * Maneja validación, persistencia y consultas.
  */
-final class ProductService extends TransactionalService implements ProductServiceInterface
+final class ProductService extends BaseService implements ProductServiceInterface
 {
     private ProductRepositoryInterface $productRepo;
 
-    public function __construct(ProductRepositoryInterface $productRepo, ?PDO $pdo = null)
+    public function __construct(ProductRepositoryInterface $productRepo)
     {
-        parent::__construct($pdo ?? Database::getConnection());
         $this->productRepo = $productRepo;
     }
 
@@ -50,14 +47,7 @@ final class ProductService extends TransactionalService implements ProductServic
         }
 
         // Si no está en cache, consultar BD
-        $stmt = $this->db->query('
-            SELECT p.*, c.name as category_name
-            FROM products p
-            LEFT JOIN menu_categories c ON p.category_id = c.id
-            ORDER BY c.name, p.name
-        ');
-
-        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $products = $this->productRepo->findAllWithCategoryName();
 
         // Guardar en cache por 1 hora
         Cache::set($cacheKey, $products, 3600);
@@ -257,9 +247,7 @@ final class ProductService extends TransactionalService implements ProductServic
     public function toggleActive(int $id): bool
     {
         try {
-            $sql = 'UPDATE products SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP WHERE id = :id';
-
-            $success = $this->db->prepare($sql)->execute(['id' => $id]);
+            $success = $this->productRepo->toggleAvailability($id);
 
             if ($success) {
                 $this->invalidateCache();
@@ -282,16 +270,7 @@ final class ProductService extends TransactionalService implements ProductServic
     #[Override]
     public function getByCategory(int $categoryId): array
     {
-        $stmt = $this->db->prepare('
-            SELECT * FROM products
-            WHERE category_id = :category_id
-            AND is_active = 1
-            ORDER BY name
-        ');
-
-        $stmt->execute(['category_id' => $categoryId]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->productRepo->findByCategoryId($categoryId);
     }
 
     /**
@@ -303,19 +282,7 @@ final class ProductService extends TransactionalService implements ProductServic
     #[Override]
     public function search(string $query): array
     {
-        $stmt = $this->db->prepare('
-            SELECT p.*, c.name as category_name
-            FROM products p
-            LEFT JOIN menu_categories c ON p.category_id = c.id
-            WHERE p.name LIKE :query
-            OR p.description LIKE :query
-            OR p.japanese_name LIKE :query
-            ORDER BY p.name
-        ');
-
-        $stmt->execute(['query' => "%$query%"]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->productRepo->search($query);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -333,31 +300,9 @@ final class ProductService extends TransactionalService implements ProductServic
     #[Override]
     public function syncAllergens(int $productId, array $allergenIds): bool
     {
-        try {
-            $this->db->beginTransaction();
+        $success = $this->productRepo->syncAllergens($productId, $allergenIds);
 
-            // Eliminar alérgenos actuales
-            $stmt = $this->db->prepare('DELETE FROM product_allergens WHERE product_id = :product_id');
-            $stmt->execute(['product_id' => $productId]);
-
-            // Insertar nuevos alérgenos
-            if (!empty($allergenIds)) {
-                $stmt = $this->db->prepare('
-                    INSERT INTO product_allergens (product_id, allergen_id)
-                    VALUES (:product_id, :allergen_id)
-                ');
-
-                foreach ($allergenIds as $allergenId) {
-                    $stmt->execute([
-                        'product_id' => $productId,
-                        'allergen_id' => $allergenId,
-                    ]);
-                }
-            }
-
-            $this->db->commit();
-
-            // Log de auditoría
+        if ($success) {
             AuditLog::log(
                 'sync_product_allergens',
                 'product',
@@ -365,12 +310,9 @@ final class ProductService extends TransactionalService implements ProductServic
                 null,
                 ['allergen_count' => \count($allergenIds)]
             );
-
-            return true;
-        } catch (PDOException $e) {
-            $this->db->rollBack();
-            throw DatabaseException::fromPDOException($e);
         }
+
+        return $success;
     }
 
     /**
@@ -396,31 +338,7 @@ final class ProductService extends TransactionalService implements ProductServic
             return $this->getAll();
         }
 
-        $placeholders = \implode(',', \array_fill(0, \count($excludeAllergenIds), '?'));
-
-        $sql = "SELECT DISTINCT p.*, c.name as category_name
-                FROM products p
-                LEFT JOIN menu_categories c ON p.category_id = c.id
-                WHERE p.is_active = 1
-                  AND p.id NOT IN (
-                      SELECT product_id
-                      FROM product_allergens
-                      WHERE allergen_id IN ($placeholders)
-                  )";
-
-        $params = $excludeAllergenIds;
-
-        if ($categoryId !== null) {
-            $sql .= ' AND p.category_id = ?';
-            $params[] = $categoryId;
-        }
-
-        $sql .= ' ORDER BY c.name, p.name';
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->productRepo->findWithoutAllergensByCategory($excludeAllergenIds, $categoryId);
     }
 
     /**
@@ -432,30 +350,7 @@ final class ProductService extends TransactionalService implements ProductServic
     #[Override]
     public function getAllWithAllergens(?int $categoryId = null): array
     {
-        $sql = 'SELECT p.*, c.name as category_name
-                FROM products p
-                LEFT JOIN menu_categories c ON p.category_id = c.id
-                WHERE p.is_active = 1';
-
-        $params = [];
-
-        if ($categoryId !== null) {
-            $sql .= ' AND p.category_id = :category_id';
-            $params['category_id'] = $categoryId;
-        }
-
-        $sql .= ' ORDER BY c.name, p.name';
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Cargar alérgenos para cada producto
-        foreach ($products as &$product) {
-            $product['allergens_list'] = $this->getAllergensByProduct((int) $product['id']);
-        }
-
-        return $products;
+        return $this->productRepo->getAllWithAllergens($categoryId);
     }
 
     /**
@@ -467,22 +362,6 @@ final class ProductService extends TransactionalService implements ProductServic
     #[Override]
     public function getAllergensByProduct(int $productId): array
     {
-        $stmt = $this->db->prepare('
-            SELECT a.*
-            FROM allergens a
-            JOIN product_allergens pa ON a.id = pa.allergen_id
-            WHERE pa.product_id = :product_id
-            ORDER BY
-                CASE a.severity
-                    WHEN "high" THEN 1
-                    WHEN "medium" THEN 2
-                    WHEN "low" THEN 3
-                END,
-                a.name
-        ');
-
-        $stmt->execute(['product_id' => $productId]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->productRepo->getAllergens($productId);
     }
 }

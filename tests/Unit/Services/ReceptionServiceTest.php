@@ -26,20 +26,24 @@ namespace Tests\Unit\Services;
 use App\Core\Database;
 use App\Models\Reservation;
 use App\Models\Tracker;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Repositories\Contracts\TrackerRepositoryInterface;
 use App\Services\ReceptionService;
 use PDO;
-use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 #[CoversClass(ReceptionService::class)]
 final class ReceptionServiceTest extends TestCase
 {
-    /** @var MockObject&PDO */
-    private PDO $pdoStub;
+    /** @var Stub&ReservationRepositoryInterface */
+    private ReservationRepositoryInterface $reservationRepo;
+    /** @var Stub&TrackerRepositoryInterface */
+    private TrackerRepositoryInterface $trackerRepo;
+    private ReceptionService $service;
 
     // ─────────────────────────────────────────────────────────────
     // setUp / tearDown
@@ -47,11 +51,9 @@ final class ReceptionServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdoStub = $this->createMock(PDO::class);
-
-        // Inyectamos el mismo stub en el singleton de Database para que
-        // Database::transaction() también use nuestro PDO de prueba.
-        $this->injectPdoIntoDatabase($this->pdoStub);
+        $this->reservationRepo = $this->createMock(ReservationRepositoryInterface::class);
+        $this->trackerRepo     = $this->createMock(TrackerRepositoryInterface::class);
+        $this->service         = new ReceptionService($this->reservationRepo, $this->trackerRepo);
     }
 
     protected function tearDown(): void
@@ -63,101 +65,82 @@ final class ReceptionServiceTest extends TestCase
     // Helpers de infraestructura
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Reemplaza la conexión PDO del singleton Database::$instance
-     * por el stub proporcionado, evitando toda conexión real a BD.
-     */
     private function injectPdoIntoDatabase(PDO $pdo): void
     {
-        $reflection = new ReflectionClass(Database::class);
-
+        $reflection   = new ReflectionClass(Database::class);
         $instanceProp = $reflection->getProperty('instance');
-
         $fakeInstance = $reflection->newInstanceWithoutConstructor();
-
-        $connectionProp = $reflection->getProperty('connection');
-        $connectionProp->setValue($fakeInstance, $pdo);
-
+        $reflection->getProperty('connection')->setValue($fakeInstance, $pdo);
         $instanceProp->setValue(null, $fakeInstance);
     }
 
-    /**
-     * Resetea el singleton de Database para no contaminar otros tests.
-     */
     private function resetDatabaseSingleton(): void
     {
         $reflection = new ReflectionClass(Database::class);
-        $instanceProp = $reflection->getProperty('instance');
-        $instanceProp->setValue(null, null);
+        $reflection->getProperty('instance')->setValue(null, null);
     }
 
-    /**
-     * Crea un PDOStatement stub configurable.
-     */
-    private function makeStmt(
-        mixed $fetchReturn = false,
-        mixed $fetchAllReturn = [],
-        mixed $fetchColumnReturn = 0
-    ): PDOStatement {
-        $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetch')->willReturn($fetchReturn);
-        $stmt->method('fetchAll')->willReturn($fetchAllReturn);
-        $stmt->method('fetchColumn')->willReturn($fetchColumnReturn);
+    private function makeTransactionPdo(): PDO
+    {
+        $pdo = $this->createMock(PDO::class);
+        $pdo->method('inTransaction')->willReturn(false);
+        $pdo->method('beginTransaction')->willReturn(true);
+        $pdo->method('commit')->willReturn(true);
+        $pdo->method('rollBack')->willReturn(true);
+        $this->injectPdoIntoDatabase($pdo);
 
-        return $stmt;
+        return $pdo;
     }
 
     // ─────────────────────────────────────────────────────────────
-    // Fixtures de datos
+    // Fixtures
     // ─────────────────────────────────────────────────────────────
 
     private function confirmedReservation(): array
     {
         return [
-            'id' => 42,
-            'status' => Reservation::STATUS_CONFIRMED,
-            'cafe_id' => 1,
-            'user_id' => 10,
-            'tracker_id' => null,
-            'guests' => 2,
-            'guest_count' => 2,
-            'pass_unit_price' => '5.00',
-            'check_in_at' => null,
-            'check_out_at' => null,
+            'id'             => 42,
+            'status'         => Reservation::STATUS_CONFIRMED,
+            'cafe_id'        => 1,
+            'user_id'        => 10,
+            'tracker_id'     => null,
+            'guests'         => 2,
+            'guest_count'    => 2,
+            'pass_unit_price'=> '5.00',
+            'check_in_at'    => null,
+            'check_out_at'   => null,
         ];
     }
 
     /**
-     * Reserva activa sin tracker ni user_id para evitar las ramas de
-     * releaseTracker() y LoyaltyService en el checkout.
+     * Reserva activa sin user_id para evitar la rama de LoyaltyService en checkout.
      */
     private function activeReservation(): array
     {
         return [
-            'id' => 42,
-            'status' => Reservation::STATUS_ACTIVE,
-            'cafe_id' => 1,
-            'user_id' => null,
-            'tracker_id' => null,
-            'guests' => 2,
-            'guest_count' => 2,
-            'pass_unit_price' => '5.00',
-            'check_in_at' => '2024-01-01 14:00:00',
-            'check_out_at' => null,
+            'id'             => 42,
+            'status'         => Reservation::STATUS_ACTIVE,
+            'cafe_id'        => 1,
+            'user_id'        => null,
+            'tracker_id'     => null,
+            'guests'         => 2,
+            'guest_count'    => 2,
+            'pass_unit_price'=> '5.00',
+            'check_in_at'    => '2024-01-01 14:00:00',
+            'check_out_at'   => null,
         ];
     }
 
     private function completedReservation(): array
     {
         return [
-            'id' => 42,
-            'status' => Reservation::STATUS_COMPLETED,
-            'cafe_id' => 1,
-            'user_id' => null,
-            'tracker_id' => null,
-            'final_price' => '10.00',
-            'check_in_at' => '2024-01-01 14:00:00',
+            'id'           => 42,
+            'status'       => Reservation::STATUS_COMPLETED,
+            'cafe_id'      => 1,
+            'user_id'      => null,
+            'tracker_id'   => null,
+            'final_amount' => '10.00',
+            'check_in_at'  => '2024-01-01 14:00:00',
             'check_out_at' => '2024-01-01 16:00:00',
         ];
     }
@@ -165,10 +148,10 @@ final class ReceptionServiceTest extends TestCase
     private function availableTracker(): array
     {
         return [
-            'id' => 5,
+            'id'      => 5,
             'cafe_id' => 1,
-            'code' => 'A01',
-            'status' => Tracker::STATUS_AVAILABLE,
+            'code'    => 'A01',
+            'status'  => Tracker::STATUS_AVAILABLE,
         ];
     }
 
@@ -179,19 +162,15 @@ final class ReceptionServiceTest extends TestCase
     #[Test]
     public function test_getPendingArrivals_returns_only_confirmed_reservations(): void
     {
-        $stmt = $this->makeStmt(
-            fetchAllReturn: [
-                ['id' => 1, 'status' => Reservation::STATUS_CONFIRMED],
-                ['id' => 2, 'status' => Reservation::STATUS_ACTIVE],
-                ['id' => 3, 'status' => Reservation::STATUS_CONFIRMED],
-                ['id' => 4, 'status' => Reservation::STATUS_PENDING],
-                ['id' => 5, 'status' => Reservation::STATUS_CANCELLED],
-            ]
-        );
-        $this->pdoStub->method('prepare')->willReturn($stmt);
+        $this->reservationRepo->method('findByCafeAndDate')->willReturn([
+            ['id' => 1, 'status' => Reservation::STATUS_CONFIRMED],
+            ['id' => 2, 'status' => Reservation::STATUS_ACTIVE],
+            ['id' => 3, 'status' => Reservation::STATUS_CONFIRMED],
+            ['id' => 4, 'status' => Reservation::STATUS_PENDING],
+            ['id' => 5, 'status' => Reservation::STATUS_CANCELLED],
+        ]);
 
-        $service = new ReceptionService($this->pdoStub);
-        $arrivals = $service->getPendingArrivals(1);
+        $arrivals = $this->service->getPendingArrivals(1);
 
         $this->assertCount(2, $arrivals);
         foreach ($arrivals as $r) {
@@ -203,28 +182,16 @@ final class ReceptionServiceTest extends TestCase
     // processCheckin — camino feliz
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * processCheckin dispara 4 llamadas a prepare() en orden:
-     *   1. ReceptionService: Reservation::findById()
-     *   2. ReceptionService: Tracker::findById()
-     *   3. Reservation::checkIn(): findById() interno
-     *   4. Reservation::checkIn(): UPDATE reservations
-     */
     #[Test]
     public function test_processCheckin_with_valid_reservation_and_tracker_returns_ok_result(): void
     {
-        $confirmed = $this->confirmedReservation();
-        $tracker = $this->availableTracker();
+        $this->makeTransactionPdo();
 
-        $this->pdoStub->method('prepare')->willReturnOnConsecutiveCalls(
-            $this->makeStmt($confirmed),    // findById (service)
-            $this->makeStmt($tracker),      // tracker findById
-            $this->makeStmt($confirmed),    // findById interno en checkIn()
-            $this->makeStmt()               // UPDATE (execute devuelve true)
-        );
+        $this->reservationRepo->method('findById')->willReturn($this->confirmedReservation());
+        $this->trackerRepo->method('findById')->willReturn($this->availableTracker());
+        $this->reservationRepo->method('checkIn')->willReturn(true);
 
-        $service = new ReceptionService($this->pdoStub);
-        $result = $service->processCheckin(42, 5);
+        $result = $this->service->processCheckin(42, 5);
 
         $this->assertTrue($result->ok);
         $this->assertTrue($result->data);
@@ -237,11 +204,10 @@ final class ReceptionServiceTest extends TestCase
     #[Test]
     public function test_processCheckin_with_nonexistent_reservation_returns_failure(): void
     {
-        // fetch() devuelve false → findById retorna null → Result::fail con code 'not_found'
-        $this->pdoStub->method('prepare')->willReturn($this->makeStmt(false));
+        $this->makeTransactionPdo();
+        $this->reservationRepo->method('findById')->willReturn(null);
 
-        $service = new ReceptionService($this->pdoStub);
-        $result = $service->processCheckin(999, 5);
+        $result = $this->service->processCheckin(999, 5);
 
         $this->assertFalse($result->ok);
         $this->assertSame('not_found', $result->code);
@@ -250,11 +216,10 @@ final class ReceptionServiceTest extends TestCase
     #[Test]
     public function test_processCheckin_with_non_confirmed_reservation_returns_failure(): void
     {
-        // La reserva ya está activa: estado inválido para check-in
-        $this->pdoStub->method('prepare')->willReturn($this->makeStmt($this->activeReservation()));
+        $this->makeTransactionPdo();
+        $this->reservationRepo->method('findById')->willReturn($this->activeReservation());
 
-        $service = new ReceptionService($this->pdoStub);
-        $result = $service->processCheckin(42, 5);
+        $result = $this->service->processCheckin(42, 5);
 
         $this->assertFalse($result->ok);
         $this->assertNotEmpty($result->error);
@@ -263,15 +228,13 @@ final class ReceptionServiceTest extends TestCase
     #[Test]
     public function test_processCheckin_with_unavailable_tracker_returns_failure(): void
     {
-        $unavailableTracker = ['id' => 5, 'cafe_id' => 1, 'code' => 'A01', 'status' => Tracker::STATUS_IN_USE];
-
-        $this->pdoStub->method('prepare')->willReturnOnConsecutiveCalls(
-            $this->makeStmt($this->confirmedReservation()),  // findById reserva OK
-            $this->makeStmt($unavailableTracker)             // tracker en uso → fail
+        $this->makeTransactionPdo();
+        $this->reservationRepo->method('findById')->willReturn($this->confirmedReservation());
+        $this->trackerRepo->method('findById')->willReturn(
+            ['id' => 5, 'cafe_id' => 1, 'code' => 'A01', 'status' => Tracker::STATUS_IN_USE]
         );
 
-        $service = new ReceptionService($this->pdoStub);
-        $result = $service->processCheckin(42, 5);
+        $result = $this->service->processCheckin(42, 5);
 
         $this->assertFalse($result->ok);
         $this->assertSame('tracker_not_available', $result->code);
@@ -281,30 +244,18 @@ final class ReceptionServiceTest extends TestCase
     // processCheckout — camino feliz
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * processCheckout dispara 5 llamadas a prepare() en orden:
-     *   1. ReceptionService: Reservation::findById()
-     *   2. Reservation::checkOut(): findById() interno
-     *   3. calculateFinalPrice(): SELECT SUM de reservation_items
-     *   4. Reservation::checkOut(): UPDATE reservations
-     *   5. ReceptionService: Reservation::findById() post-checkout
-     */
     #[Test]
     public function test_processCheckout_with_active_reservation_returns_ok_result(): void
     {
-        $active = $this->activeReservation();
-        $completed = $this->completedReservation();
+        $this->makeTransactionPdo();
 
-        $this->pdoStub->method('prepare')->willReturnOnConsecutiveCalls(
-            $this->makeStmt($active),                  // findById (service)
-            $this->makeStmt($active),                  // findById interno en checkOut()
-            $this->makeStmt(fetchColumnReturn: 0),     // SUM items (calculateFinalPrice)
-            $this->makeStmt(),                         // UPDATE (execute → true)
-            $this->makeStmt($completed)                // findById post-checkout
+        $this->reservationRepo->method('findById')->willReturnOnConsecutiveCalls(
+            $this->activeReservation(),
+            $this->completedReservation()
         );
+        $this->reservationRepo->method('checkOut')->willReturn(true);
 
-        $service = new ReceptionService($this->pdoStub);
-        $result = $service->processCheckout(42);
+        $result = $this->service->processCheckout(42);
 
         $this->assertTrue($result->ok);
         $this->assertTrue($result->data['success']);
@@ -319,10 +270,10 @@ final class ReceptionServiceTest extends TestCase
     #[Test]
     public function test_processCheckout_with_nonexistent_reservation_returns_failure(): void
     {
-        $this->pdoStub->method('prepare')->willReturn($this->makeStmt(false));
+        $this->makeTransactionPdo();
+        $this->reservationRepo->method('findById')->willReturn(null);
 
-        $service = new ReceptionService($this->pdoStub);
-        $result = $service->processCheckout(999);
+        $result = $this->service->processCheckout(999);
 
         $this->assertFalse($result->ok);
         $this->assertSame('not_found', $result->code);
@@ -331,11 +282,10 @@ final class ReceptionServiceTest extends TestCase
     #[Test]
     public function test_processCheckout_without_prior_checkin_returns_failure(): void
     {
-        // La reserva está en "confirmed", no en "active": aún no ha hecho check-in
-        $this->pdoStub->method('prepare')->willReturn($this->makeStmt($this->confirmedReservation()));
+        $this->makeTransactionPdo();
+        $this->reservationRepo->method('findById')->willReturn($this->confirmedReservation());
 
-        $service = new ReceptionService($this->pdoStub);
-        $result = $service->processCheckout(42);
+        $result = $this->service->processCheckout(42);
 
         $this->assertFalse($result->ok);
         $this->assertNotEmpty($result->error);
@@ -348,17 +298,15 @@ final class ReceptionServiceTest extends TestCase
     #[Test]
     public function test_getProtocolStatus_returns_ok_with_protocol_data_when_reservation_exists(): void
     {
-        $reservation = [
-            'id' => 42,
-            'status' => Reservation::STATUS_ACTIVE,
-            'protocol_hygiene' => 1,
+        $this->reservationRepo->method('findById')->willReturn([
+            'id'                => 42,
+            'status'            => Reservation::STATUS_ACTIVE,
+            'protocol_hygiene'  => 1,
             'protocol_briefing' => 1,
-            'protocol_shoes' => 1,
-        ];
-        $this->pdoStub->method('prepare')->willReturn($this->makeStmt($reservation));
+            'protocol_shoes'    => 1,
+        ]);
 
-        $service = new ReceptionService($this->pdoStub);
-        $result = $service->getProtocolStatus(42);
+        $result = $this->service->getProtocolStatus(42);
 
         $this->assertTrue($result->ok);
         $this->assertArrayHasKey('hygiene', $result->data);
@@ -371,10 +319,9 @@ final class ReceptionServiceTest extends TestCase
     #[Test]
     public function test_getProtocolStatus_returns_failure_when_reservation_not_found(): void
     {
-        $this->pdoStub->method('prepare')->willReturn($this->makeStmt(false));
+        $this->reservationRepo->method('findById')->willReturn(null);
 
-        $service = new ReceptionService($this->pdoStub);
-        $result = $service->getProtocolStatus(999);
+        $result = $this->service->getProtocolStatus(999);
 
         $this->assertFalse($result->ok);
         $this->assertSame('not_found', $result->code);

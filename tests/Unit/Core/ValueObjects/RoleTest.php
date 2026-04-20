@@ -10,8 +10,8 @@ declare(strict_types=1);
 
 use App\Core\ValueObjects\Role;
 use App\Exceptions\ValidationException;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Role::class)]
 final class RoleTest extends TestCase

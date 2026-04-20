@@ -11,11 +11,12 @@ RUN composer install \
     --no-interaction \
     --prefer-dist \
     --optimize-autoloader \
-    --no-scripts
+    --no-scripts \
+    --ignore-platform-reqs
 
 # Copy application code and generate optimized autoloader
 COPY . /app
-RUN composer dump-autoload --optimize --no-scripts
+RUN composer dump-autoload --optimize --no-scripts --ignore-platform-reqs
 
 # Stage 2: Final production image
 FROM dunglas/frankenphp:1.12.2-php8.4-alpine

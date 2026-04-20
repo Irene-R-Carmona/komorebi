@@ -19,10 +19,8 @@ namespace Tests\Unit\Services;
 
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\ProductService;
-use PDO;
-use PDOStatement;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests para ProductService - enfoque en paginación
@@ -35,11 +33,6 @@ final class ProductServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $stmtStub = $this->createMock(PDOStatement::class);
-        $stmtStub->method('execute')->willReturn(true);
-        $pdoStub = $this->createMock(PDO::class);
-        $pdoStub->method('prepare')->willReturn($stmtStub);
-
         $repoStub = $this->createMock(ProductRepositoryInterface::class);
         $repoStub->method('findFiltered')->willReturnCallback(
             static function (array $filters, int $page, int $perPage): array {
@@ -47,7 +40,7 @@ final class ProductServiceTest extends TestCase
             }
         );
 
-        $this->service = new ProductService($repoStub, $pdoStub);
+        $this->service = new ProductService($repoStub);
     }
 
     /**

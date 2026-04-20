@@ -21,8 +21,8 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\EmailVerificationServiceInterface;
 use App\Services\Contracts\PasswordResetServiceInterface;
-use Tests\Support\ControllerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\Support\ControllerTestCase;
 
 #[CoversClass(PasswordResetController::class)]
 final class PasswordResetControllerTest extends ControllerTestCase

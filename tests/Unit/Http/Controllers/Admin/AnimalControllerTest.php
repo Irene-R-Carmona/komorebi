@@ -19,9 +19,9 @@ namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\AnimalController;
 use App\Services\Contracts\AnimalCareServiceInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(AnimalController::class)]
 final class AnimalControllerTest extends ControllerTestCase

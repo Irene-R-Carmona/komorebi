@@ -23,11 +23,11 @@ use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Http\Middleware\ApiAuthMiddleware;
 use App\Services\Contracts\ApiTokenServiceInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests para ApiAuthMiddleware (autenticación Bearer + sesión)

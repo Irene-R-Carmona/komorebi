@@ -18,11 +18,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
-use PHPUnit\Framework\Attributes\CoversNothing;
 
 #[CoversNothing]
 final class CacheServiceTest extends TestCase

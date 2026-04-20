@@ -65,7 +65,7 @@ abstract class RepositoryTestCase extends TestCase
      * @param array<string, mixed>|false $fetchReturn fila única (false = no encontrado)
      * @param int $rowCount filas afectadas
      *
-     * @return array{0: PDO&\PHPUnit\Framework\MockObject\MockObject, 1: PDOStatement&\PHPUnit\Framework\MockObject\MockObject}
+     * @return array{0: PDO&\PHPUnit\Framework\MockObject\Stub, 1: PDOStatement&\PHPUnit\Framework\MockObject\Stub}
      */
     protected function makePdoWithStmt(
         array $fetchAllReturn = [],
@@ -81,7 +81,7 @@ abstract class RepositoryTestCase extends TestCase
 
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
-        $pdo->method('lastInsertId')->willReturn((string)($rowCount ?: 1));
+        $pdo->method('lastInsertId')->willReturn((string) ($rowCount ?: 1));
 
         return [$pdo, $stmt];
     }
@@ -129,4 +129,3 @@ abstract class RepositoryTestCase extends TestCase
         return [$pdo, $stmt];
     }
 }
-
