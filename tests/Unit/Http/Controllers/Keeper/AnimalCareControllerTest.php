@@ -60,7 +60,7 @@ final class AnimalCareControllerTest extends TestCase
             incidentRepo: $this->createStub(AnimalIncidentRepositoryInterface::class),
             healthCheckRepo: $this->createStub(HealthCheckRepositoryInterface::class),
         );
-        $healthCheckRepo = $this->createMock(HealthCheckRepositoryInterface::class);
+        $healthCheckRepo = $this->createStub(HealthCheckRepositoryInterface::class);
         $healthCheckRepo->method('getTodayChecks')->willReturn([]);
         $healthCheckRepo->method('getPendingAnimals')->willReturn([]);
 
@@ -106,7 +106,7 @@ final class AnimalCareControllerTest extends TestCase
 
     public function test_toggle_active_returns_json_on_success(): void
     {
-        $animalRepo = $this->createMock(AnimalRepositoryInterface::class);
+        $animalRepo = $this->createStub(AnimalRepositoryInterface::class);
         $animalRepo->method('toggleStatus')->willReturn(['found' => true, 'current_status' => 'active']);
 
         $service = new AnimalCareService(
@@ -151,7 +151,7 @@ final class AnimalCareControllerTest extends TestCase
 
     public function test_record_health_redirects_on_success(): void
     {
-        $healthCheckRepo = $this->createMock(HealthCheckRepositoryInterface::class);
+        $healthCheckRepo = $this->createStub(HealthCheckRepositoryInterface::class);
         $healthCheckRepo->method('exists')->willReturn(false);
         $healthCheckRepo->method('create')->willReturn(1);
         $healthCheckService = new HealthCheckService($healthCheckRepo);

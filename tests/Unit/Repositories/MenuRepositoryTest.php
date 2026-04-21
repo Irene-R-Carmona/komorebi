@@ -29,7 +29,7 @@ final class MenuRepositoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->db = $this->createMock(PDO::class);
+        $this->db = $this->createStub(PDO::class);
         $this->repository = new MenuRepository($this->db);
     }
 
@@ -45,7 +45,7 @@ final class MenuRepositoryTest extends TestCase
 
     public function testGetCategoriesReturnsArray(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn([
             ['id' => 1, 'name' => 'Bebidas', 'slug' => 'bebidas', 'display_order' => 1],
             ['id' => 2, 'name' => 'Postres', 'slug' => 'postres', 'display_order' => 2],
@@ -62,7 +62,7 @@ final class MenuRepositoryTest extends TestCase
 
     public function testGetProductsByCategoryReturnsArray(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([
             [
@@ -88,7 +88,7 @@ final class MenuRepositoryTest extends TestCase
 
     public function testGetAllProductsReturnsArray(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn([
             ['id' => 1, 'name' => 'Producto 1', 'price' => 5.00],
             ['id' => 2, 'name' => 'Producto 2', 'price' => 7.50],
@@ -104,7 +104,7 @@ final class MenuRepositoryTest extends TestCase
 
     public function testGetAllergensReturnsArray(): void
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn([
             ['id' => 1, 'name' => 'Leche', 'code' => 'milk'],
             ['id' => 2, 'name' => 'Gluten', 'code' => 'gluten'],

@@ -52,7 +52,7 @@ final class ContextServiceTest extends TestCase
         ?int $adminSelectedCafeId = null,
         ?array $cafeData = null,
     ): ContextServiceInstance {
-        $repo = $this->createMock(CafeRepositoryInterface::class);
+        $repo = $this->createStub(CafeRepositoryInterface::class);
 
         if ($cafeData !== null) {
             $repo->method('findById')->willReturn($cafeData);

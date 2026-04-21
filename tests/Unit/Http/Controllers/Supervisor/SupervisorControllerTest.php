@@ -35,9 +35,9 @@ use Tests\Support\ControllerTestCase;
 #[CoversClass(SupervisorController::class)]
 final class SupervisorControllerTest extends ControllerTestCase
 {
-    /** @var PDO&\PHPUnit\Framework\MockObject\MockObject */
+    /** @var PDO&\PHPUnit\Framework\MockObject\Stub */
     private PDO $pdoMock;
-    /** @var PDOStatement&\PHPUnit\Framework\MockObject\MockObject */
+    /** @var PDOStatement&\PHPUnit\Framework\MockObject\Stub */
     private PDOStatement $stmtMock;
     private ReservationRepository $reservationRepo;
     /** @var SupervisorAssignmentServiceInterface&\PHPUnit\Framework\MockObject\Stub */
@@ -47,10 +47,10 @@ final class SupervisorControllerTest extends ControllerTestCase
     {
         $_SERVER['REQUEST_URI'] ??= '/supervisor/dashboard';
 
-        $this->pdoMock = $this->createMock(PDO::class);
-        $this->stmtMock = $this->createMock(PDOStatement::class);
+        $this->pdoMock = $this->createStub(PDO::class);
+        $this->stmtMock = $this->createStub(PDOStatement::class);
         $this->reservationRepo = new ReservationRepository($this->pdoMock);
-        $this->assignmentService = $this->createMock(SupervisorAssignmentServiceInterface::class);
+        $this->assignmentService = $this->createStub(SupervisorAssignmentServiceInterface::class);
     }
 
     protected function tearDown(): void
@@ -69,7 +69,7 @@ final class SupervisorControllerTest extends ControllerTestCase
 
     private function makeRequest(): ServerRequestInterface
     {
-        return $this->createMock(ServerRequestInterface::class);
+        return $this->createStub(ServerRequestInterface::class);
     }
 
     private function makeKitchenService(): KitchenService

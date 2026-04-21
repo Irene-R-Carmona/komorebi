@@ -41,13 +41,13 @@ final class StaffControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->userRepo = $this->createMock(UserRepositoryInterface::class);
+        $this->userRepo = $this->createStub(UserRepositoryInterface::class);
         $this->responseFactory = new ResponseFactory();
-        $this->request = $this->createMock(ServerRequestInterface::class);
+        $this->request = $this->createStub(ServerRequestInterface::class);
         $this->controller = new StaffController(
             $this->userRepo,
             $this->responseFactory,
-            $this->createMock(StaffShiftServiceInterface::class),
+            $this->createStub(StaffShiftServiceInterface::class),
         );
     }
 
@@ -210,7 +210,7 @@ final class StaffControllerTest extends TestCase
 
         $this->userRepo->method('existsInCafe')->willReturn(true);
 
-        $shiftServiceStub = $this->createMock(StaffShiftServiceInterface::class);
+        $shiftServiceStub = $this->createStub(StaffShiftServiceInterface::class);
         $shiftServiceStub->method('assignShift')
             ->willReturn(Result::fail('El staff member ya tiene un turno asignado en ese horario', 'shift_overlap'));
 

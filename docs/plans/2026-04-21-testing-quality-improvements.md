@@ -63,82 +63,74 @@ El dev container tiene xdebug. `XDEBUG_MODE=coverage phpunit` genera HTML solo d
 
 ---
 
-## FASE 1 — Eliminar los 70 warnings (Estimado: 15 min)
+## FASE 1 — Eliminar los 70 warnings (Estimado: 15 min) — ✅ COMPLETADA
 
 ### 1.1 CorsMiddlewareTest
 
-- [ ] Abrir `tests/Unit/Middleware/CorsMiddlewareTest.php`
-- [ ] Reemplazar `use PHPUnit\Framework\Attributes\CoversClass;` + `#[CoversClass(CorsMiddleware::class)]` por `use PHPUnit\Framework\Attributes\CoversNothing;` + `#[CoversNothing]`
-- [ ] Ejecutar: `docker compose exec app sh -c "php vendor/bin/phpunit --no-coverage tests/Unit/Middleware/CorsMiddlewareTest.php 2>&1 | tail -5"`
-- [ ] Verificar: 0 warnings, mismo número de tests
+- [x] Abrir `tests/Unit/Middleware/CorsMiddlewareTest.php`
+- [x] Reemplazar `use PHPUnit\Framework\Attributes\CoversClass;` + `#[CoversClass(CorsMiddleware::class)]` por `use PHPUnit\Framework\Attributes\CoversNothing;` + `#[CoversNothing]`
+- [x] Verificado: 0 warnings, mismo número de tests
 
 ### 1.2 EmailWorkerTest
 
-- [ ] Abrir `tests/Unit/Workers/EmailWorkerTest.php`
-- [ ] Mismo cambio: `CoversClass` → `CoversNothing`
-- [ ] Ejecutar test individual y verificar 0 warnings
+- [x] Abrir `tests/Unit/Workers/EmailWorkerTest.php`
+- [x] Mismo cambio: `CoversClass` → `CoversNothing`
+- [x] Verificado: 0 warnings
 
 ### 1.3 NotificationWorkerTest
 
-- [ ] Abrir `tests/Unit/Workers/NotificationWorkerTest.php`
-- [ ] Mismo cambio: `CoversClass` → `CoversNothing`
+- [x] Abrir `tests/Unit/Workers/NotificationWorkerTest.php`
+- [x] Mismo cambio: `CoversClass` → `CoversNothing`
 
-### 1.4 Verificación Fase 1
+### 1.4 Fix adicional — phpunit.xml source misconfiguration
 
-- [ ] `docker compose exec app sh -c "php vendor/bin/phpunit --no-coverage --testsuite 'Unit Tests' 2>&1 | tail -5"`
-- [ ] Esperado: `OK (744 tests, ...)` sin `issues` — los 70 warnings deben desaparecer
+> **Fix complementario (sesión 2026-04-21):** Además del CoversNothing, se identificaron 5 causas adicionales de warnings en la sección `<source>` de `phpunit.xml`:
+> - `app/Http/Middleware` no estaba en `<include>` (13 archivos de middleware)
+> - `app/Events` y `app/Listeners` estaban en include Y exclude simultáneamente (net effect: excluidos)
+> - `app/Jobs/SendTelegramNotificationJob.php` excluido explícitamente con `#[CoversClass]` activo
+> - `app/Core/Seeders` excluido con `#[CoversClass(RbacSeeder::class)]` activo
+>
+> Corrección: `app/Http/Middleware` añadido a `<include>`; eliminados los 4 excludes incorrectos.
 
----
-
-## FASE 2 — Diagnosticar y resolver los 192 notices (Estimado: 30 min)
-
-### 2.1 Diagnóstico exacto
-
-- [ ] Ejecutar: `docker compose exec app sh -c "php vendor/bin/phpunit --no-coverage --testsuite 'Unit Tests' 2>&1 | grep 'Notice' | sort | uniq -c | sort -rn | head -20"`
-- [ ] Identificar qué clases/tests generan más notices
-- [ ] Si son "no code coverage annotation": añadir `#[CoversNothing]` en los tests sin atributo de cobertura que apuntan a clases fuera del scope de coverage (controllers, middleware excluido, etc.)
-
-### 2.2 Opción A — Silenciar masivamente
-
-Si los notices son todos del mismo tipo ("test does not cover any code"), añadir en `phpunit.xml`:
-
-```xml
-<phpunit ... beStrictAboutCoverageMetadata="false">
-```
-
-> Nota: ya está en `false`. Si los notices persisten, revisar si PHPUnit 13 cambió el comportamiento.
-
-### 2.3 Opción B — Fix uno a uno
-
-Para cada archivo de test que genere notices:
-
-- [ ] Añadir `#[CoversNothing]` si el test no debería cubrir nada del source
-- [ ] O añadir el `#[CoversClass(...)]` correcto si cubre una clase dentro del scope
-
-### 2.4 Verificación Fase 2
-
-- [ ] `docker compose exec app sh -c "php vendor/bin/phpunit --no-coverage --testsuite 'Unit Tests' 2>&1 | tail -3"`
-- [ ] Esperado: `OK (744 tests, ...)` sin `issues` ni `notices`
+- [x] Verificación suite completa: `{"result":"passed","tests":890,"passed":890}` — `failOnWarning="true"` confirma 0 warnings
 
 ---
 
-## FASE 3 — PHPStan no pierde output (Estimado: 15 min)
+## FASE 2 — Diagnosticar y resolver los 192 notices (Estimado: 30 min) — ✅ COMPLETADA
+
+> **Causa real identificada (sesión 2026-04-21):** Los notices no eran por tests sin `#[CoversClass]` sino por `createMock()` usado sin `expects()` — PHPUnit 13 emite "No expectations configured" notice por cada uso. Fix: `createMock()` → `createStub()` en los 5 archivos afectados.
+
+Archivos corregidos (createMock → createStub):
+- `tests/Unit/Http/Middleware/HttpRateLimitMiddlewareTest.php` — 4 llamadas
+- `tests/Unit/Jobs/SendTelegramNotificationJobTest.php` — 1 llamada
+- `tests/Unit/Middleware/ApiAuthMiddlewareTest.php` — 2 llamadas
+- `tests/Unit/Repositories/ProductRepositoryTest.php` — stray `$this->stmtMock` → local `$stmtMock`
+- `tests/Unit/Repositories/ProductRepositoryStockTest.php` — 4 tests con override createMock para expectations
+
+### 2.1 Diagnóstico exacto — ✅ COMPLETADO
+
+- [x] Causa identificada: `createMock()` sin `expects()` genera notices en PHPUnit 13
+- [x] Archivos afectados identificados y corregidos
+
+### 2.2 / 2.3 — ✅ COMPLETADO vía fix correcto (createMock→createStub)
+
+### 2.4 Verificación Fase 2 — ✅ COMPLETADA
+
+- [x] Suite completa: 890 tests, 890 passed, 0 notices. `failOnWarning="true"` — resultado `passed` garantiza 0 warnings y 0 notices
+
+---
+
+## FASE 3 — PHPStan no pierde output (Estimado: 15 min) — ✅ COMPLETADA
 
 ### 3.1 Mejorar target `phpstan` en Makefile
 
-```makefile
-phpstan: ## Análisis estático PHPStan (guarda en storage/logs/phpstan.txt)
-    @mkdir -p storage/logs
-    docker compose exec app sh -c "cd /app && php vendor/bin/phpstan analyse --memory-limit=1G --no-progress > /tmp/phpstan.txt 2>&1; EXIT=\$$?; cat /tmp/phpstan.txt; exit \$$EXIT"
-    @echo "Output guardado en storage/logs/phpstan.txt"
-
-phpstan-quick: ## PHPStan solo sobre app/ (sin scripts/ ni tests/) — más rápido
-    docker compose exec app sh -c "cd /app && php vendor/bin/phpstan analyse app/ --memory-limit=512M --no-progress 2>&1"
-```
-
-- [ ] Editar `Makefile` con estos dos targets
-- [ ] Añadir `phpstan phpstan-quick` a la línea `.PHONY`
-- [ ] Probar: `make phpstan-quick` — debe completar sin perder output
+- [x] Editar `Makefile` con targets `phpstan` (guarda en /tmp/phpstan.txt) y `phpstan-quick`
+- [x] Añadir `phpstan phpstan-quick` a la línea `.PHONY`
+- [x] Fix `phpstan-quick`: añadido `--allow-unmatched-ignores` (los 7 `ignoreErrors` para `tests/**` no coinciden cuando solo se analiza `app/` → PHPStan reporta falsos positivos con `reportUnmatchedIgnoredErrors: true`)
+- [x] Fix adicional: PHPStan completo detectó 5 errores reales en tests — propiedades declaradas como `&MockObject` pero asignadas con `createStub()` (que retorna `&Stub`). Corregidos en 3 archivos:
+  - `tests/Unit/Http/Controllers/Supervisor/SupervisorControllerTest.php` — `@var` annotations líneas 38-40
+  - `tests/Unit/Services/NewsletterServiceTest.php` — `@var` annotation línea 41
+  - `tests/Unit/Services/ReviewServiceTest.php` — intersection types + import `Stub`
 
 ### 3.2 CI — ya guarda output
 
@@ -146,27 +138,25 @@ El workflow `.github/workflows/ci.yml` ya usa `make phpstan` dentro del job — 
 
 ### 3.3 Verificación Fase 3
 
-- [ ] `make phpstan-quick` completa y muestra resultados
-- [ ] `make phpstan` guarda output en `/tmp/phpstan.txt` dentro del contenedor
+- [x] `make phpstan-quick` completa y muestra resultados (con `--allow-unmatched-ignores`)
+- [x] `make phpstan` (full: app + scripts + tests): `[OK] No errors`
 
 ---
 
-## FASE 4 — Slow tests visibility (Estimado: 10 min)
+## FASE 4 — Slow tests visibility — ❌ NO APLICABLE en PHPUnit 13
 
-### 4.1 Añadir threshold en phpunit.xml
+> **`<slowTests>` NO existe en PHPUnit 13.** El esquema XML de PHPUnit 13 no incluye este elemento.
+> El plan original estaba basado en información incorrecta. El checkbox `[x]` era falso positivo.
+>
+> **Alternativas correctas en PHPUnit 13:**
+> 1. **`enforceTimeLimit="true"`** en `<phpunit>` + atributos `#[Small]` / `#[Medium]` / `#[Large]` en los tests
+>    — los tests que superen el límite **fallan** (no es un informe, es un timeout disruptivo)
+> 2. Extensión `johnkary/phpunit-speedtrap` — detecta tests lentos sin hacerlos fallar
+>
+> **Decisión:** No se implementa en este sprint. El workflow actual (`--no-coverage` para TDD rápido +
+> `make test-coverage` para cobertura real) cubre la necesidad de visibilidad de rendimiento.
 
-Dentro de `<phpunit ...>`, añadir después de `</coverage>`:
-
-```xml
-<!-- Slow test detection: loggear tests que tarden más de 500ms -->
-<slowTests>
-    <threshold seconds="0.5"/>
-</slowTests>
-```
-
-- [ ] Editar `phpunit.xml`
-- [ ] Ejecutar `docker compose exec app sh -c "php vendor/bin/phpunit --no-coverage tests/Unit/Services/WaitlistServiceTest.php 2>&1 | tail -10"` — WaitlistService tarda ~300ms, no debería aparecer
-- [ ] Verificar que no rompió nada
+- [x] FASE 4 cerrada como N/A — feature no existe en PHPUnit 13
 
 ---
 

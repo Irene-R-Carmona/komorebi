@@ -43,9 +43,9 @@ final class PasswordResetControllerTest extends ControllerTestCase
     private function makeController(): PasswordResetController
     {
         return new PasswordResetController(
-            authService: $this->createMock(AuthServiceInterface::class),
-            passwordResetService: $this->createMock(PasswordResetServiceInterface::class),
-            emailVerificationService: $this->createMock(EmailVerificationServiceInterface::class),
+            authService: $this->createStub(AuthServiceInterface::class),
+            passwordResetService: $this->createStub(PasswordResetServiceInterface::class),
+            emailVerificationService: $this->createStub(EmailVerificationServiceInterface::class),
         );
     }
 
@@ -66,12 +66,12 @@ final class PasswordResetControllerTest extends ControllerTestCase
 
     public function test_forgot_password_form_redirects_when_authenticated(): void
     {
-        $authStub = $this->createMock(AuthServiceInterface::class);
+        $authStub = $this->createStub(AuthServiceInterface::class);
         $authStub->method('check')->willReturn(true);
         $controller = new PasswordResetController(
             authService: $authStub,
-            passwordResetService: $this->createMock(PasswordResetServiceInterface::class),
-            emailVerificationService: $this->createMock(EmailVerificationServiceInterface::class),
+            passwordResetService: $this->createStub(PasswordResetServiceInterface::class),
+            emailVerificationService: $this->createStub(EmailVerificationServiceInterface::class),
             response: new ResponseFactory()
         );
 

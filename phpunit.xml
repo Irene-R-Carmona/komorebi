@@ -28,6 +28,7 @@
             <directory suffix=".php">app/Domain</directory>
             <directory suffix=".php">app/Events</directory>
             <directory suffix=".php">app/Http/Controllers</directory>
+            <directory suffix=".php">app/Http/Middleware</directory>
             <directory suffix=".php">app/Jobs</directory>
             <directory suffix=".php">app/Listeners</directory>
             <directory suffix=".php">app/Middleware</directory>
@@ -39,12 +40,8 @@
         <exclude>
             <directory>app/Views</directory>
             <file>app/routes.php</file>
-            <directory suffix=".php">app/Core/Seeders</directory>
-            <directory suffix=".php">app/Events</directory>
             <directory suffix=".php">app/Domain/DTO</directory>
-            <directory suffix=".php">app/Listeners</directory>
             <file>app/Jobs/JobInterface.php</file>
-            <file>app/Jobs/SendTelegramNotificationJob.php</file>
             <file>app/Http/Controllers/Api/AbstractApiController.php</file>
             <directory suffix=".php">app/Services/Contracts</directory>
             <directory suffix=".php">app/Repositories/Contracts</directory>

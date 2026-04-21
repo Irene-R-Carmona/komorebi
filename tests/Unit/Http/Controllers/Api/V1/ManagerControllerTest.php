@@ -39,7 +39,7 @@ final class ManagerControllerTest extends ControllerTestCase
 
     private function makeController(): ManagerController
     {
-        $service = $this->createMock(DashboardServiceInterface::class);
+        $service = $this->createStub(DashboardServiceInterface::class);
         $service->method('getDashboardMetrics')->willReturn(['reservations_today' => 5, 'revenue_today' => 0.0]);
         $service->method('getWeeklyRevenue')->willReturn([]);
 

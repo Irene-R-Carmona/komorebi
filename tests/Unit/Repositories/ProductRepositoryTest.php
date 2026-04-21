@@ -30,30 +30,28 @@ final class ProductRepositoryTest extends TestCase
 {
     /** @var MockObject&PDO */
     private PDO $pdoMock;
-    /** @var MockObject&PDOStatement */
-    private PDOStatement $stmtMock;
     private ProductRepository $repository;
 
     protected function setUp(): void
     {
         $this->pdoMock = $this->createMock(PDO::class);
-        $this->stmtMock = $this->createMock(PDOStatement::class);
         $this->repository = new ProductRepository($this->pdoMock);
     }
 
     protected function tearDown(): void
     {
-        unset($this->repository, $this->pdoMock, $this->stmtMock);
+        unset($this->repository, $this->pdoMock);
     }
 
     public function testFindAvailablePassesQueriesCorrectProductType(): void
     {
+        $stmtMock = $this->createMock(PDOStatement::class);
         $expectedData = [
             ['id' => 1, 'name' => 'Pase 1h', 'price' => 1500, 'duration_minutes' => 60],
             ['id' => 2, 'name' => 'Pase 2h', 'price' => 2500, 'duration_minutes' => 120],
         ];
 
-        $this->stmtMock
+        $stmtMock
             ->expects($this->once())
             ->method('fetchAll')
             ->with(PDO::FETCH_ASSOC)
@@ -66,7 +64,7 @@ final class ProductRepositoryTest extends TestCase
                 $this->stringContains("product_type = 'pass'"),
                 $this->stringContains('is_active = 1')
             ))
-            ->willReturn($this->stmtMock);
+            ->willReturn($stmtMock);
 
         $result = $this->repository->findAvailablePasses();
 
@@ -76,13 +74,14 @@ final class ProductRepositoryTest extends TestCase
 
     public function testExistsAndActivePassReturnsTrueWhenFound(): void
     {
-        $this->stmtMock
+        $stmtMock = $this->createMock(PDOStatement::class);
+        $stmtMock
             ->expects($this->once())
             ->method('execute')
             ->with(['id' => 5])
             ->willReturn(true);
 
-        $this->stmtMock
+        $stmtMock
             ->expects($this->once())
             ->method('fetch')
             ->willReturn(['id' => 5]);
@@ -94,19 +93,20 @@ final class ProductRepositoryTest extends TestCase
                 $this->stringContains("product_type = 'pass'"),
                 $this->stringContains('is_active = 1')
             ))
-            ->willReturn($this->stmtMock);
+            ->willReturn($stmtMock);
 
         $this->assertTrue($this->repository->existsAndActivePass(5));
     }
 
     public function testExistsAndActivePassReturnsFalseWhenNotFound(): void
     {
-        $this->stmtMock
+        $stmtMock = $this->createMock(PDOStatement::class);
+        $stmtMock
             ->expects($this->once())
             ->method('execute')
             ->willReturn(true);
 
-        $this->stmtMock
+        $stmtMock
             ->expects($this->once())
             ->method('fetch')
             ->willReturn(false);
@@ -114,7 +114,7 @@ final class ProductRepositoryTest extends TestCase
         $this->pdoMock
             ->expects($this->once())
             ->method('prepare')
-            ->willReturn($this->stmtMock);
+            ->willReturn($stmtMock);
 
         $this->assertFalse($this->repository->existsAndActivePass(999));
     }
@@ -132,18 +132,19 @@ final class ProductRepositoryTest extends TestCase
 
     public function testFindItemsByIdsExecutesParameterizedQuery(): void
     {
+        $stmtMock = $this->createMock(PDOStatement::class);
         $expectedData = [
             ['id' => 10, 'name' => 'Matcha Latte', 'price' => 650],
             ['id' => 20, 'name' => 'Croissant', 'price' => 350],
         ];
 
-        $this->stmtMock
+        $stmtMock
             ->expects($this->once())
             ->method('execute')
             ->with([10, 20])
             ->willReturn(true);
 
-        $this->stmtMock
+        $stmtMock
             ->expects($this->once())
             ->method('fetchAll')
             ->with(PDO::FETCH_ASSOC)
@@ -156,7 +157,7 @@ final class ProductRepositoryTest extends TestCase
                 $this->stringContains('IN (?,?)'),
                 $this->stringContains("product_type = 'item'")
             ))
-            ->willReturn($this->stmtMock);
+            ->willReturn($stmtMock);
 
         $result = $this->repository->findItemsByIds([10, 20]);
 

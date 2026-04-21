@@ -31,13 +31,13 @@ final class RateLimitingServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->cacheMock = $this->createMock(CacheItemPoolInterface::class);
+        $this->cacheMock = $this->createStub(CacheItemPoolInterface::class);
         $this->service = new RateLimitingService($this->cacheMock);
     }
 
     public function testRecordAttemptCreatesNewRecordWhenNotExists(): void
     {
-        $item = $this->createMock(CacheItemInterface::class);
+        $item = $this->createStub(CacheItemInterface::class);
         $item->method('isHit')->willReturn(false);
         $item->method('set')->willReturnSelf();
         $item->method('expiresAfter')->willReturnSelf();
@@ -52,7 +52,7 @@ final class RateLimitingServiceTest extends TestCase
 
     public function testRecordAttemptIncrementsExistingRecord(): void
     {
-        $item = $this->createMock(CacheItemInterface::class);
+        $item = $this->createStub(CacheItemInterface::class);
         $item->method('isHit')->willReturn(true);
         $item->method('get')->willReturn(['attempts' => 2, 'locked_until' => null]);
         $item->method('set')->willReturnSelf();
@@ -68,7 +68,7 @@ final class RateLimitingServiceTest extends TestCase
 
     public function testIsBlockedReturnsFalseWhenNoRecordExists(): void
     {
-        $item = $this->createMock(CacheItemInterface::class);
+        $item = $this->createStub(CacheItemInterface::class);
         $item->method('isHit')->willReturn(false);
 
         $this->cacheMock->method('getItem')->willReturn($item);
@@ -83,7 +83,7 @@ final class RateLimitingServiceTest extends TestCase
     {
         $futureTimestamp = \time() + 600; // 10 minutos en el futuro
 
-        $item = $this->createMock(CacheItemInterface::class);
+        $item = $this->createStub(CacheItemInterface::class);
         $item->method('isHit')->willReturn(true);
         $item->method('get')->willReturn(['attempts' => 5, 'locked_until' => $futureTimestamp]);
 
@@ -97,7 +97,7 @@ final class RateLimitingServiceTest extends TestCase
 
     public function testGetRecentAttemptsReturnsCount(): void
     {
-        $item = $this->createMock(CacheItemInterface::class);
+        $item = $this->createStub(CacheItemInterface::class);
         $item->method('isHit')->willReturn(true);
         $item->method('get')->willReturn(['attempts' => 3, 'locked_until' => null]);
 
@@ -110,7 +110,7 @@ final class RateLimitingServiceTest extends TestCase
 
     public function testGetRecentAttemptsReturnsZeroWhenNoRecord(): void
     {
-        $item = $this->createMock(CacheItemInterface::class);
+        $item = $this->createStub(CacheItemInterface::class);
         $item->method('isHit')->willReturn(false);
 
         $this->cacheMock->method('getItem')->willReturn($item);

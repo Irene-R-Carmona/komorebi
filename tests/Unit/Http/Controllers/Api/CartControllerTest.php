@@ -28,7 +28,7 @@ final class CartControllerTest extends ControllerTestCase
 {
     private function makeController(): CartController
     {
-        $service = $this->createMock(CartServiceInterface::class);
+        $service = $this->createStub(CartServiceInterface::class);
         $service->method('getWithDetails')->willReturn(['items' => [], 'totalQty' => 0, 'totalPrice' => 0.0]);
         $service->method('add')->willReturn(Result::ok(['items' => [], 'totalQty' => 1, 'totalPrice' => 0.0]));
 

@@ -16,6 +16,7 @@ use App\Services\AuthService;
 use App\Services\Contracts\RateLimitingServiceInterface;
 use App\Services\Contracts\SessionManagementServiceInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 use Random\RandomException;
 
@@ -39,10 +40,10 @@ final class AuthServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->userRepoMock = $this->createMock(UserRepositoryInterface::class);
-        $this->rateLimiterStub = $this->createMock(RateLimitingServiceInterface::class);
-        $this->sessionServiceStub = $this->createMock(SessionManagementServiceInterface::class);
-        $this->userModelStub = $this->createMock(UserModelInterface::class);
+        $this->userRepoMock = $this->createStub(UserRepositoryInterface::class);
+        $this->rateLimiterStub = $this->createStub(RateLimitingServiceInterface::class);
+        $this->sessionServiceStub = $this->createStub(SessionManagementServiceInterface::class);
+        $this->userModelStub = $this->createStub(UserModelInterface::class);
 
         $this->service = new AuthService(
             $this->userRepoMock,
@@ -304,5 +305,141 @@ final class AuthServiceTest extends TestCase
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('email', \strtolower($result->error ?? ''));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Login - Cuenta bloqueada / desactivada
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * @throws RandomException
+     */
+    #[TestDox('El login retorna error cuando la cuenta está bloqueada temporalmente')]
+    public function testLoginWithLockedUserReturnsError(): void
+    {
+        // arrange
+        $hash = \password_hash('password123', PASSWORD_ARGON2ID);
+        $this->userRepoMock->method('findByEmailWithCredentials')->willReturn([
+            'id'             => 1,
+            'email'          => 'locked@example.com',
+            'password'       => $hash,
+            'is_active'      => 1,
+            'locked_until'   => \date('Y-m-d H:i:s', \time() + 3600),
+            'login_attempts' => 5,
+            'name'           => 'Locked User',
+        ]);
+        $this->userModelStub->method('isLocked')->willReturn(true);
+        $this->userModelStub->method('lockoutMinutesRemaining')->willReturn(30);
+
+        // act
+        $result = $this->service->login('locked@example.com', 'password123');
+
+        // assert
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('bloqueada', \strtolower($result->error ?? ''));
+    }
+
+    /**
+     * @throws RandomException
+     */
+    #[TestDox('El login retorna error cuando la cuenta del usuario está desactivada')]
+    public function testLoginWithInactiveUserReturnsError(): void
+    {
+        // arrange
+        $hash = \password_hash('password123', PASSWORD_ARGON2ID);
+        $this->userRepoMock->method('findByEmailWithCredentials')->willReturn([
+            'id'             => 2,
+            'email'          => 'inactive@example.com',
+            'password'       => $hash,
+            'is_active'      => 0,
+            'locked_until'   => null,
+            'login_attempts' => 0,
+            'name'           => 'Inactive User',
+        ]);
+        $this->userModelStub->method('isLocked')->willReturn(false);
+
+        // act
+        $result = $this->service->login('inactive@example.com', 'password123');
+
+        // assert
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('desactivada', \strtolower($result->error ?? ''));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Logout
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * @throws RandomException
+     */
+    #[TestDox('El logout se ejecuta sin lanzar excepciones aunque no haya sesión activa')]
+    public function testLogoutRunsWithoutErrors(): void
+    {
+        // arrange: sessionService stub acepta cualquier llamada a logAuthEvent
+        // act
+        $this->service->logout();
+
+        // assert: si llegamos aquí sin excepción el logout fue correcto
+        $this->assertTrue(true);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Login - Éxito
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * @throws RandomException
+     */
+    #[TestDox('El login con credenciales válidas retorna Result::ok')]
+    public function testLoginWithValidCredentialsReturnsOkResult(): void
+    {
+        // arrange
+        $hash = \password_hash('correct_password123!', PASSWORD_ARGON2ID);
+        $this->userRepoMock->method('findByEmailWithCredentials')->willReturn([
+            'id'             => 1,
+            'email'          => 'user@example.com',
+            'password'       => $hash,
+            'is_active'      => 1,
+            'locked_until'   => null,
+            'login_attempts' => 0,
+            'name'           => 'Test User',
+            'cafe_id'        => null,
+        ]);
+        $this->userModelStub->method('isLocked')->willReturn(false);
+        $this->userModelStub->method('verifyPassword')->willReturn(true);
+        $this->userModelStub->method('getRoles')->willReturn([]);
+
+        // act
+        $result = $this->service->login('user@example.com', 'correct_password123!');
+
+        // assert
+        $this->assertTrue($result->ok);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Rate limiting
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * @throws RandomException
+     */
+    #[TestDox('El rate limiting se omite en contexto CLI — el flujo prosigue hasta validar credenciales')]
+    public function testLoginSkipsRateLimitingWhenRunningUnderCli(): void
+    {
+        // arrange: rate limiter configurado para bloquear cualquier intento
+        $this->rateLimiterStub->method('isBlocked')->willReturn([
+            'blocked'           => true,
+            'minutes_remaining' => 15,
+        ]);
+        // sin usuario en BD — si el rate limit se aplicase el error sería "demasiados intentos"
+        $this->userRepoMock->method('findByEmailWithCredentials')->willReturn(null);
+
+        // act
+        $result = $this->service->login('user@example.com', 'password123');
+
+        // assert: el error es de credenciales (no de rate limit), confirmando que el bypass CLI actuó
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('credencial', \strtolower($result->error ?? ''));
     }
 }

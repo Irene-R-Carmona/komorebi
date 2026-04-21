@@ -54,8 +54,8 @@ final class ReceptionServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->reservationRepo = $this->createMock(ReservationRepositoryInterface::class);
-        $this->trackerRepo     = $this->createMock(TrackerRepositoryInterface::class);
+        $this->reservationRepo = $this->createStub(ReservationRepositoryInterface::class);
+        $this->trackerRepo     = $this->createStub(TrackerRepositoryInterface::class);
         $this->cafeRepo        = $this->createStub(CafeRepositoryInterface::class);
         $this->service         = new ReceptionService($this->reservationRepo, $this->trackerRepo, $this->cafeRepo);
     }
@@ -86,7 +86,7 @@ final class ReceptionServiceTest extends TestCase
 
     private function makeTransactionPdo(): PDO
     {
-        $pdo = $this->createMock(PDO::class);
+        $pdo = $this->createStub(PDO::class);
         $pdo->method('inTransaction')->willReturn(false);
         $pdo->method('beginTransaction')->willReturn(true);
         $pdo->method('commit')->willReturn(true);

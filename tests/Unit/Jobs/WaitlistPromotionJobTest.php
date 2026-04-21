@@ -51,7 +51,7 @@ final class WaitlistPromotionJobTest extends TestCase
      */
     private function makePdo(PDOStatement $stmt): PDO
     {
-        $pdo = $this->createMock(PDO::class);
+        $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
 
         return $pdo;
@@ -63,7 +63,7 @@ final class WaitlistPromotionJobTest extends TestCase
      */
     private function makePdoWithTwoStmts(PDOStatement $first, PDOStatement $second): PDO
     {
-        $pdo = $this->createMock(PDO::class);
+        $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($first, $second);
 
         return $pdo;
@@ -71,7 +71,7 @@ final class WaitlistPromotionJobTest extends TestCase
 
     private function makeStmt(mixed $fetchReturn = false): PDOStatement
     {
-        $stmt = $this->createMock(PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('rowCount')->willReturn(1);

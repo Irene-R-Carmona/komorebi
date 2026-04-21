@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Workers;
 
 use App\Workers\NotificationWorker;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  *
  * Valida la lógica del worker de notificaciones (sin ejecutar loop real).
  */
-#[CoversClass(NotificationWorker::class)]
+#[CoversNothing]
 final class NotificationWorkerTest extends TestCase
 {
     private NotificationWorker $worker;

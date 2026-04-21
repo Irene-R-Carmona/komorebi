@@ -33,14 +33,14 @@ final class HttpRateLimitMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         $this->responseFactory = new ResponseFactory();
-        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler = $this->createStub(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn($this->responseFactory->createResponse(200));
         $this->handler = $handler;
     }
 
     private function makeRequest(string $ip = '127.0.0.1'): ServerRequestInterface
     {
-        $request = $this->createMock(ServerRequestInterface::class);
+        $request = $this->createStub(ServerRequestInterface::class);
         $request->method('getServerParams')->willReturn(['REMOTE_ADDR' => $ip]);
 
         return $request;
@@ -60,7 +60,7 @@ final class HttpRateLimitMiddlewareTest extends TestCase
 
     public function testBlockedReturns429(): void
     {
-        $rateLimiter = $this->createMock(RateLimitingServiceInterface::class);
+        $rateLimiter = $this->createStub(RateLimitingServiceInterface::class);
         $rateLimiter->method('isBlocked')->willReturn([
             'blocked' => true,
             'minutes_remaining' => 10,
@@ -74,7 +74,7 @@ final class HttpRateLimitMiddlewareTest extends TestCase
 
     public function testBlockedResponseIncludesRetryAfterHeader(): void
     {
-        $rateLimiter = $this->createMock(RateLimitingServiceInterface::class);
+        $rateLimiter = $this->createStub(RateLimitingServiceInterface::class);
         $rateLimiter->method('isBlocked')->willReturn([
             'blocked' => true,
             'minutes_remaining' => 5,
@@ -89,7 +89,7 @@ final class HttpRateLimitMiddlewareTest extends TestCase
 
     public function testBlockedDoesNotCallHandler(): void
     {
-        $rateLimiter = $this->createMock(RateLimitingServiceInterface::class);
+        $rateLimiter = $this->createStub(RateLimitingServiceInterface::class);
         $rateLimiter->method('isBlocked')->willReturn([
             'blocked' => true,
             'minutes_remaining' => 1,

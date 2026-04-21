@@ -34,7 +34,7 @@ final class TokenControllerTest extends ControllerTestCase
 {
     private function makeController(): TokenController
     {
-        $tokenService = $this->createMock(ApiTokenServiceInterface::class);
+        $tokenService = $this->createStub(ApiTokenServiceInterface::class);
         $tokenService->method('listForUser')->willReturn([]);
 
         return new TokenController(new ResponseFactory(), $tokenService);
@@ -83,7 +83,7 @@ final class TokenControllerTest extends ControllerTestCase
 
     public function test_create_returns_201_with_plain_token(): void
     {
-        $tokenService = $this->createMock(ApiTokenServiceInterface::class);
+        $tokenService = $this->createStub(ApiTokenServiceInterface::class);
         $tokenService->method('generate')->willReturn(\str_repeat('a', 64));
 
         $controller = new TokenController(new ResponseFactory(), $tokenService);
@@ -116,7 +116,7 @@ final class TokenControllerTest extends ControllerTestCase
 
     public function test_revoke_owned_token_returns_200(): void
     {
-        $tokenService = $this->createMock(ApiTokenServiceInterface::class);
+        $tokenService = $this->createStub(ApiTokenServiceInterface::class);
         $tokenService->method('revoke')->willReturn(Result::ok(true));
 
         $controller = new TokenController(new ResponseFactory(), $tokenService);
@@ -134,7 +134,7 @@ final class TokenControllerTest extends ControllerTestCase
 
     public function test_revoke_foreign_token_returns_404(): void
     {
-        $tokenService = $this->createMock(ApiTokenServiceInterface::class);
+        $tokenService = $this->createStub(ApiTokenServiceInterface::class);
         $tokenService->method('revoke')->willReturn(Result::fail('Token no encontrado.', 'not_found'));
 
         $controller = new TokenController(new ResponseFactory(), $tokenService);

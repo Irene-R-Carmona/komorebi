@@ -41,8 +41,8 @@ final class ReservationControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdoStub = $this->createMock(PDO::class);
-        $this->stmtStub = $this->createMock(PDOStatement::class);
+        $this->pdoStub = $this->createStub(PDO::class);
+        $this->stmtStub = $this->createStub(PDOStatement::class);
         $this->reservationRepo = new ReservationRepository($this->pdoStub);
     }
 

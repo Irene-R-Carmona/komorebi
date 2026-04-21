@@ -50,7 +50,7 @@ final class AccountDeletionServiceTest extends TestCase
 
     public function testDeleteAndAnonymizeRetornaOkCuandoTransaccionExitosa(): void
     {
-        $pdo = $this->createMock(PDO::class);
+        $pdo = $this->createStub(PDO::class);
         $pdo->method('inTransaction')->willReturn(false);
         $pdo->method('beginTransaction')->willReturn(true);
         $pdo->method('commit')->willReturn(true);
@@ -73,7 +73,7 @@ final class AccountDeletionServiceTest extends TestCase
 
     public function testDeleteAndAnonymizeRetornaFailCuandoPdoLanzaExcepcion(): void
     {
-        $pdo = $this->createMock(PDO::class);
+        $pdo = $this->createStub(PDO::class);
         $pdo->method('inTransaction')->willReturn(false);
         $pdo->method('beginTransaction')
             ->willThrowException(new RuntimeException('Connection refused'));
@@ -89,13 +89,13 @@ final class AccountDeletionServiceTest extends TestCase
 
     public function testDeleteAndAnonymizeRetornaFailCuandoRepoLanzaExcepcion(): void
     {
-        $pdo = $this->createMock(PDO::class);
+        $pdo = $this->createStub(PDO::class);
         $pdo->method('inTransaction')->willReturn(false);
         $pdo->method('beginTransaction')->willReturn(true);
         $pdo->method('rollBack')->willReturn(true);
         $this->injectPdo($pdo);
 
-        $userRepo = $this->createMock(UserRepositoryInterface::class);
+        $userRepo = $this->createStub(UserRepositoryInterface::class);
         $userRepo->method('update')
             ->willThrowException(new RuntimeException('Repo failed'));
 

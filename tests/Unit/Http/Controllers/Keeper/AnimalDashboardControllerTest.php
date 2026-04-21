@@ -59,7 +59,7 @@ final class AnimalDashboardControllerTest extends TestCase
             incidentRepo: $this->createStub(AnimalIncidentRepositoryInterface::class),
             healthCheckRepo: $this->createStub(HealthCheckRepositoryInterface::class),
         );
-        $healthCheckRepo = $this->createMock(HealthCheckRepositoryInterface::class);
+        $healthCheckRepo = $this->createStub(HealthCheckRepositoryInterface::class);
         $healthCheckRepo->method('getTodayChecks')->willReturn([]);
         $healthCheckRepo->method('getPendingAnimals')->willReturn([]);
         $healthCheckRepo->method('getCheckswithAlerts')->willReturn([]);
@@ -68,14 +68,14 @@ final class AnimalDashboardControllerTest extends TestCase
         return new AnimalDashboardController(
             $animalCareService,
             $healthCheckService,
-            $animalRepository ?? $this->createMock(AnimalRepositoryInterface::class),
+            $animalRepository ?? $this->createStub(AnimalRepositoryInterface::class),
             new ResponseFactory(),
         );
     }
 
     public function test_show_redirects_when_animal_not_found(): void
     {
-        $animalRepository = $this->createMock(AnimalRepositoryInterface::class);
+        $animalRepository = $this->createStub(AnimalRepositoryInterface::class);
         $animalRepository->method('findById')->willReturn(null);
 
         $request = new ServerRequest('GET', '/keeper/animals/99')
@@ -109,7 +109,7 @@ final class AnimalDashboardControllerTest extends TestCase
 
     public function test_show_returns_null_when_animal_found(): void
     {
-        $animalRepository = $this->createMock(AnimalRepositoryInterface::class);
+        $animalRepository = $this->createStub(AnimalRepositoryInterface::class);
         $animalRepository->method('findById')->willReturn([
             'id' => 5,
             'name' => 'Luna',

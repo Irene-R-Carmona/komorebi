@@ -29,8 +29,8 @@ final class ReservationControllerTest extends ControllerTestCase
     {
         return new ReservationController(
             new ResponseFactory(),
-            $this->createMock(ReservationServiceInterface::class),
-            $this->createMock(TimeSlotServiceInterface::class),
+            $this->createStub(ReservationServiceInterface::class),
+            $this->createStub(TimeSlotServiceInterface::class),
         );
     }
 
@@ -47,12 +47,12 @@ final class ReservationControllerTest extends ControllerTestCase
 
     public function test_get_available_slots_calls_service_with_valid_date(): void
     {
-        $timeSlotService = $this->createMock(TimeSlotServiceInterface::class);
+        $timeSlotService = $this->createStub(TimeSlotServiceInterface::class);
         $timeSlotService->method('getAvailableSlots')->willReturn([]);
 
         $controller = new ReservationController(
             new ResponseFactory(),
-            $this->createMock(ReservationServiceInterface::class),
+            $this->createStub(ReservationServiceInterface::class),
             $timeSlotService,
         );
 

@@ -83,57 +83,61 @@
 
 ---
 
-## FASE 1 — Profundidad en servicios existentes (Días 2-5) → ~44%
+## FASE 1 — Profundidad en servicios existentes (Días 2-5) → ~44% — 🟡 EN IMPLEMENTACIÓN
 
 > 40 archivos de test existen pero cubren ~1.4 métodos por servicio. Cada servicio tiene 8-12 métodos públicos.
 > **Referencia**: `tests/Unit/Services/ReservationServiceTest.php`
 
 ### 1.1 Auth y cuenta
 
-- [ ] Expandir `AuthServiceTest` — login inválido, password incorrecto, logout, register duplicado, register exitoso, user bloqueado
+- [x] Expandir `AuthServiceTest` — login inválido, password incorrecto, logout, register duplicado, register exitoso, user bloqueado
 - [ ] Expandir `AuthTokenServiceTest` — token expirado, token inválido, refresh exitoso
-- [ ] Expandir `AccountDeletionServiceTest` — con reservas activas (falla), exitoso con cleanup
+- [x] Expandir `AccountDeletionServiceTest` — con reservas activas (falla), exitoso con cleanup
 - [ ] Expandir `SessionManagementServiceTest` — sesión expirada, regeneración de ID, concurrente
 
 ### 1.2 Reservas y waitlist
 
-- [ ] Expandir `ReservationServiceTest` — cancel con penalización, reschedule, validación capacidad, solapamiento
-- [ ] Expandir `ReservationTimeSlotServiceTest` — todos los métodos, paths de error DB
+- [x] Expandir `ReservationServiceTest` — cancel con penalización, reschedule, validación capacidad, solapamiento
+- [x] Expandir `ReservationTimeSlotServiceTest` — todos los métodos, paths de error DB
 - [ ] Expandir `WaitlistServiceTest` (post-fix Fase 0) — join exitoso, promoteNext, confirmPromotion, cancel, getPosition, history, expireTokens
 
 ### 1.3 Reviews
 
-- [ ] Expandir `ReviewServiceTest` — review duplicada, rating fuera de rango, get con filtros
+- [x] Expandir `ReviewServiceTest` — review duplicada, rating fuera de rango, get con filtros
 
 ### 1.4 Loyalty, gamification, carta
 
 - [ ] Expandir `LoyaltyServiceTest` — puntos insuficientes, acumular, historial, caducidad
 - [ ] Expandir `GamificationServiceTest` — todos los achievements, puntos por acción
-- [ ] Expandir `MenuServiceTest`, `ProductServiceTest`, `AllergenServiceTest` — CRUD completo + validaciones
+- [x] Expandir `ProductServiceTest` — CRUD completo + validaciones
+- [ ] Expandir `MenuServiceTest`, `AllergenServiceTest` — CRUD completo + validaciones
 
 ### 1.5 Staff y operaciones
 
-- [ ] Expandir `StaffShiftServiceTest` — solapamiento de turnos, turno sin café asignado, turno pasado
-- [ ] Expandir `SupervisorAssignmentServiceTest` — asignación duplicada, removeFail
+- [x] Expandir `StaffShiftServiceTest` — solapamiento de turnos, turno sin café asignado, turno pasado
+- [x] Expandir `SupervisorAssignmentServiceTest` — asignación duplicada, removeFail
 - [ ] Expandir `KitchenServiceTest`, `HealthCheckServiceTest`
 
 ### 1.6 Cache y servicios externos
 
 - [ ] Expandir `CacheServiceTest` — TTL expirado, invalidación por patrón, cache miss
-- [ ] Expandir `WeatherService`, `ClimaContextoService`, `MicroestacionesService` — HTTP failure, respuesta malformada, cache hit
+- [x] Expandir `WeatherServiceTest` — HTTP failure, respuesta malformada, cache hit
+- [ ] Expandir `ClimaContextoService`, `MicroestacionesService` — HTTP failure, respuesta malformada, cache hit
 
 ### 1.7 Nuevos archivos (8 servicios sin tests)
 
 Crear en `tests/Unit/Services/`:
 
-- [ ] `EmailVerificationServiceTest.php` — enviar, verificar, expirado, reenviar
-- [ ] `PasswordResetServiceTest.php` — solicitar, validar token, cambiar password, expirado
-- [ ] `ReviewModerationServiceTest.php` — aprobar, rechazar, spam, estadísticas
-- [ ] `ReviewQueryServiceTest.php` — buscar por café/usuario, paginación, filtros
+- [x] `EmailVerificationServiceTest.php` — enviar, verificar, expirado, reenviar
+- [x] `PasswordResetServiceTest.php` — solicitar, validar token, cambiar password, expirado
+- [x] `ReviewModerationServiceTest.php` — aprobar, rechazar, spam, estadísticas
+- [x] `ReviewQueryServiceTest.php` — buscar por café/usuario, paginación, filtros
 - [ ] `TimeSlotServiceTest.php` — getAvailable, getById, generar slots, bloquear slot
-- [ ] `UserAccountServiceTest.php` — cambiar password, actualizar perfil, eliminar cuenta
-- [ ] `UserPreferenceServiceTest.php` — get/set/delete preferencias
-- [ ] `UserProfileServiceTest.php` — get, actualizar, validaciones
+- [x] `UserAccountServiceTest.php` — cambiar password, actualizar perfil, eliminar cuenta
+- [x] `UserPreferenceServiceTest.php` — get/set/delete preferencias
+- [x] `UserProfileServiceTest.php` — get, actualizar, validaciones
+
+> **Estado a 21-04-2026:** 804/804 tests OK, 0 warnings, 0 notices. 7/8 nuevos servicios creados. Pendiente: AuthTokenService, SessionManagement, WaitlistService, LoyaltyService, GamificationService, MenuService, AllergenService, KitchenService, HealthCheckService, CacheService, ClimaContextoService, MicroestacionesService, TimeSlotServiceTest.
 
 **Verificación Fase 1**: `make test-coverage` → App\Services ≥ 78%
 

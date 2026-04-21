@@ -42,7 +42,7 @@ final class ApiAuthMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         $this->responseFactory = new ResponseFactory();
-        $this->request = $this->createMock(ServerRequestInterface::class);
+        $this->request = $this->createStub(ServerRequestInterface::class);
     }
 
     protected function tearDown(): void
@@ -63,10 +63,10 @@ final class ApiAuthMiddlewareTest extends TestCase
 
     private function mockHandlerReturning(int $status = 200): RequestHandlerInterface
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn($status);
 
-        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler = $this->createStub(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn($response);
 
         return $handler;
@@ -85,7 +85,7 @@ final class ApiAuthMiddlewareTest extends TestCase
             'token_id' => 1,
         ];
 
-        $tokenService = $this->createMock(ApiTokenServiceInterface::class);
+        $tokenService = $this->createStub(ApiTokenServiceInterface::class);
         $tokenService->method('validate')
             ->willReturn(Result::ok($tokenData));
 
@@ -103,7 +103,7 @@ final class ApiAuthMiddlewareTest extends TestCase
 
     public function testInvalidBearerReturns401WithoutCallingHandler(): void
     {
-        $tokenService = $this->createMock(ApiTokenServiceInterface::class);
+        $tokenService = $this->createStub(ApiTokenServiceInterface::class);
         $tokenService->method('validate')
             ->willReturn(Result::fail('Token expirado.', 'invalid_token'));
 
@@ -148,7 +148,7 @@ final class ApiAuthMiddlewareTest extends TestCase
         // Sin user_id en sesión
         unset($_SESSION['user_id']);
 
-        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler = $this->createStub(RequestHandlerInterface::class);
         $response = $this->buildMiddleware()->process($this->request, $handler);
 
         $this->assertSame(401, $response->getStatusCode());

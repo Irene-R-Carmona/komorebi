@@ -38,7 +38,7 @@ final class SendTelegramNotificationJobTest extends TestCase
 
     public function testHandleLogsAndContinuesOnTelegramFailure(): void
     {
-        $telegram = $this->createMock(TelegramServiceInterface::class);
+        $telegram = $this->createStub(TelegramServiceInterface::class);
         $telegram->method('sendAlert')->willThrowException(new RuntimeException('timeout'));
 
         $job = new SendTelegramNotificationJob($telegram);

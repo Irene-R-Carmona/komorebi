@@ -32,7 +32,7 @@ final class ContextServiceInstanceTest extends TestCase
         ?int $sessionSelectedCafeId,
         ?array $cafeData = null
     ): ContextServiceInstance {
-        $cafeRepo = $this->createMock(CafeRepositoryInterface::class);
+        $cafeRepo = $this->createStub(CafeRepositoryInterface::class);
         if ($cafeData !== null) {
             $cafeRepo->method('findById')->willReturn($cafeData);
         }

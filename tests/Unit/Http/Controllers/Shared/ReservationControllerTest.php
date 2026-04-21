@@ -31,6 +31,7 @@ use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\FestivosJaponesesServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\ReservationService;
+use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Support\ControllerTestCase;
 
@@ -68,7 +69,7 @@ final class ReservationControllerTest extends ControllerTestCase
                 productRepo: $this->createStub(ProductRepositoryInterface::class),
                 reservationRepo: $this->createStub(ReservationRepositoryInterface::class),
             ),
-            reservationModel: new Reservation(),
+            reservationModel: new Reservation($this->createStub(PDO::class)),
             climaService: $this->createStub(ClimaContextoServiceInterface::class),
             festivosService: $this->createStub(FestivosJaponesesServiceInterface::class),
             response: new ResponseFactory(),

@@ -42,8 +42,8 @@ final class ReviewControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->queryService = $this->createMock(ReviewQueryServiceInterface::class);
-        $this->moderationService = $this->createMock(ReviewModerationServiceInterface::class);
+        $this->queryService = $this->createStub(ReviewQueryServiceInterface::class);
+        $this->moderationService = $this->createStub(ReviewModerationServiceInterface::class);
     }
 
     protected function tearDown(): void

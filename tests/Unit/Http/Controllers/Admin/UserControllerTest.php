@@ -44,7 +44,7 @@ final class UserControllerTest extends ControllerTestCase
 
     public function test_get_users_list_returns_json_response(): void
     {
-        $repoStub = $this->createMock(UserRepositoryInterface::class);
+        $repoStub = $this->createStub(UserRepositoryInterface::class);
         $repoStub->method('getActiveUsersList')->willReturn([
             ['id' => 1, 'name' => 'Ana', 'email' => 'ana@example.com'],
             ['id' => 2, 'name' => 'Juan', 'email' => 'juan@example.com'],
@@ -73,7 +73,7 @@ final class UserControllerTest extends ControllerTestCase
 
     public function test_get_users_list_returns_empty_array_when_no_users(): void
     {
-        $repoStub = $this->createMock(UserRepositoryInterface::class);
+        $repoStub = $this->createStub(UserRepositoryInterface::class);
         $repoStub->method('getActiveUsersList')->willReturn([]);
 
         $mgmtService = new UserManagementService(

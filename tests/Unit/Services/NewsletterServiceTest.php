@@ -36,12 +36,12 @@ use PHPUnit\Framework\TestCase;
 final class NewsletterServiceTest extends TestCase
 {
     private NewsletterService $service;
-    /** @var \PHPUnit\Framework\MockObject\MockObject&NewsletterSubscriptionRepositoryInterface */
+    /** @var \PHPUnit\Framework\MockObject\Stub&NewsletterSubscriptionRepositoryInterface */
     private NewsletterSubscriptionRepositoryInterface $subscriptionRepoMock;
 
     protected function setUp(): void
     {
-        $this->subscriptionRepoMock = $this->createMock(NewsletterSubscriptionRepositoryInterface::class);
+        $this->subscriptionRepoMock = $this->createStub(NewsletterSubscriptionRepositoryInterface::class);
         $this->service = new NewsletterService($this->subscriptionRepoMock);
     }
 

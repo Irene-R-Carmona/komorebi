@@ -20,6 +20,7 @@ use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\RoleController;
 use App\Models\Permission;
 use App\Models\Role;
+use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Support\ControllerTestCase;
 
@@ -41,8 +42,8 @@ final class RoleControllerTest extends ControllerTestCase
     {
         $controller = new RoleController(
             response: new ResponseFactory(),
-            roleModel: new Role(),
-            permissionModel: new Permission(),
+            roleModel: new Role($this->createStub(PDO::class)),
+            permissionModel: new Permission($this->createStub(PDO::class)),
         );
         $this->assertInstanceOf(RoleController::class, $controller);
     }
@@ -50,8 +51,8 @@ final class RoleControllerTest extends ControllerTestCase
     public function test_instance_can_be_created_without_arguments(): void
     {
         $controller = new RoleController(
-            roleModel: new Role(),
-            permissionModel: new Permission(),
+            roleModel: new Role($this->createStub(PDO::class)),
+            permissionModel: new Permission($this->createStub(PDO::class)),
         );
         $this->assertInstanceOf(RoleController::class, $controller);
     }

@@ -33,7 +33,7 @@ final class ProductServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $repoStub = $this->createMock(ProductRepositoryInterface::class);
+        $repoStub = $this->createStub(ProductRepositoryInterface::class);
         $repoStub->method('findFiltered')->willReturnCallback(
             static function (array $filters, int $page, int $perPage): array {
                 return ['data' => [], 'total' => 0, 'page' => $page, 'perPage' => $perPage, 'totalPages' => 1];

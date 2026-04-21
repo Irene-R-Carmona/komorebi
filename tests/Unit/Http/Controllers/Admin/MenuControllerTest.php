@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\MenuController;
 use App\Models\MenuCategory;
 use App\Models\Product;
 use App\Services\Contracts\ProductServiceInterface;
+use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Support\ControllerTestCase;
 
@@ -48,8 +49,8 @@ final class MenuControllerTest extends ControllerTestCase
         return new MenuController(
             productService: $this->createStub(ProductServiceInterface::class),
             response: new ResponseFactory(),
-            productModel: new Product(),
-            categoryModel: new MenuCategory(),
+            productModel: new Product($this->createStub(PDO::class)),
+            categoryModel: new MenuCategory($this->createStub(PDO::class)),
         );
     }
 

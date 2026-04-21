@@ -1,4 +1,4 @@
-.PHONY: help up down restart logs bash db-reset db-seed db-migrate clean test test-unit test-integration test-coverage test-build test-clean ci coverage cs-check cs-fix audit sonar-up sonar-down analyze e2e e2e-a11y lighthouse playwright-install dev dev-full workers-up workers-down xdebug-on
+.PHONY: help up down restart logs bash db-reset db-seed db-migrate clean test test-unit test-integration test-coverage test-build test-clean ci coverage cs-check cs-fix audit sonar-up sonar-down analyze e2e e2e-a11y lighthouse playwright-install dev dev-full workers-up workers-down xdebug-on phpstan phpstan-quick
 
 # Colores para output
 GREEN=\033[0;32m
@@ -135,8 +135,11 @@ test-build: ## Construir imagen de test sin ejecutar
 test-clean: ## Eliminar contenedores y volúmenes de test
 	docker compose -f docker-compose.test.yml down -v --remove-orphans
 
-phpstan: ## Análisis estático con PHPStan
-	docker compose exec app php vendor/bin/phpstan analyse --memory-limit=1G
+phpstan: ## Análisis estático con PHPStan (guarda output; nunca pierde por timeout)
+	docker compose exec app sh -c "php vendor/bin/phpstan analyse --memory-limit=1G --no-progress > /tmp/phpstan.txt 2>&1; EXIT=\$$?; cat /tmp/phpstan.txt; exit \$$EXIT"
+
+phpstan-quick: ## PHPStan solo sobre app/ (rápido, sin scripts/ ni tests/)
+	docker compose exec app sh -c "php vendor/bin/phpstan analyse app/ --memory-limit=512M --no-progress --allow-unmatched-ignores 2>&1"
 
 ci: ## Suite completa de calidad (phpstan + test + cs)
 	$(MAKE) phpstan

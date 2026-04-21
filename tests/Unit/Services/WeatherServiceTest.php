@@ -23,9 +23,11 @@ namespace Tests\Unit\Services;
 
 use App\Core\Result;
 use App\Services\WeatherService;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
+#[CoversClass(WeatherService::class)]
 final class WeatherServiceTest extends TestCase
 {
     // ─────────────────────────────────────────────────────────────

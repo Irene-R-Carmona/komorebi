@@ -35,7 +35,7 @@ final class TransactionalServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdoMock = $this->createMock(PDO::class);
+        $this->pdoMock = $this->createStub(PDO::class);
         $this->service = new ConcreteTransactionalService($this->pdoMock);
     }
 
