@@ -18,7 +18,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
+use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use App\Services\AnimalCareService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -28,10 +30,14 @@ final class AnimalCareServiceTest extends TestCase
 {
     /** @var \PHPUnit\Framework\MockObject\Stub&AnimalRepositoryInterface */
     private AnimalRepositoryInterface $repoStub;
+    private AnimalIncidentRepositoryInterface $incidentRepoStub;
+    private HealthCheckRepositoryInterface $healthCheckRepoStub;
 
     protected function setUp(): void
     {
-        $this->repoStub = $this->createMock(AnimalRepositoryInterface::class);
+        $this->repoStub           = $this->createStub(AnimalRepositoryInterface::class);
+        $this->incidentRepoStub   = $this->createStub(AnimalIncidentRepositoryInterface::class);
+        $this->healthCheckRepoStub = $this->createStub(HealthCheckRepositoryInterface::class);
     }
 
     // ──────────────────────────────────────────────
@@ -48,7 +54,7 @@ final class AnimalCareServiceTest extends TestCase
             ->method('getAnimalsWithCafeInfoOptimized')
             ->willReturn($animalesEsperados);
 
-        $service = new AnimalCareService($this->repoStub);
+        $service = new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub);
         $result  = $service->getAllAnimals();
 
         $this->assertSame($animalesEsperados, $result);
@@ -62,7 +68,7 @@ final class AnimalCareServiceTest extends TestCase
     {
         $this->repoStub->method('findById')->willReturn(null);
 
-        $this->assertNull((new AnimalCareService($this->repoStub))->getAnimalById(999));
+        $this->assertNull((new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub))->getAnimalById(999));
     }
 
     public function testGetAnimalByIdDevuelveArrayCuandoExiste(): void
@@ -70,7 +76,7 @@ final class AnimalCareServiceTest extends TestCase
         $animal = ['id' => 5, 'name' => 'Mochi', 'species_type' => 'rabbit'];
         $this->repoStub->method('findById')->willReturn($animal);
 
-        $this->assertSame($animal, (new AnimalCareService($this->repoStub))->getAnimalById(5));
+        $this->assertSame($animal, (new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub))->getAnimalById(5));
     }
 
     // ──────────────────────────────────────────────
@@ -79,7 +85,7 @@ final class AnimalCareServiceTest extends TestCase
 
     public function testCreateAnimalSinNombreRetornaFail(): void
     {
-        $result = (new AnimalCareService($this->repoStub))->createAnimal(['species' => 'cat']);
+        $result = (new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub))->createAnimal(['species' => 'cat']);
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Nombre', $result->error);
@@ -87,7 +93,7 @@ final class AnimalCareServiceTest extends TestCase
 
     public function testCreateAnimalSinEspecieRetornaFail(): void
     {
-        $result = (new AnimalCareService($this->repoStub))->createAnimal(['name' => 'Neko']);
+        $result = (new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub))->createAnimal(['name' => 'Neko']);
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('especie', $result->error);
@@ -95,7 +101,7 @@ final class AnimalCareServiceTest extends TestCase
 
     public function testCreateAnimalConDatosVaciosRetornaFail(): void
     {
-        $result = (new AnimalCareService($this->repoStub))->createAnimal([]);
+        $result = (new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub))->createAnimal([]);
 
         $this->assertFalse($result->ok);
     }
@@ -108,7 +114,7 @@ final class AnimalCareServiceTest extends TestCase
     {
         $this->repoStub->method('updateAnimal')->willReturn(false);
 
-        $service = new AnimalCareService($this->repoStub);
+        $service = new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub);
         $result  = $service->updateAnimal(999, ['name' => 'Ghost', 'species' => 'cat']);
 
         $this->assertFalse($result->ok);

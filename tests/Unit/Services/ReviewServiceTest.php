@@ -54,7 +54,7 @@ final class ReviewServiceTest extends TestCase
         ]);
 
         $this->reservationRepoMock->method('hasCompletedReservation')->willReturn(true);
-        $this->reviewRepoMock->method('findByUserAndCafe')->willReturn(null);
+        $this->reviewRepoMock->method('userHasReview')->willReturn(false);
         $this->reviewRepoMock->method('create')->willReturn(123);
 
         $result = $this->service->createReview(
@@ -198,7 +198,7 @@ final class ReviewServiceTest extends TestCase
             'is_active' => true,
         ]);
         $this->reservationRepoMock->method('hasCompletedReservation')->willReturn(true);
-        $this->reviewRepoMock->method('findByUserAndCafe')->willReturn(null);
+        $this->reviewRepoMock->method('userHasReview')->willReturn(false);
 
         $capturedData = null;
 

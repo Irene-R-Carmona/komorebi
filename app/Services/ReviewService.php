@@ -90,7 +90,11 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
                 return Result::fail('Ya has dejado una reseña para este café', 'duplicate_review');
             }
 
-            // 4. Crear reseña usando repository (el escapado se realiza en la vista, no en BD)
+            // 4. Sanitizar HTML para prevenir XSS
+            $title = \htmlspecialchars($title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $body = \htmlspecialchars($body, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+            // 5. Crear reseña usando repository
             $reviewId = $this->reviewRepository->create([
                 'user_id' => $userId,
                 'cafe_id' => $cafeId,

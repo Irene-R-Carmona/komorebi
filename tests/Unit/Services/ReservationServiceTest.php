@@ -949,8 +949,8 @@ final class ReservationServiceTest extends TestCase
         // ACT
         $result = $this->service->cancel(99999, self::VALID_USER_ID);
 
-        // ASSERT: Retorna false cuando la reserva no existe o no se puede cancelar
-        $this->assertFalse($result);
+        // ASSERT: Retorna resultado fallido cuando la reserva no existe o no se puede cancelar
+        $this->assertFalse($result->ok);
     }
 
     public function testCreateSucceedsWhenMaxGuestsIsNull(): void

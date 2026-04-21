@@ -26,9 +26,27 @@ final class SettingsService implements SettingsServiceInterface
 {
     private SettingRepositoryInterface $settingRepo;
 
+    /** @var array<string, mixed>|null Cache local construida desde el repositorio */
+    private ?array $localCache = null;
+
     public function __construct(?SettingRepositoryInterface $settingRepo = null)
     {
         $this->settingRepo = $settingRepo ?? Container::make(SettingRepositoryInterface::class);
+    }
+
+    /**
+     * Obtiene un valor de configuración desde el repositorio (sin DB estática)
+     */
+    private function getSetting(string $key, mixed $default = null): mixed
+    {
+        if ($this->localCache === null) {
+            $this->localCache = [];
+            foreach ($this->settingRepo->findAll() as $row) {
+                $this->localCache[$row['key']] = $row['value'] ?? null;
+            }
+        }
+
+        return $this->localCache[$key] ?? $default;
     }
 
     /**
@@ -170,7 +188,7 @@ final class SettingsService implements SettingsServiceInterface
     #[Override]
     public function isSmtpEnabled(): bool
     {
-        return (bool) Setting::get('smtp_enabled', false);
+        return (bool) $this->getSetting('smtp_enabled', false);
     }
 
     /**
@@ -183,13 +201,13 @@ final class SettingsService implements SettingsServiceInterface
     {
         return [
             'enabled' => $this->isSmtpEnabled(),
-            'host' => Setting::get('smtp_host', ''),
-            'port' => (int) Setting::get('smtp_port', 587),
-            'username' => Setting::get('smtp_username', ''),
-            'password' => Setting::get('smtp_password', ''),
-            'from_email' => Setting::get('smtp_from_email', ''),
-            'from_name' => Setting::get('smtp_from_name', 'Komorebi Café'),
-            'encryption' => Setting::get('smtp_encryption', 'tls'),
+            'host' => $this->getSetting('smtp_host', ''),
+            'port' => (int) $this->getSetting('smtp_port', 587),
+            'username' => $this->getSetting('smtp_username', ''),
+            'password' => $this->getSetting('smtp_password', ''),
+            'from_email' => $this->getSetting('smtp_from_email', ''),
+            'from_name' => $this->getSetting('smtp_from_name', 'Komorebi Café'),
+            'encryption' => $this->getSetting('smtp_encryption', 'tls'),
         ];
     }
 
@@ -204,7 +222,7 @@ final class SettingsService implements SettingsServiceInterface
         $issues = [];
 
         // Verificar configuración de app
-        if (empty(Setting::get('app_name'))) {
+        if (empty($this->getSetting('app_name'))) {
             $issues[] = 'Nombre de la aplicación no configurado';
         }
 

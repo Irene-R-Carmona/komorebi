@@ -39,9 +39,9 @@ final class FileUploadService implements FileUploadServiceInterface
     /**
      * @throws ConfigurationException
      */
-    public function __construct()
+    public function __construct(?string $basePath = null)
     {
-        $this->uploadBasePath = __DIR__ . '/../../storage/uploads';
+        $this->uploadBasePath = $basePath ?? __DIR__ . '/../../storage/uploads';
         $this->avatarPath = $this->uploadBasePath . '/avatars';
         $this->animalPhotoPath = $this->uploadBasePath . '/animals';
 

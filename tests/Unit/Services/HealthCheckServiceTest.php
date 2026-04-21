@@ -43,7 +43,7 @@ final class HealthCheckServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->repo = $this->createStub(HealthCheckRepositoryInterface::class);
+        $this->repo = $this->createMock(HealthCheckRepositoryInterface::class);
         $this->service = new HealthCheckService($this->repo);
     }
 
@@ -247,7 +247,7 @@ final class HealthCheckServiceTest extends TestCase
         // 39.5 es el umbral. Solo > 39.5 activa la alerta.
         $alerts = $this->service->detectAlerts(['temperature_c' => 39.5]);
 
-        $feverAlerts = \array_filter($alerts, fn (string $a) => \str_contains($a, 'Fiebre'));
+        $feverAlerts = \array_filter($alerts, fn(string $a) => \str_contains($a, 'Fiebre'));
         $this->assertEmpty($feverAlerts);
     }
 

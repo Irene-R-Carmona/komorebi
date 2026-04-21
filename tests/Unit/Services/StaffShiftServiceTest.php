@@ -158,7 +158,7 @@ final class StaffShiftServiceTest extends TestCase
 
         $this->assertFalse($result->ok);
         $this->assertSame('shift_overlap', $result->code);
-        $this->assertStringContainsString('turno', strtolower($result->getMessage()));
+        $this->assertStringContainsString('turno', strtolower($result->error));
     }
 
     public function testAssignShiftWithNotesPropagatesNotesCorrectly(): void

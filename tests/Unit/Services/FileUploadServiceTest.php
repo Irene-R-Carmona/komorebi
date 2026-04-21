@@ -37,9 +37,14 @@ final class FileUploadServiceTest extends TestCase
     /** Rutas temporales a limpiar en tearDown */
     private array $tmpFiles = [];
 
+    /** Directorio base temporal para uploads en tests */
+    private string $tmpUploadBase;
+
     protected function setUp(): void
     {
-        $this->service = new FileUploadService();
+        $this->tmpUploadBase = \sys_get_temp_dir() . '/komorebi_uploads_' . \uniqid('', true);
+        \mkdir($this->tmpUploadBase, 0o777, true);
+        $this->service = new FileUploadService($this->tmpUploadBase);
     }
 
     protected function tearDown(): void
@@ -48,6 +53,16 @@ final class FileUploadServiceTest extends TestCase
             if (\is_file($path)) {
                 @\unlink($path);
             }
+        }
+        // Limpiar directorio temporal de uploads
+        if (\is_dir($this->tmpUploadBase)) {
+            foreach (\glob($this->tmpUploadBase . '/**/*') ?: [] as $f) {
+                \is_file($f) && @\unlink($f);
+            }
+            foreach (\glob($this->tmpUploadBase . '/*') ?: [] as $f) {
+                \is_dir($f) ? @\rmdir($f) : @\unlink($f);
+            }
+            @\rmdir($this->tmpUploadBase);
         }
     }
 
@@ -148,7 +163,7 @@ final class FileUploadServiceTest extends TestCase
         $result = $this->service->uploadAvatar($file, 1);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Error en la subida', $result->getMessage());
+        $this->assertStringContainsString('Error en la subida', $result->error);
     }
 
     #[Test]
@@ -159,7 +174,7 @@ final class FileUploadServiceTest extends TestCase
         $result = $this->service->uploadAvatar($file, 1);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('tamaño máximo', $result->getMessage());
+        $this->assertStringContainsString('tamaño máximo', $result->error);
     }
 
     #[Test]
@@ -170,7 +185,7 @@ final class FileUploadServiceTest extends TestCase
         $result = $this->service->uploadAvatar($file, 1);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('tamaño máximo', $result->getMessage());
+        $this->assertStringContainsString('tamaño máximo', $result->error);
     }
 
     #[Test]
@@ -181,7 +196,7 @@ final class FileUploadServiceTest extends TestCase
         $result = $this->service->uploadAvatar($file, 1);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('No se seleccionó ningún archivo', $result->getMessage());
+        $this->assertStringContainsString('No se seleccionó ningún archivo', $result->error);
     }
 
     #[Test]
@@ -192,7 +207,7 @@ final class FileUploadServiceTest extends TestCase
         $result = $this->service->uploadAvatar($file, 1);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Error desconocido', $result->getMessage());
+        $this->assertStringContainsString('Error desconocido', $result->error);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -214,7 +229,7 @@ final class FileUploadServiceTest extends TestCase
         $result = $this->service->uploadAvatar($file, 1);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('2MB', $result->getMessage());
+        $this->assertStringContainsString('2MB', $result->error);
     }
 
     #[Test]
@@ -230,7 +245,7 @@ final class FileUploadServiceTest extends TestCase
         $result = $this->service->uploadAnimalPhoto($file, 42);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('5MB', $result->getMessage());
+        $this->assertStringContainsString('5MB', $result->error);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -247,7 +262,7 @@ final class FileUploadServiceTest extends TestCase
         $result = $this->service->uploadAvatar($file, 1);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Tipo de archivo no permitido', $result->getMessage());
+        $this->assertStringContainsString('Tipo de archivo no permitido', $result->error);
     }
 
     #[Test]
@@ -262,7 +277,7 @@ final class FileUploadServiceTest extends TestCase
         $result = $this->service->uploadAvatar($file, 1);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Extensión de archivo no permitida', $result->getMessage());
+        $this->assertStringContainsString('Extensión de archivo no permitida', $result->error);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -276,7 +291,7 @@ final class FileUploadServiceTest extends TestCase
         $result = $this->service->deleteFile('/storage/uploads/../../etc/passwd');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Archivo no válido', $result->getMessage());
+        $this->assertStringContainsString('Archivo no válido', $result->error);
     }
 
     #[Test]

@@ -18,6 +18,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Services\SettingsService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -29,7 +30,9 @@ final class SettingsServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->service = new SettingsService();
+        $settingRepo = $this->createStub(SettingRepositoryInterface::class);
+        $settingRepo->method('findAll')->willReturn([]);
+        $this->service = new SettingsService($settingRepo);
     }
 
     // ──────────────────────────────────────────────

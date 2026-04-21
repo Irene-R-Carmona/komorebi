@@ -42,7 +42,7 @@ final class HomeController
         $totalCafes = \count($cafes);
 
         // Calcular valoración media de todos los cafés activos
-        $ratings = \array_filter(\array_column($cafes, 'rating_avg'), fn ($r) => $r !== null && (float) $r > 0);
+        $ratings = \array_filter(\array_column($cafes, 'rating_avg'), fn($r) => $r !== null && (float) $r > 0);
         $ratingPromedio = $ratings !== []
             ? \number_format(\array_sum($ratings) / \count($ratings), 1)
             : '5.0';
@@ -82,7 +82,7 @@ final class HomeController
     private function getFeaturedCafes(array $cafes): array
     {
         // Ordenar por rating descendente
-        \usort($cafes, static fn ($a, $b) => (float) ($b['rating_avg'] ?? 0) <=> (float) ($a['rating_avg'] ?? 0));
+        \usort($cafes, static fn($a, $b) => (float) ($b['rating_avg'] ?? 0) <=> (float) ($a['rating_avg'] ?? 0));
 
         return \array_slice($cafes, 0, 3);
     }

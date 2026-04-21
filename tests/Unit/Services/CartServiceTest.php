@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Services\CartService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -31,7 +33,9 @@ final class CartServiceTest extends TestCase
     {
         // Limpiar la sesión antes de cada test
         $_SESSION = [];
-        $this->service = new CartService();
+        $productRepo = $this->createStub(ProductRepositoryInterface::class);
+        $itemRepo    = $this->createStub(ReservationItemRepositoryInterface::class);
+        $this->service = new CartService($productRepo, $itemRepo);
     }
 
     protected function tearDown(): void

@@ -20,6 +20,7 @@ namespace Tests\Unit\Services;
 
 use App\Core\Result;
 use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\StatisticsRepositoryInterface;
 use App\Services\CafeService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -44,7 +45,8 @@ final class CafeServiceTest extends TestCase
             unset($_SESSION['user_id']);
         }
         $this->mockRepo = $this->createMock(CafeRepositoryInterface::class);
-        $this->service = new CafeService($this->mockRepo);
+        $statsRepo = $this->createStub(StatisticsRepositoryInterface::class);
+        $this->service = new CafeService($this->mockRepo, $statsRepo);
     }
 
     protected function tearDown(): void

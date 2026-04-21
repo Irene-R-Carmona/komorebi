@@ -170,7 +170,7 @@ final class CafeController
             'total_animals' => \count($rawAnimals),
             'active_animals' => \count(\array_filter(
                 $rawAnimals,
-                static fn ($a) => $a['current_status'] === 'active'
+                static fn($a) => $a['current_status'] === 'active'
             )),
             'favorites_count' => $this->cafeRepo->getFavoritesCount((int) $cafe['id']),
         ];

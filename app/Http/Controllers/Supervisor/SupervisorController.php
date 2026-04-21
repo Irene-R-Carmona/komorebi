@@ -81,7 +81,7 @@ final class SupervisorController
 
         // Mesas ocupadas = reservas con check-in activo ahora
         $activeTables = \array_values(
-            \array_filter($reservations, fn (array $r): bool => $r['status'] === 'checked_in')
+            \array_filter($reservations, fn(array $r): bool => $r['status'] === 'checked_in')
         );
 
         // Órdenes en curso desde el KDS

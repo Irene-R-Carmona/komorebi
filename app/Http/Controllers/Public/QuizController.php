@@ -226,6 +226,6 @@ final class QuizController
      */
     private function obtenerPreguntaPorId(int $id): ?array
     {
-        return \array_find(self::PREGUNTAS, static fn ($pregunta) => $pregunta['id'] === $id);
+        return \array_find(self::PREGUNTAS, static fn($pregunta) => $pregunta['id'] === $id);
     }
 }

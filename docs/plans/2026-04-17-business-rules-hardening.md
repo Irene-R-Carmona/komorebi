@@ -40,11 +40,11 @@
 
 - [x] Eliminar de `Result.php`: `isOk()`, `isFail()`, `getDataOr()`, `getMessage()`
 - [x] Reemplazar en todo el codebase:
-    - `$result->isOk()` → `$result->ok` **(✅ 0 usos — ya limpio)**
-    - `$result->isFail()` → `$result->error !== null` **(✅ 0 usos — ya limpio)**
-    - `$result->getDataOr($x)` → `$result->data ?? $x` **(✅ 0 usos — ya limpio)**
-    - `$result->getMessage()` / `$result->getMessage('fb')` → `$result->error ?? 'fb'` **(✅ 0 usos — ya limpio)**
-    - `$result->isSuccess()` → `$result->ok` **(✅ 0 usos — ya limpio)**
+  - `$result->isOk()` → `$result->ok` **(✅ 0 usos — ya limpio)**
+  - `$result->isFail()` → `$result->error !== null` **(✅ 0 usos — ya limpio)**
+  - `$result->getDataOr($x)` → `$result->data ?? $x` **(✅ 0 usos — ya limpio)**
+  - `$result->getMessage()` / `$result->getMessage('fb')` → `$result->error ?? 'fb'` **(✅ 0 usos — ya limpio)**
+  - `$result->isSuccess()` → `$result->ok` **(✅ 0 usos — ya limpio)**
 - [x] Verificar: `grep -r "isOk\(\)\|isFail\(\)\|getDataOr\(" app/` → 0 resultados
 - [x] Archivos conocidos: `AnimalCareService.php` (L234, L386), `StaffShiftService.php`,
   `Api\ReservationController.php`, `ReservationService.php` (comentario L86)

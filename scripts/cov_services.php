@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 $xml = simplexml_load_file('/app/tests/reports/coverage.xml');

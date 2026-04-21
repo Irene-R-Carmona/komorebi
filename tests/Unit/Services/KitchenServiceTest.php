@@ -85,7 +85,7 @@ final class KitchenServiceTest extends TestCase
 
         $this->itemRepo->method('findPendingByStation')
             ->willReturnCallback(
-                static fn (int $cafeId, string $station): array => $station === Product::STATION_BAR
+                static fn(int $cafeId, string $station): array => $station === Product::STATION_BAR
                     ? [$barItem]
                     : []
             );

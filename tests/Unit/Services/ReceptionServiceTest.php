@@ -26,6 +26,7 @@ namespace Tests\Unit\Services;
 use App\Core\Database;
 use App\Models\Reservation;
 use App\Models\Tracker;
+use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\TrackerRepositoryInterface;
 use App\Services\ReceptionService;
@@ -43,6 +44,8 @@ final class ReceptionServiceTest extends TestCase
     private ReservationRepositoryInterface $reservationRepo;
     /** @var Stub&TrackerRepositoryInterface */
     private TrackerRepositoryInterface $trackerRepo;
+    /** @var Stub&CafeRepositoryInterface */
+    private CafeRepositoryInterface $cafeRepo;
     private ReceptionService $service;
 
     // ─────────────────────────────────────────────────────────────
@@ -53,7 +56,8 @@ final class ReceptionServiceTest extends TestCase
     {
         $this->reservationRepo = $this->createMock(ReservationRepositoryInterface::class);
         $this->trackerRepo     = $this->createMock(TrackerRepositoryInterface::class);
-        $this->service         = new ReceptionService($this->reservationRepo, $this->trackerRepo);
+        $this->cafeRepo        = $this->createStub(CafeRepositoryInterface::class);
+        $this->service         = new ReceptionService($this->reservationRepo, $this->trackerRepo, $this->cafeRepo);
     }
 
     protected function tearDown(): void
@@ -106,7 +110,7 @@ final class ReceptionServiceTest extends TestCase
             'tracker_id'     => null,
             'guests'         => 2,
             'guest_count'    => 2,
-            'pass_unit_price'=> '5.00',
+            'pass_unit_price' => '5.00',
             'check_in_at'    => null,
             'check_out_at'   => null,
         ];
@@ -125,7 +129,7 @@ final class ReceptionServiceTest extends TestCase
             'tracker_id'     => null,
             'guests'         => 2,
             'guest_count'    => 2,
-            'pass_unit_price'=> '5.00',
+            'pass_unit_price' => '5.00',
             'check_in_at'    => '2024-01-01 14:00:00',
             'check_out_at'   => null,
         ];

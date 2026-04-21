@@ -33,9 +33,17 @@ final class AdminServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->service = new AdminStatisticsService(
-            $this->createStub(StatisticsRepositoryInterface::class)
-        );
+        $statsRepo = $this->createStub(StatisticsRepositoryInterface::class);
+        $statsRepo->method('getSystemCounts')->willReturn([
+            'users' => 0,
+            'cafes' => 0,
+            'reservations' => 0,
+            'reviews' => 0,
+            'pending_reviews' => 0,
+        ]);
+        $statsRepo->method('getWeeklyUserCounts')->willReturn(['current_week' => 0, 'previous_week' => 0]);
+        $statsRepo->method('getWeeklyReservationCounts')->willReturn(['current_week' => 0, 'previous_week' => 0]);
+        $this->service = new AdminStatisticsService($statsRepo);
     }
 
     // ──────────────────────────────────────────────
