@@ -13,9 +13,11 @@
 ## Diagnóstico documentado (21-04-2026)
 
 ### Problema 1 — 70 PHPUnit Warnings
+
 `"Class X is not a valid target for code coverage"` — los tests de Workers y CorsMiddleware tienen `#[CoversClass]` apuntando a clases excluidas del `<source>` en `phpunit.xml`. Causa: `failOnWarning="true"` hace que la suite reporte `issues` en lugar de `OK`.
 
 Archivos afectados:
+
 - `tests/Unit/Middleware/CorsMiddlewareTest.php` — 66 warnings (`App\Http\Middleware\CorsMiddleware`)
 - `tests/Unit/Workers/EmailWorkerTest.php` — 2 warnings (`App\Workers\EmailWorker`)
 - `tests/Unit/Workers/NotificationWorkerTest.php` — 2 warnings (`App\Workers\NotificationWorker`)
@@ -23,22 +25,26 @@ Archivos afectados:
 **Fix**: reemplazar `#[CoversClass(...)]` por `#[CoversNothing]` en los 3 archivos.
 
 ### Problema 2 — 192 PHPUnit Notices
+
 Causa probable: tests sin ningún atributo de cobertura (`#[CoversClass]`, `#[CoversNothing]`) en clases que el `<source>` sí incluye. PHPUnit 13 emite un Notice por cada método de test en esa situación.
 
 **Acción**: ejecutar `phpunit --verbose` y capturar los mensajes exactos, luego añadir `#[CoversNothing]` en los archivos sin atributo o añadir `requireCoverageMetadata="true"` en phpunit.xml para convertirlos en error visible.
 
 ### Problema 3 — PHPStan pierde output
+
 `make phpstan` hace: `docker compose exec app php vendor/bin/phpstan analyse --memory-limit=1G`
 Sin `--no-progress`, sin guardar a fichero. Si el terminal tiene timeout (herramientas de agente, CI local), el output se pierde. PHPStan tarda ~1-2 min localmente.
 
 **Fix**: guardar siempre a `storage/logs/phpstan.txt` + mostrar tail al final + añadir target `phpstan-quick` (solo `app/` sin `scripts/` ni `tests/`).
 
 ### Problema 4 — Coverage local lento (xdebug vs pcov)
+
 El dev container tiene xdebug. `XDEBUG_MODE=coverage phpunit` genera HTML solo de Services en ~1:49 min. El `docker-compose.test.yml` usa imagen con pcov (3-5x más rápido). El Makefile no expone un target rápido que use pcov localmente sin reconstruir todo.
 
 **Fix**: añadir `make test-unit-fast` que ejecute con `--no-coverage` para TDD rápido + documentar el workflow de cobertura correcto (usar `make test-coverage` para el reporte real).
 
 ### Problema 5 — Sin detección de tests lentos
+
 `phpunit.xml` no configura `slowTests`. No hay visibilidad de qué tests individuales superan X ms. Un test con `sleep()` accidental o una query real en un test unitario es invisible.
 
 **Fix**: añadir configuración `<slowTests>` en `phpunit.xml`.
@@ -95,14 +101,17 @@ El dev container tiene xdebug. `XDEBUG_MODE=coverage phpunit` genera HTML solo d
 ### 2.2 Opción A — Silenciar masivamente
 
 Si los notices son todos del mismo tipo ("test does not cover any code"), añadir en `phpunit.xml`:
+
 ```xml
 <phpunit ... beStrictAboutCoverageMetadata="false">
 ```
+
 > Nota: ya está en `false`. Si los notices persisten, revisar si PHPUnit 13 cambió el comportamiento.
 
 ### 2.3 Opción B — Fix uno a uno
 
 Para cada archivo de test que genere notices:
+
 - [ ] Añadir `#[CoversNothing]` si el test no debería cubrir nada del source
 - [ ] O añadir el `#[CoversClass(...)]` correcto si cubre una clase dentro del scope
 
@@ -164,9 +173,12 @@ Dentro de `<phpunit ...>`, añadir después de `</coverage>`:
 ## Notas de decisión
 
 ### ¿Añadir pcov al dev container?
+
 Requiere modificar `Dockerfile` y reconstruir imagen. La recomendación es **no hacerlo** salvo que la lentitud de coverage local sea un bloqueante diario. El workflow correcto es:
+
 1. TDD local: `docker compose exec app php vendor/bin/phpunit --no-coverage tests/Unit/Services/MiServicioTest.php` → ~0.3s
 2. Coverage completo: `make test-coverage` (usa pcov via docker-compose.test.yml) → ~5-8 min
 
 ### ¿Por qué `make test-unit` usa paratest?
+
 `paratest --processes=4` distribuye los tests en 4 workers paralelos. Requiere que los tests sean independientes (sin estado compartido entre fixtures). Los tests actuales lo son. Tiempo esperado con paratest: ~4s para 744 tests unitarios.

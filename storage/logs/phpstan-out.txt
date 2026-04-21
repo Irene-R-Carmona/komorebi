@@ -1,0 +1,403 @@
+Note: Using configuration file /app/phpstan.neon.
+ ------ ----------------------------------------------------------------------- 
+  Line   app/Core/Env.php                                                       
+ ------ ----------------------------------------------------------------------- 
+  96     PHPDoc tag @throws with type App\Core\RuntimeException is not subtype  
+         of Throwable                                                           
+         ­ƒ¬¬  throws.notThrowable                                                
+ ------ ----------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   app/Core/ExceptionHandler.php                                         
+ ------ ---------------------------------------------------------------------- 
+  49     Function Sentry\captureException not found.                           
+         ­ƒ¬¬  function.notFound                                                 
+         ­ƒÆí  Learn more at https://phpstan.org/user-guide/discovering-symbols  
+ ------ ---------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------- 
+  Line   app/Http/Controllers/Admin/CafeController.php                  
+ ------ --------------------------------------------------------------- 
+  50     Class App\Models\Cafe does not have a constructor and must be  
+         instantiated without any parameters.                           
+         ­ƒ¬¬  new.noConstructor                                          
+  62     Call to an undefined method App\Models\Cafe::findAll().        
+         ­ƒ¬¬  method.notFound                                            
+ ------ --------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------- 
+  Line   app/Http/Controllers/Admin/ProductController.php                   
+ ------ ------------------------------------------------------------------- 
+  52     Class App\Models\Allergen does not have a constructor and must be  
+         instantiated without any parameters.                               
+         ­ƒ¬¬  new.noConstructor                                              
+  142    Call to an undefined method App\Models\Allergen::getAll().         
+         ­ƒ¬¬  method.notFound                                                
+  208    Call to an undefined method App\Models\Allergen::getAll().         
+         ­ƒ¬¬  method.notFound                                                
+  367    Call to an undefined method App\Models\Allergen::getAll().         
+         ­ƒ¬¬  method.notFound                                                
+ ------ ------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------- 
+  Line   app/Http/Controllers/Admin/SystemController.php                 
+ ------ ---------------------------------------------------------------- 
+  191    Call to an undefined method                                     
+         App\Services\Contracts\EmailServiceInterface::sendTestEmail().  
+         ­ƒ¬¬  method.notFound                                             
+ ------ ---------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   app/Http/Controllers/Keeper/AnimalIncidentController.php               
+ ------ ----------------------------------------------------------------------- 
+  40     Parameter #1 $animalRepo of class App\Services\AnimalCareService       
+         constructor expects                                                    
+         App\Repositories\Contracts\AnimalRepositoryInterface|null, PDO given.  
+         ­ƒ¬¬  argument.type                                                      
+  40     Parameter #2 $incidentRepo of class App\Services\AnimalCareService     
+         constructor expects                                                    
+         App\Repositories\Contracts\AnimalIncidentRepositoryInterface|null,     
+         App\Repositories\AnimalRepository given.                               
+         ­ƒ¬¬  argument.type                                                      
+ ------ ----------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------- 
+  Line   app/Http/Controllers/Public/CafeController.php                     
+ ------ ------------------------------------------------------------------- 
+  55     Class App\Models\Cafe does not have a constructor and must be      
+         instantiated without any parameters.                               
+         ­ƒ¬¬  new.noConstructor                                              
+  77     Call to an undefined method App\Models\Cafe::findAll().            
+         ­ƒ¬¬  method.notFound                                                
+  118    Call to an undefined method App\Models\Cafe::findWithAnimals().    
+         ­ƒ¬¬  method.notFound                                                
+  143    Call to an undefined method App\Models\Cafe::getZones().           
+         ­ƒ¬¬  method.notFound                                                
+  173    Call to an undefined method App\Models\Cafe::getFavoritesCount().  
+         ­ƒ¬¬  method.notFound                                                
+  242    Call to an undefined method App\Models\Cafe::findAll().            
+         ­ƒ¬¬  method.notFound                                                
+ ------ ------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------- 
+  Line   app/Http/Controllers/Public/HomeController.php                 
+ ------ --------------------------------------------------------------- 
+  26     Class App\Models\Cafe does not have a constructor and must be  
+         instantiated without any parameters.                           
+         ­ƒ¬¬  new.noConstructor                                          
+  36     Call to an undefined method App\Models\Cafe::findAll().        
+         ­ƒ¬¬  method.notFound                                            
+ ------ --------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------ 
+  Line   app/Http/Controllers/Public/NewsletterController.php  
+ ------ ------------------------------------------------------ 
+  37     Cannot access property $data on array.                
+         ­ƒ¬¬  property.nonObject                                
+  37     Cannot access property $error on array.               
+         ­ƒ¬¬  property.nonObject                                
+  37     Cannot access property $ok on array.                  
+         ­ƒ¬¬  property.nonObject                                
+  37     Cannot access property $ok on array.                  
+         ­ƒ¬¬  property.nonObject                                
+ ------ ------------------------------------------------------ 
+
+ ------ --------------------------------------------------------------- 
+  Line   app/Http/Controllers/Public/QuizController.php                 
+ ------ --------------------------------------------------------------- 
+  29     Class App\Models\Cafe does not have a constructor and must be  
+         instantiated without any parameters.                           
+         ­ƒ¬¬  new.noConstructor                                          
+  184    Call to an undefined method App\Models\Cafe::findBySlug().     
+         ­ƒ¬¬  method.notFound                                            
+ ------ --------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------- 
+  Line   app/Http/Controllers/Shared/ReviewController.php               
+ ------ --------------------------------------------------------------- 
+  56     Class App\Models\Cafe does not have a constructor and must be  
+         instantiated without any parameters.                           
+         ­ƒ¬¬  new.noConstructor                                          
+  137    Call to an undefined method App\Models\Cafe::findById().       
+         ­ƒ¬¬  method.notFound                                            
+ ------ --------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------- 
+  Line   app/Http/Controllers/Supervisor/SupervisorController.php      
+ ------ -------------------------------------------------------------- 
+  48     Class App\Services\KitchenService constructor invoked with 0  
+         parameters, 1 required.                                       
+         ­ƒ¬¬  arguments.count                                           
+ ------ -------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   app/Jobs/SendEmailJob.php                                             
+ ------ ---------------------------------------------------------------------- 
+  64     Caught class App\Jobs\Throwable not found.                            
+         ­ƒ¬¬  class.notFound                                                    
+         ­ƒÆí  Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  177    Parameter $e of method                                                
+         App\Jobs\SendEmailJob::handleUnexpectedException() has invalid type   
+         App\Jobs\Throwable.                                                   
+         ­ƒ¬¬  class.notFound                                                    
+  181    Call to method getMessage() on an unknown class App\Jobs\Throwable.   
+         ­ƒ¬¬  class.notFound                                                    
+         ­ƒÆí  Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  182    Call to method getTraceAsString() on an unknown class                 
+         App\Jobs\Throwable.                                                   
+         ­ƒ¬¬  class.notFound                                                    
+         ­ƒÆí  Learn more at https://phpstan.org/user-guide/discovering-symbols  
+  185    Throwing object of an unknown class App\Jobs\Throwable.               
+         ­ƒ¬¬  class.notFound                                                    
+         ­ƒÆí  Learn more at https://phpstan.org/user-guide/discovering-symbols  
+ ------ ---------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------- 
+  Line   app/Providers/AuthServiceProvider.php                                
+ ------ --------------------------------------------------------------------- 
+  60     Parameter #1 $userRepo of class App\Services\AccountDeletionService  
+         constructor expects                                                  
+         App\Repositories\Contracts\UserRepositoryInterface|null, PDO given.  
+         ­ƒ¬¬  argument.type                                                    
+ ------ --------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------ 
+  Line   app/Providers/ReservationServiceProvider.php                      
+ ------ ------------------------------------------------------------------ 
+  74     Class App\Services\ReservationService constructor invoked with 8  
+         parameters, 5-7 required.                                         
+         ­ƒ¬¬  arguments.count                                               
+ ------ ------------------------------------------------------------------ 
+
+ ------ --------------------------------------------------------------------- 
+  Line   app/Services/CartService.php                                         
+ ------ --------------------------------------------------------------------- 
+  83     Call to an undefined method                                          
+         App\Repositories\Contracts\ProductRepositoryInterface::findByIds().  
+         ­ƒ¬¬  method.notFound                                                  
+  296    Call to an undefined method                                          
+         App\Repositories\Contracts\ProductRepositoryInterface::findByIds().  
+         ­ƒ¬¬  method.notFound                                                  
+ ------ --------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------- 
+  Line   app/Services/NewsletterService.php                                 
+ ------ ------------------------------------------------------------------- 
+  37     Return type array of method                                        
+         App\Services\NewsletterService::subscribe() is not covariant with  
+         return type App\Core\Result of method                              
+         App\Services\Contracts\NewsletterServiceInterface::subscribe().    
+         ­ƒ¬¬  method.childReturnType (non-ignorable)                         
+ ------ ------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------- 
+  Line   app/Services/WaitlistService.php                                       
+ ------ ----------------------------------------------------------------------- 
+  465    Call to an undefined method                                            
+         App\Repositories\Contracts\WaitlistRepositoryInterface::countByTimeSl  
+         otAndStatus().                                                         
+         ­ƒ¬¬  method.notFound                                                    
+  467    Parameter #1 $data of static method App\Core\Result<mixed>::ok() cont  
+         ains unresolvable type.                                                
+         ­ƒ¬¬  argument.unresolvableType                                          
+  487    Call to an undefined method                                            
+         App\Repositories\Contracts\WaitlistRepositoryInterface::findByIdAndUs  
+         er().                                                                  
+         ­ƒ¬¬  method.notFound                                                    
+ ------ ----------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------- 
+  Line   tests/Integration/ReservationIntegrationTest.php  
+ ------ -------------------------------------------------- 
+  222    Cannot access property $ok on bool.               
+         ­ƒ¬¬  property.nonObject                            
+  249    Cannot access property $ok on bool.               
+         ­ƒ¬¬  property.nonObject                            
+ ------ -------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------- 
+  Line   tests/Support/RepositoryTestCase.php                                 
+ ------ --------------------------------------------------------------------- 
+  86     Method Tests\Support\RepositoryTestCase::makePdoWithStmt() should    
+         return array{PDO&PHPUnit\Framework\MockObject\MockObject,            
+         PDOStatement&PHPUnit\Framework\MockObject\MockObject} but returns    
+         array{PDO&PHPUnit\Framework\MockObject\Stub,                         
+         PDOStatement&PHPUnit\Framework\MockObject\Stub}.                     
+         ­ƒ¬¬  return.type                                                      
+         ­ƒÆí  Offset 0 (PDO&PHPUnit\Framework\MockObject\MockObject) does not  
+         accept type PDO&PHPUnit\Framework\MockObject\Stub.                   
+ ------ --------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------- 
+  Line   tests/Unit/Http/Controllers/Admin/MenuControllerTest.php  
+ ------ ---------------------------------------------------------- 
+  50     Unknown parameter $productRepo in call to                 
+         App\Http\Controllers\Admin\MenuController constructor.    
+         ­ƒ¬¬  argument.unknown                                      
+  51     Unknown parameter $categoryRepo in call to                
+         App\Http\Controllers\Admin\MenuController constructor.    
+         ­ƒ¬¬  argument.unknown                                      
+ ------ ---------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------- 
+  Line   tests/Unit/Http/Controllers/Admin/ReservationControllerTest.php  
+ ------ ----------------------------------------------------------------- 
+  51     Unknown parameter $reservationService in call to                 
+         App\Http\Controllers\Admin\ReservationController constructor.    
+         ­ƒ¬¬  argument.unknown                                             
+  52     Unknown parameter $auditLogRepo in call to                       
+         App\Http\Controllers\Admin\ReservationController constructor.    
+         ­ƒ¬¬  argument.unknown                                             
+ ------ ----------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------- 
+  Line   tests/Unit/Http/Controllers/Admin/RoleControllerTest.php  
+ ------ ---------------------------------------------------------- 
+  43     Unknown parameter $roleRepo in call to                    
+         App\Http\Controllers\Admin\RoleController constructor.    
+         ­ƒ¬¬  argument.unknown                                      
+  44     Unknown parameter $auditLogRepo in call to                
+         App\Http\Controllers\Admin\RoleController constructor.    
+         ­ƒ¬¬  argument.unknown                                      
+  53     Unknown parameter $roleRepo in call to                    
+         App\Http\Controllers\Admin\RoleController constructor.    
+         ­ƒ¬¬  argument.unknown                                      
+  54     Unknown parameter $auditLogRepo in call to                
+         App\Http\Controllers\Admin\RoleController constructor.    
+         ­ƒ¬¬  argument.unknown                                      
+ ------ ---------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------- 
+  Line   tests/Unit/Http/Controllers/Admin/UserControllerTest.php  
+ ------ ---------------------------------------------------------- 
+  60     Unknown parameter $roleRepo in call to                    
+         App\Http\Controllers\Admin\UserController constructor.    
+         ­ƒ¬¬  argument.unknown                                      
+  63     Unknown parameter $auditLogRepo in call to                
+         App\Http\Controllers\Admin\UserController constructor.    
+         ­ƒ¬¬  argument.unknown                                      
+  88     Unknown parameter $roleRepo in call to                    
+         App\Http\Controllers\Admin\UserController constructor.    
+         ­ƒ¬¬  argument.unknown                                      
+  91     Unknown parameter $auditLogRepo in call to                
+         App\Http\Controllers\Admin\UserController constructor.    
+         ­ƒ¬¬  argument.unknown                                      
+ ------ ---------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------- 
+  Line   tests/Unit/Http/Controllers/Public/HomeControllerTest.php  
+ ------ ----------------------------------------------------------- 
+  43     Unknown parameter $cafeRepo in call to                     
+         App\Http\Controllers\Public\HomeController constructor.    
+         ­ƒ¬¬  argument.unknown                                       
+  44     Unknown parameter $favoriteRepo in call to                 
+         App\Http\Controllers\Public\HomeController constructor.    
+         ­ƒ¬¬  argument.unknown                                       
+  45     Unknown parameter $animalRepo in call to                   
+         App\Http\Controllers\Public\HomeController constructor.    
+         ­ƒ¬¬  argument.unknown                                       
+ ------ ----------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------ 
+  Line   tests/Unit/Http/Controllers/Shared/ReservationControllerTest.php  
+ ------ ------------------------------------------------------------------ 
+  70     Unknown parameter $reservationRepo in call to                     
+         App\Http\Controllers\Shared\ReservationController constructor.    
+         ­ƒ¬¬  argument.unknown                                              
+ ------ ------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------- 
+  Line   tests/Unit/Http/Controllers/Shared/ReviewControllerTest.php  
+ ------ ------------------------------------------------------------- 
+  53     Unknown parameter $cafeRepo in call to                       
+         App\Http\Controllers\Shared\ReviewController constructor.    
+         ­ƒ¬¬  argument.unknown                                         
+ ------ ------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   tests/Unit/Services/AdminServiceTest.php                              
+ ------ ---------------------------------------------------------------------- 
+  35     Class App\Services\AdminStatisticsService constructor invoked with 0  
+         parameters, 1 required.                                               
+         ­ƒ¬¬  arguments.count                                                   
+ ------ ---------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------- 
+  Line   tests/Unit/Services/AllergenServiceTest.php                    
+ ------ --------------------------------------------------------------- 
+  34     Class App\Services\AllergenService constructor invoked with 0  
+         parameters, 1 required.                                        
+         ­ƒ¬¬  arguments.count                                            
+ ------ --------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------- 
+  Line   tests/Unit/Services/ApiTokenServiceTest.php                    
+ ------ --------------------------------------------------------------- 
+  36     Class App\Services\ApiTokenService constructor invoked with 1  
+         parameter, 2 required.                                         
+         ­ƒ¬¬  arguments.count                                            
+  76     Class App\Services\ApiTokenService constructor invoked with 1  
+         parameter, 2 required.                                         
+         ­ƒ¬¬  arguments.count                                            
+  128    Class App\Services\ApiTokenService constructor invoked with 1  
+         parameter, 2 required.                                         
+         ­ƒ¬¬  arguments.count                                            
+ ------ --------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------- 
+  Line   tests/Unit/Services/LoyaltyServiceTest.php                    
+ ------ -------------------------------------------------------------- 
+  37     Class App\Services\LoyaltyService constructor invoked with 4  
+         parameters, 0-1 required.                                     
+         ­ƒ¬¬  arguments.count                                           
+ ------ -------------------------------------------------------------- 
+
+ ------ ----------------------------------------------- 
+  Line   tests/Unit/Services/NewsletterServiceTest.php  
+ ------ ----------------------------------------------- 
+  59     Cannot access property $ok on array.           
+         ­ƒ¬¬  property.nonObject                         
+  66     Cannot access property $error on array.        
+         ­ƒ¬¬  property.nonObject                         
+  67     Cannot access property $error on array.        
+         ­ƒ¬¬  property.nonObject                         
+  74     Cannot access property $error on array.        
+         ­ƒ¬¬  property.nonObject                         
+ ------ ----------------------------------------------- 
+
+ ------ -------------------------------------------------------------- 
+  Line   tests/Unit/Services/ProductServiceTest.php                    
+ ------ -------------------------------------------------------------- 
+  50     Class App\Services\ProductService constructor invoked with 2  
+         parameters, 1 required.                                       
+         ­ƒ¬¬  arguments.count                                           
+ ------ -------------------------------------------------------------- 
+
+ ------ ------------------------------------------------ 
+  Line   tests/Unit/Services/ReservationServiceTest.php  
+ ------ ------------------------------------------------ 
+  552    Cannot access property $ok on bool.             
+         ­ƒ¬¬  property.nonObject                          
+ ------ ------------------------------------------------ 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   tests/Unit/Services/SessionManagementServiceTest.php                  
+ ------ ---------------------------------------------------------------------- 
+  44     Class App\Services\SessionManagementService constructor invoked with  
+         1 parameter, 2 required.                                              
+         ­ƒ¬¬  arguments.count                                                   
+ ------ ---------------------------------------------------------------------- 
+
+ -- ------------------------------------------------------------------------- 
+     Error                                                                    
+ -- ------------------------------------------------------------------------- 
+     Ignored error pattern class.notFound in path /app/tests/** was not       
+     matched in reported errors.                                              
+     Ignored error pattern property.phpDocType in path /app/tests/** was not  
+     matched in reported errors.                                              
+     Ignored error pattern assign.propertyType in path /app/tests/** was not  
+     matched in reported errors.                                              
+ -- ------------------------------------------------------------------------- 
+
+ [ERROR] Found 77 errors                                                        
+
