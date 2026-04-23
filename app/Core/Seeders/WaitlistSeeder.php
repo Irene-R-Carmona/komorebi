@@ -57,7 +57,7 @@ final class WaitlistSeeder
 
         // Obtener usuarios de prueba (clientes, no staff)
         $users = $this->db->query("
-            SELECT u.id, u.name, u.email
+            SELECT DISTINCT u.id, u.name, u.email
             FROM users u
             INNER JOIN user_roles ur ON u.id = ur.user_id
             INNER JOIN roles r ON ur.role_id = r.id

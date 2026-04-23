@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
+use App\Domain\Mappers\CafeMapper;
 use App\Repositories\CafeRepository;
 use App\Repositories\ProductRepository;
 use App\Repositories\ReservationRepository;
@@ -48,7 +49,7 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
         parent::setUp();
         $this->seedTestData();
         $reservationRepo = new ReservationRepository(self::$db);
-        $cafeRepo = new CafeRepository(self::$db);
+        $cafeRepo = new CafeRepository(new CafeMapper(), self::$db);
         $productRepo = new ProductRepository(self::$db);
         $invoiceService = new InvoicePDFService();
         $emailService = new EmailService();

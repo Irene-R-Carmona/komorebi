@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
+use App\Domain\Mappers\CafeMapper;
 use App\Repositories\CafeRepository;
 use App\Repositories\ReservationRepository;
 use App\Repositories\ReviewRepository;
@@ -53,7 +54,7 @@ final class ReviewIntegrationTest extends BaseIntegrationTest
         parent::setUp();
         $this->seedTestData();
         $reviewRepo = new ReviewRepository(self::$db);
-        $cafeRepo = new CafeRepository(self::$db);
+        $cafeRepo = new CafeRepository(new CafeMapper(), self::$db);
         $this->service = new ReviewService(new UserRepository(self::$db), $reviewRepo, new ReservationRepository(self::$db));
         $this->queryService = new ReviewQueryService($reviewRepo);
         $this->moderationService = new ReviewModerationService($reviewRepo, $cafeRepo);

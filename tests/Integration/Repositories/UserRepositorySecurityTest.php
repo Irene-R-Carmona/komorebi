@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Repositories;
 
+use App\Domain\DTO\UserDTO;
 use App\Repositories\UserRepository;
 use Override;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -85,10 +86,14 @@ final class UserRepositorySecurityTest extends BaseIntegrationTest
     {
         $user = $this->repo->findById(self::TEST_ID);
 
-        $this->assertIsArray($user, 'findById debe devolver el usuario de prueba');
-        $this->assertArrayNotHasKey('password', $user, 'findById no debe devolver password');
-        $this->assertArrayNotHasKey('last_ip_address', $user);
-        $this->assertArrayNotHasKey('locked_until', $user);
+        $this->assertInstanceOf(UserDTO::class, $user, 'findById debe devolver el usuario de prueba');
+        $props = \array_map(
+            static fn(\ReflectionProperty $p) => $p->getName(),
+            (new ReflectionClass($user))->getProperties()
+        );
+        $this->assertNotContains('password', $props, 'findById no debe devolver password');
+        $this->assertNotContains('last_ip_address', $props);
+        $this->assertNotContains('locked_until', $props);
     }
 
     public function testFindByEmailWithCredentialsDoesReturnPassword(): void

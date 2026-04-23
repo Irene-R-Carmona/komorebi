@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
+use App\Domain\Mappers\CafeMapper;
 use App\Repositories\CafeRepository;
 use App\Repositories\StatisticsRepository;
 use App\Services\CafeService;
@@ -36,7 +37,7 @@ final class CafeIntegrationTest extends BaseIntegrationTest
     {
         parent::setUp();
         $this->seedTestData();
-        $this->service = new CafeService(new CafeRepository(self::$db), new StatisticsRepository(self::$db));
+        $this->service = new CafeService(new CafeRepository(new CafeMapper(), self::$db), new StatisticsRepository(self::$db));
     }
 
     /**

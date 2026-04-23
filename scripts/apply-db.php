@@ -183,11 +183,18 @@ if (!$seedersOnly) {
 
             logMsg('OK');
         } catch (PDOException $e) {
-            // Si falla por tabla existente, es OK (migraciones idempotentes)
-            if (str_contains($e->getMessage(), 'already exists')) {
-                logMsg('(tabla ya existe, skip)');
+            // Si falla por objeto ya existente, es OK (migraciones idempotentes)
+            // - MySQL CREATE TABLE: "already exists"
+            // - MySQL ADD COLUMN:   "Duplicate column name"
+            // - MySQL CREATE INDEX: "Duplicate key name"
+            $msg = $e->getMessage();
+            if (str_contains($msg, 'already exists')
+                || str_contains($msg, 'Duplicate column name')
+                || str_contains($msg, 'Duplicate key name')
+            ) {
+                logMsg('(objeto ya existe, skip)');
             } else {
-                logMsg('ERROR: ' . $e->getMessage());
+                logMsg('ERROR: ' . $msg);
 
                 if (!$force) {
                     logMsg('ERROR: Migración fallida. Detener ejecución.', 'error');
@@ -269,20 +276,28 @@ $seeders = [
 $shouldSeed = true;
 $forceSeedEnv = getenv('FORCE_SEED');
 
-if (file_exists($seedLock) && !$force && $forceSeedEnv !== '1') {
-    // Verificar si las tablas críticas tienen datos
+if (!$force && $forceSeedEnv !== '1') {
+    // Siempre verificar el estado de la BD — el lockfile es solo un caché rápido.
+    // En entornos con filesystem efímero (Railway) el lockfile desaparece entre reinicios,
+    // pero los datos en MySQL persisten: esta comprobación es la única fuente de verdad.
     try {
         $userCount = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn();
         $cafeCount = (int) $db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
         $roleCount = (int) $db->query('SELECT COUNT(*) FROM roles')->fetchColumn();
 
         if ($userCount > 0 && $cafeCount > 0 && $roleCount > 0) {
-            logMsg("SKIP: Lockfile encontrado ($seedLock) y BD contiene datos. Saltando seeders.");
+            $lockStatus = file_exists($seedLock)
+                ? "Lockfile encontrado ($seedLock) y"
+                : 'Lockfile ausente (filesystem efímero) pero';
+            logMsg("SKIP: $lockStatus BD contiene datos. Saltando seeders.");
             logMsg("      (usuarios: $userCount, cafés: $cafeCount, roles: $roleCount)");
-            logMsg('      Para forzar re-seeding: --force o FORCE_SEED=1');
+            logMsg('      Para forzar re-seeding usar variable de entorno FORCE_SEED=1');
             $shouldSeed = false;
         } else {
-            logMsg('WARNING: Lockfile existe pero tablas están vacías. Ejecutando seeders...');
+            $lockStatus = file_exists($seedLock)
+                ? 'Lockfile existe pero tablas están vacías.'
+                : 'Primera ejecución — tablas vacías.';
+            logMsg("INFO: $lockStatus Ejecutando seeders...");
             logMsg("      (usuarios: $userCount, cafés: $cafeCount, roles: $roleCount)");
         }
     } catch (Throwable $e) {
@@ -300,6 +315,7 @@ if ($shouldSeed) {
         'telegram_message_log',
         'telegram_users',
         'favorites',
+        'waitlist',
         'reservation_items',
         'reservations',
         'reviews',
