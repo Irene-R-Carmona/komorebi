@@ -103,7 +103,7 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 
 | Prioridad | Plan | Archivo | Estado actual | Alcance |
 |---|---|---|---|---|
-| P6-rem | Remediación Auditoría Arquitectónica | `docs/plans/2026-04-28-remediacion-auditoria-arquitectonica.md` | ✅ Verificado y cerrado — F0–F8 commiteados; gates OK (`c6a133d`) | PHPStan ✅ 0 errores · PHPUnit ✅ 1680 tests / 3 errores preexistentes · CS ✅ 0 violaciones en 36 archivos P6-rem |
+| P6-rem | Remediación Auditoría Arquitectónica | ~~`docs/plans/2026-04-28-remediacion-auditoria-arquitectonica.md`~~ | ✅ Completado y eliminado (2026-04-28) — F0–F8 commiteados; PHPStan 0 errores, PHPUnit 1784 tests / 14 errores integración preexistentes (sin DB en dev stack) | PHPStan ✅ · PHPUnit unit ✅ · CS ✅ |
 
 ---
 
