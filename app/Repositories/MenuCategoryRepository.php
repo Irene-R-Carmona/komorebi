@@ -6,7 +6,6 @@ namespace App\Repositories;
 
 use App\Domain\DTO\MenuCategoryDTO;
 use App\Domain\Mappers\MenuCategoryMapper;
-use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\MenuCategoryRepositoryInterface;
 use Override;
 use PDO;

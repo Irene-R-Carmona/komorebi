@@ -8,10 +8,10 @@ use App\Domain\DTO\LoyaltyCardDTO;
 use App\Domain\DTO\LoyaltyRewardDTO;
 use App\Domain\Mappers\LoyaltyCardMapper;
 use App\Domain\Mappers\LoyaltyRewardMapper;
-use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\LoyaltyRepositoryInterface;
 use Override;
 use PDO;
+use RuntimeException;
 
 final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepositoryInterface
 {
@@ -53,7 +53,7 @@ final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepos
 
         $created = $this->findCardByUserId($userId);
         if ($created === null) {
-            throw new \RuntimeException('Failed to create loyalty card for user ' . $userId);
+            throw new RuntimeException('Failed to create loyalty card for user ' . $userId);
         }
 
         return $created;
@@ -112,7 +112,8 @@ final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepos
              LIMIT ?'
         );
         $stmt->execute([$limit]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function consumeStamps(int $cardId, int $stamps): bool

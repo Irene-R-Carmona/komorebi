@@ -6,7 +6,6 @@ namespace App\Repositories;
 
 use App\Domain\DTO\ReviewDTO;
 use App\Domain\Mappers\ReviewMapper;
-use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use Override;
 use PDO;

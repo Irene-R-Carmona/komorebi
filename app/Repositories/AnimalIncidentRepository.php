@@ -6,7 +6,6 @@ namespace App\Repositories;
 
 use App\Domain\DTO\AnimalIncidentDTO;
 use App\Domain\Mappers\AnimalIncidentMapper;
-use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
 use Override;
 use PDO;

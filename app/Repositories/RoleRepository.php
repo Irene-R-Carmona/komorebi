@@ -6,7 +6,6 @@ namespace App\Repositories;
 
 use App\Domain\DTO\RoleDTO;
 use App\Domain\Mappers\RoleMapper;
-use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use Override;
 use PDO;
@@ -73,7 +72,7 @@ final class RoleRepository extends AbstractRepository implements RoleRepositoryI
                 $names = \explode(',', (string) $row['permission_names']);
 
                 $row['permissions'] = \array_map(
-                    static fn(string $id, string $name): array => [
+                    static fn (string $id, string $name): array => [
                         'id' => (int) $id,
                         'name' => $name,
                     ],

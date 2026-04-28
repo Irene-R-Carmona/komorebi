@@ -6,7 +6,6 @@ namespace App\Repositories;
 
 use App\Domain\DTO\WaitlistEntryDTO;
 use App\Domain\Mappers\WaitlistMapper;
-use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\WaitlistRepositoryInterface;
 use Override;
 use PDO;

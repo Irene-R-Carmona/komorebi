@@ -7,7 +7,6 @@ namespace App\Repositories;
 use App\Domain\DTO\AuditLogDTO;
 use App\Domain\Mappers\AuditLogMapper;
 use App\Models\AuditLog as AuditLogModel;
-use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use LogicException;
 use Override;

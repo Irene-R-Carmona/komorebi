@@ -1,7 +1,7 @@
 # Índice Maestro — Komorebi Café (Prioridades Operativas)
 
-**Fecha:** 20 de abril de 2026
-**Estado:** índice actualizado por niveles de prioridad (P0-P4)
+**Fecha:** 28 de abril de 2026
+**Estado:** índice actualizado — P6-rem implementación completa pendiente verificación final
 **Criterio:** primero arranque estable en Railway, después seguridad, luego hardening, deuda técnica y rendimiento.
 
 ---
@@ -103,7 +103,7 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 
 | Prioridad | Plan | Archivo | Estado actual | Alcance |
 |---|---|---|---|---|
-| P6-rem | Remediación Auditoría Arquitectónica | `docs/plans/2026-04-28-remediacion-auditoria-arquitectonica.md` | 🔵 Plan creado — pendiente inicio | F0 (quick wins) → F1 (Result cascade) → F2 (DTOs) → F3 (18 repos → AbstractRepository) → F4 (controllers híbridos) → F5-F6 (keeper routes + CRUD) → F7 (índices BD) → F8 (tests) |
+| P6-rem | Remediación Auditoría Arquitectónica | `docs/plans/2026-04-28-remediacion-auditoria-arquitectonica.md` | � Implementación completa — pendiente verificación final — F0–F8 commiteados (`9e98721`); T8.5 CI opcional pendiente | F0–F8 completos; pendiente: `make phpstan` + `make test-unit` + `make cs-check` finales; T8.5 (docker-compose.test.yml MySQL ephemeral) opcional |
 
 ---
 

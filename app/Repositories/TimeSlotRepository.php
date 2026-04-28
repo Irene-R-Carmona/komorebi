@@ -6,7 +6,6 @@ namespace App\Repositories;
 
 use App\Domain\DTO\TimeSlotDTO;
 use App\Domain\Mappers\TimeSlotMapper;
-use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\TimeSlotRepositoryInterface;
 use Override;
 use PDO;

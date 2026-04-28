@@ -7,7 +7,6 @@ namespace App\Repositories;
 use App\Domain\DTO\ReservationItemDTO;
 use App\Domain\Mappers\ReservationItemMapper;
 use App\Models\ReservationItem;
-use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use Override;
 use PDO;
@@ -44,6 +43,7 @@ final class ReservationItemRepository extends AbstractRepository implements Rese
         );
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $row !== false ? $this->mapper->toDTO($row) : null;
     }
 

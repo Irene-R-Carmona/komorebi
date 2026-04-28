@@ -66,7 +66,7 @@ final class AuditLogController
                 'date_from' => $queryParams['date_from'] ?? null,
                 'date_to' => $queryParams['date_to'] ?? null,
                 'ip_address' => $queryParams['ip_address'] ?? null,
-            ], static fn($v) => $v !== null && $v !== '');
+            ], static fn ($v) => $v !== null && $v !== '');
 
             $result = $this->auditLogRepo->findFiltered($filters, 10000, 0);
 

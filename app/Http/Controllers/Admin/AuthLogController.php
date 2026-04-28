@@ -100,7 +100,7 @@ final class AuthLogController
                 'ip_address' => $_GET['ip_address'] ?? null,
             ];
 
-            $filters = \array_filter($filters, static fn($v) => $v !== null && $v !== '');
+            $filters = \array_filter($filters, static fn ($v) => $v !== null && $v !== '');
 
             $result = $this->authLogRepo->findFiltered($filters, 10000, 0);
 

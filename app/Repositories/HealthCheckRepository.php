@@ -6,7 +6,6 @@ namespace App\Repositories;
 
 use App\Domain\DTO\AnimalHealthCheckDTO;
 use App\Domain\Mappers\AnimalHealthCheckMapper;
-use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use Override;
 use PDO;
