@@ -1,7 +1,7 @@
 # Plan: Remediación Auditoría Arquitectónica — Komorebi Café
 
 **Creado:** 28 de abril de 2026
-**Estado:** 🔵 Pendiente inicio
+**Estado:** � Implementación completa — pendiente verificación
 **Rama sugerida:** `feature/audit-remediation`
 
 ---
@@ -395,7 +395,7 @@ ALTER TABLE loyalty_cards ADD INDEX idx_loyalty_last_stamp (last_stamp_at DESC);
 Añadir `testKeeperRoutesAbsentWhenFeatureDisabled()`:
 verifica que ninguna ruta `/keeper/*` se registra cuando `FEATURE_KEEPER=0`.
 
-- [ ] Test añadido y verde
+- [x] Test añadido y verde
 
 ### T8.2 — Rutas nuevas en RouteRegistrationTest
 
@@ -404,7 +404,7 @@ verifica que ninguna ruta `/keeper/*` se registra cuando `FEATURE_KEEPER=0`.
 Añadir assertions para los 4 POST de keeper (feeding/health/photo/care-log) y los
 2 pares GET+POST de HealthCheck edit y Incident edit.
 
-- [ ] Tests añadidos y verdes
+- [x] Tests añadidos y verdes
 
 ### T8.3 — Tests Admin Services con Result
 
@@ -416,7 +416,7 @@ Añadir assertions para los 4 POST de keeper (feeding/health/photo/care-log) y l
 
 Verificar que cada método devuelve `Result` y que `$result->ok` es `true` con datos válidos.
 
-- [ ] Tests creados y verdes
+- [x] Tests creados y verdes (pre-existentes, ya cubrían Result pattern)
 
 ### T8.4 — Tests DTOs nuevos
 
@@ -425,8 +425,8 @@ Verificar que cada método devuelve `Result` y que `$result->ok` es `true` con d
 - `tests/Unit/Domain/DTO/MenuDTOTest.php` (crear)
 - `tests/Unit/Domain/DTO/NewsletterSubscriptionDTOTest.php` (crear)
 
-- [ ] MenuDTOTest verde
-- [ ] NewsletterSubscriptionDTOTest verde
+- [x] MenuDTOTest verde
+- [x] NewsletterSubscriptionDTOTest verde
 
 ### T8.5 — CI: DB container
 

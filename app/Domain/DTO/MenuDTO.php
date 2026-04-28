@@ -34,7 +34,8 @@ final readonly class MenuDTO implements DomainTransferObject
         public ?int    $stock_quantity,
         public array   $allergens,
         public ?string $created_at,
-    ) {}
+    ) {
+    }
 
     /**
      * Construye el DTO desde una fila cruda de la base de datos.
@@ -49,38 +50,38 @@ final readonly class MenuDTO implements DomainTransferObject
         $allergens = [];
 
         if (!empty($row['allergen_ids'])) {
-            $ids        = \explode(',', (string) $row['allergen_ids']);
-            $names      = !empty($row['allergen_names'])      ? \explode(',', (string) $row['allergen_names'])      : [];
-            $icons      = !empty($row['allergen_icons'])      ? \explode(',', (string) $row['allergen_icons'])      : [];
-            $colors     = !empty($row['allergen_colors'])     ? \explode(',', (string) $row['allergen_colors'])     : [];
+            $ids = \explode(',', (string) $row['allergen_ids']);
+            $names = !empty($row['allergen_names']) ? \explode(',', (string) $row['allergen_names']) : [];
+            $icons = !empty($row['allergen_icons']) ? \explode(',', (string) $row['allergen_icons']) : [];
+            $colors = !empty($row['allergen_colors']) ? \explode(',', (string) $row['allergen_colors']) : [];
             $severities = !empty($row['allergen_severities']) ? \explode(',', (string) $row['allergen_severities']) : [];
 
             foreach ($ids as $idx => $rawId) {
                 $allergens[] = [
-                    'id'         => (int)  $rawId,
-                    'name'       => $names[$idx]      ?? '',
-                    'icon'       => $icons[$idx]      ?? '',
-                    'icon_color' => $colors[$idx]     ?? '',
-                    'severity'   => $severities[$idx] ?? 'moderate',
+                    'id' => (int) $rawId,
+                    'name' => $names[$idx] ?? '',
+                    'icon' => $icons[$idx] ?? '',
+                    'icon_color' => $colors[$idx] ?? '',
+                    'severity' => $severities[$idx] ?? 'moderate',
                 ];
             }
         }
 
         return new self(
-            id:             (int)    ($row['id']             ?? 0),
-            name:           (string) ($row['name']           ?? ''),
-            slug:           isset($row['slug'])           ? (string) $row['slug']          : null,
-            description:    isset($row['description'])    ? (string) $row['description']   : null,
-            price:          (float)  ($row['price']          ?? 0),
-            category_id:    (int)    ($row['category_id']    ?? 0),
-            category_name:  (string) ($row['category_name']  ?? ''),
-            category_slug:  (string) ($row['category_slug']  ?? ''),
-            product_type:   (string) ($row['product_type']   ?? 'item'),
-            is_active:      (bool)   ($row['is_active']      ?? false),
-            image_url:      isset($row['image_url'])      ? (string) $row['image_url']     : null,
-            stock_quantity: isset($row['stock_quantity'])  ? (int) $row['stock_quantity']  : null,
-            allergens:      $allergens,
-            created_at:     isset($row['created_at'])     ? (string) $row['created_at']    : null,
+            id: (int) ($row['id'] ?? 0),
+            name: (string) ($row['name'] ?? ''),
+            slug: isset($row['slug']) ? (string) $row['slug'] : null,
+            description: isset($row['description']) ? (string) $row['description'] : null,
+            price: (float) ($row['price'] ?? 0),
+            category_id: (int) ($row['category_id'] ?? 0),
+            category_name: (string) ($row['category_name'] ?? ''),
+            category_slug: (string) ($row['category_slug'] ?? ''),
+            product_type: (string) ($row['product_type'] ?? 'item'),
+            is_active: (bool) ($row['is_active'] ?? false),
+            image_url: isset($row['image_url']) ? (string) $row['image_url'] : null,
+            stock_quantity: isset($row['stock_quantity']) ? (int) $row['stock_quantity'] : null,
+            allergens: $allergens,
+            created_at: isset($row['created_at']) ? (string) $row['created_at'] : null,
         );
     }
 
@@ -91,20 +92,20 @@ final readonly class MenuDTO implements DomainTransferObject
     public function toViewArray(): array
     {
         return [
-            'id'             => $this->id,
-            'name'           => $this->name,
-            'slug'           => $this->slug,
-            'description'    => $this->description,
-            'price'          => $this->price,
-            'category_id'    => $this->category_id,
-            'category_name'  => $this->category_name,
-            'category_slug'  => $this->category_slug,
-            'product_type'   => $this->product_type,
-            'is_active'      => $this->is_active,
-            'image_url'      => $this->image_url,
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'price' => $this->price,
+            'category_id' => $this->category_id,
+            'category_name' => $this->category_name,
+            'category_slug' => $this->category_slug,
+            'product_type' => $this->product_type,
+            'is_active' => $this->is_active,
+            'image_url' => $this->image_url,
             'stock_quantity' => $this->stock_quantity,
             'allergens_list' => $this->allergens,
-            'created_at'     => $this->created_at,
+            'created_at' => $this->created_at,
         ];
     }
 }

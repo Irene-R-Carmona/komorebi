@@ -10,9 +10,9 @@ use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
+use App\Domain\Mappers\AnimalMapper;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
-use App\Domain\Mappers\AnimalMapper;
 use App\Repositories\AnimalRepository;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\HealthCheckRepository;
@@ -250,12 +250,12 @@ final class HealthCheckController
         $body = (array) $request->getParsedBody();
 
         $data = [
-            'weight_kg'        => !empty($body['weight_kg'])       ? (float) $body['weight_kg']       : null,
-            'temperature_c'    => !empty($body['temperature_c'])   ? (float) $body['temperature_c']   : null,
-            'appetite'         => $body['appetite']         ?? null,
-            'energy_level'     => $body['energy_level']     ?? null,
-            'coat_condition'   => $body['coat_condition']   ?? null,
-            'notes'            => isset($body['notes'])     ? \trim($body['notes'])             : null,
+            'weight_kg' => !empty($body['weight_kg']) ? (float) $body['weight_kg'] : null,
+            'temperature_c' => !empty($body['temperature_c']) ? (float) $body['temperature_c'] : null,
+            'appetite' => $body['appetite'] ?? null,
+            'energy_level' => $body['energy_level'] ?? null,
+            'coat_condition' => $body['coat_condition'] ?? null,
+            'notes' => isset($body['notes']) ? \trim($body['notes']) : null,
         ];
 
         $data = \array_filter($data, static fn (mixed $v): bool => $v !== null);
@@ -264,6 +264,7 @@ final class HealthCheckController
 
         if (!$result->ok) {
             Flash::error($result->error ?? 'Error al actualizar chequeo');
+
             return $this->response->redirect('/keeper/health-checks/' . $checkId . '/edit');
         }
 

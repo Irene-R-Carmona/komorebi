@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\StatisticsRepositoryInterface;
 use LogicException;
 use Override;
@@ -358,9 +357,13 @@ final class StatisticsRepository extends AbstractRepository implements Statistic
             ORDER BY r.created_at DESC LIMIT 3
         ");
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $res) {
-            $activities[] = ['type' => 'success', 'icon' => 'check-lg',
-                'text' => 'Reserva confirmada', 'timestamp' => $res['created_at'],
-                'meta' => ($res['cafe_name'] ?? 'Cafetería')];
+            $activities[] = [
+                'type' => 'success',
+                'icon' => 'check-lg',
+                'text' => 'Reserva confirmada',
+                'timestamp' => $res['created_at'],
+                'meta' => ($res['cafe_name'] ?? 'Cafetería'),
+            ];
         }
 
         $stmt = $this->getDb()->query('
@@ -369,9 +372,13 @@ final class StatisticsRepository extends AbstractRepository implements Statistic
             ORDER BY created_at DESC LIMIT 3
         ');
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $user) {
-            $activities[] = ['type' => 'info', 'icon' => 'person-plus',
-                'text' => 'Usuario nuevo registrado', 'timestamp' => $user['created_at'],
-                'meta' => ($user['email'] ?? 'Usuario')];
+            $activities[] = [
+                'type' => 'info',
+                'icon' => 'person-plus',
+                'text' => 'Usuario nuevo registrado',
+                'timestamp' => $user['created_at'],
+                'meta' => ($user['email'] ?? 'Usuario'),
+            ];
         }
 
         $stmt = $this->getDb()->query("
@@ -381,9 +388,13 @@ final class StatisticsRepository extends AbstractRepository implements Statistic
             ORDER BY r.created_at DESC LIMIT 2
         ");
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $review) {
-            $activities[] = ['type' => 'warning', 'icon' => 'star-fill',
-                'text' => 'Reseña pendiente', 'timestamp' => $review['created_at'],
-                'meta' => 'Requiere moderación'];
+            $activities[] = [
+                'type' => 'warning',
+                'icon' => 'star-fill',
+                'text' => 'Reseña pendiente',
+                'timestamp' => $review['created_at'],
+                'meta' => 'Requiere moderación',
+            ];
         }
 
         \usort($activities, static fn ($a, $b) => \strtotime($b['timestamp']) - \strtotime($a['timestamp']));
