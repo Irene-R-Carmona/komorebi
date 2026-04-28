@@ -61,6 +61,9 @@
             <directory suffix=".php">app/Services/Contracts</directory>
             <directory suffix=".php">app/Repositories/Contracts</directory>
             <directory suffix=".php">app/Models/Contracts</directory>
+            <!-- Untestable: generateReservationInvoice() usa new tFPDF() instanciado internamente,
+                 no se puede inyectar ni mockear. Excluir para no distorsionar el denominador. -->
+            <file>app/Services/InvoicePDFService.php</file>
         </exclude>
     </source>
 
