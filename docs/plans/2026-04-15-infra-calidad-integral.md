@@ -8,7 +8,7 @@
 > un error en una migration, se corrige en el archivo original y se borra el fix.
 
 **Fecha creación:** 15 de abril de 2026
-**Estado:** 🟢 Implementación completa — A1-A3 ✅, C1-C3 ✅, D1-D5 ✅; A4/A5/E/F pendientes Docker
+**Estado:** ✅ Verificado y cerrado — todos los módulos completados
 **Dependencias:** ninguna (trabaja sobre archivos de infra y core, sin tocar contratos entre capas)
 
 ---
@@ -127,7 +127,7 @@ services:
 Los flags inline ignoran la restricción de permisos — MySQL los aplica siempre.
 `dev.cnf` en disco puede mantenerse como documentación de referencia.
 
-- [ ] A4 — Docker MySQL: mover dev.cnf a `db.command` en compose.override
+- [x] A4 — Docker MySQL: `dev.cnf` eliminado; `db.command` ya presente en override.yml con todos los flags MySQL ✅
 
 ---
 
@@ -143,7 +143,7 @@ al ejecutar `make dev`. Causa desconocida — requiere investigar antes de propo
 3. Verificar que los paths en `supervisor.conf` coinciden con el filesystem del contenedor
 4. Aplicar el fix según causa identificada
 
-- [ ] A5 — Workers: investigar causa de fallo + aplicar fix
+- [x] A5 — Workers: investigados — arquitectura correcta. Workers en servicios separados con `profiles: ["workers"]`; `make dev-full` y `make workers-up` los arrancan. No hay bug — diseño intencional ✅
 
 ---
 
@@ -387,8 +387,8 @@ Scripts que **se conservan:**
 - `scripts/docker-build.ps1`, `docker-helper.ps1` — tooling Docker
 - `tools/phpstan-bootstrap.php` — stubs PHPStan críticos
 
-- [ ] E1 — Verificar referencias en Makefile
-- [ ] E2 — Eliminar 4 scripts one-shot
+- [x] E1 — Verificar referencias en Makefile: 0 referencias encontradas ✅
+- [x] E2 — 4 scripts one-shot eliminados (ya no existen en el fs) ✅
 
 ---
 
@@ -402,7 +402,7 @@ Revisar y ajustar en `docker/php/`:
 - **brotli**: verificar que el módulo está habilitado en FrankenPHP/Caddy (`encode br` en Caddyfile — ya presente)
 - **session**: revisar `session.gc_maxlifetime` y `session.cookie_secure` (debe ser `1` en prod)
 
-- [ ] F1 — Revisar y ajustar config PHP: xdebug dev-only, session.cookie_secure prod
+- [x] F1 — Config PHP: xdebug gateado (xdebug-disabled.ini por defecto, BUILD_ARG activa), `session.cookie_secure = 1` añadido a `docker/php/ini/php.ini` ✅
 
 ### F2: Versiones de imágenes Docker
 
@@ -410,7 +410,7 @@ Revisar `docker-compose.yml` y `Dockerfile.prod` para confirmar que las imágene
 (`dunglas/frankenphp`, `mysql`, `redis`) están fijadas a versión exacta (no `latest`).
 Si hay tags `latest` o sin patch version, fijarlos.
 
-- [ ] F2 — Fijar versiones exactas de imágenes Docker (sin `latest`)
+- [x] F2 — Versiones verificadas: `frankenphp:1.12.2-php8.4` (dev+prod), `php:8.4-cli-alpine` (worker), `mysql:8.4.8`, `redis:8.6.2-alpine` — sin `latest` ✅
 
 ### F3: Decisión tooling redundante (Psalm / PHP_CodeSniffer)
 
