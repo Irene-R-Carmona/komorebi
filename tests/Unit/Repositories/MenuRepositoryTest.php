@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Repositories;
 
+use App\Domain\DTO\MenuDTO;
 use App\Repositories\MenuRepository;
 use PDO;
 use PDOStatement;
@@ -78,6 +79,9 @@ final class MenuRepositoryTest extends TestCase
                 'price' => 3.50,
                 'category_id' => 1,
                 'category_name' => 'Bebidas',
+                'category_slug' => 'bebidas',
+                'product_type' => 'item',
+                'is_active' => true,
                 'allergen_ids' => '1,2',
                 'allergen_names' => 'Leche,Gluten',
             ],
@@ -89,7 +93,8 @@ final class MenuRepositoryTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertNotEmpty($result);
-        $this->assertArrayHasKey('name', $result[0]);
+        $this->assertInstanceOf(MenuDTO::class, $result[0]);
+        $this->assertSame('Café Latte', $result[0]->name);
     }
 
     public function testGetProductsByCategoryIncludesTargetTypeColumns(): void
@@ -126,8 +131,8 @@ final class MenuRepositoryTest extends TestCase
     {
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn([
-            ['id' => 1, 'name' => 'Producto 1', 'price' => 5.00],
-            ['id' => 2, 'name' => 'Producto 2', 'price' => 7.50],
+            ['id' => 1, 'name' => 'Producto 1', 'price' => 5.00, 'category_id' => 1],
+            ['id' => 2, 'name' => 'Producto 2', 'price' => 7.50, 'category_id' => 2],
         ]);
 
         $this->db->method('query')->willReturn($stmt);
@@ -136,6 +141,8 @@ final class MenuRepositoryTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertCount(2, $result);
+        $this->assertInstanceOf(MenuDTO::class, $result[0]);
+        $this->assertSame('Producto 1', $result[0]->name);
     }
 
     public function testGetAllergensReturnsArray(): void

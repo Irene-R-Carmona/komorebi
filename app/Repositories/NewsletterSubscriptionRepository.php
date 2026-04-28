@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Domain\DTO\NewsletterSubscriptionDTO;
 use App\Repositories\Contracts\NewsletterSubscriptionRepositoryInterface;
 use PDO;
 
@@ -17,24 +18,30 @@ final class NewsletterSubscriptionRepository implements NewsletterSubscriptionRe
         $this->db = $db ?? Database::getConnection();
     }
 
-    public function findByEmail(string $email): ?array
+    public function findByEmail(string $email): ?NewsletterSubscriptionDTO
     {
         $stmt = $this->db->prepare(
-            'SELECT id, confirmed_at, unsubscribed_at FROM newsletter_subscriptions WHERE email = ?'
+            'SELECT id, email, token, confirmed_at, unsubscribed_at, created_at, expires_at FROM newsletter_subscriptions WHERE email = ?'
         );
         $stmt->execute([$email]);
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        /** @var array<string, mixed>|false $row */
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row !== false ? NewsletterSubscriptionDTO::fromArray($row) : null;
     }
 
-    public function findByToken(string $token): ?array
+    public function findByToken(string $token): ?NewsletterSubscriptionDTO
     {
         $stmt = $this->db->prepare(
-            'SELECT id, email, confirmed_at, expires_at FROM newsletter_subscriptions WHERE token = ?'
+            'SELECT id, email, token, confirmed_at, unsubscribed_at, created_at, expires_at FROM newsletter_subscriptions WHERE token = ?'
         );
         $stmt->execute([$token]);
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        /** @var array<string, mixed>|false $row */
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row !== false ? NewsletterSubscriptionDTO::fromArray($row) : null;
     }
 
     public function getTokenByEmail(string $email): ?string

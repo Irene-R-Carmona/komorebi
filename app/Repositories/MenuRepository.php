@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Domain\DTO\MenuDTO;
 use App\Repositories\Contracts\MenuRepositoryInterface;
 use PDO;
 
@@ -90,12 +91,15 @@ final class MenuRepository implements MenuRepositoryInterface
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($excludeAllergenIds);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        return \array_map(static fn (array $row): MenuDTO => MenuDTO::fromArray($row), $rows);
     }
 
     /**
      * Obtener todos los productos activos
+     *
+     * @return MenuDTO[]
      */
     public function getAllProducts(): array
     {
@@ -103,12 +107,15 @@ final class MenuRepository implements MenuRepositoryInterface
             SELECT
                 p.id,
                 p.name,
+                p.slug,
                 p.description,
                 p.price,
                 p.category_id,
                 p.product_type,
                 p.is_active,
                 p.image_url,
+                p.stock_quantity,
+                p.created_at,
                 mc.name AS category_name,
                 mc.slug AS category_slug
             FROM products p
@@ -119,8 +126,9 @@ final class MenuRepository implements MenuRepositoryInterface
         ";
 
         $stmt = $this->db->query($sql);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        return \array_map(static fn (array $row): MenuDTO => MenuDTO::fromArray($row), $rows);
     }
 
     /**

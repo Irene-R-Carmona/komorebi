@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\BaseService;
+use App\Domain\DTO\MenuDTO;
 use App\Repositories\Contracts\MenuRepositoryInterface;
 use App\Services\Contracts\MenuServiceInterface;
 use Override;
@@ -48,42 +49,19 @@ final class MenuService extends BaseService implements MenuServiceInterface
     /**
      * Obtiene productos disponibles (items solo, no pases) agrupados por categoría.
      * Usa LEFT JOIN para cargar alérgenos en una sola query (elimina N+1)
+     *
+     * @param array<int> $excludeAllergens IDs de alérgenos a excluir
+     * @return array<int, array<int, array<string, mixed>>>
      */
     #[Override]
     public function getProductsByCategory(array $excludeAllergens = []): array
     {
         $products = $this->menuRepository->getProductsByCategory($excludeAllergens);
 
-        // Agrupar productos por category_id
+        // Agrupar DTOs por category_id; allergens ya parseados en MenuDTO::fromArray()
         $grouped = [];
         foreach ($products as $product) {
-            $categoryId = (int) $product['category_id'];
-            if (!isset($grouped[$categoryId])) {
-                $grouped[$categoryId] = [];
-            }
-
-            // Parsear allergen_ids y allergen_names en allergens_list
-            $allergensList = [];
-            if (!empty($product['allergen_ids'])) {
-                $ids = \explode(',', $product['allergen_ids']);
-                $names = \explode(',', $product['allergen_names']);
-                $icons = !empty($product['allergen_icons']) ? \explode(',', $product['allergen_icons']) : [];
-                $colors = !empty($product['allergen_colors']) ? \explode(',', $product['allergen_colors']) : [];
-                $severities = !empty($product['allergen_severities']) ? \explode(',', $product['allergen_severities']) : [];
-
-                foreach ($ids as $idx => $id) {
-                    $allergensList[] = [
-                        'id' => (int) $id,
-                        'name' => $names[$idx] ?? '',
-                        'icon' => $icons[$idx] ?? '',
-                        'icon_color' => $colors[$idx] ?? '',
-                        'severity' => $severities[$idx] ?? 'moderate',
-                    ];
-                }
-            }
-            $product['allergens_list'] = $allergensList;
-
-            $grouped[$categoryId][] = $product;
+            $grouped[$product->category_id][] = $product->toViewArray();
         }
 
         return $grouped;
@@ -92,12 +70,14 @@ final class MenuService extends BaseService implements MenuServiceInterface
     /**
      * Obtiene todos los productos disponibles sin agrupar.
      *
-     * @return array<int, array{id: int, category_id: int, name: string, japanese_name: string, description: string, price: int, image_url: string, is_active: int, product_type: string, allergens_list: array}>
+     * @return array<int, array<string, mixed>>
      */
     #[Override]
     public function getAllProducts(): array
     {
-        return $this->menuRepository->getAllProducts();
+        $dtos = $this->menuRepository->getAllProducts();
+
+        return \array_map(static fn (MenuDTO $dto): array => $dto->toViewArray(), $dtos);
     }
 
     /**

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\NewsletterSubscriptionDTO;
+
 interface NewsletterSubscriptionRepositoryInterface
 {
-    /** @return array<string, mixed>|null */
-    public function findByEmail(string $email): ?array;
+    public function findByEmail(string $email): ?NewsletterSubscriptionDTO;
 
-    /** @return array<string, mixed>|null */
-    public function findByToken(string $token): ?array;
+    public function findByToken(string $token): ?NewsletterSubscriptionDTO;
 
     public function getTokenByEmail(string $email): ?string;
 
