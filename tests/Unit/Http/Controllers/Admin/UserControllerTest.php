@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\UserController;
+use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Support\ControllerTestCase;
@@ -42,6 +43,7 @@ final class UserControllerTest extends ControllerTestCase
     {
         $controller = new UserController(
             userRepo: $this->createStub(UserRepositoryInterface::class),
+            roleRepo: $this->createStub(RoleRepositoryInterface::class),
         );
         $this->assertInstanceOf(UserController::class, $controller);
     }

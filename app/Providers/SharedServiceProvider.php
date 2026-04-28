@@ -19,9 +19,9 @@ use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
+
 use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Repositories\Contracts\StatisticsRepositoryInterface;
-use App\Repositories\Contracts\TrackerRepositoryInterface;
 use App\Repositories\Contracts\UserManagementRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\FavoriteRepository;
@@ -31,7 +31,6 @@ use App\Repositories\ReservationItemRepository;
 use App\Repositories\ReviewRepository;
 use App\Repositories\SettingRepository;
 use App\Repositories\StatisticsRepository;
-use App\Repositories\TrackerRepository;
 use App\Services\AdminActivityService;
 use App\Services\AdminReportService;
 use App\Services\AdminStatisticsService;
@@ -47,9 +46,7 @@ use App\Services\Contracts\ClimaContextoServiceInterface;
 use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\Contracts\GamificationServiceInterface;
 use App\Services\Contracts\HolidayServiceInterface;
-use App\Services\Contracts\KitchenServiceInterface;
 use App\Services\Contracts\LoyaltyServiceInterface;
-use App\Services\Contracts\ReceptionServiceInterface;
 use App\Services\Contracts\ReviewModerationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\ReviewServiceInterface;
@@ -62,9 +59,7 @@ use App\Services\Contracts\WeatherServiceInterface;
 use App\Services\FileUploadService;
 use App\Services\GamificationService;
 use App\Services\HolidayService;
-use App\Services\KitchenService;
 use App\Services\LoyaltyService;
-use App\Services\ReceptionService;
 use App\Services\ReviewModerationService;
 use App\Services\ReviewQueryService;
 use App\Services\ReviewService;
@@ -224,23 +219,6 @@ final class SharedServiceProvider extends ServiceProvider
         Container::singleton(ReservationItemRepositoryInterface::class, fn() => Container::make(
             ReservationItemRepository::class
         ));
-
-        Container::singleton(KitchenService::class, fn() => new KitchenService(
-            Container::make(ReservationItemRepositoryInterface::class)
-        ));
-        Container::singleton(KitchenServiceInterface::class, fn() => Container::make(KitchenService::class));
-
-        Container::singleton(TrackerRepository::class, fn() => new TrackerRepository(
-            Database::getConnection()
-        ));
-        Container::singleton(TrackerRepositoryInterface::class, fn() => Container::make(TrackerRepository::class));
-
-        Container::singleton(ReceptionService::class, fn() => new ReceptionService(
-            Container::make(ReservationRepositoryInterface::class),
-            Container::make(TrackerRepositoryInterface::class),
-            Container::make(CafeRepositoryInterface::class)
-        ));
-        Container::singleton(ReceptionServiceInterface::class, fn() => Container::make(ReceptionService::class));
     }
 
     #[Override]

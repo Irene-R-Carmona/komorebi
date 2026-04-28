@@ -13,7 +13,7 @@ use Psr\Http\Server\MiddlewareInterface;
 // BACKOFFICE - OPS (FEATURE_OPS) — reception / kitchen
 // ============================================================================
 
-if (Env::get('FEATURE_OPS', '1') === '1') {
+if (Env::bool('FEATURE_OPS', true)) {
 
     // ============================================================================
     // BACKOFFICE - RECEPTION
@@ -59,7 +59,7 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
 // BACKOFFICE - KEEPER (FEATURE_KEEPER)
 // ============================================================================
 
-if (Env::get('FEATURE_KEEPER', '1') === '1') {
+if (Env::bool('FEATURE_KEEPER', true)) {
 
     /** @var array<int, MiddlewareInterface> $keeperMiddleware */
     $keeperMiddleware = [$mw->auth(), $mw->role(['admin', 'keeper']), $mw->ownsCafe()];

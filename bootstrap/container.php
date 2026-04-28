@@ -44,6 +44,7 @@ use App\Services\Contracts\RecentlyViewedServiceInterface;
 use App\Services\Contracts\TelegramServiceInterface;
 use App\Services\Contracts\WeatherServiceInterface;
 use App\Services\Manager\DashboardService;
+use App\Services\Contracts\NavigationServiceInterface;
 use App\Services\NavigationService;
 use App\Services\RateLimitingService;
 use App\Services\RecentlyViewedService;
@@ -157,6 +158,7 @@ Container::bind(ContextServiceInstance::class, function (): ContextServiceInstan
 
 // NavigationService: singleton inyectable (sin dependencias, lógica pura)
 Container::singleton(NavigationService::class, fn () => new NavigationService());
+Container::singleton(NavigationServiceInterface::class, fn () => Container::make(NavigationService::class));
 
 // DashboardService + RecentlyViewedService: bindings para inyección por interfaz
 Container::singleton(DashboardService::class, fn () => new DashboardService());

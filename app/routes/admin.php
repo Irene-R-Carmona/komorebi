@@ -14,7 +14,7 @@ use Psr\Http\Server\MiddlewareInterface;
 // BACKOFFICE (FEATURE_BACKOFFICE) — admin / manager / supervisor
 // ============================================================================
 
-if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
+if (Env::bool('FEATURE_BACKOFFICE', true)) {
 
     // ============================================================================
     // BACKOFFICE - ADMIN
