@@ -4,26 +4,38 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Core\Database;
 use App\Domain\DTO\AnimalIncidentDTO;
 use App\Domain\Mappers\AnimalIncidentMapper;
+use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
+use Override;
 use PDO;
 
-final class AnimalIncidentRepository implements AnimalIncidentRepositoryInterface
+final class AnimalIncidentRepository extends AbstractRepository implements AnimalIncidentRepositoryInterface
 {
-    private PDO $db;
     private AnimalIncidentMapper $mapper;
 
     public function __construct(?PDO $db = null, ?AnimalIncidentMapper $mapper = null)
     {
-        $this->db     = $db ?? Database::getConnection();
+        parent::__construct($db);
         $this->mapper = $mapper ?? new AnimalIncidentMapper();
+    }
+
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'animal_incidents';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['id', 'animal_id', 'severity', 'status', 'description', 'reported_at', 'resolved_at', 'created_at'];
     }
 
     public function getActiveIncidents(): array
     {
-        $stmt = $this->db->query('
+        $stmt = $this->getDb()->query('
             SELECT ai.*, a.name AS animal_name, a.species_type AS species
             FROM animal_incidents ai
             JOIN animals a ON ai.animal_id = a.id
@@ -34,9 +46,10 @@ final class AnimalIncidentRepository implements AnimalIncidentRepositoryInterfac
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    #[Override]
     public function findById(int $id): ?AnimalIncidentDTO
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT ai.*, a.name AS animal_name, a.species_type AS species
             FROM animal_incidents ai
             JOIN animals a ON ai.animal_id = a.id
@@ -48,9 +61,10 @@ final class AnimalIncidentRepository implements AnimalIncidentRepositoryInterfac
         return $row !== false ? $this->mapper->toDTO($row) : null;
     }
 
+    #[Override]
     public function create(array $data): int
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             INSERT INTO animal_incidents
             (animal_id, severity, description, reported_by_user_id, reported_at, status)
             VALUES (:animal_id, :severity, :description, :user_id, NOW(), "open")
@@ -62,12 +76,12 @@ final class AnimalIncidentRepository implements AnimalIncidentRepositoryInterfac
             'user_id' => $data['reported_by_user_id'] ?? null,
         ]);
 
-        return (int) $this->db->lastInsertId();
+        return (int) $this->getDb()->lastInsertId();
     }
 
     public function resolve(int $id, ?string $resolution, ?int $userId): bool
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             UPDATE animal_incidents
             SET status = "resolved", resolution = :resolution,
                 resolved_by_user_id = :user_id, resolved_at = NOW()

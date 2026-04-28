@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Core\Database;
+use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\AuthTokenRepositoryInterface;
 use Override;
 use PDO;
@@ -15,13 +15,23 @@ use PDO;
  * Gestiona la persistencia de tokens de verificación de email
  * y tokens de restablecimiento de contraseña.
  */
-final class AuthTokenRepository implements AuthTokenRepositoryInterface
+final class AuthTokenRepository extends AbstractRepository implements AuthTokenRepositoryInterface
 {
-    private PDO $db;
-
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        parent::__construct($db);
+    }
+
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'email_verification_tokens';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['id', 'user_id', 'token_hash', 'expires_at', 'verified_at', 'created_at'];
     }
 
     // -------------------------------------------------------------------------
@@ -31,7 +41,7 @@ final class AuthTokenRepository implements AuthTokenRepositoryInterface
     #[Override]
     public function deletePendingEmailVerificationTokensByUser(int $userId): void
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'DELETE FROM email_verification_tokens WHERE user_id = :id AND verified_at IS NULL'
         );
         $stmt->execute(['id' => $userId]);
@@ -40,7 +50,7 @@ final class AuthTokenRepository implements AuthTokenRepositoryInterface
     #[Override]
     public function createEmailVerificationToken(int $userId, string $tokenHash, string $expiresAt): void
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'INSERT INTO email_verification_tokens (user_id, token_hash, expires_at)
              VALUES (:user_id, :hash, :expires)'
         );
@@ -53,7 +63,7 @@ final class AuthTokenRepository implements AuthTokenRepositoryInterface
     #[Override]
     public function findValidEmailVerificationToken(string $tokenHash): ?array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT id, user_id FROM email_verification_tokens
              WHERE token_hash = :hash AND expires_at > NOW() AND verified_at IS NULL'
         );
@@ -70,7 +80,7 @@ final class AuthTokenRepository implements AuthTokenRepositoryInterface
     #[Override]
     public function markEmailVerificationTokenVerified(int $id): void
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE email_verification_tokens SET verified_at = NOW() WHERE id = :id'
         );
         $stmt->execute(['id' => $id]);
@@ -79,14 +89,14 @@ final class AuthTokenRepository implements AuthTokenRepositoryInterface
     #[Override]
     public function markUserEmailVerified(int $userId): void
     {
-        $stmt = $this->db->prepare('UPDATE users SET email_verified_at = NOW() WHERE id = :id');
+        $stmt = $this->getDb()->prepare('UPDATE users SET email_verified_at = NOW() WHERE id = :id');
         $stmt->execute(['id' => $userId]);
     }
 
     #[Override]
     public function isUserEmailVerified(int $userId): bool
     {
-        $stmt = $this->db->prepare('SELECT email_verified_at FROM users WHERE id = :id');
+        $stmt = $this->getDb()->prepare('SELECT email_verified_at FROM users WHERE id = :id');
         $stmt->execute(['id' => $userId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -96,7 +106,7 @@ final class AuthTokenRepository implements AuthTokenRepositoryInterface
     #[Override]
     public function deleteExpiredEmailVerificationTokens(): int
     {
-        $stmt = $this->db->query('DELETE FROM email_verification_tokens WHERE expires_at < NOW()');
+        $stmt = $this->getDb()->query('DELETE FROM email_verification_tokens WHERE expires_at < NOW()');
 
         return $stmt->rowCount();
     }
@@ -108,7 +118,7 @@ final class AuthTokenRepository implements AuthTokenRepositoryInterface
     #[Override]
     public function deleteExpiredPasswordResetTokensByUser(int $userId): void
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'DELETE FROM password_reset_tokens WHERE user_id = :id AND used_at IS NULL AND expires_at < NOW()'
         );
         $stmt->execute(['id' => $userId]);
@@ -122,7 +132,7 @@ final class AuthTokenRepository implements AuthTokenRepositoryInterface
         string $ipAddress,
         ?string $userAgent,
     ): void {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'INSERT INTO password_reset_tokens (user_id, token_hash, expires_at, ip_address, user_agent)
              VALUES (:user_id, :hash, :expires, :ip, :ua)'
         );
@@ -141,7 +151,7 @@ final class AuthTokenRepository implements AuthTokenRepositoryInterface
     #[Override]
     public function findValidPasswordResetToken(string $tokenHash): ?array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT user_id FROM password_reset_tokens
              WHERE token_hash = :hash AND expires_at > NOW() AND used_at IS NULL'
         );
@@ -158,7 +168,7 @@ final class AuthTokenRepository implements AuthTokenRepositoryInterface
     #[Override]
     public function markPasswordResetTokenUsed(string $tokenHash): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE password_reset_tokens SET used_at = NOW() WHERE token_hash = :hash AND used_at IS NULL'
         );
 
@@ -168,7 +178,7 @@ final class AuthTokenRepository implements AuthTokenRepositoryInterface
     #[Override]
     public function deleteExpiredPasswordResetTokens(): int
     {
-        $stmt = $this->db->query(
+        $stmt = $this->getDb()->query(
             'DELETE FROM password_reset_tokens WHERE expires_at < NOW() AND used_at IS NULL'
         );
 

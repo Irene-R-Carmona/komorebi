@@ -4,27 +4,59 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Core\Database;
 use App\Domain\DTO\AuditLogDTO;
 use App\Domain\Mappers\AuditLogMapper;
 use App\Models\AuditLog as AuditLogModel;
+use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
+use LogicException;
+use Override;
 use PDO;
 
-final class AuditLogRepository implements AuditLogRepositoryInterface
+final class AuditLogRepository extends AbstractRepository implements AuditLogRepositoryInterface
 {
-    private PDO $db;
     private AuditLogMapper $mapper;
 
     public function __construct(?PDO $db = null, ?AuditLogMapper $mapper = null)
     {
-        $this->db     = $db ?? Database::getConnection();
+        parent::__construct($db);
         $this->mapper = $mapper ?? new AuditLogMapper();
     }
 
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'audit_logs';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['id', 'user_id', 'action', 'resource_type', 'resource_id', 'old_values', 'new_values', 'ip_address', 'user_agent', 'created_at'];
+    }
+
+    #[Override]
+    public function create(array $data): int
+    {
+        throw new LogicException('Mutations not allowed on AuditLogRepository');
+    }
+
+    #[Override]
+    public function update(int $id, array $data): bool
+    {
+        throw new LogicException('Mutations not allowed on AuditLogRepository');
+    }
+
+    #[Override]
+    public function delete(int $id): bool
+    {
+        throw new LogicException('Mutations not allowed on AuditLogRepository');
+    }
+
+    #[Override]
     public function findById(int $id): ?AuditLogDTO
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT al.id, al.user_id, al.action, al.resource_type, al.resource_id,
                     al.old_values, al.new_values, al.ip_address, al.user_agent, al.created_at
              FROM audit_logs al
@@ -37,12 +69,12 @@ final class AuditLogRepository implements AuditLogRepositoryInterface
         return $row !== false ? $this->mapper->toDTO($row) : null;
     }
 
-    public function findAll(array $filters = [], int $limit = 50, int $offset = 0): array
+    public function findFiltered(array $filters = [], int $limit = 50, int $offset = 0): array
     {
         [$whereClause, $params] = $this->buildWhereClause($filters);
 
         $countSql = "SELECT COUNT(*) FROM audit_logs al WHERE {$whereClause}";
-        $stmt = $this->db->prepare($countSql);
+        $stmt = $this->getDb()->prepare($countSql);
         $stmt->execute($params);
         $total = (int) $stmt->fetchColumn();
 
@@ -59,7 +91,7 @@ final class AuditLogRepository implements AuditLogRepositoryInterface
             LIMIT :limit OFFSET :offset
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value);
         }
@@ -81,7 +113,7 @@ final class AuditLogRepository implements AuditLogRepositoryInterface
     {
         [$whereClause, $params] = $this->buildDateWhereClause($filters);
 
-        $stmt = $this->db->prepare("
+        $stmt = $this->getDb()->prepare("
             SELECT
                 COUNT(*)                                                                       AS total_actions,
                 COUNT(DISTINCT user_id)                                                        AS unique_users,
@@ -95,7 +127,7 @@ final class AuditLogRepository implements AuditLogRepositoryInterface
         $stmt->execute($params);
         $totals = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $stmt = $this->db->prepare("
+        $stmt = $this->getDb()->prepare("
             SELECT action, COUNT(*) AS count
             FROM audit_logs WHERE {$whereClause}
             GROUP BY action ORDER BY count DESC LIMIT 10
@@ -103,7 +135,7 @@ final class AuditLogRepository implements AuditLogRepositoryInterface
         $stmt->execute($params);
         $topActions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $stmt = $this->db->prepare("
+        $stmt = $this->getDb()->prepare("
             SELECT resource_type, COUNT(*) AS count
             FROM audit_logs WHERE {$whereClause} AND resource_type IS NOT NULL
             GROUP BY resource_type ORDER BY count DESC
@@ -120,7 +152,7 @@ final class AuditLogRepository implements AuditLogRepositoryInterface
 
     public function getResourceHistory(string $resourceType, int $resourceId): array
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT al.*, u.name AS user_name, u.email AS user_email
             FROM audit_logs al
             LEFT JOIN users u ON al.user_id = u.id
@@ -141,7 +173,7 @@ final class AuditLogRepository implements AuditLogRepositoryInterface
 
     public function cleanup(int $daysToKeep = 365): int
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'DELETE FROM audit_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL :days DAY)'
         );
         $stmt->execute(['days' => $daysToKeep]);

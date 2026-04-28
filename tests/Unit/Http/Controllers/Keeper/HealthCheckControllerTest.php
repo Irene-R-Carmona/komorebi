@@ -83,7 +83,7 @@ final class HealthCheckControllerTest extends TestCase
             current_status: 'activo',
             keeper_name: 'Keeper Test',
         ));
-        $repo->method('exists')->willReturn($overrides['exists'] ?? false);
+        $repo->method('existsForAnimalOnDate')->willReturn($overrides['exists'] ?? false);
         $repo->method('findTodayByAnimalId')->willReturn(null);
         $repo->method('create')->willReturn(99);
         $repo->method('getCheckHistory')->willReturn([]);
@@ -209,7 +209,7 @@ final class HealthCheckControllerTest extends TestCase
     public function test_store_redirects_with_warning_when_alerts_detected(): void
     {
         $repo = $this->createStub(HealthCheckRepositoryInterface::class);
-        $repo->method('exists')->willReturn(false);
+        $repo->method('existsForAnimalOnDate')->willReturn(false);
         $repo->method('findTodayByAnimalId')->willReturn(null);
         $repo->method('create')->willReturn(10);
         $repo->method('getTodayChecks')->willReturn([]);

@@ -64,7 +64,7 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
         } else {
             // Nueva suscripción
             $token = \bin2hex(\random_bytes(32));
-            $this->subscriptionRepo->create($email, $token, \date('Y-m-d H:i:s', \strtotime('+1 year')));
+            $this->subscriptionRepo->subscribe($email, $token, \date('Y-m-d H:i:s', \strtotime('+1 year')));
         }
 
         // Enviar email de confirmación

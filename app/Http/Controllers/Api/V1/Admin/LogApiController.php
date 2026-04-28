@@ -58,7 +58,7 @@ final class LogApiController extends AbstractApiController
             'ip_address'    => $q['ip_address'] ?? null,
         ], static fn($v) => $v !== null);
 
-        $result = $this->auditLogRepo->findAll($filters, $limit, $offset);
+        $result = $this->auditLogRepo->findFiltered($filters, $limit, $offset);
 
         return $this->success([
             'logs'  => $result['data'],
@@ -101,7 +101,7 @@ final class LogApiController extends AbstractApiController
             'ip_address'    => $q['ip_address'] ?? null,
         ], static fn($v) => $v !== null && $v !== '');
 
-        $result = $this->auditLogRepo->findAll($filters, 10000, 0);
+        $result = $this->auditLogRepo->findFiltered($filters, 10000, 0);
 
         $tmp = \fopen('php://temp', 'rw+');
         \fprintf($tmp, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));

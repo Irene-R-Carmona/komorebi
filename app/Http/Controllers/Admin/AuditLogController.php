@@ -77,7 +77,7 @@ final class AuditLogController
         $limit = \max(10, \min(100, (int) ($_GET['limit'] ?? 50)));
         $offset = ($page - 1) * $limit;
 
-        $result = $this->auditLogRepo->findAll($filters, $limit, $offset);
+        $result = $this->auditLogRepo->findFiltered($filters, $limit, $offset);
 
         return $this->response->json(['ok' => true, 'data' => [
             'logs' => $result['data'],
@@ -101,7 +101,7 @@ final class AuditLogController
                 'ip_address' => $queryParams['ip_address'] ?? null,
             ], static fn($v) => $v !== null && $v !== '');
 
-            $result = $this->auditLogRepo->findAll($filters, 10000, 0);
+            $result = $this->auditLogRepo->findFiltered($filters, 10000, 0);
 
             $tmp = \fopen('php://temp', 'rw+');
             \fprintf($tmp, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));

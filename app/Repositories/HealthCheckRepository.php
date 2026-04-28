@@ -6,7 +6,9 @@ namespace App\Repositories;
 
 use App\Domain\DTO\AnimalHealthCheckDTO;
 use App\Domain\Mappers\AnimalHealthCheckMapper;
+use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
+use Override;
 use PDO;
 
 /**
@@ -15,20 +17,32 @@ use PDO;
  *
  * @package App\Repositories
  */
-final class HealthCheckRepository implements HealthCheckRepositoryInterface
+final class HealthCheckRepository extends AbstractRepository implements HealthCheckRepositoryInterface
 {
-    private PDO $db;
     private AnimalHealthCheckMapper $mapper;
 
-    public function __construct(PDO $db, ?AnimalHealthCheckMapper $mapper = null)
+    public function __construct(?PDO $db = null, ?AnimalHealthCheckMapper $mapper = null)
     {
-        $this->db     = $db;
+        parent::__construct($db);
         $this->mapper = $mapper ?? new AnimalHealthCheckMapper();
     }
 
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'animal_health_checks';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['id', 'animal_id', 'check_date', 'checked_by', 'overall_status', 'weight', 'notes', 'created_at'];
+    }
+
+    #[Override]
     public function findById(int $id): ?AnimalHealthCheckDTO
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT hc.*,
                    a.name AS animal_name,
                    a.species_type,
@@ -50,7 +64,7 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
     {
         $date ??= \date('Y-m-d');
 
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT hc.*,
                    a.name AS animal_name,
                    a.species_type,
@@ -78,7 +92,7 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
 
     public function getCheckHistory(int $animalId, int $limit = 30): array
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT hc.*,
                    u.name AS keeper_name
             FROM animal_health_checks hc
@@ -97,7 +111,7 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
     public function getTodayChecks(): array
     {
         // Usa vista optimizada health_checks_today
-        $stmt = $this->db->query('
+        $stmt = $this->getDb()->query('
             SELECT *
             FROM health_checks_today
             ORDER BY created_at DESC
@@ -110,14 +124,14 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
     {
         // Usa vista optimizada animals_pending_check_today
         if ($cafeId !== null) {
-            $stmt = $this->db->prepare('
+            $stmt = $this->getDb()->prepare('
                 SELECT *
                 FROM animals_pending_check_today
                 WHERE cafe_id = :cafe_id
             ');
             $stmt->execute(['cafe_id' => $cafeId]);
         } else {
-            $stmt = $this->db->query('
+            $stmt = $this->getDb()->query('
                 SELECT *
                 FROM animals_pending_check_today
             ');
@@ -128,7 +142,7 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
 
     public function getCheckswithAlerts(int $days = 7): array
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT hc.*,
                    a.name AS animal_name,
                    a.species_type,
@@ -149,7 +163,7 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
 
     public function create(array $data): int
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             INSERT INTO animal_health_checks (
                 animal_id,
                 checked_by,
@@ -197,12 +211,12 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
             'alerts' => isset($data['alerts']) ? \json_encode($data['alerts']) : null,
         ]);
 
-        return (int) $this->db->lastInsertId();
+        return (int) $this->getDb()->lastInsertId();
     }
 
-    public function exists(int $animalId, string $date): bool
+    public function existsForAnimalOnDate(int $animalId, string $date): bool
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT COUNT(*) as count
             FROM animal_health_checks
             WHERE animal_id = :animal_id
@@ -223,7 +237,7 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
         $startDate ??= \date('Y-m-01'); // Primer día del mes actual
         $endDate ??= \date('Y-m-d'); // Hoy
 
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT COUNT(*) as count
             FROM animal_health_checks
             WHERE checked_by = :keeper_id
@@ -242,7 +256,7 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
 
     public function getRecentLogs(int $limit = 20): array
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT hc.*, a.name AS animal_name, a.species_type AS species, u.name AS keeper_name
             FROM animal_health_checks hc
             JOIN animals a ON hc.animal_id = a.id
@@ -259,7 +273,7 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
 
     public function createCareLog(array $data): int
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             INSERT INTO animal_health_checks (animal_id, checked_by, check_date, notes, created_at)
             VALUES (:animal_id, :checked_by, CURDATE(), :notes, NOW())
             ON DUPLICATE KEY UPDATE notes = CONCAT(notes, "\n---\n", :notes_upd), created_at = NOW()
@@ -271,12 +285,12 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
             'notes_upd' => $data['notes'],
         ]);
 
-        return (int) $this->db->lastInsertId();
+        return (int) $this->getDb()->lastInsertId();
     }
 
     public function getAlertStatistics(int $days = 7): array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->getDb()->prepare("
             SELECT
                 DATE(check_date) as alert_date,
                 COUNT(*) as total_checks_with_alerts,

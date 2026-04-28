@@ -43,7 +43,7 @@ final class HealthCheckService implements HealthCheckServiceInterface
     public function createHealthCheck(int $animalId, int $keeperId, array $data): Result
     {
         // Validar que no exista ya un chequeo HOY para este animal
-        if ($this->repository->exists($animalId, \date('Y-m-d'))) {
+        if ($this->repository->existsForAnimalOnDate($animalId, \date('Y-m-d'))) {
             return Result::fail('Ya existe un chequeo registrado hoy para este animal');
         }
 
@@ -190,7 +190,7 @@ final class HealthCheckService implements HealthCheckServiceInterface
     #[Override]
     public function hasCheckToday(int $animalId): bool
     {
-        return $this->repository->exists($animalId, \date('Y-m-d'));
+        return $this->repository->existsForAnimalOnDate($animalId, \date('Y-m-d'));
     }
 
     /**

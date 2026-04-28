@@ -14,7 +14,7 @@ interface NewsletterSubscriptionRepositoryInterface
 
     public function getTokenByEmail(string $email): ?string;
 
-    public function create(string $email, string $token, string $expiresAt): bool;
+    public function subscribe(string $email, string $token, string $expiresAt): bool;
 
     /** Reactiva una suscripción dada de baja: asigna nuevo token y limpia unsubscribed_at. */
     public function reactivate(string $email, string $token, string $expiresAt): bool;

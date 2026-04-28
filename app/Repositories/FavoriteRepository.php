@@ -4,36 +4,47 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Core\Database;
+use App\Repositories\AbstractRepository;
 use App\Repositories\Contracts\FavoriteRepositoryInterface;
+use Override;
 use PDO;
 
-final class FavoriteRepository implements FavoriteRepositoryInterface
+final class FavoriteRepository extends AbstractRepository implements FavoriteRepositoryInterface
 {
-    private PDO $db;
-
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        parent::__construct($db);
+    }
+
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'favorites';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['user_id', 'cafe_id', 'created_at'];
     }
 
     public function add(int $userId, int $cafeId): bool
     {
-        return $this->db->prepare(
+        return $this->getDb()->prepare(
             'INSERT IGNORE INTO favorites (user_id, cafe_id) VALUES (:user_id, :cafe_id)'
         )->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
     }
 
     public function remove(int $userId, int $cafeId): bool
     {
-        return $this->db->prepare(
+        return $this->getDb()->prepare(
             'DELETE FROM favorites WHERE user_id = :user_id AND cafe_id = :cafe_id'
         )->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
     }
 
     public function toggle(int $userId, int $cafeId): bool
     {
-        if ($this->exists($userId, $cafeId)) {
+        if ($this->existsForUser($userId, $cafeId)) {
             $this->remove($userId, $cafeId);
 
             return false;
@@ -44,9 +55,9 @@ final class FavoriteRepository implements FavoriteRepositoryInterface
         return true;
     }
 
-    public function exists(int $userId, int $cafeId): bool
+    public function existsForUser(int $userId, int $cafeId): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT 1 FROM favorites WHERE user_id = :user_id AND cafe_id = :cafe_id LIMIT 1'
         );
         $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
@@ -56,7 +67,7 @@ final class FavoriteRepository implements FavoriteRepositoryInterface
 
     public function getCafeIds(int $userId): array
     {
-        $stmt = $this->db->prepare('SELECT cafe_id FROM favorites WHERE user_id = :user_id');
+        $stmt = $this->getDb()->prepare('SELECT cafe_id FROM favorites WHERE user_id = :user_id');
         $stmt->execute(['user_id' => $userId]);
 
         return \array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'cafe_id');
@@ -64,7 +75,7 @@ final class FavoriteRepository implements FavoriteRepositoryInterface
 
     public function getByUser(int $userId): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT c.id, c.name, c.japanese_name, c.slug, c.location,
                     c.category, c.animal_type, c.price_per_hour, c.rating,
                     c.image_url, f.created_at AS favorited_at
@@ -80,7 +91,7 @@ final class FavoriteRepository implements FavoriteRepositoryInterface
 
     public function countByUser(int $userId): int
     {
-        $stmt = $this->db->prepare('SELECT COUNT(*) FROM favorites WHERE user_id = :user_id');
+        $stmt = $this->getDb()->prepare('SELECT COUNT(*) FROM favorites WHERE user_id = :user_id');
         $stmt->execute(['user_id' => $userId]);
 
         return (int) $stmt->fetchColumn();
@@ -88,7 +99,7 @@ final class FavoriteRepository implements FavoriteRepositoryInterface
 
     public function getUsersByCafe(int $cafeId): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT u.id, u.name, u.email, f.created_at AS favorited_at
              FROM favorites f
              JOIN users u ON u.id = f.user_id
@@ -102,7 +113,7 @@ final class FavoriteRepository implements FavoriteRepositoryInterface
 
     public function getMostPopular(int $limit = 10): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT c.id, c.name, c.slug, c.category, c.animal_type,
                     c.rating, c.image_url,
                     COUNT(f.user_id) as favorites_count

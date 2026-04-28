@@ -87,7 +87,7 @@ interface HealthCheckRepositoryInterface
      * @param string $date Fecha en formato Y-m-d
      * @return bool True si existe, false en caso contrario
      */
-    public function exists(int $animalId, string $date): bool;
+    public function existsForAnimalOnDate(int $animalId, string $date): bool;
 
     /**
      * Contar chequeos realizados por un keeper en un rango de fechas.

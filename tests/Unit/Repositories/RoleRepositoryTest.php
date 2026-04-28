@@ -183,7 +183,7 @@ final class RoleRepositoryTest extends TestCase
         $pdo = $this->makeSimplePdo();
         $repo = new RoleRepository($pdo);
 
-        $id = $repo->create('supervisor', 'Supervisor', 'Manages shifts');
+        $id = $repo->createRole('supervisor', 'Supervisor', 'Manages shifts');
         $this->assertSame(10, $id);
     }
 
@@ -192,7 +192,7 @@ final class RoleRepositoryTest extends TestCase
         $pdo = $this->makeSimplePdo();
         $repo = new RoleRepository($pdo);
 
-        $id = $repo->create('viewer', 'Viewer');
+        $id = $repo->createRole('viewer', 'Viewer');
         $this->assertIsInt($id);
     }
 
@@ -209,7 +209,7 @@ final class RoleRepositoryTest extends TestCase
         $pdo->method('prepare')->willReturn($stmt);
 
         $repo = new RoleRepository($pdo);
-        $this->assertTrue($repo->update(1, 'New Name'));
+        $this->assertTrue($repo->updateRole(1, 'New Name'));
     }
 
     public function testUpdateReturnsTrueWhenDescriptionProvided(): void
@@ -221,7 +221,7 @@ final class RoleRepositoryTest extends TestCase
         $pdo->method('prepare')->willReturn($stmt);
 
         $repo = new RoleRepository($pdo);
-        $this->assertTrue($repo->update(1, null, 'New description'));
+        $this->assertTrue($repo->updateRole(1, null, 'New description'));
     }
 
     public function testUpdateReturnsFalseWhenNoFieldsProvided(): void
@@ -229,7 +229,7 @@ final class RoleRepositoryTest extends TestCase
         $pdo = $this->makeSimplePdo();
         $repo = new RoleRepository($pdo);
 
-        $this->assertFalse($repo->update(1));
+        $this->assertFalse($repo->updateRole(1));
     }
 
     // ─────────────────────────────────────────────────────────────

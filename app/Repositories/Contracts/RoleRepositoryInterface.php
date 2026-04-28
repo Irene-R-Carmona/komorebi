@@ -21,9 +21,9 @@ interface RoleRepositoryInterface
 
     public function findByCode(string $code): ?RoleDTO;
 
-    public function create(string $code, string $name, ?string $description = null): int;
+    public function createRole(string $code, string $name, ?string $description = null): int;
 
-    public function update(int $id, ?string $name = null, ?string $description = null): bool;
+    public function updateRole(int $id, ?string $name = null, ?string $description = null): bool;
 
     public function delete(int $id): bool;
 

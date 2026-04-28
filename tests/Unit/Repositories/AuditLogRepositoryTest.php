@@ -82,7 +82,7 @@ final class AuditLogRepositoryTest extends TestCase
         $pdo = $this->makePdoMultiStmt([$countStmt, $dataStmt]);
 
         $repo = new AuditLogRepository($pdo);
-        $result = $repo->findAll([], 50, 0);
+        $result = $repo->findFiltered([], 50, 0);
 
         $this->assertArrayHasKey('data', $result);
         $this->assertArrayHasKey('total', $result);
@@ -122,7 +122,7 @@ final class AuditLogRepositoryTest extends TestCase
         $pdo = $this->makePdoMultiStmt([$countStmt, $dataStmt]);
 
         $repo = new AuditLogRepository($pdo);
-        $result = $repo->findAll([], 50, 0);
+        $result = $repo->findFiltered([], 50, 0);
 
         $this->assertIsArray($result['data'][0]['old_values']);
         $this->assertSame('old', $result['data'][0]['old_values']['name']);
@@ -136,7 +136,7 @@ final class AuditLogRepositoryTest extends TestCase
     {
         $pdo = $this->makeSimplePdo([]);
         $repo = new AuditLogRepository($pdo);
-        $result = $repo->findAll(['user_id' => 5]);
+        $result = $repo->findFiltered(['user_id' => 5]);
         $this->assertSame([], $result['data']);
     }
 
@@ -144,7 +144,7 @@ final class AuditLogRepositoryTest extends TestCase
     {
         $pdo = $this->makeSimplePdo([]);
         $repo = new AuditLogRepository($pdo);
-        $result = $repo->findAll(['action' => 'delete']);
+        $result = $repo->findFiltered(['action' => 'delete']);
         $this->assertSame([], $result['data']);
     }
 
@@ -152,7 +152,7 @@ final class AuditLogRepositoryTest extends TestCase
     {
         $pdo = $this->makeSimplePdo([]);
         $repo = new AuditLogRepository($pdo);
-        $result = $repo->findAll(['resource_type' => 'user']);
+        $result = $repo->findFiltered(['resource_type' => 'user']);
         $this->assertIsArray($result['data']);
     }
 
@@ -160,7 +160,7 @@ final class AuditLogRepositoryTest extends TestCase
     {
         $pdo = $this->makeSimplePdo([]);
         $repo = new AuditLogRepository($pdo);
-        $result = $repo->findAll(['date_from' => '2024-01-01', 'date_to' => '2024-01-31']);
+        $result = $repo->findFiltered(['date_from' => '2024-01-01', 'date_to' => '2024-01-31']);
         $this->assertIsArray($result['data']);
     }
 
@@ -168,7 +168,7 @@ final class AuditLogRepositoryTest extends TestCase
     {
         $pdo = $this->makeSimplePdo([]);
         $repo = new AuditLogRepository($pdo);
-        $result = $repo->findAll(['ip_address' => '192.168']);
+        $result = $repo->findFiltered(['ip_address' => '192.168']);
         $this->assertIsArray($result['data']);
     }
 

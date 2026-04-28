@@ -131,7 +131,7 @@ final class NewsletterSubscriptionRepositoryTest extends TestCase
         $stmt = $this->makeStmt(executeReturn: true);
         $repo = new NewsletterSubscriptionRepository($this->makePdo($stmt));
 
-        $this->assertTrue($repo->create('new@example.com', 'token-abc', '2025-06-01 00:00:00'));
+        $this->assertTrue($repo->subscribe('new@example.com', 'token-abc', '2025-06-01 00:00:00'));
     }
 
     // -------------------------------------------------------------------------
