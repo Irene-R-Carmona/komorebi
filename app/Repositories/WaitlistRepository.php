@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Core\Database;
 use App\Domain\DTO\WaitlistEntryDTO;
 use App\Domain\Mappers\WaitlistMapper;
 use App\Repositories\Contracts\WaitlistRepositoryInterface;
+use Override;
 use PDO;
 
 /**
@@ -15,20 +15,29 @@ use PDO;
  *
  * Encapsula el acceso a datos de listas de espera.
  */
-final class WaitlistRepository implements WaitlistRepositoryInterface
+final class WaitlistRepository extends AbstractRepository implements WaitlistRepositoryInterface
 {
-    private PDO $db;
     private WaitlistMapper $mapper;
 
     public function __construct(?PDO $db = null, ?WaitlistMapper $mapper = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        parent::__construct($db);
         $this->mapper = $mapper ?? new WaitlistMapper();
     }
 
-    /**
-     * Buscar entrada de waitlist por ID
-     */
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'waitlist';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['id', 'user_id', 'time_slot_id', 'position', 'guest_count', 'status', 'token', 'expires_at', 'created_at'];
+    }
+
+    #[Override]
     public function findById(int $id): ?WaitlistEntryDTO
     {
         $sql = '
@@ -40,7 +49,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             LIMIT 1
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['id' => $id]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -62,7 +71,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             LIMIT 1
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['token' => $token]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -85,7 +94,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             ORDER BY w.created_at DESC
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['user_id' => $userId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -105,7 +114,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             LIMIT 1
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['time_slot_id' => $timeSlotId, 'user_id' => $userId]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -128,7 +137,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             LIMIT 1
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['time_slot_id' => $timeSlotId]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -136,13 +145,11 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
         return $result ?: null;
     }
 
-    /**
-     * Crear nueva entrada en waitlist
-     */
+    #[Override]
     public function create(array $data): int
     {
         // Calcular posición automáticamente
-        $stmtPosition = $this->db->prepare('
+        $stmtPosition = $this->getDb()->prepare('
             SELECT COALESCE(MAX(position), 0) + 1 as next_position
             FROM waitlist
             WHERE time_slot_id = :time_slot_id
@@ -166,7 +173,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             )
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute([
             'user_id' => $data['user_id'],
             'time_slot_id' => $data['time_slot_id'],
@@ -180,7 +187,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             'contact_phone' => $data['contact_phone'] ?? null,
         ]);
 
-        return (int) $this->db->lastInsertId();
+        return (int) $this->getDb()->lastInsertId();
     }
 
     /**
@@ -203,7 +210,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
 
         $sql = 'UPDATE waitlist SET ' . \implode(', ', $fields) . ' WHERE id = :id';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
 
         return $stmt->execute($params);
     }
@@ -222,7 +229,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
               AND status = 'waiting'
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
 
         return $stmt->execute([
             'time_slot_id' => $timeSlotId,
@@ -244,7 +251,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             LIMIT 1
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['user_id' => $userId, 'time_slot_id' => $timeSlotId]);
 
         return (bool) $stmt->fetch();
@@ -257,7 +264,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
     {
         $sql = 'UPDATE waitlist SET status = :status, updated_at = NOW() WHERE id = :id';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
 
         return $stmt->execute(['id' => $id, 'status' => $status]);
     }
@@ -275,7 +282,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             WHERE id = :id
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
 
         return $stmt->execute([
             'id' => $id,
@@ -295,7 +302,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             WHERE id = :id AND user_id = :user_id AND status = 'waiting'
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
 
         return $stmt->execute(['id' => $id, 'user_id' => $userId]);
     }
@@ -313,7 +320,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
               AND expires_at < NOW()
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute();
 
         return $stmt->rowCount();
@@ -334,7 +341,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
             LIMIT :limit
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
@@ -373,7 +380,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
 
         $sql .= ' ORDER BY ts.slot_date, ts.slot_time, w.position';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -381,7 +388,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
 
     public function getSummaryByStatus(): array
     {
-        $stmt = $this->db->query(
+        $stmt = $this->getDb()->query(
             "SELECT status, COUNT(*) AS count
              FROM waitlist
              WHERE status IN ('waiting','notified','confirmed','cancelled','expired')
@@ -398,7 +405,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
 
     public function cancelById(int $id): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "UPDATE waitlist SET status = 'cancelled' WHERE id = :id"
         );
 
@@ -407,7 +414,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
 
     public function findByIdAndUser(int $id, int $userId): ?array
     {
-        $stmt = $this->db->prepare('SELECT * FROM waitlist WHERE id = ? AND user_id = ?');
+        $stmt = $this->getDb()->prepare('SELECT * FROM waitlist WHERE id = ? AND user_id = ?');
         $stmt->execute([$id, $userId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -416,7 +423,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
 
     public function countByTimeSlotAndStatus(int $timeSlotId, string $status): int
     {
-        $stmt = $this->db->prepare('SELECT COUNT(*) FROM waitlist WHERE time_slot_id = ? AND status = ?');
+        $stmt = $this->getDb()->prepare('SELECT COUNT(*) FROM waitlist WHERE time_slot_id = ? AND status = ?');
         $stmt->execute([$timeSlotId, $status]);
 
         return (int) $stmt->fetchColumn();

@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Middleware;
+use App\Services\Contracts\NavigationServiceInterface;
+use Override;
 
 /**
  * Servicio de Navegación del Backoffice
  *
  * Genera menús de navegación según el rol del usuario.
  */
-final class NavigationService
+final class NavigationService implements NavigationServiceInterface
 {
     private const string URL_OPS_RECEPTION = '/ops/reception';
     private const string URL_KEEPER_DASHBOARD = '/keeper/dashboard';
@@ -160,6 +162,7 @@ final class NavigationService
      *
      * @return array<string, array<int, array{icon: string, label: string, url: string, badge?: int}>>
      */
+    #[Override]
     public function getMenu(string $role): array
     {
         return match ($role) {
@@ -176,6 +179,7 @@ final class NavigationService
     /**
      * Obtiene el menú completo con badges dinámicos.
      */
+    #[Override]
     public function getMenuBadged(string $role, array $badges = []): array
     {
         $menu = $this->getMenu($role);
@@ -195,6 +199,7 @@ final class NavigationService
     /**
      * Verifica si una URL pertenece a la sección activa.
      */
+    #[Override]
     public function checkIsActive(string $itemUrl, string $currentUrl): bool
     {
         if ($itemUrl === $currentUrl) {
@@ -207,6 +212,7 @@ final class NavigationService
     /**
      * Verifica si un path pertenece al backoffice.
      */
+    #[Override]
     public function isBackofficePath(string $path): bool
     {
         $prefixes = ['/admin', '/manager', '/ops', '/keeper'];
@@ -219,6 +225,7 @@ final class NavigationService
      *
      * @return array{href: string, label: string}
      */
+    #[Override]
     public function suggestedLink(string $path, bool $isAuthenticated, string $role): array
     {
         if ($isAuthenticated && $this->isBackofficePath($path)) {

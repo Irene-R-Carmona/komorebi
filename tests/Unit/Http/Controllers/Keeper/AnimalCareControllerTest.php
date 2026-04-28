@@ -152,7 +152,7 @@ final class AnimalCareControllerTest extends TestCase
     public function test_record_health_redirects_on_success(): void
     {
         $healthCheckRepo = $this->createStub(HealthCheckRepositoryInterface::class);
-        $healthCheckRepo->method('exists')->willReturn(false);
+        $healthCheckRepo->method('existsForAnimalOnDate')->willReturn(false);
         $healthCheckRepo->method('create')->willReturn(1);
         $healthCheckService = new HealthCheckService($healthCheckRepo);
 

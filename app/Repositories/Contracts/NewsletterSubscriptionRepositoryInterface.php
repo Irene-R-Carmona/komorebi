@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\NewsletterSubscriptionDTO;
+
 interface NewsletterSubscriptionRepositoryInterface
 {
-    /** @return array<string, mixed>|null */
-    public function findByEmail(string $email): ?array;
+    public function findByEmail(string $email): ?NewsletterSubscriptionDTO;
 
-    /** @return array<string, mixed>|null */
-    public function findByToken(string $token): ?array;
+    public function findByToken(string $token): ?NewsletterSubscriptionDTO;
 
     public function getTokenByEmail(string $email): ?string;
 
-    public function create(string $email, string $token, string $expiresAt): bool;
+    public function subscribe(string $email, string $token, string $expiresAt): bool;
 
     /** Reactiva una suscripción dada de baja: asigna nuevo token y limpia unsubscribed_at. */
     public function reactivate(string $email, string $token, string $expiresAt): bool;

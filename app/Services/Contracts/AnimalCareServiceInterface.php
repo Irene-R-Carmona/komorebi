@@ -39,4 +39,6 @@ interface AnimalCareServiceInterface
     public function createIncident(array $data): Result;
 
     public function resolveIncident(int $incidentId, ?string $resolution = null, ?int $userId = null): Result;
+
+    public function updateIncident(int $id, array $data): Result;
 }

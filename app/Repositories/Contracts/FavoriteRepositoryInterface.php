@@ -13,7 +13,7 @@ interface FavoriteRepositoryInterface
     /** @return bool True si se añadió, false si se eliminó */
     public function toggle(int $userId, int $cafeId): bool;
 
-    public function exists(int $userId, int $cafeId): bool;
+    public function existsForUser(int $userId, int $cafeId): bool;
 
     /** @return array<int> IDs de cafés favoritos del usuario */
     public function getCafeIds(int $userId): array;

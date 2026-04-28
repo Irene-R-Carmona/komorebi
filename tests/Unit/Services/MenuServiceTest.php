@@ -18,6 +18,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Domain\DTO\MenuDTO;
 use App\Repositories\Contracts\MenuRepositoryInterface;
 use App\Services\MenuService;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -103,9 +104,9 @@ final class MenuServiceTest extends TestCase
             ->method('getProductsByCategory')
             ->with([])
             ->willReturn([
-                ['id' => 1, 'category_id' => 1, 'name' => 'Café Latte', 'price' => 500, 'allergen_ids' => null, 'allergen_names' => null],
-                ['id' => 2, 'category_id' => 1, 'name' => 'Cappuccino', 'price' => 550, 'allergen_ids' => null, 'allergen_names' => null],
-                ['id' => 3, 'category_id' => 2, 'name' => 'Croissant', 'price' => 300, 'allergen_ids' => null, 'allergen_names' => null],
+                MenuDTO::fromArray(['id' => 1, 'category_id' => 1, 'name' => 'Café Latte', 'price' => 500, 'is_active' => true]),
+                MenuDTO::fromArray(['id' => 2, 'category_id' => 1, 'name' => 'Cappuccino', 'price' => 550, 'is_active' => true]),
+                MenuDTO::fromArray(['id' => 3, 'category_id' => 2, 'name' => 'Croissant', 'price' => 300, 'is_active' => true]),
             ]);
 
         // ACT
@@ -126,7 +127,7 @@ final class MenuServiceTest extends TestCase
             ->method('getProductsByCategory')
             ->with([5])
             ->willReturn([
-                ['id' => 1, 'category_id' => 1, 'name' => 'Producto sin leche', 'price' => 500, 'allergen_ids' => null, 'allergen_names' => null],
+                MenuDTO::fromArray(['id' => 1, 'category_id' => 1, 'name' => 'Producto sin leche', 'price' => 500, 'is_active' => true]),
             ]);
 
         // ACT: Excluir alérgeno ID 5 (leche)
@@ -232,7 +233,7 @@ final class MenuServiceTest extends TestCase
             ->willReturn([['id' => 1, 'name' => 'Bebidas', 'slug' => 'bebidas', 'display_order' => 1]]);
 
         $this->mockMenuRepo->method('getProductsByCategory')
-            ->willReturn([['id' => 1, 'category_id' => 1, 'name' => 'Café', 'price' => 500, 'allergen_ids' => null, 'allergen_names' => null]]);
+            ->willReturn([MenuDTO::fromArray(['id' => 1, 'category_id' => 1, 'name' => 'Café', 'price' => 500, 'is_active' => true])]);
 
         $this->mockMenuRepo->method('getPasses')
             ->willReturn([['id' => 10, 'name' => 'Pase 1H', 'product_type' => 'pass']]);
@@ -261,18 +262,19 @@ final class MenuServiceTest extends TestCase
 
     public function testGetAllProductsReturnsDelegatedArray(): void
     {
-        $expected = [
-            ['id' => 1, 'name' => 'Café Latte', 'price' => 500],
-            ['id' => 2, 'name' => 'Matcha', 'price' => 600],
-        ];
+        $dto1 = MenuDTO::fromArray(['id' => 1, 'name' => 'Café Latte', 'price' => 500, 'category_id' => 1]);
+        $dto2 = MenuDTO::fromArray(['id' => 2, 'name' => 'Matcha', 'price' => 600, 'category_id' => 1]);
 
         $this->mockMenuRepo->expects($this->once())
             ->method('getAllProducts')
-            ->willReturn($expected);
+            ->willReturn([$dto1, $dto2]);
 
         $result = $this->service->getAllProducts();
 
-        $this->assertSame($expected, $result);
+        $this->assertCount(2, $result);
+        $this->assertSame(1, $result[0]['id']);
+        $this->assertSame('Café Latte', $result[0]['name']);
+        $this->assertArrayHasKey('allergens_list', $result[0]);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -302,20 +304,21 @@ final class MenuServiceTest extends TestCase
     #[AllowMockObjectsWithoutExpectations]
     public function testGetProductsByCategoryParsesAllergenFieldsIntoAllergensList(): void
     {
+        $dto = MenuDTO::fromArray([
+            'id'                  => 1,
+            'category_id'         => 1,
+            'name'                => 'Croissant',
+            'price'               => 300,
+            'is_active'           => true,
+            'allergen_ids'        => '1,2',
+            'allergen_names'      => 'Gluten,Leche',
+            'allergen_icons'      => 'wheat,milk',
+            'allergen_colors'     => '#D4A017,#ffffff',
+            'allergen_severities' => 'high,moderate',
+        ]);
+
         $this->mockMenuRepo->method('getProductsByCategory')
-            ->willReturn([
-                [
-                    'id' => 1,
-                    'category_id' => 1,
-                    'name' => 'Croissant',
-                    'price' => 300,
-                    'allergen_ids' => '1,2',
-                    'allergen_names' => 'Gluten,Leche',
-                    'allergen_icons' => 'wheat,milk',
-                    'allergen_colors' => '#D4A017,#ffffff',
-                    'allergen_severities' => 'high,moderate',
-                ],
-            ]);
+            ->willReturn([$dto]);
 
         $result = $this->service->getProductsByCategory();
 

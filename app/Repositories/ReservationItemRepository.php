@@ -4,33 +4,46 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Core\Database;
 use App\Domain\DTO\ReservationItemDTO;
 use App\Domain\Mappers\ReservationItemMapper;
 use App\Models\ReservationItem;
 use App\Repositories\Contracts\ReservationItemRepositoryInterface;
+use Override;
 use PDO;
 
-final class ReservationItemRepository implements ReservationItemRepositoryInterface
+final class ReservationItemRepository extends AbstractRepository implements ReservationItemRepositoryInterface
 {
-    private PDO $db;
     private ReservationItemMapper $mapper;
 
     public function __construct(?PDO $db = null, ?ReservationItemMapper $mapper = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        parent::__construct($db);
         $this->mapper = $mapper ?? new ReservationItemMapper();
     }
 
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'reservation_items';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['id', 'reservation_id', 'product_id', 'quantity', 'unit_price', 'status', 'created_at'];
+    }
+
+    #[Override]
     public function findById(int $id): ?ReservationItemDTO
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT id, reservation_id, product_id, quantity, unit_price, status, created_at
              FROM reservation_items
              WHERE id = ?'
         );
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $row !== false ? $this->mapper->toDTO($row) : null;
     }
 
@@ -54,7 +67,7 @@ final class ReservationItemRepository implements ReservationItemRepositoryInterf
             ORDER BY ri.created_at
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['reservation_id' => $reservationId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -78,7 +91,7 @@ final class ReservationItemRepository implements ReservationItemRepositoryInterf
             ORDER BY ri.created_at
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId, 'station' => $station]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -99,7 +112,7 @@ final class ReservationItemRepository implements ReservationItemRepositoryInterf
             ORDER BY ri.created_at
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -119,7 +132,7 @@ final class ReservationItemRepository implements ReservationItemRepositoryInterf
             ORDER BY ri.created_at DESC
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -132,19 +145,19 @@ final class ReservationItemRepository implements ReservationItemRepositoryInterf
             VALUES (:reservation_id, :product_id, :quantity, :unit_price)
         ';
 
-        $this->db->prepare($sql)->execute([
+        $this->getDb()->prepare($sql)->execute([
             'reservation_id' => $reservationId,
             'product_id' => $productId,
             'quantity' => $quantity,
             'unit_price' => $unitPrice,
         ]);
 
-        return (int) $this->db->lastInsertId();
+        return (int) $this->getDb()->lastInsertId();
     }
 
     public function updateStatus(int $id, string $status): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE reservation_items SET status = :status WHERE id = :id'
         );
 
@@ -170,7 +183,7 @@ final class ReservationItemRepository implements ReservationItemRepositoryInterf
               AND status IN (\'pending\', \'kitchen\')
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute([
             'reservation_id' => $reservationId,
             'status' => ReservationItem::STATUS_READY,
@@ -198,7 +211,7 @@ final class ReservationItemRepository implements ReservationItemRepositoryInterf
               AND r.reservation_date = CURDATE()
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId]);
 
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: [
@@ -222,7 +235,7 @@ final class ReservationItemRepository implements ReservationItemRepositoryInterf
               AND ri.status IN (\'pending\', \'kitchen\')
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId]);
 
         return (int) ($stmt->fetchColumn() ?: 0);

@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
+use App\Domain\DTO\NewsletterSubscriptionDTO;
 use App\Repositories\NewsletterSubscriptionRepository;
 use PDO;
 use PDOStatement;
@@ -58,13 +59,14 @@ final class NewsletterSubscriptionRepositoryTest extends TestCase
 
     public function testFindByEmailReturnsArrayWhenFound(): void
     {
-        $row = ['id' => 1, 'confirmed_at' => '2024-01-01', 'unsubscribed_at' => null];
+        $row = ['id' => 1, 'email' => 'user@example.com', 'token' => null, 'confirmed_at' => '2024-01-01', 'unsubscribed_at' => null, 'created_at' => null, 'expires_at' => null];
         $stmt = $this->makeStmt(fetchReturn: $row);
         $repo = new NewsletterSubscriptionRepository($this->makePdo($stmt));
 
         $result = $repo->findByEmail('user@example.com');
-        $this->assertNotNull($result);
-        $this->assertSame(1, $result['id']);
+        $this->assertInstanceOf(NewsletterSubscriptionDTO::class, $result);
+        $this->assertSame(1, $result->id);
+        $this->assertSame('2024-01-01', $result->confirmed_at);
     }
 
     public function testFindByEmailReturnsNullWhenNotFound(): void
@@ -81,13 +83,14 @@ final class NewsletterSubscriptionRepositoryTest extends TestCase
 
     public function testFindByTokenReturnsArrayWhenFound(): void
     {
-        $row = ['id' => 2, 'email' => 'u@example.com', 'confirmed_at' => null, 'expires_at' => '2025-01-01'];
+        $row = ['id' => 2, 'email' => 'u@example.com', 'token' => 'abc123', 'confirmed_at' => null, 'unsubscribed_at' => null, 'created_at' => null, 'expires_at' => '2025-01-01'];
         $stmt = $this->makeStmt(fetchReturn: $row);
         $repo = new NewsletterSubscriptionRepository($this->makePdo($stmt));
 
         $result = $repo->findByToken('abc123');
-        $this->assertNotNull($result);
-        $this->assertSame('u@example.com', $result['email']);
+        $this->assertInstanceOf(NewsletterSubscriptionDTO::class, $result);
+        $this->assertSame('u@example.com', $result->email);
+        $this->assertSame('2025-01-01', $result->expires_at);
     }
 
     public function testFindByTokenReturnsNullWhenNotFound(): void
@@ -128,7 +131,7 @@ final class NewsletterSubscriptionRepositoryTest extends TestCase
         $stmt = $this->makeStmt(executeReturn: true);
         $repo = new NewsletterSubscriptionRepository($this->makePdo($stmt));
 
-        $this->assertTrue($repo->create('new@example.com', 'token-abc', '2025-06-01 00:00:00'));
+        $this->assertTrue($repo->subscribe('new@example.com', 'token-abc', '2025-06-01 00:00:00'));
     }
 
     // -------------------------------------------------------------------------

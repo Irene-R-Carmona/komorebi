@@ -13,7 +13,7 @@ use Psr\Http\Server\MiddlewareInterface;
 // BACKOFFICE - OPS (FEATURE_OPS) — reception / kitchen
 // ============================================================================
 
-if (Env::get('FEATURE_OPS', '1') === '1') {
+if (Env::bool('FEATURE_OPS', true)) {
 
     // ============================================================================
     // BACKOFFICE - RECEPTION
@@ -42,16 +42,16 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
     /** @var array<int, MiddlewareInterface> $opsReceptionApiMiddleware */
     $opsReceptionApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager', 'supervisor', 'reception'])];
     $router->group(['prefix' => '/api/v1/ops/reception', 'middleware' => $opsReceptionApiMiddleware], function (Router $r) use ($mw): void {
-        $r->get('/reservations',                'Api\V1\Ops\ReceptionApiController@todayReservations');
-        $r->post('/reservations/{id}/checkin',  'Api\V1\Ops\ReceptionApiController@checkIn',  [$mw->csrf()]);
+        $r->get('/reservations', 'Api\V1\Ops\ReceptionApiController@todayReservations');
+        $r->post('/reservations/{id}/checkin', 'Api\V1\Ops\ReceptionApiController@checkIn', [$mw->csrf()]);
         $r->post('/reservations/{id}/checkout', 'Api\V1\Ops\ReceptionApiController@checkOut', [$mw->csrf()]);
     });
 
     /** @var array<int, MiddlewareInterface> $opsKitchenApiMiddleware */
     $opsKitchenApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager', 'kitchen', 'supervisor'])];
     $router->group(['prefix' => '/api/v1/ops/kitchen', 'middleware' => $opsKitchenApiMiddleware], function (Router $r) use ($mw): void {
-        $r->get('/orders',                      'Api\V1\Ops\KitchenApiController@activeOrders');
-        $r->post('/orders/{id}/complete',       'Api\V1\Ops\KitchenApiController@completeOrder', [$mw->csrf()]);
+        $r->get('/orders', 'Api\V1\Ops\KitchenApiController@activeOrders');
+        $r->post('/orders/{id}/complete', 'Api\V1\Ops\KitchenApiController@completeOrder', [$mw->csrf()]);
     });
 } // end FEATURE_OPS
 
@@ -59,7 +59,7 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
 // BACKOFFICE - KEEPER (FEATURE_KEEPER)
 // ============================================================================
 
-if (Env::get('FEATURE_KEEPER', '1') === '1') {
+if (Env::bool('FEATURE_KEEPER', true)) {
 
     /** @var array<int, MiddlewareInterface> $keeperMiddleware */
     $keeperMiddleware = [$mw->auth(), $mw->role(['admin', 'keeper']), $mw->ownsCafe()];
@@ -74,28 +74,36 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
         $r->get('/animals', 'Keeper\AnimalDashboardController@index');
         $r->get('/animals/{id}', 'Keeper\AnimalDashboardController@show');
 
+        // AnimalCare — acciones de cuidado SSR (Flash + redirect)
+        $r->post('/animals/{id}/feeding', 'Keeper\AnimalCareController@recordFeeding', [$mw->csrf()]);
+        $r->post('/animals/{id}/health', 'Keeper\AnimalCareController@recordHealth', [$mw->csrf()]);
+
         // Health Checks - Sistema de chequeos diarios de salud (flujo web)
         $r->get('/health-checks', 'Keeper\HealthCheckController@index');
         $r->get('/health-checks/create/{animalId}', 'Keeper\HealthCheckController@create');
         $r->post('/health-checks', 'Keeper\HealthCheckController@store', [$mw->csrf()]);
         $r->get('/health-checks/{checkId}', 'Keeper\HealthCheckController@show');
+        $r->get('/health-checks/{checkId}/edit', 'Keeper\HealthCheckController@edit');
+        $r->post('/health-checks/{checkId}', 'Keeper\HealthCheckController@update', [$mw->csrf()]);
         $r->get('/health-checks/history/{animalId}', 'Keeper\HealthCheckController@history');
 
-        // Incidentes de animales - flujo web (GETs)
+        // Incidentes de animales - flujo web
         $r->get('/incidents', 'Keeper\AnimalIncidentController@index');
         $r->get('/incidents/create', 'Keeper\AnimalIncidentController@create');
         $r->get('/incidents/{id}', 'Keeper\AnimalIncidentController@show');
+        $r->get('/incidents/{id}/edit', 'Keeper\AnimalIncidentController@edit');
+        $r->post('/incidents/{id}', 'Keeper\AnimalIncidentController@update', [$mw->csrf()]);
     });
 
     // API Keeper — mutaciones AJAX (FASE 4B)
     /** @var array<int, MiddlewareInterface> $keeperApiMiddleware */
     $keeperApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'keeper'])];
     $router->group(['prefix' => '/api/v1/keeper', 'middleware' => $keeperApiMiddleware], function (Router $r) use ($mw): void {
-        $r->post('/animals/{id}/photo',        'Api\V1\KeeperApiController@uploadPhoto');
-        $r->post('/animals/{id}/care-log',     'Api\V1\KeeperApiController@createCareLog',   [$mw->csrf()]);
-        $r->patch('/animals/{id}/health',      'Api\V1\KeeperApiController@updateHealth',    [$mw->csrf()]);
-        $r->patch('/animals/{id}/toggle',      'Api\V1\KeeperApiController@toggleActive',    [$mw->csrf()]);
-        $r->post('/incidents',                 'Api\V1\KeeperApiController@createIncident',  [$mw->csrf()]);
-        $r->patch('/incidents/{id}/resolve',   'Api\V1\KeeperApiController@resolveIncident', [$mw->csrf()]);
+        $r->post('/animals/{id}/photo', 'Api\V1\KeeperApiController@uploadPhoto');
+        $r->post('/animals/{id}/care-log', 'Api\V1\KeeperApiController@createCareLog', [$mw->csrf()]);
+        $r->patch('/animals/{id}/health', 'Api\V1\KeeperApiController@updateHealth', [$mw->csrf()]);
+        $r->patch('/animals/{id}/toggle', 'Api\V1\KeeperApiController@toggleActive', [$mw->csrf()]);
+        $r->post('/incidents', 'Api\V1\KeeperApiController@createIncident', [$mw->csrf()]);
+        $r->patch('/incidents/{id}/resolve', 'Api\V1\KeeperApiController@resolveIncident', [$mw->csrf()]);
     });
 } // end FEATURE_KEEPER

@@ -83,7 +83,7 @@ final class FavoriteRepositoryTest extends TestCase
         $stmt = $this->makeStmt(fetchReturn: ['user_id' => 1, 'cafe_id' => 2]);
         $repo = new FavoriteRepository($this->makePdo($stmt));
 
-        $this->assertTrue($repo->exists(1, 2));
+        $this->assertTrue($repo->existsForUser(1, 2));
     }
 
     public function testExistsReturnsFalseWhenNoRow(): void
@@ -91,7 +91,7 @@ final class FavoriteRepositoryTest extends TestCase
         $stmt = $this->makeStmt(fetchReturn: false);
         $repo = new FavoriteRepository($this->makePdo($stmt));
 
-        $this->assertFalse($repo->exists(1, 99));
+        $this->assertFalse($repo->existsForUser(1, 99));
     }
 
     // -------------------------------------------------------------------------

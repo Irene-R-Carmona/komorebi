@@ -4,25 +4,37 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Core\Database;
 use App\Domain\DTO\LoyaltyCardDTO;
 use App\Domain\DTO\LoyaltyRewardDTO;
 use App\Domain\Mappers\LoyaltyCardMapper;
 use App\Domain\Mappers\LoyaltyRewardMapper;
 use App\Repositories\Contracts\LoyaltyRepositoryInterface;
+use Override;
 use PDO;
+use RuntimeException;
 
-final class LoyaltyRepository implements LoyaltyRepositoryInterface
+final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepositoryInterface
 {
-    private PDO $db;
     private LoyaltyCardMapper $cardMapper;
     private LoyaltyRewardMapper $rewardMapper;
 
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        parent::__construct($db);
         $this->cardMapper = new LoyaltyCardMapper();
         $this->rewardMapper = new LoyaltyRewardMapper();
+    }
+
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'loyalty_cards';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['id', 'user_id', 'stamps', 'current_tier', 'visits_count', 'last_stamp_at', 'total_rewards_redeemed', 'created_at', 'updated_at'];
     }
 
     // ── LoyaltyCard ──────────────────────────────────────────────
@@ -34,14 +46,14 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
             return $card;
         }
 
-        $this->db->prepare(
+        $this->getDb()->prepare(
             "INSERT INTO loyalty_cards (user_id, stamps, current_tier, visits_count)
              VALUES (?, 0, 'bronze', 0)"
         )->execute([$userId]);
 
         $created = $this->findCardByUserId($userId);
         if ($created === null) {
-            throw new \RuntimeException('Failed to create loyalty card for user ' . $userId);
+            throw new RuntimeException('Failed to create loyalty card for user ' . $userId);
         }
 
         return $created;
@@ -49,7 +61,7 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
 
     public function findCardById(int $id): ?LoyaltyCardDTO
     {
-        $stmt = $this->db->prepare('SELECT * FROM loyalty_cards WHERE id = ? LIMIT 1');
+        $stmt = $this->getDb()->prepare('SELECT * FROM loyalty_cards WHERE id = ? LIMIT 1');
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -58,7 +70,7 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
 
     public function findCardByUserId(int $userId): ?LoyaltyCardDTO
     {
-        $stmt = $this->db->prepare('SELECT * FROM loyalty_cards WHERE user_id = ? LIMIT 1');
+        $stmt = $this->getDb()->prepare('SELECT * FROM loyalty_cards WHERE user_id = ? LIMIT 1');
         $stmt->execute([$userId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -67,7 +79,7 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
 
     public function addStamps(int $cardId, int $stamps): bool
     {
-        return $this->db->prepare(
+        return $this->getDb()->prepare(
             'UPDATE loyalty_cards
              SET stamps = stamps + ?,
                  visits_count = visits_count + ?,
@@ -90,7 +102,7 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
      */
     public function getLeaderboard(int $limit = 10): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT user_id,
                     stamps,
                     current_tier,
@@ -100,12 +112,13 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
              LIMIT ?'
         );
         $stmt->execute([$limit]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function consumeStamps(int $cardId, int $stamps): bool
     {
-        return $this->db->prepare(
+        return $this->getDb()->prepare(
             'UPDATE loyalty_cards
              SET stamps = stamps - ?,
                  total_rewards_redeemed = total_rewards_redeemed + 1,
@@ -116,7 +129,7 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
 
     public function lockCardForUpdate(int $userId): void
     {
-        $this->db->prepare('SELECT id FROM loyalty_cards WHERE user_id = ? FOR UPDATE')
+        $this->getDb()->prepare('SELECT id FROM loyalty_cards WHERE user_id = ? FOR UPDATE')
             ->execute([$userId]);
     }
 
@@ -124,7 +137,7 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
 
     public function findCatalogByType(string $type): ?array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT * FROM loyalty_reward_catalog WHERE reward_type = ? AND is_active = TRUE LIMIT 1'
         );
         $stmt->execute([$type]);
@@ -137,7 +150,7 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
         $tierOrder = ['bronze' => 1, 'silver' => 2, 'gold' => 3, 'platinum' => 4];
         $userTierLevel = $tierOrder[$tier] ?? 1;
 
-        $stmt = $this->db->query(
+        $stmt = $this->getDb()->query(
             'SELECT * FROM loyalty_reward_catalog WHERE is_active = TRUE ORDER BY display_order ASC'
         );
         $all = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -151,7 +164,7 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
 
     public function createReward(array $data): int
     {
-        $this->db->prepare(
+        $this->getDb()->prepare(
             'INSERT INTO loyalty_rewards
                 (user_id, loyalty_card_id, reward_type, stamps_cost, redemption_code, expires_at, notes)
              VALUES (?, ?, ?, ?, ?, ?, ?)'
@@ -165,12 +178,12 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
             $data['notes'] ?? null,
         ]);
 
-        return (int) $this->db->lastInsertId();
+        return (int) $this->getDb()->lastInsertId();
     }
 
     public function findRewardsByUserId(int $userId): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT lr.*, lrc.name_es, lrc.description_es, lrc.icon
              FROM loyalty_rewards lr
              LEFT JOIN loyalty_reward_catalog lrc ON lr.reward_type = lrc.reward_type
@@ -184,7 +197,7 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
 
     public function findRewardByCode(string $code): ?LoyaltyRewardDTO
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT lr.*, lrc.name_es, lrc.description_es
              FROM loyalty_rewards lr
              LEFT JOIN loyalty_reward_catalog lrc ON lr.reward_type = lrc.reward_type
@@ -204,7 +217,7 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
 
         $placeholders = \implode(',', \array_fill(0, \count($ids), '?'));
 
-        return $this->db->prepare(
+        return $this->getDb()->prepare(
             "UPDATE loyalty_rewards SET status = 'expired'
              WHERE id IN ($placeholders) AND status = 'pending'"
         )->execute($ids);
@@ -212,7 +225,7 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
 
     public function markRewardUsed(int $id): bool
     {
-        return $this->db->prepare(
+        return $this->getDb()->prepare(
             "UPDATE loyalty_rewards
              SET status = 'used', used_at = CURRENT_TIMESTAMP
              WHERE id = ? AND status = 'pending'"

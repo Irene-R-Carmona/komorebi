@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Database;
 use App\Core\Env;
 use App\Core\Logger;
+use App\Core\Result;
 use App\Services\Contracts\AdminActivityServiceInterface;
 use Exception;
 use Override;
@@ -29,7 +30,7 @@ final class AdminActivityService implements AdminActivityServiceInterface
     }
 
     #[Override]
-    public function getRecentReservations(int $limit = 10): array
+    public function getRecentReservations(int $limit = 10): Result
     {
         try {
             $stmt = $this->getDb()->prepare('
@@ -47,91 +48,109 @@ final class AdminActivityService implements AdminActivityServiceInterface
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->execute();
 
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return Result::ok($stmt->fetchAll(PDO::FETCH_ASSOC));
         } catch (PDOException $e) {
             Logger::error('[AdminActivityService] getRecentReservations ERROR: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
 
-            return [];
+            return Result::fail($e->getMessage(), 'db_error');
         }
     }
 
     #[Override]
-    public function getUsersWithRoles(): array
+    public function getUsersWithRoles(): Result
     {
-        $stmt = $this->getDb()->query('
-            SELECT u.id, u.name, u.email, u.is_active, u.created_at,
-                   r.id as role_id, r.name as role_name
-            FROM users u
-            LEFT JOIN user_roles ur ON u.id = ur.user_id
-            LEFT JOIN roles r ON ur.role_id = r.id
-            ORDER BY u.created_at DESC
-        ');
+        try {
+            $stmt = $this->getDb()->query('
+                SELECT u.id, u.name, u.email, u.is_active, u.created_at,
+                       r.id as role_id, r.name as role_name
+                FROM users u
+                LEFT JOIN user_roles ur ON u.id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.id
+                ORDER BY u.created_at DESC
+            ');
 
-        $rawData = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $usersMap = [];
+            $rawData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $usersMap = [];
 
-        foreach ($rawData as $row) {
-            $userId = $row['id'];
+            foreach ($rawData as $row) {
+                $userId = $row['id'];
 
-            if (!isset($usersMap[$userId])) {
-                $usersMap[$userId] = [
-                    'id' => $row['id'],
-                    'name' => $row['name'],
-                    'email' => $row['email'],
-                    'is_active' => $row['is_active'],
-                    'created_at' => $row['created_at'],
-                    'roles' => [],
-                    'role_id' => null,
-                ];
-            }
+                if (!isset($usersMap[$userId])) {
+                    $usersMap[$userId] = [
+                        'id' => $row['id'],
+                        'name' => $row['name'],
+                        'email' => $row['email'],
+                        'is_active' => $row['is_active'],
+                        'created_at' => $row['created_at'],
+                        'roles' => [],
+                        'role_id' => null,
+                    ];
+                }
 
-            if ($row['role_name']) {
-                $usersMap[$userId]['roles'][] = $row['role_name'];
-                if ($usersMap[$userId]['role_id'] === null) {
-                    $usersMap[$userId]['role_id'] = $row['role_id'];
+                if ($row['role_name']) {
+                    $usersMap[$userId]['roles'][] = $row['role_name'];
+                    if ($usersMap[$userId]['role_id'] === null) {
+                        $usersMap[$userId]['role_id'] = $row['role_id'];
+                    }
                 }
             }
+
+            return Result::ok(\array_values($usersMap));
+        } catch (PDOException $e) {
+            Logger::error('[AdminActivityService] getUsersWithRoles ERROR: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+
+            return Result::fail($e->getMessage(), 'db_error');
         }
-
-        return \array_values($usersMap);
     }
 
     #[Override]
-    public function getProductsWithCategories(): array
+    public function getProductsWithCategories(): Result
     {
-        $stmt = $this->getDb()->query('
-            SELECT p.*, c.name as category_name
-            FROM products p
-            LEFT JOIN menu_categories c ON p.category_id = c.id
-            ORDER BY p.name
-        ');
+        try {
+            $stmt = $this->getDb()->query('
+                SELECT p.*, c.name as category_name
+                FROM products p
+                LEFT JOIN menu_categories c ON p.category_id = c.id
+                ORDER BY p.name
+            ');
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return Result::ok($stmt->fetchAll(PDO::FETCH_ASSOC));
+        } catch (PDOException $e) {
+            Logger::error('[AdminActivityService] getProductsWithCategories ERROR: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+
+            return Result::fail($e->getMessage(), 'db_error');
+        }
     }
 
     #[Override]
-    public function getReservationsWithDetails(int $limit = 100): array
+    public function getReservationsWithDetails(int $limit = 100): Result
     {
-        $stmt = $this->getDb()->prepare('
-            SELECT r.*,
-                   c.name as cafe_name,
-                   c.image_url as cafe_image,
-                   u.name as customer_name,
-                   u.email as customer_email
-            FROM reservations r
-            LEFT JOIN cafes c ON r.cafe_id = c.id
-            LEFT JOIN users u ON r.user_id = u.id
-            ORDER BY r.reservation_date DESC, r.reservation_time DESC
-            LIMIT :limit
-        ');
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
+        try {
+            $stmt = $this->getDb()->prepare('
+                SELECT r.*,
+                       c.name as cafe_name,
+                       c.image_url as cafe_image,
+                       u.name as customer_name,
+                       u.email as customer_email
+                FROM reservations r
+                LEFT JOIN cafes c ON r.cafe_id = c.id
+                LEFT JOIN users u ON r.user_id = u.id
+                ORDER BY r.reservation_date DESC, r.reservation_time DESC
+                LIMIT :limit
+            ');
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return Result::ok($stmt->fetchAll(PDO::FETCH_ASSOC));
+        } catch (PDOException $e) {
+            Logger::error('[AdminActivityService] getReservationsWithDetails ERROR: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+
+            return Result::fail($e->getMessage(), 'db_error');
+        }
     }
 
     #[Override]
-    public function getRecentActivity(int $limit = 10): array
+    public function getRecentActivity(int $limit = 10): Result
     {
         try {
             $activities = [];
@@ -195,19 +214,16 @@ final class AdminActivityService implements AdminActivityServiceInterface
                 return \strtotime($b['timestamp']) - \strtotime($a['timestamp']);
             });
 
-            return \array_slice($activities, 0, $limit);
+            return Result::ok(\array_slice($activities, 0, $limit));
         } catch (PDOException $e) {
             Logger::error('[AdminActivityService] getRecentActivity ERROR: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
 
-            return [];
+            return Result::fail($e->getMessage(), 'db_error');
         }
     }
 
-    /**
-     * @return array{database: string, cache: string, email: string}
-     */
     #[Override]
-    public function getSystemStatus(): array
+    public function getSystemStatus(): Result
     {
         $status = [];
 
@@ -259,14 +275,11 @@ final class AdminActivityService implements AdminActivityServiceInterface
             $status['email'] = 'online';
         }
 
-        return $status;
+        return Result::ok($status);
     }
 
-    /**
-     * @return array{labels: array, values: array}
-     */
     #[Override]
-    public function getReservationsChartData(): array
+    public function getReservationsChartData(): Result
     {
         try {
             $labels = [];
@@ -283,14 +296,11 @@ final class AdminActivityService implements AdminActivityServiceInterface
                 $values[] = (int) $stmt->fetchColumn();
             }
 
-            return ['labels' => $labels, 'values' => $values];
+            return Result::ok(['labels' => $labels, 'values' => $values]);
         } catch (Exception $e) {
             Logger::error('[AdminActivityService] Error generating chart data: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
 
-            return [
-                'labels' => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-                'values' => [0, 0, 0, 0, 0, 0, 0],
-            ];
+            return Result::fail($e->getMessage(), 'chart_error');
         }
     }
 

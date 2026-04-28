@@ -4,37 +4,66 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Core\Database;
 use App\Repositories\Contracts\StatisticsRepositoryInterface;
+use LogicException;
+use Override;
 use PDO;
 
-final class StatisticsRepository implements StatisticsRepositoryInterface
+final class StatisticsRepository extends AbstractRepository implements StatisticsRepositoryInterface
 {
-    private PDO $db;
-
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        parent::__construct($db);
+    }
+
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'users';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['id'];
+    }
+
+    #[Override]
+    public function create(array $data): int
+    {
+        throw new LogicException('Mutations not allowed on StatisticsRepository');
+    }
+
+    #[Override]
+    public function update(int $id, array $data): bool
+    {
+        throw new LogicException('Mutations not allowed on StatisticsRepository');
+    }
+
+    #[Override]
+    public function delete(int $id): bool
+    {
+        throw new LogicException('Mutations not allowed on StatisticsRepository');
     }
 
     public function getSystemCounts(): array
     {
         return [
-            'users' => (int) $this->db->query('SELECT COUNT(*) FROM users')->fetchColumn(),
-            'cafes' => (int) $this->db->query('SELECT COUNT(*) FROM cafes')->fetchColumn(),
-            'reservations' => (int) $this->db->query('SELECT COUNT(*) FROM reservations')->fetchColumn(),
-            'reviews' => (int) $this->db->query('SELECT COUNT(*) FROM reviews')->fetchColumn(),
-            'pending_reviews' => (int) $this->db->query('SELECT COUNT(*) FROM reviews WHERE status = "pending"')->fetchColumn(),
+            'users' => (int) $this->getDb()->query('SELECT COUNT(*) FROM users')->fetchColumn(),
+            'cafes' => (int) $this->getDb()->query('SELECT COUNT(*) FROM cafes')->fetchColumn(),
+            'reservations' => (int) $this->getDb()->query('SELECT COUNT(*) FROM reservations')->fetchColumn(),
+            'reviews' => (int) $this->getDb()->query('SELECT COUNT(*) FROM reviews')->fetchColumn(),
+            'pending_reviews' => (int) $this->getDb()->query('SELECT COUNT(*) FROM reviews WHERE status = "pending"')->fetchColumn(),
         ];
     }
 
     public function getWeeklyUserCounts(): array
     {
         return [
-            'current_week' => (int) $this->db->query(
+            'current_week' => (int) $this->getDb()->query(
                 'SELECT COUNT(*) FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
             )->fetchColumn(),
-            'previous_week' => (int) $this->db->query(
+            'previous_week' => (int) $this->getDb()->query(
                 'SELECT COUNT(*) FROM users
                  WHERE created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)
                    AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)'
@@ -45,10 +74,10 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
     public function getWeeklyReservationCounts(): array
     {
         return [
-            'current_week' => (int) $this->db->query(
+            'current_week' => (int) $this->getDb()->query(
                 'SELECT COUNT(*) FROM reservations WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
             )->fetchColumn(),
-            'previous_week' => (int) $this->db->query(
+            'previous_week' => (int) $this->getDb()->query(
                 'SELECT COUNT(*) FROM reservations
                  WHERE created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)
                    AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)'
@@ -58,7 +87,7 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
 
     public function getMonthlyStats(int $month, int $year): array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->getDb()->prepare("
             SELECT
                 COUNT(DISTINCT r.id)                                                       AS total_reservations,
                 COALESCE(SUM(r.guest_count), 0)                                            AS total_guests,
@@ -73,13 +102,13 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
         $stmt->execute(['month' => $month, 'year' => $year]);
         $reservations = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT COUNT(*) AS new_users FROM users WHERE MONTH(created_at) = :month AND YEAR(created_at) = :year'
         );
         $stmt->execute(['month' => $month, 'year' => $year]);
         $users = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             "SELECT COUNT(*) AS total_reviews, COALESCE(AVG(rating), 0) AS avg_rating
              FROM reviews
              WHERE MONTH(created_at) = :month AND YEAR(created_at) = :year AND status = 'approved'"
@@ -96,7 +125,7 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
 
     public function getCafePerformanceStats(string $dateFrom, string $dateTo, int $limit = 10): array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->getDb()->prepare("
             SELECT
                 c.id, c.name, c.category AS type,
                 COUNT(DISTINCT r.id)                                                        AS total_reservations,
@@ -125,7 +154,7 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
 
     public function getReservationTrendStats(string $dateFrom, string $dateTo): array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->getDb()->prepare("
             SELECT
                 r.reservation_date AS date,
                 COUNT(DISTINCT r.id)                                                        AS total_reservations,
@@ -144,7 +173,7 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
 
     public function getReservationsByCafeType(string $dateFrom, string $dateTo): array
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT
                 c.category AS type,
                 COUNT(DISTINCT r.id)   AS total_reservations,
@@ -175,7 +204,7 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
 
     public function getUserDistributionByRole(): array
     {
-        $stmt = $this->db->query('
+        $stmt = $this->getDb()->query('
             SELECT r.name AS role_name, r.code AS role_code, COUNT(DISTINCT ur.user_id) AS user_count
             FROM roles r
             LEFT JOIN user_roles ur ON r.id = ur.role_id
@@ -188,7 +217,7 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
 
     public function getTopCafes(string $dateFrom, string $dateTo, int $limit = 10): array
     {
-        $stmt = $this->db->prepare("
+        $stmt = $this->getDb()->prepare("
             SELECT
                 c.id, c.name, c.category AS type, c.location,
                 COUNT(DISTINCT r.id)          AS total_reservations,
@@ -214,7 +243,7 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
 
     public function getCafeStats(): array|false
     {
-        return $this->db->query('
+        return $this->getDb()->query('
             SELECT
                 COUNT(*) as total,
                 SUM(IF(is_active = 1, 1, 0)) as active,
@@ -229,19 +258,19 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
     {
         $p = ['date_from' => $dateFrom, 'date_to' => $dateTo];
 
-        $stmt = $this->db->prepare('SELECT COUNT(*) FROM reservations WHERE reservation_date BETWEEN :date_from AND :date_to');
+        $stmt = $this->getDb()->prepare('SELECT COUNT(*) FROM reservations WHERE reservation_date BETWEEN :date_from AND :date_to');
         $stmt->execute($p);
         $totalReservations = (int) $stmt->fetchColumn();
 
-        $stmt = $this->db->prepare('SELECT COALESCE(SUM(guest_count), 0) FROM reservations WHERE reservation_date BETWEEN :date_from AND :date_to');
+        $stmt = $this->getDb()->prepare('SELECT COALESCE(SUM(guest_count), 0) FROM reservations WHERE reservation_date BETWEEN :date_from AND :date_to');
         $stmt->execute($p);
         $totalGuests = (int) $stmt->fetchColumn();
 
-        $stmt = $this->db->prepare("SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE status = 'approved' AND created_at BETWEEN :date_from AND :date_to");
+        $stmt = $this->getDb()->prepare("SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE status = 'approved' AND created_at BETWEEN :date_from AND :date_to");
         $stmt->execute($p);
         $avgRating = \round((float) $stmt->fetchColumn(), 2);
 
-        $stmt = $this->db->prepare('SELECT COUNT(DISTINCT user_id) FROM reservations WHERE reservation_date BETWEEN :date_from AND :date_to AND user_id IS NOT NULL');
+        $stmt = $this->getDb()->prepare('SELECT COUNT(DISTINCT user_id) FROM reservations WHERE reservation_date BETWEEN :date_from AND :date_to AND user_id IS NOT NULL');
         $stmt->execute($p);
         $activeUsers = (int) $stmt->fetchColumn();
 
@@ -257,23 +286,23 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
     public function getDataViewerStats(): array
     {
         return [
-            'users' => (int) $this->db->query('SELECT COUNT(*) FROM users')->fetchColumn(),
-            'staff' => (int) $this->db->query("SELECT COUNT(*) FROM users WHERE role != 'user'")->fetchColumn(),
-            'cafes' => (int) $this->db->query('SELECT COUNT(*) FROM cafes')->fetchColumn(),
-            'animals' => (int) $this->db->query('SELECT COUNT(*) FROM animals')->fetchColumn(),
-            'products' => (int) $this->db->query('SELECT COUNT(*) FROM products')->fetchColumn(),
-            'reservations' => (int) $this->db->query('SELECT COUNT(*) FROM reservations')->fetchColumn(),
-            'reservations_with_slot' => (int) $this->db->query('SELECT COUNT(*) FROM reservations WHERE time_slot_id IS NOT NULL')->fetchColumn(),
-            'time_slots' => (int) $this->db->query('SELECT COUNT(*) FROM time_slots')->fetchColumn(),
-            'time_slots_available' => (int) $this->db->query('SELECT COUNT(*) FROM time_slots WHERE slot_date >= CURDATE() AND is_blocked = 0')->fetchColumn(),
-            'reviews' => (int) $this->db->query('SELECT COUNT(*) FROM reviews')->fetchColumn(),
-            'incidents' => (int) $this->db->query('SELECT COUNT(*) FROM animal_health_checks')->fetchColumn(),
+            'users' => (int) $this->getDb()->query('SELECT COUNT(*) FROM users')->fetchColumn(),
+            'staff' => (int) $this->getDb()->query("SELECT COUNT(*) FROM users WHERE role != 'user'")->fetchColumn(),
+            'cafes' => (int) $this->getDb()->query('SELECT COUNT(*) FROM cafes')->fetchColumn(),
+            'animals' => (int) $this->getDb()->query('SELECT COUNT(*) FROM animals')->fetchColumn(),
+            'products' => (int) $this->getDb()->query('SELECT COUNT(*) FROM products')->fetchColumn(),
+            'reservations' => (int) $this->getDb()->query('SELECT COUNT(*) FROM reservations')->fetchColumn(),
+            'reservations_with_slot' => (int) $this->getDb()->query('SELECT COUNT(*) FROM reservations WHERE time_slot_id IS NOT NULL')->fetchColumn(),
+            'time_slots' => (int) $this->getDb()->query('SELECT COUNT(*) FROM time_slots')->fetchColumn(),
+            'time_slots_available' => (int) $this->getDb()->query('SELECT COUNT(*) FROM time_slots WHERE slot_date >= CURDATE() AND is_blocked = 0')->fetchColumn(),
+            'reviews' => (int) $this->getDb()->query('SELECT COUNT(*) FROM reviews')->fetchColumn(),
+            'incidents' => (int) $this->getDb()->query('SELECT COUNT(*) FROM animal_health_checks')->fetchColumn(),
         ];
     }
 
     public function getRecentReservations(int $limit = 10): array
     {
-        $stmt = $this->db->query(\sprintf('
+        $stmt = $this->getDb()->query(\sprintf('
             SELECT r.id, r.reservation_date AS date, r.reservation_time AS time_slot,
                    r.status, r.guest_count AS guests,
                    c.name AS cafe_name, u.name AS customer_name, r.created_at
@@ -289,7 +318,7 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
 
     public function getReservationsWithDetails(int $limit = 100): array
     {
-        $stmt = $this->db->query(\sprintf('
+        $stmt = $this->getDb()->query(\sprintf('
             SELECT r.*, c.name AS cafe_name, c.image_url AS cafe_image,
                    u.name AS customer_name, u.email AS customer_email
             FROM reservations r
@@ -304,7 +333,7 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
 
     public function getProductsWithCategories(): array
     {
-        $stmt = $this->db->query('
+        $stmt = $this->getDb()->query('
             SELECT p.*, c.name AS category_name
             FROM products p
             LEFT JOIN menu_categories c ON p.category_id = c.id
@@ -318,7 +347,7 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
     {
         $activities = [];
 
-        $stmt = $this->db->query("
+        $stmt = $this->getDb()->query("
             SELECT 'reservation_confirmed' AS type, r.created_at,
                    c.name AS cafe_name, u.name AS user_name
             FROM reservations r
@@ -328,32 +357,44 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
             ORDER BY r.created_at DESC LIMIT 3
         ");
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $res) {
-            $activities[] = ['type' => 'success', 'icon' => 'check-lg',
-                'text' => 'Reserva confirmada', 'timestamp' => $res['created_at'],
-                'meta' => ($res['cafe_name'] ?? 'Cafetería')];
+            $activities[] = [
+                'type' => 'success',
+                'icon' => 'check-lg',
+                'text' => 'Reserva confirmada',
+                'timestamp' => $res['created_at'],
+                'meta' => ($res['cafe_name'] ?? 'Cafetería'),
+            ];
         }
 
-        $stmt = $this->db->query('
+        $stmt = $this->getDb()->query('
             SELECT name, email, created_at FROM users
             WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
             ORDER BY created_at DESC LIMIT 3
         ');
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $user) {
-            $activities[] = ['type' => 'info', 'icon' => 'person-plus',
-                'text' => 'Usuario nuevo registrado', 'timestamp' => $user['created_at'],
-                'meta' => ($user['email'] ?? 'Usuario')];
+            $activities[] = [
+                'type' => 'info',
+                'icon' => 'person-plus',
+                'text' => 'Usuario nuevo registrado',
+                'timestamp' => $user['created_at'],
+                'meta' => ($user['email'] ?? 'Usuario'),
+            ];
         }
 
-        $stmt = $this->db->query("
+        $stmt = $this->getDb()->query("
             SELECT r.created_at, c.name AS cafe_name FROM reviews r
             LEFT JOIN cafes c ON r.cafe_id = c.id
             WHERE r.status = 'pending'
             ORDER BY r.created_at DESC LIMIT 2
         ");
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $review) {
-            $activities[] = ['type' => 'warning', 'icon' => 'star-fill',
-                'text' => 'Reseña pendiente', 'timestamp' => $review['created_at'],
-                'meta' => 'Requiere moderación'];
+            $activities[] = [
+                'type' => 'warning',
+                'icon' => 'star-fill',
+                'text' => 'Reseña pendiente',
+                'timestamp' => $review['created_at'],
+                'meta' => 'Requiere moderación',
+            ];
         }
 
         \usort($activities, static fn ($a, $b) => \strtotime($b['timestamp']) - \strtotime($a['timestamp']));
@@ -370,7 +411,7 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
         for ($i = 6; $i >= 0; $i--) {
             $date = \date('Y-m-d', \strtotime("-$i days"));
             $labels[] = $daysEs[(int) \date('w', \strtotime($date))];
-            $stmt = $this->db->prepare('SELECT COUNT(*) FROM reservations WHERE DATE(created_at) = :date');
+            $stmt = $this->getDb()->prepare('SELECT COUNT(*) FROM reservations WHERE DATE(created_at) = :date');
             $stmt->execute(['date' => $date]);
             $values[] = (int) $stmt->fetchColumn();
         }
@@ -381,14 +422,14 @@ final class StatisticsRepository implements StatisticsRepositoryInterface
     public function getDataViewerSamples(): array
     {
         return [
-            'cafes' => $this->db->query('SELECT name, animal_type, capacity_max, opening_time, closing_time, NULL AS rating_avg FROM cafes LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
-            'products' => $this->db->query('SELECT name, japanese_name, price, duration_minutes AS duration, min_pax, max_pax FROM products LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
-            'staff' => $this->db->query("SELECT u.name, u.email, u.role AS roles, NULL AS cafe FROM users u WHERE u.role != 'user' LIMIT 10")->fetchAll(PDO::FETCH_ASSOC),
-            'users' => $this->db->query("SELECT name, email, role AS roles FROM users WHERE role = 'user' LIMIT 10")->fetchAll(PDO::FETCH_ASSOC),
-            'reservations' => $this->db->query('SELECT u.name AS user, c.name AS cafe, p.name AS pass_name, p.price AS pass_unit_price, r.reservation_date, r.reservation_time, r.guest_count, r.status, r.time_slot_id FROM reservations r LEFT JOIN users u ON u.id = r.user_id LEFT JOIN cafes c ON c.id = r.cafe_id LEFT JOIN products p ON p.id = r.pass_product_id ORDER BY r.id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
-            'time_slots' => $this->db->query('SELECT id, cafe_id, slot_date, start_time, end_time, capacity_max, booked_count, is_blocked FROM time_slots ORDER BY slot_date DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
-            'reviews' => $this->db->query('SELECT id, user_id, cafe_id, rating, comment, is_approved FROM reviews ORDER BY id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
-            'incidents' => $this->db->query('SELECT id, animal_id, check_date, appetite, energy_level, notes FROM animal_health_checks ORDER BY id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
+            'cafes' => $this->getDb()->query('SELECT name, animal_type, capacity_max, opening_time, closing_time, NULL AS rating_avg FROM cafes LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
+            'products' => $this->getDb()->query('SELECT name, japanese_name, price, duration_minutes AS duration, min_pax, max_pax FROM products LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
+            'staff' => $this->getDb()->query("SELECT u.name, u.email, u.role AS roles, NULL AS cafe FROM users u WHERE u.role != 'user' LIMIT 10")->fetchAll(PDO::FETCH_ASSOC),
+            'users' => $this->getDb()->query("SELECT name, email, role AS roles FROM users WHERE role = 'user' LIMIT 10")->fetchAll(PDO::FETCH_ASSOC),
+            'reservations' => $this->getDb()->query('SELECT u.name AS user, c.name AS cafe, p.name AS pass_name, p.price AS pass_unit_price, r.reservation_date, r.reservation_time, r.guest_count, r.status, r.time_slot_id FROM reservations r LEFT JOIN users u ON u.id = r.user_id LEFT JOIN cafes c ON c.id = r.cafe_id LEFT JOIN products p ON p.id = r.pass_product_id ORDER BY r.id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
+            'time_slots' => $this->getDb()->query('SELECT id, cafe_id, slot_date, start_time, end_time, capacity_max, booked_count, is_blocked FROM time_slots ORDER BY slot_date DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
+            'reviews' => $this->getDb()->query('SELECT id, user_id, cafe_id, rating, comment, is_approved FROM reviews ORDER BY id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
+            'incidents' => $this->getDb()->query('SELECT id, animal_id, check_date, appetite, energy_level, notes FROM animal_health_checks ORDER BY id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
         ];
     }
 }

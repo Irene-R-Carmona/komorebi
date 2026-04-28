@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Services\Contracts\NavigationServiceInterface;
 use App\Services\NavigationService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -93,5 +94,10 @@ final class NavigationServiceTest extends TestCase
         $menu = $this->service->getMenuBadged('admin', []);
 
         $this->assertIsArray($menu);
+    }
+
+    public function testNavigationServiceImplementsInterface(): void
+    {
+        $this->assertInstanceOf(NavigationServiceInterface::class, $this->service);
     }
 }

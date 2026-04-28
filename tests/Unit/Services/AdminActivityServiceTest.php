@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí? AdminActivityService: getSystemStatus cuando la base de datos falla.
- * ¿Qué me quieres demostrar? Que getSystemStatus retorna estado 'offline' cuando PDO lanza excepción.
- * ¿Qué va a fallar en este test si se cambia el código? Si cambia la clave 'database' en getSystemStatus.
+ * ¿Qué pruebas aquí? AdminActivityService: getSystemStatus y getRecentReservations con Result pattern.
+ * ¿Qué me quieres demostrar? Que los métodos devuelven Result::ok con datos o Result::fail ante errores.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se elimina el Result pattern o cambian las claves de los arrays retornados.
  */
 
 namespace Tests\Unit\Services;
@@ -28,8 +28,9 @@ final class AdminActivityServiceTest extends TestCase
         $service = new AdminActivityService($pdoStub);
         $status = $service->getSystemStatus();
 
-        $this->assertArrayHasKey('database', $status);
-        $this->assertSame('offline', $status['database']);
+        $this->assertTrue($status->ok);
+        $this->assertArrayHasKey('database', $status->data);
+        $this->assertSame('offline', $status->data['database']);
     }
 
     public function testGetSystemStatusReturnsDatabaseOnlineWhenPdoSucceeds(): void
@@ -43,8 +44,9 @@ final class AdminActivityServiceTest extends TestCase
         $service = new AdminActivityService($pdoStub);
         $status = $service->getSystemStatus();
 
-        $this->assertArrayHasKey('database', $status);
-        $this->assertSame('online', $status['database']);
+        $this->assertTrue($status->ok);
+        $this->assertArrayHasKey('database', $status->data);
+        $this->assertSame('online', $status->data['database']);
     }
 
     public function testGetRecentReservationsReturnsEmptyArrayWhenPdoThrows(): void
@@ -55,7 +57,8 @@ final class AdminActivityServiceTest extends TestCase
         $service = new AdminActivityService($pdoStub);
         $result  = $service->getRecentReservations(5);
 
-        $this->assertSame([], $result);
+        $this->assertFalse($result->ok);
+        $this->assertSame('db_error', $result->code);
     }
 
     public function testGetRecentReservationsReturnsResultWithExpectedShape(): void
@@ -80,8 +83,9 @@ final class AdminActivityServiceTest extends TestCase
         $service = new AdminActivityService($pdoStub);
         $result  = $service->getRecentReservations(1);
 
-        $this->assertCount(1, $result);
-        $this->assertSame('Komorebi Central', $result[0]['cafe_name']);
+        $this->assertTrue($result->ok);
+        $this->assertCount(1, $result->data);
+        $this->assertSame('Komorebi Central', $result->data[0]['cafe_name']);
     }
 
     public function testGetUsersWithRolesMergesMultipleRolesForSameUser(): void
@@ -99,11 +103,12 @@ final class AdminActivityServiceTest extends TestCase
         $service = new AdminActivityService($pdoStub);
         $result  = $service->getUsersWithRoles();
 
-        $this->assertCount(1, $result);
-        $this->assertArrayHasKey('roles', $result[0]);
-        $this->assertCount(2, $result[0]['roles']);
-        $this->assertContains('admin', $result[0]['roles']);
-        $this->assertContains('manager', $result[0]['roles']);
+        $this->assertTrue($result->ok);
+        $this->assertCount(1, $result->data);
+        $this->assertArrayHasKey('roles', $result->data[0]);
+        $this->assertCount(2, $result->data[0]['roles']);
+        $this->assertContains('admin', $result->data[0]['roles']);
+        $this->assertContains('manager', $result->data[0]['roles']);
     }
 
     public function testGetUsersWithRolesReturnsUserWithNoRolesWhenRoleNameIsNull(): void
@@ -120,7 +125,8 @@ final class AdminActivityServiceTest extends TestCase
         $service = new AdminActivityService($pdoStub);
         $result  = $service->getUsersWithRoles();
 
-        $this->assertCount(1, $result);
-        $this->assertSame([], $result[0]['roles']);
+        $this->assertTrue($result->ok);
+        $this->assertCount(1, $result->data);
+        $this->assertSame([], $result->data[0]['roles']);
     }
 }

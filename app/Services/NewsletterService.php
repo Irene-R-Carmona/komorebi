@@ -49,11 +49,11 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
         $existing = $this->subscriptionRepo->findByEmail($email);
 
         if ($existing) {
-            if ($existing['confirmed_at']) {
+            if ($existing->confirmed_at) {
                 return Result::fail('Este email ya está suscrito');
             }
 
-            if ($existing['unsubscribed_at']) {
+            if ($existing->unsubscribed_at) {
                 // Reactivar suscripción
                 $token = \bin2hex(\random_bytes(32));
                 $this->subscriptionRepo->reactivate($email, $token, \date('Y-m-d H:i:s', \strtotime('+1 year')));
@@ -64,7 +64,7 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
         } else {
             // Nueva suscripción
             $token = \bin2hex(\random_bytes(32));
-            $this->subscriptionRepo->create($email, $token, \date('Y-m-d H:i:s', \strtotime('+1 year')));
+            $this->subscriptionRepo->subscribe($email, $token, \date('Y-m-d H:i:s', \strtotime('+1 year')));
         }
 
         // Enviar email de confirmación
@@ -118,7 +118,7 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
             return ['success' => false, 'message' => 'Token inválido'];
         }
 
-        if ($subscription['confirmed_at']) {
+        if ($subscription->confirmed_at) {
             return ['success' => false, 'message' => 'Esta suscripción ya fue confirmada'];
         }
 
@@ -127,7 +127,7 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
 
         // Enviar email de bienvenida
         $emailPayload = [
-            'to' => $subscription['email'],
+            'to' => $subscription->email,
             'subject' => 'Bienvenido a la comunidad Komorebi',
             'body' => $this->getWelcomeTemplate(),
             '_correlation_id' => WideEvent::get('request_id') ?? '',
@@ -136,14 +136,14 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
         try {
             if ($this->shouldUseSyncEmail()) {
                 $this->sendEmailSync($emailPayload);
-                Logger::info('Email de bienvenida newsletter enviado (sync)', ['email' => $subscription['email']]);
+                Logger::info('Email de bienvenida newsletter enviado (sync)', ['email' => $subscription->email]);
             } else {
                 Queue::push(SendEmailJob::class, $emailPayload, 'default');
-                Logger::info('Email de bienvenida newsletter encolado', ['email' => $subscription['email']]);
+                Logger::info('Email de bienvenida newsletter encolado', ['email' => $subscription->email]);
             }
         } catch (Throwable $e) {
             Logger::warning('Error enviando email de bienvenida (no crítico)', [
-                'email' => $subscription['email'],
+                'email' => $subscription->email,
                 'error' => $e->getMessage(),
             ]);
         }
@@ -151,7 +151,7 @@ final class NewsletterService extends BaseService implements NewsletterServiceIn
         return [
             'success' => true,
             'message' => 'Suscripción confirmada correctamente',
-            'email' => $subscription['email'],
+            'email' => $subscription->email,
         ];
     }
 

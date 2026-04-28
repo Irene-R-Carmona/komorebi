@@ -16,4 +16,6 @@ interface AnimalIncidentRepositoryInterface
     public function create(array $data): int;
 
     public function resolve(int $id, ?string $resolution, ?int $userId): bool;
+
+    public function update(int $id, array $data): bool;
 }

@@ -4,27 +4,37 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Core\Database;
 use App\Domain\DTO\RoleDTO;
 use App\Domain\Mappers\RoleMapper;
 use App\Repositories\Contracts\RoleRepositoryInterface;
+use Override;
 use PDO;
 
-final class RoleRepository implements RoleRepositoryInterface
+final class RoleRepository extends AbstractRepository implements RoleRepositoryInterface
 {
-    private PDO $db;
-
     private RoleMapper $mapper;
 
     public function __construct(?PDO $db = null, ?RoleMapper $mapper = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        parent::__construct($db);
         $this->mapper = $mapper ?? new RoleMapper();
+    }
+
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'roles';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['id', 'code', 'name', 'description', 'created_at'];
     }
 
     public function findAllWithCounts(): array
     {
-        $stmt = $this->db->query('
+        $stmt = $this->getDb()->query('
             SELECT
                 r.id,
                 r.code,
@@ -44,7 +54,7 @@ final class RoleRepository implements RoleRepositoryInterface
 
     public function getAllWithPermissions(): array
     {
-        $stmt = $this->db->query("
+        $stmt = $this->getDb()->query("
             SELECT r.*,
                    GROUP_CONCAT(p.id                  ORDER BY p.code SEPARATOR ',') AS permission_ids,
                    GROUP_CONCAT(COALESCE(p.name, '') ORDER BY p.code SEPARATOR ',') AS permission_names
@@ -62,7 +72,7 @@ final class RoleRepository implements RoleRepositoryInterface
                 $names = \explode(',', (string) $row['permission_names']);
 
                 $row['permissions'] = \array_map(
-                    static fn(string $id, string $name): array => [
+                    static fn (string $id, string $name): array => [
                         'id' => (int) $id,
                         'name' => $name,
                     ],
@@ -81,7 +91,7 @@ final class RoleRepository implements RoleRepositoryInterface
 
     public function getStats(): array
     {
-        $stmt = $this->db->query('
+        $stmt = $this->getDb()->query('
             SELECT
                 COUNT(DISTINCT ur.user_id) as users_with_roles,
                 COUNT(DISTINCT r.id) as total_roles,
@@ -97,7 +107,7 @@ final class RoleRepository implements RoleRepositoryInterface
 
     public function findById(int $id): ?RoleDTO
     {
-        $stmt = $this->db->prepare('SELECT id, code, name, description FROM roles WHERE id = :id');
+        $stmt = $this->getDb()->prepare('SELECT id, code, name, description FROM roles WHERE id = :id');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -106,24 +116,24 @@ final class RoleRepository implements RoleRepositoryInterface
 
     public function findByCode(string $code): ?RoleDTO
     {
-        $stmt = $this->db->prepare('SELECT id, code, name, description FROM roles WHERE code = :code');
+        $stmt = $this->getDb()->prepare('SELECT id, code, name, description FROM roles WHERE code = :code');
         $stmt->execute(['code' => $code]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $row ? $this->mapper->toDTO($row) : null;
     }
 
-    public function create(string $code, string $name, ?string $description = null): int
+    public function createRole(string $code, string $name, ?string $description = null): int
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'INSERT INTO roles (code, name, description) VALUES (:code, :name, :description)'
         );
         $stmt->execute(['code' => $code, 'name' => $name, 'description' => $description]);
 
-        return (int) $this->db->lastInsertId();
+        return (int) $this->getDb()->lastInsertId();
     }
 
-    public function update(int $id, ?string $name = null, ?string $description = null): bool
+    public function updateRole(int $id, ?string $name = null, ?string $description = null): bool
     {
         $fields = [];
         $params = ['id' => $id];
@@ -141,19 +151,19 @@ final class RoleRepository implements RoleRepositoryInterface
             return false;
         }
 
-        return $this->db->prepare(
+        return $this->getDb()->prepare(
             'UPDATE roles SET ' . \implode(', ', $fields) . ', updated_at = NOW() WHERE id = :id'
         )->execute($params);
     }
 
     public function delete(int $id): bool
     {
-        return $this->db->prepare('DELETE FROM roles WHERE id = :id')->execute(['id' => $id]);
+        return $this->getDb()->prepare('DELETE FROM roles WHERE id = :id')->execute(['id' => $id]);
     }
 
     public function countUsers(int $roleId): int
     {
-        $stmt = $this->db->prepare('SELECT COUNT(*) FROM user_roles WHERE role_id = :role_id');
+        $stmt = $this->getDb()->prepare('SELECT COUNT(*) FROM user_roles WHERE role_id = :role_id');
         $stmt->bindValue(':role_id', $roleId, PDO::PARAM_INT);
         $stmt->execute();
 
@@ -162,7 +172,7 @@ final class RoleRepository implements RoleRepositoryInterface
 
     public function grantPermission(int $roleId, int $permissionId): bool
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT 1 FROM role_permissions WHERE role_id = :role_id AND permission_id = :permission_id'
         );
         $stmt->execute(['role_id' => $roleId, 'permission_id' => $permissionId]);
@@ -171,21 +181,21 @@ final class RoleRepository implements RoleRepositoryInterface
             return true;
         }
 
-        return $this->db->prepare(
+        return $this->getDb()->prepare(
             'INSERT INTO role_permissions (role_id, permission_id) VALUES (:role_id, :permission_id)'
         )->execute(['role_id' => $roleId, 'permission_id' => $permissionId]);
     }
 
     public function revokePermission(int $roleId, int $permissionId): bool
     {
-        return $this->db->prepare(
+        return $this->getDb()->prepare(
             'DELETE FROM role_permissions WHERE role_id = :role_id AND permission_id = :permission_id'
         )->execute(['role_id' => $roleId, 'permission_id' => $permissionId]);
     }
 
     public function findAllPermissions(): array
     {
-        $stmt = $this->db->query(
+        $stmt = $this->getDb()->query(
             'SELECT id, code, name, description, resource, action FROM permissions ORDER BY code'
         );
 
@@ -194,7 +204,7 @@ final class RoleRepository implements RoleRepositoryInterface
 
     public function findPermissionById(int $id): ?array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT id, code, name, description, resource, action FROM permissions WHERE id = :id'
         );
         $stmt->execute(['id' => $id]);

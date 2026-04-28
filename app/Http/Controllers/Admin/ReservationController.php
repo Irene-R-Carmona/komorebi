@@ -40,6 +40,7 @@ final class ReservationController
         $page     = \max(1, (int) ($q['page']       ?? 1));
 
         $all = $this->activityService->getReservationsWithDetails(500);
+        $all = $all->ok ? $all->data : [];
 
         $stats = [
             'total'     => \count($all),

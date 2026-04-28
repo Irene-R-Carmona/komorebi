@@ -9,7 +9,7 @@ use App\Core\Csrf;
 use App\Core\View;
 use App\Domain\DTO\PaginationParams;
 use App\Http\Transformers\UserTransformer;
-use App\Models\Role;
+use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\UserRepository;
 use Psr\Http\Message\ResponseInterface;
@@ -23,14 +23,17 @@ use Random\RandomException;
  */
 final class UserController
 {
-    private Role $roleModel;
+    private RoleRepositoryInterface $roleRepo;
     private UserRepositoryInterface $userRepo;
     private UserTransformer $userTransformer;
 
-    public function __construct(?UserRepositoryInterface $userRepo = null, ?UserTransformer $userTransformer = null)
-    {
-        $this->roleModel = new Role();
-        $this->userRepo = $userRepo ?? Container::make(UserRepositoryInterface::class);
+    public function __construct(
+        ?UserRepositoryInterface $userRepo = null,
+        ?UserTransformer $userTransformer = null,
+        ?RoleRepositoryInterface $roleRepo = null,
+    ) {
+        $this->roleRepo        = $roleRepo        ?? Container::make(RoleRepositoryInterface::class);
+        $this->userRepo        = $userRepo        ?? Container::make(UserRepositoryInterface::class);
         $this->userTransformer = $userTransformer ?? new UserTransformer();
     }
 
@@ -59,7 +62,7 @@ final class UserController
         View::render('admin/users/index', [
             'titulo'        => 'Gestión de Usuarios',
             'users'         => $users,
-            'roles'         => $this->roleModel->all(),
+            'roles'         => $this->roleRepo->findAllWithCounts(),
             'stats'         => $repo->getUserStats(),
             'meta'          => $meta,
             'currentParams' => $currentParams,

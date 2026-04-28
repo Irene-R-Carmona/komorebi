@@ -4,27 +4,38 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Core\Database;
 use App\Domain\DTO\MenuCategoryDTO;
 use App\Domain\Mappers\MenuCategoryMapper;
 use App\Repositories\Contracts\MenuCategoryRepositoryInterface;
+use Override;
 use PDO;
 
-final class MenuCategoryRepository implements MenuCategoryRepositoryInterface
+final class MenuCategoryRepository extends AbstractRepository implements MenuCategoryRepositoryInterface
 {
-    private PDO $db;
-
     public function __construct(private readonly MenuCategoryMapper $mapper, ?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        parent::__construct($db);
+    }
+
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'menu_categories';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['id', 'name', 'slug', 'display_order'];
     }
 
     /**
      * @return array<int, MenuCategoryDTO>
      */
+    #[Override]
     public function findAll(): array
     {
-        $stmt = $this->db->query(
+        $stmt = $this->getDb()->query(
             'SELECT id, name, slug, display_order
              FROM menu_categories
              ORDER BY display_order, name'
@@ -35,7 +46,7 @@ final class MenuCategoryRepository implements MenuCategoryRepositoryInterface
 
     public function findBySlug(string $slug): ?array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT id, name, slug, display_order
              FROM menu_categories
              WHERE slug = :slug LIMIT 1'
@@ -47,7 +58,7 @@ final class MenuCategoryRepository implements MenuCategoryRepositoryInterface
 
     public function findAllWithProductCount(): array
     {
-        $stmt = $this->db->query(
+        $stmt = $this->getDb()->query(
             'SELECT c.id, c.name, c.slug, c.display_order,
                     COUNT(p.id) as product_count,
                     SUM(IF(p.is_active = 1, 1, 0)) as available_count

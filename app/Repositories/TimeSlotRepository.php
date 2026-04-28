@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Core\Database;
 use App\Domain\DTO\TimeSlotDTO;
 use App\Domain\Mappers\TimeSlotMapper;
 use App\Repositories\Contracts\TimeSlotRepositoryInterface;
@@ -17,23 +16,35 @@ use PDO;
  * Implementa acceso a datos de slots de tiempo con prepared statements
  * y operaciones atómicas para manejo de concurrencia.
  */
-final class TimeSlotRepository implements TimeSlotRepositoryInterface
+final class TimeSlotRepository extends AbstractRepository implements TimeSlotRepositoryInterface
 {
-    private PDO $db;
     private TimeSlotMapper $mapper;
 
     public function __construct(?PDO $db = null, ?TimeSlotMapper $mapper = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        parent::__construct($db);
         $this->mapper = $mapper ?? new TimeSlotMapper();
+    }
+
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'time_slots';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['id', 'cafe_id', 'slot_date', 'slot_time', 'total_capacity', 'available_spots', 'reserved_spots', 'is_blocked', 'blocked_reason', 'duration_minutes', 'created_at', 'updated_at'];
     }
 
     /**
      * {@inheritDoc}
      */
+    #[Override]
     public function findById(int $id): ?TimeSlotDTO
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT
                 id, cafe_id, slot_date, slot_time, total_capacity,
                 available_spots, reserved_spots, is_blocked, blocked_reason,
@@ -53,7 +64,7 @@ final class TimeSlotRepository implements TimeSlotRepositoryInterface
      */
     public function getAvailableCapacity(int $timeSlotId): int
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT available_spots
             FROM time_slots
             WHERE id = ?
@@ -78,7 +89,7 @@ final class TimeSlotRepository implements TimeSlotRepositoryInterface
      */
     public function isBlocked(int $timeSlotId): bool
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT is_blocked
             FROM time_slots
             WHERE id = ?
@@ -97,7 +108,7 @@ final class TimeSlotRepository implements TimeSlotRepositoryInterface
     {
         // Operación atómica: decrementar available_spots e incrementar reserved_spots
         // Solo si hay capacidad suficiente
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             UPDATE time_slots
             SET
                 available_spots = available_spots - :spots,
@@ -123,7 +134,7 @@ final class TimeSlotRepository implements TimeSlotRepositoryInterface
     public function releaseSpots(int $timeSlotId, int $spots): bool
     {
         // Operación atómica: incrementar available_spots y decrementar reserved_spots
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             UPDATE time_slots
             SET
                 available_spots = available_spots + :spots,
@@ -146,7 +157,7 @@ final class TimeSlotRepository implements TimeSlotRepositoryInterface
      */
     public function findAvailableSlots(int $cafeId, string $date): array
     {
-        $stmt = $this->db->prepare('
+        $stmt = $this->getDb()->prepare('
             SELECT
                 id, cafe_id, slot_date, slot_time, total_capacity,
                 available_spots, reserved_spots, duration_minutes
@@ -165,7 +176,7 @@ final class TimeSlotRepository implements TimeSlotRepositoryInterface
 
     public function findAvailableRange(int $cafeId, string $startDate, string $endDate, int $minSpots = 1): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT id, cafe_id, slot_date, slot_time, total_capacity,
                     available_spots, reserved_spots, duration_minutes,
                     ROUND((reserved_spots / total_capacity) * 100, 2) AS occupancy_percentage,
@@ -188,7 +199,7 @@ final class TimeSlotRepository implements TimeSlotRepositoryInterface
 
     public function getOccupancyStats(int $cafeId, string $startDate, string $endDate): array
     {
-        $stmt = $this->db->prepare(
+        $stmt = $this->getDb()->prepare(
             'SELECT
                 COUNT(*) AS total_slots,
                 SUM(total_capacity) AS total_capacity_sum,
@@ -240,7 +251,7 @@ final class TimeSlotRepository implements TimeSlotRepositoryInterface
 
         $sql .= ' ORDER BY ts.slot_time ASC';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];

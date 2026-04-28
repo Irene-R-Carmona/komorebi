@@ -4,25 +4,21 @@ declare(strict_types=1);
 
 namespace App\Services\Contracts;
 
+use App\Core\Result;
+
 interface AdminActivityServiceInterface
 {
-    public function getRecentReservations(int $limit = 10): array;
+    public function getRecentReservations(int $limit = 10): Result;
 
-    public function getUsersWithRoles(): array;
+    public function getUsersWithRoles(): Result;
 
-    public function getProductsWithCategories(): array;
+    public function getProductsWithCategories(): Result;
 
-    public function getReservationsWithDetails(int $limit = 100): array;
+    public function getReservationsWithDetails(int $limit = 100): Result;
 
-    public function getRecentActivity(int $limit = 10): array;
+    public function getRecentActivity(int $limit = 10): Result;
 
-    /**
-     * @return array{database: string, cache: string, email: string}
-     */
-    public function getSystemStatus(): array;
+    public function getSystemStatus(): Result;
 
-    /**
-     * @return array{labels: array, values: array}
-     */
-    public function getReservationsChartData(): array;
+    public function getReservationsChartData(): Result;
 }

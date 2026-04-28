@@ -259,7 +259,7 @@ final class HealthCheckRepositoryTest extends TestCase
         $pdo = $this->makePdo([], ['count' => 1]);
         $repo = new HealthCheckRepository($pdo);
 
-        $this->assertTrue($repo->exists(5, '2024-06-01'));
+        $this->assertTrue($repo->existsForAnimalOnDate(5, '2024-06-01'));
     }
 
     public function testExistsReturnsFalseWhenNotFound(): void
@@ -267,7 +267,7 @@ final class HealthCheckRepositoryTest extends TestCase
         $pdo = $this->makePdo([], ['count' => 0]);
         $repo = new HealthCheckRepository($pdo);
 
-        $this->assertFalse($repo->exists(5, '2024-06-01'));
+        $this->assertFalse($repo->existsForAnimalOnDate(5, '2024-06-01'));
     }
 
     public function testExistsReturnsFalseWhenFetchReturnsFalse(): void
@@ -275,7 +275,7 @@ final class HealthCheckRepositoryTest extends TestCase
         $pdo = $this->makePdo([], false);
         $repo = new HealthCheckRepository($pdo);
 
-        $this->assertFalse($repo->exists(5, '2024-06-01'));
+        $this->assertFalse($repo->existsForAnimalOnDate(5, '2024-06-01'));
     }
 
     // ─────────────────────────────────────────────────────────────

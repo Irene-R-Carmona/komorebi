@@ -43,7 +43,7 @@ final class HealthCheckService implements HealthCheckServiceInterface
     public function createHealthCheck(int $animalId, int $keeperId, array $data): Result
     {
         // Validar que no exista ya un chequeo HOY para este animal
-        if ($this->repository->exists($animalId, \date('Y-m-d'))) {
+        if ($this->repository->existsForAnimalOnDate($animalId, \date('Y-m-d'))) {
             return Result::fail('Ya existe un chequeo registrado hoy para este animal');
         }
 
@@ -190,7 +190,7 @@ final class HealthCheckService implements HealthCheckServiceInterface
     #[Override]
     public function hasCheckToday(int $animalId): bool
     {
-        return $this->repository->exists($animalId, \date('Y-m-d'));
+        return $this->repository->existsForAnimalOnDate($animalId, \date('Y-m-d'));
     }
 
     /**
@@ -329,5 +329,33 @@ final class HealthCheckService implements HealthCheckServiceInterface
         }
 
         return Result::ok([]);
+    }
+
+    /**
+     * Actualizar un chequeo existente (solo corrección de errores).
+     *
+     * @param int $id ID del chequeo a actualizar
+     * @param array $data Campos a corregir
+     * @return Result Success o Error con mensaje
+     */
+    #[Override]
+    public function update(int $id, array $data): Result
+    {
+        if ($this->repository->findById($id) === null) {
+            return Result::fail('Chequeo no encontrado');
+        }
+
+        $validation = $this->validateMetrics($data);
+        if (!$validation->ok) {
+            return $validation;
+        }
+
+        $updated = $this->repository->update($id, $data);
+
+        if (!$updated) {
+            return Result::fail('Error al actualizar el chequeo');
+        }
+
+        return Result::ok(true);
     }
 }

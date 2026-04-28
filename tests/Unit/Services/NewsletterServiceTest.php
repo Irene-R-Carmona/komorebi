@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Domain\DTO\NewsletterSubscriptionDTO;
 use App\Repositories\Contracts\NewsletterSubscriptionRepositoryInterface;
 use App\Services\NewsletterService;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -37,11 +38,14 @@ final class NewsletterServiceTest extends TestCase
 
     public function testSubscribeFailsWhenAlreadyConfirmed(): void
     {
-        $this->repoStub->method('findByEmail')->willReturn([
-            'email'           => 'user@example.com',
-            'confirmed_at'    => '2025-01-01 00:00:00',
-            'unsubscribed_at' => null,
-        ]);
+        $this->repoStub->method('findByEmail')->willReturn(
+            NewsletterSubscriptionDTO::fromArray([
+                'id'              => 1,
+                'email'           => 'user@example.com',
+                'confirmed_at'    => '2025-01-01 00:00:00',
+                'unsubscribed_at' => null,
+            ])
+        );
 
         $result = $this->service->subscribe('user@example.com');
 
@@ -70,10 +74,13 @@ final class NewsletterServiceTest extends TestCase
 
     public function testConfirmSucceedsForValidToken(): void
     {
-        $this->repoStub->method('findByToken')->willReturn([
-            'email'        => 'user@example.com',
-            'confirmed_at' => null,
-        ]);
+        $this->repoStub->method('findByToken')->willReturn(
+            NewsletterSubscriptionDTO::fromArray([
+                'id'           => 1,
+                'email'        => 'user@example.com',
+                'confirmed_at' => null,
+            ])
+        );
 
         $result = $this->service->confirm('valid-token');
 

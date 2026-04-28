@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Core\Database;
 use App\Domain\DTO\ReviewDTO;
 use App\Domain\Mappers\ReviewMapper;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
+use Override;
 use PDO;
 
 /**
@@ -15,20 +15,29 @@ use PDO;
  *
  * Encapsula el acceso a datos de reseñas de cafés.
  */
-final class ReviewRepository implements ReviewRepositoryInterface
+final class ReviewRepository extends AbstractRepository implements ReviewRepositoryInterface
 {
-    private PDO $db;
     private ReviewMapper $mapper;
 
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        parent::__construct($db);
         $this->mapper = new ReviewMapper();
     }
 
-    /**
-     * Buscar reseña por ID
-     */
+    #[Override]
+    protected function getTable(): string
+    {
+        return 'reviews';
+    }
+
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return ['id', 'user_id', 'cafe_id', 'rating', 'title', 'body', 'status', 'rejection_reason', 'created_at', 'updated_at'];
+    }
+
+    #[Override]
     public function findById(int $id): ?ReviewDTO
     {
         $sql = '
@@ -40,7 +49,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
             LIMIT 1
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['id' => $id]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -61,7 +70,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
             ORDER BY r.created_at DESC
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['user_id' => $userId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -81,7 +90,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
             ORDER BY r.created_at DESC
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId, 'status' => $status]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -104,7 +113,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
             LIMIT :limit OFFSET :offset
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue(':cafe_id', $cafeId, PDO::PARAM_INT);
         $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -130,7 +139,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
             LIMIT :limit OFFSET :offset
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -138,9 +147,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /**
-     * Crear nueva reseña
-     */
+    #[Override]
     public function create(array $data): int
     {
         $sql = '
@@ -148,7 +155,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
             VALUES (:user_id, :cafe_id, :rating, :title, :body, :status, :rejection_reason)
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute([
             'user_id' => $data['user_id'],
             'cafe_id' => $data['cafe_id'],
@@ -159,12 +166,10 @@ final class ReviewRepository implements ReviewRepositoryInterface
             'rejection_reason' => $data['rejection_reason'] ?? null,
         ]);
 
-        return (int) $this->db->lastInsertId();
+        return (int) $this->getDb()->lastInsertId();
     }
 
-    /**
-     * Actualizar reseña
-     */
+    #[Override]
     public function update(int $id, array $data): bool
     {
         $allowedFields = ['rating', 'title', 'body', 'status', 'rejection_reason'];
@@ -184,7 +189,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
 
         $sql = 'UPDATE reviews SET ' . \implode(', ', $updates) . ', updated_at = NOW() WHERE id = :id';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
 
         return $stmt->execute($params);
     }
@@ -196,21 +201,9 @@ final class ReviewRepository implements ReviewRepositoryInterface
     {
         $sql = 'UPDATE reviews SET status = :status, updated_at = NOW() WHERE id = :id';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
 
         return $stmt->execute(['id' => $id, 'status' => $status]);
-    }
-
-    /**
-     * Hard delete de reseña (la tabla reviews no tiene soft delete)
-     */
-    public function delete(int $id): bool
-    {
-        $sql = 'DELETE FROM reviews WHERE id = :id';
-
-        $stmt = $this->db->prepare($sql);
-
-        return $stmt->execute(['id' => $id]);
     }
 
     /**
@@ -225,7 +218,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
               AND status = 'approved'
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -246,7 +239,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
             LIMIT 1
         ';
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
 
         return (bool) $stmt->fetch();
@@ -273,7 +266,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
               AND status = 'approved'
         ";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->getDb()->prepare($sql);
         $stmt->execute(['cafe_id' => $cafeId]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);

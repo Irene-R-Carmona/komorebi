@@ -13,7 +13,6 @@ use App\Core\View;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use Error;
 use Exception;
-use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
@@ -33,15 +32,10 @@ final class AuditLogController
 
     /**
      * GET /admin/logs/audit
-     * @throws JsonException
      * @throws RandomException
      */
     public function index(): ?ResponseInterface
     {
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && \strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-            return $this->getAuditLogsData();
-        }
-
         $rawStats = $this->auditLogRepo->getStats();
         View::render('admin/logs/audit', [
             'titulo' => 'Logs de Auditoría',
@@ -59,33 +53,6 @@ final class AuditLogController
     }
 
     /**
-     * GET /admin/logs/audit (AJAX)
-     * @throws JsonException
-     */
-    private function getAuditLogsData(): ResponseInterface
-    {
-        $filters = \array_filter([
-            'user_id' => !empty($_GET['user_id']) ? (int) $_GET['user_id'] : null,
-            'action' => $_GET['action'] ?? null,
-            'resource_type' => $_GET['resource_type'] ?? null,
-            'date_from' => $_GET['date_from'] ?? null,
-            'date_to' => $_GET['date_to'] ?? null,
-            'ip_address' => $_GET['ip_address'] ?? null,
-        ], static fn($v) => $v !== null);
-
-        $page = \max(1, (int) ($_GET['page'] ?? 1));
-        $limit = \max(10, \min(100, (int) ($_GET['limit'] ?? 50)));
-        $offset = ($page - 1) * $limit;
-
-        $result = $this->auditLogRepo->findAll($filters, $limit, $offset);
-
-        return $this->response->json(['ok' => true, 'data' => [
-            'logs' => $result['data'],
-            'total' => $result['total'],
-        ]]);
-    }
-
-    /**
      * GET /admin/logs/audit/export
      */
     public function export(ServerRequestInterface $request): ResponseInterface
@@ -99,9 +66,9 @@ final class AuditLogController
                 'date_from' => $queryParams['date_from'] ?? null,
                 'date_to' => $queryParams['date_to'] ?? null,
                 'ip_address' => $queryParams['ip_address'] ?? null,
-            ], static fn($v) => $v !== null && $v !== '');
+            ], static fn ($v) => $v !== null && $v !== '');
 
-            $result = $this->auditLogRepo->findAll($filters, 10000, 0);
+            $result = $this->auditLogRepo->findFiltered($filters, 10000, 0);
 
             $tmp = \fopen('php://temp', 'rw+');
             \fprintf($tmp, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));

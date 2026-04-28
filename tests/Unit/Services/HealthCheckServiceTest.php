@@ -29,7 +29,7 @@ final class HealthCheckServiceTest extends TestCase
 
     public function testCreateHealthCheckFailsWhenWeightTooLow(): void
     {
-        $this->repoStub->method('exists')->willReturn(false);
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(false);
 
         $result = $this->service->createHealthCheck(1, 1, ['weight_kg' => 0.0]);
 
@@ -39,7 +39,7 @@ final class HealthCheckServiceTest extends TestCase
 
     public function testCreateHealthCheckFailsWhenWeightTooHigh(): void
     {
-        $this->repoStub->method('exists')->willReturn(false);
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(false);
 
         $result = $this->service->createHealthCheck(1, 1, ['weight_kg' => 100.0]);
 
@@ -49,7 +49,7 @@ final class HealthCheckServiceTest extends TestCase
 
     public function testCreateHealthCheckFailsWhenCheckAlreadyExistsToday(): void
     {
-        $this->repoStub->method('exists')->willReturn(true);
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(true);
 
         $result = $this->service->createHealthCheck(1, 1, ['weight_kg' => 5.0]);
 
@@ -59,7 +59,7 @@ final class HealthCheckServiceTest extends TestCase
 
     public function testCreateHealthCheckSucceedsWithValidWeight(): void
     {
-        $this->repoStub->method('exists')->willReturn(false);
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(false);
         $this->repoStub->method('create')->willReturn(42);
 
         $result = $this->service->createHealthCheck(1, 1, ['weight_kg' => 5.0]);
@@ -79,7 +79,7 @@ final class HealthCheckServiceTest extends TestCase
 
     public function testHasCheckTodayDelegatesToRepo(): void
     {
-        $this->repoStub->method('exists')->willReturn(true);
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(true);
 
         $result = $this->service->hasCheckToday(1);
 

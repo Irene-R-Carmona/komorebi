@@ -17,7 +17,7 @@ interface AuditLogRepositoryInterface
      *                date_from?: string, date_to?: string, ip_address?: string} $filters
      * @return array{data: array<int, array<string, mixed>>, total: int}
      */
-    public function findAll(array $filters = [], int $limit = 50, int $offset = 0): array;
+    public function findFiltered(array $filters = [], int $limit = 50, int $offset = 0): array;
 
     /**
      * Estadísticas de auditoría (totals, top_actions, top_resources).

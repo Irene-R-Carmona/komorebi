@@ -44,24 +44,24 @@ final class LogApiController extends AbstractApiController
      */
     public function auditLogs(ServerRequestInterface $request): ResponseInterface
     {
-        $q      = $request->getQueryParams();
-        $page   = \max(1, (int) ($q['page'] ?? 1));
-        $limit  = \max(10, \min(100, (int) ($q['limit'] ?? 50)));
+        $q = $request->getQueryParams();
+        $page = \max(1, (int) ($q['page'] ?? 1));
+        $limit = \max(10, \min(100, (int) ($q['limit'] ?? 50)));
         $offset = ($page - 1) * $limit;
 
         $filters = \array_filter([
-            'user_id'       => !empty($q['user_id']) ? (int) $q['user_id'] : null,
-            'action'        => $q['action'] ?? null,
+            'user_id' => !empty($q['user_id']) ? (int) $q['user_id'] : null,
+            'action' => $q['action'] ?? null,
             'resource_type' => $q['resource_type'] ?? null,
-            'date_from'     => $q['date_from'] ?? null,
-            'date_to'       => $q['date_to'] ?? null,
-            'ip_address'    => $q['ip_address'] ?? null,
-        ], static fn($v) => $v !== null);
+            'date_from' => $q['date_from'] ?? null,
+            'date_to' => $q['date_to'] ?? null,
+            'ip_address' => $q['ip_address'] ?? null,
+        ], static fn ($v) => $v !== null);
 
-        $result = $this->auditLogRepo->findAll($filters, $limit, $offset);
+        $result = $this->auditLogRepo->findFiltered($filters, $limit, $offset);
 
         return $this->success([
-            'logs'  => $result['data'],
+            'logs' => $result['data'],
             'total' => $result['total'],
         ]);
     }
@@ -77,8 +77,8 @@ final class LogApiController extends AbstractApiController
 
         $filters = \array_filter([
             'date_from' => $q['date_from'] ?? null,
-            'date_to'   => $q['date_to'] ?? null,
-        ], static fn($v) => $v !== null && $v !== '');
+            'date_to' => $q['date_to'] ?? null,
+        ], static fn ($v) => $v !== null && $v !== '');
 
         $stats = $this->auditLogRepo->getStats($filters);
 
@@ -93,15 +93,15 @@ final class LogApiController extends AbstractApiController
         $q = $request->getQueryParams();
 
         $filters = \array_filter([
-            'user_id'       => !empty($q['user_id']) ? (int) $q['user_id'] : null,
-            'action'        => $q['action'] ?? null,
+            'user_id' => !empty($q['user_id']) ? (int) $q['user_id'] : null,
+            'action' => $q['action'] ?? null,
             'resource_type' => $q['resource_type'] ?? null,
-            'date_from'     => $q['date_from'] ?? null,
-            'date_to'       => $q['date_to'] ?? null,
-            'ip_address'    => $q['ip_address'] ?? null,
-        ], static fn($v) => $v !== null && $v !== '');
+            'date_from' => $q['date_from'] ?? null,
+            'date_to' => $q['date_to'] ?? null,
+            'ip_address' => $q['ip_address'] ?? null,
+        ], static fn ($v) => $v !== null && $v !== '');
 
-        $result = $this->auditLogRepo->findAll($filters, 10000, 0);
+        $result = $this->auditLogRepo->findFiltered($filters, 10000, 0);
 
         $tmp = \fopen('php://temp', 'rw+');
         \fprintf($tmp, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));
@@ -141,24 +141,24 @@ final class LogApiController extends AbstractApiController
      */
     public function authLogs(ServerRequestInterface $request): ResponseInterface
     {
-        $q      = $request->getQueryParams();
-        $page   = \max(1, (int) ($q['page'] ?? 1));
-        $limit  = \max(10, \min(100, (int) ($q['limit'] ?? 50)));
+        $q = $request->getQueryParams();
+        $page = \max(1, (int) ($q['page'] ?? 1));
+        $limit = \max(10, \min(100, (int) ($q['limit'] ?? 50)));
         $offset = ($page - 1) * $limit;
 
         $filters = \array_filter([
-            'user_id'    => !empty($q['user_id']) ? (int) $q['user_id'] : null,
+            'user_id' => !empty($q['user_id']) ? (int) $q['user_id'] : null,
             'event_type' => $q['event_type'] ?? null,
-            'success'    => isset($q['success']) ? (bool) $q['success'] : null,
-            'date_from'  => $q['date_from'] ?? null,
-            'date_to'    => $q['date_to'] ?? null,
+            'success' => isset($q['success']) ? (bool) $q['success'] : null,
+            'date_from' => $q['date_from'] ?? null,
+            'date_to' => $q['date_to'] ?? null,
             'ip_address' => $q['ip_address'] ?? null,
-        ], static fn($v) => $v !== null);
+        ], static fn ($v) => $v !== null);
 
         $result = $this->authLogRepo->findFiltered($filters, $limit, $offset);
 
         return $this->success([
-            'logs'  => $result['data'],
+            'logs' => $result['data'],
             'total' => $result['total'],
         ]);
     }
@@ -195,13 +195,13 @@ final class LogApiController extends AbstractApiController
         $q = $request->getQueryParams();
 
         $filters = \array_filter([
-            'user_id'    => !empty($q['user_id']) ? (int) $q['user_id'] : null,
+            'user_id' => !empty($q['user_id']) ? (int) $q['user_id'] : null,
             'event_type' => $q['event_type'] ?? null,
-            'success'    => isset($q['success']) ? (bool) $q['success'] : null,
-            'date_from'  => $q['date_from'] ?? null,
-            'date_to'    => $q['date_to'] ?? null,
+            'success' => isset($q['success']) ? (bool) $q['success'] : null,
+            'date_from' => $q['date_from'] ?? null,
+            'date_to' => $q['date_to'] ?? null,
             'ip_address' => $q['ip_address'] ?? null,
-        ], static fn($v) => $v !== null && $v !== '');
+        ], static fn ($v) => $v !== null && $v !== '');
 
         $result = $this->authLogRepo->findFiltered($filters, 10000, 0);
 
