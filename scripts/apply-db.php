@@ -163,6 +163,12 @@ if (!$seedersOnly) {
         '017_product_stock.sql',
         '018_api_tokens.sql',
         '019_animal_incidents_status.sql',
+        '020_review_unique_constraint.sql',
+        '021_integrity_indexes.sql',
+        '022_event_scheduler.sql',
+        '023_check_constraints.sql',
+        '024_loyalty_generated_column.sql',
+        '025_performance_indexes.sql',
     ];
 
     foreach ($migrations as $migration) {
