@@ -3,7 +3,7 @@
  * Gestión de logs de autenticación y seguridad
  */
 class AuthLogService {
-    constructor(baseUrl = '/admin/logs/auth') {
+    constructor(baseUrl = '/api/v1/admin/logs/auth') {
         this.baseUrl = baseUrl;
         this.headers = {
             'Accept': 'application/json',

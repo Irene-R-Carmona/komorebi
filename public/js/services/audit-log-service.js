@@ -3,7 +3,7 @@
  * Maneja todas las comunicaciones HTTP relacionadas con logs de auditoría
  */
 class AuditLogService {
-    constructor(baseUrl = '/admin/logs/audit') {
+    constructor(baseUrl = '/api/v1/admin/logs/audit') {
         this.baseUrl = baseUrl;
         this.headers = {
             'Accept': 'application/json',

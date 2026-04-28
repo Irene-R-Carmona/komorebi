@@ -23,7 +23,6 @@ use Random\RandomException;
  *
  * Métodos:
  * - index() - Vista principal de logs
- * - getAuthLogsData() - API lista logs con filtros
  * - stats() - Estadísticas de autenticación
  * - suspicious() - Detectar actividad sospechosa
  * - export() - Exportar a CSV
@@ -42,16 +41,10 @@ final class AuthLogController
     /**
      * GET /admin/logs/auth
      * Vista de logs de autenticación
-     * @throws JsonException
      * @throws RandomException
      */
     public function index(): ?ResponseInterface
     {
-        // Si es petición AJAX, devolver datos JSON
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && \strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-            return $this->getAuthLogsData();
-        }
-
         // Renderizar vista
         View::render('admin/logs/auth', [
             'titulo' => 'Logs de Autenticación',
@@ -66,37 +59,6 @@ final class AuthLogController
         ], ['admin/admin-logs.css'], 'backoffice');
 
         return null;
-    }
-
-    /**
-     * GET /admin/logs/auth (AJAX)
-     * Obtener datos de logs de autenticación con filtros
-     * @throws JsonException
-     */
-    private function getAuthLogsData(): ResponseInterface
-    {
-        $filters = [
-            'user_id' => !empty($_GET['user_id']) ? (int) $_GET['user_id'] : null,
-            'event_type' => $_GET['event_type'] ?? null,
-            'success' => isset($_GET['success']) ? (bool) $_GET['success'] : null,
-            'date_from' => $_GET['date_from'] ?? null,
-            'date_to' => $_GET['date_to'] ?? null,
-            'ip_address' => $_GET['ip_address'] ?? null,
-        ];
-
-        // Remover valores nulos
-        $filters = \array_filter($filters, static fn($v) => $v !== null);
-
-        $page = \max(1, (int) ($_GET['page'] ?? 1));
-        $limit = \max(10, \min(100, (int) ($_GET['limit'] ?? 50)));
-        $offset = ($page - 1) * $limit;
-
-        $result = $this->authLogRepo->findFiltered($filters, $limit, $offset);
-
-        return $this->response->json(['ok' => true, 'data' => [
-            'logs' => $result['data'],
-            'total' => $result['total'],
-        ]]);
     }
 
     /**
