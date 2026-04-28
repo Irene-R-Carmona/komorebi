@@ -74,6 +74,10 @@ if (Env::bool('FEATURE_KEEPER', true)) {
         $r->get('/animals', 'Keeper\AnimalDashboardController@index');
         $r->get('/animals/{id}', 'Keeper\AnimalDashboardController@show');
 
+        // AnimalCare — acciones de cuidado SSR (Flash + redirect)
+        $r->post('/animals/{id}/feeding', 'Keeper\AnimalCareController@recordFeeding', [$mw->csrf()]);
+        $r->post('/animals/{id}/health',  'Keeper\AnimalCareController@recordHealth',  [$mw->csrf()]);
+
         // Health Checks - Sistema de chequeos diarios de salud (flujo web)
         $r->get('/health-checks', 'Keeper\HealthCheckController@index');
         $r->get('/health-checks/create/{animalId}', 'Keeper\HealthCheckController@create');
