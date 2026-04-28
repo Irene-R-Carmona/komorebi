@@ -41,6 +41,8 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 
 | Prioridad | Plan | Archivo | Estado actual | Alcance inmediato |
 |-----------|------|---------|---------------|-------------------|
+| P3a | Mejora de cobertura (~43% → ~54%) | `docs/plans/2026-04-28-coverage-improvement.md` | 🟡 En implementación — F1 en progreso | F1 (infra) → F2 (repos) → F3 (services) → F4 (utilities) |
+| P3a | Mejora de cobertura (~43% → ~54%) | `docs/plans/2026-04-28-coverage-improvement.md` | 🟡 En implementación — F1 en progreso | F1 (infra) → F2 (repos) → F3 (services) → F4 (utilities) |
 | P3b | Fix bugs diseño controllers | `docs/plans/2026-04-20-fix-controller-design-bugs.md` | ✅ Completo | Fases 1-5 (13 archivos) |
 | P3c | Cobertura de tests al 85% | `docs/plans/2026-04-22-cobertura-85-porciento.md` | � Implementación completa — A ✅ B ✅ C ✅ D ✅ E ✅ F ✅ G ✅; pendiente `make test-coverage` para verificar % real | Ejecutar `make test-coverage` → confirmar ≥ 85% → eliminar plan |
 | P3d | Testing quality improvements | `docs/plans/2026-04-21-testing-quality-improvements.md` | ✅ Completado — FASE 1 ✅, FASE 2 ✅, FASE 3 ✅, FASE 4 ❌ N/A (PHPUnit 13) | — |
