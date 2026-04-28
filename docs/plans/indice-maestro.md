@@ -21,7 +21,7 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 | P1 | Seguridad activa antes de tráfico real | `2026-04-17-business-rules-hardening.md` (Sprint 0-2) | ✅ Completo |
 | P2 | Hardening funcional de reglas de negocio | `2026-04-17-business-rules-hardening.md` (Sprint 3-5) | ✅ Completo |
 | P3 | Observabilidad y deuda técnica controlada | `2026-04-15-infra-calidad-integral.md` (C, D, E) | 🟡 En implementación parcial |
-| P4 | Optimización de rendimiento y stack | `2026-04-15-frankenphp-stack-optimization.md` | 🔵 Plan creado — pendiente inicio |
+| P4 | Optimización de rendimiento y stack | `2026-04-15-frankenphp-stack-optimization.md` | ✅ Implementación completa |
 
 ---
 
@@ -33,7 +33,7 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 | P1 | Business Rules Hardening (Seguridad) | `docs/plans/2026-04-17-business-rules-hardening.md` | ✅ Completo | S0, S1, S2 |
 | P2 | Business Rules Hardening (Calidad funcional) | `docs/plans/2026-04-17-business-rules-hardening.md` | ✅ Completo | S3, S4, S5 |
 | P3 | Infra + Calidad Integral | `docs/plans/2026-04-15-infra-calidad-integral.md` | 🟡 En implementación | A5 + C1-C3 + D1-D5 + E1-E2 |
-| P4 | FrankenPHP + Stack Optimization | `docs/plans/2026-04-15-frankenphp-stack-optimization.md` | 🔵 Plan creado | Fase 5 primero |
+| P4 | FrankenPHP + Stack Optimization | `docs/plans/2026-04-15-frankenphp-stack-optimization.md` | ✅ Implementación completa | Todas las fases ejecutadas |
 
 ---
 
@@ -42,7 +42,7 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 | Prioridad | Plan | Archivo | Estado actual | Alcance inmediato |
 |-----------|------|---------|---------------|-------------------|
 | P3b | Fix bugs diseño controllers | `docs/plans/2026-04-20-fix-controller-design-bugs.md` | ✅ Completo | Fases 1-5 (13 archivos) |
-| P3c | Cobertura de tests al 85% | `docs/plans/2026-04-20-cobertura-85-porciento.md` | 🟡 En implementación — FASE 0 ✅, FASE 1 🟡 (804 tests OK; 7/8 nuevos servicios + 8 expansiones; pendiente: 12 items FASE 1 + FASES 2-7) | FASE 1 restante → FASE 2 (modelos) |
+| P3c | Cobertura de tests al 85% | `docs/plans/2026-04-22-cobertura-85-porciento.md` | 🟡 En progreso — **40.44%** (6613/16353 stmts); 1703 tests OK; A.3 ✅, C parcial 6/19 repos ✅ (13 pendientes); gap restante: 7288 stmts | Fase C restante (13 repos) → Fase B (modelos) → D → E → F |
 | P3d | Testing quality improvements | `docs/plans/2026-04-21-testing-quality-improvements.md` | ✅ Completado — FASE 1 ✅, FASE 2 ✅, FASE 3 ✅, FASE 4 ❌ N/A (PHPUnit 13) | — |
 
 ## Planes de Infraestructura y CI/CD
@@ -62,6 +62,48 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 | Brand Visual Unification | `docs/plans/2026-04-14-brand-visual-unification.md` | 🟢 Implementación completa — pendiente verificación | Solo si se reabre alcance UI |
 | UI/UX Vistas Públicas | `docs/plans/2026-04-13-uiux-vistas-publicas.md` | 🟢 Implementación completa — pendiente verificación | Solo si se detecta regresión |
 | Seguridad Datos DTO | `docs/plans/2026-04-13-seguridad-datos-dto.md` | 🟢 Implementación completa — pendiente verificación | Verificación final de cierre |
+
+---
+
+## Plan Arquitectura HDA
+
+| Prioridad | Plan | Archivo | Estado actual | Alcance |
+|---|---|---|---|---|
+| P5-arq | Migración SSR con Modales — HDA | `docs/plans/2026-04-25-ssr-modales.md` | 🔵 Plan creado — pendiente inicio | F0 (bug fixes) → F1 (infraestructura) → F2 (prototipo) → F3-F4 (CRUD panels) → F5 (wizard) → F6 (docs) |
+
+## Plan API-first
+
+| Prioridad | Plan | Archivo | Estado actual | Alcance |
+|---|---|---|---|---|
+| P5 | API-first + REST Standards (v5) | `docs/plans/2026-04-22-apifirst.md` | 🟡 En implementación | Fases 0–0E ✅, FASE 1 ✅, FASE 2 ✅, FASE 3 ✅ verificadas (PHPStan OK, 1994/1994); pendiente FASE 4 |
+
+## Plan Testing Layers
+
+| Prioridad | Plan | Archivo | Estado actual | Alcance |
+|---|---|---|---|---|
+| P3e | Implementación capas de testing | `docs/plans/2026-04-23-testing-layers-implementation.md` | 🔵 Plan creado — pendiente inicio | Faker, E2E auth, contract tests, flujos E2E, CI job E2E |
+
+## Plan Repo + Mapper + DTO Migration
+
+| Prioridad | Plan | Archivo | Estado actual | Alcance |
+|---|---|---|---|---|
+| P3f | Repo + Mapper + DTO Migration | `docs/plans/2026-04-23-repo-mapper-dto.md` | ✅ Completado y eliminado (2026-04-24) — PHPStan OK, PHPUnit OK (1611 tests, 3186 assertions) | — |
+
+---
+
+## Plan Separación Arquitectura SSR / API REST
+
+| Prioridad | Plan | Archivo | Estado actual | Alcance |
+|---|---|---|---|---|
+| P5-api | Separación SSR / API REST | `docs/plans/2026-04-27-architecture-separation.md` | ✅ Verificado y cerrado (2026-04-27) — Fases 1-7 + V1-V4 completos; PHPStan 0 errores (745 archivos), PHPUnit 1763 tests, 0 failures | Fases 1-7: separación multi-archivo routes, eliminación 12 rutas POST legacy, restauración grupo supervisor |
+
+---
+
+## Plan Remediación Auditoría Arquitectónica
+
+| Prioridad | Plan | Archivo | Estado actual | Alcance |
+|---|---|---|---|---|
+| P6-rem | Remediación Auditoría Arquitectónica | `docs/plans/2026-04-28-remediacion-auditoria-arquitectonica.md` | 🔵 Plan creado — pendiente inicio | F0 (quick wins) → F1 (Result cascade) → F2 (DTOs) → F3 (18 repos → AbstractRepository) → F4 (controllers híbridos) → F5-F6 (keeper routes + CRUD) → F7 (índices BD) → F8 (tests) |
 
 ---
 
