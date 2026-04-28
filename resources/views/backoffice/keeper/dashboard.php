@@ -397,11 +397,11 @@ $getSeverityBadgeClass = static function (string $severity): string {
                         <select class="form-select" id="activity_type" name="activity_type" required>
                             <option value="">Seleccionar...</option>
                             <option value="feeding">Alimentación</option>
-                            <option value="cleaning">Limpieza</option>
+                            <option value="grooming">Aseo</option>
                             <option value="exercise">Ejercicio</option>
-                            <option value="medical">Atención médica</option>
-                            <option value="social">Interacción social</option>
-                            <option value="other">Otro</option>
+                            <option value="vet_visit">Visita veterinaria</option>
+                            <option value="enrichment">Enriquecimiento</option>
+                            <option value="observation">Observación</option>
                         </select>
                     </div>
 
@@ -414,11 +414,12 @@ $getSeverityBadgeClass = static function (string $severity): string {
                             <label for="mood_before" class="form-label">Estado Antes</label>
                             <select class="form-select" id="mood_before" name="mood_before">
                                 <option value="">Seleccionar...</option>
-                                <option value="happy">Feliz</option>
                                 <option value="calm">Calmado</option>
-                                <option value="stressed">Estresado</option>
+                                <option value="happy">Feliz</option>
+                                <option value="playful">Juguetón</option>
+                                <option value="anxious">Ansioso</option>
+                                <option value="lethargic">Letárgico</option>
                                 <option value="aggressive">Agresivo</option>
-                                <option value="tired">Cansado</option>
                             </select>
                         </div>
                     </div>
@@ -427,11 +428,12 @@ $getSeverityBadgeClass = static function (string $severity): string {
                         <label for="mood_after" class="form-label">Estado Después</label>
                         <select class="form-select" id="mood_after" name="mood_after">
                             <option value="">Seleccionar...</option>
-                            <option value="happy">Feliz</option>
                             <option value="calm">Calmado</option>
-                            <option value="stressed">Estresado</option>
+                            <option value="happy">Feliz</option>
+                            <option value="playful">Juguetón</option>
+                            <option value="anxious">Ansioso</option>
+                            <option value="lethargic">Letárgico</option>
                             <option value="aggressive">Agresivo</option>
-                            <option value="tired">Cansado</option>
                         </select>
                     </div>
 

@@ -48,7 +48,7 @@
             ...this.filters
           });
 
-          const response = await fetch(`/admin/logs/audit?${params}`, {
+          const response = await fetch(`/api/v1/admin/logs/audit?${params}`, {
             headers: {
               'X-Requested-With': 'XMLHttpRequest',
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
@@ -97,7 +97,7 @@
 
         try {
           const params = new URLSearchParams(this.filters);
-          const response = await fetch(`/admin/logs/audit/export?${params}`, {
+          const response = await fetch(`/api/v1/admin/logs/audit/export?${params}`, {
             headers: {
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
             }
@@ -217,7 +217,7 @@
             ...this.filters
           });
 
-          const response = await fetch(`/admin/logs/auth?${params}`, {
+          const response = await fetch(`/api/v1/admin/logs/auth?${params}`, {
             headers: {
               'X-Requested-With': 'XMLHttpRequest',
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
@@ -244,7 +244,7 @@
 
       async loadSuspiciousCount() {
         try {
-          const response = await fetch('/admin/logs/auth/suspicious-count', {
+          const response = await fetch('/api/v1/admin/logs/auth/suspicious-count', {
             headers: {
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
             }
@@ -286,7 +286,7 @@
 
         try {
           const params = new URLSearchParams(this.filters);
-          const response = await fetch(`/admin/logs/auth/export?${params}`, {
+          const response = await fetch(`/api/v1/admin/logs/auth/export?${params}`, {
             headers: {
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
             }
@@ -346,7 +346,7 @@
         this.loading = true;
 
         try {
-          const response = await fetch('/admin/security/block-ip', {
+          const response = await fetch('/api/v1/admin/security/block-ip', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

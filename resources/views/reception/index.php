@@ -122,14 +122,12 @@ use App\Core\Csrf;
 
                             <p class="table-label"><?= e($g['user_name']) ?></p>
 
-                            <form action="/ops/reception/checkout" method="POST"
-                                data-action="confirm" data-confirm="¿Finalizar visita?" style="margin-top:5px;">
-                                <?= Csrf::field() ?>
-                                <input type="hidden" name="id" value="<?= $g['id'] ?>">
-                                <button type="submit" class="btn-edit" style="font-size:0.75rem; padding:4px 8px;">
-                                    Checkout
-                                </button>
-                            </form>
+                            <button type="button" class="btn-edit"
+                                @click="submitCheckout(<?= $g['id'] ?>)"
+                                :disabled="loading"
+                                style="font-size:0.75rem; padding:4px 8px; margin-top:5px;">
+                                Checkout
+                            </button>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -154,10 +152,7 @@ use App\Core\Csrf;
                 <p class="welcome-desc">Confirma la asignación del localizador.</p>
             </div>
 
-            <form action="/ops/reception/checkin" method="POST">
-                <?= Csrf::field() ?>
-                <input type="hidden" name="reservation_id" :value="selectedResId">
-
+            <form @submit.prevent="submitCheckin()">
                 <div class="minimal-field">
                     <label class="minimal-label">Tracker / Ficha</label>
                     <select name="tracker_id" class="minimal-input" required>
@@ -169,7 +164,7 @@ use App\Core\Csrf;
                 </div>
 
                 <div class="welcome-actions">
-                    <button type="submit" class="btn-confirm">Confirmar Entrada</button>
+                    <button type="submit" class="btn-confirm" :disabled="loading">Confirmar Entrada</button>
                     <button type="button" class="btn-edit" @click="closeCheckin()">Cancelar</button>
                 </div>
             </form>

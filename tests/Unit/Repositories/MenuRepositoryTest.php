@@ -18,6 +18,12 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Tests para MenuRepository
+ *
+ * ¿Qué pruebas aquí? Que el repositorio de menú devuelve los datos correctos y que la SQL
+ * incluye todas las columnas necesarias, incluidas target_cafe_types y target_animal_types.
+ * ¿Qué me quieres demostrar? Que los productos traen los filtros de tipo de café y animal.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se elimina target_cafe_types o
+ * target_animal_types del SELECT, el test falla de inmediato.
  */
 #[CoversClass(MenuRepository::class)]
 final class MenuRepositoryTest extends TestCase
@@ -84,6 +90,36 @@ final class MenuRepositoryTest extends TestCase
         $this->assertIsArray($result);
         $this->assertNotEmpty($result);
         $this->assertArrayHasKey('name', $result[0]);
+    }
+
+    public function testGetProductsByCategoryIncludesTargetTypeColumns(): void
+    {
+        $capturedSql = null;
+        $db = $this->createStub(PDO::class);
+        $stmt = $this->createStub(PDOStatement::class);
+        $stmt->method('execute')->willReturn(true);
+        $stmt->method('fetchAll')->willReturn([]);
+
+        $db->method('prepare')
+            ->willReturnCallback(function (string $sql) use (&$capturedSql, $stmt) {
+                $capturedSql = $sql;
+                return $stmt;
+            });
+
+        $repo = new MenuRepository($db);
+        $repo->getProductsByCategory();
+
+        $this->assertIsString($capturedSql, 'PDO::prepare() debe haber sido llamado con una SQL');
+        $this->assertStringContainsString(
+            'target_cafe_types',
+            $capturedSql,
+            'La query de productos debe seleccionar p.target_cafe_types para filtrado por tipo de café'
+        );
+        $this->assertStringContainsString(
+            'target_animal_types',
+            $capturedSql,
+            'La query de productos debe seleccionar p.target_animal_types para filtrado por tipo de animal'
+        );
     }
 
     public function testGetAllProductsReturnsArray(): void

@@ -17,18 +17,16 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Http\Controllers\Reception;
 
-use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Reception\ReceptionController;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\TrackerRepositoryInterface;
 use App\Services\ReceptionService;
-use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ReceptionController::class)]
-final class ReceptionControllerTest extends ControllerTestCase
+final class ReceptionControllerTest extends TestCase
 {
     protected function setUp(): void
     {
@@ -56,47 +54,17 @@ final class ReceptionControllerTest extends ControllerTestCase
                 trackerRepo: $this->createStub(TrackerRepositoryInterface::class),
                 cafeRepo: $this->createStub(CafeRepositoryInterface::class),
             ),
-            response: new ResponseFactory(),
         );
     }
 
-    public function test_check_in_redirects_when_id_is_zero(): void
+    public function test_instance_can_be_created_with_stubs(): void
     {
-        $result = $this->makeController()->checkIn(
-            new ServerRequest('POST', '/ops/reception/reservations/0/checkin')
-                ->withParsedBody(['tracker_id' => 1]),
-            0
-        );
-
-        $this->assertResponseIsRedirect($result, '/ops/reception');
-    }
-
-    public function test_check_in_redirects_when_tracker_id_is_zero(): void
-    {
-        $result = $this->makeController()->checkIn(
-            new ServerRequest('POST', '/ops/reception/reservations/1/checkin')
-                ->withParsedBody(['tracker_id' => 0]),
-            1
-        );
-
-        $this->assertResponseIsRedirect($result, '/ops/reception');
-    }
-
-    public function test_check_out_redirects_when_id_is_zero(): void
-    {
-        $result = $this->makeController()->checkOut(
-            new ServerRequest('POST', '/ops/reception/reservations/0/checkout'),
-            0
-        );
-
-        $this->assertResponseIsRedirect($result, '/ops/reception');
+        $this->assertInstanceOf(ReceptionController::class, $this->makeController());
     }
 
     public function test_class_has_expected_methods(): void
     {
         $this->assertTrue(\method_exists(ReceptionController::class, 'index'));
         $this->assertTrue(\method_exists(ReceptionController::class, 'todayReservations'));
-        $this->assertTrue(\method_exists(ReceptionController::class, 'checkIn'));
-        $this->assertTrue(\method_exists(ReceptionController::class, 'checkOut'));
     }
 }

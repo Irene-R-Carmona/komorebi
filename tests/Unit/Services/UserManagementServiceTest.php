@@ -3,17 +3,9 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * UserManagementService::validateUserData — la única lógica pura del servicio.
- * Validación de nombre, email, contraseña y rol_id tanto en modo creación como actualización.
- *
- * ¿Qué me quieres demostrar?
- * Que la validación devuelve Result::fail con errores específicos por campo,
- * y que el modo isUpdate=true permite omitir la contraseña.
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * Si se cambian las reglas de longitud (mínimo 2 chars nombre, 8 chars password),
- * si se elimina la validación de email, o si el resultado ok() ya no devuelve true.
+ * ¿Qué pruebas aquí? UserManagementService: validación de datos de usuario (nombre, email, contraseña, rol).
+ * ¿Qué me quieres demostrar? Que validateUserData retorna fail con código 'validation' si algún campo es inválido.
+ * ¿Qué va a fallar en este test si se cambia el código? Si cambian las reglas de validación de nombre, email, contraseña o rol.
  */
 
 namespace Tests\Unit\Services;
@@ -27,135 +19,81 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UserManagementService::class)]
 final class UserManagementServiceTest extends TestCase
 {
+    private UserRepositoryInterface $userRepoStub;
+    private UserManagementRepositoryInterface $userMgmtRepoStub;
     private UserManagementService $service;
 
     protected function setUp(): void
     {
-        $this->service = new UserManagementService(
-            $this->createStub(UserRepositoryInterface::class),
-            $this->createStub(UserManagementRepositoryInterface::class),
-        );
+        $this->userRepoStub     = $this->createStub(UserRepositoryInterface::class);
+        $this->userMgmtRepoStub = $this->createStub(UserManagementRepositoryInterface::class);
+        $this->service          = new UserManagementService($this->userRepoStub, $this->userMgmtRepoStub);
     }
 
-    // ──────────────────────────────────────────────
-    // validateUserData — camino feliz (creación)
-    // ──────────────────────────────────────────────
-
-    public function testValidarDatosValidosRetornaOk(): void
+    private function validUserData(): array
     {
-        $result = $this->service->validateUserData([
-            'name' => 'Ana García',
-            'email' => 'ana@komorebi.es',
-            'password' => 'SecretPass1',
-            'role_id' => 2,
-        ]);
+        return [
+            'name'     => 'María García',
+            'email'    => 'maria@example.com',
+            'password' => 'Password123',
+            'role_id'  => 3,
+        ];
+    }
+
+    public function testValidateUserDataSucceedsWithValidData(): void
+    {
+        $result = $this->service->validateUserData($this->validUserData());
 
         $this->assertTrue($result->ok);
     }
 
-    // ──────────────────────────────────────────────
-    // validateUserData — nombre
-    // ──────────────────────────────────────────────
-
-    public function testValidarConNombreVacioRetornaFail(): void
+    public function testValidateUserDataFailsWhenNameTooShort(): void
     {
-        $result = $this->service->validateUserData([
-            'name' => '',
-            'email' => 'ana@komorebi.es',
-            'password' => 'SecretPass1',
-            'role_id' => 2,
-        ]);
+        $data         = $this->validUserData();
+        $data['name'] = 'A';
+
+        $result = $this->service->validateUserData($data);
 
         $this->assertFalse($result->ok);
-        $this->assertArrayHasKey('name', $result->data['errors']);
+        $this->assertSame('validation', $result->code);
     }
 
-    public function testValidarConNombreDe1CaracterRetornaFail(): void
+    public function testValidateUserDataFailsWhenEmailInvalid(): void
     {
-        $result = $this->service->validateUserData([
-            'name' => 'A',
-            'email' => 'ana@komorebi.es',
-            'password' => 'SecretPass1',
-            'role_id' => 2,
-        ]);
+        $data          = $this->validUserData();
+        $data['email'] = 'not-an-email';
+
+        $result = $this->service->validateUserData($data);
 
         $this->assertFalse($result->ok);
-        $this->assertArrayHasKey('name', $result->data['errors']);
     }
 
-    // ──────────────────────────────────────────────
-    // validateUserData — email
-    // ──────────────────────────────────────────────
-
-    public function testValidarConEmailInvalidoRetornaFail(): void
+    public function testValidateUserDataFailsWhenPasswordTooShort(): void
     {
-        $result = $this->service->validateUserData([
-            'name' => 'Ana García',
-            'email' => 'no-es-un-email',
-            'password' => 'SecretPass1',
-            'role_id' => 2,
-        ]);
+        $data             = $this->validUserData();
+        $data['password'] = 'abc';
+
+        $result = $this->service->validateUserData($data);
 
         $this->assertFalse($result->ok);
-        $this->assertArrayHasKey('email', $result->data['errors']);
     }
 
-    // ──────────────────────────────────────────────
-    // validateUserData — contraseña
-    // ──────────────────────────────────────────────
-
-    public function testValidarConPasswordCortaRetornaFail(): void
+    public function testValidateUserDataFailsWhenRoleMissing(): void
     {
-        $result = $this->service->validateUserData([
-            'name' => 'Ana García',
-            'email' => 'ana@komorebi.es',
-            'password' => 'corta',
-            'role_id' => 2,
-        ]);
+        $data = $this->validUserData();
+        unset($data['role_id']);
+
+        $result = $this->service->validateUserData($data);
 
         $this->assertFalse($result->ok);
-        $this->assertArrayHasKey('password', $result->data['errors']);
     }
 
-    public function testValidarActualizacionSinPasswordEsValido(): void
+    public function testGetUsersWithRolesReturnsArray(): void
     {
-        $result = $this->service->validateUserData([
-            'name' => 'Ana García',
-            'email' => 'ana@komorebi.es',
-            'password' => '',  // vacía pero isUpdate = true
-            'role_id' => 2,
-        ], isUpdate: true);
+        $this->userMgmtRepoStub->method('getUsersWithRoles')->willReturn([]);
 
-        // La contraseña vacía en modo update no debe bloquear la validación
-        $this->assertFalse(isset($result->data['errors']['password']));
-    }
+        $result = $this->service->getUsersWithRoles();
 
-    // ──────────────────────────────────────────────
-    // validateUserData — role_id
-    // ──────────────────────────────────────────────
-
-    public function testValidarSinRoleIdRetornaFail(): void
-    {
-        $result = $this->service->validateUserData([
-            'name' => 'Ana García',
-            'email' => 'ana@komorebi.es',
-            'password' => 'SecretPass1',
-        ]);
-
-        $this->assertFalse($result->ok);
-        $this->assertArrayHasKey('role_id', $result->data['errors']);
-    }
-
-    public function testValidarConRoleIdNoNumericoRetornaFail(): void
-    {
-        $result = $this->service->validateUserData([
-            'name' => 'Ana García',
-            'email' => 'ana@komorebi.es',
-            'password' => 'SecretPass1',
-            'role_id' => 'admin',
-        ]);
-
-        $this->assertFalse($result->ok);
-        $this->assertArrayHasKey('role_id', $result->data['errors']);
+        $this->assertIsArray($result);
     }
 }

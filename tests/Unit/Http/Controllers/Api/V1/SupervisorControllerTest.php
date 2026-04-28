@@ -5,10 +5,10 @@
  * Verifica que Api\V1\SupervisorController delega a SupervisorAssignmentService.
  *
  * ¿Qué me quieres demostrar?
- * Que assign() retorna 403 a roles sin permisos y delega al servicio cuando el rol es correcto.
+ * Que assign() retorna 403 a roles sin permisos y 201 cuando el rol es correcto.
  *
  * ¿Qué va a fallar en este test si se cambia el código?
- * Si se amplía o restringe la guard de roles en assign().
+ * Si se amplía o restringe la guard de roles en assign() o cambia el código de respuesta 201.
  */
 
 declare(strict_types=1);
@@ -51,13 +51,13 @@ final class SupervisorControllerTest extends ControllerTestCase
         $this->asUser(userId: 1, role: 'user');
 
         $response = $this->makeController()->assign(
-            $this->makePostRequest('/api/v1/supervisor/assign', [])
+            $this->makePostRequest('/api/v1/supervisor/assignments', [])
         );
 
         $this->assertSame(403, $response->getStatusCode());
     }
 
-    public function test_assign_returns_200_when_service_succeeds(): void
+    public function test_assign_returns_201_when_service_succeeds(): void
     {
         $this->asUser(userId: 1, role: 'supervisor');
 
@@ -65,10 +65,10 @@ final class SupervisorControllerTest extends ControllerTestCase
         $service->method('createFromRequest')->willReturn(Result::ok(['id' => 1, 'table_code' => 'A1']));
 
         $response = $this->makeController($service)->assign(
-            $this->makePostRequest('/api/v1/supervisor/assign', [])
+            $this->makePostRequest('/api/v1/supervisor/assignments', [])
         );
 
-        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(201, $response->getStatusCode());
         $body = \json_decode((string) $response->getBody(), true);
         $this->assertTrue($body['ok']);
     }
@@ -81,7 +81,7 @@ final class SupervisorControllerTest extends ControllerTestCase
         $service->method('createFromRequest')->willReturn(Result::fail('Datos inválidos', 'validation_error'));
 
         $response = $this->makeController($service)->assign(
-            $this->makePostRequest('/api/v1/supervisor/assign', [])
+            $this->makePostRequest('/api/v1/supervisor/assignments', [])
         );
 
         $this->assertSame(422, $response->getStatusCode());

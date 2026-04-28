@@ -1,103 +1,68 @@
-/**
- * Gestión de Roles y Permisos
- * ============================================================================
- * Sistema de manejo de roles y permisos del área administrativa.
- *
- * Componentes Alpine:
- * - roleManagement: Gestión de roles y permisos del sistema
- *
- * @version 1.0.0
- * @requires Alpine.js
- * @requires admin-common.js
- */
-
 (function () {
   'use strict';
 
-  // Mapeo de módulos para nombres amigables
   const MODULE_NAMES = {
-    'user': 'Usuarios',
-    'cafe': 'Cafés',
-    'product': 'Productos',
-    'reservation': 'Reservas',
-    'review': 'Reseñas',
-    'animal': 'Animales',
-    'shift': 'Turnos',
-    'report': 'Reportes',
-    'setting': 'Configuración',
-    'role': 'Roles y Permisos',
-    'general': 'General'
+    user:        'Usuarios',
+    cafe:        'Cafés',
+    product:     'Productos',
+    reservation: 'Reservas',
+    review:      'Reseñas',
+    animal:      'Animales',
+    shift:       'Turnos',
+    report:      'Reportes',
+    setting:     'Configuración',
+    role:        'Roles y Permisos',
+    general:     'General',
   };
 
-  // ========================================================================
-  // COMPONENTE ALPINE: Gestión de Roles
-  // ========================================================================
+  function sortByName(arr) {
+    arr.sort((a, b) => a.name.localeCompare(b.name));
+  }
 
-  document.addEventListener('alpine:init', () => {
+  function matchesSearch(p, term, mod) {
+    return p.name.toLowerCase().includes(term) ||
+      p.code.toLowerCase().includes(term) ||
+      mod.toLowerCase().includes(term);
+  }
 
-    Alpine.data('roleManagement', (config = {}) => ({
-      // ─────────────────────────────────────────────────────────────
-      // ESTADO INICIAL
-      // ─────────────────────────────────────────────────────────────
+  function createRoleManagement(config = {}) {
+    return {
+      permissions:     config.permissions     || [],
+      rolePermissions: config.rolePermissions || {},
+      csrfToken:       config.csrfToken       || '',
 
-      roles: config.roles || [],
-      permissions: config.permissions || [],
-      rolePermissions: config.rolePermissions || {}, // { roleId: [permissionIds] }
-      stats: config.stats || {},
-      csrfToken: config.csrfToken || '',
-
-      // ─────────────────────────────────────────────────────────────
-      // ESTADO UI
-      // ─────────────────────────────────────────────────────────────
-
-      loading: false,
-      saving: false,
+      saving:          false,
       savingPermission: false,
-      activeTab: 'roles',
+      activeTab:       'roles',
 
-      // ─────────────────────────────────────────────────────────────
-      // FORMULARIO ROL
+      // Form state (role modal)
+      editingRole:  null,
+      roleModal:    null,
+      formErrors:   [],
+      form: { id: null, code: '', name: '', description: '' },
 
-      // ─────────────────────────────────────────────────────────────
-      // MODAL PERMISOS Y PAGINACIÓN
-      // ─────────────────────────────────────────────────────────────
-
-      selectedRole: null,
-      permissionSearch: '',
+      // Permissions modal state
+      selectedRole:          null,
+      permissionsModal:      null,
+      permissionSearch:      '',
       currentPermissionPage: 1,
-      permissionsPerPage: 3, // 3 módulos por página
+      permissionsPerPage:    3,
 
-      // Propiedades calculadas (actualizadas en init y watchers)
+      // Computed-cache properties (updated by watchers)
       totalFilteredPermissions: 0,
-      paginatedPermissions: {},
-      totalPermissionPages: 1,
-      visiblePermissionPages: [],
-
-      // ─────────────────────────────────────────────────────────────
-      // INICIALIZACIÓN
-      // ─────────────────────────────────────────────────────────────
+      paginatedPermissions:     {},
+      totalPermissionPages:     1,
+      visiblePermissionPages:   [],
 
       init() {
-        // Auto-switch a matriz si hay hash #permisos
-        if (window.location.hash === '#permisos') {
+        if (globalThis.location.hash === '#permisos') {
           this.activeTab = 'matrix';
         }
 
-        // Normalizar datos de roles
-        this.roles = this.roles.map(role => ({
-          ...role,
-          isSystem: this.isSystemRole(role.code),
-          permissions_count: parseInt(role.permissions_count) || 0,
-          users_count: parseInt(role.users_count) || 0
-        }));
-
-        // Inicializar modales
-        const roleModalEl = document.getElementById('roleModal');
+        const roleModalEl = document.getElementById('roleFormModal');
         if (roleModalEl) {
           this.roleModal = new bootstrap.Modal(roleModalEl);
-          roleModalEl.addEventListener('hidden.bs.modal', () => {
-            this.resetForm();
-          });
+          roleModalEl.addEventListener('hidden.bs.modal', () => this.resetForm());
         }
 
         const permModalEl = document.getElementById('permissionsModal');
@@ -105,235 +70,127 @@
           this.permissionsModal = new bootstrap.Modal(permModalEl);
         }
 
-        // Calcular propiedades paginadas
         this.updatePaginatedPermissions();
-
-        // Watchers para recalcular
         this.$watch('permissionSearch', () => {
           this.currentPermissionPage = 1;
           this.updatePaginatedPermissions();
         });
-
-        this.$watch('currentPermissionPage', () => {
-          this.updatePaginatedPermissions();
-        });
-
-        console.log('[RoleManagement] Inicializado', {
-          roles: this.roles.length,
-          permissions: this.permissions.length,
-          permissionsByModule: Object.keys(this.permissionsByModule).length,
-          totalFilteredPermissions: this.totalFilteredPermissions,
-          paginatedPermissions: Object.keys(this.paginatedPermissions).length
-        });
+        this.$watch('currentPermissionPage', () => this.updatePaginatedPermissions());
       },
 
-      // ─────────────────────────────────────────────────────────────
-      // COMPUTED: ESTADÍSTICAS
-      // ─────────────────────────────────────────────────────────────
-
-      get totalRoles() {
-        return this.roles.length;
-      },
-
-      get totalPermissions() {
-        return this.permissions.length;
-      },
-
-      get totalModules() {
-        return Object.keys(this.permissionsByModule).length;
-      },
-
-      // ─────────────────────────────────────────────────────────────
-      // COMPUTED: PERMISOS AGRUPADOS
-      // ─────────────────────────────────────────────────────────────
-
-      get permissionsByModule() {
-        const grouped = {};
-
-        this.permissions.forEach(permission => {
-          const module = permission.resource || 'general';
-          if (!grouped[module]) {
-            grouped[module] = [];
-          }
-          grouped[module].push(permission);
-        });
-
-        // Ordenar por nombre dentro de cada módulo
-        Object.keys(grouped).forEach(module => {
-          grouped[module].sort((a, b) => a.name.localeCompare(b.name));
-        });
-
-        return grouped;
-      },
-
-      get filteredPermissionsByModule() {
-        if (!this.permissionSearch.trim()) {
-          return this.permissionsByModule;
-        }
-
-        const searchTerm = this.permissionSearch.toLowerCase().trim();
-        const filtered = {};
-
-        Object.keys(this.permissionsByModule).forEach(module => {
-          const matchingPerms = this.permissionsByModule[module].filter(perm =>
-            perm.name.toLowerCase().includes(searchTerm) ||
-            perm.code.toLowerCase().includes(searchTerm) ||
-            module.toLowerCase().includes(searchTerm)
-          );
-
-          if (matchingPerms.length > 0) {
-            filtered[module] = matchingPerms;
-          }
-        });
-
-        return filtered;
-      },
-
-      // Actualiza propiedades calculadas de paginación
-      updatePaginatedPermissions() {
-        const filtered = this.filteredPermissionsByModule;
-
-        // Total de permisos filtrados
-        this.totalFilteredPermissions = Object.values(filtered)
-          .reduce((sum, perms) => sum + perms.length, 0);
-
-        // Permisos paginados
-        const modules = Object.keys(filtered);
-        const start = (this.currentPermissionPage - 1) * this.permissionsPerPage;
-        const end = start + this.permissionsPerPage;
-        const paginatedModules = modules.slice(start, end);
-
-        const result = {};
-        paginatedModules.forEach(module => {
-          result[module] = filtered[module];
-        });
-        this.paginatedPermissions = result;
-
-        // Total de páginas
-        this.totalPermissionPages = Math.ceil(modules.length / this.permissionsPerPage) || 1;
-
-        // Páginas visibles
-        const pages = [];
-        const total = this.totalPermissionPages;
-        const current = this.currentPermissionPage;
-        const delta = 2;
-
-        for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
-          pages.push(i);
-        }
-
-        if (current - delta > 2) {
-          pages.unshift('...');
-        }
-        if (current + delta < total - 1) {
-          pages.push('...');
-        }
-
-        pages.unshift(1);
-        if (total > 1) {
-          pages.push(total);
-        }
-
-        this.visiblePermissionPages = pages.filter((v, i, a) => a.indexOf(v) === i && v !== '...' || v === '...');
-      },
-
-      // ─────────────────────────────────────────────────────────────
-      // MÉTODOS: HELPERS
-      // ─────────────────────────────────────────────────────────────
-
-      isSystemRole(code) {
-        return ['admin', 'user'].includes(code);
-      },
+      // ── Helpers ───────────────────────────────────────────────────
 
       formatModuleName(module) {
         return MODULE_NAMES[module] || module.charAt(0).toUpperCase() + module.slice(1);
       },
 
-      getRoleBadgeClass(code) {
-        const classes = {
-          'admin': 'role-list-badge--admin',
-          'manager': 'role-list-badge--manager',
-          'supervisor': 'role-list-badge--supervisor',
-          'reception': 'role-list-badge--reception',
-          'kitchen': 'role-list-badge--kitchen',
-          'keeper': 'role-list-badge--keeper',
-          'user': 'role-list-badge--user'
-        };
-        return classes[code] || 'role-list-badge--user';
+      get permissionsByModule() {
+        const grouped = {};
+        this.permissions.forEach(p => {
+          const mod = p.resource || 'general';
+          if (!grouped[mod]) { grouped[mod] = []; }
+          grouped[mod].push(p);
+        });
+        Object.values(grouped).forEach(sortByName);
+        return grouped;
       },
 
-      // ─────────────────────────────────────────────────────────────
-      // MÉTODOS: PERMISOS
-      // ─────────────────────────────────────────────────────────────
+      get filteredPermissionsByModule() {
+        if (!this.permissionSearch.trim()) { return this.permissionsByModule; }
+        const term = this.permissionSearch.toLowerCase().trim();
+        const filtered = {};
+        Object.entries(this.permissionsByModule).forEach(([mod, perms]) => {
+          const matched = perms.filter(p => matchesSearch(p, term, mod));
+          if (matched.length > 0) { filtered[mod] = matched; }
+        });
+        return filtered;
+      },
+
+      updatePaginatedPermissions() {
+        const filtered  = this.filteredPermissionsByModule;
+        const modules   = Object.keys(filtered);
+
+        this.totalFilteredPermissions = Object.values(filtered).reduce((s, a) => s + a.length, 0);
+
+        const start  = (this.currentPermissionPage - 1) * this.permissionsPerPage;
+        const result = {};
+        modules.slice(start, start + this.permissionsPerPage).forEach(mod => {
+          result[mod] = filtered[mod];
+        });
+        this.paginatedPermissions = result;
+
+        this.totalPermissionPages = Math.ceil(modules.length / this.permissionsPerPage) || 1;
+
+        const total   = this.totalPermissionPages;
+        const current = this.currentPermissionPage;
+        const delta   = 2;
+        const pages   = [];
+        for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+          pages.push(i);
+        }
+        if (current - delta > 2)     { pages.unshift('...'); }
+        if (current + delta < total - 1) { pages.push('...'); }
+        pages.unshift(1);
+        if (total > 1) { pages.push(total); }
+        this.visiblePermissionPages = pages.filter((v, i, a) =>
+          (v !== '...' && a.indexOf(v) === i) || v === '...'
+        );
+      },
+
+      // ── Permission matrix / modal ─────────────────────────────────
 
       hasPermission(roleId, permissionId) {
-        const rolePerms = this.rolePermissions[roleId] || [];
-        return rolePerms.includes(parseInt(permissionId));
+        return (this.rolePermissions[roleId] || []).includes(Number.parseInt(permissionId));
       },
 
-      async togglePermission(roleId, permissionId, granted) {
-        // No permitir modificar roles de sistema en la matriz
-        const role = this.roles.find(r => r.id === roleId);
-        if (role && role.isSystem) {
-          KomorebiToast.warning('No se pueden modificar permisos de roles del sistema desde la matriz');
-          return;
-        }
-
+      async togglePermission(roleId, permissionId, granted, checkbox = null) {
         this.savingPermission = true;
-
         try {
           const url = granted
-            ? `/admin/roles/${roleId}/permissions/${permissionId}/grant`
-            : `/admin/roles/${roleId}/permissions/${permissionId}/revoke`;
+            ? `/api/v1/admin/roles/${roleId}/permissions/${permissionId}/grant`
+            : `/api/v1/admin/roles/${roleId}/permissions/${permissionId}/revoke`;
 
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: new URLSearchParams({ csrf_token: this.csrfToken })
+          const res  = await fetch(url, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+            body:    new URLSearchParams({ csrf_token: this.csrfToken }),
           });
+          const data = await res.json();
 
-          const data = await response.json();
-
-          if (response.ok && data.success) {
-            // Actualizar estado local
-            if (!this.rolePermissions[roleId]) {
-              this.rolePermissions[roleId] = [];
-            }
-
+          if (res.ok && data.ok) {
+            if (!this.rolePermissions[roleId]) { this.rolePermissions[roleId] = []; }
+            const id = Number.parseInt(permissionId);
             if (granted) {
-              this.rolePermissions[roleId].push(parseInt(permissionId));
+              this.rolePermissions[roleId].push(id);
             } else {
-              this.rolePermissions[roleId] = this.rolePermissions[roleId].filter(
-                id => id !== parseInt(permissionId)
-              );
+              this.rolePermissions[roleId] = this.rolePermissions[roleId].filter(x => x !== id);
             }
-
-            // Actualizar contador en el rol
-            const role = this.roles.find(r => r.id === roleId);
-            if (role) {
-              role.permissions_count = this.rolePermissions[roleId].length;
-            }
-
             KomorebiToast.success('Permiso actualizado');
           } else {
-            KomorebiToast.error(data.message || 'Error al actualizar permiso');
-            event.target.checked = !granted;
+            KomorebiToast.error(data.detail || 'Error al actualizar permiso');
+            if (checkbox) { checkbox.checked = !granted; }
           }
-        } catch (error) {
-          console.error('[RoleManagement] Error al alternar permiso:', error);
+        } catch {
           KomorebiToast.error('Error de conexión');
-          event.target.checked = !granted;
+          if (checkbox) { checkbox.checked = !granted; }
         } finally {
           this.savingPermission = false;
         }
       },
 
-      // ─────────────────────────────────────────────────────────────
-      // MÉTODOS: MODAL FORMULARIO
-      // ─────────────────────────────────────────────────────────────
+      openPermissionsModal(role) {
+        this.selectedRole    = role;
+        this.permissionSearch = '';
+        this.permissionsModal?.show();
+      },
+
+      async togglePermissionInModal(permissionId, checkbox = null) {
+        if (!this.selectedRole) return;
+        const granted = !this.hasPermission(this.selectedRole.id, permissionId);
+        await this.togglePermission(this.selectedRole.id, permissionId, granted, checkbox);
+      },
+
+      // ── Role CRUD ─────────────────────────────────────────────────
 
       openCreateModal() {
         this.editingRole = null;
@@ -342,146 +199,70 @@
       },
 
       openEditModal(role) {
-        if (role.isSystem) {
-          KomorebiToast.warning('No se pueden editar roles del sistema');
-          return;
-        }
-
         this.editingRole = role;
-        this.form = {
-          id: role.id,
-          code: role.code,
-          name: role.name,
-          description: role.description || ''
-        };
-        this.formErrors = [];
+        this.form        = { id: role.id, code: role.code, name: role.name, description: role.description || '' };
+        this.formErrors  = [];
         this.roleModal?.show();
       },
 
       resetForm() {
-        this.form = {
-          id: null,
-          code: '',
-          name: '',
-          description: ''
-        };
-        this.formErrors = [];
+        this.form        = { id: null, code: '', name: '', description: '' };
+        this.formErrors  = [];
         this.editingRole = null;
       },
 
       async submitRole() {
-        // Validación
         this.formErrors = [];
-
         if (!this.form.name || this.form.name.trim().length < 3) {
           this.formErrors.push('El nombre debe tener al menos 3 caracteres');
         }
-
-        if (!this.editingRole) {
-          // Código solo válido al crear
-          if (!this.form.code || !/^[a-z_]+$/.test(this.form.code)) {
-            this.formErrors.push('El código solo puede contener letras minúsculas y guiones bajos');
-          }
+        if (!this.editingRole && (!this.form.code || !/^[a-z_]+$/.test(this.form.code))) {
+          this.formErrors.push('El código solo puede contener letras minúsculas y guiones bajos');
         }
-
-        if (this.formErrors.length > 0) {
-          return;
-        }
+        if (this.formErrors.length > 0) { return; }
 
         this.saving = true;
-
         try {
-          const url = this.editingRole
-            ? `/admin/roles/${this.editingRole.id}/edit`
-            : '/admin/roles/create';
-
-          const body = this.editingRole
-            ? {
-              csrf_token: this.csrfToken,
-              name: this.form.name,
-              description: this.form.description
-            }
-            : {
-              csrf_token: this.csrfToken,
-              code: this.form.code,
-              name: this.form.name,
-              description: this.form.description
-            };
-
-          const result = await KomorebiForm.submit(url, body);
+          const url    = this.editingRole ? `/api/v1/admin/roles/${this.editingRole.id}` : '/api/v1/admin/roles';
+          const body   = this.editingRole
+            ? { csrf_token: this.csrfToken, name: this.form.name, description: this.form.description }
+            : { csrf_token: this.csrfToken, code: this.form.code, name: this.form.name, description: this.form.description };
+          const result = await KomorebiForm.submit(url, body, { method: this.editingRole ? 'PUT' : 'POST' });
 
           if (result.success) {
             KomorebiToast.success(result.data?.message || 'Rol guardado correctamente');
             this.roleModal?.hide();
-            setTimeout(() => window.location.reload(), 800);
+            setTimeout(() => globalThis.location.reload(), 800);
           } else {
             this.formErrors = [result.data?.message || 'Error al guardar'];
             KomorebiToast.error(this.formErrors[0]);
           }
-        } catch (error) {
-          console.error('[RoleManagement] Error al guardar:', error);
-          KomorebiToast.error('Error de conexión');
-        } finally {
-          this.saving = false;
-        }
+        } catch { KomorebiToast.error('Error de conexión'); }
+        finally  { this.saving = false; }
       },
 
-      async confirmDelete(role) {
-        if (role.isSystem) {
-          KomorebiToast.warning('No se pueden eliminar roles del sistema');
-          return;
-        }
-
-        if (!await KomorebiConfirm.delete(`el rol "${role.name}"`)) {
-          return;
-        }
-
+      async confirmDelete(roleId, roleName, isSystem) {
+        if (isSystem) { KomorebiToast.warning('No se pueden eliminar roles del sistema'); return; }
+        if (!await KomorebiConfirm.delete(`el rol "${roleName}"`)) return;
         try {
           const result = await KomorebiForm.submit(
-            `/admin/roles/${role.id}/delete`,
-            { csrf_token: this.csrfToken }
+            `/api/v1/admin/roles/${roleId}`,
+            { csrf_token: this.csrfToken },
+            { method: 'DELETE' }
           );
-
           if (result.success) {
-            const index = this.roles.findIndex(r => r.id === role.id);
-            if (index > -1) {
-              this.roles.splice(index, 1);
-            }
             KomorebiToast.success(result.data?.message || 'Rol eliminado');
+            globalThis.location.reload();
           } else {
             KomorebiToast.error(result.data?.message || 'Error al eliminar');
           }
-        } catch (error) {
-          console.error('[RoleManagement] Error al eliminar:', error);
-          KomorebiToast.error('Error de conexión');
-        }
+        } catch { KomorebiToast.error('Error de conexión'); }
       },
+    };
+  }
 
-      // ─────────────────────────────────────────────────────────────
-      // MÉTODOS: MODAL PERMISOS
-      // ─────────────────────────────────────────────────────────────
-
-      openPermissionsModal(role) {
-        this.selectedRole = role;
-        this.permissionSearch = '';
-        this.permissionsModal?.show();
-      },
-
-      async togglePermissionInModal(permissionId) {
-        if (!this.selectedRole) return;
-
-        const granted = !this.hasPermission(this.selectedRole.id, permissionId);
-        await this.togglePermission(this.selectedRole.id, permissionId, granted);
-      }
-    }));
-  });
-
-  // ========================================================================
-  // INICIALIZACIÓN
-  // ========================================================================
-
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('[AdminRoles] Módulo cargado');
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('roleManagement', createRoleManagement);
   });
 
 })();

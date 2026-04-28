@@ -113,7 +113,7 @@ test: ## Ciclo completo de tests (build → migraciones → phpunit → down)
 		exit $$EXIT
 
 test-unit: ## Solo tests unitarios en paralelo (requiere make dev activo)
-	docker compose exec app vendor/bin/paratest --runner=WrapperRunner --processes=4 --testsuite "Unit Tests" --testdox
+	docker compose exec -e XDEBUG_MODE=off app vendor/bin/paratest --runner=WrapperRunner --processes=4 --testsuite "Unit Tests" --testdox
 
 test-integration: ## Tests de integración con BD efímera
 	@echo "$(GREEN)Construyendo imagen de test...$(NC)"

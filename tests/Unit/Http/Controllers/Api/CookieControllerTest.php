@@ -2,15 +2,16 @@
 
 /**
  * ¿Qué pruebas aquí?
- * Verifica que Api/CookieController cumple el contrato PSR-7.
+ * Verifica que Api/CookieController cumple el contrato PSR-7:
+ * consent() unifica accept/reject/update, clearFilters y clearRecentlyViewed devuelven 204.
  *
  * ¿Qué me quieres demostrar?
- * Que accept() y reject() retornan ResponseInterface con JSON de éxito,
- * sin necesitar sesión ni BD.
+ * Que consent() ramifica correctamente según el campo "consent",
+ * que los campos faltantes devuelven 422, y que las operaciones DELETE devuelven 204.
  *
  * ¿Qué va a fallar en este test si se cambia el código?
- * Si accept() o reject() dejan de retornar ResponseInterface,
- * o si el formato de la respuesta cambia.
+ * Si consent() deja de existir, si los status codes de clearFilters/clearRecentlyViewed cambian,
+ * o si la validación de consent deja de rechazar valores inválidos.
  */
 
 declare(strict_types=1);
@@ -73,5 +74,108 @@ final class CookieControllerTest extends ControllerTestCase
 
         $this->assertInstanceOf(ResponseInterface::class, $result);
         $this->assertSame(422, $result->getStatusCode());
+    }
+
+    // --- consent() tests (TDD RED → GREEN) ---
+
+    public function test_consent_returns_422_when_consent_field_missing(): void
+    {
+        $request = (new ServerRequest('PATCH', '/api/v1/cookies'))
+            ->withParsedBody([]);
+
+        $result = $this->makeController()->consent($request);
+
+        $this->assertInstanceOf(ResponseInterface::class, $result);
+        $this->assertSame(422, $result->getStatusCode());
+    }
+
+    public function test_consent_returns_422_when_invalid_consent_value(): void
+    {
+        $request = (new ServerRequest('PATCH', '/api/v1/cookies'))
+            ->withParsedBody(['consent' => 'invalid']);
+
+        $result = $this->makeController()->consent($request);
+
+        $this->assertInstanceOf(ResponseInterface::class, $result);
+        $this->assertSame(422, $result->getStatusCode());
+    }
+
+    public function test_consent_all_returns_200(): void
+    {
+        $request = (new ServerRequest('PATCH', '/api/v1/cookies'))
+            ->withParsedBody(['consent' => 'all']);
+
+        $result = $this->makeController()->consent($request);
+
+        $this->assertInstanceOf(ResponseInterface::class, $result);
+        $this->assertResponseIsJson($result, 200);
+        $body = \json_decode((string) $result->getBody(), true);
+        $this->assertTrue($body['ok']);
+    }
+
+    public function test_consent_none_returns_200(): void
+    {
+        $request = (new ServerRequest('PATCH', '/api/v1/cookies'))
+            ->withParsedBody(['consent' => 'none']);
+
+        $result = $this->makeController()->consent($request);
+
+        $this->assertInstanceOf(ResponseInterface::class, $result);
+        $this->assertResponseIsJson($result, 200);
+        $body = \json_decode((string) $result->getBody(), true);
+        $this->assertTrue($body['ok']);
+    }
+
+    public function test_consent_custom_returns_422_when_preference_fields_missing(): void
+    {
+        $request = (new ServerRequest('PATCH', '/api/v1/cookies'))
+            ->withParsedBody(['consent' => 'custom']);
+
+        $result = $this->makeController()->consent($request);
+
+        $this->assertInstanceOf(ResponseInterface::class, $result);
+        $this->assertSame(422, $result->getStatusCode());
+    }
+
+    public function test_consent_custom_returns_200_with_valid_preferences(): void
+    {
+        $request = (new ServerRequest('PATCH', '/api/v1/cookies'))
+            ->withParsedBody([
+                'consent'    => 'custom',
+                'essential'  => true,
+                'functional' => false,
+                'analytics'  => false,
+            ]);
+
+        $result = $this->makeController()->consent($request);
+
+        $this->assertInstanceOf(ResponseInterface::class, $result);
+        $this->assertResponseIsJson($result, 200);
+        $body = \json_decode((string) $result->getBody(), true);
+        $this->assertTrue($body['ok']);
+    }
+
+    // --- clearFilters → 204 ---
+
+    public function test_clear_filters_returns_204(): void
+    {
+        $request = new ServerRequest('DELETE', '/api/v1/cookies/filters');
+
+        $result = $this->makeController()->clearFilters($request);
+
+        $this->assertInstanceOf(ResponseInterface::class, $result);
+        $this->assertSame(204, $result->getStatusCode());
+    }
+
+    // --- clearRecentlyViewed → 204 ---
+
+    public function test_clear_recently_viewed_returns_204(): void
+    {
+        $request = new ServerRequest('DELETE', '/api/v1/cookies/recently-viewed');
+
+        $result = $this->makeController()->clearRecentlyViewed($request);
+
+        $this->assertInstanceOf(ResponseInterface::class, $result);
+        $this->assertSame(204, $result->getStatusCode());
     }
 }

@@ -14,13 +14,16 @@
     :class="{'d-block': isOpen}"
     tabindex="-1"
     role="dialog"
+    aria-modal="true"
+    aria-labelledby="deleteModalTitle"
+    @keydown.escape.window="if (isOpen && !isDeleting) close()"
     style="background-color: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
+        <div class="modal-content" x-trap="isOpen">
             <div class="modal-header modal-header--danger">
-                <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    <span x-text="title"></span>
+                <h5 id="deleteModalTitle" class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i>
+                    <span x-text="title">Confirmar eliminación</span>
                 </h5>
                 <button type="button"
                     class="btn-close btn-close-white"

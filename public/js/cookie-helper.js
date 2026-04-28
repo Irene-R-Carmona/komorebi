@@ -59,8 +59,8 @@ let CookieHelper = {
     }
 
     try {
-      const response = await fetch('/api/v1/cookies/save-filters', {
-        method: 'POST',
+      const response = await fetch('/api/v1/cookies/filters', {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest'
@@ -82,7 +82,7 @@ let CookieHelper = {
    */
   async getFilters() {
     try {
-      const response = await fetch('/api/v1/cookies/get-filters', {
+      const response = await fetch('/api/v1/cookies/filters', {
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
         }

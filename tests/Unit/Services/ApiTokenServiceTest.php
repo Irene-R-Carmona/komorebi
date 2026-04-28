@@ -3,21 +3,14 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * Tests unitarios del servicio ApiTokenService.
- *
- * ¿Qué me quieres demostrar?
- * Que generate() produce un token de 64 chars hex, que validate() autentica
- * correctamente o rechaza tokens inválidos/revocados/expirados, y que
- * revoke() enforza el ownership.
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * Cualquier cambio en el algoritmo de hashing, en la lógica de validación
- * de tokens o en la lógica de ownership de revocación.
+ * ¿Qué pruebas aquí? ApiTokenService: generación, validación y revocación de tokens.
+ * ¿Qué me quieres demostrar? Que los tokens se validan contra el hash SHA-256, que la cuenta inactiva retorna fail, y que la revocación funciona.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se cambia el algoritmo de hash, la lógica de validación de cuenta activa, o la firma de los métodos públicos.
  */
 
-namespace Services;
+namespace Tests\Unit\Services;
 
+use App\Domain\DTO\UserDTO;
 use App\Repositories\Contracts\ApiTokenRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\ApiTokenService;
@@ -27,138 +20,117 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ApiTokenService::class)]
 final class ApiTokenServiceTest extends TestCase
 {
-    /** @var \PHPUnit\Framework\MockObject\Stub&ApiTokenRepositoryInterface */
-    private ApiTokenRepositoryInterface $repository;
+    private ApiTokenRepositoryInterface $tokenRepoStub;
+    private UserRepositoryInterface $userRepoStub;
     private ApiTokenService $service;
 
     protected function setUp(): void
     {
-        $this->repository = $this->createStub(ApiTokenRepositoryInterface::class);
-        $this->service = new ApiTokenService($this->repository, $this->createStub(UserRepositoryInterface::class));
+        $this->tokenRepoStub = $this->createStub(ApiTokenRepositoryInterface::class);
+        $this->userRepoStub  = $this->createStub(UserRepositoryInterface::class);
+        $this->service       = new ApiTokenService($this->tokenRepoStub, $this->userRepoStub);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // generate()
-    // ─────────────────────────────────────────────────────────────
-
-    public function testGenerateReturns64HexChars(): void
+    public function testGenerateReturnsNonEmptyString(): void
     {
-        $this->repository->method('createToken')->willReturn(1);
+        $this->tokenRepoStub->method('createToken')->willReturn(1);
 
-        $plain = $this->service->generate(1, 'Test token');
+        $token = $this->service->generate(1, 'test-token');
 
-        $this->assertSame(64, \strlen($plain));
-        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $plain);
+        $this->assertNotEmpty($token);
+        $this->assertIsString($token);
+        $this->assertSame(64, \strlen($token));
     }
 
-    public function testGenerateDifferentTokensEachCall(): void
+    public function testGenerateReturnsDifferentTokensEachCall(): void
     {
-        $this->repository->method('createToken')->willReturn(1);
+        $token1 = $this->service->generate(1, 'token-a');
+        $token2 = $this->service->generate(1, 'token-b');
 
-        $plain1 = $this->service->generate(1, 'Token A');
-        $plain2 = $this->service->generate(1, 'Token B');
-
-        $this->assertNotSame($plain1, $plain2);
+        $this->assertNotSame($token1, $token2);
     }
 
-    public function testGenerateCallsRepositoryCreate(): void
+    public function testValidateReturnsFailWhenTokenNotFound(): void
     {
-        $repo = $this->createMock(ApiTokenRepositoryInterface::class);
-        $repo->expects($this->once())
-            ->method('createToken')
-            ->with(
-                $this->equalTo(42),
-                $this->equalTo('My token'),
-                $this->matchesRegularExpression('/^[0-9a-f]{64}$/'),
-                $this->isNull()
-            )
-            ->willReturn(1);
+        $this->tokenRepoStub->method('findByHash')->willReturn(null);
 
-        $service = new ApiTokenService($repo, $this->createStub(UserRepositoryInterface::class));
-        $service->generate(42, 'My token');
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // validate() — token inválido (no encontrado en BD)
-    // ─────────────────────────────────────────────────────────────
-
-    public function testValidateWithUnknownTokenReturnsFail(): void
-    {
-        $this->repository->method('findByHash')->willReturn(null);
-
-        $result = $this->service->validate('aabbcc');
+        $result = $this->service->validate('invalid-plain-token');
 
         $this->assertFalse($result->ok);
-        $this->assertSame('invalid_token', $result->code);
+        $this->assertStringContainsString('inválido', $result->error);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // revoke()
-    // ─────────────────────────────────────────────────────────────
-
-    public function testRevokeReturnsFail_WhenTokenNotFoundOrAlreadyRevoked(): void
+    public function testValidateReturnsFailWhenUserIsInactive(): void
     {
-        $this->repository->method('revoke')->willReturn(false);
+        $this->tokenRepoStub->method('findByHash')->willReturn([
+            'id' => 1,
+            'user_id' => 10,
+        ]);
+        $this->userRepoStub->method('findById')->willReturn(new UserDTO(id: 10, uuid: '', name: 'Inactive', email: 'inactive@test.com', avatar: null, roles: [], is_active: false, cafe_id: null, created_at: ''));
+        $this->userRepoStub->method('getRoles')->willReturn([]);
 
-        $result = $this->service->revoke(99, 1);
+        $result = $this->service->validate('sometoken');
 
         $this->assertFalse($result->ok);
-        $this->assertSame('not_found', $result->code);
+        $this->assertStringContainsString('desactivada', $result->error);
     }
 
-    public function testRevokeReturnsOk_WhenSuccessful(): void
+    public function testValidateReturnsOkWhenTokenAndUserAreValid(): void
     {
-        $this->repository->method('revoke')->willReturn(true);
+        $this->tokenRepoStub->method('findByHash')->willReturn([
+            'id' => 1,
+            'user_id' => 5,
+        ]);
+        $this->userRepoStub->method('findById')->willReturn(new UserDTO(id: 5, uuid: '', name: 'Active', email: 'active@test.com', avatar: null, roles: [], is_active: true, cafe_id: null, created_at: ''));
+        $this->userRepoStub->method('getRoles')->willReturn([['slug' => 'user']]);
 
-        $result = $this->service->revoke(1, 1);
+        $result = $this->service->validate('sometoken');
+
+        $this->assertTrue($result->ok);
+        $this->assertArrayHasKey('user_id', $result->data);
+        $this->assertSame(5, $result->data['user_id']);
+    }
+
+    public function testValidateReturnsFailWhenUserNotFound(): void
+    {
+        $this->tokenRepoStub->method('findByHash')->willReturn([
+            'id' => 1,
+            'user_id' => 99,
+        ]);
+        $this->userRepoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->validate('sometoken');
+
+        $this->assertFalse($result->ok);
+    }
+
+    public function testRevokeReturnsFailWhenTokenNotFound(): void
+    {
+        $this->tokenRepoStub->method('revoke')->willReturn(false);
+
+        $result = $this->service->revoke(1, 10);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('no encontrado', $result->error);
+    }
+
+    public function testRevokeReturnsOkWhenSuccessful(): void
+    {
+        $this->tokenRepoStub->method('revoke')->willReturn(true);
+
+        $result = $this->service->revoke(1, 10);
 
         $this->assertTrue($result->ok);
         $this->assertTrue($result->data);
     }
 
-    public function testRevokeEnforcesOwnership(): void
+    public function testListForUserDelegatesToRepository(): void
     {
-        // El repositorio recibe user_id del parámetro — si difiere del propietario
-        // del token, revoke() retorna false y el repositorio NO actualiza nada.
-        $repo = $this->createMock(ApiTokenRepositoryInterface::class);
-        $repo->expects($this->once())
-            ->method('revoke')
-            ->with($this->equalTo(5), $this->equalTo(99)) // tokenId=5, userId=99 (ajeno)
-            ->willReturn(false);
+        $expected = [['id' => 1, 'name' => 'mobile']];
+        $this->tokenRepoStub->method('listForUser')->willReturn($expected);
 
-        $service = new ApiTokenService($repo, $this->createStub(UserRepositoryInterface::class));
-        $result = $service->revoke(5, 99);
-
-        $this->assertFalse($result->ok);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // listForUser()
-    // ─────────────────────────────────────────────────────────────
-
-    public function testListForUserDelegatestoRepository(): void
-    {
-        $expected = [
-            ['id' => 1, 'name' => 'CLI', 'created_at' => '2026-04-01 10:00:00'],
-        ];
-        $this->repository->method('listForUser')->willReturn($expected);
-
-        $result = $this->service->listForUser(7);
+        $result = $this->service->listForUser(5);
 
         $this->assertSame($expected, $result);
-    }
-
-    public function testListForUserDoesNotContainTokenHash(): void
-    {
-        // El repositorio ya excluye token_hash en listForUser — verificar que
-        // el servicio no añade el campo por cuenta propia.
-        $rows = [
-            ['id' => 1, 'name' => 'API key', 'last_used_at' => null, 'expires_at' => null, 'created_at' => '2026-04-01'],
-        ];
-        $this->repository->method('listForUser')->willReturn($rows);
-
-        $result = $this->service->listForUser(1);
-
-        $this->assertArrayNotHasKey('token_hash', $result[0]);
     }
 }

@@ -18,8 +18,7 @@
         console.log('Supervisor Dashboard loaded');
         this.lastUpdate = new Date();
 
-        // TODO: Implementar polling para actualizar mesas/órdenes en tiempo real
-        // this.startPolling();
+        this.startPolling();
       },
 
       /**

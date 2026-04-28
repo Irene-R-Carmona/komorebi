@@ -5,10 +5,10 @@
  * Verifica que NewsletterApiController valida email antes de llamar al servicio.
  *
  * ¿Qué me quieres demostrar?
- * Que subscribe() retorna 422 sin email y 200 cuando el servicio confirma suscripción.
+ * Que subscribe() retorna 422 sin email y 201 cuando el servicio confirma suscripción.
  *
  * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina la validación de email vacío o cambia el formato de respuesta de subscribe().
+ * Si se elimina la validación de email vacío o cambia el código de respuesta 201 de subscribe().
  */
 
 declare(strict_types=1);
@@ -60,7 +60,7 @@ final class NewsletterApiControllerTest extends ControllerTestCase
             $this->makeJsonRequest('/api/newsletter/subscribe', ['email' => 'test@example.com'])
         );
 
-        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(201, $response->getStatusCode());
         $body = \json_decode((string) $response->getBody(), true);
         $this->assertTrue($body['ok']);
     }

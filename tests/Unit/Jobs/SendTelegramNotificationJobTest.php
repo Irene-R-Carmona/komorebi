@@ -13,11 +13,9 @@ namespace Tests\Unit\Jobs;
 use App\Core\Result;
 use App\Jobs\SendTelegramNotificationJob;
 use App\Services\Contracts\TelegramServiceInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-#[CoversClass(SendTelegramNotificationJob::class)]
 final class SendTelegramNotificationJobTest extends TestCase
 {
     public function testHandleCallsTelegramServiceWithPayload(): void

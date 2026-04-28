@@ -2,7 +2,7 @@
 
 /**
  * Vista: Mi Carrito
- * Consume GET /api/cart, POST /api/cart/update, POST /api/cart/remove, POST /api/cart/clear vía Alpine.js.
+ * Consume GET /api/cart, PATCH /api/cart/items/{id}, DELETE /api/cart/items/{id}, DELETE /api/cart/items vía Alpine.js.
  *
  * @var string $csrfToken  Token CSRF para peticiones POST
  */
@@ -133,7 +133,7 @@
 
             async loadCart() {
                 try {
-                    const res = await fetch('/api/cart', {
+                    const res = await fetch('/api/v1/cart', {
                         headers: {
                             'Accept': 'application/json'
                         }
@@ -149,14 +149,15 @@
 
             async updateQty(item, newQty) {
                 if (newQty < 1) return;
-                const body = new FormData();
-                body.append('csrf_token', csrfToken);
-                body.append('item_id', item.id);
-                body.append('quantity', newQty);
+                const delta = newQty - item.quantity;
                 try {
-                    const res = await fetch('/api/cart/update', {
-                        method: 'POST',
-                        body
+                    const res = await fetch(`/api/v1/cart/items/${item.id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': csrfToken
+                        },
+                        body: JSON.stringify({ change: delta })
                     });
                     const json = await res.json();
                     if (json.ok) {
@@ -170,13 +171,10 @@
             },
 
             async removeItem(itemId) {
-                const body = new FormData();
-                body.append('csrf_token', csrfToken);
-                body.append('item_id', itemId);
                 try {
-                    const res = await fetch('/api/cart/remove', {
-                        method: 'POST',
-                        body
+                    const res = await fetch(`/api/v1/cart/items/${itemId}`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-Token': csrfToken }
                     });
                     const json = await res.json();
                     if (json.ok) {
@@ -191,12 +189,10 @@
             },
 
             async clearCart() {
-                const body = new FormData();
-                body.append('csrf_token', csrfToken);
                 try {
-                    const res = await fetch('/api/cart/clear', {
-                        method: 'POST',
-                        body
+                    const res = await fetch('/api/v1/cart/items', {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-Token': csrfToken }
                     });
                     const json = await res.json();
                     if (json.ok) {

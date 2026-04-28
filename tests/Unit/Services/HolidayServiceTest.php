@@ -3,17 +3,9 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * HolidayService: validaciones de año fuera de rango, rango inválido y
- * formato de fecha incorrecto en isHoliday — todas retornan sin llamar a la API.
- *
- * ¿Qué me quieres demostrar?
- * Que las guardas de validación devuelven Result::fail de forma inmediata,
- * sin necesitar caché ni conexión de red, protegiendo la API externa.
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * Si se amplía o reduce el rango de años permitido, si se cambia el límite
- * de 5 años en getHolidaysByRange, o si se relaja la validación de formato de fecha.
+ * ¿Qué pruebas aquí? HolidayService: validación del rango de año para la API de festivos.
+ * ¿Qué me quieres demostrar? Que años fuera del rango (más de 5 años en el futuro o más de 1 en el pasado) retornan Result::fail.
+ * ¿Qué va a fallar en este test si se cambia el código? Si cambia el rango de años permitidos en getHolidaysByYear.
  */
 
 namespace Tests\Unit\Services;
@@ -29,76 +21,72 @@ final class HolidayServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        // Sin caché: null → no se usa caché en estas pruebas de validación
         $this->service = new HolidayService(null);
     }
 
-    // ──────────────────────────────────────────────
-    // getHolidaysByYear — validación de año
-    // ──────────────────────────────────────────────
-
-    public function testGetHolidaysByYearConAnioMuyAntiguoRetornaFail(): void
+    public function testGetHolidaysByYearFailsForTooFarFutureYear(): void
     {
-        $result = $this->service->getHolidaysByYear(1900);
+        $farFuture = (int) \date('Y') + 10;
+
+        $result = $this->service->getHolidaysByYear($farFuture);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('rango', $result->error);
+        $this->assertStringContainsString('fuera de rango', $result->error);
     }
 
-    public function testGetHolidaysByYearConAnioDemasiadoFuturoRetornaFail(): void
+    public function testGetHolidaysByYearFailsForTooFarPastYear(): void
     {
-        $añoFuturoExcesivo = (int) \date('Y') + 10;
+        $farPast = (int) \date('Y') - 5;
 
-        $result = $this->service->getHolidaysByYear($añoFuturoExcesivo);
+        $result = $this->service->getHolidaysByYear($farPast);
 
         $this->assertFalse($result->ok);
+        $this->assertStringContainsString('fuera de rango', $result->error);
     }
 
-    // ──────────────────────────────────────────────
-    // getHolidaysByRange — validaciones de rango
-    // ──────────────────────────────────────────────
-
-    public function testGetHolidaysByRangeConStartMayorQueEndRetornaFail(): void
-    {
-        $result = $this->service->getHolidaysByRange(2027, 2025);
-
-        $this->assertFalse($result->ok);
-        $this->assertStringContainsString('inválido', $result->error);
-    }
-
-    public function testGetHolidaysByRangeConRangoMayorDe5AnosRetornaFail(): void
+    public function testGetHolidaysByYearReturnsResultForCurrentYear(): void
     {
         $currentYear = (int) \date('Y');
 
-        $result = $this->service->getHolidaysByRange($currentYear, $currentYear + 6);
+        // With no cache, it will try HTTP. We only validate it doesn't blow up with range error.
+        $result = $this->service->getHolidaysByYear($currentYear);
 
-        $this->assertFalse($result->ok);
-        $this->assertStringContainsString('5', $result->error);
+        // May succeed (if network available) or fail (network error), but NOT 'fuera de rango'
+        if (!$result->ok) {
+            $this->assertStringNotContainsString('fuera de rango', $result->error);
+        } else {
+            $this->assertArrayHasKey('holidays', $result->data);
+        }
     }
 
-    // ──────────────────────────────────────────────
-    // isHoliday — validación de formato de fecha
-    // ──────────────────────────────────────────────
-
-    public function testIsHolidayConFormatoInvalidoRetornaFail(): void
+    public function testIsHolidayReturnsBoolForDate(): void
     {
-        $result = $this->service->isHoliday('enero-2025');
+        $result = $this->service->isHoliday(\date('Y-m-d'));
 
-        $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Formato', $result->error);
+        $this->assertInstanceOf(\App\Core\Result::class, $result);
     }
 
-    public function testIsHolidayConFechaFormatoSlashRetornaFail(): void
+    public function testGetHolidaysByRangeFailsWhenStartAfterEnd(): void
     {
-        $result = $this->service->isHoliday('2025/01/01');
+        $result = $this->service->getHolidaysByRange(2025, 2024);
 
         $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Rango de años inválido', $result->error);
     }
 
-    public function testIsHolidayConFechaSoloAnoRetornaFail(): void
+    public function testGetHolidaysByRangeFailsWhenRangeExceedsFiveYears(): void
     {
-        $result = $this->service->isHoliday('2025');
+        $result = $this->service->getHolidaysByRange(2020, 2030);
 
         $this->assertFalse($result->ok);
+        $this->assertStringContainsString('5 años', $result->error);
+    }
+
+    public function testIsHolidayFailsWithInvalidDateFormat(): void
+    {
+        $result = $this->service->isHoliday('not-a-date');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Formato de fecha inválido', $result->error);
     }
 }

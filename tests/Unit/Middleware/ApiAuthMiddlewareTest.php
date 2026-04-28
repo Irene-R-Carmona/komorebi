@@ -153,4 +153,38 @@ final class ApiAuthMiddlewareTest extends TestCase
 
         $this->assertSame(401, $response->getStatusCode());
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // Bearer path sets auth_method attribute
+    // ─────────────────────────────────────────────────────────────
+
+    public function testValidBearerSetsAuthMethodAttribute(): void
+    {
+        $tokenData = [
+            'user_id'    => 3,
+            'user'       => ['id' => 3, 'name' => 'Ana', 'is_active' => 1],
+            'user_roles' => ['user'],
+            'token_id'   => 5,
+        ];
+
+        $tokenService = $this->createStub(ApiTokenServiceInterface::class);
+        $tokenService->method('validate')->willReturn(Result::ok($tokenData));
+
+        $this->request->method('getHeaderLine')->willReturn('Bearer tok');
+
+        $capturedAttributes = [];
+        $this->request->method('withAttribute')->willReturnCallback(
+            function (string $key, mixed $value) use (&$capturedAttributes): ServerRequestInterface {
+                $capturedAttributes[$key] = $value;
+
+                return $this->request;
+            }
+        );
+
+        $handler = $this->mockHandlerReturning(200);
+        $this->buildMiddleware($tokenService)->process($this->request, $handler);
+
+        $this->assertArrayHasKey('auth_method', $capturedAttributes);
+        $this->assertSame('bearer', $capturedAttributes['auth_method']);
+    }
 }

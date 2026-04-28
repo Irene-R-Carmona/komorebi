@@ -45,7 +45,7 @@
         this.loading = true;
         this.message = '';
         try {
-          let res = await fetch('/api/v1/newsletter/subscribe', {
+          let res = await fetch('/api/v1/newsletter/subscriptions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: this.email })

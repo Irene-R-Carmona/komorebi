@@ -1,6 +1,7 @@
 <?php
 /**
  * Partial: Modal de detalle de reserva
+ * selectedReservation viene de PHP-embedded JSON por fila (ver _table.php)
  */
 ?>
 
@@ -31,20 +32,19 @@
                                     class="badge-reservation"
                                     :class="'badge-reservation--' + selectedReservation.status"
                                     style="font-size: 1rem; padding: 0.5rem 1rem;"
-                                    x-text="getStatusLabel(selectedReservation.status)"
-                                ></span>
+                                    x-text="getStatusLabel(selectedReservation.status)">
+                                </span>
                             </div>
 
-                            <!-- Grid de detalles -->
+                            <!-- Grid fecha/hora -->
                             <div class="reservation-detail__grid">
                                 <div class="reservation-detail__section">
                                     <div class="reservation-detail__label">Fecha</div>
-                                    <div class="reservation-detail__value" x-text="formatDate(selectedReservation.reservation_date)"></div>
+                                    <div class="reservation-detail__value" x-text="selectedReservation.date"></div>
                                 </div>
-
                                 <div class="reservation-detail__section">
                                     <div class="reservation-detail__label">Hora</div>
-                                    <div class="reservation-detail__value" x-text="selectedReservation.reservation_time"></div>
+                                    <div class="reservation-detail__value" x-text="selectedReservation.time"></div>
                                 </div>
                             </div>
 
@@ -67,10 +67,9 @@
                                         <span x-text="selectedReservation.guest_count || 1"></span>
                                     </div>
                                 </div>
-
                                 <div class="reservation-detail__section">
                                     <div class="reservation-detail__label">Creada el</div>
-                                    <div class="reservation-detail__value small" x-text="formatDate(selectedReservation.created_at)"></div>
+                                    <div class="reservation-detail__value small" x-text="selectedReservation.created_at"></div>
                                 </div>
                             </div>
 
@@ -88,10 +87,8 @@
                             type="button"
                             class="btn btn-danger"
                             x-show="['confirmed', 'pending'].includes(selectedReservation.status)"
-                            @click="cancelReservation(selectedReservation.id); $refs.closeBtn.click()"
-                        >
-                            <i class="bi bi-x-lg me-1"></i>
-                            Cancelar Reserva
+                            @click="cancelReservation(selectedReservation.id)">
+                            <i class="bi bi-x-lg me-1"></i>Cancelar Reserva
                         </button>
                     </div>
                 </div>

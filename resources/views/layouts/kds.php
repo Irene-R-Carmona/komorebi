@@ -8,6 +8,7 @@
     ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="refresh" content="30">
     <title>KDS | <?= e($cafe_name ?? 'Cocina') ?></title>
 
     <!-- Fuentes Técnicas (Space Grotesk + Roboto Mono) -->
@@ -57,7 +58,12 @@
     <script defer src="/js/vendor/alpine.min.js"></script>
     <script src="/js/sections/kds.js"></script>
 
-    <meta http-equiv="refresh" content="30">
+    <script nonce="<?= $cspNonce ?? '' ?>">
+        window.__MERCURE__ = {
+            cafeId: <?= (int)($cafe_id ?? 0) ?>,
+            hub: '/.well-known/mercure'
+        };
+    </script>
 </head>
 
 <body class="kds-mode">

@@ -116,7 +116,7 @@ $extraJs ??= [];
         }
     }
 
-?>
+    ?>
 
     <!-- Event delegation helper: replace inline handlers with `data-action` -->
     <script defer src="/js/init/event-delegation.js"></script>
@@ -261,14 +261,38 @@ $extraJs ??= [];
     <footer class="footer">
         <div class="footer__container">
             <!-- Newsletter integrado (NO popup) -->
-            <div class="footer__newsletter">
+            <div class="footer__newsletter"
+                 x-data="{ email: '', state: 'idle', message: '' }"
+                 @submit.prevent="
+                     state = 'loading';
+                     fetch('/api/v1/newsletter/subscriptions', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({ email })
+                     })
+                     .then(function(r) { return r.json(); })
+                     .then(function(d) {
+                         state = 'success';
+                         message = (d.data && d.data.message) ? d.data.message : 'Suscripción realizada. ¡Gracias!';
+                         email = '';
+                     })
+                     .catch(function() {
+                         state = 'error';
+                         message = 'Error al suscribirse. Inténtalo de nuevo.';
+                     })
+                     .finally(function() {
+                         if (state === 'loading') state = 'idle';
+                     })
+                 ">
                 <h2 class="footer__newsletter-title">Únete a la comunidad Komorebi</h2>
                 <p class="footer__newsletter-desc">Recibe nuestras novedades sobre cafés de especialidad y eventos</p>
-                <form class="footer__newsletter-form" method="POST" action="/newsletter/subscribe">
-                    <?= Csrf::field() ?>
-                    <input type="email" name="email" class="footer__newsletter-input" placeholder="tu@email.com" required>
-                    <button type="submit" class="footer__newsletter-btn">Suscribir</button>
+                <form class="footer__newsletter-form">
+                    <input type="email" x-model="email" class="footer__newsletter-input" placeholder="tu@email.com" required>
+                    <button type="submit" class="footer__newsletter-btn" :disabled="state === 'loading'"
+                            x-text="state === 'loading' ? 'Enviando…' : 'Suscribir'">Suscribir</button>
                 </form>
+                <p x-show="message" x-text="message" role="alert"
+                   :class="state === 'error' ? 'footer__newsletter-status footer__newsletter-status--error' : 'footer__newsletter-status'"></p>
             </div>
 
             <!-- Grid de 3 columnas -->
@@ -382,6 +406,7 @@ $extraJs ??= [];
     <script src="/js/sections/detalle-cafe.js"></script>
     <script src="/js/sections/quiz-component.js"></script>
     <script src="/js/sections/avatar-upload.js"></script>
+    <script src="/js/sections/perfil.js"></script>
 
     <!-- Alpine components registry (central) -->
     <script nonce="<?= $cspNonce ?? '' ?>" src="/js/init/alpine-components.js"></script>

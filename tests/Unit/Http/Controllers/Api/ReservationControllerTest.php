@@ -17,6 +17,8 @@ namespace Tests\Unit\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\ReservationController;
+use App\Http\Transformers\ReservationTransformer;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\TimeSlotServiceInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -31,6 +33,8 @@ final class ReservationControllerTest extends ControllerTestCase
             new ResponseFactory(),
             $this->createStub(ReservationServiceInterface::class),
             $this->createStub(TimeSlotServiceInterface::class),
+            $this->createStub(ReservationRepositoryInterface::class),
+            new ReservationTransformer(),
         );
     }
 
@@ -54,6 +58,8 @@ final class ReservationControllerTest extends ControllerTestCase
             new ResponseFactory(),
             $this->createStub(ReservationServiceInterface::class),
             $timeSlotService,
+            $this->createStub(ReservationRepositoryInterface::class),
+            new ReservationTransformer(),
         );
 
         $response = $controller->getAvailableSlots(

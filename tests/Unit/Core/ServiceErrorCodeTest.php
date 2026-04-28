@@ -134,4 +134,21 @@ final class ServiceErrorCodeTest extends TestCase
             );
         }
     }
+
+    // ── RATE_LIMIT case ──────────────────────────────────────────────────
+
+    public function testRateLimitIs429(): void
+    {
+        $this->assertSame(429, ServiceErrorCode::RATE_LIMIT->toHttpStatus());
+    }
+
+    public function testRateLimitTitle(): void
+    {
+        $this->assertSame('Too Many Requests', ServiceErrorCode::RATE_LIMIT->toTitle());
+    }
+
+    public function testRateLimitTypeUri(): void
+    {
+        $this->assertStringContainsString('rate_limit', ServiceErrorCode::RATE_LIMIT->typeUri());
+    }
 }

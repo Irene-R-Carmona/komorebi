@@ -16,13 +16,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Http\Controllers\Admin;
 
-use App\Core\Http\ResponseFactory;
-use App\Exceptions\ValidationException;
 use App\Http\Controllers\Admin\MenuController;
-use App\Models\MenuCategory;
-use App\Models\Product;
-use App\Services\Contracts\ProductServiceInterface;
-use PDO;
+use App\Repositories\Contracts\MenuCategoryRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Support\ControllerTestCase;
 
@@ -47,35 +43,18 @@ final class MenuControllerTest extends ControllerTestCase
     private function makeController(): MenuController
     {
         return new MenuController(
-            productService: $this->createStub(ProductServiceInterface::class),
-            response: new ResponseFactory(),
-            productModel: new Product($this->createStub(PDO::class)),
-            categoryModel: new MenuCategory($this->createStub(PDO::class)),
+            productRepo: $this->createStub(ProductRepositoryInterface::class),
+            categoryRepo: $this->createStub(MenuCategoryRepositoryInterface::class),
         );
     }
 
-    public function test_create_throws_validation_exception_when_csrf_is_invalid(): void
+    public function test_instance_can_be_created_with_stubs(): void
     {
-        $this->expectException(ValidationException::class);
-
-        $_SESSION['_csrf_token'] = '';
-        $this->makeController()->create();
-    }
-
-    public function test_update_throws_validation_exception_when_csrf_is_invalid(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        $_SESSION['_csrf_token'] = '';
-        $this->makeController()->update(1);
+        $this->assertInstanceOf(MenuController::class, $this->makeController());
     }
 
     public function test_class_has_expected_methods(): void
     {
         $this->assertTrue(\method_exists(MenuController::class, 'index'));
-        $this->assertTrue(\method_exists(MenuController::class, 'create'));
-        $this->assertTrue(\method_exists(MenuController::class, 'update'));
-        $this->assertTrue(\method_exists(MenuController::class, 'toggleAvailability'));
-        $this->assertTrue(\method_exists(MenuController::class, 'delete'));
     }
 }

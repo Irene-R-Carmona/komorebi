@@ -5,7 +5,7 @@
 > El cambio de mayor impacto es Worker Mode (5–10× rendimiento). Todo lo demás lo complementa.
 
 **Fecha creación:** 15 de abril de 2026
-**Estado:** 🔵 Plan creado — pendiente inicio
+**Estado:** 🟢 Implementación completa — pendiente verificación en Railway
 **Dependencias:** ninguna (trabaja sobre infra y core, sin romper contratos entre capas)
 
 ---
@@ -75,7 +75,7 @@
 - Cambiar `addgroup -S/adduser -S` → `groupadd -r/useradd -r`
 - **Verificación:** `docker build -f docker/php/Dockerfile.prod -t komorebi-prod .` sin error
 
-- [ ] 0.1 — Alpine → Debian en Dockerfile.prod
+- [x] 0.1 — Alpine → Debian en Dockerfile.prod
 
 ### 0.2 BuildKit cache mounts en Dockerfile.prod y Dockerfile.worker
 
@@ -85,7 +85,7 @@
 - **Archivo:** `docker/php/Dockerfile.worker` — mismo patrón en Stage 1
 - **Verificación:** segundo `docker build` tarda < 5s en la etapa Composer
 
-- [ ] 0.2 — BuildKit cache mounts en Dockerfile.prod y Dockerfile.worker
+- [x] 0.2 — BuildKit cache mounts en Dockerfile.prod y Dockerfile.worker
 
 ### 0.3 GOMEMLIMIT + GODEBUG en docker-compose.yml
 
@@ -94,7 +94,7 @@
   - Añadir `GODEBUG: "cgocheck=0"`
 - **Verificación:** `docker compose exec app env | grep GOMEMLIMIT`
 
-- [ ] 0.3 — GOMEMLIMIT + GODEBUG en docker-compose.yml
+- [x] 0.3 — GOMEMLIMIT + GODEBUG en docker-compose.yml
 
 ### 0.4 max_threads + admin API + metrics en frankenphp.Caddyfile
 
@@ -113,7 +113,7 @@
 
 - **Verificación:** `curl http://localhost:2019/metrics | head -20` devuelve métricas Prometheus
 
-- [ ] 0.4 — max_threads + admin API + metrics en Caddyfile
+- [x] 0.4 — max_threads + admin API + metrics en Caddyfile
 
 ### 0.5 Caddy Structured Access Logs en frankenphp.Caddyfile
 
@@ -130,7 +130,7 @@
 
 - **Verificación:** `docker compose logs app` muestra JSON con `"request"`, `"status"`, `"duration"`
 
-- [ ] 0.5 — Caddy Structured Access Logs
+- [x] 0.5 — Caddy Structured Access Logs
 
 ### 0.6 OPcache directives faltantes en opcache.ini (producción)
 
@@ -150,7 +150,7 @@
 
 - **Verificación:** `docker compose exec app php -r "var_dump(opcache_get_status()['interned_strings_usage']);"`
 
-- [ ] 0.6 — OPcache directives faltantes
+- [x] 0.6 — OPcache directives faltantes
 
 ### 0.7 Nueva migración: CHECK Constraints + índices compuestos
 
@@ -169,7 +169,7 @@
 
 - **Verificación:** `make db-migrate` sin errores; `SHOW INDEX FROM loyalty_rewards` muestra nuevos índices
 
-- [ ] 0.7 — Migración CHECK Constraints + índices
+- [x] 0.7 — Migración CHECK Constraints + índices
 
 ---
 
@@ -188,7 +188,7 @@
 - **Archivo:** `app/Models/LoyaltyCard.php` — eliminar/no usar el método `updateTier()`
 - **Verificación:** `INSERT INTO loyalty_cards (user_id, visits_count) VALUES (999, 15)` → `current_tier = 'silver'` sin update explícito
 
-- [ ] 1.1 — Generated Column loyalty_cards.current_tier
+- [x] 1.1 — Generated Column loyalty_cards.current_tier
 
 ### 1.2 MySQL Event Scheduler para expiración de `loyalty_rewards`
 
@@ -207,14 +207,14 @@
 
 - **Verificación:** `SHOW EVENTS` muestra el evento; `SELECT @@event_scheduler` devuelve `ON`
 
-- [ ] 1.2 — MySQL Event Scheduler loyalty_rewards
+- [x] 1.2 — MySQL Event Scheduler loyalty_rewards (migration 022 ya existía)
 
 ### 1.3 Window Functions en queries de estadísticas (leaderboard)
 
 - Añadir `getLeaderboard(int $limit = 10): array` en el repositorio de loyalty usando `RANK() OVER (ORDER BY stamps DESC)`
 - **Verificación:** query devuelve filas con columna `rank` sin procesamiento PHP
 
-- [ ] 1.3 — Window Functions leaderboard loyalty
+- [x] 1.3 — Window Functions leaderboard loyalty
 
 ---
 
@@ -231,7 +231,7 @@
 - Definir constantes de tags en clase `CacheTags` (`CacheTags::MENU`, `CacheTags::CAFE`, etc.)
 - **Verificación:** unit test — set con tag 'menu', invalidate tag 'menu', get devuelve null
 
-- [ ] 2.1 — TagAwareAdapter en Cache.php
+- [x] 2.1 — TagAwareAdapter en Cache.php
 
 ### 2.2 Stampede Prevention: PSR-6 callback pattern
 
@@ -239,7 +239,7 @@
 - Reemplazar patrón `get → null check → compute → set` en servicios críticos (menú, listado de cafés)
 - **Verificación:** solo 1 llamada costosa en acceso concurrente
 
-- [ ] 2.2 — Stampede prevention computeIfAbsent
+- [x] 2.2 — Stampede prevention computeIfAbsent
 
 ---
 
@@ -278,7 +278,7 @@
 
 - **Verificación:** `ls storage/cache/di/` muestra `CompiledContainer.php` tras primer request
 
-- [ ] 3.1 — PHP-DI Container Compilation
+- [x] 3.1 — PHP-DI Container Compilation
 
 ---
 
@@ -290,7 +290,7 @@
 
 - Archivo nuevo: precompila con `opcache_compile_file()` todas las clases de `app/Core/`, `app/Domain/DTO/`, `app/Services/Contracts/`, y `app/Repositories/AbstractRepository.php`
 
-- [ ] 4.1 — Crear scripts/opcache-preload.php
+- [x] 4.1 — Crear scripts/opcache-preload.php
 
 ### 4.2 Activar preloading en `opcache.ini` de producción
 
@@ -303,7 +303,7 @@
 
 - **Verificación:** `docker compose exec app php -r "print_r(opcache_get_status()['preload_statistics']);"` lista clases precargadas
 
-- [ ] 4.2 — Activar preloading en opcache.ini
+- [x] 4.2 — Activar preloading en opcache.ini
 
 ---
 
@@ -360,7 +360,7 @@ if (function_exists('frankenphp_handle_request')) {
 }
 ```
 
-- [ ] 5.1 — Adaptar public/index.php para worker mode
+- [x] 5.1 — Adaptar public/index.php para worker mode
 
 ### 5.2 Configurar Worker Mode en `frankenphp.Caddyfile`
 
@@ -384,19 +384,19 @@ if (function_exists('frankenphp_handle_request')) {
 
 - `num 4` — ajustar según CPUs del container; 1 CPU → usar `num 2`
 
-- [ ] 5.2 — Worker Mode en Caddyfile
+- [x] 5.2 — Worker Mode en Caddyfile
 
 ### 5.3 Variables de entorno worker en `docker-compose.yml`
 
 - Añadir al servicio `app`: `MAX_REQUESTS: 500`
 
-- [ ] 5.3 — MAX_REQUESTS en docker-compose.yml
+- [x] 5.3 — MAX_REQUESTS en docker-compose.yml
 
 ### 5.4 Verificar `session_write_close()` en workers de cola
 
 - `bin/worker.php`, `bin/email-worker.php`, `bin/notification-worker.php` — confirmar que no usan sesión; si la usan, añadir `session_write_close()` tras cada job
 
-- [ ] 5.4 — session_write_close en workers de cola
+- [x] 5.4 — Workers CLI verificados: no inician sesión, no requieren cambios
 
 **Verificación de Fase 5:**
 
@@ -449,7 +449,7 @@ if (function_exists('frankenphp_handle_request')) {
   - Reemplazar `readfile()` → `header('X-Accel-Redirect: /storage/invoices/' . $filename);`
 - **Verificación:** descarga de factura no bloquea un thread PHP
 
-- [ ] 6.2 — X-Sendfile para facturas PDF
+- [x] 6.2 — X-Sendfile para facturas PDF
 
 ---
 
@@ -462,7 +462,7 @@ if (function_exists('frankenphp_handle_request')) {
 - Crear `app/Services/MercurePublisherService.php`
 - Frontend: `EventSource` JS en vistas KDS/recepción
 
-- [ ] 7.1 — Mercure Hub SSE
+- [x] 7.1 — Mercure Hub SSE
 
 ### 7.2 Redis Streams (queue resiliente)
 
@@ -470,21 +470,21 @@ if (function_exists('frankenphp_handle_request')) {
 - Añadir dead-letter stream para jobs fallidos
 - `XGROUP CREATE stream workers $ MKSTREAM` en bootstrap del worker
 
-- [ ] 7.2 — Redis Streams reemplaza LISTS
+- [x] 7.2 — Redis Streams reemplaza LISTS
 
 ### 7.3 Thread Pool Splitting
 
 - Solo tras Worker Mode activo (Fase 5)
 - Workers separados para `/admin/*` (2 threads) vs rutas públicas (4 threads)
 
-- [ ] 7.3 — Thread Pool Splitting
+- [x] 7.3 — Thread Pool Splitting
 
 ### 7.4 PHP 8.4 `array_find/any/all`
 
 - Reemplazar `array_filter(...)[0] ?? null` y loops de búsqueda con funciones nativas PHP 8.4
 - Solo en `app/Repositories/` y `app/Services/`
 
-- [ ] 7.4 — PHP 8.4 array_find/any/all
+- [x] 7.4 — PHP 8.4 array_find/any/all
 
 ---
 

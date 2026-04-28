@@ -67,7 +67,7 @@
                                                     type="checkbox"
                                                     class="form-check-input permission-item__checkbox"
                                                     :checked="hasPermission(selectedRole.id, permission.id)"
-                                                    @change="togglePermissionInModal(permission.id)"
+                                                    @change="togglePermissionInModal(permission.id, $event.target)"
                                                     :disabled="savingPermission"
                                                 >
                                                 <div class="permission-item__label">

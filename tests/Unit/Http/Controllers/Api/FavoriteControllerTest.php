@@ -5,11 +5,12 @@
  * Verifica el contrato PSR-7 de Api/FavoriteController.
  *
  * ¿Qué me quieres demostrar?
- * Que toggle() devuelve 401 cuando el usuario no está autenticado,
- * y que list() devuelve 401 cuando no hay sesión.
+ * Que toggle() y list() devuelven 401 cuando user_id no está en los atributos
+ * de la request, y que usan el atributo user_id de la request (no Session).
  *
  * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina la comprobación de sesión antes de operar con favoritos.
+ * Si se restaura Session::userId() o se cambia la fuente del user_id,
+ * o si se elimina la comprobación de autenticación.
  */
 
 declare(strict_types=1);
@@ -44,10 +45,13 @@ final class FavoriteControllerTest extends ControllerTestCase
         );
     }
 
+    // ── Sin autenticación (atributo user_id ausente) ─────────────────────
+
     public function test_toggle_returns_401_when_not_authenticated(): void
     {
-        $result = $this->makeController()->toggle(
-            new ServerRequest('POST', '/api/favorites/toggle')
+        // Sin atributo user_id en la request — el controller debe retornar 401
+        $result = $this->makeController()->add(
+            new ServerRequest('PUT', '/api/v1/favorites/1')
         );
 
         $this->assertSame(401, $result->getStatusCode());
@@ -58,15 +62,126 @@ final class FavoriteControllerTest extends ControllerTestCase
     public function test_list_returns_401_when_not_authenticated(): void
     {
         $result = $this->makeController()->list(
-            new ServerRequest('GET', '/api/favorites')
+            new ServerRequest('GET', '/api/v1/favorites')
         );
 
         $this->assertSame(401, $result->getStatusCode());
     }
 
+    // ── Con user_id en atributos de la request ────────────────────────────
+
+    public function test_add_uses_request_attribute_user_id_not_session(): void
+    {
+        // Poblamos la sesión con un user_id DIFERENTE al del atributo
+        // Si el controller usa Session::userId() fallará porque la sesión no tiene user_id
+        // pero con el atributo debe funcionar correctamente (no necesariamente 401).
+        $_SESSION = [];
+
+        $repo = $this->createStub(FavoriteRepositoryInterface::class);
+        $repo->method('add')->willReturn(true);
+
+        $controller = new FavoriteController(new ResponseFactory(), $repo);
+
+        // Construir request con user_id + id en atributos (como lo haría ApiAuthMiddleware + Router)
+        $request = (new ServerRequest('PUT', '/api/v1/favorites/1'))
+            ->withAttribute('user_id', 42)
+            ->withAttribute('id', '1');
+
+        $response = $controller->add($request);
+
+        // Debe retornar éxito (no 401) porque user_id está en atributos
+        $this->assertNotSame(401, $response->getStatusCode());
+    }
+
+    public function test_list_uses_request_attribute_user_id_not_session(): void
+    {
+        $_SESSION = [];
+
+        $repo = $this->createStub(FavoriteRepositoryInterface::class);
+        $repo->method('getByUser')->willReturn([]);
+
+        $controller = new FavoriteController(new ResponseFactory(), $repo);
+
+        $request = (new ServerRequest('GET', '/api/v1/favorites'))
+            ->withAttribute('user_id', 42);
+
+        $response = $controller->list($request);
+
+        $this->assertNotSame(401, $response->getStatusCode());
+    }
+
     public function test_class_has_expected_methods(): void
     {
-        $this->assertTrue(\method_exists(FavoriteController::class, 'toggle'));
+        $this->assertTrue(\method_exists(FavoriteController::class, 'add'));
+        $this->assertTrue(\method_exists(FavoriteController::class, 'remove'));
         $this->assertTrue(\method_exists(FavoriteController::class, 'list'));
+    }
+
+    public function test_add_returns_401_when_not_authenticated(): void
+    {
+        $result = $this->makeController()->add(
+            new ServerRequest('PUT', '/api/v1/favorites/1')
+        );
+
+        $this->assertSame(401, $result->getStatusCode());
+    }
+
+    public function test_add_returns_200_when_id_in_route_attribute(): void
+    {
+        $repo = $this->createStub(FavoriteRepositoryInterface::class);
+        $repo->method('add')->willReturn(true);
+        $controller = new FavoriteController(new ResponseFactory(), $repo);
+        $request    = (new ServerRequest('PUT', '/api/v1/favorites/5'))
+            ->withAttribute('user_id', 42)
+            ->withAttribute('id', '5');
+
+        $response = $controller->add($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    public function test_add_returns_422_when_id_is_zero(): void
+    {
+        $request = (new ServerRequest('PUT', '/api/v1/favorites/0'))
+            ->withAttribute('user_id', 42)
+            ->withAttribute('id', '0');
+
+        $response = $this->makeController()->add($request);
+
+        $this->assertSame(422, $response->getStatusCode());
+    }
+
+    public function test_remove_returns_401_when_not_authenticated(): void
+    {
+        $result = $this->makeController()->remove(
+            new ServerRequest('DELETE', '/api/v1/favorites/1')
+        );
+
+        $this->assertSame(401, $result->getStatusCode());
+    }
+
+    public function test_remove_returns_200_when_id_in_route_attribute(): void
+    {
+        $repo = $this->createStub(FavoriteRepositoryInterface::class);
+        $repo->method('remove')->willReturn(true);
+        $controller = new FavoriteController(new ResponseFactory(), $repo);
+        $request    = (new ServerRequest('DELETE', '/api/v1/favorites/5'))
+            ->withAttribute('user_id', 42)
+            ->withAttribute('id', '5');
+
+        $response = $controller->remove($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    public function test_remove_returns_422_when_id_is_zero(): void
+    {
+        $request = (new ServerRequest('DELETE', '/api/v1/favorites/0'))
+            ->withAttribute('user_id', 42)
+            ->withAttribute('id', '0');
+
+        $response = $this->makeController()->remove($request);
+
+        $this->assertSame(422, $response->getStatusCode());
     }
 }

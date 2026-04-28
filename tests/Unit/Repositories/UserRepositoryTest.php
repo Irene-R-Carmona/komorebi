@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Repositories;
 
+use App\Domain\DTO\UserDTO;
 use App\Repositories\UserRepository;
 use PDO;
 use PDOStatement;
@@ -74,9 +75,9 @@ final class UserRepositoryTest extends TestCase
 
         $result = $this->repository->findById(1);
 
-        $this->assertIsArray($result);
-        $this->assertEquals(1, $result['id']);
-        $this->assertEquals('test@example.com', $result['email']);
+        $this->assertInstanceOf(UserDTO::class, $result);
+        $this->assertEquals(1, $result->id);
+        $this->assertEquals('test@example.com', $result->email);
     }
 
     public function testFindByIdReturnsNullWhenNotFound(): void

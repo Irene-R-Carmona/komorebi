@@ -2,9 +2,9 @@
 
 /**
  * Vista: Mis Favoritos
- * Consume GET /api/favorites y POST /api/favorites/toggle vía Alpine.js.
+ * Consume GET /api/v1/favorites y DELETE /api/v1/favorites/{id} vía Alpine.js.
  *
- * @var string $csrfToken  Token CSRF para peticiones POST
+ * @var string $csrfToken  Token CSRF para peticiones mutantes
  */
 ?>
 <div class="container py-4" x-data="userFavorites('<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>')" x-init="loadFavorites()">
@@ -69,7 +69,7 @@
 
             async loadFavorites() {
                 try {
-                    const res = await fetch('/api/favorites', {
+                    const res = await fetch('/api/v1/favorites', {
                         headers: {
                             'Accept': 'application/json'
                         }
@@ -84,13 +84,10 @@
             },
 
             async removeFavorite(cafeId) {
-                const body = new FormData();
-                body.append('csrf_token', csrfToken);
-                body.append('cafe_id', cafeId);
                 try {
-                    const res = await fetch('/api/favorites/toggle', {
-                        method: 'POST',
-                        body
+                    const res = await fetch(`/api/v1/favorites/${cafeId}`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-Token': csrfToken }
                     });
                     const json = await res.json();
                     if (json.ok) {

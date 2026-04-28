@@ -23,7 +23,7 @@ declare(strict_types=1);
                             </h1>
                             <h5 class="text-muted mb-0">
                                 <?= htmlspecialchars($animal['name'], ENT_QUOTES, 'UTF-8') ?>
-                                <span class="badge bg-info ms-2"><?= htmlspecialchars($animal['species_type'], ENT_QUOTES, 'UTF-8') ?></span>
+                                <span class="badge bg-info ms-2"><?= htmlspecialchars($animal['species'], ENT_QUOTES, 'UTF-8') ?></span>
                             </h5>
                             <p class="text-muted small mb-0 mt-1">
                                 Edad: <?= $animal['age'] ?? 'N/D' ?> años •
@@ -35,8 +35,8 @@ declare(strict_types=1);
                                     'sick' => 'Enfermo',
                                     'retired' => 'Retirado',
                                 ];
-$animalStatusLabel = $animalStatusLabels[$animal['current_status']] ?? ucfirst($animal['current_status']);
-?>
+                                $animalStatusLabel = $animal['is_active'] ? 'Activo' : 'Inactivo';
+                                ?>
                                 Estado: <span class="badge bg-secondary"><?= htmlspecialchars($animalStatusLabel, ENT_QUOTES, 'UTF-8') ?></span>
                             </p>
                         </div>

@@ -59,6 +59,7 @@ final class RequestLogMiddlewareTest extends TestCase
     {
         $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn($statusCode);
+        $response->method('withHeader')->willReturnSelf();
 
         $handler = $this->createStub(RequestHandlerInterface::class);
         $handler->method('handle')->willReturnCallback(function () use ($response, $onHandle) {
@@ -246,5 +247,32 @@ final class RequestLogMiddlewareTest extends TestCase
             $this->makeRequest('POST', '/api/data', null),
             $this->makeHandler(400)
         );
+    }
+
+    public function testAddsXRequestIdToResponseHeader(): void
+    {
+        $capturedHeaderName  = null;
+        $capturedHeaderValue = null;
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(200);
+        $response->expects($this->once())
+            ->method('withHeader')
+            ->willReturnCallback(
+                function (string $name, string $value) use ($response, &$capturedHeaderName, &$capturedHeaderValue): ResponseInterface {
+                    $capturedHeaderName  = $name;
+                    $capturedHeaderValue = $value;
+                    return $response;
+                }
+            );
+
+        $handler = $this->createStub(RequestHandlerInterface::class);
+        $handler->method('handle')->willReturn($response);
+
+        $middleware = new RequestLogMiddleware();
+        $middleware->process($this->makeRequest(), $handler);
+
+        $this->assertSame('X-Request-ID', $capturedHeaderName);
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{16}$/', (string) $capturedHeaderValue);
     }
 }

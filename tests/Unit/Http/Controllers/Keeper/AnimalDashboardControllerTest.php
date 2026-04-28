@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Keeper;
 
 use App\Core\Http\ResponseFactory;
+use App\Domain\DTO\AnimalDTO;
 use App\Http\Controllers\Keeper\AnimalDashboardController;
 use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
@@ -110,12 +111,7 @@ final class AnimalDashboardControllerTest extends TestCase
     public function test_show_returns_null_when_animal_found(): void
     {
         $animalRepository = $this->createStub(AnimalRepositoryInterface::class);
-        $animalRepository->method('findById')->willReturn([
-            'id' => 5,
-            'name' => 'Luna',
-            'species' => 'gato',
-            'health_status' => 'healthy',
-        ]);
+        $animalRepository->method('findById')->willReturn(new AnimalDTO(id: 5, cafe_id: 1, name: 'Luna', species: 'gato', description: null, image_url: null, is_active: false));
 
         $request = new ServerRequest('GET', '/keeper/animals/5')
             ->withAttribute('id', 5);

@@ -37,10 +37,6 @@ paths = [
   # Dev local: sonar/sonar intencional para SonarQube local (profile: sonar)
   '''^docker-compose\.override\.yml$''',
 
-  # Utilidad de auditoría de hashes: contiene hashes Argon2id de prueba,
-  # no contraseñas reales. Solo se usa para verificar el algoritmo de hashing.
-  '''^scripts/check_pass\.php$''',
-
   # Snapshots de tests E2E: pueden contener tokens simulados de fixtures
   '''tests/e2e/''',
 

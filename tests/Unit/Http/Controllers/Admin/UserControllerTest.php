@@ -17,13 +17,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Http\Controllers\Admin;
 
-use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\UserController;
-use App\Repositories\Contracts\UserManagementRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
-use App\Services\UserManagementService;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
 
 #[CoversClass(UserController::class)]
@@ -42,64 +38,16 @@ final class UserControllerTest extends ControllerTestCase
         $_SESSION = [];
     }
 
-    public function test_get_users_list_returns_json_response(): void
+    public function test_instance_can_be_created_with_stubs(): void
     {
-        $repoStub = $this->createStub(UserRepositoryInterface::class);
-        $repoStub->method('getActiveUsersList')->willReturn([
-            ['id' => 1, 'name' => 'Ana', 'email' => 'ana@example.com'],
-            ['id' => 2, 'name' => 'Juan', 'email' => 'juan@example.com'],
-        ]);
-
-        $mgmtService = new UserManagementService(
-            userRepo: $this->createStub(UserRepositoryInterface::class),
-            userMgmtRepo: $this->createStub(UserManagementRepositoryInterface::class),
-        );
         $controller = new UserController(
-            userManagementService: $mgmtService,
-            userRepo: $repoStub,
-            response: new ResponseFactory(),
+            userRepo: $this->createStub(UserRepositoryInterface::class),
         );
-
-        $result = $controller->getUsersList($this->makeGetRequest('/admin/users/list'));
-
-        $this->assertInstanceOf(ResponseInterface::class, $result);
-        $this->assertResponseIsJson($result, 200);
-
-        $body = \json_decode((string) $result->getBody(), true);
-        $this->assertTrue($body['ok']);
-        $this->assertArrayHasKey('users', $body['data']);
-        $this->assertCount(2, $body['data']['users']);
+        $this->assertInstanceOf(UserController::class, $controller);
     }
 
-    public function test_get_users_list_returns_empty_array_when_no_users(): void
-    {
-        $repoStub = $this->createStub(UserRepositoryInterface::class);
-        $repoStub->method('getActiveUsersList')->willReturn([]);
-
-        $mgmtService = new UserManagementService(
-            userRepo: $this->createStub(UserRepositoryInterface::class),
-            userMgmtRepo: $this->createStub(UserManagementRepositoryInterface::class),
-        );
-        $controller = new UserController(
-            userManagementService: $mgmtService,
-            userRepo: $repoStub,
-            response: new ResponseFactory(),
-        );
-
-        $result = $controller->getUsersList($this->makeGetRequest('/admin/users/list'));
-
-        $this->assertInstanceOf(ResponseInterface::class, $result);
-        $body = \json_decode((string) $result->getBody(), true);
-        $this->assertCount(0, $body['data']['users']);
-    }
-
-    public function test_class_has_crud_methods(): void
+    public function test_class_has_expected_methods(): void
     {
         $this->assertTrue(\method_exists(UserController::class, 'index'));
-        $this->assertTrue(\method_exists(UserController::class, 'getUsersList'));
-        $this->assertTrue(\method_exists(UserController::class, 'create'));
-        $this->assertTrue(\method_exists(UserController::class, 'update'));
-        $this->assertTrue(\method_exists(UserController::class, 'delete'));
-        $this->assertTrue(\method_exists(UserController::class, 'toggleActive'));
     }
 }

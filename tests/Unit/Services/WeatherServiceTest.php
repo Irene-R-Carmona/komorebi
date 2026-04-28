@@ -3,25 +3,14 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * Tests unitarios de WeatherService: validación de coordenadas, caché hit,
- * y la recuperación de datos del pronóstico desde caché pre-cargada.
- *
- * ¿Qué me quieres demostrar?
- * Que WeatherService rechaza coordenadas inválidas sin llamar a la API,
- * que retorna Result::ok con 'cached=true' cuando hay un hit de caché,
- * y que la clave de caché se construye correctamente.
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * - Si la validación de coordenadas se elimina o amplía → testGetWeatherFailsOnInvalidCoordinates falla.
- * - Si getFromCache deja de marcar 'cached=true' → testGetWeatherReturnsCachedResultWhenCacheHit falla.
- * - Si buildCacheKey cambia su formato → testGetWeatherReturnsCachedResultWhenCacheHit falla.
- * - Si getWeather deja de retornar Result → todos los tests fallan.
+ * ¿Qué pruebas aquí? WeatherService: validación de coordenadas, caché, pronóstico y circuit breaker.
+ * ¿Qué me quieres demostrar? Que getWeather y getForecast retornan resultados correctos en cada rama.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se elimina validación, caché o manejo de errores.
  */
 
 namespace Tests\Unit\Services;
 
-use App\Core\Result;
+use App\Core\CircuitBreaker;
 use App\Services\WeatherService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -30,187 +19,199 @@ use Symfony\Component\Cache\Adapter\ArrayAdapter;
 #[CoversClass(WeatherService::class)]
 final class WeatherServiceTest extends TestCase
 {
-    // ─────────────────────────────────────────────────────────────
-    // Validación de coordenadas
-    // ─────────────────────────────────────────────────────────────
+    private WeatherService $service;
+    private ArrayAdapter $cache;
 
-    public function testGetWeatherFailsOnLatitudeTooLow(): void
+    protected function setUp(): void
     {
-        $service = new WeatherService();
-
-        $result = $service->getWeather(-91.0, 0.0);
-
-        $this->assertInstanceOf(Result::class, $result);
-        $this->assertTrue($result->error !== null);
-        $this->assertStringContainsString('Coordenadas', $result->error);
+        $this->cache = new ArrayAdapter();
+        $this->service = new WeatherService($this->cache);
     }
 
-    public function testGetWeatherFailsOnLatitudeTooHigh(): void
+    protected function tearDown(): void
     {
-        $service = new WeatherService();
-
-        $result = $service->getWeather(91.0, 0.0);
-
-        $this->assertTrue($result->error !== null);
-        $this->assertStringContainsString('Coordenadas', $result->error);
+        CircuitBreaker::reset('weather');
     }
 
-    public function testGetWeatherFailsOnLongitudeTooLow(): void
+    // ──────────────────────────────────────────────────────────────────────────
+    // getWeather — validaciones de coordenadas
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function testGetWeatherFailsWithInvalidLatitude(): void
     {
-        $service = new WeatherService();
+        $result = $this->service->getWeather(200.0, 0.0);
 
-        $result = $service->getWeather(0.0, -181.0);
-
-        $this->assertTrue($result->error !== null);
-        $this->assertStringContainsString('Coordenadas', $result->error);
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('inválidas', $result->error);
     }
 
-    public function testGetWeatherFailsOnLongitudeTooHigh(): void
+    public function testGetWeatherFailsWithInvalidLongitude(): void
     {
-        $service = new WeatherService();
+        $result = $this->service->getWeather(0.0, 300.0);
 
-        $result = $service->getWeather(0.0, 181.0);
-
-        $this->assertTrue($result->error !== null);
-        $this->assertStringContainsString('Coordenadas', $result->error);
+        $this->assertFalse($result->ok);
     }
 
-    public function testGetWeatherAcceptsBoundaryCoordinates(): void
+    public function testGetWeatherFailsWithLatitudeTooLow(): void
     {
-        // Boundary: lat=-90/90, lon=-180/180 son válidos.
-        // Inyectamos una caché que hace inmediatamente cache-hit para evitar HTTP.
-        $cache = $this->buildCacheWithHit(35.67, 139.65);
+        $result = $this->service->getWeather(-91.0, 0.0);
 
-        $service = new WeatherService($cache);
-
-        $result = $service->getWeather(90.0, 180.0);
-
-        // Con caché hit para otras coords, validación pasa y se devuelve ok desde cache.
-        // Para boundary coords sin caché, intentará HTTP. Solo verificamos que no falla por validación.
-        $this->assertInstanceOf(Result::class, $result);
+        $this->assertFalse($result->ok);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Cache hit
-    // ─────────────────────────────────────────────────────────────
-
-    public function testGetWeatherReturnsCachedResultWhenCacheHit(): void
+    public function testGetWeatherFailsWithLongitudeTooLow(): void
     {
-        // 35.68 y 139.65 se redondean a 35.68 y 139.65 → clave: weather:35.68:139.65
-        $lat = 35.6762;
-        $lon = 139.6503;
-        $cache = $this->buildCacheWithHit(\round($lat, 2), \round($lon, 2));
+        $result = $this->service->getWeather(0.0, -181.0);
 
-        $service = new WeatherService($cache);
-        $result = $service->getWeather($lat, $lon);
+        $this->assertFalse($result->ok);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // getWeather — caché hit
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function testGetWeatherReturnsCachedData(): void
+    {
+        $cachedData = [
+            'current' => ['temp' => 22.5, 'humidity' => 65, 'is_raining' => false, 'wind_speed' => 12.0, 'weather_code' => 1],
+            'hourly' => null,
+            'cached' => false,
+        ];
+
+        $cacheKey = 'weather_35.68_139.69';
+        $item = $this->cache->getItem($cacheKey);
+        $item->set($cachedData);
+        $this->cache->save($item);
+
+        $result = $this->service->getWeather(35.68, 139.69);
 
         $this->assertTrue($result->ok);
-        $this->assertIsArray($result->data);
         $this->assertTrue($result->data['cached']);
-        $this->assertArrayHasKey('current', $result->data);
+        $this->assertSame(22.5, $result->data['current']['temp']);
     }
 
-    public function testGetWeatherCacheHitContainsExpectedKeys(): void
+    public function testGetWeatherReturnsCachedDataWithRoundedCoordinates(): void
     {
-        $lat = 35.6762;
-        $lon = 139.6503;
-        $cache = $this->buildCacheWithHit(\round($lat, 2), \round($lon, 2));
+        $cachedData = ['current' => ['temp' => 18.0], 'hourly' => null, 'cached' => false];
+        $cacheKey = 'weather_35.69_139.69'; // round(35.685, 2) = 35.69
+        $item = $this->cache->getItem($cacheKey);
+        $item->set($cachedData);
+        $this->cache->save($item);
 
-        $service = new WeatherService($cache);
-        $result = $service->getWeather($lat, $lon);
+        $result = $this->service->getWeather(35.685, 139.685);
 
         $this->assertTrue($result->ok);
-        $data = $result->data;
-        $this->assertArrayHasKey('current', $data);
-        $this->assertArrayHasKey('hourly', $data);
-        $this->assertArrayHasKey('cached', $data);
+        $this->assertTrue($result->data['cached']);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // getForecast — validación
-    // ─────────────────────────────────────────────────────────────
+    // ──────────────────────────────────────────────────────────────────────────
+    // getWeather — sin caché, circuit breaker abierto
+    // ──────────────────────────────────────────────────────────────────────────
 
-    public function testGetForecastFailsOnInvalidCoordinates(): void
+    public function testGetWeatherFailsWhenCircuitBreakerIsOpen(): void
     {
-        $service = new WeatherService();
+        // Force circuit abierto para simular servicio no disponible
+        CircuitBreaker::forceOpenAt('weather', \time() - 1);
 
-        $result = $service->getForecast(-200.0, 0.0, '2026-01-01', '2026-01-07');
+        $result = $this->service->getWeather(35.68, 139.69);
 
-        $this->assertTrue($result->error !== null);
-        $this->assertStringContainsString('Coordenadas', $result->error);
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('temporalmente no disponible', $result->error);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // getWeather — sin caché, sin circuit breaker: error de red
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function testGetWeatherWithoutCacheNeverThrows(): void
+    {
+        // Sin caché → se intenta la llamada a la API; nunca debe lanzar excepción
+        $serviceNoCache = new WeatherService(null);
+
+        $result = $serviceNoCache->getWeather(35.68, 139.69);
+
+        // Independientemente del resultado (red disponible o no), devuelve Result
+        $this->assertIsBool($result->ok);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // getForecast — validaciones
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function testGetForecastFailsWithInvalidCoordinates(): void
+    {
+        $result = $this->service->getForecast(200.0, 0.0, '2025-01-01', '2025-01-07');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('inválidas', $result->error);
+    }
+
+    public function testGetForecastFailsWithInvalidStartDate(): void
+    {
+        $result = $this->service->getForecast(35.68, 139.69, '2025/01/01', '2025-01-07');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Fechas inválidas', $result->error);
+    }
+
+    public function testGetForecastFailsWithInvalidEndDate(): void
+    {
+        $result = $this->service->getForecast(35.68, 139.69, '2025-01-01', '01/07/2025');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Fechas inválidas', $result->error);
     }
 
     public function testGetForecastFailsWhenStartDateAfterEndDate(): void
     {
-        $service = new WeatherService();
+        $result = $this->service->getForecast(35.68, 139.69, '2025-01-10', '2025-01-01');
 
-        $result = $service->getForecast(35.0, 139.0, '2026-01-10', '2026-01-01');
-
-        $this->assertTrue($result->error !== null);
-        $this->assertStringContainsString('fecha', \strtolower($result->error ?? ''));
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('inicio', $result->error);
     }
 
-    public function testGetForecastFailsOnInvalidDateFormat(): void
+    // ──────────────────────────────────────────────────────────────────────────
+    // getForecast — caché hit
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function testGetForecastReturnsCachedData(): void
     {
-        $service = new WeatherService();
+        $cachedData = ['forecast' => [['date' => '2025-01-01', 'max_temp' => 20.0, 'min_temp' => 10.0, 'precip' => 0.0]], 'cached' => false];
+        $cacheKey = 'weather_forecast_35.68_139.69_2025-01-01_2025-01-07';
+        $item = $this->cache->getItem($cacheKey);
+        $item->set($cachedData);
+        $this->cache->save($item);
 
-        $result = $service->getForecast(35.0, 139.0, 'not-a-date', '2026-01-07');
-
-        $this->assertTrue($result->error !== null);
-    }
-
-    public function testGetForecastReturnsCachedResultWhenCacheHit(): void
-    {
-        $lat = 35.0;
-        $lon = 139.0;
-        $start = '2026-01-01';
-        $end = '2026-01-07';
-        // Build forecast cache key manually
-        $key = 'weather_forecast_' . \round($lat, 2) . '_' . \round($lon, 2) . '_' . $start . '_' . $end;
-
-        $cachedData = ['forecast' => [['date' => '2026-01-01', 'max_temp' => 8.0, 'min_temp' => 3.0]], 'cached' => false];
-        $cache = $this->buildCacheWithData($key, $cachedData);
-
-        $service = new WeatherService($cache);
-        $result = $service->getForecast($lat, $lon, $start, $end);
+        $result = $this->service->getForecast(35.68, 139.69, '2025-01-01', '2025-01-07');
 
         $this->assertTrue($result->ok);
         $this->assertTrue($result->data['cached']);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Crea un ArrayAdapter con datos pre-cargados en la clave del formato
-     * weather:{lat}:{lon}, que es lo que WeatherService busca.
-     */
-    private function buildCacheWithHit(float $lat, float $lon): ArrayAdapter
+    public function testGetForecastReturnsCachedDataWithTimezone(): void
     {
-        $key = 'weather_' . $lat . '_' . $lon;
-        $data = [
-            'current' => [
-                'temp' => 18.5,
-                'humidity' => 60,
-                'is_raining' => false,
-                'wind_speed' => 5.2,
-                'weather_code' => 1,
-            ],
-            'hourly' => null,
-            'cached' => false, // WeatherService sobrescribe esto a true
-        ];
+        $cachedData = ['forecast' => [], 'cached' => false];
+        $cacheKey = 'weather_forecast_35.68_139.69_2025-06-01_2025-06-07';
+        $item = $this->cache->getItem($cacheKey);
+        $item->set($cachedData);
+        $this->cache->save($item);
 
-        return $this->buildCacheWithData($key, $data);
+        $result = $this->service->getForecast(35.68, 139.69, '2025-06-01', '2025-06-07', 'Asia/Tokyo');
+
+        $this->assertTrue($result->ok);
+        $this->assertTrue($result->data['cached']);
     }
 
-    private function buildCacheWithData(string $key, array $data): ArrayAdapter
-    {
-        $cache = new ArrayAdapter();
-        $item = $cache->getItem($key);
-        $item->set($data);
-        $cache->save($item);
+    // ──────────────────────────────────────────────────────────────────────────
+    // getForecast — circuit breaker abierto
+    // ──────────────────────────────────────────────────────────────────────────
 
-        return $cache;
+    public function testGetForecastFailsWhenCircuitBreakerIsOpen(): void
+    {
+        CircuitBreaker::forceOpenAt('weather', \time() - 1);
+
+        $result = $this->service->getForecast(35.68, 139.69, '2025-01-01', '2025-01-07');
+
+        $this->assertFalse($result->ok);
     }
 }

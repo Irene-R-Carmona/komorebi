@@ -60,9 +60,23 @@ declare(strict_types=1);
 
                         <div class="mb-3">
                             <label for="species" class="form-label fw-semibold">Especie <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="species" name="species"
-                                value="<?= htmlspecialchars($_POST['species'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                required maxlength="50">
+                            <?php
+                            $speciesLabels = [
+                                'cat' => 'Gato', 'dog' => 'Perro', 'rabbit' => 'Conejo',
+                                'bird' => 'Pájaro', 'hedgehog' => 'Erizo', 'capybara' => 'Capibara',
+                                'hamster' => 'Hámster', 'other' => 'Otro',
+                            ];
+                            $selectedSpecies = $_POST['species'] ?? '';
+                            ?>
+                            <select class="form-select" id="species" name="species" required>
+                                <option value="">Selecciona especie…</option>
+                                <?php foreach (\App\Domain\AnimalVocabulary::SPECIES as $s): ?>
+                                    <option value="<?= htmlspecialchars($s, ENT_QUOTES, 'UTF-8') ?>"
+                                        <?= $selectedSpecies === $s ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($speciesLabels[$s] ?? \ucfirst($s), ENT_QUOTES, 'UTF-8') ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
 
                         <div class="mb-3">

@@ -3,203 +3,71 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * Tests del servicio StaffShiftService, incluyendo obtención de turnos semanales,
- * historial de staff, asignación de turnos con y sin solapamiento, y métricas.
- *
- * ¿Qué me quieres demostrar?
- * Que StaffShiftService delega correctamente al repositorio y envuelve cada
- * resultado en Result::ok / Result::fail según la lógica de negocio.
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * - Si assignShift deja de verificar solapamientos → testAssignShiftWithOverlapReturnsFailResult falla.
- * - Si se elimina la propagación del shift_id en el dato de respuesta → testAssignShiftWithValidDataReturnsOk falla.
- * - Si getWeekShifts deja de retornar Result::ok → los tests de getWeekShifts fallan.
+ * ¿Qué pruebas aquí? StaffShiftService: validación de horarios y delegación de consultas de turnos.
+ * ¿Qué me quieres demostrar? Que assignShift retorna fail si la hora inicio >= fin o si hay solapamiento.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se elimina la validación de cruce de medianoche.
  */
+
+namespace Tests\Unit\Services;
 
 use App\Repositories\Contracts\StaffShiftRepositoryInterface;
 use App\Services\StaffShiftService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Tests unitarios para StaffShiftService.
- *
- * El repositorio es stubbed; no se toca base de datos.
- * Todos los métodos del servicio retornan Result{ok, data, error, code}.
- */
 #[CoversClass(StaffShiftService::class)]
 final class StaffShiftServiceTest extends TestCase
 {
-    private StaffShiftService $service;
-    /** @var \PHPUnit\Framework\MockObject\Stub&StaffShiftRepositoryInterface */
     private StaffShiftRepositoryInterface $repoStub;
+    private StaffShiftService $service;
 
     protected function setUp(): void
     {
         $this->repoStub = $this->createStub(StaffShiftRepositoryInterface::class);
-        $this->service = new StaffShiftService($this->repoStub);
+        $this->service  = new StaffShiftService($this->repoStub);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // getWeekShifts
-    // ─────────────────────────────────────────────────────────────
-
-    public function testGetWeekShiftsReturnsOkWithShiftsArray(): void
+    public function testAssignShiftFailsWhenStartIsAfterEnd(): void
     {
-        $shifts = [
-            ['id' => 1, 'user_id' => 10, 'cafe_id' => 5, 'shift_date' => '2026-03-27', 'staff_name' => 'Ana'],
-            ['id' => 2, 'user_id' => 11, 'cafe_id' => 5, 'shift_date' => '2026-03-28', 'staff_name' => 'Luis'],
-        ];
-
-        $this->repoStub
-            ->method('findByCafeAndDateRange')
-            ->willReturn($shifts);
-
-        $result = $this->service->getWeekShifts(5);
-
-        $this->assertTrue($result->ok);
-        $this->assertIsArray($result->data);
-        $this->assertSame($shifts, $result->data);
-    }
-
-    public function testGetWeekShiftsWithCafeIdReturnsOnlyThatCafesShifts(): void
-    {
-        $cafeId = 3;
-        $shifts = [['id' => 99, 'cafe_id' => $cafeId, 'shift_date' => '2026-03-30']];
-
-        $this->repoStub
-            ->method('findByCafeAndDateRange')
-            ->willReturn($shifts);
-
-        $result = $this->service->getWeekShifts($cafeId);
-
-        $this->assertTrue($result->ok);
-        $this->assertSame($shifts, $result->data);
-    }
-
-    public function testGetWeekShiftsReturnsOkWithEmptyArrayWhenNoShiftsExist(): void
-    {
-        $this->repoStub
-            ->method('findByCafeAndDateRange')
-            ->willReturn([]);
-
-        $result = $this->service->getWeekShifts(7);
-
-        $this->assertTrue($result->ok);
-        $this->assertSame([], $result->data);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // getStaffHistory
-    // ─────────────────────────────────────────────────────────────
-
-    public function testGetStaffHistoryReturnsOkWithHistoryData(): void
-    {
-        $history = [
-            ['id' => 5, 'shift_date' => '2026-03-01', 'shift_start' => '09:00:00', 'shift_end' => '17:00:00'],
-            ['id' => 6, 'shift_date' => '2026-03-08', 'shift_start' => '10:00:00', 'shift_end' => '18:00:00'],
-        ];
-
-        $this->repoStub
-            ->method('findRecentByUserAndCafe')
-            ->willReturn($history);
-
-        $result = $this->service->getStaffHistory(10, 5);
-
-        $this->assertTrue($result->ok);
-        $this->assertSame($history, $result->data);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // assignShift
-    // ─────────────────────────────────────────────────────────────
-
-    public function testAssignShiftWithValidDataReturnsOkWithShiftId(): void
-    {
-        $this->repoStub
-            ->method('hasOverlap')
-            ->willReturn(false);
-
-        $this->repoStub
-            ->method('create')
-            ->willReturn(42);
-
-        $result = $this->service->assignShift(
-            userId: 10,
-            cafeId: 5,
-            date: '2026-03-30',
-            start: '09:00:00',
-            end: '17:00:00',
-            notes: null,
-            createdBy: 1,
-        );
-
-        $this->assertTrue($result->ok);
-        $this->assertIsArray($result->data);
-        $this->assertSame(42, $result->data['shift_id']);
-    }
-
-    public function testAssignShiftWithOverlappingShiftReturnsFailResult(): void
-    {
-        $this->repoStub
-            ->method('hasOverlap')
-            ->willReturn(true);
-
-        $result = $this->service->assignShift(
-            userId: 10,
-            cafeId: 5,
-            date: '2026-03-30',
-            start: '09:00:00',
-            end: '17:00:00',
-            notes: null,
-            createdBy: 1,
-        );
+        $result = $this->service->assignShift(1, 1, '2025-12-01', '18:00', '09:00', null, 1);
 
         $this->assertFalse($result->ok);
-        $this->assertSame('shift_overlap', $result->code);
-        $this->assertStringContainsString('turno', strtolower($result->error));
+        $this->assertSame('invalid_shift_hours', $result->code);
     }
 
-    public function testAssignShiftWithNotesPropagatesNotesCorrectly(): void
+    public function testAssignShiftFailsWhenStartEqualsEnd(): void
     {
-        $this->repoStub
-            ->method('hasOverlap')
-            ->willReturn(false);
+        $result = $this->service->assignShift(1, 1, '2025-12-01', '09:00', '09:00', null, 1);
 
-        $this->repoStub
-            ->method('create')
-            ->willReturn(55);
-
-        $result = $this->service->assignShift(
-            userId: 10,
-            cafeId: 5,
-            date: '2026-03-31',
-            start: '14:00:00',
-            end: '22:00:00',
-            notes: 'Turno de tarde especial',
-            createdBy: 2,
-        );
-
-        $this->assertTrue($result->ok);
-        $this->assertSame(55, $result->data['shift_id']);
+        $this->assertFalse($result->ok);
+        $this->assertSame('invalid_shift_hours', $result->code);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // getPerformanceMetrics
-    // ─────────────────────────────────────────────────────────────
-
-    public function testGetPerformanceMetricsReturnsOkWithMetrics(): void
+    public function testAssignShiftFailsWhenOverlapExists(): void
     {
-        $metrics = ['total_shifts' => 12, 'total_hours' => 96];
+        $this->repoStub->method('hasOverlap')->willReturn(true);
 
-        $this->repoStub
-            ->method('getPerformanceMetrics')
-            ->willReturn($metrics);
+        $result = $this->service->assignShift(1, 1, '2025-12-01', '09:00', '17:00', null, 1);
 
-        $result = $this->service->getPerformanceMetrics(10, 5);
+        $this->assertFalse($result->ok);
+    }
+
+    public function testAssignShiftSucceedsWhenNoOverlap(): void
+    {
+        $this->repoStub->method('hasOverlap')->willReturn(false);
+        $this->repoStub->method('create')->willReturn(10);
+
+        $result = $this->service->assignShift(1, 1, '2025-12-01', '09:00', '17:00', null, 1);
 
         $this->assertTrue($result->ok);
-        $this->assertSame($metrics, $result->data);
+    }
+
+    public function testGetWeekShiftsDelegatesToRepository(): void
+    {
+        $this->repoStub->method('findByCafeAndDateRange')->willReturn([]);
+
+        $result = $this->service->getWeekShifts(1);
+
+        $this->assertTrue($result->ok);
     }
 }

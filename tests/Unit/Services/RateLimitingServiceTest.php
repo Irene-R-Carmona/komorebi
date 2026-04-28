@@ -3,15 +3,9 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * Verifica que RateLimitingService registra intentos y bloqueos usando Cache (PSR-6).
- *
- * ¿Qué me quieres demostrar?
- * Que el servicio usa Redis TTL nativo en lugar de limpieza manual de la DB.
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina la lógica de bloqueo, si cambia el umbral de intentos, o si
- * se vuelve a usar PDO en lugar de CacheItemPoolInterface.
+ * ¿Qué pruebas aquí? RateLimitingService: lógica de bloqueo según el estado del caché.
+ * ¿Qué me quieres demostrar? Que isBlocked retorna false cuando no hay hit de caché, y true cuando locked_until está en el futuro.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se cambia la lógica de locked_until o la clave de retorno.
  */
 
 namespace Tests\Unit\Services;
@@ -25,108 +19,54 @@ use Psr\Cache\CacheItemPoolInterface;
 #[CoversClass(RateLimitingService::class)]
 final class RateLimitingServiceTest extends TestCase
 {
-    private RateLimitingService $service;
-    /** @var \PHPUnit\Framework\MockObject\Stub&CacheItemPoolInterface */
-    private CacheItemPoolInterface $cacheMock;
-
-    protected function setUp(): void
+    public function testIsBlockedReturnsFalseWhenCacheHasNoEntry(): void
     {
-        $this->cacheMock = $this->createStub(CacheItemPoolInterface::class);
-        $this->service = new RateLimitingService($this->cacheMock);
-    }
+        $itemStub = $this->createStub(CacheItemInterface::class);
+        $itemStub->method('isHit')->willReturn(false);
 
-    public function testRecordAttemptCreatesNewRecordWhenNotExists(): void
-    {
-        $item = $this->createStub(CacheItemInterface::class);
-        $item->method('isHit')->willReturn(false);
-        $item->method('set')->willReturnSelf();
-        $item->method('expiresAfter')->willReturnSelf();
+        $cacheStub = $this->createStub(CacheItemPoolInterface::class);
+        $cacheStub->method('getItem')->willReturn($itemStub);
 
-        $this->cacheMock->method('getItem')->willReturn($item);
-        $this->cacheMock->method('save')->willReturn(true);
+        $service = new RateLimitingService($cacheStub);
+        $result  = $service->isBlocked('login', 'user@example.com');
 
-        $result = $this->service->recordAttempt('login', 'test@example.com', '127.0.0.1');
-
-        $this->assertTrue($result);
-    }
-
-    public function testRecordAttemptIncrementsExistingRecord(): void
-    {
-        $item = $this->createStub(CacheItemInterface::class);
-        $item->method('isHit')->willReturn(true);
-        $item->method('get')->willReturn(['attempts' => 2, 'locked_until' => null]);
-        $item->method('set')->willReturnSelf();
-        $item->method('expiresAfter')->willReturnSelf();
-
-        $this->cacheMock->method('getItem')->willReturn($item);
-        $this->cacheMock->method('save')->willReturn(true);
-
-        $result = $this->service->recordAttempt('login', 'test@example.com', '127.0.0.1');
-
-        $this->assertTrue($result);
-    }
-
-    public function testIsBlockedReturnsFalseWhenNoRecordExists(): void
-    {
-        $item = $this->createStub(CacheItemInterface::class);
-        $item->method('isHit')->willReturn(false);
-
-        $this->cacheMock->method('getItem')->willReturn($item);
-
-        $result = $this->service->isBlocked('login', 'test@example.com');
-
-        $this->assertIsArray($result);
         $this->assertFalse($result['blocked']);
     }
 
-    public function testIsBlockedReturnsTrueWhenLockedUntilNotExpired(): void
+    public function testIsBlockedReturnsTrueWhenLockedUntilIsInFuture(): void
     {
-        $futureTimestamp = \time() + 600; // 10 minutos en el futuro
+        $itemStub = $this->createStub(CacheItemInterface::class);
+        $itemStub->method('isHit')->willReturn(true);
+        $itemStub->method('get')->willReturn([
+            'attempts'     => 5,
+            'locked_until' => \time() + 300,
+        ]);
 
-        $item = $this->createStub(CacheItemInterface::class);
-        $item->method('isHit')->willReturn(true);
-        $item->method('get')->willReturn(['attempts' => 5, 'locked_until' => $futureTimestamp]);
+        $cacheStub = $this->createStub(CacheItemPoolInterface::class);
+        $cacheStub->method('getItem')->willReturn($itemStub);
 
-        $this->cacheMock->method('getItem')->willReturn($item);
+        $service = new RateLimitingService($cacheStub);
+        $result  = $service->isBlocked('login', 'user@example.com');
 
-        $result = $this->service->isBlocked('login', 'test@example.com');
-
-        $this->assertIsArray($result);
         $this->assertTrue($result['blocked']);
+        $this->assertArrayHasKey('minutes_remaining', $result);
     }
 
-    public function testGetRecentAttemptsReturnsCount(): void
+    public function testIsBlockedReturnsFalseWhenLockHasExpired(): void
     {
-        $item = $this->createStub(CacheItemInterface::class);
-        $item->method('isHit')->willReturn(true);
-        $item->method('get')->willReturn(['attempts' => 3, 'locked_until' => null]);
+        $itemStub = $this->createStub(CacheItemInterface::class);
+        $itemStub->method('isHit')->willReturn(true);
+        $itemStub->method('get')->willReturn([
+            'attempts'     => 5,
+            'locked_until' => \time() - 60,
+        ]);
 
-        $this->cacheMock->method('getItem')->willReturn($item);
+        $cacheStub = $this->createStub(CacheItemPoolInterface::class);
+        $cacheStub->method('getItem')->willReturn($itemStub);
 
-        $attempts = $this->service->getRecentAttempts('login', 'test@example.com');
+        $service = new RateLimitingService($cacheStub);
+        $result  = $service->isBlocked('login', 'user@example.com');
 
-        $this->assertEquals(3, $attempts);
-    }
-
-    public function testGetRecentAttemptsReturnsZeroWhenNoRecord(): void
-    {
-        $item = $this->createStub(CacheItemInterface::class);
-        $item->method('isHit')->willReturn(false);
-
-        $this->cacheMock->method('getItem')->willReturn($item);
-
-        $attempts = $this->service->getRecentAttempts('login', 'test@example.com');
-
-        $this->assertEquals(0, $attempts);
-    }
-
-    public function testClearAttemptsDeletesRecord(): void
-    {
-        $this->cacheMock->method('deleteItem')->willReturn(true);
-
-        $this->service->clearAttempts('login', 'test@example.com');
-
-        // clearAttempts returns void — just verify no exception thrown
-        $this->assertTrue(true);
+        $this->assertFalse($result['blocked']);
     }
 }

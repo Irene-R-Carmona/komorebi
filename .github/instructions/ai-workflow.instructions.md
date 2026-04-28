@@ -64,12 +64,13 @@ Usar **`context7` MCP** (`resolve-library-id` → `get-library-docs`) ANTES de u
 
 ### Ciclo de rama
 
-| Momento                         | Skill                            |
-|---------------------------------|----------------------------------|
-| Completar implementación        | `verification-before-completion` |
-| Antes de merge / PR             | `requesting-code-review`         |
-| Al recibir feedback de revisión | `receiving-code-review`          |
-| Decisión de integración / PR    | `finishing-a-development-branch` |
+| Momento                         | Skill (Copilot)                  | Skill (Claude Code CLI)  |
+|---------------------------------|----------------------------------|--------------------------|
+| Completar implementación        | `verification-before-completion` | `/simplify`              |
+| Antes de merge / PR             | `requesting-code-review`         | `/security-review`       |
+| Abrir / revisar PR              | `requesting-code-review`         | `/review`                |
+| Al recibir feedback de revisión | `receiving-code-review`          | `/caveman-review`        |
+| Decisión de integración / PR    | `finishing-a-development-branch` | —                        |
 
 ### Tareas paralelas o desglosadas
 
@@ -78,6 +79,24 @@ Usar **`context7` MCP** (`resolve-library-id` → `get-library-docs`) ANTES de u
 | Investigar y desglosar tarea compleja en plan    | Subagente **`Plan`**          |
 | Plan con 3+ tareas independientes en esta sesión | `subagent-driven-development` |
 | 2+ tareas sin estado compartido simultáneas      | `dispatching-parallel-agents` |
+
+### Feature con especificacion formal (spec-driven)
+
+Usar cuando la feature tiene invariantes claros, multiples implementadores o riesgo de drift:
+
+1. `/ck:spec` — crear/amend `SPEC.md` con goal, constraints, interfaces, invariantes, tareas
+2. `/ck:build` — implementar tarea por tarea contra la spec
+3. `/ck:check` — verificar drift tras cambios; si hay violaciones, volver a `/ck:spec`
+
+### Utilidades Claude Code CLI
+
+| Situacion                                           | Skill Claude Code        |
+|-----------------------------------------------------|--------------------------|
+| No existe `CLAUDE.md` o esta desactualizado         | `/init`                  |
+| Documentacion del proyecto necesita mejora          | `/claude-md-improver`    |
+| Muchos prompts de permiso en sesion                 | `/fewer-permission-prompts` |
+| Monitorear proceso en background                    | `/loop`                  |
+| Automatizar tarea recurrente                        | `/schedule`              |
 
 ### Cuándo usar cada MCP de browser
 

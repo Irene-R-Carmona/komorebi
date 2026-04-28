@@ -117,4 +117,28 @@ final class MicroestacionesServiceTest extends TestCase
         $this->assertArrayHasKey('id', $actual);
         $this->assertArrayHasKey('nombre_es', $actual);
     }
+
+    public function testObtenerActualConFechaEspecificaDevuelveSekkiCorrecto(): void
+    {
+        // Risshun (立春) cubre 02-04 → 02-18: usar 02-10 para ser determinista
+        $fecha = new \DateTime('2024-02-10');
+
+        $sekki = $this->service->obtenerActual($fecha);
+
+        $this->assertIsArray($sekki);
+        $this->assertSame(1, $sekki['id']);
+        $this->assertSame('立春', $sekki['nombre_ja']);
+    }
+
+    // ──────────────────────────────────────────────
+    // obtenerMensajeContextual
+    // ──────────────────────────────────────────────
+
+    public function testObtenerMensajeContextualRetornaStringNoVacio(): void
+    {
+        $mensaje = $this->service->obtenerMensajeContextual();
+
+        $this->assertIsString($mensaje);
+        $this->assertNotEmpty($mensaje);
+    }
 }

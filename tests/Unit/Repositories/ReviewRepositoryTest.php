@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Repositories;
 
+use App\Domain\DTO\ReviewDTO;
 use App\Repositories\ReviewRepository;
 use PDO;
 use PDOStatement;
@@ -63,9 +64,9 @@ final class ReviewRepositoryTest extends TestCase
 
         $result = $this->repository->findById(1);
 
-        $this->assertIsArray($result);
-        $this->assertSame(1, $result['id']);
-        $this->assertSame('Excelente', $result['title']);
+        $this->assertInstanceOf(ReviewDTO::class, $result);
+        $this->assertSame(1, $result->id);
+        $this->assertSame('Excelente', $result->title);
     }
 
     public function testFindByCafeIdReturnsArray(): void

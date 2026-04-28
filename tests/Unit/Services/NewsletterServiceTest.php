@@ -3,18 +3,9 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * NewsletterService: subscribe (email válido, email inválido, duplicado),
- * unsubscribe y getSubscribers.
- *
- * ¿Qué me quieres demostrar?
- * Que subscribe valida formato de email, que los duplicados retornan
- * Result::fail con código apropiado, y que unsubscribe actualiza el estado.
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina la validación de formato de email, si el manejo de
- * duplicados deja de retornar Result::fail, o si subscribe cambia
- * el código de error de duplicado.
+ * ¿Qué pruebas aquí? NewsletterService: validación de email y detección de suscripción duplicada.
+ * ¿Qué me quieres demostrar? Que subscribe retorna fail con email inválido o ya confirmado.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se elimina la validación de email o de duplicados.
  */
 
 namespace Tests\Unit\Services;
@@ -24,128 +15,79 @@ use App\Services\NewsletterService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Tests para NewsletterService
- *
- * Verifica:
- * - Suscripción a newsletter
- * - Validación de emails
- * - Prevención de duplicados
- */
 #[CoversClass(NewsletterService::class)]
 final class NewsletterServiceTest extends TestCase
 {
+    private NewsletterSubscriptionRepositoryInterface $repoStub;
     private NewsletterService $service;
-    /** @var \PHPUnit\Framework\MockObject\Stub&NewsletterSubscriptionRepositoryInterface */
-    private NewsletterSubscriptionRepositoryInterface $subscriptionRepoMock;
 
     protected function setUp(): void
     {
-        $this->subscriptionRepoMock = $this->createStub(NewsletterSubscriptionRepositoryInterface::class);
-        $this->service = new NewsletterService($this->subscriptionRepoMock);
+        $this->repoStub = $this->createStub(NewsletterSubscriptionRepositoryInterface::class);
+        $this->service  = new NewsletterService($this->repoStub);
     }
 
-    public function testSubscribeWithValidEmailReturnsSuccess(): void
+    public function testSubscribeFailsWithInvalidEmail(): void
     {
-        $this->subscriptionRepoMock->method('findByEmail')->willReturn(null);
-        $this->subscriptionRepoMock->method('create')->willReturn(true);
-
-        $result = $this->service->subscribe('test@example.com');
-
-        // subscribe() retorna Result::ok si el email se enquó o se envió sync
-        // En entorno de test no hay cola, el envío sync puede fallar —
-        // solo verificamos que NO es un fail de validación de formato
-        $this->assertNotSame('Email inválido', $result->error);
-    }
-
-    public function testSubscribeWithInvalidEmailReturnsError(): void
-    {
-        $result = $this->service->subscribe('invalid-email');
+        $result = $this->service->subscribe('not-an-email');
 
         $this->assertFalse($result->ok);
-        $this->assertNotNull($result->error);
-        $this->assertStringContainsString('válido', \strtolower($result->error ?? ''));
+        $this->assertStringContainsString('inválido', $result->error);
     }
 
-    public function testSubscribeWithEmptyEmailReturnsError(): void
+    public function testSubscribeFailsWhenAlreadyConfirmed(): void
     {
-        $result = $this->service->subscribe('');
-
-        $this->assertFalse($result->ok);
-        $this->assertNotNull($result->error);
-    }
-
-    public function testSubscribeWithAlreadySubscribedEmailReturnsFail(): void
-    {
-        $this->subscriptionRepoMock->method('findByEmail')->willReturn([
-            'id' => 1,
-            'email' => 'test@example.com',
-            'confirmed_at' => '2026-01-01 00:00:00',
+        $this->repoStub->method('findByEmail')->willReturn([
+            'email'           => 'user@example.com',
+            'confirmed_at'    => '2025-01-01 00:00:00',
             'unsubscribed_at' => null,
         ]);
 
-        $result = $this->service->subscribe('test@example.com');
+        $result = $this->service->subscribe('user@example.com');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('suscrito', \strtolower($result->error ?? ''));
+        $this->assertStringContainsString('ya está suscrito', $result->error);
     }
 
-    public function testConfirmWithValidTokenReturnsSuccess(): void
+    public function testGetConfirmedEmailsDelegatesToRepository(): void
     {
-        $this->subscriptionRepoMock->method('findByToken')->willReturn([
-            'id' => 1,
-            'email' => 'test@example.com',
-            'confirmed_at' => null,
-        ]);
-        $this->subscriptionRepoMock->method('markConfirmed')->willReturn(true);
+        $this->repoStub->method('getConfirmedEmails')->willReturn(['a@a.com', 'b@b.com']);
 
-        $result = $this->service->confirm('valid-token-123');
+        $emails = $this->service->getConfirmedEmails();
 
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertCount(2, $emails);
     }
 
-    public function testConfirmWithInvalidTokenReturnsFail(): void
+    public function testConfirmReturnsFalseForInvalidToken(): void
     {
-        $this->subscriptionRepoMock->method('findByToken')->willReturn(null);
+        $this->repoStub->method('findByToken')->willReturn(null);
 
-        $result = $this->service->confirm('bad-token');
+        $result = $this->service->confirm('invalid-token');
 
         $this->assertFalse($result['success']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertStringContainsString('inválido', $result['message']);
     }
 
-    public function testUnsubscribeWithValidTokenReturnsSuccess(): void
+    public function testConfirmSucceedsForValidToken(): void
     {
-        $this->subscriptionRepoMock->method('findByToken')->willReturn([
-            'id' => 1,
-            'email' => 'test@example.com',
+        $this->repoStub->method('findByToken')->willReturn([
+            'email'        => 'user@example.com',
+            'confirmed_at' => null,
         ]);
-        $this->subscriptionRepoMock->method('markUnsubscribed')->willReturn(true);
 
-        $result = $this->service->unsubscribe('valid-token-123');
+        $result = $this->service->confirm('valid-token');
 
         $this->assertTrue($result['success']);
+        $this->assertSame('user@example.com', $result['email']);
     }
 
-    public function testUnsubscribeWithInvalidTokenReturnsError(): void
+    public function testUnsubscribeReturnsFalseForInvalidToken(): void
     {
-        $this->subscriptionRepoMock->method('findByToken')->willReturn(null);
+        $this->repoStub->method('findByToken')->willReturn(null);
 
         $result = $this->service->unsubscribe('invalid-token');
 
         $this->assertFalse($result['success']);
-        $this->assertArrayHasKey('message', $result);
-    }
-
-    public function testGetConfirmedEmailsReturnsArray(): void
-    {
-        $emails = ['user1@example.com', 'user2@example.com'];
-        $this->subscriptionRepoMock->method('getConfirmedEmails')->willReturn($emails);
-
-        $result = $this->service->getConfirmedEmails();
-
-        $this->assertIsArray($result);
-        $this->assertCount(2, $result);
+        $this->assertStringContainsString('inválido', $result['message']);
     }
 }

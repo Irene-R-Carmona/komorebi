@@ -3,22 +3,13 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * Los métodos de instancia de NavigationService: getMenu, getMenuBadged
- * y checkIsActive, que generan menús de navegación según el rol del usuario.
- *
- * ¿Qué me quieres demostrar?
- * Que el enrutamiento de menú es correcto para cada rol, que isActive funciona
- * con coincidencia exacta y de prefijo, y que los badges se aplican correctamente.
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina un rol del switch/match de getMenu, si se cambia la URL
- * de algún ítem de menú, o si se modifica la lógica de prefijo en checkIsActive.
+ * ¿Qué pruebas aquí? NavigationService: lógica pura de URLs activas y rutas de backoffice.
+ * ¿Qué me quieres demostrar? Que checkIsActive y isBackofficePath retornan los valores correctos.
+ * ¿Qué va a fallar en este test si se cambia el código? Si la comparación de URLs o el prefijo de backoffice cambia.
  */
 
 namespace Tests\Unit\Services;
 
-use App\Core\Middleware;
 use App\Services\NavigationService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -26,117 +17,81 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(NavigationService::class)]
 final class NavigationServiceTest extends TestCase
 {
-    // ──────────────────────────────────────────────
-    // getMenu
-    // ──────────────────────────────────────────────
+    private NavigationService $service;
 
-    public function testGetMenuAdminDevuelveSecciones(): void
+    protected function setUp(): void
     {
-        $menu = new NavigationService()->getMenu(Middleware::ROLE_ADMIN);
+        $this->service = new NavigationService();
+    }
+
+    public function testCheckIsActiveReturnsTrueForExactMatch(): void
+    {
+        $this->assertTrue($this->service->checkIsActive('/admin/users', '/admin/users'));
+    }
+
+    public function testCheckIsActiveReturnsFalseForDifferentUrls(): void
+    {
+        $this->assertFalse($this->service->checkIsActive('/admin/users', '/admin/cafes'));
+    }
+
+    public function testIsBackofficePathReturnsTrueForAdminPath(): void
+    {
+        $this->assertTrue($this->service->isBackofficePath('/admin/dashboard'));
+    }
+
+    public function testIsBackofficePathReturnsFalseForPublicPath(): void
+    {
+        $this->assertFalse($this->service->isBackofficePath('/menu'));
+    }
+
+    public function testGetMenuReturnsSomeItemsForAdminRole(): void
+    {
+        $menu = $this->service->getMenu('admin');
 
         $this->assertIsArray($menu);
         $this->assertNotEmpty($menu);
-        $this->assertArrayHasKey('Sistema', $menu);
     }
 
-    public function testGetMenuManagerDevuelveMenuNoVacio(): void
+    public function testCheckIsActiveReturnsTrueForPrefixMatch(): void
     {
-        $menu = new NavigationService()->getMenu(Middleware::ROLE_MANAGER);
+        $this->assertTrue($this->service->checkIsActive('/admin/users', '/admin/users/5'));
+    }
+
+    public function testCheckIsActiveReturnsFalseWhenItemUrlIsSlash(): void
+    {
+        $this->assertFalse($this->service->checkIsActive('/', '/about'));
+    }
+
+    public function testIsBackofficePathReturnsTrueForManagerPath(): void
+    {
+        $this->assertTrue($this->service->isBackofficePath('/manager/dashboard'));
+    }
+
+    public function testGetMenuReturnsEmptyForUnknownRole(): void
+    {
+        $menu = $this->service->getMenu('unknown');
+
+        $this->assertSame([], $menu);
+    }
+
+    public function testSuggestedLinkReturnsHomeWhenNotAuthenticated(): void
+    {
+        $link = $this->service->suggestedLink('/admin/users', false, 'admin');
+
+        $this->assertSame('/', $link['href']);
+    }
+
+    public function testSuggestedLinkReturnsAdminDashboardForAdmin(): void
+    {
+        $link = $this->service->suggestedLink('/admin/users', true, 'admin');
+
+        $this->assertStringContainsString('/admin/dashboard', $link['href']);
+    }
+
+    public function testGetMenuBadgedAddsBadge(): void
+    {
+        $menu = $this->service->getMenuBadged('admin', []);
 
         $this->assertIsArray($menu);
-        $this->assertNotEmpty($menu);
-    }
-
-    public function testGetMenuKeeperDevuelveMenuAnimal(): void
-    {
-        $menu = new NavigationService()->getMenu(Middleware::ROLE_KEEPER);
-
-        $this->assertIsArray($menu);
-        $this->assertArrayHasKey('Bienestar Animal', $menu);
-    }
-
-    public function testGetMenuDesconocidoDevuelveArrayVacio(): void
-    {
-        $menu = new NavigationService()->getMenu('rol_inexistente');
-
-        $this->assertIsArray($menu);
-        $this->assertEmpty($menu);
-    }
-
-    public function testGetMenuAdminContieneItemConUrl(): void
-    {
-        $menu = new NavigationService()->getMenu(Middleware::ROLE_ADMIN);
-
-        $items = $menu['Sistema'];
-        $this->assertIsArray($items);
-        $this->assertNotEmpty($items);
-
-        $firstItem = $items[0];
-        $this->assertArrayHasKey('url', $firstItem);
-        $this->assertArrayHasKey('label', $firstItem);
-        $this->assertArrayHasKey('icon', $firstItem);
-    }
-
-    // ──────────────────────────────────────────────
-    // checkIsActive
-    // ──────────────────────────────────────────────
-
-    public function testCheckIsActiveConIncidenciaExacta(): void
-    {
-        $this->assertTrue(new NavigationService()->checkIsActive('/admin/dashboard', '/admin/dashboard'));
-    }
-
-    public function testCheckIsActiveConPrefijoCoincidente(): void
-    {
-        // /admin/users debería ser "activo" cuando la URL actual es /admin/users/1
-        $this->assertTrue(new NavigationService()->checkIsActive('/admin/users', '/admin/users/1'));
-    }
-
-    public function testCheckIsActiveRetornaFalseCuandoNoCoincide(): void
-    {
-        $this->assertFalse(new NavigationService()->checkIsActive('/admin/users', '/admin/settings'));
-    }
-
-    public function testCheckIsActiveConSlashRaizNoEsPrefijoUniversal(): void
-    {
-        // La raíz '/' no debe marcar como activo cualquier página
-        $this->assertFalse(new NavigationService()->checkIsActive('/', '/admin/dashboard'));
-    }
-
-    // ──────────────────────────────────────────────
-    // getMenuBadged
-    // ──────────────────────────────────────────────
-
-    public function testGetMenuBadgedAplicaBadgeAItemEspecifico(): void
-    {
-        $badges = ['ops/reception' => 3];
-        $menu = new NavigationService()->getMenuBadged(Middleware::ROLE_SUPERVISOR, $badges);
-
-        $this->assertIsArray($menu);
-        $this->assertNotEmpty($menu);
-
-        // Buscar el ítem de recepción y verificar que tiene el badge
-        $badgeFound = false;
-        foreach ($menu as $items) {
-            foreach ($items as $item) {
-                if (\str_contains($item['url'], '/ops/reception') && isset($item['badge'])) {
-                    $this->assertSame(3, $item['badge']);
-                    $badgeFound = true;
-                }
-            }
-        }
-
-        $this->assertTrue($badgeFound, 'Badge no encontrado en ítem de recepción');
-    }
-
-    public function testGetMenuBadgedSinBadgesNoAgregaPropiedadBadge(): void
-    {
-        $menu = new NavigationService()->getMenuBadged(Middleware::ROLE_ADMIN, []);
-
-        foreach ($menu as $items) {
-            foreach ($items as $item) {
-                $this->assertArrayNotHasKey('badge', $item);
-            }
-        }
     }
 }

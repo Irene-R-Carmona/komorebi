@@ -57,10 +57,45 @@ final class MenuControllerTest extends ControllerTestCase
         $this->assertSame(200, $response->getStatusCode());
     }
 
+    public function test_get_product_returns_200_and_registers_view(): void
+    {
+        $recentlyViewedService = $this->createStub(RecentlyViewedServiceInterface::class);
+        $controller = new MenuController(
+            new ResponseFactory(),
+            $this->createStub(MenuServiceInterface::class),
+            $recentlyViewedService,
+        );
+
+        $request = $this->makeGetRequest('/api/v1/menu/products/5')
+            ->withAttribute('id', '5');
+
+        $response = $controller->getProduct($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $body = \json_decode((string) $response->getBody(), true);
+        $this->assertTrue($body['ok']);
+    }
+
+    public function test_get_product_returns_422_when_id_invalid(): void
+    {
+        $controller = new MenuController(
+            new ResponseFactory(),
+            $this->createStub(MenuServiceInterface::class),
+            $this->createStub(RecentlyViewedServiceInterface::class),
+        );
+
+        $request = $this->makeGetRequest('/api/v1/menu/products/0')
+            ->withAttribute('id', '0');
+
+        $response = $controller->getProduct($request);
+
+        $this->assertSame(422, $response->getStatusCode());
+    }
+
     public function test_class_has_expected_methods(): void
     {
         $this->assertTrue(\method_exists(MenuController::class, 'allergens'));
         $this->assertTrue(\method_exists(MenuController::class, 'products'));
-        $this->assertTrue(\method_exists(MenuController::class, 'viewProduct'));
+        $this->assertTrue(\method_exists(MenuController::class, 'getProduct'));
     }
 }

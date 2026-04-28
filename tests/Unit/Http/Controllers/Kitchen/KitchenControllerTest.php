@@ -2,15 +2,15 @@
 
 /**
  * ¿Qué pruebas aquí?
- * Verifica que Kitchen/KitchenController cumple el contrato PSR-7.
+ * Verifica que Kitchen/KitchenController cumple el contrato SSR esperado.
  *
  * ¿Qué me quieres demostrar?
- * Que ready() lanza ValidationException cuando item_id no se proporciona,
- * y que el controlador puede instanciarse con sesión activa.
+ * Que el controlador se puede instanciar con stubs y expone los métodos
+ * de visualización del KDS (index, history, activeOrders).
  *
  * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina la validación de item_id en ready(),
- * o si el constructor deja de requerir autenticación.
+ * Si se elimina alguno de los métodos SSR del controlador,
+ * o si el constructor deja de aceptar KitchenServiceInterface.
  */
 
 declare(strict_types=1);
@@ -18,27 +18,22 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Kitchen;
 
 use App\Core\Http\ResponseFactory;
-use App\Exceptions\ValidationException;
 use App\Http\Controllers\Kitchen\KitchenController;
-use App\Repositories\Contracts\ReservationItemRepositoryInterface;
-use App\Services\KitchenService;
-use Nyholm\Psr7\ServerRequest;
+use App\Services\Contracts\KitchenServiceInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Tests\Support\ControllerTestCase;
+use PHPUnit\Framework\TestCase;
 
 #[CoversClass(KitchenController::class)]
-final class KitchenControllerTest extends ControllerTestCase
+final class KitchenControllerTest extends TestCase
 {
     protected function setUp(): void
     {
         if (\session_status() === \PHP_SESSION_NONE) {
             \session_start();
         }
-        // KitchenController llama Middleware::auth() en constructor
         $_SESSION['user_id'] = 1;
         $_SESSION['user'] = ['id' => 1, 'name' => 'Chef', 'roles' => ['kitchen']];
         $_SESSION['user_roles'] = ['kitchen'];
-        // Evita que el TTL check dispare fetchUserFromDb() en tests unitarios
         $_SESSION['_user_verified_at'] = \time();
     }
 
@@ -50,35 +45,20 @@ final class KitchenControllerTest extends ControllerTestCase
     private function makeController(): KitchenController
     {
         return new KitchenController(
-            service: new KitchenService($this->createStub(ReservationItemRepositoryInterface::class)),
+            service: $this->createStub(KitchenServiceInterface::class),
             response: new ResponseFactory(),
         );
     }
 
-    public function test_ready_throws_validation_exception_when_item_id_is_missing(): void
+    public function test_instance_can_be_created_with_stubs(): void
     {
-        $this->expectException(ValidationException::class);
-
-        $this->makeController()->ready(
-            new ServerRequest('POST', '/ops/kitchen/ready')
-        );
-    }
-
-    public function test_ready_throws_validation_exception_when_item_id_is_zero(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        $this->makeController()->ready(
-            new ServerRequest('POST', '/ops/kitchen/ready')
-                ->withParsedBody(['item_id' => 0])
-        );
+        $this->assertInstanceOf(KitchenController::class, $this->makeController());
     }
 
     public function test_class_has_expected_methods(): void
     {
         $this->assertTrue(\method_exists(KitchenController::class, 'index'));
-        $this->assertTrue(\method_exists(KitchenController::class, 'ready'));
+        $this->assertTrue(\method_exists(KitchenController::class, 'history'));
         $this->assertTrue(\method_exists(KitchenController::class, 'activeOrders'));
-        $this->assertTrue(\method_exists(KitchenController::class, 'completeOrder'));
     }
 }

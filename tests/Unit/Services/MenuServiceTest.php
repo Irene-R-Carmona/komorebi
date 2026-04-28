@@ -20,6 +20,7 @@ namespace Tests\Unit\Services;
 
 use App\Repositories\Contracts\MenuRepositoryInterface;
 use App\Services\MenuService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -223,6 +224,7 @@ final class MenuServiceTest extends TestCase
     // Tests: getMenuForView
     // ─────────────────────────────────────────────────────────────
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testGetMenuForViewReturnsCompleteStructure(): void
     {
         // ARRANGE: Mock repository methods
@@ -251,5 +253,84 @@ final class MenuServiceTest extends TestCase
         // Verificar tipos de café
         $this->assertCount(4, $result['cafeTypes']);
         $this->assertSame('lounge', $result['cafeTypes'][0]['value']);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Tests: getAllProducts
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetAllProductsReturnsDelegatedArray(): void
+    {
+        $expected = [
+            ['id' => 1, 'name' => 'Café Latte', 'price' => 500],
+            ['id' => 2, 'name' => 'Matcha', 'price' => 600],
+        ];
+
+        $this->mockMenuRepo->expects($this->once())
+            ->method('getAllProducts')
+            ->willReturn($expected);
+
+        $result = $this->service->getAllProducts();
+
+        $this->assertSame($expected, $result);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Tests: getAllergens
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetAllergensReturnsDelegatedArray(): void
+    {
+        $expected = [
+            ['id' => 1, 'name' => 'Gluten', 'name_jp' => 'グルテン', 'icon' => 'wheat', 'icon_color' => '#D4A017', 'severity' => 'high'],
+            ['id' => 2, 'name' => 'Leche', 'name_jp' => 'ミルク', 'icon' => 'milk', 'icon_color' => '#fff', 'severity' => 'moderate'],
+        ];
+
+        $this->mockMenuRepo->expects($this->once())
+            ->method('getAllergens')
+            ->willReturn($expected);
+
+        $result = $this->service->getAllergens();
+
+        $this->assertSame($expected, $result);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Tests: allergen parsing logic in getProductsByCategory
+    // ─────────────────────────────────────────────────────────────
+
+    #[AllowMockObjectsWithoutExpectations]
+    public function testGetProductsByCategoryParsesAllergenFieldsIntoAllergensList(): void
+    {
+        $this->mockMenuRepo->method('getProductsByCategory')
+            ->willReturn([
+                [
+                    'id' => 1,
+                    'category_id' => 1,
+                    'name' => 'Croissant',
+                    'price' => 300,
+                    'allergen_ids' => '1,2',
+                    'allergen_names' => 'Gluten,Leche',
+                    'allergen_icons' => 'wheat,milk',
+                    'allergen_colors' => '#D4A017,#ffffff',
+                    'allergen_severities' => 'high,moderate',
+                ],
+            ]);
+
+        $result = $this->service->getProductsByCategory();
+
+        $product = $result[1][0];
+        $this->assertArrayHasKey('allergens_list', $product);
+        $this->assertCount(2, $product['allergens_list']);
+
+        $this->assertSame(1, $product['allergens_list'][0]['id']);
+        $this->assertSame('Gluten', $product['allergens_list'][0]['name']);
+        $this->assertSame('wheat', $product['allergens_list'][0]['icon']);
+        $this->assertSame('#D4A017', $product['allergens_list'][0]['icon_color']);
+        $this->assertSame('high', $product['allergens_list'][0]['severity']);
+
+        $this->assertSame(2, $product['allergens_list'][1]['id']);
+        $this->assertSame('Leche', $product['allergens_list'][1]['name']);
+        $this->assertSame('moderate', $product['allergens_list'][1]['severity']);
     }
 }

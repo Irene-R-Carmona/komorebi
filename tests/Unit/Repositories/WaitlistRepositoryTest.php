@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Repositories;
 
+use App\Domain\DTO\WaitlistEntryDTO;
 use App\Repositories\WaitlistRepository;
 use PDO;
 use PDOStatement;
@@ -49,22 +50,26 @@ final class WaitlistRepositoryTest extends TestCase
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'id' => 1,
+            'token' => 'abc-token-123',
             'user_id' => 5,
             'time_slot_id' => 10,
             'position' => 3,
             'status' => 'waiting',
-            'reservation_date' => '2026-02-20',
-            'reservation_time' => '14:00:00',
+            'slot_date' => '2026-02-20',
+            'slot_time' => '14:00:00',
             'cafe_name' => 'Komorebi Café',
+            'guest_count' => 2,
+            'contact_email' => 'test@example.com',
+            'expires_at' => null,
         ]);
 
         $this->db->method('prepare')->willReturn($stmt);
 
         $result = $this->repository->findById(1);
 
-        $this->assertIsArray($result);
-        $this->assertSame(1, $result['id']);
-        $this->assertSame(3, $result['position']);
+        $this->assertInstanceOf(WaitlistEntryDTO::class, $result);
+        $this->assertSame(1, $result->id);
+        $this->assertSame(3, $result->position);
     }
 
     public function testGetPositionReturnsInt(): void

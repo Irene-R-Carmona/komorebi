@@ -16,9 +16,9 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use App\Models\Reservation;
-use App\Models\TimeSlot;
 use App\Models\Waitlist;
+use App\Repositories\ReservationRepository;
+use App\Repositories\TimeSlotRepository;
 use App\Repositories\WaitlistRepository;
 use App\Services\EmailService;
 use App\Services\WaitlistService;
@@ -46,8 +46,8 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
             self::$db,
             new EmailService(),
             new WaitlistRepository(self::$db),
-            new TimeSlot(self::$db),
-            new Reservation(self::$db)
+            new TimeSlotRepository(self::$db),
+            new ReservationRepository(self::$db)
         );
     }
 

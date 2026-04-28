@@ -11,7 +11,7 @@
 
   if (typeof window.cart === 'undefined') {
     window.cart = {
-      totalQty: 0,
+      total_qty: 0,
       totalPrice: 0,
       items: [],
     };

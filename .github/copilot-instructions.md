@@ -53,6 +53,28 @@ Cuando haya ≥ 1 % de probabilidad de que una skill aplique → **invócala sin
 
 **Utilidades:** `using-superpowers`, `writing-skills`, `find-skills`, `troubleshoot`, `agent-customization`
 
+## Claude Code Skills (sesiones Claude Code CLI — invocar con `/`)
+
+| Skill | Comando | Cuando invocar |
+|-------|---------|----------------|
+| Spec-driven: crear/amend spec | `/ck:spec` | Antes de implementar feature — crea/modifica SPEC.md |
+| Spec-driven: implementar | `/ck:build` | Ejecutar tareas definidas en SPEC.md |
+| Spec-driven: detectar drift | `/ck:check` | Verificar que codigo cumple invariantes de SPEC.md |
+| Auditoria seguridad rama | `/security-review` | Antes de PR si hay cambios en auth, rutas, inputs, CSRF |
+| Simplificar codigo | `/simplify` | Tras escribir/modificar archivos — calidad y reuso |
+| Inicializar CLAUDE.md | `/init` | Si no existe CLAUDE.md o necesita actualizacion |
+| Review PR completo | `/review` | Antes de abrir o fusionar pull request |
+| Review comprimido | `/caveman-review` | Code review rapido — una linea por problema |
+| Commit comprimido | `/caveman-commit` | Generar commit message en Conventional Commits |
+| Mejorar CLAUDE.md | `/claude-md-improver` | Auditar y mejorar documentacion del proyecto |
+| Reducir permisos | `/fewer-permission-prompts` | Inicio de sesion — optimiza allowlist con historial |
+| Tareas recurrentes | `/loop` | Ejecutar prompt en intervalo (ej. monitorear build) |
+| Agente programado | `/schedule` | Crear tarea cron con agente Claude Code |
+
+> **Auto-activacion en Claude Code:** hooks en `~/.claude/hooks/` detectan contexto automaticamente.
+> Session start: hints de skills relevantes al estado del repo.
+> Cada prompt: sugerencias segun keywords (commit, review, security, php, spec...).
+
 ## Prompts reutilizables disponibles (`/` en Copilot Chat)
 
 | Prompt                 | Uso                                                        |

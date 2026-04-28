@@ -1,5 +1,5 @@
 document.addEventListener('alpine:init', () => {
-  Alpine.data('menuApp', (catInicial) => ({
+  Alpine.data('menuApp', (catInicial, cartInicial = null) => ({
     // UI
     activeTab: catInicial,
     search: '',
@@ -7,15 +7,17 @@ document.addEventListener('alpine:init', () => {
     showAllergenFilter: false,
 
     // Estado carrito
-    cart: { items: {}, totalQty: 0, totalPrice: 0 },
-    loading: true,
+    cart: cartInicial ?? { items: {}, total_qty: 0, totalPrice: 0 },
+    loading: false,
 
     // Filtros
     excludedAllergens: [],
     selectedCafeType: null, // null = todos, 'lounge' | 'playroom' | 'farm' | 'zen',
 
     async init() {
-      await this.fetchCart();
+      if (cartInicial === null) {
+        await this.fetchCart();
+      }
       // Si no vino desde el servidor, leer parámetros de la URL
       try {
         const params = new URLSearchParams(globalThis.location.search);
@@ -50,7 +52,7 @@ document.addEventListener('alpine:init', () => {
               return;
             }
           }
-          this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+          this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
           return;
         }
 
@@ -68,13 +70,13 @@ document.addEventListener('alpine:init', () => {
                 if (guestData.ok && guestData.data) {
                   this.cart = guestData.data;
                 } else {
-                  this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+                  this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
                 }
               } else {
-                this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+                this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
               }
             } catch (error_) {
-              this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+              this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
             }
             return;
           }
@@ -89,11 +91,11 @@ document.addEventListener('alpine:init', () => {
           this.cart = responseData.data;
         } else {
           console.warn('Formato de carrito inesperado:', responseData);
-          this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+          this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
         }
       } catch (e) {
         console.error('Error cargando carrito:', e);
-        this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+        this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
       }
     },
 
@@ -110,10 +112,10 @@ document.addEventListener('alpine:init', () => {
       }
 
       // Backup para rollback
-      const oldCart = structuredClone(this.cart || { items: {}, totalQty: 0, totalPrice: 0 });
+      const oldCart = structuredClone(this.cart || { items: {}, total_qty: 0, totalPrice: 0 });
 
       // Optimistic UI
-      if (!this.cart) this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+      if (!this.cart) this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
       if (!this.cart.items) this.cart.items = {};
 
       const currentQty = this.cart.items[productId] || 0;
@@ -134,13 +136,13 @@ document.addEventListener('alpine:init', () => {
       const token = tokenEl ? tokenEl.getAttribute('content') : '';
 
       try {
-        const res = await fetch('/api/v1/cart/update', {
-          method: 'POST',
+        const res = await fetch(`/api/v1/cart/items/${productId}`, {
+          method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': token
           },
-          body: JSON.stringify({ product_id: productId, change })
+          body: JSON.stringify({ change })
         });
 
         const responseData = await res.json();

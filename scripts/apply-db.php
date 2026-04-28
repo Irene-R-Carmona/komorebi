@@ -188,7 +188,8 @@ if (!$seedersOnly) {
             // - MySQL ADD COLUMN:   "Duplicate column name"
             // - MySQL CREATE INDEX: "Duplicate key name"
             $msg = $e->getMessage();
-            if (str_contains($msg, 'already exists')
+            if (
+                str_contains($msg, 'already exists')
                 || str_contains($msg, 'Duplicate column name')
                 || str_contains($msg, 'Duplicate key name')
             ) {
@@ -484,7 +485,7 @@ try {
         'evt_cleanup_old_animals',
     ];
 
-    $foundEvents = array_map(static fn ($e) => $e['Name'], $events);
+    $foundEvents = array_map(static fn($e) => $e['Name'], $events);
 
     logMsg('Eventos encontrados:');
     $totalFound = 0;

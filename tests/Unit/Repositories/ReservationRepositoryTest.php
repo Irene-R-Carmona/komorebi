@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Repositories;
 
+use App\Domain\DTO\ReservationDTO;
 use App\Repositories\ReservationRepository;
 use PDO;
 use PDOStatement;
@@ -75,9 +76,9 @@ final class ReservationRepositoryTest extends TestCase
         $result = $this->repository->findById(1);
 
         // Verificar
-        $this->assertIsArray($result);
-        $this->assertEquals(1, $result['id']);
-        $this->assertEquals('confirmed', $result['status']);
+        $this->assertInstanceOf(ReservationDTO::class, $result);
+        $this->assertSame(1, $result->id);
+        $this->assertSame('confirmed', $result->status);
     }
 
     public function testFindByIdReturnsNullWhenNotFound(): void

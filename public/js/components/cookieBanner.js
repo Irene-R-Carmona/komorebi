@@ -57,10 +57,11 @@
 
         async saveConsent() {
           try {
-            const response = await fetch('/api/v1/cookies/update', {
-              method: 'POST',
+            const response = await fetch('/api/v1/cookies', {
+              method: 'PATCH',
               headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
               body: JSON.stringify({
+                consent: 'custom',
                 essential: this.preferences.essential,
                 functional: this.preferences.functional,
                 analytics: this.preferences.analytics

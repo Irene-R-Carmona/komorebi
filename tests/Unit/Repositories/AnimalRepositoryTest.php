@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace Repositories;
 
+use App\Domain\DTO\AnimalDTO;
+use App\Domain\Mappers\AnimalMapper;
 use App\Repositories\AnimalRepository;
 use PDO;
 use PDOStatement;
@@ -32,7 +34,7 @@ final class AnimalRepositoryTest extends TestCase
     protected function setUp(): void
     {
         $this->db = $this->createStub(PDO::class);
-        $this->repository = new AnimalRepository($this->db);
+        $this->repository = new AnimalRepository(new AnimalMapper(), $this->db);
     }
 
     protected function tearDown(): void
@@ -62,9 +64,9 @@ final class AnimalRepositoryTest extends TestCase
 
         $result = $this->repository->findById(1);
 
-        $this->assertIsArray($result);
-        $this->assertSame(1, $result['id']);
-        $this->assertSame('Luna', $result['name']);
+        $this->assertInstanceOf(AnimalDTO::class, $result);
+        $this->assertSame(1, $result->id);
+        $this->assertSame('Luna', $result->name);
     }
 
     public function testFindByIdReturnsNullWhenNotFound(): void

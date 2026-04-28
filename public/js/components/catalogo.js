@@ -3,30 +3,36 @@
 (function () {
   'use strict';
 
-  globalThis.catalogoApp = function (favoritosIniciales = [], cafesData = []) {
+  globalThis.catalogoApp = function (config = {}) {
     return {
       filtroTipo: 'todos',
       busqueda: '',
-      cafes: cafesData,
-      favoritos: new Set((favoritosIniciales || []).map(String)),
+      cafes: Array.isArray(config.cafes) ? config.cafes : [],
+      favoritos: new Set((Array.isArray(config.favoritos) ? config.favoritos : []).map(String)),
       filtrosGuardados: false,
 
       get hayResultados() {
         if (this.cafes.length === 0) return true;
-        return this.cafes.some(c => this.filtrar(c));
+        return this.cafesFiltrados.length > 0;
       },
 
-      init() { this.restaurarFiltros(); },
+      get cafesFiltrados() {
+        return this.cafes.filter(c => this.filtrar(c));
+      },
+
+      async init() {
+        await this.restaurarFiltros();
+      },
 
       async restaurarFiltros() {
         try {
           if (!globalThis.CookieHelper || !CookieHelper.hasConsent('functional')) return;
-          const resp = await fetch('/api/v1/cookies/get-filters', { method: 'GET', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+          const resp = await fetch('/api/v1/cookies/filters', { method: 'GET', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
           if (!resp.ok) return;
           const data = await resp.json();
           if (data.success && data.filters) {
             if (data.filters.tipo) {
-              const tiposValidos = ['todos', ...new Set(this.cafes.map(c => c.tipo))];
+              const tiposValidos = ['todos', ...new Set(this.cafes.map(c => c.animal_type))];
               this.filtroTipo = tiposValidos.includes(data.filters.tipo) ? data.filters.tipo : 'todos';
             }
             if (data.filters.busqueda) this.busqueda = data.filters.busqueda;
@@ -39,24 +45,24 @@
         try {
           if (!globalThis.CookieHelper || !CookieHelper.hasConsent('functional')) { console.info('Cookies funcionales deshabilitadas, no se guardarán filtros'); return; }
           const filtros = { tipo: this.filtroTipo, busqueda: this.busqueda };
-          const resp = await fetch('/api/v1/cookies/save-filters', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify(filtros) });
+          const resp = await fetch('/api/v1/cookies/filters', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify(filtros) });
           const data = await resp.json(); if (data.success) this.filtrosGuardados = true;
         } catch (e) { console.error('catalogo.guardarFiltros error', e); }
       },
 
       async limpiarFiltrosGuardados() {
         try {
-          const resp = await fetch('/api/v1/cookies/clear-filters', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-          const data = await resp.json(); if (data.success) { this.filtrosGuardados = false; this.limpiarFiltros(); }
+          const resp = await fetch('/api/v1/cookies/filters', { method: 'DELETE', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+          if (resp.ok) { this.filtrosGuardados = false; this.limpiarFiltros(); }
         } catch (e) { console.error('catalogo.limpiarFiltrosGuardados error', e); }
       },
 
       filtrar(cafe) {
-        if (this.filtroTipo !== 'todos' && cafe.tipo !== this.filtroTipo) return false;
+        if (this.filtroTipo !== 'todos' && cafe.animal_type !== this.filtroTipo) return false;
         if (this.busqueda) {
           const term = this.busqueda.toLowerCase();
-          const nombre = (cafe.nombre || '').toLowerCase();
-          const ubicacion = (cafe.ubicacion || '').toLowerCase();
+          const nombre = (cafe.name || '').toLowerCase();
+          const ubicacion = (cafe.location || '').toLowerCase();
           if (!nombre.includes(term) && !ubicacion.includes(term)) return false;
         }
         return true;
@@ -72,10 +78,14 @@
         const cafeId = String(id);
         const tokenMeta = document.querySelector('meta[name="csrf-token"]');
         const token = tokenMeta && tokenMeta.getAttribute('content');
+        const method = this.esFavorito(id) ? 'DELETE' : 'PUT';
         try {
-          const response = await fetch('/api/v1/favorites/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token }, body: JSON.stringify({ cafe_id: cafeId }) });
+          const response = await fetch(`/api/v1/favorites/${cafeId}`, { method, headers: { 'X-CSRF-TOKEN': token } });
           if (response.status === 401) { globalThis.location.href = '/login'; return; }
-          const data = await response.json(); if (data.status === 'added') this.favoritos.add(cafeId); else this.favoritos.delete(cafeId);
+          if (response.ok) {
+            if (method === 'DELETE') this.favoritos.delete(cafeId);
+            else this.favoritos.add(cafeId);
+          }
         } catch (e) { console.error('catalogo.toggleFavorito error', e); }
       },
 

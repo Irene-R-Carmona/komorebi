@@ -55,7 +55,7 @@ final class CafeControllerTest extends ControllerTestCase
 
         $this->assertSame(403, $result->getStatusCode());
         $body = \json_decode((string) $result->getBody(), true);
-        $this->assertFalse($body['success']);
+        $this->assertFalse($body['ok']);
     }
 
     public function test_update_capacity_returns_400_when_capacity_is_zero(): void
@@ -95,7 +95,7 @@ final class CafeControllerTest extends ControllerTestCase
 
         $this->assertSame(400, $result->getStatusCode());
         $body = \json_decode((string) $result->getBody(), true);
-        $this->assertFalse($body['success']);
+        $this->assertFalse($body['ok']);
         $this->assertStringContainsString('inválido', $body['error']);
     }
 
@@ -111,7 +111,7 @@ final class CafeControllerTest extends ControllerTestCase
 
         $this->assertSame(400, $result->getStatusCode());
         $body = \json_decode((string) $result->getBody(), true);
-        $this->assertFalse($body['success']);
+        $this->assertFalse($body['ok']);
         $this->assertStringContainsString('menor que', $body['error']);
     }
 
@@ -131,7 +131,7 @@ final class CafeControllerTest extends ControllerTestCase
 
         $this->assertSame(400, $result->getStatusCode());
         $body = \json_decode((string) $result->getBody(), true);
-        $this->assertFalse($body['success']);
+        $this->assertFalse($body['ok']);
         $this->assertStringContainsString('2000', $body['error']);
     }
 
@@ -147,7 +147,7 @@ final class CafeControllerTest extends ControllerTestCase
 
         $this->assertSame(400, $result->getStatusCode());
         $body = \json_decode((string) $result->getBody(), true);
-        $this->assertFalse($body['success']);
+        $this->assertFalse($body['ok']);
         $this->assertStringContainsString('0 y 100', $body['error']);
     }
 
@@ -163,7 +163,7 @@ final class CafeControllerTest extends ControllerTestCase
 
         $this->assertSame(400, $result->getStatusCode());
         $body = \json_decode((string) $result->getBody(), true);
-        $this->assertFalse($body['success']);
+        $this->assertFalse($body['ok']);
         $this->assertStringContainsString('actualizar', $body['error']);
     }
 }

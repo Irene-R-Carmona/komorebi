@@ -17,7 +17,7 @@ procesan a través de un pipeline PSR-15.
 
 **Orden del pipeline de middleware:**
 
-```
+```text
 security headers → session → CSRF → auth → role
 ```
 
@@ -151,7 +151,7 @@ Los diagramas de referencia se encuentran en `docs/diagrams/`:
 
 Introducida en Fase 0 (streams 1–2). Los DTOs viven en `app/Domain/`:
 
-```
+```text
 app/Domain/
   DTO/             → Datos de transferencia inmutables (readonly classes)
   Reservation/     → State machine de reservas
@@ -172,7 +172,7 @@ residen en `app/Core/ValueObjects/` (`Email`, `Slug`, `Password`, `GuestCount`, 
 Ubicados en `app/Services/Contracts/`. Cualquier servicio con casos de uso testables debe tener una interfaz aquí.
 Los controladores inyectan la interfaz, no la implementación concreta.
 
-```
+```text
 app/Services/Contracts/
   ProductServiceInterface.php
   ReservationServiceInterface.php
@@ -236,6 +236,69 @@ Los métodos de servicio siguen la convención:
 
 ---
 
+## Capa de Presentación: HDA + Progressive Enhancement
+
+### Patrón adoptado
+
+La capa de presentación sigue el patrón **HDA (Hypermedia-Driven Application)**. Ver decisión completa en
+`docs/adr/001-hda-architecture.md`.
+
+Principio rector: **PHP es la única fuente de verdad del estado de la aplicación**. El cliente (Alpine.js)
+gestiona exclusivamente comportamiento de UI efímero.
+
+### Rol de Alpine.js post-migración
+
+Alpine.js permanece como capa de **comportamiento**, no de datos:
+
+| Permitido | Prohibido |
+| --------- | --------- |
+| Modales y drawers | `fetch()` de colecciones de dominio en `init()` |
+| Stepper de personas (±1) | Almacenar `cafes`, `passes`, `reservations` en estado Alpine |
+| Validación inline (festivo bloqueado, pass incompatible) | `Alpine.store()` con datos de servidor |
+| Feedback optimista de cancelación | Rutas que sólo existen para alimentar `init()` |
+| Consultas reactivas a input del usuario (slots, clima) | |
+
+**Patrón correcto de configuración:**
+
+```php
+// Controller:
+$config = json_encode(['cafes' => $cafes, 'passes' => $passes], JSON_HEX_APOS | JSON_HEX_QUOT);
+// View:
+// <div x-data="reservaForm(<?= $config ?>)">
+```
+
+El componente Alpine recibe los datos como argumento de inicialización, nunca los obtiene por `fetch()`.
+
+### Contrato REST API — cuándo usar AJAX
+
+Los endpoints GET del API están permitidos exclusivamente cuando la consulta es **reactiva a input del
+usuario que ocurre después de la carga de página**:
+
+| Endpoint | Disparador | Justificación |
+| -------- | ---------- | ------------- |
+| `GET /api/v1/time-slots/available` | Usuario elige fecha | Disponibilidad cambia en tiempo real |
+| `GET /api/v1/weather` | Usuario elige fecha | Dato externo, no cacheable por PHP |
+| `GET /api/v1/holidays/{fecha}` | Usuario elige fecha | Reactivo a selección |
+| `GET /api/v1/user/reservations` | Carga de historial | Asíncrono para no bloquear paso 1 |
+
+Los endpoints POST/PATCH/DELETE son mutaciones de dominio y devuelven `{ok: bool, data?: ..., error?: ...}`.
+
+### Wizard de reservas — patrón PRG
+
+El wizard de reservas (3 pasos) implementa **Post/Redirect/Get** con estado en sesión PHP:
+
+```text
+POST /reservar/paso-1  →  Session::set('reservation_wizard', [...])  →  302 /reservar/paso-2
+GET  /reservar/paso-2  →  PHP lee sesión, renderiza formulario de fecha/hora
+POST /reservar/paso-2  →  Session::set('reservation_wizard', [...])  →  302 /reservar/paso-3
+GET  /reservar/paso-3  →  PHP lee sesión, renderiza confirmación
+POST /reservar         →  crea reserva, Session::remove('reservation_wizard')  →  302 /reservas/confirmacion/{id}
+```
+
+Cada paso es una URL independiente. Recargar devuelve el mismo estado. El botón "Volver" es un `<a href>`.
+
+---
+
 ## Deuda Técnica Deliberada
 
 ### `app/Models/` — Active Record coexistiendo con Repository pattern
@@ -258,4 +321,3 @@ Dificulta los tests unitarios (los Models instancian PDO directamente y no son i
 
 **Seguimiento:** Crear plan `docs/plans/YYYY-MM-DD-migracion-models-a-repositories.md`
 cuando se inicie la migración. Búsqueda de usos: `grep -r "App\\Models\\" app/`.
-

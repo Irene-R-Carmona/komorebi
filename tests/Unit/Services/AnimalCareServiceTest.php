@@ -3,17 +3,9 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * AnimalCareService: createAnimal con datos inválidos (falta nombre/especie),
- * getAllAnimals y getAnimalById delegando al repositorio stubbeado.
- *
- * ¿Qué me quieres demostrar?
- * Que la validación de datos obligatorios funciona antes de llegar a la DB, y
- * que las consultas de lectura delegan correctamente al repositorio inyectado.
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina la guarda 'empty($data[name]) || empty($data[species])', si
- * getAllAnimals deja de llamar al repositorio, o si getAnimalById deja de retornar null.
+ * ¿Qué pruebas aquí? AnimalCareService: validaciones al crear un animal y delegación de consultas.
+ * ¿Qué me quieres demostrar? Que createAnimal valida nombre, especie, cafe_id y rango de edad.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se eliminan las validaciones de datos del animal.
  */
 
 namespace Tests\Unit\Services;
@@ -28,96 +20,85 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AnimalCareService::class)]
 final class AnimalCareServiceTest extends TestCase
 {
-    /** @var \PHPUnit\Framework\MockObject\Stub&AnimalRepositoryInterface */
-    private AnimalRepositoryInterface $repoStub;
+    private AnimalRepositoryInterface $animalRepoStub;
     private AnimalIncidentRepositoryInterface $incidentRepoStub;
     private HealthCheckRepositoryInterface $healthCheckRepoStub;
+    private AnimalCareService $service;
 
     protected function setUp(): void
     {
-        $this->repoStub           = $this->createStub(AnimalRepositoryInterface::class);
-        $this->incidentRepoStub   = $this->createStub(AnimalIncidentRepositoryInterface::class);
+        $this->animalRepoStub      = $this->createStub(AnimalRepositoryInterface::class);
+        $this->incidentRepoStub    = $this->createStub(AnimalIncidentRepositoryInterface::class);
         $this->healthCheckRepoStub = $this->createStub(HealthCheckRepositoryInterface::class);
+
+        $this->service = new AnimalCareService(
+            $this->animalRepoStub,
+            $this->incidentRepoStub,
+            $this->healthCheckRepoStub
+        );
     }
 
-    // ──────────────────────────────────────────────
-    // getAllAnimals — delegación al repositorio
-    // ──────────────────────────────────────────────
-
-    public function testGetAllAnimalsDevuelveArrayDelRepositorio(): void
+    public function testCreateAnimalFailsWhenNameMissing(): void
     {
-        $animalesEsperados = [
-            ['id' => 1, 'name' => 'Neko', 'species_type' => 'cat'],
-            ['id' => 2, 'name' => 'Hachi', 'species_type' => 'dog'],
-        ];
-        $this->repoStub
-            ->method('getAnimalsWithCafeInfoOptimized')
-            ->willReturn($animalesEsperados);
-
-        $service = new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub);
-        $result  = $service->getAllAnimals();
-
-        $this->assertSame($animalesEsperados, $result);
-    }
-
-    // ──────────────────────────────────────────────
-    // getAnimalById — delegación al repositorio
-    // ──────────────────────────────────────────────
-
-    public function testGetAnimalByIdDevuelveNullCuandoNoExiste(): void
-    {
-        $this->repoStub->method('findById')->willReturn(null);
-
-        $this->assertNull((new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub))->getAnimalById(999));
-    }
-
-    public function testGetAnimalByIdDevuelveArrayCuandoExiste(): void
-    {
-        $animal = ['id' => 5, 'name' => 'Mochi', 'species_type' => 'rabbit'];
-        $this->repoStub->method('findById')->willReturn($animal);
-
-        $this->assertSame($animal, (new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub))->getAnimalById(5));
-    }
-
-    // ──────────────────────────────────────────────
-    // createAnimal — validaciones
-    // ──────────────────────────────────────────────
-
-    public function testCreateAnimalSinNombreRetornaFail(): void
-    {
-        $result = (new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub))->createAnimal(['species' => 'cat']);
+        $result = $this->service->createAnimal(['species' => 'cat', 'cafe_id' => 1]);
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Nombre', $result->error);
     }
 
-    public function testCreateAnimalSinEspecieRetornaFail(): void
+    public function testCreateAnimalFailsWhenSpeciesMissing(): void
     {
-        $result = (new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub))->createAnimal(['name' => 'Neko']);
-
-        $this->assertFalse($result->ok);
-        $this->assertStringContainsString('especie', $result->error);
-    }
-
-    public function testCreateAnimalConDatosVaciosRetornaFail(): void
-    {
-        $result = (new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub))->createAnimal([]);
+        $result = $this->service->createAnimal(['name' => 'Mochi', 'cafe_id' => 1]);
 
         $this->assertFalse($result->ok);
     }
 
-    // ──────────────────────────────────────────────
-    // updateAnimal — fallo de repositorio
-    // ──────────────────────────────────────────────
-
-    public function testUpdateAnimalCuandoNingunFilaAfectadaRetornaFail(): void
+    public function testCreateAnimalFailsWhenCafeIdMissingAndNotQuarantine(): void
     {
-        $this->repoStub->method('updateAnimal')->willReturn(false);
-
-        $service = new AnimalCareService($this->repoStub, $this->incidentRepoStub, $this->healthCheckRepoStub);
-        $result  = $service->updateAnimal(999, ['name' => 'Ghost', 'species' => 'cat']);
+        $result = $this->service->createAnimal(['name' => 'Mochi', 'species' => 'cat', 'status' => 'active']);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('no encontrado', $result->error);
+        $this->assertSame('cafe_id_required', $result->code);
+    }
+
+    public function testCreateAnimalSucceedsInQuarantineWithoutCafeId(): void
+    {
+        $this->animalRepoStub->method('createAnimal')->willReturn(5);
+
+        $result = $this->service->createAnimal(['name' => 'Mochi', 'species' => 'cat', 'status' => 'quarantine']);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(5, $result->data);
+    }
+
+    public function testCreateAnimalFailsWhenAgeOutOfRange(): void
+    {
+        $result = $this->service->createAnimal([
+            'name'      => 'Mochi',
+            'species'   => 'cat',
+            'cafe_id'   => 1,
+            'age_years' => 99,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('invalid_age', $result->code);
+    }
+
+    public function testGetAllAnimalsReturnsArray(): void
+    {
+        $this->animalRepoStub->method('getAnimalsWithCafeInfoOptimized')->willReturn([]);
+
+        $result = $this->service->getAllAnimals();
+
+        $this->assertIsArray($result);
+    }
+
+    public function testGetAnimalByIdReturnsNullWhenNotFound(): void
+    {
+        $this->animalRepoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->getAnimalById(999);
+
+        $this->assertNull($result);
     }
 }

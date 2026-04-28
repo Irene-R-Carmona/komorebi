@@ -51,6 +51,41 @@ final class HolidayControllerTest extends ControllerTestCase
         }
     }
 
+    public function test_check_holiday_returns_200_for_holiday_date_via_route_attribute(): void
+    {
+        $request = $this->makeGetRequest('/api/v1/holidays/2026-01-01')
+            ->withAttribute('date', '2026-01-01');
+
+        $response = $this->makeController()->checkHoliday($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $body = \json_decode((string) $response->getBody(), true);
+        $this->assertTrue($body['ok']);
+        $this->assertTrue($body['data']['is_holiday']);
+    }
+
+    public function test_check_holiday_returns_200_for_non_holiday_date_via_route_attribute(): void
+    {
+        $request = $this->makeGetRequest('/api/v1/holidays/2026-03-15')
+            ->withAttribute('date', '2026-03-15');
+
+        $response = $this->makeController()->checkHoliday($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $body = \json_decode((string) $response->getBody(), true);
+        $this->assertFalse($body['data']['is_holiday']);
+        $this->assertTrue($body['data']['available_for_reservations']);
+    }
+
+    public function test_check_holiday_returns_422_when_attribute_missing(): void
+    {
+        $request = $this->makeGetRequest('/api/v1/holidays/');
+
+        $response = $this->makeController()->checkHoliday($request);
+
+        $this->assertSame(422, $response->getStatusCode());
+    }
+
     public function test_class_has_expected_methods(): void
     {
         $this->assertTrue(\method_exists(HolidayController::class, 'getHolidays'));

@@ -6,8 +6,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "docker/php/Dockerfile.prod"
 
 [deploy]
-releaseCommand = "php /app/scripts/apply-db.php --force"
-startCommand = "frankenphp run --config=/app/frankenphp.Caddyfile"
+releaseCommand = "php /app/scripts/apply-db.php"
+startCommand = "supervisord -n -c /etc/supervisor/supervisord.conf"
 healthcheckPath = "/health"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
@@ -37,3 +37,5 @@ restartPolicyMaxRetries = 3
 #   FEATURE_BACKOFFICE=1
 #   FEATURE_OPS=1
 #   FEATURE_KEEPER=1
+#   MAX_REQUESTS=500                  # Requests por worker FrankenPHP antes de reciclar el proceso
+#   MERCURE_JWT_SECRET=genera-con-openssl-rand-base64-32

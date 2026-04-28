@@ -48,6 +48,12 @@
     <script nonce="<?= $cspNonce ?? '' ?>" src="/js/init/alpine-components.js"></script>
     <script src="/js/sections/reception.js"></script>
     <script defer src="/js/vendor/alpine.min.js"></script>
+    <script nonce="<?= $cspNonce ?? '' ?>">
+        window.__MERCURE__ = {
+            cafeId: <?= (int)($cafe_id ?? 0) ?>,
+            hub: '/.well-known/mercure'
+        };
+    </script>
 </head>
 
 <body class="reception-mode">

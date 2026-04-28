@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace Repositories;
 
+use App\Domain\DTO\CafeDTO;
+use App\Domain\Mappers\CafeMapper;
 use App\Repositories\CafeRepository;
 use PDO;
 use PDOStatement;
@@ -34,7 +36,7 @@ final class CafeRepositoryTest extends TestCase
     {
         $this->pdoMock = $this->createMock(PDO::class);
         $this->stmtMock = $this->createMock(PDOStatement::class);
-        $this->repository = new CafeRepository($this->pdoMock);
+        $this->repository = new CafeRepository(new CafeMapper(), $this->pdoMock);
     }
 
     protected function tearDown(): void
@@ -73,9 +75,9 @@ final class CafeRepositoryTest extends TestCase
 
         $result = $this->repository->findById(1);
 
-        $this->assertIsArray($result);
-        $this->assertEquals(1, $result['id']);
-        $this->assertEquals('Komorebi Shibuya', $result['name']);
+        $this->assertInstanceOf(CafeDTO::class, $result);
+        $this->assertEquals(1, $result->id);
+        $this->assertEquals('Komorebi Shibuya', $result->name);
     }
 
     public function testFindByIdReturnsNullWhenNotFound(): void

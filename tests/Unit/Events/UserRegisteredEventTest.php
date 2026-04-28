@@ -12,11 +12,9 @@ namespace Events;
 
 use App\Events\UserRegisteredEvent;
 use DateTimeImmutable;
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
-#[CoversClass(UserRegisteredEvent::class)]
 final class UserRegisteredEventTest extends TestCase
 {
     public function testEventCanBeCreated(): void

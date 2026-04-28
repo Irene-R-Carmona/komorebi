@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
+use App\Domain\DTO\AllergenDTO;
+use App\Domain\Mappers\AllergenMapper;
 use App\Repositories\AllergenRepository;
 use InvalidArgumentException;
 use PDO;
@@ -25,7 +27,7 @@ final class AllergenRepositoryTest extends RepositoryTestCase
 {
     private function makeRepo(PDO $pdo): AllergenRepository
     {
-        return new AllergenRepository($pdo);
+        return new AllergenRepository(new AllergenMapper(), $pdo);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -42,28 +44,43 @@ final class AllergenRepositoryTest extends RepositoryTestCase
 
     public function testFindByIdReturnsRowWhenFound(): void
     {
-        $row = ['id' => 1, 'code' => 'GLUTEN', 'name' => 'Gluten', 'japanese_name' => '小麦',
-                'icon_class' => 'fa-wheat', 'icon_color' => '#f59e0b', 'severity' => 'high', 'description' => null];
+        $row = [
+            'id' => 1,
+            'code' => 'GLUTEN',
+            'name' => 'Gluten',
+            'japanese_name' => '小麦',
+            'icon_class' => 'fa-wheat',
+            'icon_color' => '#f59e0b',
+            'severity' => 'high',
+            'description' => null
+        ];
         [$pdo] = $this->makePdoWithStmt([], $row);
         $repo = $this->makeRepo($pdo);
 
         $result = $repo->findById(1);
-        $this->assertIsArray($result);
-        $this->assertSame(1, $result['id']);
+        $this->assertInstanceOf(AllergenDTO::class, $result);
+        $this->assertSame(1, $result->id);
     }
 
-    public function testFindByIdNormalizesLegacyAliases(): void
+    public function testFindByIdReturnsDto(): void
     {
-        $row = ['id' => 1, 'code' => 'GLUTEN', 'name' => 'Gluten', 'japanese_name' => '小麦',
-                'icon_class' => 'fa-wheat', 'icon_color' => null, 'severity' => 'high', 'description' => null];
+        $row = [
+            'id' => 1,
+            'code' => 'GLUTEN',
+            'name' => 'Gluten',
+            'japanese_name' => '小麦',
+            'icon_class' => 'fa-wheat',
+            'icon_color' => null,
+            'severity' => 'high',
+            'description' => null
+        ];
         [$pdo] = $this->makePdoWithStmt([], $row);
         $repo = $this->makeRepo($pdo);
 
         $result = $repo->findById(1);
-        $this->assertArrayHasKey('name_jp', $result);
-        $this->assertSame('小麦', $result['name_jp']);
-        $this->assertArrayHasKey('icon', $result);
-        $this->assertSame('fa-wheat', $result['icon']);
+        $this->assertInstanceOf(AllergenDTO::class, $result);
+        $this->assertSame('小麦', $result->japanese_name);
+        $this->assertSame('fa-wheat', $result->icon_class);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -83,8 +100,16 @@ final class AllergenRepositoryTest extends RepositoryTestCase
     public function testFindBySeverityReturnsRows(): void
     {
         $rows = [
-            ['id' => 1, 'code' => 'GLUTEN', 'name' => 'Gluten', 'japanese_name' => null,
-             'icon_class' => null, 'icon_color' => null, 'severity' => 'high', 'description' => null],
+            [
+                'id' => 1,
+                'code' => 'GLUTEN',
+                'name' => 'Gluten',
+                'japanese_name' => null,
+                'icon_class' => null,
+                'icon_color' => null,
+                'severity' => 'high',
+                'description' => null
+            ],
         ];
         [$pdo] = $this->makePdoWithStmt($rows);
         $repo = $this->makeRepo($pdo);
@@ -192,8 +217,16 @@ final class AllergenRepositoryTest extends RepositoryTestCase
     public function testUpdateReturnsTrueOnSuccess(): void
     {
         // update() llama findById() primero (para obtener el code existente) y luego UPDATE
-        $existingRow = ['id' => 1, 'code' => 'GLUTEN', 'name' => 'Gluten', 'japanese_name' => null,
-                        'icon_class' => null, 'icon_color' => null, 'severity' => 'high', 'description' => null];
+        $existingRow = [
+            'id' => 1,
+            'code' => 'GLUTEN',
+            'name' => 'Gluten',
+            'japanese_name' => null,
+            'icon_class' => null,
+            'icon_color' => null,
+            'severity' => 'high',
+            'description' => null
+        ];
 
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);

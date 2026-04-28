@@ -17,11 +17,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Http\Controllers\Admin;
 
-use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\ReservationController;
 use App\Services\Contracts\AdminActivityServiceInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Psr\Http\Message\ResponseInterface;
 use Tests\Support\ControllerTestCase;
 
 #[CoversClass(ReservationController::class)]
@@ -46,34 +44,16 @@ final class ReservationControllerTest extends ControllerTestCase
     {
         return new ReservationController(
             activityService: $this->createStub(AdminActivityServiceInterface::class),
-            response: new ResponseFactory(),
         );
     }
 
-    public function test_cancel_redirects_when_csrf_is_invalid(): void
+    public function test_instance_can_be_created_with_stubs(): void
     {
-        $_SESSION['_csrf_token'] = '';
-
-        $result = $this->makeController()->cancel(0);
-
-        $this->assertInstanceOf(ResponseInterface::class, $result);
-        $this->assertResponseIsRedirect($result, '/admin/reservations');
-    }
-
-    public function test_confirm_redirects_when_csrf_is_invalid(): void
-    {
-        $_SESSION['_csrf_token'] = '';
-
-        $result = $this->makeController()->confirm(0);
-
-        $this->assertInstanceOf(ResponseInterface::class, $result);
-        $this->assertResponseIsRedirect($result, '/admin/reservations');
+        $this->assertInstanceOf(ReservationController::class, $this->makeController());
     }
 
     public function test_class_has_expected_methods(): void
     {
         $this->assertTrue(\method_exists(ReservationController::class, 'index'));
-        $this->assertTrue(\method_exists(ReservationController::class, 'cancel'));
-        $this->assertTrue(\method_exists(ReservationController::class, 'confirm'));
     }
 }

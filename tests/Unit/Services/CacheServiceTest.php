@@ -3,102 +3,118 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * Comportamiento de Symfony ArrayAdapter como implementación de PSR-6
- * CacheItemPoolInterface: getItem, hasItem, clear, save y el patrón remember.
- *
- * ¿Qué me quieres demostrar?
- * Que ArrayAdapter es un CacheItemPoolInterface válido para usar en tests
- * como sustituto in-memory de Redis/Filesystem en entornos sin infraestructura.
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina la dependencia symfony/cache, si se cambia el adaptador
- * por uno que no soporte TTL en memoria, o si PSR-6 cambia la interfaz.
+ * ¿Qué pruebas aquí? CacheService: comprobación de claves ausentes y lógica de remember.
+ * ¿Qué me quieres demostrar? Que hasItem retorna false para claves inexistentes y que remember invoca el callback.
+ * ¿Qué va a fallar en este test si se cambia el código? Si hasItem o remember dejan de funcionar correctamente.
  */
 
 namespace Tests\Unit\Services;
 
-use PHPUnit\Framework\Attributes\CoversNothing;
+use App\Services\CacheService;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Psr\Cache\CacheItemInterface;
-use Psr\Cache\CacheItemPoolInterface;
-use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
-#[CoversNothing]
+#[CoversClass(CacheService::class)]
 final class CacheServiceTest extends TestCase
 {
-    private CacheItemPoolInterface $cache;
+    private CacheService $service;
 
     protected function setUp(): void
     {
-        // Usar ArrayAdapter para tests (in-memory, no requiere filesystem ni Redis)
-        $this->cache = new ArrayAdapter();
+        $this->service = new CacheService();
     }
 
-    public function testImplementsCacheItemPoolInterface(): void
+    public function testHasItemReturnsFalseForNonExistentKey(): void
     {
-        $this->assertInstanceOf(\Psr\Cache\CacheItemPoolInterface::class, $this->cache);
+        $this->assertFalse($this->service->hasItem('__test_nonexistent_key_' . \uniqid()));
     }
 
-    public function testGetItemReturnsItemInstance(): void
+    public function testRememberInvokesCallbackWhenKeyNotCached(): void
     {
-        $item = $this->cache->getItem('test_key');
+        $key      = '__test_remember_' . \uniqid();
+        $invoked  = false;
+        $callback = function () use (&$invoked): string {
+            $invoked = true;
+            return 'value';
+        };
 
-        $this->assertInstanceOf(CacheItemInterface::class, $item);
+        $result = $this->service->remember($key, $callback, 1);
+
+        $this->assertTrue($invoked);
+        $this->assertSame('value', $result);
+
+        // Cleanup
+        $this->service->deleteItem($key);
     }
 
-    public function testGetItemsReturnsIterableOfItems(): void
+    public function testRememberReturnsCachedValueWithoutInvokingCallback(): void
     {
-        $items = $this->cache->getItems(['key1', 'key2']);
+        $key = '__test_remember_cached_' . \uniqid();
 
-        $this->assertIsIterable($items);
+        $this->service->remember($key, fn() => 'original', 3600);
+
+        $callCount = 0;
+        $result    = $this->service->remember($key, function () use (&$callCount): string {
+            $callCount++;
+            return 'should-not-be-called';
+        }, 3600);
+
+        $this->assertSame(0, $callCount);
+        $this->assertSame('original', $result);
+
+        // Cleanup
+        $this->service->deleteItem($key);
     }
 
-    public function testHasItemReturnsBool(): void
+    public function testGetItemReturnsUnhitCacheItemForNewKey(): void
     {
-        $result = $this->cache->hasItem('test_key');
+        $key  = '__test_getItem_' . \uniqid();
+        $item = $this->service->getItem($key);
 
-        $this->assertIsBool($result);
-    }
-
-    public function testClearReturnsTrue(): void
-    {
-        $result = $this->cache->clear();
-
-        $this->assertTrue($result);
-    }
-
-    public function testRememberCallsCallbackWhenCacheMiss(): void
-    {
-        $key = 'unique_key_' . \uniqid();
-        $item = $this->cache->getItem($key);
-
-        // Cache miss
         $this->assertFalse($item->isHit());
-
-        // Simular remember pattern
-        $callbackExecuted = true;
-        $value = 'computed_value';
-
-        $item->set($value);
-        $item->expiresAfter(10);
-        $this->cache->save($item);
-
-        $this->assertTrue($callbackExecuted);
-
-        // Verificar que está en caché ahora
-        $cachedItem = $this->cache->getItem($key);
-        $this->assertTrue($cachedItem->isHit());
-        $this->assertSame($value, $cachedItem->get());
     }
 
-    public function testSaveItemWorks(): void
+    public function testSaveAndGetItemRoundTrip(): void
     {
-        $item = $this->cache->getItem('save_test_key');
-        $item->set('test_value');
+        $key  = '__test_save_' . \uniqid();
+        $item = $this->service->getItem($key);
+        $item->set('hello');
 
-        $saved = $this->cache->save($item);
+        $saved = $this->service->save($item);
 
         $this->assertTrue($saved);
+        $this->assertSame('hello', $this->service->getItem($key)->get());
+
+        // Cleanup
+        $this->service->deleteItem($key);
+    }
+
+    public function testDeleteItemReturnsTrueAndRemovesKey(): void
+    {
+        $key  = '__test_delete_' . \uniqid();
+        $item = $this->service->getItem($key);
+        $item->set('to-delete');
+        $this->service->save($item);
+
+        $deleted = $this->service->deleteItem($key);
+
+        $this->assertTrue($deleted);
+        $this->assertFalse($this->service->hasItem($key));
+    }
+
+    public function testSaveDeferredAndCommitPersistsItem(): void
+    {
+        $key  = '__test_deferred_' . \uniqid();
+        $item = $this->service->getItem($key);
+        $item->set('deferred-value');
+
+        $this->service->saveDeferred($item);
+        $committed = $this->service->commit();
+
+        $this->assertTrue($committed);
+        $this->assertTrue($this->service->hasItem($key));
+
+        // Cleanup
+        $this->service->deleteItem($key);
     }
 }

@@ -1,11 +1,10 @@
+<?php
+$catalogoConfig = json_encode([
+    'cafes'     => $cafes    ?? [],
+    'favoritos' => $favoritos ?? [],
+], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+?>
 <section class="seccion seccion--activa">
-    <?php
-    $cafesSimple = array_map(fn ($c) => [
-        'tipo' => $c['animal_type'],
-        'nombre' => $c['name'],
-        'ubicacion' => $c['location'],
-    ], $cafes);
-    ?>
     <!-- Skeleton: visible antes de Alpine.js (x-cloak oculta el contenido real) -->
     <div id="catalogo-skeleton" class="seccion__container" aria-hidden="true">
         <div class="catalogo__grid skeleton-list">
@@ -22,7 +21,7 @@
         </div>
     </div>
 
-    <div class="seccion__container" x-data="catalogoApp(<?= json_encode($favoritos, JSON_THROW_ON_ERROR) ?>, <?= json_encode($cafesSimple, JSON_THROW_ON_ERROR) ?>)" x-cloak x-init="document.getElementById('catalogo-skeleton')?.remove()">
+    <div class="seccion__container" x-data='catalogoApp(<?= $catalogoConfig ?>)' x-cloak x-init="document.getElementById('catalogo-skeleton')?.remove()">
         <header class="seccion__header">
             <h2 class="seccion__titulo">Nuestros Cafés</h2>
             <p class="seccion__subtitulo">Encuentra tu lugar perfecto para relajarte</p>
@@ -88,65 +87,52 @@
 
         <!-- GRID DE CAFÉS -->
         <div class="catalogo__grid" aria-live="polite" aria-atomic="false">
-            <?php foreach ($cafes as $cafe):
-                // Objeto JSON mínimo para el filtro JS
-                $cafeJs = json_encode([
-                    'tipo' => $cafe['animal_type'],
-                    'nombre' => $cafe['name'],
-                    'ubicacion' => $cafe['location'],
-                ], JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT);
-                ?>
-                <!-- Card -->
-                <article class="card"
-                    x-show="filtrar(<?= $cafeJs ?>)"
-                    x-transition.duration.300ms>
+            <template x-for="cafe in cafesFiltrados" :key="cafe.id">
+                <article class="card" x-transition.duration.300ms>
 
                     <div class="card__imagen">
-                        <img src="<?= e($cafe['image_url'] ?? '/images/ui/placeholder-cafe.svg') ?>"
-                            alt="<?= e($cafe['name']) ?>"
+                        <img :src="cafe.image_url || '/images/ui/placeholder-cafe.svg'"
+                            :alt="cafe.name"
                             class="card__img"
                             width="400"
                             height="266"
                             loading="lazy"
-                            onerror="this.onerror=null; this.src='/images/ui/placeholder-cafe.svg'">
-                        <div class="card__tipo-badge"><?= ucfirst(e($cafe['animal_type'])) ?></div>
+                            @error="$el.src='/images/ui/placeholder-cafe.svg'">
+                        <div class="card__tipo-badge" x-text="(cafe.animal_type||'').charAt(0).toUpperCase() + (cafe.animal_type||'').slice(1)"></div>
                     </div>
 
                     <div class="card__contenido">
                         <div class="card__header">
                             <div class="card__titulos">
-                                <h3 class="card__nombre"><?= e($cafe['name']) ?></h3>
-                                <span class="card__nombre-jp"><?= e($cafe['japanese_name']) ?></span>
+                                <h3 class="card__nombre" x-text="cafe.name"></h3>
+                                <span class="card__nombre-jp" x-text="cafe.japanese_name"></span>
                             </div>
                         </div>
 
-                        <div class="card__ubicacion"><?= e($cafe['location']) ?></div>
+                        <div class="card__ubicacion" x-text="cafe.location"></div>
 
                         <div class="card__horario">
                             <i class="bi bi-clock card__horario-icon" aria-hidden="true"></i>
-                            <?= substr($cafe['opening_time'], 0, 5) ?> - <?= substr($cafe['closing_time'], 0, 5) ?>
+                            <span x-text="(cafe.opening_time||'').substring(0,5)"></span> - <span x-text="(cafe.closing_time||'').substring(0,5)"></span>
                         </div>
 
-                        <p class="card__descripcion line-clamp-3"><?= e($cafe['description']) ?></p>
+                        <p class="card__descripcion line-clamp-3" x-text="cafe.description"></p>
 
                         <div class="card__footer">
                             <div class="card__rating">
                                 <span class="star--filled" aria-hidden="true">★</span>
-                                <span class="visually-hidden">Valoración:</span> <?= $cafe['rating_avg'] ?? '—' ?>
+                                <span class="visually-hidden">Valoración:</span>
+                                <span x-text="cafe.rating_avg ?? '—'"></span>
                             </div>
                         </div>
 
                         <div class="card__acciones">
-                            <a href="/cafes/<?= $cafe['slug'] ?>" class="card__btn card__btn--animales">
-                                Ver Animales
-                            </a>
-                            <a href="/reservas?cafe=<?= $cafe['id'] ?>" class="card__btn card__btn--reservar">
-                                Reservar
-                            </a>
+                            <a :href="'/cafes/' + cafe.slug" class="card__btn card__btn--animales">Ver Animales</a>
+                            <a :href="'/reservas?cafe=' + cafe.id" class="card__btn card__btn--reservar">Reservar</a>
                         </div>
                     </div>
                 </article>
-            <?php endforeach; ?>
+            </template>
         </div>
 
         <!-- Mensaje Vacío -->

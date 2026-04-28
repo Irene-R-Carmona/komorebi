@@ -81,18 +81,19 @@ $pageTitle = 'Configuración del Café';
             <div x-show="activeTab === 'horarios'" class="tab-content">
                 <form
                     @submit.prevent="async () => {
-                        const formData = new FormData($event.target);
+                        const formData = Object.fromEntries(new FormData($event.target));
                         try {
-                            const response = await fetch('/manager/cafe/schedule', {
-                                method: 'POST',
-                                body: formData
+                            const response = await fetch('/api/v1/manager/cafe/schedule', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                                body: JSON.stringify(formData)
                             });
                             const data = await response.json();
-                            messageType = data.success ? 'success' : 'error';
-                            message = data.success ? 'Horarios actualizados correctamente' : data.error;
+                            messageType = data.ok ? 'success' : 'error';
+                            message = data.ok ? 'Horarios actualizados correctamente' : data.error;
                             showMessage = true;
                             setTimeout(() => { showMessage = false }, 3000);
-                            if (data.success) {
+                            if (data.ok) {
                                 setTimeout(() => { window.location.reload() }, 1500);
                             }
                         } catch (e) {
@@ -132,18 +133,19 @@ $pageTitle = 'Configuración del Café';
             <div x-show="activeTab === 'capacidad'" class="tab-content">
                 <form
                     @submit.prevent="async () => {
-                        const formData = new FormData($event.target);
+                        const formData = Object.fromEntries(new FormData($event.target));
                         try {
-                            const response = await fetch('/manager/cafe/capacity', {
-                                method: 'POST',
-                                body: formData
+                            const response = await fetch('/api/v1/manager/cafe/capacity', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                                body: JSON.stringify(formData)
                             });
                             const data = await response.json();
-                            messageType = data.success ? 'success' : 'error';
-                            message = data.success ? 'Capacidad actualizada correctamente' : data.error;
+                            messageType = data.ok ? 'success' : 'error';
+                            message = data.ok ? 'Capacidad actualizada correctamente' : data.error;
                             showMessage = true;
                             setTimeout(() => { showMessage = false }, 3000);
-                            if (data.success) {
+                            if (data.ok) {
                                 setTimeout(() => { window.location.reload() }, 1500);
                             }
                         } catch (e) {
@@ -176,18 +178,19 @@ $pageTitle = 'Configuración del Café';
             <div x-show="activeTab === 'config'" class="tab-content">
                 <form
                     @submit.prevent="async () => {
-                        const formData = new FormData($event.target);
+                        const formData = Object.fromEntries(new FormData($event.target));
                         try {
-                            const response = await fetch('/manager/cafe/settings', {
-                                method: 'POST',
-                                body: formData
+                            const response = await fetch('/api/v1/manager/cafe/settings', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                                body: JSON.stringify(formData)
                             });
                             const data = await response.json();
-                            messageType = data.success ? 'success' : 'error';
-                            message = data.success ? 'Configuración actualizada correctamente' : data.error;
+                            messageType = data.ok ? 'success' : 'error';
+                            message = data.ok ? 'Configuración actualizada correctamente' : data.error;
                             showMessage = true;
                             setTimeout(() => { showMessage = false }, 3000);
-                            if (data.success) {
+                            if (data.ok) {
                                 setTimeout(() => { window.location.reload() }, 1500);
                             }
                         } catch (e) {

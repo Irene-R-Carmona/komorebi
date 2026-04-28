@@ -20,7 +20,6 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use App\Models\User;
 use App\Repositories\AuthLogRepository;
 use App\Repositories\SessionRepository;
 use App\Repositories\UserRepository;
@@ -52,7 +51,6 @@ final class AuthIntegrationTest extends BaseIntegrationTest
         $rateLimiter->method('isBlocked')->willReturn(['blocked' => false]);
         $this->service = new AuthService(
             $this->userRepo,
-            new User(),
             new SessionManagementService(
                 new SessionRepository(self::$db),
                 new AuthLogRepository(self::$db),

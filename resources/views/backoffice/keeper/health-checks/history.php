@@ -23,10 +23,10 @@ declare(strict_types=1);
                             </h1>
                             <h5 class="text-muted mb-0">
                                 <?= htmlspecialchars($animal['name'], ENT_QUOTES, 'UTF-8') ?>
-                                <span class="badge bg-info ms-2"><?= htmlspecialchars($animal['species_type'], ENT_QUOTES, 'UTF-8') ?></span>
+                                <span class="badge bg-info ms-2"><?= htmlspecialchars($animal['species'], ENT_QUOTES, 'UTF-8') ?></span>
                             </h5>
                             <p class="text-muted small mb-0 mt-1">
-                                Estado Actual: <span class="badge bg-secondary"><?= htmlspecialchars($animal['current_status'], ENT_QUOTES, 'UTF-8') ?></span> •
+                                Estado Actual: <span class="badge bg-secondary"><?= htmlspecialchars($animal['is_active'] ? 'Activo' : 'Inactivo', ENT_QUOTES, 'UTF-8') ?></span> •
                                 Mostrando últimos <?= $limit ?> chequeos
                             </p>
                         </div>
@@ -77,13 +77,13 @@ declare(strict_types=1);
                     <h4 class="mb-0">
                         <?php
                         $alertCount = 0;
-foreach ($history as $check) {
-    if (!empty($check['alerts']) && is_array($check['alerts'])) {
-        $alertCount += count($check['alerts']);
-    }
-}
-echo $alertCount;
-?>
+                        foreach ($history as $check) {
+                            if (!empty($check['alerts']) && is_array($check['alerts'])) {
+                                $alertCount += count($check['alerts']);
+                            }
+                        }
+                        echo $alertCount;
+                        ?>
                     </h4>
                     <p class="text-muted mb-0">Alertas Totales</p>
                 </div>
@@ -143,7 +143,7 @@ echo $alertCount;
                                             <strong>Temperatura:</strong>
                                             <?php if ($check['temperature_c']): ?>
                                                 <?php
-                        $temp = (float) $check['temperature_c'];
+                                                $temp = (float) $check['temperature_c'];
                                                 $tempClass = $temp > 39.5 ? 'text-danger' : ($temp < 36 ? 'text-warning' : '');
                                                 ?>
                                                 <span class="<?= $tempClass ?>">

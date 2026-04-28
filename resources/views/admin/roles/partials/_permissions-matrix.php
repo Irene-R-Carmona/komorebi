@@ -80,7 +80,7 @@ use App\Core\View;
                                     type="checkbox"
                                     class="form-check-input"
                                     :checked="hasPermission(role.id, permission.id)"
-                                    @change="togglePermission(role.id, permission.id, $event.target.checked)"
+                                    @change="togglePermission(role.id, permission.id, $event.target.checked, $event.target)"
                                     :disabled="role.isSystem || savingPermission">
                             </td>
                         </template>

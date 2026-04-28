@@ -31,6 +31,23 @@
 
 ---
 
+## ⚠️ Incidente documentado y lección aprendida
+
+**Problema (2026-04-21):** `executionOrder="depends,defects"` en `phpunit.xml` causó que 558 tests fuesen invisibles para PHPUnit al escanear `tests/Unit/` completo — sin error visible, sin advertencia, simplemente ausentes de `--list-tests`. Fue necesario eliminar el directorio de tests completo y reconstruirlo desde cero.
+
+**Root cause:** Con suites >800 tests, el grafo de dependencias que `depends,defects` construye en memoria es truncado silenciosamente por PHPUnit. Archivos enteros desaparecen del descubrimiento sin producir ningún error.
+
+**Fix permanente aplicado:**
+
+- `phpunit.xml` → `executionOrder="default"` ✅ (línea 7 — **nunca revertir**)
+- `.phpunit.cache/` eliminada completamente ✅
+
+**Regla inviolable derivada:**
+> NUNCA usar `executionOrder="depends,defects"` ni `executionOrder="defects"`.
+> NUNCA usar `@depends` ni `#[Depends]` entre tests: construyen el grafo que PHPUnit no puede resolver a escala y trunca el descubrimiento silenciosamente.
+
+---
+
 ## Reglas de escritura de tests (sin deuda técnica)
 
 1. Docblock obligatorio (3 preguntas) en todo archivo de test
@@ -42,6 +59,51 @@
 7. Clases de test: siempre `final class`
 8. Para tests de controllers: preparar `$_SESSION` en setUp() si el controller usa Session
 9. Models son `final` → `new ModelClass($pdoMock)` con `$pdoMock->method('prepare')->willReturn($stmtMock)`
+10. **NUNCA** `@depends` ni `#[Depends]` — rompe el grafo de descubrimiento con suites grandes. Cada test debe ser completamente independiente.
+11. **NUNCA** estado estático compartido entre tests — no campos `static` modificables, no singletons sin reset en `setUp()`.
+12. El namespace **debe** coincidir exactamente con el directorio: `tests/Unit/Services/` → `namespace Tests\Unit\Services;`. Un mismatch silencia el archivo globalmente sin error visible.
+13. `#[CoversClass(Xxx::class)]` debe referenciar la clase concreta real, no una interfaz ni abstracta.
+14. Después de escribir **cada** archivo de test, ejecutar el "Protocolo de seguridad por archivo" antes de continuar.
+
+---
+
+## Protocolo de seguridad por archivo (obligatorio tras cada test file)
+
+Ejecutar en orden tras crear o modificar cualquier archivo de test:
+
+**Paso 1 — Sintaxis**
+
+```bash
+docker compose exec app php -l tests/Unit/<SubDir>/<XxxTest>.php
+# Esperado: "No syntax errors detected"
+```
+
+**Paso 2 — Ejecución aislada**
+
+```bash
+docker compose exec app php vendor/bin/phpunit --no-coverage tests/Unit/<SubDir>/<XxxTest>.php
+# Esperado: todos los tests pasan, 0 errors, 0 failures
+```
+
+**Paso 3 — Descubrimiento global**
+
+```bash
+docker compose exec app php vendor/bin/phpunit --no-coverage --list-tests tests/Unit/ | grep -c "XxxTest"
+# Esperado: número ≥ cantidad de tests en el archivo
+# Si devuelve 0 → el archivo es INVISIBLE — STOP, diagnosticar antes de continuar
+```
+
+**Checkpoint de batería (cada 5 archivos nuevos)**
+
+```bash
+docker compose exec app php vendor/bin/phpunit --no-coverage --list-tests tests/Unit/ | wc -l
+# Debe ser estrictamente mayor que el checkpoint anterior
+# Si es igual o menor → algún archivo nuevo quedó invisible — bisect hasta encontrarlo
+```
+
+> **Regla de oro:** Un archivo invisible no produce error. Solo se detecta comparando el conteo de
+> `--list-tests` antes y después de añadirlo. Sin este protocolo, los invisibles se acumulan
+> silenciosamente hasta que el diagnóstico es inmanejable.
 
 ---
 
@@ -138,6 +200,7 @@ Crear en `tests/Unit/Services/`:
 - [x] `UserProfileServiceTest.php` — get, actualizar, validaciones
 
 > **Estado a 21-04-2026:** 804/804 tests OK, 0 warnings, 0 notices. 7/8 nuevos servicios creados. Pendiente: AuthTokenService, SessionManagement, WaitlistService, LoyaltyService, GamificationService, MenuService, AllergenService, KitchenService, HealthCheckService, CacheService, ClimaContextoService, MicroestacionesService, TimeSlotServiceTest.
+> **Baseline `--list-tests` (22-04-2026):** 729 líneas → checkpoint para detectar invisibilidad.
 
 **Verificación Fase 1**: `make test-coverage` → App\Services ≥ 78%
 

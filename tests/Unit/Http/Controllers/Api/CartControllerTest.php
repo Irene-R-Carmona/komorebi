@@ -51,8 +51,48 @@ final class CartControllerTest extends ControllerTestCase
 
         $this->assertSame(200, $response->getStatusCode());
         $body = \json_decode((string) $response->getBody(), true);
-        $this->assertSame(0, $body['data']['totalQty']);
+        $this->assertSame(0, $body['data']['total_qty']);
         $this->assertSame(0, $body['data']['totalPrice']);
+    }
+
+    public function test_remove_returns_200_when_id_in_route_attribute(): void
+    {
+        $service = $this->createStub(CartServiceInterface::class);
+        $service->method('remove')->willReturn(Result::ok([]));
+        $controller = new CartController(new ResponseFactory(), $service);
+        $request = $this->makeGetRequest('/api/v1/cart/items/5')->withAttribute('id', '5');
+        $response = $controller->remove($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    public function test_remove_returns_422_when_id_is_zero(): void
+    {
+        $request = $this->makeGetRequest('/api/v1/cart/items/0')->withAttribute('id', '0');
+        $response = $this->makeController()->remove($request);
+
+        $this->assertSame(422, $response->getStatusCode());
+    }
+
+    public function test_update_returns_200_when_id_in_route_attribute(): void
+    {
+        $service = $this->createStub(CartServiceInterface::class);
+        $service->method('updateItem')->willReturn(Result::ok(['items' => [], 'totalQty' => 1, 'totalPrice' => 0.0]));
+        $controller = new CartController(new ResponseFactory(), $service);
+        $request = $this->makePostRequest('/api/v1/cart/items/5', ['change' => 1])
+            ->withAttribute('id', '5');
+        $response = $controller->update($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    public function test_update_returns_422_when_id_is_zero(): void
+    {
+        $request = $this->makePostRequest('/api/v1/cart/items/0', ['change' => 1])
+            ->withAttribute('id', '0');
+        $response = $this->makeController()->update($request);
+
+        $this->assertSame(422, $response->getStatusCode());
     }
 
     public function test_add_returns_422_when_product_id_missing(): void

@@ -66,6 +66,24 @@ declare(strict_types=1);
                             </select>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="incident_type" class="form-label fw-semibold">Tipo de incidente</label>
+                            <?php
+                            $incidentTypeLabels = [
+                                'bite' => 'Mordedura', 'injury' => 'Lesión', 'escape' => 'Escape',
+                                'illness' => 'Enfermedad', 'behavior' => 'Comportamiento', 'other' => 'Otro',
+                            ];
+                            ?>
+                            <select id="incident_type" name="incident_type" class="form-select">
+                                <option value="">Selecciona tipo (opcional)…</option>
+                                <?php foreach (\App\Domain\AnimalVocabulary::INCIDENT_TYPES as $t): ?>
+                                    <option value="<?= htmlspecialchars($t, ENT_QUOTES, 'UTF-8') ?>">
+                                        <?= htmlspecialchars($incidentTypeLabels[$t] ?? \ucfirst($t), ENT_QUOTES, 'UTF-8') ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
                         <div class="mb-4">
                             <label for="description" class="form-label fw-semibold">
                                 Descripción <span class="text-danger">*</span>

@@ -5,21 +5,18 @@
  * Verifica que Admin/CafeController cumple el contrato PSR-7.
  *
  * ¿Qué me quieres demostrar?
- * Que create() lanza ValidationException cuando el CSRF es inválido
- * (defensa de seguridad antes de tocar lógica de negocio).
+ * Que create() y update() aceptan ServerRequestInterface y delegan en CafeServiceInterface.
+ * La validación CSRF se realiza en middleware, no en el controlador.
  *
  * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina la validación CSRF en create()/update()/delete().
+ * Si create() o update() dejan de aceptar ServerRequestInterface como primer parámetro.
  */
 
 declare(strict_types=1);
 
 namespace Tests\Unit\Http\Controllers\Admin;
 
-use App\Core\Http\ResponseFactory;
-use App\Exceptions\ValidationException;
 use App\Http\Controllers\Admin\CafeController;
-use App\Services\Contracts\CafeServiceInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Support\ControllerTestCase;
 
@@ -41,36 +38,8 @@ final class CafeControllerTest extends ControllerTestCase
         $_POST = [];
     }
 
-    private function makeController(): CafeController
-    {
-        return new CafeController(
-            cafeService: $this->createStub(CafeServiceInterface::class),
-            response: new ResponseFactory(),
-        );
-    }
-
-    public function test_create_throws_validation_exception_when_csrf_is_invalid(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        $_SESSION['_csrf_token'] = '';
-        $this->makeController()->create();
-    }
-
-    public function test_update_throws_validation_exception_when_csrf_is_invalid(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        $_SESSION['_csrf_token'] = '';
-        $this->makeController()->update(1);
-    }
-
     public function test_class_has_expected_methods(): void
     {
         $this->assertTrue(\method_exists(CafeController::class, 'index'));
-        $this->assertTrue(\method_exists(CafeController::class, 'create'));
-        $this->assertTrue(\method_exists(CafeController::class, 'update'));
-        $this->assertTrue(\method_exists(CafeController::class, 'toggleStatus'));
-        $this->assertTrue(\method_exists(CafeController::class, 'delete'));
     }
 }

@@ -12,18 +12,16 @@
 use App\Core\Csrf;
 use App\Core\View;
 
-$users ??= [];
-$roles ??= [];
-$currentUserId = $_SESSION['user_id'] ?? null;
-$csrfToken = Csrf::token();
+$users         ??= [];
+$roles         ??= [];
+$meta          ??= ['page' => 1, 'has_next_page' => false];
+$currentParams ??= [];
+$currentUserId   = $_SESSION['user_id'] ?? null;
 
-// Preparar configuración para Alpine.js
 $alpineConfig = json_encode([
-    'users' => $users,
-    'roles' => $roles,
+    'csrfToken'     => Csrf::token(),
     'currentUserId' => $currentUserId,
-    'csrfToken' => $csrfToken,
-], JSON_HEX_APOS | JSON_HEX_QUOT);
+], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
 ?>
 
 <div class="container-fluid" x-data='userManagement(<?= $alpineConfig ?>)' x-cloak>
@@ -39,15 +37,15 @@ $alpineConfig = json_encode([
     ]) ?>
 
     <!-- Estadísticas -->
-    <?php include __DIR__ . '/partials/_stats.php'; ?>
+    <?php include_once __DIR__ . '/partials/_stats.php'; ?>
 
     <!-- Filtros -->
-    <?php include __DIR__ . '/partials/_filters.php'; ?>
+    <?php include_once __DIR__ . '/partials/_filters.php'; ?>
 
     <!-- Tabla de Usuarios -->
-    <?php include __DIR__ . '/partials/_user-table.php'; ?>
+    <?php include_once __DIR__ . '/partials/_user-table.php'; ?>
 
     <!-- Modal de Usuario -->
-    <?php include __DIR__ . '/partials/_user-modal.php'; ?>
+    <?php include_once __DIR__ . '/partials/_user-modal.php'; ?>
 
 </div>

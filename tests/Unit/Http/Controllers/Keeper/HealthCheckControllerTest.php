@@ -21,6 +21,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Keeper;
 
 use App\Core\Http\ResponseFactory;
+use App\Domain\DTO\AnimalDTO;
+use App\Domain\DTO\AnimalHealthCheckDTO;
 use App\Http\Controllers\Keeper\HealthCheckController;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
@@ -60,26 +62,27 @@ final class HealthCheckControllerTest extends TestCase
         $repo->method('getTodayChecks')->willReturn($overrides['todayChecks'] ?? []);
         $repo->method('getPendingAnimals')->willReturn($overrides['pendingAnimals'] ?? []);
         $repo->method('getCheckswithAlerts')->willReturn($overrides['alerts'] ?? []);
-        $repo->method('findById')->willReturn($overrides['check'] ?? [
-            'id' => 1,
-            'animal_id' => 1,
-            'animal_name' => 'Neko',
-            'species_type' => 'Gato',
-            'current_status' => 'activo',
-            'keeper_name' => 'Keeper Test',
-            'check_date' => '2024-01-15',
-            'created_at' => '2024-01-15 10:00:00',
-            'weight_kg' => null,
-            'temperature_c' => null,
-            'appetite' => 'normal',
-            'energy_level' => 'normal',
-            'coat_condition' => 'good',
-            'eyes_clear' => 1,
-            'breathing_normal' => 1,
-            'mobility_normal' => 1,
-            'notes' => '',
-            'alerts' => null,
-        ]);
+        $repo->method('findById')->willReturn($overrides['check'] ?? new AnimalHealthCheckDTO(
+            id: 1,
+            animal_id: 1,
+            checked_by: 1,
+            check_date: '2024-01-15',
+            created_at: '2024-01-15 10:00:00',
+            weight_kg: null,
+            temperature_c: null,
+            appetite: 'normal',
+            energy_level: 'normal',
+            coat_condition: 'good',
+            eyes_clear: true,
+            breathing_normal: true,
+            mobility_normal: true,
+            notes: '',
+            alerts: null,
+            animal_name: 'Neko',
+            species_type: 'Gato',
+            current_status: 'activo',
+            keeper_name: 'Keeper Test',
+        ));
         $repo->method('exists')->willReturn($overrides['exists'] ?? false);
         $repo->method('findTodayByAnimalId')->willReturn(null);
         $repo->method('create')->willReturn(99);
@@ -90,15 +93,17 @@ final class HealthCheckControllerTest extends TestCase
         return new HealthCheckService($repo);
     }
 
-    private function makeAnimalRepo(?array $animal = null): AnimalRepositoryInterface
+    private function makeAnimalRepo(?AnimalDTO $animal = null): AnimalRepositoryInterface
     {
-        $defaultAnimal = [
-            'id' => 1,
-            'name' => 'Neko',
-            'species_type' => 'Gato',
-            'current_status' => 'activo',
-            'age' => 3,
-        ];
+        $defaultAnimal = new AnimalDTO(
+            id: 1,
+            cafe_id: 1,
+            name: 'Neko',
+            species: 'Gato',
+            description: null,
+            image_url: null,
+            is_active: true,
+        );
         $repo = $this->createStub(AnimalRepositoryInterface::class);
         $repo->method('findById')->willReturn($animal ?? $defaultAnimal);
 
@@ -138,7 +143,7 @@ final class HealthCheckControllerTest extends TestCase
     public function test_create_returns_null_when_animal_found_and_no_check_today(): void
     {
         $service = $this->makeHealthCheckService(['exists' => false]);
-        $animalRepo = $this->makeAnimalRepo(['id' => 5, 'name' => 'Luna', 'species_type' => 'Gato', 'current_status' => 'activo', 'age' => 2]);
+        $animalRepo = $this->makeAnimalRepo(new AnimalDTO(id: 5, cafe_id: 1, name: 'Luna', species: 'Gato', description: null, image_url: null, is_active: true));
 
         $request = new ServerRequest('GET', '/keeper/health-checks/create/5');
 
@@ -240,26 +245,27 @@ final class HealthCheckControllerTest extends TestCase
     public function test_show_returns_null_when_check_found(): void
     {
         $service = $this->makeHealthCheckService([
-            'check' => [
-                'id' => 1,
-                'animal_id' => 1,
-                'animal_name' => 'Neko',
-                'species_type' => 'Gato',
-                'current_status' => 'activo',
-                'keeper_name' => 'Keeper Test',
-                'check_date' => '2024-01-15',
-                'created_at' => '2024-01-15 10:00:00',
-                'weight_kg' => null,
-                'temperature_c' => null,
-                'appetite' => 'normal',
-                'energy_level' => 'normal',
-                'coat_condition' => 'good',
-                'eyes_clear' => 1,
-                'breathing_normal' => 1,
-                'mobility_normal' => 1,
-                'notes' => 'ok',
-                'alerts' => null,
-            ],
+            'check' => new AnimalHealthCheckDTO(
+                id: 1,
+                animal_id: 1,
+                checked_by: 1,
+                check_date: '2024-01-15',
+                created_at: '2024-01-15 10:00:00',
+                weight_kg: null,
+                temperature_c: null,
+                appetite: 'normal',
+                energy_level: 'normal',
+                coat_condition: 'good',
+                eyes_clear: true,
+                breathing_normal: true,
+                mobility_normal: true,
+                notes: 'ok',
+                alerts: null,
+                animal_name: 'Neko',
+                species_type: 'Gato',
+                current_status: 'activo',
+                keeper_name: 'Keeper Test',
+            ),
         ]);
 
         $request = new ServerRequest('GET', '/keeper/health-checks/1');

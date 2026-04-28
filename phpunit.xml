@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/13.0/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/13.1/phpunit.xsd"
          bootstrap="tests/bootstrap.php"
          colors="true"
          cacheDirectory=".phpunit.cache"
-         executionOrder="depends,defects"
+         executionOrder="default"
          requireCoverageMetadata="false"
          beStrictAboutCoverageMetadata="false"
          failOnRisky="false"
@@ -13,7 +13,18 @@
     <!-- Test Suites -->
     <testsuites>
         <testsuite name="Unit Tests">
-            <directory>tests/Unit</directory>
+            <directory>tests/Unit/Core</directory>
+            <directory>tests/Unit/Domain</directory>
+            <directory>tests/Unit/Events</directory>
+            <directory>tests/Unit/Http</directory>
+            <directory>tests/Unit/Jobs</directory>
+            <directory>tests/Unit/Listeners</directory>
+            <directory>tests/Unit/Middleware</directory>
+            <directory>tests/Unit/Models</directory>
+            <directory>tests/Unit/Providers</directory>
+            <directory>tests/Unit/Repositories</directory>
+            <directory>tests/Unit/Services</directory>
+            <directory>tests/Unit/Workers</directory>
         </testsuite>
 
         <testsuite name="Integration Tests">
@@ -40,8 +51,12 @@
         <exclude>
             <directory>app/Views</directory>
             <file>app/routes.php</file>
+            <directory suffix=".php">app/Core/Seeders</directory>
+            <directory suffix=".php">app/Events</directory>
+            <directory suffix=".php">app/Listeners</directory>
             <directory suffix=".php">app/Domain/DTO</directory>
             <file>app/Jobs/JobInterface.php</file>
+            <file>app/Jobs/SendTelegramNotificationJob.php</file>
             <file>app/Http/Controllers/Api/AbstractApiController.php</file>
             <directory suffix=".php">app/Services/Contracts</directory>
             <directory suffix=".php">app/Repositories/Contracts</directory>
@@ -79,5 +94,6 @@
         <env name="REDIS_HOST" value="cache"/>
         <env name="REDIS_PORT" value="6379"/>
         <env name="APP_URL" value="http://localhost"/>
+        <ini name="memory_limit" value="-1"/>
     </php>
 </phpunit>

@@ -33,24 +33,22 @@ final class QueueRetryTest extends TestCase
     private array $zaddCalls = [];
 
     /** @var array<int, array{key: string, value: string}> */
-    private array $lpushCalls = [];
+    private array $xaddFailedCalls = [];
 
     protected function setUp(): void
     {
         $this->zaddCalls = [];
-        $this->lpushCalls = [];
 
         $zaddRef = &$this->zaddCalls;
-        $lpushRef = &$this->lpushCalls;
+        $xaddRef = &$this->xaddFailedCalls;
 
-        $fakeRedis = new class ($zaddRef, $lpushRef) {
+        $fakeRedis = new class($zaddRef, $xaddRef) {
             public function __construct(
                 /** @phpstan-ignore property.onlyWritten */
                 private array &$zaddCalls,
                 /** @phpstan-ignore property.onlyWritten */
-                private array &$lpushCalls,
-            ) {
-            }
+                private array &$xaddFailedCalls,
+            ) {}
 
             /** @param mixed ...$args */
             public function zAdd(string $key, array $options, float $score, mixed ...$args): mixed
@@ -62,14 +60,12 @@ final class QueueRetryTest extends TestCase
                 return 1;
             }
 
-            /** @param mixed ...$values */
-            public function lPush(string $key, mixed ...$values): mixed
+            /** @param array<string, string> $fields */
+            public function xAdd(string $key, string $id, array $fields): mixed
             {
-                foreach ($values as $value) {
-                    $this->lpushCalls[] = ['key' => $key, 'value' => (string) $value];
-                }
+                $this->xaddFailedCalls[] = ['key' => $key, 'fields' => $fields];
 
-                return 1;
+                return '1234567890-0';
             }
         };
 
@@ -149,10 +145,10 @@ final class QueueRetryTest extends TestCase
 
         $this->assertFalse($result, 'retry() debe devolver false al agotar los intentos');
         $this->assertEmpty($this->zaddCalls, 'No debe encolarse en delayed cuando alcanza el máximo');
-        $this->assertNotEmpty($this->lpushCalls, 'Debe llamar a lPush para la cola de fallos');
+        $this->assertNotEmpty($this->xaddFailedCalls, 'Debe llamar a xAdd para la cola de fallos (DLQ)');
         $this->assertStringContainsString(
             'failed',
-            $this->lpushCalls[0]['key'],
+            $this->xaddFailedCalls[0]['key'],
             "La key de la cola de fallos debe contener 'failed'"
         );
     }

@@ -37,9 +37,10 @@ if ($productDictJson === false) {
     $productDictJson = '{}';
 }
 
-$initialTab = (int) ($categorias[0]['id'] ?? 1);
-$allergens ??= [];
+$initialTab  = (int) ($categorias[0]['id'] ?? 1);
+$allergens   ??= [];
 $excludeAllergens ??= [];
+$cartJson = json_encode($cartInicial ?? ['items' => (object) [], 'total_qty' => 0, 'totalPrice' => 0], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
 ?>
 
 <section class="seccion seccion--activa">
@@ -49,7 +50,7 @@ $excludeAllergens ??= [];
     <div id="komorebi-page-meta" data-product-dict='<?= htmlspecialchars($productDictJson, ENT_QUOTES, 'UTF-8') ?>' style="display:none;"></div>
 
     <div class="seccion__container"
-        x-data='menuApp(<?= $initialTab ?>)'
+        x-data='menuApp(<?= $initialTab ?>, <?= $cartJson ?>)'
         x-init="excludedAllergens = <?= json_encode($excludeAllergens) ?>">
 
         <!-- HEADER -->
@@ -432,12 +433,12 @@ $excludeAllergens ??= [];
 
         <!-- COMANDA BAR: solo items -->
         <div class="comanda-bar"
-            :class="{ 'comanda-bar--visible': cart.totalQty > 0 }"
+            :class="{ 'comanda-bar--visible': cart.total_qty > 0 }"
             @click="toggleComanda()">
 
             <div class="comanda-info">
                 <span class="comanda-total">¥<span x-text="(cart && cart.totalPrice && cart.totalPrice.toLocaleString()) || '0'"></span></span>
-                <span class="comanda-items">Ver desglose (<span x-text="(cart && cart.totalQty) || 0"></span> items) ▲</span>
+                <span class="comanda-items">Ver desglose (<span x-text="(cart && cart.total_qty) || 0"></span> items) ▲</span>
             </div>
 
             <button class="comanda-btn" type="button">Ver Pedido</button>
