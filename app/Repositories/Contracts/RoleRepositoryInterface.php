@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\RoleDTO;
+
 interface RoleRepositoryInterface
 {
     /** @return array<int, array<string, mixed>> */
@@ -15,11 +17,9 @@ interface RoleRepositoryInterface
     /** @return array<string, int> */
     public function getStats(): array;
 
-    /** @return array{id: int, code: string, name: string, description: ?string}|null */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?RoleDTO;
 
-    /** @return array{id: int, code: string, name: string, description: ?string}|null */
-    public function findByCode(string $code): ?array;
+    public function findByCode(string $code): ?RoleDTO;
 
     public function create(string $code, string $name, ?string $description = null): int;
 

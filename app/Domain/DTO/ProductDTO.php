@@ -17,27 +17,17 @@ final readonly class ProductDTO implements DomainTransferObject
         public int $category_id,
         public string $category_name,
         public array $allergens,
-        public bool $is_available,
+        public bool $is_active,
         public ?string $image_url,
-    ) {
-    }
-
-    #[Override]
-    public static function fromArray(array $data): static
-    {
-        return new static(
-            id: (int) $data['id'],
-            name: (string) $data['name'],
-            slug: (string) $data['slug'],
-            description: isset($data['description']) ? (string) $data['description'] : null,
-            price: (float) ($data['price'] ?? 0.0),
-            category_id: (int) ($data['category_id'] ?? 0),
-            category_name: (string) ($data['category_name'] ?? ''),
-            allergens: \is_array($data['allergens'] ?? null) ? $data['allergens'] : [],
-            is_available: (bool) ($data['is_available'] ?? true),
-            image_url: isset($data['image_url']) ? (string) $data['image_url'] : null,
-        );
-    }
+        public string $product_type,
+        public ?int $min_pax,
+        public ?int $max_pax,
+        public ?int $duration_minutes,
+        public ?string $attributes,
+        public ?string $target_cafe_types,
+        public ?string $target_animal_types,
+        public ?int $stock_quantity,
+    ) {}
 
     #[Override]
     public function toViewArray(): array
@@ -51,8 +41,16 @@ final readonly class ProductDTO implements DomainTransferObject
             'category_id' => $this->category_id,
             'category_name' => $this->category_name,
             'allergens' => $this->allergens,
-            'is_available' => $this->is_available,
+            'is_active' => $this->is_active,
             'image_url' => $this->image_url,
+            'product_type' => $this->product_type,
+            'min_pax' => $this->min_pax,
+            'max_pax' => $this->max_pax,
+            'duration_minutes' => $this->duration_minutes,
+            'attributes' => $this->attributes,
+            'target_cafe_types' => $this->target_cafe_types,
+            'target_animal_types' => $this->target_animal_types,
+            'stock_quantity' => $this->stock_quantity,
         ];
     }
 }

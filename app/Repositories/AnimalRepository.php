@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Domain\DTO\AnimalDTO;
+use App\Domain\Mappers\AnimalMapper;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use Override;
 use PDO;
@@ -16,6 +18,11 @@ use PDO;
  */
 final class AnimalRepository extends AbstractRepository implements AnimalRepositoryInterface
 {
+    public function __construct(private readonly AnimalMapper $mapper, ?PDO $db = null)
+    {
+        parent::__construct($db);
+    }
+
     #[Override]
     protected function getTable(): string
     {
@@ -26,26 +33,39 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
     protected function getSelectFields(): array
     {
         return [
-            'id', 'cafe_id', 'current_zone_id', 'name', 'species_type', 'age',
-            'personality', 'description', 'interaction_level', 'attributes',
-            'image_url', 'current_status', 'last_check_at', 'last_health_check',
-            'deleted_at', 'created_at', 'updated_at',
+            'id',
+            'cafe_id',
+            'current_zone_id',
+            'name',
+            'species_type',
+            'age',
+            'personality',
+            'description',
+            'interaction_level',
+            'attributes',
+            'image_url',
+            'current_status',
+            'last_check_at',
+            'last_health_check',
+            'deleted_at',
+            'created_at',
+            'updated_at',
         ];
     }
 
     // ─── Read ───────────────────────────────────────────────────────────────
 
     #[Override]
-    public function findById(int $id): ?array
+    public function findById(int $id): ?AnimalDTO
     {
         $fields = \implode(', ', $this->getSelectFields());
         $stmt = $this->getDb()->prepare(
             "SELECT $fields FROM animals WHERE id = :id AND deleted_at IS NULL LIMIT 1"
         );
         $stmt->execute(['id' => $id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $result ?: null;
+        return $row ? $this->mapper->toDTO($row) : null;
     }
 
     #[Override]
@@ -229,5 +249,4 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
 
         return ['found' => true, 'current_status' => $newStatus];
     }
-
 }

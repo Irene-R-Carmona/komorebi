@@ -59,6 +59,8 @@ final class MenuRepository implements MenuRepositoryInterface
                 p.product_type,
                 p.is_active,
                 p.image_url,
+                p.target_cafe_types,
+                p.target_animal_types,
                 mc.name AS category_name,
                 mc.slug AS category_slug,
                 GROUP_CONCAT(DISTINCT a.id) AS allergen_ids,
@@ -83,7 +85,7 @@ final class MenuRepository implements MenuRepositoryInterface
             )";
         }
 
-        $sql .= ' GROUP BY p.id, p.name, p.japanese_name, p.description, p.price, p.category_id, p.product_type, p.is_active, p.image_url, mc.name, mc.slug
+        $sql .= ' GROUP BY p.id, p.name, p.japanese_name, p.description, p.price, p.category_id, p.product_type, p.is_active, p.image_url, p.target_cafe_types, p.target_animal_types, mc.name, mc.slug
                   ORDER BY mc.display_order, p.name';
 
         $stmt = $this->db->prepare($sql);

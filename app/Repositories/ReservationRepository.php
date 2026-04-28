@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Domain\DTO\ReservationDTO;
+use App\Domain\Mappers\ReservationMapper;
 use App\Domain\Reservation\ReservationStateMachine;
+use App\Domain\ReservationVocabulary;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use DateTimeImmutable;
 use Override;
@@ -18,6 +21,14 @@ use PDO;
  */
 final class ReservationRepository extends AbstractRepository implements ReservationRepositoryInterface
 {
+    private ReservationMapper $mapper;
+
+    public function __construct(?PDO $db = null, ?ReservationMapper $mapper = null)
+    {
+        parent::__construct($db);
+        $this->mapper = $mapper ?? new ReservationMapper();
+    }
+
     #[Override]
     protected function getTable(): string
     {
@@ -31,6 +42,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
             'id',
             'user_id',
             'cafe_id',
+            'time_slot_id',
             'pass_product_id',
             'pass_name',
             'pass_unit_price',
@@ -49,6 +61,13 @@ final class ReservationRepository extends AbstractRepository implements Reservat
             'created_at',
             'updated_at',
         ];
+    }
+
+    #[Override]
+    public function findById(int $id): ?ReservationDTO
+    {
+        $row = $this->findByIdRaw($id);
+        return $row !== null ? $this->mapper->toDTO($row) : null;
     }
 
     /**
@@ -77,7 +96,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     public function findByIdWithCafeDetails(int $id): ?array
     {
         $reservationFields = \array_map(
-            fn ($field) => "r.$field",
+            fn($field) => "r.$field",
             $this->getSelectFields()
         );
         $fields = \implode(', ', $reservationFields);
@@ -224,6 +243,10 @@ final class ReservationRepository extends AbstractRepository implements Reservat
             $data['payment_status'] = $paymentData['payment_status'];
         }
         if (isset($paymentData['payment_method'])) {
+            if (!ReservationVocabulary::isValidPaymentMethod((string) $paymentData['payment_method'])) {
+                throw new \InvalidArgumentException('Método de pago no válido: ' . $paymentData['payment_method']);
+            }
+
             $data['payment_method'] = $paymentData['payment_method'];
         }
         if (isset($paymentData['payment_notes'])) {
@@ -241,12 +264,12 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         // Verificar que la reserva pertenezca al usuario
         $reservation = $this->findById($id);
 
-        if (!$reservation || (int) $reservation['user_id'] !== $userId) {
+        if (!$reservation || (int) $reservation->user_id !== $userId) {
             return false;
         }
 
         // Verificar que sea cancelable
-        if (!ReservationStateMachine::isValidTransition($reservation['status'], 'cancelled')) {
+        if (!ReservationStateMachine::isValidTransition($reservation->status, 'cancelled')) {
             return false;
         }
 
@@ -279,7 +302,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         $total = (int) $stmt->fetchColumn();
 
         // Obtener datos con detalles del café
-        $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(fn($f) => "r.$f", $this->getSelectFields()));
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
                 FROM reservations r
@@ -307,7 +330,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findUpcomingByUser(int $userId, int $limit = 5): array
     {
-        $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(fn($f) => "r.$f", $this->getSelectFields()));
 
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
@@ -455,7 +478,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
     public function findByIdAndUser(int $id, int $userId): ?array
     {
-        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
 
         $stmt = $this->getDb()->prepare(
             "SELECT $fields, c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image

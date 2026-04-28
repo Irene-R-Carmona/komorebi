@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Domain\DTO\RoleDTO;
+use App\Domain\Mappers\RoleMapper;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use PDO;
 
@@ -12,9 +14,12 @@ final class RoleRepository implements RoleRepositoryInterface
 {
     private PDO $db;
 
-    public function __construct(?PDO $db = null)
+    private RoleMapper $mapper;
+
+    public function __construct(?PDO $db = null, ?RoleMapper $mapper = null)
     {
         $this->db = $db ?? Database::getConnection();
+        $this->mapper = $mapper ?? new RoleMapper();
     }
 
     public function findAllWithCounts(): array
@@ -57,7 +62,7 @@ final class RoleRepository implements RoleRepositoryInterface
                 $names = \explode(',', (string) $row['permission_names']);
 
                 $row['permissions'] = \array_map(
-                    static fn (string $id, string $name): array => [
+                    static fn(string $id, string $name): array => [
                         'id' => (int) $id,
                         'name' => $name,
                     ],
@@ -90,20 +95,22 @@ final class RoleRepository implements RoleRepositoryInterface
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function findById(int $id): ?array
+    public function findById(int $id): ?RoleDTO
     {
         $stmt = $this->db->prepare('SELECT id, code, name, description FROM roles WHERE id = :id');
         $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        return $row ? $this->mapper->toDTO($row) : null;
     }
 
-    public function findByCode(string $code): ?array
+    public function findByCode(string $code): ?RoleDTO
     {
         $stmt = $this->db->prepare('SELECT id, code, name, description FROM roles WHERE code = :code');
         $stmt->execute(['code' => $code]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        return $row ? $this->mapper->toDTO($row) : null;
     }
 
     public function create(string $code, string $name, ?string $description = null): int

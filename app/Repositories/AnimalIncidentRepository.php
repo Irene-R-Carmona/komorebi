@@ -5,16 +5,20 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Domain\DTO\AnimalIncidentDTO;
+use App\Domain\Mappers\AnimalIncidentMapper;
 use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
 use PDO;
 
 final class AnimalIncidentRepository implements AnimalIncidentRepositoryInterface
 {
     private PDO $db;
+    private AnimalIncidentMapper $mapper;
 
-    public function __construct(?PDO $db = null)
+    public function __construct(?PDO $db = null, ?AnimalIncidentMapper $mapper = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        $this->db     = $db ?? Database::getConnection();
+        $this->mapper = $mapper ?? new AnimalIncidentMapper();
     }
 
     public function getActiveIncidents(): array
@@ -30,7 +34,7 @@ final class AnimalIncidentRepository implements AnimalIncidentRepositoryInterfac
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function findById(int $id): ?array
+    public function findById(int $id): ?AnimalIncidentDTO
     {
         $stmt = $this->db->prepare('
             SELECT ai.*, a.name AS animal_name, a.species_type AS species
@@ -39,9 +43,9 @@ final class AnimalIncidentRepository implements AnimalIncidentRepositoryInterfac
             WHERE ai.id = :id
         ');
         $stmt->execute(['id' => $id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $result ?: null;
+        return $row !== false ? $this->mapper->toDTO($row) : null;
     }
 
     public function create(array $data): int

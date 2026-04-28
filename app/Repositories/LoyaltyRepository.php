@@ -5,24 +5,32 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Domain\DTO\LoyaltyCardDTO;
+use App\Domain\DTO\LoyaltyRewardDTO;
+use App\Domain\Mappers\LoyaltyCardMapper;
+use App\Domain\Mappers\LoyaltyRewardMapper;
 use App\Repositories\Contracts\LoyaltyRepositoryInterface;
 use PDO;
 
 final class LoyaltyRepository implements LoyaltyRepositoryInterface
 {
     private PDO $db;
+    private LoyaltyCardMapper $cardMapper;
+    private LoyaltyRewardMapper $rewardMapper;
 
     public function __construct(?PDO $db = null)
     {
         $this->db = $db ?? Database::getConnection();
+        $this->cardMapper = new LoyaltyCardMapper();
+        $this->rewardMapper = new LoyaltyRewardMapper();
     }
 
     // ── LoyaltyCard ──────────────────────────────────────────────
 
-    public function findOrCreateCardByUserId(int $userId): array
+    public function findOrCreateCardByUserId(int $userId): LoyaltyCardDTO
     {
         $card = $this->findCardByUserId($userId);
-        if ($card) {
+        if ($card !== null) {
             return $card;
         }
 
@@ -31,23 +39,30 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
              VALUES (?, 0, 'bronze', 0)"
         )->execute([$userId]);
 
-        return $this->findCardByUserId($userId);
+        $created = $this->findCardByUserId($userId);
+        if ($created === null) {
+            throw new \RuntimeException('Failed to create loyalty card for user ' . $userId);
+        }
+
+        return $created;
     }
 
-    public function findCardById(int $id): ?array
+    public function findCardById(int $id): ?LoyaltyCardDTO
     {
         $stmt = $this->db->prepare('SELECT * FROM loyalty_cards WHERE id = ? LIMIT 1');
         $stmt->execute([$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        return $row !== false ? $this->cardMapper->toDTO($row) : null;
     }
 
-    public function findCardByUserId(int $userId): ?array
+    public function findCardByUserId(int $userId): ?LoyaltyCardDTO
     {
         $stmt = $this->db->prepare('SELECT * FROM loyalty_cards WHERE user_id = ? LIMIT 1');
         $stmt->execute([$userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        return $row !== false ? $this->cardMapper->toDTO($row) : null;
     }
 
     public function addStamps(int $cardId, int $stamps): bool
@@ -64,9 +79,28 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
 
     public function updateTier(int $cardId, string $tier): bool
     {
-        return $this->db->prepare(
-            'UPDATE loyalty_cards SET current_tier = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-        )->execute([$tier, $cardId]);
+        // No-op: current_tier es una columna GENERATED ALWAYS (ver migration 024).
+        // MySQL actualiza el tier automáticamente al modificar visits_count.
+        return true;
+    }
+
+    /**
+     * Ranking de usuarios por sellos acumulados.
+     * @return array<int, array<string, mixed>>
+     */
+    public function getLeaderboard(int $limit = 10): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT user_id,
+                    stamps,
+                    current_tier,
+                    RANK() OVER (ORDER BY stamps DESC) AS `rank`
+             FROM loyalty_cards
+             ORDER BY stamps DESC
+             LIMIT ?'
+        );
+        $stmt->execute([$limit]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     public function consumeStamps(int $cardId, int $stamps): bool
@@ -148,7 +182,7 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function findRewardByCode(string $code): ?array
+    public function findRewardByCode(string $code): ?LoyaltyRewardDTO
     {
         $stmt = $this->db->prepare(
             'SELECT lr.*, lrc.name_es, lrc.description_es
@@ -157,8 +191,9 @@ final class LoyaltyRepository implements LoyaltyRepositoryInterface
              WHERE lr.redemption_code = ? LIMIT 1'
         );
         $stmt->execute([$code]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        return $row !== false ? $this->rewardMapper->toDTO($row) : null;
     }
 
     public function markRewardsExpired(array $ids): bool

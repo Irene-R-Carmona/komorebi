@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Domain\DTO\UserDTO;
+use App\Domain\Mappers\UserMapper;
 use App\Repositories\Contracts\UserManagementRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Override;
@@ -17,6 +19,22 @@ use PDO;
  */
 final class UserRepository extends AbstractRepository implements UserRepositoryInterface, UserManagementRepositoryInterface
 {
+    private UserMapper $mapper;
+
+    public function __construct(?PDO $db = null, ?UserMapper $mapper = null)
+    {
+        parent::__construct($db);
+        $this->mapper = $mapper ?? new UserMapper();
+    }
+
+    #[Override]
+    public function findById(int $id): ?UserDTO
+    {
+        $row = $this->findByIdRaw($id);
+
+        return $row !== null ? $this->mapper->toDTO($row) : null;
+    }
+
     #[Override]
     protected function getTable(): string
     {
@@ -284,7 +302,7 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
      */
     public function toggleStatus(int $id): bool
     {
-        $user = $this->findById($id);
+        $user = $this->findByIdRaw($id);
 
         if (!$user) {
             return false;
@@ -519,10 +537,172 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
     }
 
+    /**
+     * Usuarios paginados con roles — para SSR con filtros server-side.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findPaginatedWithRoles(
+        \App\Core\Pagination $pagination,
+        string $search = '',
+        string $status = '',
+        string $role = '',
+        string $sort = 'created_at',
+        string $sortDir = 'desc',
+    ): array {
+        $sortWhitelist = ['id', 'name', 'email', 'is_active', 'created_at'];
+        $safeSort = \in_array($sort, $sortWhitelist, true) ? $sort : 'created_at';
+        $safeDir  = \strtolower($sortDir) === 'asc' ? 'ASC' : 'DESC';
+
+        $where  = [];
+        $params = [];
+
+        if ($search !== '') {
+            $where[]           = '(u.name LIKE :search OR u.email LIKE :search)';
+            $params['search']  = '%' . $search . '%';
+        }
+
+        if ($status === 'active') {
+            $where[] = 'u.is_active = 1';
+        } elseif ($status === 'inactive') {
+            $where[] = 'u.is_active = 0';
+        }
+
+        if ($role !== '') {
+            $where[]        = 'u.id IN (SELECT ur2.user_id FROM user_roles ur2 JOIN roles r2 ON ur2.role_id = r2.id WHERE r2.code = :role)';
+            $params['role'] = $role;
+        }
+
+        $whereClause = $where !== [] ? 'WHERE ' . \implode(' AND ', $where) : '';
+
+        $sql = "
+            SELECT u.id, u.uuid, u.name, u.email, u.is_active, u.created_at, u.last_login,
+                   GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ', ') AS roles,
+                   GROUP_CONCAT(r.id   ORDER BY r.id   SEPARATOR ',')  AS role_ids,
+                   MIN(ur.role_id) AS role_id
+            FROM users u
+            LEFT JOIN user_roles ur ON u.id = ur.user_id
+            LEFT JOIN roles r ON ur.role_id = r.id
+            $whereClause
+            GROUP BY u.id, u.uuid, u.name, u.email, u.is_active, u.created_at, u.last_login
+            ORDER BY u.$safeSort $safeDir
+            LIMIT :limit OFFSET :offset
+        ";
+
+        $params['limit']  = $pagination->fetchLimit;
+        $params['offset'] = $pagination->offset;
+
+        $stmt = $this->getDb()->prepare($sql);
+        $this->execTimed(static fn() => $stmt->execute($params), $sql, $params);
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Contadores globales de usuarios (no filtrados) para el panel de estadísticas.
+     *
+     * @return array{total_users: int, active_users: int, inactive_users: int, admin_users: int}
+     */
+    public function getUserStats(): array
+    {
+        $stmt = $this->getDb()->query("
+            SELECT
+                COUNT(DISTINCT u.id)                                                    AS total,
+                SUM(CASE WHEN u.is_active = 1 THEN 1 ELSE 0 END)                       AS active,
+                SUM(CASE WHEN u.is_active = 0 THEN 1 ELSE 0 END)                       AS inactive,
+                COUNT(DISTINCT CASE WHEN r.code = 'admin' THEN u.id END)               AS admins
+            FROM users u
+            LEFT JOIN user_roles ur ON u.id = ur.user_id
+            LEFT JOIN roles r       ON ur.role_id = r.id
+        ");
+
+        $row = $stmt ? $stmt->fetch(\PDO::FETCH_ASSOC) : [];
+
+        return [
+            'total_users'    => (int) ($row['total']   ?? 0),
+            'active_users'   => (int) ($row['active']  ?? 0),
+            'inactive_users' => (int) ($row['inactive'] ?? 0),
+            'admin_users'    => (int) ($row['admins']  ?? 0),
+        ];
+    }
+
     public function clearRoles(int $userId): bool
     {
         $stmt = $this->getDb()->prepare('DELETE FROM user_roles WHERE user_id = :user_id');
 
         return $stmt->execute(['user_id' => $userId]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Autenticación y Seguridad
+    // ─────────────────────────────────────────────────────────────
+
+    #[Override]
+    public function verifyPassword(array $user, string $password): bool
+    {
+        if (!isset($user['password'], $user['id'])) {
+            return false;
+        }
+
+        if (!\password_verify($password, $user['password'])) {
+            return false;
+        }
+
+        // Rehash si es necesario (ej: migración de bcrypt a argon2id)
+        if (\password_needs_rehash($user['password'], PASSWORD_ARGON2ID)) {
+            $this->updatePassword((int) $user['id'], $password);
+        }
+
+        return true;
+    }
+
+    #[Override]
+    public function registerFailedAttempt(int $id): void
+    {
+        $stmt = $this->getDb()->prepare(
+            'UPDATE users SET login_attempts = login_attempts + 1 WHERE id = :id'
+        );
+        $stmt->execute(['id' => $id]);
+
+        // Bloquear cuenta si se supera el límite
+        $user = $this->findByIdForSecurity($id);
+        if ($user && (int) ($user['login_attempts'] ?? 0) >= \App\Models\User::MAX_LOGIN_ATTEMPTS) {
+            $lockUntil = \date('Y-m-d H:i:s', \strtotime('+' . \App\Models\User::LOCKOUT_MINUTES . ' minutes'));
+            $lock = $this->getDb()->prepare(
+                'UPDATE users SET locked_until = :locked WHERE id = :id'
+            );
+            $lock->execute(['id' => $id, 'locked' => $lockUntil]);
+        }
+    }
+
+    #[Override]
+    public function clearLoginAttempts(int $id): void
+    {
+        $stmt = $this->getDb()->prepare(
+            'UPDATE users SET login_attempts = 0, locked_until = NULL WHERE id = :id'
+        );
+        $stmt->execute(['id' => $id]);
+    }
+
+    #[Override]
+    public function isLocked(array $user): bool
+    {
+        if (empty($user['locked_until'])) {
+            return false;
+        }
+
+        return \strtotime($user['locked_until']) > \time();
+    }
+
+    #[Override]
+    public function lockoutMinutesRemaining(array $user): int
+    {
+        if (!$this->isLocked($user)) {
+            return 0;
+        }
+
+        $remaining = \strtotime($user['locked_until']) - \time();
+
+        return (int) \ceil($remaining / 60);
     }
 }

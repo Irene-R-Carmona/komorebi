@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\ReservationItemDTO;
+
 interface ReservationItemRepositoryInterface
 {
+    public function findById(int $id): ?ReservationItemDTO;
+
     /** @return array<string, mixed> */
     public function findByReservation(int $reservationId): array;
 

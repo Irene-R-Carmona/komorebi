@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\TimeSlotDTO;
+
 /**
  * Interfaz del repositorio de time slots
  *
@@ -16,11 +18,9 @@ interface TimeSlotRepositoryInterface
      * Buscar un time slot por su ID
      *
      * @param integer $id ID del time slot
-     * @return array|null Array con datos del slot o null si no existe
-     *                    Campos: id, cafe_id, slot_date, slot_time, total_capacity,
-     *                            available_spots, is_blocked, etc.
+     * @return TimeSlotDTO|null DTO con datos del slot o null si no existe
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?TimeSlotDTO;
 
     /**
      * Obtener la capacidad disponible de un time slot específico

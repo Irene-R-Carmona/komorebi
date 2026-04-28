@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Core\Pagination;
+use App\Domain\DTO\CafeDTO;
+use App\Domain\Mappers\CafeMapper;
 use App\Repositories\Contracts\CafeCatalogRepositoryInterface;
 use Override;
 use PDO;
@@ -16,6 +19,15 @@ use PDO;
  */
 final class CafeRepository extends AbstractRepository implements CafeCatalogRepositoryInterface
 {
+    private const string SQL_NOT_DELETED     = 'deleted_at IS NULL';
+    private const string SQL_FILTER_CATEGORY = 'category = :category';
+    private const string SQL_AND             = ' AND ';
+
+    public function __construct(private readonly CafeMapper $mapper, ?PDO $db = null)
+    {
+        parent::__construct($db);
+    }
+
     #[Override]
     protected function getTable(): string
     {
@@ -50,6 +62,17 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
             'created_at',
             'updated_at',
         ];
+    }
+
+    /**
+     * Buscar café por slug.
+     */
+    #[Override]
+    public function findById(int $id): ?CafeDTO
+    {
+        $row = $this->findByIdRaw($id);
+
+        return $row ? $this->mapper->toDTO($row) : null;
     }
 
     /**
@@ -206,11 +229,11 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
      */
     public function findFiltered(array $filters = [], int $limit = 100, int $offset = 0): array
     {
-        $where = ['deleted_at IS NULL'];
+        $where = [self::SQL_NOT_DELETED];
         $params = [];
 
         if (isset($filters['category'])) {
-            $where[] = 'category = :category';
+            $where[] = self::SQL_FILTER_CATEGORY;
             $params['category'] = $filters['category'];
         }
 
@@ -224,7 +247,7 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
             $params['is_active'] = (int) $filters['is_active'];
         }
 
-        $whereClause = \implode(' AND ', $where);
+        $whereClause = \implode(self::SQL_AND, $where);
         $fields = \implode(', ', $this->getSelectFields());
 
         $sql = "SELECT {$fields}
@@ -358,11 +381,11 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         string $order = 'ASC'
     ): array {
         $fields = \implode(', ', $this->getSelectFields());
-        $where = ['is_active = 1', 'deleted_at IS NULL'];
+        $where = ['is_active = 1', self::SQL_NOT_DELETED];
         $params = [];
 
         if ($category !== null) {
-            $where[] = 'category = :category';
+            $where[] = self::SQL_FILTER_CATEGORY;
             $params['category'] = $category;
         }
 
@@ -378,7 +401,7 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         }
         $order = \strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
 
-        $whereClause = \implode(' AND ', $where);
+        $whereClause = \implode(self::SQL_AND, $where);
         $sql = "SELECT $fields FROM cafes WHERE $whereClause ORDER BY $orderBy $order";
 
         $stmt = $this->getDb()->prepare($sql);
@@ -494,5 +517,86 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Paginación para el panel admin con filtros de búsqueda, categoría y estado.
+     * Usa sentinel row (+1) para detectar has_next_page sin COUNT(*).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findPaginatedAdmin(
+        Pagination $pagination,
+        string $search = '',
+        string $category = '',
+        string $status = '',
+        string $sort = 'name',
+        string $sortDir = 'asc',
+    ): array {
+        $sortWhitelist = ['id', 'name', 'category', 'animal_type', 'capacity_max', 'is_active', 'created_at'];
+        if (!\in_array($sort, $sortWhitelist, true)) {
+            $sort = 'name';
+        }
+        $sortDir = \strtolower($sortDir) === 'desc' ? 'DESC' : 'ASC';
+
+        $fields = \implode(', ', $this->getSelectFields());
+        $where  = [self::SQL_NOT_DELETED];
+        $params = [];
+
+        if ($search !== '') {
+            $like         = '%' . \mb_substr(\trim($search), 0, 100) . '%';
+            $where[]      = '(name LIKE :s1 OR japanese_name LIKE :s2 OR location LIKE :s3)';
+            $params['s1'] = $like;
+            $params['s2'] = $like;
+            $params['s3'] = $like;
+        }
+
+        if ($category !== '') {
+            $where[]            = self::SQL_FILTER_CATEGORY;
+            $params['category'] = $category;
+        }
+
+        if ($status === 'active') {
+            $where[] = 'is_active = 1';
+        } elseif ($status === 'inactive') {
+            $where[] = 'is_active = 0';
+        }
+
+        $whereClause = \implode(self::SQL_AND, $where);
+        $sql         = "SELECT {$fields}
+                        FROM cafes
+                        WHERE {$whereClause}
+                        ORDER BY {$sort} {$sortDir}
+                        LIMIT :limit OFFSET :offset";
+
+        $stmt = $this->getDb()->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue(":$key", $value);
+        }
+        $stmt->bindValue(':limit', $pagination->fetchLimit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $pagination->offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Estadísticas para el panel admin de cafés.
+     *
+     * @return array{total_cafes: int, active_cafes: int, cafes_with_reservations: int, avg_rating: float}
+     */
+    public function getAdminStats(): array
+    {
+        $row = $this->getDb()->query(
+            'SELECT
+                COUNT(*)                                        AS total_cafes,
+                SUM(IF(is_active = 1, 1, 0))                   AS active_cafes,
+                SUM(IF(has_reservations = 1, 1, 0))             AS cafes_with_reservations,
+                ROUND(AVG(NULLIF(rating_avg, 0)), 1)            AS avg_rating
+             FROM cafes
+             WHERE deleted_at IS NULL'
+        )->fetch(PDO::FETCH_ASSOC);
+
+        return $row !== false ? $row : ['total_cafes' => 0, 'active_cafes' => 0, 'cafes_with_reservations' => 0, 'avg_rating' => 0.0];
     }
 }

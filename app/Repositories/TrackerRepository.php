@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Domain\DTO\TrackerDTO;
+use App\Domain\Mappers\TrackerMapper;
 use App\Repositories\Contracts\TrackerRepositoryInterface;
 use Override;
 use PDO;
@@ -21,6 +23,14 @@ final class TrackerRepository extends AbstractRepository implements TrackerRepos
     private const string STATUS_IN_USE = 'in_use';
     private const string STATUS_LOST = 'lost';
 
+    private TrackerMapper $mapper;
+
+    public function __construct(?PDO $db = null, ?TrackerMapper $mapper = null)
+    {
+        parent::__construct($db);
+        $this->mapper = $mapper ?? new TrackerMapper();
+    }
+
     #[Override]
     protected function getTable(): string
     {
@@ -34,7 +44,7 @@ final class TrackerRepository extends AbstractRepository implements TrackerRepos
     }
 
     #[Override]
-    public function findById(int $id): ?array
+    public function findById(int $id): ?TrackerDTO
     {
         $sql = 'SELECT t.id, t.cafe_id, t.code, t.type, t.status, c.name AS cafe_name
                 FROM trackers t
@@ -42,9 +52,10 @@ final class TrackerRepository extends AbstractRepository implements TrackerRepos
                 WHERE t.id = :id LIMIT 1';
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn () => $stmt->execute(['id' => $id]), $sql, ['id' => $id]);
+        $this->execTimed(fn() => $stmt->execute(['id' => $id]), $sql, ['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        return $row ? $this->mapper->toDTO($row) : null;
     }
 
     #[Override]
@@ -55,7 +66,7 @@ final class TrackerRepository extends AbstractRepository implements TrackerRepos
         $params = ['cafe_id' => $cafeId, 'code' => \strtoupper(\trim($code))];
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
 
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
@@ -75,7 +86,7 @@ final class TrackerRepository extends AbstractRepository implements TrackerRepos
         $sql .= ' ORDER BY code ASC';
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -94,7 +105,7 @@ final class TrackerRepository extends AbstractRepository implements TrackerRepos
         $params = ['id' => $id, 'status' => self::STATUS_IN_USE];
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
 
         if ($stmt->rowCount() === 0) {
             throw new RuntimeException('Tracker no disponible.');
@@ -111,7 +122,7 @@ final class TrackerRepository extends AbstractRepository implements TrackerRepos
 
         $stmt = $this->getDb()->prepare($sql);
 
-        return (bool) $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
+        return (bool) $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
     }
 
     #[Override]
@@ -122,7 +133,7 @@ final class TrackerRepository extends AbstractRepository implements TrackerRepos
 
         $stmt = $this->getDb()->prepare($sql);
 
-        return (bool) $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
+        return (bool) $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
     }
 
     #[Override]
@@ -132,7 +143,7 @@ final class TrackerRepository extends AbstractRepository implements TrackerRepos
         $params = ['cafe_id' => $cafeId];
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
 
         $stats = [
             self::STATUS_AVAILABLE => 0,

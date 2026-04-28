@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\AnimalHealthCheckDTO;
 use PDOException;
 
 /**
@@ -18,26 +19,23 @@ interface HealthCheckRepositoryInterface
      * Obtener un chequeo por su ID.
      *
      * @param int $id ID del chequeo
-     * @return array|null Datos del chequeo o null si no existe
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?AnimalHealthCheckDTO;
 
     /**
      * Obtener el chequeo de un animal para una fecha específica.
      *
      * @param int $animalId ID del animal
      * @param string|null $date Fecha en formato Y-m-d (default: hoy)
-     * @return array|null Datos del chequeo o null si no existe
      */
-    public function findByAnimalAndDate(int $animalId, ?string $date = null): ?array;
+    public function findByAnimalAndDate(int $animalId, ?string $date = null): ?AnimalHealthCheckDTO;
 
     /**
      * Obtener el chequeo de hoy para un animal.
      *
      * @param int $animalId ID del animal
-     * @return array|null Datos del chequeo o null si no existe
      */
-    public function findTodayByAnimalId(int $animalId): ?array;
+    public function findTodayByAnimalId(int $animalId): ?AnimalHealthCheckDTO;
 
     /**
      * Obtener historial de chequeos de un animal.

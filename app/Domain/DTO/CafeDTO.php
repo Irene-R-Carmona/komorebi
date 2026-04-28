@@ -24,32 +24,9 @@ final readonly class CafeDTO implements DomainTransferObject
         public string $closing_time,
         public string $timezone,
         public bool $is_active,
+        public bool $has_reservations,
         public ?string $image_url,
-    ) {
-    }
-
-    #[Override]
-    public static function fromArray(array $data): static
-    {
-        return new static(
-            id: (int) $data['id'],
-            slug: (string) $data['slug'],
-            name: (string) $data['name'],
-            japanese_name: isset($data['japanese_name']) ? (string) $data['japanese_name'] : null,
-            description: isset($data['description']) ? (string) $data['description'] : null,
-            location: (string) ($data['location'] ?? ''),
-            category: (string) ($data['category'] ?? ''),
-            animal_type: (string) ($data['animal_type'] ?? ''),
-            price_per_hour: (float) ($data['price_per_hour'] ?? 0.0),
-            capacity_max: (int) ($data['capacity_max'] ?? 0),
-            rating_avg: (float) ($data['rating_avg'] ?? 0.0),
-            opening_time: (string) ($data['opening_time'] ?? ''),
-            closing_time: (string) ($data['closing_time'] ?? ''),
-            timezone: (string) ($data['timezone'] ?? 'UTC'),
-            is_active: (bool) ($data['is_active'] ?? true),
-            image_url: isset($data['image_url']) ? (string) $data['image_url'] : null,
-        );
-    }
+    ) {}
 
     #[Override]
     public function toViewArray(): array
@@ -70,6 +47,7 @@ final readonly class CafeDTO implements DomainTransferObject
             'closing_time' => $this->closing_time,
             'timezone' => $this->timezone,
             'is_active' => $this->is_active,
+            'has_reservations' => $this->has_reservations,
             'image_url' => $this->image_url,
         ];
     }

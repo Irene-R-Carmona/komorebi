@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Domain\DTO\AnimalHealthCheckDTO;
+use App\Domain\Mappers\AnimalHealthCheckMapper;
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use PDO;
 
@@ -16,13 +18,15 @@ use PDO;
 final class HealthCheckRepository implements HealthCheckRepositoryInterface
 {
     private PDO $db;
+    private AnimalHealthCheckMapper $mapper;
 
-    public function __construct(PDO $db)
+    public function __construct(PDO $db, ?AnimalHealthCheckMapper $mapper = null)
     {
-        $this->db = $db;
+        $this->db     = $db;
+        $this->mapper = $mapper ?? new AnimalHealthCheckMapper();
     }
 
-    public function findById(int $id): ?array
+    public function findById(int $id): ?AnimalHealthCheckDTO
     {
         $stmt = $this->db->prepare('
             SELECT hc.*,
@@ -37,12 +41,12 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
         ');
         $stmt->execute(['id' => $id]);
 
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $result !== false ? $result : null;
+        return $row !== false ? $this->mapper->toDTO($row) : null;
     }
 
-    public function findByAnimalAndDate(int $animalId, ?string $date = null): ?array
+    public function findByAnimalAndDate(int $animalId, ?string $date = null): ?AnimalHealthCheckDTO
     {
         $date ??= \date('Y-m-d');
 
@@ -62,12 +66,12 @@ final class HealthCheckRepository implements HealthCheckRepositoryInterface
             'date' => $date,
         ]);
 
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $result !== false ? $result : null;
+        return $row !== false ? $this->mapper->toDTO($row) : null;
     }
 
-    public function findTodayByAnimalId(int $animalId): ?array
+    public function findTodayByAnimalId(int $animalId): ?AnimalHealthCheckDTO
     {
         return $this->findByAnimalAndDate($animalId, \date('Y-m-d'));
     }

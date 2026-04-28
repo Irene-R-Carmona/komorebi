@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\WaitlistEntryDTO;
+
 /**
  * Contrato para WaitlistRepository
  *
@@ -15,17 +17,17 @@ interface WaitlistRepositoryInterface
      * Buscar entrada de waitlist por ID
      *
      * @param int $id
-     * @return array<string, mixed>|null
+     * @return WaitlistEntryDTO|null
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?WaitlistEntryDTO;
 
     /**
      * Buscar entrada por token de confirmación
      *
      * @param string $token
-     * @return array<string, mixed>|null
+     * @return WaitlistEntryDTO|null
      */
-    public function findByToken(string $token): ?array;
+    public function findByToken(string $token): ?WaitlistEntryDTO;
 
     /**
      * Obtener waitlists activas de un usuario

@@ -18,24 +18,8 @@ final readonly class UserDTO implements DomainTransferObject
         public bool $is_active,
         public ?int $cafe_id,
         public string $created_at,
-    ) {
-    }
-
-    #[Override]
-    public static function fromArray(array $data): static
-    {
-        return new static(
-            id: (int) $data['id'],
-            uuid: (string) $data['uuid'],
-            name: (string) $data['name'],
-            email: (string) $data['email'],
-            avatar: isset($data['avatar']) ? (string) $data['avatar'] : null,
-            roles: \is_array($data['roles'] ?? null) ? $data['roles'] : [],
-            is_active: (bool) ($data['is_active'] ?? true),
-            cafe_id: isset($data['cafe_id']) ? (int) $data['cafe_id'] : null,
-            created_at: (string) ($data['created_at'] ?? ''),
-        );
-    }
+        public ?string $preferences = null,
+    ) {}
 
     #[Override]
     public function toViewArray(): array
@@ -50,6 +34,7 @@ final readonly class UserDTO implements DomainTransferObject
             'is_active' => $this->is_active,
             'cafe_id' => $this->cafe_id,
             'created_at' => $this->created_at,
+            'preferences' => $this->preferences,
         ];
     }
 }

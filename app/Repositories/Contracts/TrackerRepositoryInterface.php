@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\TrackerDTO;
+
 /**
  * Contrato para el repositorio de trackers de café.
  */
 interface TrackerRepositoryInterface
 {
-    /**
-     * @return array<string, mixed>|null
-     */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?TrackerDTO;
 
     /**
      * @return array<string, mixed>|null

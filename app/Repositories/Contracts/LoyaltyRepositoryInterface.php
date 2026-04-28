@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\LoyaltyCardDTO;
+use App\Domain\DTO\LoyaltyRewardDTO;
+
 interface LoyaltyRepositoryInterface
 {
     // ── LoyaltyCard ──────────────────────────────────────────────
 
     /** Obtiene o crea la tarjeta del usuario. */
-    public function findOrCreateCardByUserId(int $userId): array;
+    public function findOrCreateCardByUserId(int $userId): LoyaltyCardDTO;
 
-    public function findCardById(int $id): ?array;
+    public function findCardById(int $id): ?LoyaltyCardDTO;
 
-    public function findCardByUserId(int $userId): ?array;
+    public function findCardByUserId(int $userId): ?LoyaltyCardDTO;
 
     public function addStamps(int $cardId, int $stamps): bool;
 
@@ -39,10 +42,16 @@ interface LoyaltyRepositoryInterface
     /** @return array<int, array<string, mixed>> */
     public function findRewardsByUserId(int $userId): array;
 
-    public function findRewardByCode(string $code): ?array;
+    public function findRewardByCode(string $code): ?LoyaltyRewardDTO;
 
     /** @param int[] $ids */
     public function markRewardsExpired(array $ids): bool;
 
     public function markRewardUsed(int $id): bool;
+
+    /**
+     * Ranking de usuarios por sellos acumulados (RANK() OVER).
+     * @return array<int, array<string, mixed>>
+     */
+    public function getLeaderboard(int $limit = 10): array;
 }

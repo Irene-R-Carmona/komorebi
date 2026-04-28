@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\UserDTO;
 use App\Repositories\RepositoryInterface;
 
 /**
@@ -14,6 +15,8 @@ use App\Repositories\RepositoryInterface;
  */
 interface UserRepositoryInterface extends RepositoryInterface
 {
+    public function findById(int $id): ?UserDTO;
+
     /**
      * Buscar un usuario por su email.
      *
@@ -163,4 +166,34 @@ interface UserRepositoryInterface extends RepositoryInterface
      */
     public function getStaffBasicById(int $userId, int $cafeId): ?array;
 
+    /**
+     * Verificar la contraseña del usuario (con rehash automático si es necesario).
+     *
+     * @param array<string, mixed> $user
+     */
+    public function verifyPassword(array $user, string $password): bool;
+
+    /**
+     * Registrar intento de login fallido. Bloquea la cuenta si se supera el límite.
+     */
+    public function registerFailedAttempt(int $id): void;
+
+    /**
+     * Resetear intentos de login tras login exitoso.
+     */
+    public function clearLoginAttempts(int $id): void;
+
+    /**
+     * Comprobar si una cuenta está bloqueada temporalmente.
+     *
+     * @param array<string, mixed> $user
+     */
+    public function isLocked(array $user): bool;
+
+    /**
+     * Obtener los minutos restantes de bloqueo.
+     *
+     * @param array<string, mixed> $user
+     */
+    public function lockoutMinutesRemaining(array $user): int;
 }

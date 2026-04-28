@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Domain\DTO\AuditLogDTO;
+use App\Domain\Mappers\AuditLogMapper;
 use App\Models\AuditLog as AuditLogModel;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use PDO;
@@ -12,10 +14,27 @@ use PDO;
 final class AuditLogRepository implements AuditLogRepositoryInterface
 {
     private PDO $db;
+    private AuditLogMapper $mapper;
 
-    public function __construct(?PDO $db = null)
+    public function __construct(?PDO $db = null, ?AuditLogMapper $mapper = null)
     {
-        $this->db = $db ?? Database::getConnection();
+        $this->db     = $db ?? Database::getConnection();
+        $this->mapper = $mapper ?? new AuditLogMapper();
+    }
+
+    public function findById(int $id): ?AuditLogDTO
+    {
+        $stmt = $this->db->prepare(
+            'SELECT al.id, al.user_id, al.action, al.resource_type, al.resource_id,
+                    al.old_values, al.new_values, al.ip_address, al.user_agent, al.created_at
+             FROM audit_logs al
+             WHERE al.id = :id
+             LIMIT 1'
+        );
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row !== false ? $this->mapper->toDTO($row) : null;
     }
 
     public function findAll(array $filters = [], int $limit = 50, int $offset = 0): array

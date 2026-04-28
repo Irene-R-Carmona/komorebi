@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\CafeDTO;
+
 interface CafeRepositoryInterface
 {
     /**
      * Find cafe by ID
      *
      * @param int $id
-     * @return array<string, mixed>|null
+     * @return CafeDTO|null
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?CafeDTO;
 
     /**
      * Find cafe by slug

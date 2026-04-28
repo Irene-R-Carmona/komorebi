@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Core\Database;
+use App\Domain\DTO\TimeSlotDTO;
+use App\Domain\Mappers\TimeSlotMapper;
 use App\Repositories\Contracts\TimeSlotRepositoryInterface;
 use Override;
 use PDO;
@@ -17,16 +20,18 @@ use PDO;
 final class TimeSlotRepository implements TimeSlotRepositoryInterface
 {
     private PDO $db;
+    private TimeSlotMapper $mapper;
 
-    public function __construct(PDO $db)
+    public function __construct(?PDO $db = null, ?TimeSlotMapper $mapper = null)
     {
-        $this->db = $db;
+        $this->db = $db ?? Database::getConnection();
+        $this->mapper = $mapper ?? new TimeSlotMapper();
     }
 
     /**
      * {@inheritDoc}
      */
-    public function findById(int $id): ?array
+    public function findById(int $id): ?TimeSlotDTO
     {
         $stmt = $this->db->prepare('
             SELECT
@@ -40,7 +45,7 @@ final class TimeSlotRepository implements TimeSlotRepositoryInterface
         $stmt->execute([$id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $result ?: null;
+        return $result ? $this->mapper->toDTO($result) : null;
     }
 
     /**

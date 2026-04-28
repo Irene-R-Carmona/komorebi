@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\AuditLogDTO;
+
 interface AuditLogRepositoryInterface
 {
+    public function findById(int $id): ?AuditLogDTO;
+
     /**
      * Logs paginados con filtros opcionales.
      *

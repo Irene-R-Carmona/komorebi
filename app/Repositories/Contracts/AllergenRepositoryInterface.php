@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\AllergenDTO;
+
 /**
  * Contrato para el repositorio de alérgenos.
  * Los servicios dependen de esta interfaz, no de la implementación concreta.
@@ -11,14 +13,14 @@ namespace App\Repositories\Contracts;
 interface AllergenRepositoryInterface
 {
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<int, AllergenDTO>
      */
     public function findAll(bool $orderBySeverity = true): array;
 
     /**
-     * @return array<string, mixed>|null
+     * @return AllergenDTO|null
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?AllergenDTO;
 
     /**
      * @return array<string, mixed>|null

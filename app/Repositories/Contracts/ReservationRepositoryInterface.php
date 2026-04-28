@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\ReservationDTO;
 use DateMalformedStringException;
 
 interface ReservationRepositoryInterface
@@ -20,9 +21,9 @@ interface ReservationRepositoryInterface
      * Find reservation by ID
      *
      * @param int $id
-     * @return array<string, mixed>|null
+     * @return ReservationDTO|null
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?ReservationDTO;
 
     /**
      * Check if reservation exists for user and datetime
@@ -67,6 +68,11 @@ interface ReservationRepositoryInterface
      * @return bool True si se canceló exitosamente
      */
     public function cancel(int $id, int $userId): bool;
+
+    /**
+     * Actualizar el estado de una reserva directamente (uso administrativo)
+     */
+    public function updateStatus(int $id, string $status): bool;
 
     /**
      * Buscar reservas activas de un usuario
@@ -143,4 +149,11 @@ interface ReservationRepositoryInterface
     public function findByIdAndUser(int $id, int $userId): ?array;
 
     public function hasCompletedReservation(int $userId, int $cafeId): bool;
+
+    /**
+     * Find reservation with operational fields (protocol_hygiene, protocol_briefing, protocol_shoes, tracker_id, etc).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findWithOperationalData(int $id): ?array;
 }

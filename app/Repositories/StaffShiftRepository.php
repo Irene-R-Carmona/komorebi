@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Domain\DTO\StaffShiftDTO;
+use App\Domain\Mappers\StaffShiftMapper;
 use App\Repositories\Contracts\StaffShiftRepositoryInterface;
 use Override;
 use PDO;
@@ -15,6 +17,32 @@ use PDO;
  */
 final class StaffShiftRepository extends AbstractRepository implements StaffShiftRepositoryInterface
 {
+    private StaffShiftMapper $mapper;
+
+    public function __construct(?PDO $db = null, ?StaffShiftMapper $mapper = null)
+    {
+        parent::__construct($db);
+        $this->mapper = $mapper ?? new StaffShiftMapper();
+    }
+
+    #[Override]
+    public function findById(int $id): ?StaffShiftDTO
+    {
+        $stmt = $this->getDb()->prepare(
+            'SELECT ss.id, ss.user_id, ss.cafe_id, ss.shift_date,
+                    ss.shift_start, ss.shift_end, ss.notes, ss.created_by,
+                    ss.created_at, ss.updated_at, ss.deleted_at,
+                    u.name AS staff_name
+             FROM staff_shifts ss
+             LEFT JOIN users u ON ss.user_id = u.id
+             WHERE ss.id = :id
+             LIMIT 1'
+        );
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row !== false ? $this->mapper->toDTO($row) : null;
+    }
     #[Override]
     protected function getTable(): string
     {

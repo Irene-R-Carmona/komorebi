@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Domain\DTO\ReviewDTO;
+use App\Domain\Mappers\ReviewMapper;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use PDO;
 
@@ -16,16 +18,18 @@ use PDO;
 final class ReviewRepository implements ReviewRepositoryInterface
 {
     private PDO $db;
+    private ReviewMapper $mapper;
 
     public function __construct(?PDO $db = null)
     {
         $this->db = $db ?? Database::getConnection();
+        $this->mapper = new ReviewMapper();
     }
 
     /**
      * Buscar reseña por ID
      */
-    public function findById(int $id): ?array
+    public function findById(int $id): ?ReviewDTO
     {
         $sql = '
             SELECT r.*, u.name as user_name, c.name as cafe_name
@@ -41,7 +45,7 @@ final class ReviewRepository implements ReviewRepositoryInterface
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $result ?: null;
+        return $result !== false ? $this->mapper->toDTO($result) : null;
     }
 
     /**

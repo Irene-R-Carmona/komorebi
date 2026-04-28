@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Domain\DTO\ProductDTO;
+use App\Domain\Mappers\ProductMapper;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use Override;
 use PDO;
@@ -17,6 +19,13 @@ use Throwable;
  */
 final class ProductRepository extends AbstractRepository implements ProductRepositoryInterface
 {
+    private ProductMapper $mapper;
+    public function __construct(?PDO $db = null, ?ProductMapper $mapper = null)
+    {
+        parent::__construct($db);
+        $this->mapper = $mapper ?? new ProductMapper();
+    }
+
     #[Override]
     protected function getTable(): string
     {
@@ -52,6 +61,25 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             'created_at',
             'updated_at',
         ];
+    }
+
+    #[Override]
+    public function findById(int $id): ?ProductDTO
+    {
+        $stmt = $this->getDb()->prepare(
+            'SELECT p.id, p.name, p.slug, p.description, p.price, p.category_id, p.image_url,
+                    p.is_active, p.product_type, p.min_pax, p.max_pax, p.duration_minutes,
+                    p.attributes, p.target_cafe_types, p.target_animal_types, p.stock_quantity,
+                    mc.name AS category_name
+             FROM products p
+             LEFT JOIN menu_categories mc ON p.category_id = mc.id
+             WHERE p.id = :id
+             LIMIT 1'
+        );
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row !== false ? $this->mapper->toDTO($row) : null;
     }
 
     /**
@@ -258,7 +286,30 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
              ORDER BY price, duration_minutes"
         );
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->decodePassJsonColumns($stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    /**
+     * Decode JSON string columns to PHP arrays/objects so json_encode produces
+     * valid JS literals (avoids embedded JSON strings with unescaped quotes).
+     *
+     * @param array<int, array<string, mixed>> $passes
+     * @return array<int, array<string, mixed>>
+     */
+    private function decodePassJsonColumns(array $passes): array
+    {
+        $jsonCols = ['target_cafe_types', 'target_animal_types', 'attributes'];
+        foreach ($passes as &$pass) {
+            foreach ($jsonCols as $col) {
+                if (isset($pass[$col]) && \is_string($pass[$col]) && $pass[$col] !== '') {
+                    $decoded = \json_decode($pass[$col], true);
+                    if (\json_last_error() === JSON_ERROR_NONE) {
+                        $pass[$col] = $decoded;
+                    }
+                }
+            }
+        }
+        return $passes;
     }
 
     /**
@@ -500,7 +551,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         }
 
         return $this->update($id, [
-            'is_active' => !$product['is_active'],
+            'is_active' => !$product->is_active,
             'updated_at' => \date('Y-m-d H:i:s'),
         ]);
     }
@@ -512,7 +563,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     public function getAllergens(int $productId): array
     {
         $stmt = $this->getDb()->prepare(
-            'SELECT a.id, a.name, a.icon, a.severity
+            'SELECT a.id, a.name, a.icon_class AS icon, a.icon_color, a.severity
              FROM allergens a
              INNER JOIN product_allergens pa ON a.id = pa.allergen_id
              WHERE pa.product_id = :product_id
@@ -576,6 +627,33 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Obtener todos los productos para el panel de administración (con JSON decodificado).
+     *
+     * Equivalente funcional a Product::findAllAdmin() — devuelve arrays con los campos
+     * target_cafe_types, attributes y target_animal_types ya decodificados como arrays.
+     *
+     * @return array{data: array, total: int, page: int, perPage: int, totalPages: int}
+     */
+    public function findAllAdmin(array $filters = [], int $limit = 100): array
+    {
+        $result = $this->findFiltered($filters, 1, $limit);
+
+        foreach ($result['data'] as &$row) {
+            foreach (['attributes', 'target_cafe_types', 'target_animal_types'] as $field) {
+                if (\is_string($row[$field] ?? null) && $row[$field] !== '') {
+                    $decoded = \json_decode($row[$field], true);
+                    $row[$field] = \is_array($decoded) ? $decoded : null;
+                } elseif (!isset($row[$field])) {
+                    $row[$field] = null;
+                }
+            }
+        }
+        unset($row);
+
+        return $result;
     }
 
     /**
@@ -746,7 +824,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
                 $severities = \explode(',', $row['allergen_severities']);
 
                 $row['allergens_list'] = \array_map(
-                    static fn (string $id, string $name, string $code, string $severity): array => [
+                    static fn(string $id, string $name, string $code, string $severity): array => [
                         'id' => (int) $id,
                         'name' => $name,
                         'code' => $code,
@@ -898,5 +976,30 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Estadísticas para el panel admin de productos.
+     *
+     * @return array{total_products: int, active_products: int, category_count: int, with_allergens: int}
+     */
+    public function getAdminStats(): array
+    {
+        $row = $this->getDb()->query(
+            'SELECT
+                COUNT(*)                  AS total_products,
+                SUM(IF(is_active = 1, 1, 0)) AS active_products,
+                COUNT(DISTINCT category_id)  AS category_count,
+                (SELECT COUNT(DISTINCT pa.product_id)
+                 FROM product_allergens pa
+                 JOIN products p2 ON pa.product_id = p2.id
+                 WHERE p2.deleted_at IS NULL)  AS with_allergens
+             FROM products
+             WHERE deleted_at IS NULL'
+        )->fetch(PDO::FETCH_ASSOC);
+
+        return $row !== false
+            ? $row
+            : ['total_products' => 0, 'active_products' => 0, 'category_count' => 0, 'with_allergens' => 0];
     }
 }

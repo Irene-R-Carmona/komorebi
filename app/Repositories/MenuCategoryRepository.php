@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Domain\DTO\MenuCategoryDTO;
+use App\Domain\Mappers\MenuCategoryMapper;
 use App\Repositories\Contracts\MenuCategoryRepositoryInterface;
 use PDO;
 
@@ -12,11 +14,14 @@ final class MenuCategoryRepository implements MenuCategoryRepositoryInterface
 {
     private PDO $db;
 
-    public function __construct(?PDO $db = null)
+    public function __construct(private readonly MenuCategoryMapper $mapper, ?PDO $db = null)
     {
         $this->db = $db ?? Database::getConnection();
     }
 
+    /**
+     * @return array<int, MenuCategoryDTO>
+     */
     public function findAll(): array
     {
         $stmt = $this->db->query(
@@ -25,7 +30,7 @@ final class MenuCategoryRepository implements MenuCategoryRepositoryInterface
              ORDER BY display_order, name'
         );
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return \array_map([$this->mapper, 'toDTO'], $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
     public function findBySlug(string $slug): ?array

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\ReviewDTO;
+
 /**
  * Contrato para ReviewRepository
  *
@@ -15,9 +17,8 @@ interface ReviewRepositoryInterface
      * Buscar reseña por ID
      *
      * @param int $id
-     * @return array<string, mixed>|null
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?ReviewDTO;
 
     /**
      * Obtener reseñas de un usuario

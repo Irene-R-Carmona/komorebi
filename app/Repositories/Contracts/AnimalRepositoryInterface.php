@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\AnimalDTO;
+
 interface AnimalRepositoryInterface
 {
-    // ─── Read ───────────────────────────────────────────────────────────────
+    // ─── Read ────────────────────────────────────────────────
 
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?AnimalDTO;
 
     /** @return array<int, array<string, mixed>> */
     public function findActiveByCafe(int $cafeId): array;

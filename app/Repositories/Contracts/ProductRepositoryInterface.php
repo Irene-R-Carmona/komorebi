@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\ProductDTO;
 use App\Repositories\RepositoryInterface;
 
 interface ProductRepositoryInterface extends RepositoryInterface
@@ -12,9 +13,8 @@ interface ProductRepositoryInterface extends RepositoryInterface
      * Find product by ID
      *
      * @param int $id
-     * @return array<string, mixed>|null
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?ProductDTO;
 
     /**
      * Obtener pases disponibles, opcionalmente filtrados por café
@@ -160,4 +160,12 @@ interface ProductRepositoryInterface extends RepositoryInterface
      * @return array<int, array<string, mixed>>
      */
     public function findByIds(array $ids): array;
+
+    /**
+     * Listar todos los productos para administración.
+     *
+     * @param array<string, mixed> $filters
+     * @return array{data: array, total: int, page: int, perPage: int, totalPages: int}
+     */
+    public function findAllAdmin(array $filters = [], int $limit = 100): array;
 }

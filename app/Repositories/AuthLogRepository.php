@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Domain\DTO\AuthAuditLogDTO;
+use App\Domain\Mappers\AuthAuditLogMapper;
 use App\Repositories\Contracts\AuthLogRepositoryInterface;
 use Override;
 use PDO;
@@ -15,6 +17,29 @@ use PDO;
  */
 final class AuthLogRepository extends AbstractRepository implements AuthLogRepositoryInterface
 {
+    private AuthAuditLogMapper $mapper;
+
+    public function __construct(?PDO $db = null, ?AuthAuditLogMapper $mapper = null)
+    {
+        parent::__construct($db);
+        $this->mapper = $mapper ?? new AuthAuditLogMapper();
+    }
+
+    #[Override]
+    public function findById(int $id): ?AuthAuditLogDTO
+    {
+        $stmt = $this->getDb()->prepare(
+            'SELECT id, user_id, event_type, ip_address, success, reason,
+                    user_agent, device_name, created_at
+             FROM auth_audit_logs
+             WHERE id = :id
+             LIMIT 1'
+        );
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row !== false ? $this->mapper->toDTO($row) : null;
+    }
     #[Override]
     protected function getTable(): string
     {

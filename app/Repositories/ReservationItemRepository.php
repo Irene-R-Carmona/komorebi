@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Domain\DTO\ReservationItemDTO;
+use App\Domain\Mappers\ReservationItemMapper;
 use App\Models\ReservationItem;
 use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use PDO;
@@ -12,10 +14,24 @@ use PDO;
 final class ReservationItemRepository implements ReservationItemRepositoryInterface
 {
     private PDO $db;
+    private ReservationItemMapper $mapper;
 
-    public function __construct(?PDO $db = null)
+    public function __construct(?PDO $db = null, ?ReservationItemMapper $mapper = null)
     {
         $this->db = $db ?? Database::getConnection();
+        $this->mapper = $mapper ?? new ReservationItemMapper();
+    }
+
+    public function findById(int $id): ?ReservationItemDTO
+    {
+        $stmt = $this->db->prepare(
+            'SELECT id, reservation_id, product_id, quantity, unit_price, status, created_at
+             FROM reservation_items
+             WHERE id = ?'
+        );
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row !== false ? $this->mapper->toDTO($row) : null;
     }
 
     private const ITEM_SELECT = '

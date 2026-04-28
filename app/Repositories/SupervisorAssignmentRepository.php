@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Domain\DTO\SupervisorAssignmentDTO;
+use App\Domain\Mappers\SupervisorAssignmentMapper;
 use App\Repositories\Contracts\SupervisorAssignmentRepositoryInterface;
 use Override;
 use PDO;
@@ -15,6 +17,28 @@ use PDO;
  */
 final class SupervisorAssignmentRepository extends AbstractRepository implements SupervisorAssignmentRepositoryInterface
 {
+    private SupervisorAssignmentMapper $mapper;
+
+    public function __construct(?PDO $db = null, ?SupervisorAssignmentMapper $mapper = null)
+    {
+        parent::__construct($db);
+        $this->mapper = $mapper ?? new SupervisorAssignmentMapper();
+    }
+
+    #[Override]
+    public function findById(int $id): ?SupervisorAssignmentDTO
+    {
+        $fields = \implode(', ', $this->getSelectFields());
+        $stmt = $this->getDb()->prepare(
+            "SELECT {$fields} FROM supervisor_assignments
+             WHERE id = :id
+             LIMIT 1"
+        );
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row !== false ? $this->mapper->toDTO($row) : null;
+    }
     #[Override]
     protected function getTable(): string
     {

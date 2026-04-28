@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use App\Domain\DTO\WaitlistEntryDTO;
+use App\Domain\Mappers\WaitlistMapper;
 use App\Repositories\Contracts\WaitlistRepositoryInterface;
 use PDO;
 
@@ -16,16 +18,18 @@ use PDO;
 final class WaitlistRepository implements WaitlistRepositoryInterface
 {
     private PDO $db;
+    private WaitlistMapper $mapper;
 
-    public function __construct(?PDO $db = null)
+    public function __construct(?PDO $db = null, ?WaitlistMapper $mapper = null)
     {
         $this->db = $db ?? Database::getConnection();
+        $this->mapper = $mapper ?? new WaitlistMapper();
     }
 
     /**
      * Buscar entrada de waitlist por ID
      */
-    public function findById(int $id): ?array
+    public function findById(int $id): ?WaitlistEntryDTO
     {
         $sql = '
             SELECT w.*, ts.slot_date, ts.slot_time, c.name as cafe_name
@@ -41,13 +45,13 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $result ?: null;
+        return $result ? $this->mapper->toDTO($result) : null;
     }
 
     /**
      * Buscar entrada por token de confirmación
      */
-    public function findByToken(string $token): ?array
+    public function findByToken(string $token): ?WaitlistEntryDTO
     {
         $sql = '
             SELECT w.*, ts.slot_date, ts.slot_time, c.name as cafe_name
@@ -63,7 +67,7 @@ final class WaitlistRepository implements WaitlistRepositoryInterface
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $result ?: null;
+        return $result ? $this->mapper->toDTO($result) : null;
     }
 
     /**
