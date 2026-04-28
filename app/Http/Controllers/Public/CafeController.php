@@ -69,39 +69,16 @@ final class CafeController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        // Obtener filtros de query string
-        $queryParams = $request->getQueryParams();
-        $category = $this->getQueryParam($queryParams, 'categoria');
-        $animalType = $this->getQueryParam($queryParams, 'animal');
-        $orderBy = $this->getQueryParam($queryParams, 'orden', 'name');
-
-        // Obtener cafés
-        $queryFilters = \array_filter([
-            'category' => $category,
-            'animal_type' => $animalType,
-        ]);
-        $cafes = $this->cafeRepo->findFiltered($queryFilters);
-
-        // Obtener favoritos del usuario si está logueado
         $favoritos = [];
 
         if (Session::isAuthenticated()) {
             $favoritos = $this->favoriteModel->getCafeIds(Session::userId());
         }
 
-        // Obtener categorías y tipos de animal únicos (para filtros)
-        $filters = $this->getAvailableFilters();
-
         View::render('public/cafes/index', [
-            'titulo' => 'Nuestros Cafés',
-            'cafes' => $cafes,
+            'titulo'    => 'Nuestros Cafés',
+            'cafes'     => $this->cafeRepo->findActive(),
             'favoritos' => $favoritos,
-            'filters' => $filters,
-            'activeFilters' => [
-                'categoria' => $category,
-                'animal' => $animalType,
-                'orden' => $orderBy,
-            ],
         ], ['catalogo.css']);
 
         return null;
@@ -220,43 +197,4 @@ final class CafeController
     // Helpers
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Obtiene un parámetro de query string sanitizado.
-     */
-    private function getQueryParam(array $queryParams, string $key, ?string $default = null): ?string
-    {
-        $value = $queryParams[$key] ?? null;
-
-        if ($value === null || $value === '') {
-            return $default;
-        }
-
-        // Sanitizar: solo caracteres válidos para filtros
-        return \preg_replace('/[^a-zA-Z0-9_-]/', '', $value);
-    }
-
-    /**
-     * Obtiene los valores únicos para filtros.
-     */
-    private function getAvailableFilters(): array
-    {
-        // Esto podría cachearse o moverse al repositorio
-        $cafes = $this->cafeRepo->findFiltered([]);
-
-        $categories = \array_unique(\array_column($cafes, 'category'));
-        $animalTypes = \array_unique(\array_column($cafes, 'animal_type'));
-
-        \sort($categories);
-        \sort($animalTypes);
-
-        return [
-            'categories' => $categories,
-            'animal_types' => $animalTypes,
-            'order_options' => [
-                'name' => 'Nombre',
-                'rating' => 'Valoración',
-                'price_per_hour' => 'Precio',
-            ],
-        ];
-    }
 }

@@ -101,12 +101,14 @@ final class HealthCheckService implements HealthCheckServiceInterface
             return null;
         }
 
+        $data = $check->toViewArray();
+
         // Decodificar alertas JSON
-        if (isset($check['alerts'])) {
-            $check['alerts'] = \json_decode($check['alerts'], true);
+        if (isset($data['alerts'])) {
+            $data['alerts'] = \json_decode((string) $data['alerts'], true);
         }
 
-        return $check;
+        return $data;
     }
 
     /**

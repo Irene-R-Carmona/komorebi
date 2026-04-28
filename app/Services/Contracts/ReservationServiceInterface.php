@@ -12,6 +12,10 @@ interface ReservationServiceInterface
 
     public function cancel(int $reservationId, int $userId): Result;
 
+    public function adminCancel(int $id): Result;
+
+    public function adminConfirm(int $id): Result;
+
     /**
      * @return array
      */

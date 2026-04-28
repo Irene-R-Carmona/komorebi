@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Core\Http\ResponseFactory;
-use App\Core\Session;
 use App\Http\Controllers\Api\AbstractApiController;
 use App\Repositories\Contracts\FavoriteRepositoryInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -15,8 +14,9 @@ use Psr\Http\Message\ServerRequestInterface;
  * FavoriteController (API)
  *
  * Endpoints:
- * - POST /api/favorites/toggle
- * - GET  /api/favorites
+ * - PUT    /api/v1/favorites/{id}
+ * - DELETE /api/v1/favorites/{id}
+ * - GET    /api/v1/favorites
  */
 final class FavoriteController extends AbstractApiController
 {
@@ -28,26 +28,45 @@ final class FavoriteController extends AbstractApiController
     }
 
     /**
-     * POST /api/favorites/toggle
-     * Body: {cafe_id: int}
+     * PUT /api/v1/favorites/{id}
+     * Añade el café {id} a favoritos del usuario autenticado.
      */
-    public function toggle(ServerRequestInterface $request): ResponseInterface
+    public function add(ServerRequestInterface $request): ResponseInterface
     {
-        $userId = Session::userId();
+        $userId = $request->getAttribute('user_id');
         if ($userId === null) {
             return $this->unauthorized('Debes iniciar sesión');
         }
 
-        $body = $request->getParsedBody() ?? [];
-        $cafeId = $body['cafe_id'] ?? null;
-
-        if (!\is_numeric($cafeId)) {
-            return $this->unprocessable('cafe_id inválido');
+        $cafeId = (int) ($request->getAttribute('id') ?? 0);
+        if ($cafeId <= 0) {
+            return $this->unprocessable('id inválido', 'invalid_id');
         }
 
-        $added = $this->favoriteRepo->toggle($userId, (int) $cafeId);
+        $this->favoriteRepo->add((int) $userId, $cafeId);
 
-        return $this->success(['status' => $added ? 'added' : 'removed']);
+        return $this->success(['status' => 'added']);
+    }
+
+    /**
+     * DELETE /api/v1/favorites/{id}
+     * Elimina el café {id} de favoritos del usuario autenticado.
+     */
+    public function remove(ServerRequestInterface $request): ResponseInterface
+    {
+        $userId = $request->getAttribute('user_id');
+        if ($userId === null) {
+            return $this->unauthorized('Debes iniciar sesión');
+        }
+
+        $cafeId = (int) ($request->getAttribute('id') ?? 0);
+        if ($cafeId <= 0) {
+            return $this->unprocessable('id inválido', 'invalid_id');
+        }
+
+        $this->favoriteRepo->remove((int) $userId, $cafeId);
+
+        return $this->success(['status' => 'removed']);
     }
 
     /**
@@ -55,12 +74,12 @@ final class FavoriteController extends AbstractApiController
      */
     public function list(ServerRequestInterface $request): ResponseInterface
     {
-        $userId = Session::userId();
+        $userId = $request->getAttribute('user_id');
         if ($userId === null) {
             return $this->unauthorized('Debes iniciar sesión');
         }
 
-        $favorites = $this->favoriteRepo->getByUser($userId);
+        $favorites = $this->favoriteRepo->getByUser((int) $userId);
 
         return $this->success(['items' => $favorites, 'total' => \count($favorites)]);
     }

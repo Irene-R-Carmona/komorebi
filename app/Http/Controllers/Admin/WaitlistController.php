@@ -66,7 +66,7 @@ final class WaitlistController
         }
 
         View::render('admin/waitlist/show', [
-            'waitlist' => $this->waitlistTransformer->transform($rawWaitlist),
+            'waitlist' => $this->waitlistTransformer->transform($rawWaitlist->toViewArray()),
         ], [], 'backoffice');
 
         return null;

@@ -65,7 +65,7 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
                 return Result::fail('Usuario no encontrado');
             }
 
-            if (!$user['is_active']) {
+            if (!$user->is_active) {
                 return Result::fail('Tu cuenta está desactivada');
             }
 
@@ -156,7 +156,7 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
             }
 
             // Verificar propiedad
-            if ((int) $review['user_id'] !== $userId) {
+            if ($review->user_id !== $userId) {
                 return Result::fail('No puedes editar esta reseña');
             }
 
@@ -213,7 +213,7 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
             }
 
             // Verificar propiedad
-            if ((int) $review['user_id'] !== $userId) {
+            if ($review->user_id !== $userId) {
                 return Result::fail('No puedes eliminar esta reseña');
             }
 

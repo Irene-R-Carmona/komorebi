@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Domain\DTO\CafeDTO;
 use App\Core\Middleware;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\Contracts\ContextServiceInterface;
@@ -20,15 +21,14 @@ use RuntimeException;
  */
 final class ContextServiceInstance implements ContextServiceInterface
 {
-    private ?array $cafeCache = null;
+    private ?CafeDTO $cafeCache = null;
 
     public function __construct(
         private readonly CafeRepositoryInterface $cafeRepo,
         private readonly string $role,
         private readonly ?int $userCafeId,
         private readonly ?int $adminSelectedCafeId
-    ) {
-    }
+    ) {}
 
     // ─────────────────────────────────────────────────────────────
     // Obtención de Contexto
@@ -84,14 +84,13 @@ final class ContextServiceInstance implements ContextServiceInterface
             return null;
         }
 
-        // Cache para evitar múltiples queries en la misma request
-        if ($this->cafeCache !== null && ($this->cafeCache['id'] ?? null) === $cafeId) {
-            return $this->cafeCache;
+        if ($this->cafeCache !== null && $this->cafeCache->id === $cafeId) {
+            return $this->cafeCache->toViewArray();
         }
 
         $this->cafeCache = $this->cafeRepo->findById($cafeId);
 
-        return $this->cafeCache;
+        return $this->cafeCache?->toViewArray();
     }
 
     /**

@@ -211,7 +211,7 @@ final class ReviewController
         }
 
         // [x] VALIDACIÓN CONTEXTO: Reseña pertenece a usuario O es moderador
-        $isOwner = ($review['user_id'] === $userId);
+        $isOwner = ($review->user_id === $userId);
         $isModerator = Middleware::hasPermission('review.moderate');
 
         if (!$isOwner && !$isModerator) {
@@ -272,7 +272,7 @@ final class ReviewController
         }
 
         // [x] VALIDACIÓN CONTEXTO: Reseña es del usuario
-        if ($review['user_id'] !== $userId) {
+        if ($review->user_id !== $userId) {
             throw ValidationException::withMessage('No puedes eliminar esta reseña.', 403);
         }
 
@@ -370,7 +370,7 @@ final class ReviewController
         }
 
         // [x] VALIDACIÓN CONTEXTO: Reseña está pending
-        if ($review['status'] !== 'pending') {
+        if ($review->status !== 'pending') {
             Flash::warning('Esta reseña no está pendiente de aprobación.');
 
             return $this->response->redirect('/admin/reviews/pending');
@@ -431,7 +431,7 @@ final class ReviewController
         }
 
         // [x] VALIDACIÓN CONTEXTO: Reseña está pending
-        if ($review['status'] !== 'pending') {
+        if ($review->status !== 'pending') {
             Flash::warning('Esta reseña no está pendiente de aprobación.');
 
             return $this->response->redirect('/admin/reviews/pending');

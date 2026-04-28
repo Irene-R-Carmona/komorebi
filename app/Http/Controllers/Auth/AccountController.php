@@ -19,7 +19,7 @@ use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\Contracts\SessionManagementServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
-use App\Services\FileUploadService;
+use App\Domain\AvatarOptions;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -52,7 +52,7 @@ final class AccountController
         $this->accountDeletionService = $accountDeletionService ?? Container::make(AccountDeletionServiceInterface::class);
         $this->accountService = $accountService ?? Container::make(UserAccountServiceInterface::class);
         $this->authService = $authService ?? Container::make(AuthService::class);
-        $this->fileUploadService = $fileUploadService ?? new FileUploadService();
+        $this->fileUploadService = $fileUploadService ?? Container::make(FileUploadServiceInterface::class);
         $this->profileService = $profileService ?? Container::make(UserProfileServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
         $this->sessionService = $sessionService ?? Container::make(SessionManagementServiceInterface::class);
@@ -245,9 +245,9 @@ final class AccountController
 
     /**
      * POST /account/avatar/upload
-     * Subir avatar del usuario
+     * Seleccionar avatar preset del usuario.
+     * Body JSON: {avatar_id: string, csrf_token: string}
      * @throws JsonException
-     * @throws RandomException
      */
     public function uploadAvatar(): ResponseInterface
     {
@@ -261,35 +261,30 @@ final class AccountController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] === UPLOAD_ERR_NO_FILE) {
-            return $this->response->problem(Result::fail('No se seleccionó ningún archivo', 'no_file'), 422);
+        $rawBody  = (string) \file_get_contents('php://input');
+        $parsed   = \json_decode($rawBody, true);
+        $avatarId = \trim((string) ($parsed['avatar_id'] ?? ($_POST['avatar_id'] ?? '')));
+
+        if (!AvatarOptions::isValid($avatarId)) {
+            return $this->response->problem(Result::fail('Avatar no válido', 'invalid_avatar'), 422);
         }
 
-        $user = Session::user();
+        $user   = Session::user();
         $userId = (int) $user['id'];
 
-        // Subir avatar
-        $result = $this->fileUploadService->uploadAvatar($_FILES['avatar'], $userId);
-
-        if ($result->error !== null) {
-            return $this->response->problem(Result::fail($result->error, 'upload_failed'), 422);
-        }
-
-        // Actualizar URL del avatar en la base de datos
-        $updateResult = $this->profileService->updateAvatar($userId, $result->data);
+        $avatarUrl    = AvatarOptions::toUrl($avatarId);
+        $updateResult = $this->profileService->updateAvatar($userId, $avatarUrl);
 
         if ($updateResult->error !== null) {
-            $this->fileUploadService->deleteFile($result->data);
-
             return $this->response->problem(Result::fail('Error al actualizar el avatar', 'server_error'), 500);
         }
 
-        $user['avatar'] = $result->data;
+        $user['avatar'] = $avatarUrl;
         Session::set('user', $user);
 
         return $this->response->json(['ok' => true, 'data' => [
-            'message' => 'Avatar actualizado exitosamente',
-            'avatar' => $result->data,
+            'avatar_id'  => $avatarId,
+            'avatar_url' => $avatarUrl,
         ]]);
     }
 

@@ -37,7 +37,6 @@ final class TelegramSeeder
         $users = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
         if (empty($users)) {
-            echo "[TelegramSeeder] No hay usuarios disponibles\n";
             Logger::warning('TelegramSeeder: no users found');
 
             return;
@@ -75,7 +74,6 @@ final class TelegramSeeder
             }
         }
 
-        echo "[TelegramSeeder] $count usuarios Telegram creados\n";
         Logger::info('TelegramSeeder: users created', ['created' => $count]);
 
         // Crear mensajes de log de ejemplo
@@ -119,7 +117,6 @@ final class TelegramSeeder
             }
         }
 
-        echo "[TelegramSeeder] $count mensajes de log creados\n";
         Logger::info('TelegramSeeder: sample messages created', ['count' => $count]);
     }
 }

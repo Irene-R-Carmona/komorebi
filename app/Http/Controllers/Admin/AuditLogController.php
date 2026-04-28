@@ -71,7 +71,7 @@ final class AuditLogController
             'date_from' => $_GET['date_from'] ?? null,
             'date_to' => $_GET['date_to'] ?? null,
             'ip_address' => $_GET['ip_address'] ?? null,
-        ], static fn ($v) => $v !== null);
+        ], static fn($v) => $v !== null);
 
         $page = \max(1, (int) ($_GET['page'] ?? 1));
         $limit = \max(10, \min(100, (int) ($_GET['limit'] ?? 50)));
@@ -83,22 +83,6 @@ final class AuditLogController
             'logs' => $result['data'],
             'total' => $result['total'],
         ]]);
-    }
-
-    /**
-     * GET /admin/logs/audit/stats
-     * @throws JsonException
-     */
-    public function stats(): ResponseInterface
-    {
-        $filters = \array_filter([
-            'date_from' => $_GET['date_from'] ?? null,
-            'date_to' => $_GET['date_to'] ?? null,
-        ], static fn ($v) => $v !== null && $v !== '');
-
-        $stats = $this->auditLogRepo->getStats($filters);
-
-        return $this->response->json(['ok' => true, 'data' => ['stats' => $stats]]);
     }
 
     /**
@@ -115,7 +99,7 @@ final class AuditLogController
                 'date_from' => $queryParams['date_from'] ?? null,
                 'date_to' => $queryParams['date_to'] ?? null,
                 'ip_address' => $queryParams['ip_address'] ?? null,
-            ], static fn ($v) => $v !== null && $v !== '');
+            ], static fn($v) => $v !== null && $v !== '');
 
             $result = $this->auditLogRepo->findAll($filters, 10000, 0);
 

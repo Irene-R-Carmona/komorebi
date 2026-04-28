@@ -40,24 +40,32 @@ final class HolidayController extends AbstractApiController
      */
     public function getHolidays(ServerRequestInterface $request): ResponseInterface
     {
-        $holidays = self::HOLIDAY_DATES;
+        $data = [
+            'holidays' => self::HOLIDAY_DATES,
+            'count'    => \count(self::HOLIDAY_DATES),
+        ];
+        $etag = $this->makeEtag($data);
+        $cc   = 'public, max-age=86400';
 
-        return $this->success([
-            'holidays' => $holidays,
-            'count' => \count($holidays),
+        if ($request->getHeaderLine('If-None-Match') === $etag) {
+            return $this->notModified($etag, $cc);
+        }
+
+        return $this->success($data, 200, [
+            'Cache-Control' => $cc,
+            'ETag'          => $etag,
         ]);
     }
 
     /**
-     * GET /api/v1/holidays/check?date=YYYY-MM-DD
+     * GET /api/v1/holidays/{date}
      * Verificar si una fecha es festivo
      */
     public function checkHoliday(ServerRequestInterface $request): ResponseInterface
     {
-        $queryParams = $request->getQueryParams();
-        $date = $queryParams['date'] ?? null;
+        $date = (string) ($request->getAttribute('date') ?? '');
 
-        if (!$date) {
+        if ($date === '') {
             return $this->unprocessable('Parámetro "date" requerido (formato: YYYY-MM-DD)', 'missing_parameter');
         }
 

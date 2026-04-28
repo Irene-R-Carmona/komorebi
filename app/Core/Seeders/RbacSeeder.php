@@ -52,7 +52,6 @@ final class RbacSeeder
         $this->migrateExistingUsers();
 
         Logger::info('RbacSeeder: completed', ['roles' => \count($roles), 'permissions' => \count($permissions)]);
-        echo "[RbacSeeder] RBAC inicializado correctamente\n";
     }
 
     /**

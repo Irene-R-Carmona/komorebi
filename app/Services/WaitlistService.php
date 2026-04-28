@@ -10,9 +10,9 @@ use App\Core\Result;
 use App\Core\TransactionalService;
 use App\Core\WideEvent;
 use App\Jobs\WaitlistPromotionJob;
-use App\Models\Reservation;
-use App\Models\TimeSlot;
 use App\Models\Waitlist;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Repositories\Contracts\TimeSlotRepositoryInterface;
 use App\Repositories\Contracts\WaitlistRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\WaitlistServiceInterface;
@@ -35,8 +35,8 @@ use Random\RandomException;
  */
 final class WaitlistService extends TransactionalService implements WaitlistServiceInterface
 {
-    private TimeSlot $timeSlotModel;
-    private Reservation $reservationModel;
+    private TimeSlotRepositoryInterface $timeSlotRepo;
+    private ReservationRepositoryInterface $reservationRepo;
     private EmailServiceInterface $emailService;
     private WaitlistRepositoryInterface $waitlistRepository;
 
@@ -44,12 +44,12 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
         PDO $db,
         EmailServiceInterface $emailService,
         WaitlistRepositoryInterface $waitlistRepository,
-        TimeSlot $timeSlotModel,
-        Reservation $reservationModel
+        TimeSlotRepositoryInterface $timeSlotRepo,
+        ReservationRepositoryInterface $reservationRepo
     ) {
         parent::__construct($db);
-        $this->timeSlotModel = $timeSlotModel;
-        $this->reservationModel = $reservationModel;
+        $this->timeSlotRepo = $timeSlotRepo;
+        $this->reservationRepo = $reservationRepo;
         $this->emailService = $emailService;
         $this->waitlistRepository = $waitlistRepository;
     }
@@ -67,19 +67,13 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
     public function joinWaitlist(int $timeSlotId, int $userId, array $data): Result
     {
         // Validar que el slot existe
-        $slotResult = $this->timeSlotModel->findById($timeSlotId);
-        if (!$slotResult->ok) {
-            return Result::fail('Time slot no encontrado');
-        }
-
-        $slot = $slotResult->data;
-
-        if (!\is_array($slot) || empty($slot)) {
+        $slot = $this->timeSlotRepo->findById($timeSlotId);
+        if ($slot === null) {
             return Result::fail('Time slot no encontrado');
         }
 
         // Verificar que el slot esté completo (no tiene sentido waitlist si hay espacio)
-        $availableSpots = (int) ($slot['available_spots'] ?? 0);
+        $availableSpots = $slot->available_spots;
         if ($availableSpots > 0) {
             return Result::fail('El time slot todavía tiene plazas disponibles. No es necesario entrar en lista de espera.');
         }
@@ -135,8 +129,8 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                     $userName,
                     $token,
                     [
-                        'slot_date' => (string) ($slot['slot_date'] ?? ''),
-                        'slot_time' => (string) ($slot['slot_time'] ?? ''),
+                        'slot_date' => $slot->slot_date,
+                        'slot_time' => $slot->slot_time,
                         'position' => $position,
                     ]
                 );
@@ -271,7 +265,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             // Buscar entrada de waitlist por token
             $waitlistEntry = $this->waitlistRepository->findByToken($token);
 
-            if (!\is_array($waitlistEntry) || empty($waitlistEntry)) {
+            if ($waitlistEntry === null) {
                 if ($startedTransaction) {
                     $this->db->rollBack();
                 }
@@ -280,7 +274,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             }
 
             // Verificar que esté en estado 'notified'
-            if (($waitlistEntry['status'] ?? '') !== Waitlist::STATUS_NOTIFIED) {
+            if ($waitlistEntry->status !== Waitlist::STATUS_NOTIFIED) {
                 if ($startedTransaction) {
                     $this->db->rollBack();
                 }
@@ -288,23 +282,14 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::fail('Esta promoción ya fue procesada o expiró');
             }
 
-            // Normalizar campos importantes
-            /** @var array<string,mixed> $waitlistEntry */
-            $rawWaitlistId = $waitlistEntry['id'] ?? null;
-            $waitlistId = \is_scalar($rawWaitlistId) ? (int) $rawWaitlistId : 0;
-
-            $rawTimeSlotId = $waitlistEntry['time_slot_id'] ?? null;
-            $timeSlotIdInt = \is_scalar($rawTimeSlotId) ? (int) $rawTimeSlotId : 0;
-
-            $rawPosition = $waitlistEntry['position'] ?? null;
-            $position = \is_scalar($rawPosition) ? (int) $rawPosition : 0;
-
-            $rawGuestCount = $waitlistEntry['guest_count'] ?? null;
-            $guestCount = \is_scalar($rawGuestCount) ? (int) $rawGuestCount : 1;
+            // Extraer campos del DTO
+            $waitlistId = $waitlistEntry->id;
+            $timeSlotIdInt = $waitlistEntry->time_slot_id;
+            $position = $waitlistEntry->position ?? 0;
+            $guestCount = $waitlistEntry->guest_count;
 
             // Verificar que no haya expirado
-            $rawExpires = $waitlistEntry['expires_at'] ?? null;
-            $expiresAtStr = \is_scalar($rawExpires) ? (string) $rawExpires : '';
+            $expiresAtStr = $waitlistEntry->expires_at ?? '';
             $expiresTimestamp = $expiresAtStr === '' ? false : \strtotime($expiresAtStr);
 
             if ($expiresTimestamp === false || $expiresTimestamp < \time()) {
@@ -322,9 +307,9 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             }
 
             // Verificar disponibilidad del slot (bloqueo pesimista)
-            $slotResult = $this->timeSlotModel->findByIdForUpdate($timeSlotIdInt);
+            $slot = $this->timeSlotRepo->findById($timeSlotIdInt);
 
-            if (!$slotResult->ok) {
+            if ($slot === null) {
                 if ($startedTransaction) {
                     $this->db->rollBack();
                 }
@@ -332,12 +317,8 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::fail('Time slot no disponible');
             }
 
-            $slot = $slotResult->data;
-
-            /** @var array<string,mixed>|null $slot */
-            $rawAvailable = $slot['available_spots'] ?? null;
-            $availableSpots = \is_scalar($rawAvailable) ? (int) $rawAvailable : 0;
-            if (!\is_array($slot) || $availableSpots <= 0) {
+            $availableSpots = $slot->available_spots;
+            if ($availableSpots <= 0) {
                 if ($startedTransaction) {
                     $this->db->rollBack();
                 }
@@ -345,15 +326,9 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::fail('El time slot ya no tiene plazas disponibles');
             }
 
-            // Construir payload tipado para Reservation::create()
-            $rawUserId = $waitlistEntry['user_id'] ?? null;
-            $userIdInt = \is_scalar($rawUserId) ? (int) $rawUserId : 0;
-
-            $rawCafeId = $slot['cafe_id'] ?? null;
-            $cafeIdInt = \is_scalar($rawCafeId) ? (int) $rawCafeId : 0;
-
-            $rawSlotDate = $slot['slot_date'] ?? null;
-            $rawSlotTime = $slot['slot_time'] ?? null;
+            // Construir payload tipado para reserva
+            $userIdInt = $waitlistEntry->user_id;
+            $specialReq = $waitlistEntry->special_requests ?? '';
 
             $rawPassProduct = $reservationData['pass_product_id'] ?? null;
             $passProductId = \is_scalar($rawPassProduct) ? (int) $rawPassProduct : 0;
@@ -367,15 +342,12 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             $rawDuration = $reservationData['pass_duration_minutes'] ?? null;
             $duration = \is_scalar($rawDuration) ? (int) $rawDuration : 60;
 
-            $rawSpecial = $waitlistEntry['special_requests'] ?? null;
-            $specialReq = \is_scalar($rawSpecial) ? (string) $rawSpecial : '';
-
             $reservationPayload = [
                 'user_id' => $userIdInt,
-                'cafe_id' => $cafeIdInt,
+                'cafe_id' => $slot->cafe_id,
                 'time_slot_id' => $timeSlotIdInt,
-                'reservation_date' => \is_scalar($rawSlotDate) ? (string) $rawSlotDate : '',
-                'reservation_time' => \is_scalar($rawSlotTime) ? (string) $rawSlotTime : '',
+                'reservation_date' => $slot->slot_date,
+                'reservation_time' => $slot->slot_time,
                 'guests' => $guestCount,
                 'pass_product_id' => $passProductId,
                 'pass_name' => $passName,
@@ -384,26 +356,21 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 'comments' => $specialReq,
             ];
 
-            $reservationResult = $this->reservationModel->create($reservationPayload);
+            $newReservationId = $this->reservationRepo->create($reservationPayload);
 
-            if (!$reservationResult->ok) {
+            if ($newReservationId <= 0) {
                 if ($startedTransaction) {
                     $this->db->rollBack();
                 }
 
-                return Result::fail('Error al crear reserva: ' . ($reservationResult->error ?? ''));
-            }
-
-            $reservation = $reservationResult->data ?? [];
-            if (!\is_array($reservation)) {
-                $reservation = [];
+                return Result::fail('Error al crear reserva desde lista de espera');
             }
 
             // Decrementar spots disponibles del slot
-            $this->timeSlotModel->decrementSpots($timeSlotIdInt, $guestCount);
+            $this->timeSlotRepo->reserveSpots($timeSlotIdInt, $guestCount);
 
             // Actualizar waitlist a 'confirmed'
-            $this->waitlistRepository->updateStatusWithData($waitlistId, Waitlist::STATUS_CONFIRMED, ['reservation_id' => (int) ($reservation['reservation_id'] ?? 0)]);
+            $this->waitlistRepository->updateStatusWithData($waitlistId, Waitlist::STATUS_CONFIRMED, ['reservation_id' => $newReservationId]);
 
             // Reordenar posiciones
             $this->waitlistRepository->reorderPositions($timeSlotIdInt, $position);
@@ -413,7 +380,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             }
 
             return Result::ok([
-                'reservation_id' => $reservation['reservation_id'] ?? null,
+                'reservation_id' => $newReservationId,
                 'waitlist_id' => $waitlistId,
                 'message' => '¡Reserva confirmada desde lista de espera!',
             ]);
@@ -543,50 +510,45 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
     {
         $entry = $this->waitlistRepository->findByToken($token);
 
-        if (!\is_array($entry) || empty($entry)) {
+        if ($entry === null) {
             return Result::fail('Token de waitlist no válido o expirado');
         }
 
         // Obtener información del time slot (usar id tipado)
-        $rawTimeSlotId = $entry['time_slot_id'] ?? null;
-        $timeSlotId = \is_scalar($rawTimeSlotId) ? (int) $rawTimeSlotId : 0;
+        $timeSlotId = $entry->time_slot_id;
         if ($timeSlotId <= 0) {
             return Result::fail('Time slot inválido');
         }
 
-        $slotResult = $this->timeSlotModel->findById($timeSlotId);
+        $slotResult = $this->timeSlotRepo->findById($timeSlotId);
 
-        if (!$slotResult->ok) {
+        if ($slotResult === null) {
             return Result::fail('Error al obtener información del horario');
         }
 
-        $slot = $slotResult->data ?? [];
-        if (!\is_array($slot)) {
-            $slot = [];
-        }
+        $slot = $slotResult;
 
         // Calcular tiempo estimado de espera (15 min por posición)
-        $rawPos = $entry['position'] ?? null;
-        $positionInt = \is_scalar($rawPos) ? (int) $rawPos : 0;
+        $positionInt = $entry->position ?? 0;
         $estimatedWaitMinutes = \max(0, ($positionInt - 1) * 15);
 
         return Result::ok([
-            'id' => $entry['id'],
+            'id' => $entry->id,
             'position' => $positionInt,
-            'status' => $entry['status'],
-            'guest_count' => \is_scalar($entry['guest_count'] ?? null) ? (int) $entry['guest_count'] : 0,
-            'special_requests' => $entry['special_requests'] ?? null,
+            'status' => $entry->status,
+            'guest_count' => $entry->guest_count,
+            'special_requests' => $entry->special_requests,
             'estimated_wait_minutes' => $estimatedWaitMinutes,
-            'expires_at' => $entry['expires_at'] ?? null,
-            'notified_at' => $entry['notified_at'] ?? null,
-            'created_at' => $entry['created_at'] ?? null,
-            'user_name' => $entry['user_name'] ?? null,
+            'expires_at' => $entry->expires_at,
+            'notified_at' => null,
+            'created_at' => null,
+            'user_name' => null,
             'time_slot' => [
-                'id' => $slot['id'] ?? null,
-                'date' => $slot['slot_date'] ?? null,
-                'time' => $slot['slot_time'] ?? null,
-                'cafe_id' => $slot['cafe_id'] ?? null,
-                'available_spots' => $slot['available_spots'] ?? null,
+                'id' => $slot->id,
+                'date' => $slot->slot_date,
+                'time' => $slot->slot_time,
+                'cafe_id' => $slot->cafe_id,
+                'available_spots' => $slot->available_spots,
             ],
         ]);
     }

@@ -7,7 +7,6 @@ namespace App\Providers;
 use App\Core\Container;
 use App\Core\Database;
 use App\Core\ServiceProvider;
-use App\Models\User;
 use App\Repositories\AuthLogRepository;
 use App\Repositories\AuthTokenRepository;
 use App\Repositories\Contracts\AuthLogRepositoryInterface;
@@ -87,7 +86,7 @@ final class AuthServiceProvider extends ServiceProvider
         Container::singleton(EmailService::class, fn() => new EmailService());
 
         Container::singleton(PasswordResetServiceInterface::class, fn() => new PasswordResetService(
-            new User(),
+            Container::make(UserRepositoryInterface::class),
             Container::make(AuthTokenService::class),
             Container::make(SessionManagementService::class),
             Container::make(RateLimitingServiceInterface::class),
@@ -95,14 +94,13 @@ final class AuthServiceProvider extends ServiceProvider
         ));
 
         Container::singleton(EmailVerificationServiceInterface::class, fn() => new EmailVerificationService(
-            new User(),
+            Container::make(UserRepositoryInterface::class),
             Container::make(AuthTokenService::class),
             Container::make(EmailServiceInterface::class)
         ));
 
         Container::singleton(AuthService::class, fn() => new AuthService(
             Container::make(UserRepositoryInterface::class),
-            new User(),
             Container::make(SessionManagementService::class),
             Container::make(RateLimitingServiceInterface::class),
             Container::make(EventDispatcherInterface::class)

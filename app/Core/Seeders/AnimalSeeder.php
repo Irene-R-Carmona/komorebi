@@ -20,7 +20,6 @@ final class AnimalSeeder
 
     public function run(): void
     {
-        echo "Introduciendo habitantes...\n";
         Logger::info('AnimalSeeder: starting');
 
         // 1. REGLAS DE ESPECIE
@@ -182,7 +181,6 @@ final class AnimalSeeder
 
             Logger::info('AnimalSeeder: cafe processed', ['cafe_id' => $cafeId, 'inserted' => $inserted]);
         }
-        echo "Animales migrados.\n";
         Logger::info('AnimalSeeder: completed');
     }
 }

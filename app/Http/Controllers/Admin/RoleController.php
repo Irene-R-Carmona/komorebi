@@ -64,13 +64,20 @@ final class RoleController
 
         $allPermissions = $this->permissionModel->all();
 
+        $stats = [
+            'total_roles'       => \count($roles),
+            'total_permissions' => \count($allPermissions),
+            'total_modules'     => \count(\array_unique(\array_filter(\array_column($allPermissions, 'resource')))),
+            'users_with_roles'  => $this->roleModel->getStats()['users_with_roles'] ?? 0,
+        ];
+
         View::render('admin/roles/index', [
-            'titulo' => 'Gestión de Roles y Permisos',
-            'roles' => $roles,
-            'permissions' => $allPermissions,
+            'titulo'          => 'Gestión de Roles y Permisos | Komorebi Admin',
+            'roles'           => $roles,
+            'permissions'     => $allPermissions,
             'rolePermissions' => $rolePermissions,
-            'csrf_token' => Csrf::token(),
-            'extraJs' => ['admin/admin-roles.js'],
+            'stats'           => $stats,
+            'extraJs'         => ['admin/admin-roles.js'],
         ], ['admin/admin-roles.css'], 'backoffice');
 
         return null;
@@ -96,30 +103,6 @@ final class RoleController
             'roles' => $roles,
             'rolePermissions' => $rolePermissions,
         ]]);
-    }
-
-    /**
-     * GET /admin/permissions
-     * Obtener lista de todos los permisos
-     * @throws JsonException
-     */
-    public function getPermissions(): ResponseInterface
-    {
-        $permissions = $this->permissionModel->all();
-
-        return $this->response->json(['ok' => true, 'data' => ['permissions' => $permissions]]);
-    }
-
-    /**
-     * GET /admin/roles/stats
-     * Obtener estadísticas de roles
-     * @throws JsonException
-     */
-    public function rolesStats(): ResponseInterface
-    {
-        $stats = $this->roleModel->getStats();
-
-        return $this->response->json(['ok' => true, 'data' => ['stats' => $stats]]);
     }
 
     /**

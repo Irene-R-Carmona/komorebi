@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Logger;
+use App\Domain\DTO\ReviewDTO;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use Exception;
@@ -14,8 +15,7 @@ final class ReviewQueryService implements ReviewQueryServiceInterface
 {
     public function __construct(
         private ReviewRepositoryInterface $reviewRepository,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function getReviewsByUserId(int $userId): array
@@ -101,7 +101,7 @@ final class ReviewQueryService implements ReviewQueryServiceInterface
     }
 
     #[Override]
-    public function getReview(int $reviewId): ?array
+    public function getReview(int $reviewId): ?ReviewDTO
     {
         try {
             return $this->reviewRepository->findById($reviewId);

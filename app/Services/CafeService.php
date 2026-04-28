@@ -68,7 +68,7 @@ final class CafeService extends BaseService implements CafeServiceInterface
     #[Override]
     public function getById(int $id): ?array
     {
-        return $this->cafeRepo->findById($id);
+        return $this->cafeRepo->findById($id)?->toViewArray();
     }
 
     /**
@@ -175,9 +175,9 @@ final class CafeService extends BaseService implements CafeServiceInterface
 
             // Invalidar caché para evitar datos obsoletos tras la escritura
             Cache::delete("cafe:id:{$id}");
-            Cache::delete("cafe:{$existing['slug']}");
+            Cache::delete("cafe:{$existing->slug}");
             Cache::delete('cafes:active');
-            if (isset($params['slug']) && $params['slug'] !== $existing['slug']) {
+            if (isset($params['slug']) && $params['slug'] !== $existing->slug) {
                 Cache::delete("cafe:{$params['slug']}");
             }
 
@@ -205,14 +205,14 @@ final class CafeService extends BaseService implements CafeServiceInterface
             return Result::fail('Café no encontrado', 'not_found');
         }
 
-        $newStatus = $cafe['is_active'] ? 0 : 1;
+        $newStatus = $cafe->is_active ? 0 : 1;
 
         try {
             $this->cafeRepo->update($id, ['is_active' => $newStatus]);
 
             // Invalidar caché para evitar datos obsoletos tras la escritura
             Cache::delete("cafe:id:{$id}");
-            Cache::delete("cafe:{$cafe['slug']}");
+            Cache::delete("cafe:{$cafe->slug}");
             Cache::delete('cafes:active');
 
             // Log de auditoría del cambio de estado
@@ -244,7 +244,7 @@ final class CafeService extends BaseService implements CafeServiceInterface
 
             // Invalidar caché para evitar datos obsoletos tras la escritura
             Cache::delete("cafe:id:{$id}");
-            Cache::delete("cafe:{$cafe['slug']}");
+            Cache::delete("cafe:{$cafe->slug}");
             Cache::delete('cafes:active');
 
             // Log de auditoría de eliminación

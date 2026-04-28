@@ -64,7 +64,7 @@ final class ReceptionService implements ReceptionServiceInterface
     {
         $reservations = $this->reservationRepo->findByCafeAndDate($cafeId, \date('Y-m-d'));
 
-        return \array_filter($reservations, static fn ($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
+        return \array_filter($reservations, static fn($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
     }
 
     #[Override]
@@ -94,16 +94,16 @@ final class ReceptionService implements ReceptionServiceInterface
                     throw NotFoundException::reservation($reservationId);
                 }
 
-                if ($reservation['status'] !== Reservation::STATUS_CONFIRMED) {
+                if ($reservation->status !== Reservation::STATUS_CONFIRMED) {
                     throw BusinessRuleException::invalidStateForOperation(
                         'check-in',
-                        $reservation['status']
+                        $reservation->status
                     );
                 }
 
                 $tracker = $this->trackerRepo->findById($trackerId);
 
-                if (!$tracker || $tracker['status'] !== 'available') {
+                if (!$tracker || $tracker->status !== 'available') {
                     throw new BusinessRuleException(
                         'Tracker no disponible',
                         'tracker_not_available',
@@ -111,11 +111,11 @@ final class ReceptionService implements ReceptionServiceInterface
                     );
                 }
 
-                if ((int) $tracker['cafe_id'] !== (int) $reservation['cafe_id']) {
+                if ($tracker->cafe_id !== $reservation->cafe_id) {
                     throw new BusinessRuleException(
                         'Tracker no pertenece a este café',
                         'tracker_wrong_cafe',
-                        ['tracker_cafe' => $tracker['cafe_id'], 'reservation_cafe' => $reservation['cafe_id']]
+                        ['tracker_cafe' => $tracker->cafe_id, 'reservation_cafe' => $reservation->cafe_id]
                     );
                 }
 
@@ -147,24 +147,24 @@ final class ReceptionService implements ReceptionServiceInterface
                     throw NotFoundException::reservation($reservationId);
                 }
 
-                if ($reservation['status'] !== Reservation::STATUS_ACTIVE) {
+                if ($reservation->status !== Reservation::STATUS_ACTIVE) {
                     throw BusinessRuleException::invalidStateForOperation(
                         'check-out',
-                        $reservation['status']
+                        $reservation->status
                     );
                 }
 
                 $this->reservationRepo->checkOut($reservationId);
                 $updated = $this->reservationRepo->findById($reservationId);
 
-                if ($updated['status'] === Reservation::STATUS_COMPLETED && $updated['user_id']) {
+                if ($updated !== null && $updated->status === Reservation::STATUS_COMPLETED && $updated->user_id) {
                     try {
                         $loyaltyService = Container::make(LoyaltyServiceInterface::class);
-                        $loyaltyService->addStamp((int) $updated['user_id'], 1, $reservationId);
+                        $loyaltyService->addStamp($updated->user_id, 1, $reservationId);
                     } catch (Throwable $e) {
                         Logger::warning('Error al añadir sello de fidelización', [
                             'reservation_id' => $reservationId,
-                            'user_id' => $updated['user_id'],
+                            'user_id' => $updated->user_id,
                             'error' => $e->getMessage(),
                         ]);
                     }
@@ -172,7 +172,7 @@ final class ReceptionService implements ReceptionServiceInterface
 
                 return [
                     'success' => true,
-                    'final_price' => $updated['final_amount'] ?? 0,
+                    'final_price' => $updated->final_amount ?? 0,
                     'duration' => $this->calculateDuration($updated),
                 ];
             });
@@ -218,19 +218,19 @@ final class ReceptionService implements ReceptionServiceInterface
     #[Override]
     public function getProtocolStatus(int $reservationId): Result
     {
-        $reservation = $this->reservationRepo->findById($reservationId);
+        $reservation = $this->reservationRepo->findWithOperationalData($reservationId);
 
         if (!$reservation) {
             return Result::fail('Reserva no encontrada', 'not_found');
         }
 
         return Result::ok([
-            'hygiene' => (bool) $reservation['protocol_hygiene'],
-            'briefing' => (bool) $reservation['protocol_briefing'],
-            'shoes' => (bool) $reservation['protocol_shoes'],
-            'all_complete' => $reservation['protocol_hygiene']
-                           && $reservation['protocol_briefing']
-                           && $reservation['protocol_shoes'],
+            'hygiene' => (bool) ($reservation['protocol_hygiene'] ?? false),
+            'briefing' => (bool) ($reservation['protocol_briefing'] ?? false),
+            'shoes' => (bool) ($reservation['protocol_shoes'] ?? false),
+            'all_complete' => ($reservation['protocol_hygiene'] ?? false)
+                && ($reservation['protocol_briefing'] ?? false)
+                && ($reservation['protocol_shoes'] ?? false),
         ]);
     }
 
@@ -242,7 +242,7 @@ final class ReceptionService implements ReceptionServiceInterface
     public function getCapacityInfo(int $cafeId): array
     {
         $cafe = $this->cafeRepo->findById($cafeId);
-        $maxCapacity = (int) ($cafe['capacity_max'] ?? 0);
+        $maxCapacity = (int) ($cafe->capacity_max ?? 0);
 
         $activeGroups = $this->reservationRepo->findActiveByCafe($cafeId);
         $currentGuests = \array_sum(\array_column($activeGroups, 'guests'));
@@ -287,12 +287,12 @@ final class ReceptionService implements ReceptionServiceInterface
         return $group;
     }
 
-    private function calculateDuration(array $reservation): int
+    private function calculateDuration(?\App\Domain\DTO\ReservationDTO $reservation): int
     {
-        if (empty($reservation['check_in_at']) || empty($reservation['check_out_at'])) {
+        if ($reservation === null || empty($reservation->check_in_at) || empty($reservation->check_out_at)) {
             return 0;
         }
 
-        return (int) ((\strtotime($reservation['check_out_at']) - \strtotime($reservation['check_in_at'])) / 60);
+        return (int) ((\strtotime($reservation->check_out_at) - \strtotime($reservation->check_in_at)) / 60);
     }
 }

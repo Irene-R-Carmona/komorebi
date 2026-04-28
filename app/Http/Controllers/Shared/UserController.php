@@ -9,6 +9,7 @@ use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
+use App\Domain\AvatarOptions;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Services\Contracts\GamificationServiceInterface;
@@ -19,12 +20,14 @@ use App\Services\Contracts\UserProfileServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\UploadedFileInterface;
 use Random\RandomException;
-use RuntimeException;
 
 final class UserController
 {
+    private const string ROUTE_LOGIN  = '/login';
+    private const string ROUTE_PERFIL = '/perfil';
+    private const string MSG_AUTH     = 'Necesitas iniciar sesión para continuar.';
+
     private UserProfileServiceInterface $profileService;
     private UserAccountServiceInterface $accountService;
     private ReservationServiceInterface $reservations;
@@ -48,43 +51,38 @@ final class UserController
         $this->response = $response ?? new ResponseFactory();
     }
 
-    /**
-     * @throws NotFoundException
-     */
-    public function profile(ServerRequestInterface $request): ?ResponseInterface
+    public function profile(): ?ResponseInterface
     {
         $userId = Session::userId();
         if ($userId === null) {
-            Flash::error('Necesitas iniciar sesión para continuar.');
+            Flash::error(self::MSG_AUTH);
             $returnTo = $_SERVER['REQUEST_URI'] ?? '/';
             if ($returnTo === '' || $returnTo[0] !== '/' || \preg_match('/[\r\n]/', $returnTo) || \str_starts_with($returnTo, '//')) {
                 $returnTo = '/';
             }
             Session::set('redirect_after_login', $returnTo);
 
-            return $this->response->redirect('/login');
+            return $this->response->redirect(self::ROUTE_LOGIN);
         }
 
-        $profile = $this->profileService->getProfile($userId);
-
-        // Obtener próxima reserva activa (puede lanzar si falla la BD)
-        $reservas = $this->reservations->getByUser($userId, 'active');
-        $reservasCount = \count($reservas);
-        $nextReservation = !empty($reservas) ? \reset($reservas) : null;
-
-        // Obtener reseñas del usuario
-        $userReviews = $this->reviews->listUserReviews($userId);
-
-        $nivel = $this->gamification->calculateUserLevel($reservasCount);
+        $rawProfile = $this->profileService->getProfile($userId);
+        $reservationList = $this->reservations->getByUser($userId);
+        $reservationCount = \count($reservationList);
 
         View::render('shared/user/profile', [
-            'titulo' => 'Mi Perfil',
-            'profile' => $profile,
-            'nivel' => $nivel,
-            'stats' => ['reservasCount' => $reservasCount],
-            'nextReservation' => $nextReservation,
-            'userReviews' => $userReviews,
-            'flash' => Flash::consume(),
+            'titulo'        => 'Mi Perfil',
+            'flash'         => Flash::consume(),
+            'profile'       => [
+                'name'       => (string) ($rawProfile['name'] ?? ''),
+                'email'      => (string) ($rawProfile['email'] ?? ''),
+                'avatar_url' => isset($rawProfile['avatar']) ? (string) $rawProfile['avatar'] : null,
+                'created_at' => (string) ($rawProfile['created_at'] ?? ''),
+            ],
+            'stats'         => [
+                'reservations_count' => $reservationCount,
+                'level'              => $this->gamification->calculateUserLevel($reservationCount),
+            ],
+            'avatarOptions' => AvatarOptions::toList(),
         ], ['profile.css', 'reviews.css']);
 
         return null;
@@ -100,9 +98,9 @@ final class UserController
     {
         $userId = Session::userId();
         if ($userId === null) {
-            Flash::error('Necesitas iniciar sesión para continuar.');
+            Flash::error(self::MSG_AUTH);
 
-            return $this->response->redirect('/login');
+            return $this->response->redirect(self::ROUTE_LOGIN);
         }
 
         $body = (array) $request->getParsedBody();
@@ -121,7 +119,7 @@ final class UserController
 
         Flash::success('Tu perfil se ha actualizado con éxito.');
 
-        return $this->response->redirect('/perfil');
+        return $this->response->redirect(self::ROUTE_PERFIL);
     }
 
     /**
@@ -135,9 +133,9 @@ final class UserController
         $userId = Session::userId();
         if ($userId === null) {
             // Backup defensivo (middleware 'auth' ya verificó)
-            Flash::error('Necesitas iniciar sesión para continuar.');
+            Flash::error(self::MSG_AUTH);
 
-            return $this->response->redirect('/login');
+            return $this->response->redirect(self::ROUTE_LOGIN);
         }
 
         // RECOPILACIÓN DE INPUTS
@@ -152,100 +150,52 @@ final class UserController
             // Error en validación: mostrar genérico (no revelar si current es válida)
             Flash::error($result->error ?? 'No se pudo cambiar la contraseña.');
 
-            return $this->response->redirect('/perfil');
+            return $this->response->redirect(self::ROUTE_PERFIL);
         }
 
         // UX: Confirmar cambio
         Flash::success('Tu contraseña se ha actualizado correctamente.');
 
-        return $this->response->redirect('/perfil');
+        return $this->response->redirect(self::ROUTE_PERFIL);
     }
 
     /**
      * POST /account/avatar/upload
      *
-     * Subir avatar del usuario
+     * Seleccionar avatar preset del usuario.
+     * Body JSON: {avatar_id: string, csrf_token: string}
      */
     public function uploadAvatar(ServerRequestInterface $request): ?ResponseInterface
     {
-        // VALIDACIÓN CONTEXTO: Usuario autenticado
         $userId = Session::userId();
         if ($userId === null) {
             return $this->response->json(['success' => false, 'message' => 'No autenticado'], 401);
         }
 
-        $files = $request->getUploadedFiles();
-        $uploadedFile = $files['avatar'] ?? null;
+        $body     = (array) ($request->getParsedBody() ?? []);
+        $avatarId = \trim((string) ($body['avatar_id'] ?? ''));
 
-        if (!($uploadedFile instanceof UploadedFileInterface) || $uploadedFile->getError() !== UPLOAD_ERR_OK) {
-            return $this->response->json(['success' => false, 'message' => 'No se recibió ningún archivo válido'], 400);
+        return $this->processAvatarUpdate($userId, $avatarId);
+    }
+
+    private function processAvatarUpdate(int $userId, string $avatarId): ResponseInterface
+    {
+        if (!AvatarOptions::isValid($avatarId)) {
+            return $this->response->json(['success' => false, 'message' => 'Avatar no válido'], 422);
         }
 
-        // Validación de tipo MIME via ruta temporal del stream
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
-        $tmpPath = (string) ($uploadedFile->getStream()->getMetadata('uri') ?? '');
-        $finfo = \finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = $finfo !== false ? \finfo_file($finfo, $tmpPath) : '';
-        if ($finfo !== false) {
-            \finfo_close($finfo);
-        }
-
-        if (!\in_array($mimeType, $allowedMimes, true)) {
-            return $this->response->json(['success' => false, 'message' => 'Tipo de archivo no permitido. Solo JPG, PNG o WebP.'], 400);
-        }
-
-        // Validación de tamaño (2MB)
-        $maxSize = 2 * 1024 * 1024;
-        if (($uploadedFile->getSize() ?? 0) > $maxSize) {
-            return $this->response->json(['success' => false, 'message' => 'El archivo es demasiado grande. Máximo 2MB.'], 400);
-        }
-
-        // Validación de extensión
-        $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
-        $extension = \strtolower(\pathinfo($uploadedFile->getClientFilename() ?? '', PATHINFO_EXTENSION));
-        if (!\in_array($extension, $allowedExts, true)) {
-            return $this->response->json(['success' => false, 'message' => 'Extensión de archivo no permitida.'], 400);
-        }
-
-        // Generar nombre único
-        $filename = 'avatar_' . $userId . '_' . \time() . '.' . $extension;
-        $uploadDir = __DIR__ . '/../../../storage/uploads/avatars/';
-
-        // Crear directorio si no existe
-        if (!\is_dir($uploadDir)) {
-            \mkdir($uploadDir, 0o755, true);
-        }
-
-        $uploadPath = $uploadDir . $filename;
-
-        // Mover archivo con PSR-7
-        try {
-            $uploadedFile->moveTo($uploadPath);
-        } catch (RuntimeException) {
-            return $this->response->json(['success' => false, 'message' => 'Error al guardar el archivo.'], 500);
-        }
-
-        // Actualizar en base de datos
-        $avatarUrl = '/storage/uploads/avatars/' . $filename;
-        $result = $this->profileService->updateAvatar($userId, $avatarUrl);
+        $avatarUrl = AvatarOptions::toUrl($avatarId);
+        $result    = $this->profileService->updateAvatar($userId, $avatarUrl);
 
         if (!$result->ok) {
-            // Eliminar archivo si falla la actualización en BD
-            if (\file_exists($uploadPath)) {
-                \unlink($uploadPath);
-            }
-
             return $this->response->json(['success' => false, 'message' => $result->error ?? 'Error al actualizar el avatar.'], 500);
         }
 
-        // Actualizar sesión
-        $profile = $this->profileService->getProfile($userId);
-        Session::set('user', $profile);
+        Session::set('user', $this->profileService->getProfile($userId));
 
         return $this->response->json([
-            'success' => true,
-            'message' => 'Avatar actualizado correctamente',
-            'avatar_url' => $avatarUrl,
+            'ok'   => true,
+            'data' => ['avatar_id' => $avatarId, 'avatar_url' => $avatarUrl],
         ]);
     }
 
@@ -254,7 +204,7 @@ final class UserController
      *
      * Eliminar avatar del usuario
      */
-    public function deleteAvatar(ServerRequestInterface $request): ?ResponseInterface
+    public function deleteAvatar(): ?ResponseInterface
     {
         // VALIDACIÓN CONTEXTO: Usuario autenticado
         $userId = Session::userId();
@@ -298,14 +248,14 @@ final class UserController
      * @throws NotFoundException
      * @throws JsonException
      */
-    public function exportData(ServerRequestInterface $request): ?ResponseInterface
+    public function exportData(): ?ResponseInterface
     {
         // VALIDACIÓN CONTEXTO: Usuario autenticado
         $userId = Session::userId();
         if ($userId === null) {
             Flash::error('Necesitas iniciar sesión para exportar tus datos.');
 
-            return $this->response->redirect('/login');
+            return $this->response->redirect(self::ROUTE_LOGIN);
         }
 
         // Recopilar todos los datos personales

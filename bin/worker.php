@@ -50,6 +50,13 @@ try {
     exit(1);
 }
 
+// Crear consumer group en el stream (XGROUP CREATE MKSTREAM)
+try {
+    Queue::ensureConsumerGroup($queueName);
+} catch (Throwable $e) {
+    Logger::warning('[Worker] No se pudo crear consumer group', ['error' => $e->getMessage()]);
+}
+
 // ============================================================================
 // SIGNAL HANDLING (Factor IX: Disposability)
 // ============================================================================
@@ -137,6 +144,12 @@ while (!$shouldStop) {
             WideEvent::set('duration_ms', $duration);
             WideEvent::set('outcome', 'success');
             Logger::channel('queue')->info('job.canonical', WideEvent::all());
+
+            // XACK: confirmar procesamiento exitoso (elimina de PEL)
+            $streamId = $jobData['_stream_id'] ?? null;
+            if ($streamId !== null) {
+                Queue::acknowledge($queueName, $streamId);
+            }
         } catch (Throwable $e) {
             $errors++;
             $duration = round((microtime(true) - $start) * 1000, 2);
@@ -154,8 +167,14 @@ while (!$shouldStop) {
                 'error' => $e->getMessage(),
             ]);
 
-            // Reintentar si aplica
+            // Reintentar si aplica (empuja nuevo mensaje al stream/delayed)
             Queue::retry($jobData, $queueName, 3);
+
+            // XACK: eliminar original del PEL (ya encolado nuevo mensaje para retry)
+            $streamId = $jobData['_stream_id'] ?? null;
+            if ($streamId !== null) {
+                Queue::acknowledge($queueName, $streamId);
+            }
         } finally {
             WideEvent::reset();
         }

@@ -71,7 +71,7 @@ final class RequestLogMiddleware implements MiddlewareInterface
             WideEvent::set('status', $response->getStatusCode());
             WideEvent::set('outcome', $response->getStatusCode() < 400 ? 'success' : 'error');
 
-            return $response;
+            return $response->withHeader('X-Request-ID', $requestId);
         } finally {
             $status = isset($response) ? $response->getStatusCode() : 500;
             WideEvent::set('duration_ms', (int) ((\hrtime(true) - $start) / 1_000_000));

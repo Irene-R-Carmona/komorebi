@@ -12,6 +12,7 @@ use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
+use App\Domain\Mappers\AnimalMapper;
 use App\Repositories\AnimalRepository;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Services\AnimalCareService;
@@ -37,7 +38,7 @@ final class AnimalIncidentController
     ) {
         if ($service === null || $animalRepository === null) {
             $db = Database::getConnection();
-            $this->animalRepository = $animalRepository ?? new AnimalRepository($db);
+            $this->animalRepository = $animalRepository ?? new AnimalRepository(new AnimalMapper(), $db);
             $this->service = $service ?? new AnimalCareService($this->animalRepository);
         } else {
             $this->animalRepository = $animalRepository;

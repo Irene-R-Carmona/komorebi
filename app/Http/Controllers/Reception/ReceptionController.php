@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Reception;
 
 use App\Core\Container;
-use App\Core\Flash;
-use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
@@ -14,7 +12,6 @@ use App\Services\ContextServiceInstance;
 use App\Services\Contracts\ReceptionServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Throwable;
 
 /**
  * Controlador de Recepción
@@ -25,17 +22,13 @@ final class ReceptionController
 {
     private ReceptionServiceInterface $service;
 
-    private ResponseFactory $response;
-
     private ?ContextServiceInstance $context = null;
 
     public function __construct(
         ?ReceptionServiceInterface $service = null,
-        ?ResponseFactory $response = null,
         ?ContextServiceInstance $context = null,
     ) {
         $this->service = $service ?? Container::make(ReceptionServiceInterface::class);
-        $this->response = $response ?? new ResponseFactory();
         $this->context = $context;
     }
 
@@ -77,6 +70,7 @@ final class ReceptionController
         // Renderizar vista
         View::render('reception/index', [
             'titulo' => 'Recepción - ' . $cafeName,
+            'cafe_id' => $cafeId,
             'reservas' => $reservasUI,
             'active_groups' => $activeGroups,
             'free_trackers' => $freeTrackers,
@@ -110,63 +104,6 @@ final class ReceptionController
         ], [], 'reception');
 
         return null;
-    }
-
-    /**
-     * POST /ops/reception/reservations/{id}/checkin
-     * Realiza check-in de una reserva.
-     *
-     * @throws Throwable
-     */
-    public function checkIn(ServerRequestInterface $request, int $id): ResponseInterface
-    {
-        $body = $request->getParsedBody();
-        $trackId = isset($body['tracker_id']) ? (int) $body['tracker_id'] : 0;
-
-        if ($id <= 0 || $trackId <= 0) {
-            Flash::error('Parámetros requeridos: id y tracker_id.');
-
-            return $this->response->redirect('/ops/reception');
-        }
-
-        $result = $this->service->processCheckin($id, $trackId);
-
-        if (!$result->ok) {
-            Flash::error($result->error ?? 'Error al realizar check-in.');
-
-            return $this->response->redirect('/ops/reception');
-        }
-
-        Flash::success('Check-in realizado.');
-
-        return $this->response->redirect('/ops/reception');
-    }
-
-    /**
-     * POST /ops/reception/reservations/{id}/checkout
-     * Realiza check-out de una reserva.
-     *
-     * @throws Throwable
-     */
-    public function checkOut(ServerRequestInterface $request, int $id): ResponseInterface
-    {
-        if ($id <= 0) {
-            Flash::error('Identificador de reserva inválido.');
-
-            return $this->response->redirect('/ops/reception');
-        }
-
-        $result = $this->service->processCheckout($id);
-
-        if (!$result->ok) {
-            Flash::error($result->error ?? 'Error al realizar check-out.');
-
-            return $this->response->redirect('/ops/reception');
-        }
-
-        Flash::success('Check-out realizado.');
-
-        return $this->response->redirect('/ops/reception');
     }
 
     // ─────────────────────────────────────────────────────────────

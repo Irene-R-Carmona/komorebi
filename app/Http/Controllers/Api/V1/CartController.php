@@ -36,7 +36,13 @@ final class CartController extends AbstractApiController
      */
     public function get(ServerRequestInterface $request): ResponseInterface
     {
-        return $this->success($this->service->getWithDetails());
+        $data = $this->service->getWithDetails();
+        if (\array_key_exists('totalQty', $data)) {
+            $data['total_qty'] = $data['totalQty'];
+            unset($data['totalQty']);
+        }
+
+        return $this->success($data);
     }
 
     /**
@@ -44,7 +50,7 @@ final class CartController extends AbstractApiController
      */
     public function guest(ServerRequestInterface $request): ResponseInterface
     {
-        return $this->success(['items' => (object) [], 'totalQty' => 0, 'totalPrice' => 0]);
+        return $this->success(['items' => (object) [], 'total_qty' => 0, 'totalPrice' => 0]);
     }
 
     /**
@@ -66,47 +72,54 @@ final class CartController extends AbstractApiController
             ? (int) $body['quantity']
             : 1;
 
-        return $this->success($this->service->add($productId, $quantity)->data);
+        $data = $this->service->add($productId, $quantity)->data ?? [];
+        if (\array_key_exists('totalQty', $data)) {
+            $data['total_qty'] = $data['totalQty'];
+            unset($data['totalQty']);
+        }
+
+        return $this->success($data);
     }
 
     /**
-     * POST /api/cart/remove
+     * DELETE /api/cart/items/{id}
      * Body: {product_id: int}
      */
     public function remove(ServerRequestInterface $request): ResponseInterface
     {
-        $body = $request->getParsedBody() ?? [];
-        $productId = isset($body['product_id']) && \is_numeric($body['product_id'])
-            ? (int) $body['product_id']
-            : null;
-
-        if ($productId === null) {
-            return $this->unprocessable('product_id requerido y debe ser numérico');
+        $id = (int) ($request->getAttribute('id') ?? 0);
+        if ($id <= 0) {
+            return $this->unprocessable('id inválido', 'invalid_id');
         }
 
-        return $this->success($this->service->remove($productId)->data);
+        return $this->success($this->service->remove($id)->data);
     }
 
     /**
-     * POST /api/cart/update
-     * Body: {product_id: int, change: int}
+     * PATCH /api/cart/items/{id}
+     * Body: {change: int}
      */
     public function update(ServerRequestInterface $request): ResponseInterface
     {
-        $body = $request->getParsedBody() ?? [];
-
-        if (!isset($body['product_id']) || !\is_numeric($body['product_id'])) {
-            return $this->unprocessable('product_id requerido y debe ser numérico');
+        $id = (int) ($request->getAttribute('id') ?? 0);
+        if ($id <= 0) {
+            return $this->unprocessable('id inválido', 'invalid_id');
         }
 
-        $productId = (int) $body['product_id'];
+        $body = $request->getParsedBody() ?? [];
         $change = (int) ($body['change'] ?? 0);
 
         if ($change < -10 || $change > 10) {
             return $this->unprocessable('change debe estar entre -10 y 10');
         }
 
-        return $this->success($this->service->updateItem($productId, $change)->data);
+        $data = $this->service->updateItem($id, $change)->data ?? [];
+        if (\array_key_exists('totalQty', $data)) {
+            $data['total_qty'] = $data['totalQty'];
+            unset($data['totalQty']);
+        }
+
+        return $this->success($data);
     }
 
     /**

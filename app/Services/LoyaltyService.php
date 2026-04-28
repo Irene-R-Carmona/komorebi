@@ -60,29 +60,26 @@ final class LoyaltyService implements LoyaltyServiceInterface
         try {
             // Obtener o crear tarjeta
             $card = $this->loyaltyRepo->findOrCreateCardByUserId($userId);
-            if (!$card) {
-                return Result::fail('No se pudo obtener la tarjeta de fidelización');
-            }
 
             // Añadir sellos
-            $added = $this->loyaltyRepo->addStamps((int) $card['id'], $stamps);
+            $added = $this->loyaltyRepo->addStamps($card->id, $stamps);
             if (!$added) {
                 return Result::fail('Error al añadir sellos');
             }
 
             // Actualizar tier si es necesario
-            $newVisitsCount = (int) $card['visits_count'] + $stamps;
+            $newVisitsCount = $card->visits_count + $stamps;
             $newTier = $this->calculateTier($newVisitsCount);
-            if ($newTier !== $card['current_tier']) {
-                $this->loyaltyRepo->updateTier((int) $card['id'], $newTier);
+            if ($newTier !== $card->current_tier) {
+                $this->loyaltyRepo->updateTier($card->id, $newTier);
             }
 
             // Obtener tarjeta actualizada
-            $updatedCard = $this->loyaltyRepo->findCardById((int) $card['id']);
+            $updatedCard = $this->loyaltyRepo->findCardById($card->id);
 
-            // Verificar si desbloqueó nueva recompensa (cada 5 sellos)
-            $prevStamps = (int) $card['stamps'];
-            $newStamps = (int) $updatedCard['stamps'];
+            // Verificar si desbloquó nueva recompensa (cada 5 sellos)
+            $prevStamps = $card->stamps;
+            $newStamps = $updatedCard !== null ? $updatedCard->stamps : 0;
 
             $prevMilestone = (int) \floor($prevStamps / 5) * 5;
             $newMilestone = (int) \floor($newStamps / 5) * 5;
@@ -108,7 +105,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
                 'card' => $updatedCard,
                 'stamps_added' => $stamps,
                 'new_tier' => $newTier,
-                'tier_changed' => $newTier !== $card['current_tier'],
+                'tier_changed' => $newTier !== $card->current_tier,
             ]);
         } catch (Exception $e) {
             Logger::warning('[LoyaltyService::addStamp] unexpected failure', ['exception' => $e->getMessage(), 'user_id' => $userId]);
@@ -167,18 +164,18 @@ final class LoyaltyService implements LoyaltyServiceInterface
                 }
 
                 // Verificar sellos suficientes
-                if ((int) $card['stamps'] < (int) $rewardInfo['stamps_required']) {
+                if ($card->stamps < (int) $rewardInfo['stamps_required']) {
                     return Result::fail(
                         \sprintf(
                             'Necesitas %d sellos. Tienes: %d',
                             $rewardInfo['stamps_required'],
-                            $card['stamps']
+                            $card->stamps
                         )
                     );
                 }
 
                 // Verificar tier requerido
-                $userTierLevel = self::TIER_ORDER[$card['current_tier']] ?? 1;
+                $userTierLevel = self::TIER_ORDER[$card->current_tier] ?? 1;
                 $requiredTierLevel = self::TIER_ORDER[$rewardInfo['tier_required']] ?? 1;
 
                 if ($userTierLevel < $requiredTierLevel) {
@@ -186,14 +183,14 @@ final class LoyaltyService implements LoyaltyServiceInterface
                         \sprintf(
                             'Requiere tier %s. Tu tier actual: %s',
                             \ucfirst($rewardInfo['tier_required']),
-                            \ucfirst($card['current_tier'])
+                            \ucfirst($card->current_tier)
                         )
                     );
                 }
 
                 // Consumir sellos
                 $consumed = $this->loyaltyRepo->consumeStamps(
-                    (int) $card['id'],
+                    $card->id,
                     (int) $rewardInfo['stamps_required']
                 );
 
@@ -214,7 +211,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
                 // Crear registro de recompensa canjeada
                 $rewardId = $this->loyaltyRepo->createReward([
                     'user_id' => $userId,
-                    'loyalty_card_id' => $card['id'],
+                    'loyalty_card_id' => $card->id,
                     'reward_type' => $rewardType,
                     'stamps_cost' => $rewardInfo['stamps_required'],
                     'redemption_code' => $redemptionCode,
@@ -227,7 +224,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
                     'redemption_code' => $redemptionCode,
                     'reward_name' => $rewardInfo['name_es'],
                     'expires_at' => $expiresAt,
-                    'stamps_remaining' => (int) $card['stamps'] - (int) $rewardInfo['stamps_required'],
+                    'stamps_remaining' => $card->stamps - (int) $rewardInfo['stamps_required'],
                 ]);
             });
         } catch (Exception $e) {
@@ -246,18 +243,15 @@ final class LoyaltyService implements LoyaltyServiceInterface
     {
         try {
             $card = $this->loyaltyRepo->findOrCreateCardByUserId($userId);
-            if (!$card) {
-                return Result::fail('Error al obtener tarjeta');
-            }
 
             // Obtener recompensas disponibles para el tier del usuario
-            $availableRewards = $this->getAvailableRewards($card['current_tier'], (int) $card['stamps']);
+            $availableRewards = $this->getAvailableRewards($card->current_tier, $card->stamps);
 
             // Obtener historial de recompensas canjeadas
             $redeemedRewards = $this->loyaltyRepo->findRewardsByUserId($userId);
 
             // Calcular progreso al siguiente tier
-            $tierProgress = $this->getTierProgress((int) $card['visits_count']);
+            $tierProgress = $this->getTierProgress($card->visits_count);
 
             return Result::ok([
                 'card' => $card,
@@ -363,15 +357,15 @@ final class LoyaltyService implements LoyaltyServiceInterface
                 return Result::fail('Código de canje no válido');
             }
 
-            if ($reward['status'] !== 'pending') {
+            if ($reward->status !== 'pending') {
                 return Result::fail('Este código ya fue usado o expiró');
             }
 
             // Verificar expiración
-            if (\strtotime($reward['expires_at']) < \time()) {
-                $this->loyaltyRepo->markRewardsExpired([(int) $reward['id']]);
+            if ($reward->expires_at !== null && \strtotime($reward->expires_at) < \time()) {
+                $this->loyaltyRepo->markRewardsExpired([$reward->id]);
 
-                return Result::fail('Este código expiró el ' . \date('d/m/Y', \strtotime($reward['expires_at'])));
+                return Result::fail('Este código expiró el ' . \date('d/m/Y', \strtotime($reward->expires_at)));
             }
 
             return Result::ok($reward);
@@ -392,11 +386,11 @@ final class LoyaltyService implements LoyaltyServiceInterface
         try {
             $reward = $this->loyaltyRepo->findRewardByCode($code);
 
-            if (!$reward || $reward['status'] !== 'pending') {
+            if (!$reward || $reward->status !== 'pending') {
                 return Result::fail('Código no válido');
             }
 
-            $used = $this->loyaltyRepo->markRewardUsed((int) $reward['id']);
+            $used = $this->loyaltyRepo->markRewardUsed($reward->id);
 
             if (!$used) {
                 return Result::fail('Error al marcar recompensa como usada');
@@ -421,12 +415,12 @@ final class LoyaltyService implements LoyaltyServiceInterface
         try {
             $card = $this->loyaltyRepo->findCardByUserId($userId);
 
-            if (!$card || (int) $card['stamps'] <= 0) {
+            if (!$card || $card->stamps <= 0) {
                 // No hay sellos que revertir — operación idempotente
                 return Result::ok(['message' => 'No hay sellos que revertir']);
             }
 
-            $consumed = $this->loyaltyRepo->consumeStamps((int) $card['id'], 1);
+            $consumed = $this->loyaltyRepo->consumeStamps($card->id, 1);
 
             if (!$consumed) {
                 return Result::fail('Error al revertir sello', 'stamp_reverse_error');
@@ -434,7 +428,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
 
             Logger::info('[LoyaltyService] Sello revertido por cancelación de reserva', [
                 'user_id' => $userId,
-                'card_id' => $card['id'],
+                'card_id' => $card->id,
             ]);
 
             return Result::ok(['message' => 'Sello revertido correctamente']);

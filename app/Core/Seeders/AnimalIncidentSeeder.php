@@ -40,7 +40,6 @@ final class AnimalIncidentSeeder
         $animals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($animals)) {
-            echo "[AnimalIncidentSeeder] No hay animales disponibles\n";
             Logger::warning('AnimalIncidentSeeder: no animals found');
 
             return;
@@ -59,7 +58,6 @@ final class AnimalIncidentSeeder
         $staffUsers = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
         if (empty($staffUsers)) {
-            echo "[AnimalIncidentSeeder] No hay personal disponible\n";
             Logger::warning('AnimalIncidentSeeder: no staff users');
 
             return;
@@ -173,7 +171,6 @@ final class AnimalIncidentSeeder
             }
         }
 
-        echo "[AnimalIncidentSeeder] $count incidentes de animales creados\n";
         Logger::info('AnimalIncidentSeeder: completed', ['created' => $count]);
     }
 }

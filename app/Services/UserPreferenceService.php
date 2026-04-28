@@ -17,8 +17,7 @@ final class UserPreferenceService implements UserPreferenceServiceInterface
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepo,
-    ) {
-    }
+    ) {}
 
     /**
      * Obtiene las preferencias del usuario.
@@ -30,13 +29,13 @@ final class UserPreferenceService implements UserPreferenceServiceInterface
     {
         $user = $this->userRepo->findById($userId);
 
-        if (!$user || empty($user['preferences'])) {
+        if (!$user || empty($user->preferences)) {
             return [];
         }
 
-        return \is_string($user['preferences'])
-            ? \json_decode($user['preferences'], true) ?? []
-            : (array) $user['preferences'];
+        return \is_string($user->preferences)
+            ? \json_decode($user->preferences, true) ?? []
+            : (array) $user->preferences;
     }
 
     /**

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Services\Contracts;
 
 use App\Core\Result;
+use App\Domain\DTO\AllergenDTO;
 
 interface AllergenServiceInterface
 {
     public function listAll(bool $orderBySeverity = true): array;
 
-    public function getById(int $id): ?array;
+    public function getById(int $id): ?AllergenDTO;
 
     public function getByName(string $name): ?array;
 

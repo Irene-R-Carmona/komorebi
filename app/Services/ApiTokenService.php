@@ -23,8 +23,7 @@ final class ApiTokenService implements ApiTokenServiceInterface
     public function __construct(
         private readonly ApiTokenRepositoryInterface $repository,
         private readonly UserRepositoryInterface $userRepo,
-    ) {
-    }
+    ) {}
 
     /**
      * Genera un nuevo token para el usuario y retorna el texto plano.
@@ -66,7 +65,7 @@ final class ApiTokenService implements ApiTokenServiceInterface
         try {
             $user = $this->userRepo->findById($userId);
 
-            if ($user === null || !(bool) $user['is_active']) {
+            if ($user === null || !$user->is_active) {
                 return Result::fail('Cuenta desactivada o no encontrada.', 'account_disabled');
             }
 
@@ -87,8 +86,8 @@ final class ApiTokenService implements ApiTokenServiceInterface
         }
 
         return Result::ok([
-            'user_id' => (int) $user['id'],
-            'user' => $user,
+            'user_id' => $user->id,
+            'user' => $user->toViewArray(),
             'user_roles' => $roles,
             'token_id' => (int) $row['id'],
         ]);

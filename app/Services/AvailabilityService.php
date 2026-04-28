@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Domain\DTO\CafeDTO;
+use App\Domain\DTO\ProductDTO;
 use App\Core\Container;
 use App\Core\Env;
 use App\Core\Result;
@@ -63,7 +65,7 @@ final class AvailabilityService implements AvailabilityServiceInterface
         if (!$cafe) {
             return Result::fail('Café no encontrado.', 'cafe_not_found');
         }
-        if ((int) $cafe['is_active'] !== 1 || (int) $cafe['has_reservations'] !== 1) {
+        if (!$cafe->is_active || !$cafe->has_reservations) {
             return Result::fail('Este café no admite reservas.', 'cafe_not_reservable');
         }
 
@@ -71,12 +73,12 @@ final class AvailabilityService implements AvailabilityServiceInterface
         if (!$pass) {
             return Result::fail('Pase no encontrado.', 'pass_not_found');
         }
-        if ((int) $pass['is_active'] !== 1 || (string) $pass['product_type'] !== 'pass') {
+        if (!$pass->is_active || $pass->product_type !== 'pass') {
             return Result::fail('Pase no disponible.', 'pass_not_available');
         }
 
-        $min = (int) ($pass['min_pax'] ?? 1);
-        $max = $pass['max_pax'] !== null ? (int) $pass['max_pax'] : null;
+        $min = $pass->min_pax ?? 1;
+        $max = $pass->max_pax;
 
         if ($guests < $min) {
             return Result::fail("Este pase requiere al menos $min persona(s).", 'pax_not_allowed');
@@ -93,12 +95,12 @@ final class AvailabilityService implements AvailabilityServiceInterface
             return Result::fail('Configuración del pase inválida.', 'pass_config_invalid');
         }
 
-        $duration = (int) ($pass['duration_minutes'] ?? 0);
+        $duration = $pass->duration_minutes ?? 0;
         if ($duration <= 0) {
             return Result::fail('Duración de pase inválida.', 'pass_duration_invalid');
         }
 
-        $capacityMax = (int) $cafe['capacity_max'];
+        $capacityMax = $cafe->capacity_max;
         if ($capacityMax <= 0) {
             return Result::fail('Capacidad del café inválida.', 'cafe_capacity_invalid');
         }
@@ -110,7 +112,7 @@ final class AvailabilityService implements AvailabilityServiceInterface
         $allowedEnd = null;
 
         try {
-            $attrs = $this->safeJsonObject((string) ($pass['attributes'] ?? ''));
+            $attrs = $this->safeJsonObject((string) ($pass->attributes ?? ''));
             if (isset($attrs['allowed_start'])) {
                 $allowedStart = $this->timeToMinutes((string) $attrs['allowed_start']);
             }
@@ -121,8 +123,8 @@ final class AvailabilityService implements AvailabilityServiceInterface
             return Result::fail('Atributos del pase inválidos.', 'pass_config_invalid');
         }
 
-        $open = $this->timeToMinutes((string) $cafe['opening_time']);
-        $close = $this->timeToMinutes((string) $cafe['closing_time']);
+        $open = $this->timeToMinutes($cafe->opening_time);
+        $close = $this->timeToMinutes($cafe->closing_time);
         $first = (int) (\ceil($open / $this->stepMinutes) * $this->stepMinutes);
 
         if ($daysAhead === 0) {
@@ -221,20 +223,20 @@ final class AvailabilityService implements AvailabilityServiceInterface
     /**
      * @throws JsonException
      */
-    private function passMatchesCafe(array $pass, array $cafe): bool
+    private function passMatchesCafe(ProductDTO $pass, CafeDTO $cafe): bool
     {
-        $targetsRaw = $pass['target_cafe_types'] ?? null;
+        $targetsRaw = $pass->target_cafe_types;
         if ($targetsRaw !== null && $targetsRaw !== '') {
-            $targets = \json_decode((string) $targetsRaw, true, 512, JSON_THROW_ON_ERROR);
-            if (\is_array($targets) && !empty($targets) && !\in_array((string) $cafe['category'], $targets, true)) {
+            $targets = \json_decode($targetsRaw, true, 512, JSON_THROW_ON_ERROR);
+            if (\is_array($targets) && !empty($targets) && !\in_array($cafe->category, $targets, true)) {
                 return false;
             }
         }
 
-        $animalTargetsRaw = $pass['target_animal_types'] ?? null;
+        $animalTargetsRaw = $pass->target_animal_types;
         if ($animalTargetsRaw !== null && $animalTargetsRaw !== '') {
-            $animalTargets = \json_decode((string) $animalTargetsRaw, true, 512, JSON_THROW_ON_ERROR);
-            if (\is_array($animalTargets) && !empty($animalTargets) && !\in_array((string) $cafe['animal_type'], $animalTargets, true)) {
+            $animalTargets = \json_decode($animalTargetsRaw, true, 512, JSON_THROW_ON_ERROR);
+            if (\is_array($animalTargets) && !empty($animalTargets) && !\in_array($cafe->animal_type, $animalTargets, true)) {
                 return false;
             }
         }

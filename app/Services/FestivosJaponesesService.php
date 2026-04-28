@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Services\Contracts\FestivosJaponesesServiceInterface;
 use DateMalformedStringException;
 use DateTime;
 use DateTimeInterface;
@@ -23,7 +24,7 @@ use DateTimeZone;
  * @author TFC DAW - Komorebi Café
  * @version 1.0.0
  */
-final class FestivosJaponesesService
+final class FestivosJaponesesService implements FestivosJaponesesServiceInterface
 {
     /**
      * Festivos fijos anuales

@@ -4,134 +4,89 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Core\Container;
 use App\Core\Http\ResponseFactory;
-use App\Core\Result;
+use App\Http\Controllers\Api\AbstractApiController;
 use App\Services\Contracts\WaitlistServiceInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * WaitlistController - API v1 para gestión de lista de espera
  *
  * Endpoints:
- * - POST /api/v1/waitlist/join - Unirse a lista de espera
- * - GET /api/v1/waitlist/position/{token} - Consultar posición
- * - POST /api/v1/waitlist/confirm/{token} - Confirmar promoción
+ * - POST /api/v1/waitlists                       - Unirse a lista de espera
+ * - GET  /api/v1/waitlists/{token}               - Consultar posición
+ * - POST /api/v1/waitlists/{token}/confirmations - Confirmar promoción
  */
-final class WaitlistController
+final class WaitlistController extends AbstractApiController
 {
-    private WaitlistServiceInterface $service;
-
-    private ResponseFactory $response;
-
-    public function __construct()
-    {
-        $this->service = Container::make(WaitlistServiceInterface::class);
-        $this->response = new ResponseFactory();
+    public function __construct(
+        ResponseFactory $response,
+        private readonly WaitlistServiceInterface $service,
+    ) {
+        parent::__construct($response);
     }
 
     /**
-     * POST /api/v1/waitlist/join
+     * POST /api/v1/waitlists
      *
-     * Añadir usuario a lista de espera cuando no hay disponibilidad
-     *
-     * Body:
-     * {
-     *   "time_slot_id": 123,
-     *   "user_id": 45,
-     *   "guest_count": 2,
-     *   "contact_email": "user@example.com",
-     *   "contact_phone": "+34666123456",
-     *   "special_requests": "Mesa junto a ventana"
-     * }
-     *
-     * Response 201:
-     * {
-     *   "success": true,
-     *   "data": {
-     *     "id": 789,
-     *     "token": "abc123def456...",
-     *     "position": 3,
-     *     "message": "Te has unido a la lista de espera en posición 3"
-     *   }
-     * }
+     * Añadir usuario autenticado a lista de espera cuando no hay disponibilidad.
+     * El user_id se lee del atributo de la request (puesto por ApiAuthMiddleware).
      */
-    public function join(): ResponseInterface
+    public function join(ServerRequestInterface $request): ResponseInterface
     {
-        $raw = @\file_get_contents('php://input');
-        $raw = $raw === false ? '' : $raw;
-        $input = \json_decode($raw, true) ?? [];
-
-        if (!isset($input['time_slot_id'], $input['user_id'])) {
-            return $this->response->problem(
-                Result::fail('Faltan campos requeridos: time_slot_id, user_id', 'bad_request'),
-                400
-            );
+        $userId = $request->getAttribute('user_id');
+        if ($userId === null) {
+            return $this->unauthorized('Debes iniciar sesión');
         }
 
-        $timeSlotId = (int) $input['time_slot_id'];
-        $userId = (int) $input['user_id'];
+        $body = (array) ($request->getParsedBody() ?? []);
+
+        if (!isset($body['time_slot_id']) || !\is_numeric($body['time_slot_id'])) {
+            return $this->unprocessable('time_slot_id requerido y debe ser numérico');
+        }
 
         $data = [
-            'guest_count' => (int) ($input['guest_count'] ?? 1),
-            'contact_email' => (string) ($input['contact_email'] ?? ''),
-            'contact_phone' => (string) ($input['contact_phone'] ?? ''),
-            'special_requests' => (string) ($input['special_requests'] ?? ''),
+            'guest_count'      => (int) ($body['guest_count'] ?? 1),
+            'contact_email'    => (string) ($body['contact_email'] ?? ''),
+            'contact_phone'    => (string) ($body['contact_phone'] ?? ''),
+            'special_requests' => (string) ($body['special_requests'] ?? ''),
         ];
 
-        $result = $this->service->joinWaitlist($timeSlotId, $userId, $data);
+        $result = $this->service->joinWaitlist((int) $body['time_slot_id'], (int) $userId, $data);
 
         if (!$result->ok) {
-            return $this->response->problem($result, 400);
+            return $this->unprocessable($result->error ?? 'Error al unirse a la lista de espera');
         }
 
         $waitlistData = (array) ($result->data ?? []);
-        $position = isset($waitlistData['position']) ? (int) $waitlistData['position'] : 0;
+        $position     = (int) ($waitlistData['position'] ?? 0);
 
-        return $this->response->json([
-            'ok' => true,
-            'data' => [
-                'id' => isset($waitlistData['id']) ? (int) $waitlistData['id'] : 0,
-                'token' => isset($waitlistData['token']) ? (string) $waitlistData['token'] : '',
-                'position' => $position,
-                'message' => "Te has unido a la lista de espera en posición {$position}",
-            ],
-        ], 201);
+        return $this->created([
+            'id'       => (int) ($waitlistData['id'] ?? 0),
+            'token'    => (string) ($waitlistData['token'] ?? ''),
+            'position' => $position,
+            'message'  => "Te has unido a la lista de espera en posición {$position}",
+        ]);
     }
 
     /**
-     * GET /api/v1/waitlist/position/{token}
+     * GET /api/v1/waitlists/{token}
      *
-     * Consultar posición actual en la lista de espera
-     *
-     * Response 200:
-     * {
-     *   "success": true,
-     *   "data": {
-     *     "position": 2,
-     *     "status": "waiting",
-     *     "estimated_wait_minutes": 30,
-     *     "time_slot": {
-     *       "date": "2026-02-15",
-     *       "time": "14:00:00",
-     *       "cafe_name": "Neko no Niwa"
-     *     }
-     *   }
-     * }
+     * Consultar posición actual en la lista de espera.
      */
-    public function position(string $token): ResponseInterface
+    public function position(ServerRequestInterface $request): ResponseInterface
     {
-        if (empty($token)) {
-            return $this->response->problem(
-                Result::fail('Token requerido', 'bad_request'),
-                400
-            );
+        $token = (string) ($request->getAttribute('token') ?? '');
+
+        if ($token === '') {
+            return $this->unprocessable('Token requerido');
         }
 
         $result = $this->service->getWaitlistStatus($token);
 
         if (!$result->ok) {
-            return $this->response->problem($result, 404);
+            return $this->notFound($result->error ?? 'Token no encontrado');
         }
 
         $data = (array) ($result->data ?? []);
@@ -139,50 +94,34 @@ final class WaitlistController
             $data['position'] = (int) $data['position'];
         }
 
-        return $this->response->json(['ok' => true, 'data' => $data], 200);
+        return $this->success($data);
     }
 
     /**
-     * POST /api/v1/waitlist/confirm/{token}
+     * POST /api/v1/waitlists/{token}/confirmations
      *
-     * Confirmar promoción desde lista de espera (crear reserva)
-     *
-     * Response 200:
-     * {
-     *   "success": true,
-     *   "data": {
-     *     "reservation_id": 456,
-     *     "message": "Reserva confirmada exitosamente"
-     *   }
-     * }
+     * Confirmar promoción desde lista de espera (crear reserva).
      */
-    public function confirm(string $token): ResponseInterface
+    public function confirm(ServerRequestInterface $request): ResponseInterface
     {
-        if (empty($token)) {
-            return $this->response->problem(
-                Result::fail('Token requerido', 'bad_request'),
-                400
-            );
+        $token = (string) ($request->getAttribute('token') ?? '');
+
+        if ($token === '') {
+            return $this->unprocessable('Token requerido');
         }
 
-        $raw = @\file_get_contents('php://input');
-        $raw = $raw === false ? '' : $raw;
-        $input = \json_decode($raw, true) ?? [];
-
-        $result = $this->service->confirmPromotion($token, $input);
+        $body   = (array) ($request->getParsedBody() ?? []);
+        $result = $this->service->confirmPromotion($token, $body);
 
         if (!$result->ok) {
-            return $this->response->problem($result, 400);
+            return $this->unprocessable($result->error ?? 'Error al confirmar la promoción');
         }
 
         $data = (array) ($result->data ?? []);
 
-        return $this->response->json([
-            'ok' => true,
-            'data' => [
-                'reservation_id' => isset($data['reservation_id']) ? (int) $data['reservation_id'] : 0,
-                'message' => 'Reserva confirmada exitosamente',
-            ],
-        ], 200);
+        return $this->success([
+            'reservation_id' => (int) ($data['reservation_id'] ?? 0),
+            'message'        => 'Reserva confirmada exitosamente',
+        ]);
     }
 }

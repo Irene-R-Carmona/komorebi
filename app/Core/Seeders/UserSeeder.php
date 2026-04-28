@@ -27,7 +27,6 @@ final class UserSeeder
 
     public function run(): void
     {
-        echo "Creando usuarios de prueba...\n";
         Logger::info('UserSeeder: starting');
 
         $defaultPass = \password_hash('komorebi2024', PASSWORD_ARGON2ID);
@@ -38,7 +37,6 @@ final class UserSeeder
         $roleRow = $roleStmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$roleRow) {
-            echo "Rol 'user' no encontrado. Abortando.\n";
             Logger::warning("UserSeeder: role 'user' not found");
 
             return;
@@ -84,12 +82,10 @@ final class UserSeeder
                 $this->createUser($user['name'], $user['email'], $defaultPass, $userRoleId, $avatar, $preferences);
                 $count++;
             } catch (Exception $e) {
-                echo "Error creando {$user['email']}: " . $e->getMessage() . "\n";
                 Logger::error('UserSeeder: error creating user', ['email' => $user['email'], 'exception' => $e->getMessage()]);
             }
         }
 
-        echo "$count usuarios de prueba creados.\n";
         Logger::info('UserSeeder: completed', ['created' => $count]);
     }
 

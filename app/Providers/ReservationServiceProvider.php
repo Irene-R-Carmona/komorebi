@@ -7,9 +7,7 @@ namespace App\Providers;
 use App\Core\Container;
 use App\Core\Database;
 use App\Core\ServiceProvider;
-use App\Models\Reservation;
-use App\Models\TimeSlot;
-use App\Models\Waitlist;
+use App\Domain\Mappers\AnimalMapper;
 use App\Repositories\AnimalRepository;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\Contracts\CafeRepositoryInterface;
@@ -21,6 +19,7 @@ use App\Repositories\ProductRepository;
 use App\Repositories\ReservationRepository;
 use App\Repositories\TimeSlotRepository;
 use App\Repositories\WaitlistRepository;
+use App\Services\Contracts\AvailabilityServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\FestivosJaponesesServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
@@ -29,6 +28,7 @@ use App\Services\Contracts\ReservationTimeSlotServiceInterface;
 use App\Services\Contracts\TimeSlotServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
 use App\Services\Contracts\WaitlistServiceInterface;
+use App\Services\AvailabilityService;
 use App\Services\EmailService;
 use App\Services\FestivosJaponesesService;
 use App\Services\InvoicePDFService;
@@ -57,6 +57,7 @@ final class ReservationServiceProvider extends ServiceProvider
         ));
 
         Container::singleton(AnimalRepositoryInterface::class, fn() => new AnimalRepository(
+            new AnimalMapper(),
             Database::getConnection()
         ));
 
@@ -82,26 +83,13 @@ final class ReservationServiceProvider extends ServiceProvider
 
         Container::singleton(ReservationServiceInterface::class, fn() => Container::make(ReservationService::class));
 
-        // Modelos (lazy loading)
-        Container::singleton(Reservation::class, function () {
-            return new Reservation();
-        });
-
-        Container::singleton(TimeSlot::class, function () {
-            return new TimeSlot(Database::getConnection());
-        });
-
-        Container::singleton(Waitlist::class, function () {
-            return new Waitlist(Database::getConnection());
-        });
-
         // Servicio integrador de reserva + time slot
         Container::singleton(ReservationTimeSlotService::class, function () {
             return new ReservationTimeSlotService(
                 Database::getConnection(),
-                Container::make(Reservation::class),
-                Container::make(TimeSlot::class),
-                Container::make(Waitlist::class)
+                Container::make(ReservationRepositoryInterface::class),
+                Container::make(TimeSlotRepositoryInterface::class),
+                Container::make(WaitlistRepositoryInterface::class)
             );
         });
 
@@ -120,8 +108,8 @@ final class ReservationServiceProvider extends ServiceProvider
             Database::getConnection(),
             Container::make(EmailServiceInterface::class),
             Container::make(WaitlistRepositoryInterface::class),
-            Container::make(TimeSlot::class),
-            Container::make(Reservation::class)
+            Container::make(TimeSlotRepositoryInterface::class),
+            Container::make(ReservationRepositoryInterface::class)
         ));
 
         Container::singleton(WaitlistServiceInterface::class, fn() => Container::make(WaitlistService::class));
@@ -131,6 +119,13 @@ final class ReservationServiceProvider extends ServiceProvider
 
         Container::singleton(FestivosJaponesesService::class, fn() => new FestivosJaponesesService());
         Container::singleton(FestivosJaponesesServiceInterface::class, fn() => Container::make(FestivosJaponesesService::class));
+
+        Container::singleton(AvailabilityService::class, fn() => new AvailabilityService(
+            Container::make(CafeRepositoryInterface::class),
+            Container::make(ProductRepositoryInterface::class),
+            Container::make(ReservationRepositoryInterface::class),
+        ));
+        Container::singleton(AvailabilityServiceInterface::class, fn() => Container::make(AvailabilityService::class));
     }
 
     #[Override]

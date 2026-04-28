@@ -51,10 +51,9 @@ final class Container implements ContainerInterface
 
     private static ?\DI\Container $phpdi = null;
     private static bool $built = false;
+    private static ?string $compilationPath = null;
 
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     public static function getInstance(): self
     {
@@ -70,7 +69,7 @@ final class Container implements ContainerInterface
      */
     public static function bind(string $abstract, ?Closure $concrete = null): void
     {
-        $concrete ??= static fn () => throw new RuntimeException("No hay factory concreta para: $abstract");
+        $concrete ??= static fn() => throw new RuntimeException("No hay factory concreta para: $abstract");
         self::$prototypeClosures[$abstract] = $concrete;
     }
 
@@ -158,6 +157,16 @@ final class Container implements ContainerInterface
     }
 
     /**
+     * Habilita la compilación del container PHP-DI en el directorio indicado.
+     * Llamar ANTES del primer make() (idealmente en el arranque del proceso, en index.php).
+     * Solo tiene efecto en producción; en desarrollo se puede omitir para acelerar el ciclo.
+     */
+    public static function enableCompilation(string $path): void
+    {
+        self::$compilationPath = $path;
+    }
+
+    /**
      * Limpiar container — destruye PHP-DI y reinicia todo (para testing).
      */
     public static function reset(): void
@@ -169,6 +178,7 @@ final class Container implements ContainerInterface
         self::$pendingAliases = [];
         self::$phpdi = null;
         self::$built = false;
+        self::$compilationPath = null;
     }
 
     /**
@@ -212,7 +222,7 @@ final class Container implements ContainerInterface
         // Closures → DI\factory() (PHP-DI 7 cachea el resultado en resolvedEntries por defecto)
         foreach (self::$pendingDefinitions as $abstract => [$closure, $isSingleton]) {
             $captured = $closure;
-            $defs[$abstract] = \DI\factory(static fn () => $captured());
+            $defs[$abstract] = \DI\factory(static fn() => $captured());
         }
 
         // Aliases → DI\get()
@@ -226,6 +236,15 @@ final class Container implements ContainerInterface
         $defs[ContainerInterface::class] = \DI\value($self);
 
         $builder->addDefinitions($defs);
+
+        if (self::$compilationPath !== null) {
+            if (!\is_dir(self::$compilationPath)) {
+                \mkdir(self::$compilationPath, 0o755, true);
+            }
+            $builder->enableCompilation(self::$compilationPath);
+            $builder->writeProxiesToFile(true, self::$compilationPath);
+        }
+
         self::$phpdi = $builder->build();
     }
 }

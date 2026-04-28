@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Result;
+use App\Domain\DTO\AllergenDTO;
 use App\Repositories\Contracts\AllergenRepositoryInterface;
 use App\Services\Contracts\AllergenServiceInterface;
 use Override;
@@ -19,8 +20,7 @@ final class AllergenService implements AllergenServiceInterface
 {
     public function __construct(
         private readonly AllergenRepositoryInterface $repository,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function listAll(bool $orderBySeverity = true): array
@@ -29,7 +29,7 @@ final class AllergenService implements AllergenServiceInterface
     }
 
     #[Override]
-    public function getById(int $id): ?array
+    public function getById(int $id): ?AllergenDTO
     {
         return $this->repository->findById($id);
     }

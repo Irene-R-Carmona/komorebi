@@ -85,7 +85,7 @@ final class AuthLogController
         ];
 
         // Remover valores nulos
-        $filters = \array_filter($filters, static fn ($v) => $v !== null);
+        $filters = \array_filter($filters, static fn($v) => $v !== null);
 
         $page = \max(1, (int) ($_GET['page'] ?? 1));
         $limit = \max(10, \min(100, (int) ($_GET['limit'] ?? 50)));
@@ -100,37 +100,6 @@ final class AuthLogController
     }
 
     /**
-     * GET /admin/logs/auth/stats
-     * Obtener estadísticas de autenticación
-     * @throws JsonException
-     */
-    public function stats(): ResponseInterface
-    {
-        $filters = [
-            'date_from' => $_GET['date_from'] ?? null,
-            'date_to' => $_GET['date_to'] ?? null,
-        ];
-
-        $filters = \array_filter($filters, static fn ($v) => $v !== null && $v !== '');
-
-        $stats = $this->authLogRepo->getStats($filters);
-
-        return $this->response->json(['ok' => true, 'data' => ['stats' => $stats]]);
-    }
-
-    /**
-     * GET /admin/logs/auth/suspicious
-     * Detectar actividad sospechosa (múltiples fallos de login)
-     * @throws JsonException
-     */
-    public function suspicious(): ResponseInterface
-    {
-        $suspicious = $this->authLogRepo->findSuspiciousActivity(15, 5);
-
-        return $this->response->json(['ok' => true, 'data' => ['suspicious' => $suspicious]]);
-    }
-
-    /**
      * GET /admin/logs/auth/suspicious-count
      * Número de IPs con actividad sospechosa (para badge en el panel)
      * @throws JsonException
@@ -140,19 +109,6 @@ final class AuthLogController
         $suspicious = $this->authLogRepo->findSuspiciousActivity(15, 5);
 
         return $this->response->json(['ok' => true, 'count' => \count($suspicious)]);
-    }
-
-    /**
-     * POST /admin/security/block-ip
-     * Stub — funcionalidad de bloqueo IP pendiente de implementar
-     * @throws JsonException
-     */
-    public function blockIpStub(): ResponseInterface
-    {
-        return $this->response->json(
-            ['ok' => false, 'message' => 'El bloqueo de IP no está disponible todavía.'],
-            501
-        );
     }
 
     /**
@@ -182,7 +138,7 @@ final class AuthLogController
                 'ip_address' => $_GET['ip_address'] ?? null,
             ];
 
-            $filters = \array_filter($filters, static fn ($v) => $v !== null && $v !== '');
+            $filters = \array_filter($filters, static fn($v) => $v !== null && $v !== '');
 
             $result = $this->authLogRepo->findFiltered($filters, 10000, 0);
 

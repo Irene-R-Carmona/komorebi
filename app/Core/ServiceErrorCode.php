@@ -23,6 +23,7 @@ enum ServiceErrorCode: string
     case MISSING_FIELD = 'missing_field';
     case BUSINESS_RULE = 'business_rule';
     case CONFLICT = 'conflict';
+    case RATE_LIMIT = 'rate_limit';
     case SERVER_ERROR = 'server_error';
 
     /**
@@ -46,6 +47,7 @@ enum ServiceErrorCode: string
             self::MISSING_FIELD => 422,
             self::BUSINESS_RULE => 400,
             self::CONFLICT => 409,
+            self::RATE_LIMIT => 429,
             self::SERVER_ERROR => 500,
         };
     }
@@ -63,6 +65,7 @@ enum ServiceErrorCode: string
             self::MISSING_FIELD => 'Unprocessable Content',
             self::BUSINESS_RULE => 'Bad Request',
             self::CONFLICT => 'Conflict',
+            self::RATE_LIMIT => 'Too Many Requests',
             self::SERVER_ERROR => 'Internal Server Error',
         };
     }

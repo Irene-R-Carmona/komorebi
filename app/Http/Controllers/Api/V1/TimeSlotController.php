@@ -84,7 +84,7 @@ final class TimeSlotController
                     ];
                 }, $slots),
             ],
-        ], 200);
+        ], 200, ['Cache-Control' => 'private, no-cache', 'Vary' => 'Accept']);
     }
 
     /**
@@ -106,6 +106,6 @@ final class TimeSlotController
             return $this->response->problem(Result::fail($result->error ?? 'Error', 'server_error'), 500);
         }
 
-        return $this->response->json(['ok' => true, 'data' => $result->data], 200);
+        return $this->response->json(['ok' => true, 'data' => $result->data], 200, ['Vary' => 'Accept']);
     }
 }

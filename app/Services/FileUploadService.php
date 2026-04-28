@@ -157,7 +157,7 @@ final class FileUploadService implements FileUploadServiceInterface
         }
 
         // Retornar URL relativa
-        $relativeUrl = '/storage/uploads/animals/' . $filename;
+        $relativeUrl = '/uploads/animals/' . $filename;
 
         return Result::ok($relativeUrl);
     }

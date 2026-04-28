@@ -6,10 +6,12 @@ namespace App\Services;
 
 use App\Core\Env;
 use App\Core\Result;
-use App\Models\User;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\Contracts\AuthTokenServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\PasswordResetServiceInterface;
 use App\Services\Contracts\RateLimitingServiceInterface;
+use App\Services\Contracts\SessionManagementServiceInterface;
 use Override;
 use Random\RandomException;
 use RuntimeException;
@@ -23,13 +25,12 @@ use RuntimeException;
 final class PasswordResetService implements PasswordResetServiceInterface
 {
     public function __construct(
-        private readonly User $userModel,
-        private readonly AuthTokenService $tokenService,
-        private readonly SessionManagementService $sessionService,
+        private readonly UserRepositoryInterface $userRepo,
+        private readonly AuthTokenServiceInterface $tokenService,
+        private readonly SessionManagementServiceInterface $sessionService,
         private readonly RateLimitingServiceInterface $rateLimiter,
         private readonly EmailServiceInterface $emailService,
-    ) {
-    }
+    ) {}
 
     /**
      * Solicitar reset de contraseña (forgot password).
@@ -50,7 +51,7 @@ final class PasswordResetService implements PasswordResetServiceInterface
             return Result::fail("Demasiados intentos. Intenta en {$minutes} minutos.");
         }
 
-        $user = $this->userModel->findByEmail($email);
+        $user = $this->userRepo->findByEmail($email);
 
         // Mensaje genérico por seguridad (no revelar si email existe)
         if (!$user) {
@@ -125,7 +126,7 @@ final class PasswordResetService implements PasswordResetServiceInterface
         $userId = (int) $validation->data['user_id'];
 
         try {
-            $this->userModel->updatePassword($userId, $newPassword);
+            $this->userRepo->updatePassword($userId, $newPassword);
             $this->tokenService->consumePasswordResetToken($token);
             $this->sessionService->revokeAllOtherSessions($userId, '', $userId);
             $this->sessionService->logAuthEvent($userId, 'password_reset', '', null, null, true, 'Reset completado');

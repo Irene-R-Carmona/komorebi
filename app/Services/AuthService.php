@@ -10,9 +10,9 @@ use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Result;
 use App\Core\Session;
+use App\Domain\DTO\UserDTO;
 use App\Events\UserRegisteredEvent;
 use App\Exceptions\ValidationException;
-use App\Models\Contracts\UserModelInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\RateLimitingServiceInterface;
@@ -29,20 +29,17 @@ use RuntimeException;
 final class AuthService extends BaseService implements AuthServiceInterface
 {
     private UserRepositoryInterface $userRepo;
-    private UserModelInterface $userModel;
     private SessionManagementServiceInterface $sessionService;
     private RateLimitingServiceInterface $rateLimiter;
     private ?EventDispatcherInterface $eventDispatcher;
 
     public function __construct(
         UserRepositoryInterface $userRepo,
-        UserModelInterface $userModel,
         SessionManagementServiceInterface $sessionService,
         RateLimitingServiceInterface $rateLimiter,
         ?EventDispatcherInterface $eventDispatcher = null
     ) {
         $this->userRepo = $userRepo;
-        $this->userModel = $userModel;
         $this->sessionService = $sessionService;
         $this->rateLimiter = $rateLimiter;
         $this->eventDispatcher = $eventDispatcher;
@@ -190,7 +187,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
      * Crea sesión de usuario con caché de permisos.
      * @throws RandomException
      */
-    private function createSession(?array $user): void
+    private function createSession(?UserDTO $user): void
     {
         // IMPORTANTE: Asegurar que la sesión esté iniciada
         Session::start();
@@ -200,16 +197,16 @@ final class AuthService extends BaseService implements AuthServiceInterface
             Logger::error('[AuthService::createSession] User: ' . \json_encode($user), []);
         }
 
-        if (!$user || !isset($user['id'])) {
+        if (!$user) {
             // No hay usuario válido para crear la sesión; abortar silenciosamente
             return;
         }
 
-        $userId = (int) $user['id'];
+        $userId = $user->id;
 
         // Obtener roles del usuario via RBAC
-        $roles = $this->userModel->getRoles($userId) ?: [];
-        $rolesCodes = \array_column($roles, 'code');
+        $roles = $this->userRepo->getRoles($userId) ?: [];
+        $rolesCodes = \array_column($roles, 'slug');
 
         if (Env::get('APP_ENV') === 'local') {
             Logger::error('[AuthService::createSession] Roles: ' . \json_encode($rolesCodes), []);
@@ -241,10 +238,10 @@ final class AuthService extends BaseService implements AuthServiceInterface
         // Pasar `role` como string para cumplir la firma de Session::setUser
         Session::setUser([
             'id' => $userId,
-            'name' => isset($user['name']) ? (string) $user['name'] : '',
-            'email' => isset($user['email']) ? (string) $user['email'] : '',
+            'name' => $user->name,
+            'email' => $user->email,
             'role' => $primaryRole,
-            'cafe_id' => $user['cafe_id'] ?? null,
+            'cafe_id' => $user->cafe_id,
         ]);
 
         // Guardar lista completa de roles por separado
@@ -385,8 +382,8 @@ final class AuthService extends BaseService implements AuthServiceInterface
         $userId = (int) $user['id'];
 
         // Cuenta bloqueada
-        if ($this->userModel->isLocked($user)) {
-            $minutes = $this->userModel->lockoutMinutesRemaining($user);
+        if ($this->userRepo->isLocked($user)) {
+            $minutes = $this->userRepo->lockoutMinutesRemaining($user);
             $this->sessionService->logAuthEvent($userId, 'lockout', $ipAddress, $userAgent, null, false, "Bloqueado $minutes minutos");
 
             return Result::fail("Cuenta bloqueada temporalmente. Intenta en $minutes minutos.");
@@ -400,8 +397,8 @@ final class AuthService extends BaseService implements AuthServiceInterface
         }
 
         // Verificar contraseña
-        if (!$this->userModel->verifyPassword($user, $password)) {
-            $this->userModel->registerFailedAttempt($userId);
+        if (!$this->userRepo->verifyPassword($user, $password)) {
+            $this->userRepo->registerFailedAttempt($userId);
             $this->rateLimiter->recordAttempt('login', $email, $ipAddress);
             $this->rateLimiter->recordAttempt('login', $ipAddress);
             $this->sessionService->logAuthEvent($userId, 'failed_login', $ipAddress, $userAgent, null, false, 'Contraseña incorrecta');
@@ -434,14 +431,14 @@ final class AuthService extends BaseService implements AuthServiceInterface
         }
 
         // Limpiar intentos fallidos
-        $this->userModel->clearLoginAttempts($userId);
+        $this->userRepo->clearLoginAttempts($userId);
         $this->rateLimiter->clearAttempts('login', $email);
         $this->rateLimiter->clearAttempts('login', $ipAddress);
 
         if (Env::get('APP_ENV') === 'local') {
             Logger::error('[AuthService::login] About to call createSession', []);
         }
-        $this->createSession($user);
+        $this->createSession($this->userRepo->findById($userId));
         if (Env::get('APP_ENV') === 'local') {
             Logger::error('[AuthService::login] createSession completed', []);
         }

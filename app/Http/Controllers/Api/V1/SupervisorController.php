@@ -27,7 +27,7 @@ final class SupervisorController extends AbstractApiController
     }
 
     /**
-     * POST /api/v1/supervisor/assign
+     * POST /api/v1/supervisor/assignments
      *
      * Asigna una reserva a una mesa.
      *
@@ -51,7 +51,7 @@ final class SupervisorController extends AbstractApiController
             return $this->response->problem($result, $status);
         }
 
-        return $this->success([
+        return $this->created([
             'message' => 'Mesa asignada correctamente',
             'assignment' => $result->data,
         ]);

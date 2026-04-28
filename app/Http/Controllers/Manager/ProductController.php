@@ -8,7 +8,6 @@ use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
-use App\Core\Raw;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
@@ -45,31 +44,40 @@ final class ProductController
     /**
      * GET /manager/products
      */
-    public function index(): ?ResponseInterface
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $user = Session::user();
-        $cafeId = $user['cafe_id'] ?? null;
+        $user   = Session::user();
+        $cafeId = (int) ($user['cafe_id'] ?? 0);
 
-        if (!$cafeId) {
+        if ($cafeId === 0) {
             View::render('errors/403', ['message' => 'No tienes un café asignado.']);
 
             return null;
         }
 
+        $q      = $request->getQueryParams();
+        $search = \trim((string) ($q['search'] ?? ''));
+
         $productsData = $this->productRepo->findFiltered([], 1, 200);
+        $products     = $productsData['data'] ?? [];
+
+        if ($search !== '') {
+            $lower    = \strtolower($search);
+            $products = \array_values(\array_filter($products, static fn(array $p) =>
+                \str_contains(\strtolower((string) ($p['name'] ?? '')), $lower) ||
+                \str_contains(\strtolower((string) ($p['category_name'] ?? '')), $lower)
+            ));
+        }
+
         $categories = $this->categoryRepo->findAll();
 
-        $alpineConfig = Raw::json([
-            'products' => $productsData['data'] ?? [],
-            'categories' => $categories,
-            'cafeId' => $cafeId,
-            'csrfToken' => Csrf::token(),
-        ]);
-
         View::render('manager/products/index', [
-            'titulo' => 'Gestión de Productos',
-            'alpineConfig' => $alpineConfig,
-            'total' => $productsData['total'] ?? 0,
+            'titulo'     => 'Gestión de Productos',
+            'products'   => $products,
+            'categories' => $categories,
+            'cafeId'     => $cafeId,
+            'search'     => $search,
+            'extraJs'    => ['manager/manager-products.js'],
         ], ['admin/admin-products.css'], 'backoffice');
 
         return null;
@@ -85,7 +93,9 @@ final class ProductController
         }
 
         try {
-            $productId = $this->productService->create($request->getParsedBody());
+            $body = $request->getParsedBody();
+            unset($body['image_url']); // Solo admin puede modificar image_url
+            $productId = $this->productService->create($body);
 
             Logger::info('[Manager\ProductController] Producto creado', [
                 'manager_id' => Session::get('user_id'),
@@ -111,7 +121,9 @@ final class ProductController
         }
 
         try {
-            $this->productService->update($productId, $request->getParsedBody());
+            $body = $request->getParsedBody();
+            unset($body['image_url']); // Solo admin puede modificar image_url
+            $this->productService->update($productId, $body);
 
             Logger::info('[Manager\ProductController] Producto actualizado', [
                 'manager_id' => Session::get('user_id'),

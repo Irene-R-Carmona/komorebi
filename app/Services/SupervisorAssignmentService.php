@@ -28,8 +28,7 @@ final class SupervisorAssignmentService implements SupervisorAssignmentServiceIn
 {
     public function __construct(
         private readonly SupervisorAssignmentRepositoryInterface $repo,
-    ) {
-    }
+    ) {}
 
     /**
      * Crea una asignación leyendo el cuerpo JSON de la petición HTTP.
@@ -104,7 +103,7 @@ final class SupervisorAssignmentService implements SupervisorAssignmentServiceIn
                 'supervisor_id' => $supervisorId,
             ]);
 
-            return Result::ok($record);
+            return Result::ok($record?->toViewArray());
         } catch (Throwable $e) {
             Logger::error('[SupervisorAssignmentService] Error al crear asignación', [
                 'exception' => $e->getMessage(),

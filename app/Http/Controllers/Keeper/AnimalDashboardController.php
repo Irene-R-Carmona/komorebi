@@ -91,7 +91,7 @@ final class AnimalDashboardController
             return $this->response->redirect('/keeper/animals');
         }
 
-        View::render('backoffice/keeper/animals/show', ['animal' => $animal], [], 'backoffice');
+        View::render('backoffice/keeper/animals/show', ['animal' => $animal->toViewArray()], [], 'backoffice');
 
         return null;
     }

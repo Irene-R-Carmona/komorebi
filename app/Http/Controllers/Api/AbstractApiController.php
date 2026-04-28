@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Core\Http\ResponseFactory;
+use App\Core\Pagination;
 use App\Core\Result;
 use App\Core\ServiceErrorCode;
 use App\Http\Transformers\TransformerInterface;
@@ -27,12 +28,38 @@ abstract class AbstractApiController
     /**
      * Respuesta de éxito.
      *
+     * Añade `Vary: Accept` por defecto para optimizar cachés intermedias
+     * ante futuras variantes de contenido (JSON, JSON-LD, etc.).
+     *
      * @param array<string, mixed>|list<mixed>|null $data
      * @param array<string, string>                 $headers
      */
     protected function success(mixed $data = null, int $status = 200, array $headers = []): ResponseInterface
     {
+        if (!isset($headers['Vary'])) {
+            $headers['Vary'] = 'Accept';
+        }
+
         return $this->response->json(['ok' => true, 'data' => $data], $status, $headers);
+    }
+
+    /**
+     * 304 Not Modified — sin cuerpo, con ETag y Cache-Control.
+     */
+    protected function notModified(string $etag, string $cacheControl): ResponseInterface
+    {
+        return $this->response->createResponse(304)
+            ->withHeader('ETag', $etag)
+            ->withHeader('Cache-Control', $cacheControl)
+            ->withHeader('Vary', 'Accept');
+    }
+
+    /**
+     * Genera un ETag xxh32 estable a partir de los datos serializados.
+     */
+    protected function makeEtag(mixed $data): string
+    {
+        return '"' . \hash('xxh32', (string) \json_encode($data)) . '"';
     }
 
     /**
@@ -97,5 +124,43 @@ abstract class AbstractApiController
     protected function serverError(string $detail = 'Error interno del servidor', string|ServiceErrorCode $code = ServiceErrorCode::SERVER_ERROR): ResponseInterface
     {
         return $this->response->problem(Result::fail($detail, $code), 500);
+    }
+
+    /** 201 Created */
+    protected function created(mixed $data = null): ResponseInterface
+    {
+        return $this->response->json(['ok' => true, 'data' => $data], 201);
+    }
+
+    /** 204 No Content */
+    protected function noContent(): ResponseInterface
+    {
+        return $this->response->html('', 204);
+    }
+
+    /** 400 Bad Request (RFC 9457) */
+    protected function badRequest(string $detail, string|ServiceErrorCode $code = ServiceErrorCode::BUSINESS_RULE): ResponseInterface
+    {
+        return $this->response->problem(Result::fail($detail, $code), 400);
+    }
+
+    /**
+     * Respuesta paginada con metadatos de cursor (+1 sentinel row).
+     *
+     * @param list<mixed>          $items          Resultados (slice sin el sentinel).
+     * @param Pagination           $pagination     Value object de paginación.
+     * @param array<string, mixed> $extraMeta      Metadatos adicionales opcionales.
+     */
+    protected function paginated(array $items, Pagination $pagination, array $extraMeta = []): ResponseInterface
+    {
+        $hasNext = $pagination->hasNextPage(\count($items));
+        // Eliminar el sentinel row si existe
+        if ($hasNext) {
+            \array_pop($items);
+        }
+
+        $meta = \array_merge($pagination->toMeta($hasNext), $extraMeta);
+
+        return $this->success(['items' => $items, 'meta' => $meta]);
     }
 }

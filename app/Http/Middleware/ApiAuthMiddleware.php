@@ -44,11 +44,22 @@ final class ApiAuthMiddleware implements MiddlewareInterface
             $result = $this->tokenService?->validate($plain);
 
             if ($result === null) {
+                Logger::warning('[ApiAuth] Bearer token rejected — service unavailable', [
+                    'ip'   => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown',
+                    'path' => $request->getRequestTarget(),
+                ]);
+
                 return $this->response->problem(Result::fail('Token inválido o expirado.', 'invalid_token'), 401);
             }
             if (!$result->ok) {
                 $detail = $result->error ?? 'Token inválido o expirado.';
                 $code = $result->code ?? 'invalid_token';
+
+                Logger::warning('[ApiAuth] Bearer token rejected', [
+                    'ip'           => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown',
+                    'path'         => $request->getRequestTarget(),
+                    'token_prefix' => \substr(\hash('sha256', $plain), 0, 8),
+                ]);
 
                 return $this->response->problem(Result::fail($detail, $code), 401);
             }
@@ -68,6 +79,11 @@ final class ApiAuthMiddleware implements MiddlewareInterface
         $userId = Session::get('user_id');
 
         if (empty($userId)) {
+            Logger::warning('[ApiAuth] Unauthenticated request', [
+                'ip'   => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown',
+                'path' => $request->getRequestTarget(),
+            ]);
+
             return $this->response->json([
                 'ok' => false,
                 'error' => 'No autenticado.',
@@ -86,6 +102,9 @@ final class ApiAuthMiddleware implements MiddlewareInterface
         }
 
         if (!$user || !$user['is_active']) {
+            Logger::warning('[ApiAuth] Inactive account attempt', [
+                'user_id' => $userId,
+            ]);
             Session::destroy();
 
             return $this->response->json([
@@ -97,8 +116,11 @@ final class ApiAuthMiddleware implements MiddlewareInterface
 
         $this->loadUserRolesInSession((int) $userId);
 
-        $request = $request->withAttribute('user_id', (int) $userId);
-        $request = $request->withAttribute('user', $user);
+        $request = $request
+            ->withAttribute('user_id', (int) $userId)
+            ->withAttribute('user', $user)
+            ->withAttribute('user_roles', Session::get('user_roles') ?? ['user'])
+            ->withAttribute('auth_method', 'session');
 
         return $handler->handle($request);
     }
@@ -107,7 +129,7 @@ final class ApiAuthMiddleware implements MiddlewareInterface
     {
         try {
             $db = Database::getConnection();
-            $stmt = $db->prepare('SELECT id, name, email, is_active FROM users WHERE id = ?');
+            $stmt = $db->prepare('SELECT id, name, email, is_active, cafe_id FROM users WHERE id = ?');
             $stmt->execute([$userId]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 

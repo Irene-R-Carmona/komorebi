@@ -21,7 +21,7 @@ final class NewsletterApiController extends AbstractApiController
 
     /**
      * Suscribir a newsletter
-     * POST /api/newsletter/subscribe
+     * POST /api/v1/newsletter/subscriptions
      */
     public function subscribe(ServerRequestInterface $request): ResponseInterface
     {
@@ -41,6 +41,6 @@ final class NewsletterApiController extends AbstractApiController
             );
         }
 
-        return $this->success(['message' => $result->data['message'] ?? 'Suscripción procesada']);
+        return $this->created(['message' => $result->data['message'] ?? 'Suscripción procesada']);
     }
 }

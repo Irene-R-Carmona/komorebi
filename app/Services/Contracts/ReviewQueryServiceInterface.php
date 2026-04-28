@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Contracts;
 
+use App\Domain\DTO\ReviewDTO;
+
 interface ReviewQueryServiceInterface
 {
     public function getReviewsByUserId(int $userId): array;
@@ -18,5 +20,5 @@ interface ReviewQueryServiceInterface
 
     public function getCafeRatingStats(int $cafeId): array;
 
-    public function getReview(int $reviewId): ?array;
+    public function getReview(int $reviewId): ?ReviewDTO;
 }

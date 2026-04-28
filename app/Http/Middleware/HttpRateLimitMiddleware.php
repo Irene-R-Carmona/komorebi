@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Core\Env;
 use App\Core\Http\ResponseFactory;
+use App\Core\Result;
+use App\Core\ServiceErrorCode;
 use App\Services\Contracts\RateLimitingServiceInterface;
 use Override;
 use Psr\Http\Message\ResponseInterface;
@@ -30,20 +33,40 @@ final class HttpRateLimitMiddleware implements MiddlewareInterface
     #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $ip = (string) ($request->getServerParams()['REMOTE_ADDR'] ?? '0.0.0.0');
+        // Determinar identificador para rate limiting
+        $userId = $request->getAttribute('user_id');
 
-        $status = $this->rateLimitingService->isBlocked($this->action, $ip);
+        if ($userId !== null) {
+            // Usuario autenticado: identificar por user_id (no por IP)
+            $identifier = 'user:' . $userId;
+            $ip         = (string) ($request->getServerParams()['REMOTE_ADDR'] ?? '0.0.0.0');
+        } else {
+            // Usuario anónimo: respetar X-Forwarded-For solo si viene de un proxy de confianza
+            $remoteAddr   = (string) ($request->getServerParams()['REMOTE_ADDR'] ?? '0.0.0.0');
+            $trustedProxy = Env::get('TRUSTED_PROXY_IP', '');
+
+            if ($trustedProxy !== '' && $remoteAddr === $trustedProxy) {
+                $forwarded = $request->getHeaderLine('X-Forwarded-For');
+                $ip        = \trim(\explode(',', $forwarded)[0]) ?: $remoteAddr;
+            } else {
+                $ip = $remoteAddr;
+            }
+
+            $identifier = $ip;
+        }
+
+        $status = $this->rateLimitingService->isBlocked($this->action, $identifier);
 
         if ($status['blocked']) {
             $retryAfterSeconds = ($status['minutes_remaining'] ?? 1) * 60;
 
-            return $this->response->json(
-                ['error' => 'Demasiadas peticiones. Por favor espera antes de reintentar.'],
+            return $this->response->problem(
+                Result::fail('Demasiadas peticiones. Por favor espera antes de reintentar.', ServiceErrorCode::RATE_LIMIT),
                 429,
             )->withHeader('Retry-After', (string) $retryAfterSeconds);
         }
 
-        $this->rateLimitingService->recordAttempt($this->action, $ip, $ip);
+        $this->rateLimitingService->recordAttempt($this->action, $identifier);
 
         return $handler->handle($request);
     }

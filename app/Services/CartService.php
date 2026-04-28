@@ -190,10 +190,10 @@ final class CartService implements CartServiceInterface
 
         $cart = $this->get();
 
-        $isAvailable = $product['is_active'] ?? false;
+        $isAvailable = $product !== null && $product->is_active;
         // Combinar validaciones para limitar retornos
         if (
-            !$product || !$isAvailable || $product['product_type'] !== 'item' ||
+            !$product || !$isAvailable || $product->product_type !== 'item' ||
             (!isset($cart['items'][$productId]) && \count($cart['items']) >= self::MAX_UNIQUE_ITEMS)
         ) {
             return Result::ok($this->get());

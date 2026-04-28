@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\BaseService;
 use App\Core\Cache;
 use App\Core\Logger;
+use App\Domain\DTO\ProductDTO;
 use App\Exceptions\DatabaseException;
 use App\Exceptions\ValidationException;
 use App\Models\AuditLog;
@@ -76,10 +77,10 @@ final class ProductService extends BaseService implements ProductServiceInterfac
      * Obtiene un producto por ID
      *
      * @param integer $id
-     * @return array|null
+     * @return ProductDTO|null
      */
     #[Override]
-    public function getById(int $id): ?array
+    public function getById(int $id): ?ProductDTO
     {
         return $this->productRepo->findById($id);
     }
@@ -99,10 +100,22 @@ final class ProductService extends BaseService implements ProductServiceInterfac
             throw ValidationException::multipleRequired(['name', 'slug', 'category_id']);
         }
 
+        // Validar product_type contra ENUM DB (item, pass)
+        $productType = $data['product_type'] ?? 'item';
+        if (!\in_array($productType, ['item', 'pass'], true)) {
+            throw ValidationException::invalidFormat('product_type', 'item|pass');
+        }
+
+        // Validar station contra ENUM DB si se proporciona
+        $station = \trim($data['station'] ?? '') ?: null;
+        if ($station !== null && !\in_array($station, ['bar', 'kitchen_hot', 'kitchen_cold', 'bakery', 'assembly'], true)) {
+            throw ValidationException::invalidFormat('station', 'bar|kitchen_hot|kitchen_cold|bakery|assembly');
+        }
+
         // Preparar datos con valores por defecto
         $productData = [
             'category_id' => (int) $data['category_id'],
-            'product_type' => $data['product_type'] ?? 'food',
+            'product_type' => $productType,
             'name' => \trim($data['name']),
             'japanese_name' => \trim($data['japanese_name'] ?? ''),
             'slug' => \trim($data['slug']),
@@ -111,7 +124,7 @@ final class ProductService extends BaseService implements ProductServiceInterfac
             'image_url' => \trim($data['image_url'] ?? '') ?: null,
             'is_active' => isset($data['is_active']) ? 1 : 0,
             'prep_time' => !empty($data['prep_time']) ? (int) $data['prep_time'] : null,
-            'station' => \trim($data['station'] ?? '') ?: null,
+            'station' => $station,
             'duration_minutes' => !empty($data['duration_minutes']) ? (int) $data['duration_minutes'] : null,
             'min_pax' => !empty($data['min_pax']) ? (int) $data['min_pax'] : null,
             'max_pax' => !empty($data['max_pax']) ? (int) $data['max_pax'] : null,
@@ -124,8 +137,12 @@ final class ProductService extends BaseService implements ProductServiceInterfac
 
         try {
             $productId = $this->productRepo->create($productData);
+        } catch (PDOException $e) {
+            throw DatabaseException::fromPDOException($e);
+        }
 
-            // Log de auditoría
+        // Log de auditoría (best-effort: no bloquea la operación principal)
+        try {
             AuditLog::log(
                 'create_product',
                 'product',
@@ -133,14 +150,14 @@ final class ProductService extends BaseService implements ProductServiceInterfac
                 null,
                 ['name' => $productData['name'], 'category_id' => $productData['category_id'], 'price' => $productData['price']]
             );
-
-            // Invalidar cache
-            $this->invalidateCache();
-
-            return $productId;
-        } catch (PDOException $e) {
-            throw DatabaseException::fromPDOException($e);
+        } catch (\Throwable) {
+            // Ignorar fallos del log de auditoría
         }
+
+        // Invalidar cache
+        $this->invalidateCache();
+
+        return $productId;
     }
 
     /**
@@ -159,10 +176,22 @@ final class ProductService extends BaseService implements ProductServiceInterfac
             throw ValidationException::multipleRequired(['name', 'slug', 'category_id']);
         }
 
+        // Validar product_type contra ENUM DB (item, pass)
+        $productType = $data['product_type'] ?? 'item';
+        if (!\in_array($productType, ['item', 'pass'], true)) {
+            throw ValidationException::invalidFormat('product_type', 'item|pass');
+        }
+
+        // Validar station contra ENUM DB si se proporciona
+        $station = \trim($data['station'] ?? '') ?: null;
+        if ($station !== null && !\in_array($station, ['bar', 'kitchen_hot', 'kitchen_cold', 'bakery', 'assembly'], true)) {
+            throw ValidationException::invalidFormat('station', 'bar|kitchen_hot|kitchen_cold|bakery|assembly');
+        }
+
         // Preparar datos con valores por defecto
         $productData = [
             'category_id' => (int) $data['category_id'],
-            'product_type' => $data['product_type'] ?? 'food',
+            'product_type' => $productType,
             'name' => \trim($data['name']),
             'japanese_name' => \trim($data['japanese_name'] ?? ''),
             'slug' => \trim($data['slug']),
@@ -171,7 +200,7 @@ final class ProductService extends BaseService implements ProductServiceInterfac
             'image_url' => \trim($data['image_url'] ?? '') ?: null,
             'is_active' => isset($data['is_active']) ? 1 : 0,
             'prep_time' => !empty($data['prep_time']) ? (int) $data['prep_time'] : null,
-            'station' => \trim($data['station'] ?? '') ?: null,
+            'station' => $station,
             'duration_minutes' => !empty($data['duration_minutes']) ? (int) $data['duration_minutes'] : null,
             'min_pax' => !empty($data['min_pax']) ? (int) $data['min_pax'] : null,
             'max_pax' => !empty($data['max_pax']) ? (int) $data['max_pax'] : null,

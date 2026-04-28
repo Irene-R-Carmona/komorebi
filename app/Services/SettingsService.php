@@ -42,7 +42,7 @@ final class SettingsService implements SettingsServiceInterface
         if ($this->localCache === null) {
             $this->localCache = [];
             foreach ($this->settingRepo->findAll() as $row) {
-                $this->localCache[$row['key']] = $row['value'] ?? null;
+                $this->localCache[$row->key] = $row->value;
             }
         }
 
@@ -61,7 +61,7 @@ final class SettingsService implements SettingsServiceInterface
 
         $settings = [];
         foreach ($allSettings as $setting) {
-            $settings[$setting['key']] = Setting::get($setting['key']);
+            $settings[$setting->key] = Setting::get($setting->key);
         }
 
         return $settings;
@@ -261,7 +261,7 @@ final class SettingsService implements SettingsServiceInterface
 
         $groups = [];
         foreach ($allSettings as $setting) {
-            $prefix = \explode('_', $setting['key'])[0];
+            $prefix = \explode('_', $setting->key)[0];
             $groups[$prefix] = ($groups[$prefix] ?? 0) + 1;
         }
 

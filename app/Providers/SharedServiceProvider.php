@@ -7,7 +7,8 @@ namespace App\Providers;
 use App\Core\Container;
 use App\Core\Database;
 use App\Core\ServiceProvider;
-use App\Models\User;
+use App\Domain\Mappers\CafeMapper;
+use App\Domain\Mappers\MenuCategoryMapper;
 use App\Repositories\CafeRepository;
 use App\Repositories\Contracts\CafeCatalogRepositoryInterface;
 use App\Repositories\Contracts\CafeRepositoryInterface;
@@ -92,154 +93,154 @@ final class SharedServiceProvider extends ServiceProvider
     {
         // ── Repositorios ────────────────────────────────────────────
 
-        Container::singleton(CafeRepositoryInterface::class, fn () => new CafeRepository(
+        Container::singleton(CafeRepositoryInterface::class, fn() => new CafeRepository(
+            new CafeMapper(),
             Database::getConnection()
         ));
 
-        Container::singleton(CafeCatalogRepositoryInterface::class, fn () => Container::make(CafeRepositoryInterface::class));
+        Container::singleton(CafeCatalogRepositoryInterface::class, fn() => Container::make(CafeRepositoryInterface::class));
 
-        Container::singleton(ReviewRepositoryInterface::class, fn () => new ReviewRepository(
+        Container::singleton(ReviewRepositoryInterface::class, fn() => new ReviewRepository(
             Database::getConnection()
         ));
 
-        Container::singleton(FavoriteRepository::class, fn () => new FavoriteRepository(
+        Container::singleton(FavoriteRepository::class, fn() => new FavoriteRepository(
             Database::getConnection()
         ));
-        Container::singleton(FavoriteRepositoryInterface::class, fn () => Container::make(
+        Container::singleton(FavoriteRepositoryInterface::class, fn() => Container::make(
             FavoriteRepository::class
         ));
 
-        Container::singleton(MenuCategoryRepository::class, fn () => new MenuCategoryRepository(
+        Container::singleton(MenuCategoryRepository::class, fn() => new MenuCategoryRepository(
+            new MenuCategoryMapper(),
             Database::getConnection()
         ));
-        Container::singleton(MenuCategoryRepositoryInterface::class, fn () => Container::make(
+        Container::singleton(MenuCategoryRepositoryInterface::class, fn() => Container::make(
             MenuCategoryRepository::class
         ));
 
         // ── Servicios ────────────────────────────────────────────────
 
-        Container::singleton(CafeService::class, fn () => new CafeService(
+        Container::singleton(CafeService::class, fn() => new CafeService(
             Container::make(CafeRepositoryInterface::class)
         ));
 
-        Container::singleton(CafeServiceInterface::class, fn () => Container::make(CafeService::class));
+        Container::singleton(CafeServiceInterface::class, fn() => Container::make(CafeService::class));
 
-        Container::singleton(UserProfileServiceInterface::class, fn () => new UserProfileService(
-            Container::make(UserRepositoryInterface::class),
-            new User()
-        ));
-
-        Container::singleton(UserPreferenceServiceInterface::class, fn () => new UserPreferenceService(
+        Container::singleton(UserProfileServiceInterface::class, fn() => new UserProfileService(
             Container::make(UserRepositoryInterface::class)
         ));
 
-        Container::singleton(UserAccountServiceInterface::class, fn () => new UserAccountService(
-            Container::make(UserRepositoryInterface::class),
-            new User()
+        Container::singleton(UserPreferenceServiceInterface::class, fn() => new UserPreferenceService(
+            Container::make(UserRepositoryInterface::class)
         ));
 
-        Container::singleton(ReviewService::class, fn () => new ReviewService(
+        Container::singleton(UserAccountServiceInterface::class, fn() => new UserAccountService(
+            Container::make(UserRepositoryInterface::class)
+        ));
+
+        Container::singleton(ReviewService::class, fn() => new ReviewService(
             Container::make(UserRepositoryInterface::class),
             Container::make(ReviewRepositoryInterface::class),
             Container::make(ReservationRepositoryInterface::class)
         ));
 
-        Container::singleton(ReviewServiceInterface::class, fn () => Container::make(ReviewService::class));
+        Container::singleton(ReviewServiceInterface::class, fn() => Container::make(ReviewService::class));
 
-        Container::singleton(ReviewQueryServiceInterface::class, fn () => new ReviewQueryService(
+        Container::singleton(ReviewQueryServiceInterface::class, fn() => new ReviewQueryService(
             Container::make(ReviewRepositoryInterface::class)
         ));
 
-        Container::singleton(ReviewModerationServiceInterface::class, fn () => new ReviewModerationService(
+        Container::singleton(ReviewModerationServiceInterface::class, fn() => new ReviewModerationService(
             Container::make(ReviewRepositoryInterface::class),
             Container::make(CafeRepositoryInterface::class),
             Container::make(EventDispatcherInterface::class)
         ));
 
-        Container::singleton(LoyaltyRepository::class, fn () => new LoyaltyRepository(
+        Container::singleton(LoyaltyRepository::class, fn() => new LoyaltyRepository(
             Database::getConnection()
         ));
-        Container::singleton(LoyaltyRepositoryInterface::class, fn () => Container::make(LoyaltyRepository::class));
+        Container::singleton(LoyaltyRepositoryInterface::class, fn() => Container::make(LoyaltyRepository::class));
 
-        Container::singleton(LoyaltyService::class, fn () => new LoyaltyService(
+        Container::singleton(LoyaltyService::class, fn() => new LoyaltyService(
             Container::make(LoyaltyRepositoryInterface::class)
         ));
-        Container::singleton(LoyaltyServiceInterface::class, fn () => Container::make(LoyaltyService::class));
+        Container::singleton(LoyaltyServiceInterface::class, fn() => Container::make(LoyaltyService::class));
 
-        Container::singleton(GamificationService::class, fn () => new GamificationService());
-        Container::singleton(GamificationServiceInterface::class, fn () => Container::make(GamificationService::class));
+        Container::singleton(GamificationService::class, fn() => new GamificationService());
+        Container::singleton(GamificationServiceInterface::class, fn() => Container::make(GamificationService::class));
 
-        Container::singleton(WeatherService::class, fn () => new WeatherService());
-        Container::singleton(WeatherServiceInterface::class, fn () => Container::make(WeatherService::class));
+        Container::singleton(WeatherService::class, fn() => new WeatherService());
+        Container::singleton(WeatherServiceInterface::class, fn() => Container::make(WeatherService::class));
 
-        Container::singleton(ClimaContextoService::class, fn () => new ClimaContextoService(
+        Container::singleton(ClimaContextoService::class, fn() => new ClimaContextoService(
             Container::make(WeatherService::class)
         ));
-        Container::singleton(ClimaContextoServiceInterface::class, fn () => Container::make(ClimaContextoService::class));
+        Container::singleton(ClimaContextoServiceInterface::class, fn() => Container::make(ClimaContextoService::class));
 
-        Container::singleton(CartService::class, fn () => new CartService(
+        Container::singleton(CartService::class, fn() => new CartService(
             Container::make(ProductRepositoryInterface::class)
         ));
-        Container::singleton(CartServiceInterface::class, fn () => Container::make(CartService::class));
+        Container::singleton(CartServiceInterface::class, fn() => Container::make(CartService::class));
 
-        Container::singleton(SettingRepository::class, fn () => new SettingRepository(Database::getConnection()));
-        Container::singleton(SettingRepositoryInterface::class, fn () => Container::make(SettingRepository::class));
-        Container::singleton(SettingsService::class, fn () => new SettingsService(
+        Container::singleton(SettingRepository::class, fn() => new SettingRepository(Database::getConnection()));
+        Container::singleton(SettingRepositoryInterface::class, fn() => Container::make(SettingRepository::class));
+        Container::singleton(SettingsService::class, fn() => new SettingsService(
             Container::make(SettingRepositoryInterface::class)
         ));
-        Container::singleton(SettingsServiceInterface::class, fn () => Container::make(SettingsService::class));
+        Container::singleton(SettingsServiceInterface::class, fn() => Container::make(SettingsService::class));
 
-        Container::singleton(HolidayService::class, fn () => new HolidayService());
-        Container::singleton(HolidayServiceInterface::class, fn () => Container::make(HolidayService::class));
+        Container::singleton(HolidayService::class, fn() => new HolidayService());
+        Container::singleton(HolidayServiceInterface::class, fn() => Container::make(HolidayService::class));
 
-        Container::singleton(FileUploadService::class, fn () => new FileUploadService());
-        Container::singleton(FileUploadServiceInterface::class, fn () => Container::make(FileUploadService::class));
+        Container::singleton(FileUploadService::class, fn() => new FileUploadService());
+        Container::singleton(FileUploadServiceInterface::class, fn() => Container::make(FileUploadService::class));
 
-        Container::singleton(UserManagementRepositoryInterface::class, fn () => Container::make(UserRepositoryInterface::class));
+        Container::singleton(UserManagementRepositoryInterface::class, fn() => Container::make(UserRepositoryInterface::class));
 
-        Container::singleton(UserManagementService::class, fn () => new UserManagementService());
-        Container::singleton(UserManagementServiceInterface::class, fn () => Container::make(UserManagementService::class));
+        Container::singleton(UserManagementService::class, fn() => new UserManagementService());
+        Container::singleton(UserManagementServiceInterface::class, fn() => Container::make(UserManagementService::class));
 
-        Container::singleton(AdminActivityService::class, fn () => new AdminActivityService());
-        Container::singleton(AdminActivityServiceInterface::class, fn () => Container::make(AdminActivityService::class));
+        Container::singleton(AdminActivityService::class, fn() => new AdminActivityService());
+        Container::singleton(AdminActivityServiceInterface::class, fn() => Container::make(AdminActivityService::class));
 
-        Container::singleton(StatisticsRepository::class, fn () => new StatisticsRepository(
+        Container::singleton(StatisticsRepository::class, fn() => new StatisticsRepository(
             Database::getConnection()
         ));
-        Container::singleton(StatisticsRepositoryInterface::class, fn () => Container::make(
+        Container::singleton(StatisticsRepositoryInterface::class, fn() => Container::make(
             StatisticsRepository::class
         ));
-        Container::singleton(AdminStatisticsService::class, fn () => new AdminStatisticsService(
+        Container::singleton(AdminStatisticsService::class, fn() => new AdminStatisticsService(
             Container::make(StatisticsRepositoryInterface::class)
         ));
-        Container::singleton(AdminStatisticsServiceInterface::class, fn () => Container::make(AdminStatisticsService::class));
+        Container::singleton(AdminStatisticsServiceInterface::class, fn() => Container::make(AdminStatisticsService::class));
 
-        Container::singleton(AdminReportService::class, fn () => new AdminReportService());
-        Container::singleton(AdminReportServiceInterface::class, fn () => Container::make(AdminReportService::class));
+        Container::singleton(AdminReportService::class, fn() => new AdminReportService());
+        Container::singleton(AdminReportServiceInterface::class, fn() => Container::make(AdminReportService::class));
 
-        Container::singleton(ReservationItemRepository::class, fn () => new ReservationItemRepository(
+        Container::singleton(ReservationItemRepository::class, fn() => new ReservationItemRepository(
             Database::getConnection()
         ));
-        Container::singleton(ReservationItemRepositoryInterface::class, fn () => Container::make(
+        Container::singleton(ReservationItemRepositoryInterface::class, fn() => Container::make(
             ReservationItemRepository::class
         ));
 
-        Container::singleton(KitchenService::class, fn () => new KitchenService(
+        Container::singleton(KitchenService::class, fn() => new KitchenService(
             Container::make(ReservationItemRepositoryInterface::class)
         ));
-        Container::singleton(KitchenServiceInterface::class, fn () => Container::make(KitchenService::class));
+        Container::singleton(KitchenServiceInterface::class, fn() => Container::make(KitchenService::class));
 
-        Container::singleton(TrackerRepository::class, fn () => new TrackerRepository(
+        Container::singleton(TrackerRepository::class, fn() => new TrackerRepository(
             Database::getConnection()
         ));
-        Container::singleton(TrackerRepositoryInterface::class, fn () => Container::make(TrackerRepository::class));
+        Container::singleton(TrackerRepositoryInterface::class, fn() => Container::make(TrackerRepository::class));
 
-        Container::singleton(ReceptionService::class, fn () => new ReceptionService(
+        Container::singleton(ReceptionService::class, fn() => new ReceptionService(
             Container::make(ReservationRepositoryInterface::class),
             Container::make(TrackerRepositoryInterface::class),
             Container::make(CafeRepositoryInterface::class)
         ));
-        Container::singleton(ReceptionServiceInterface::class, fn () => Container::make(ReceptionService::class));
+        Container::singleton(ReceptionServiceInterface::class, fn() => Container::make(ReceptionService::class));
     }
 
     #[Override]

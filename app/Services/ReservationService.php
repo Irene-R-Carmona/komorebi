@@ -7,12 +7,15 @@ namespace App\Services;
 use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Result;
+use App\Domain\DTO\CafeDTO;
+use App\Domain\DTO\ProductDTO;
 use App\Events\ReservationConfirmedEvent;
 use App\Exceptions\BusinessRuleException;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Domain\Reservation\ReservationStateMachine;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
@@ -107,11 +110,11 @@ final class ReservationService implements ReservationServiceInterface
             // DEBUG: Log de validación
             Logger::debug('Pass obtenido para validación', [
                 'pass_id' => $passId,
-                'pass_name' => $pass['name'] ?? 'N/A',
-                'target_cafe_types' => $pass['target_cafe_types'] ?? null,
-                'target_cafe_types_type' => \gettype($pass['target_cafe_types'] ?? null),
-                'target_animal_types' => $pass['target_animal_types'] ?? null,
-                'is_active' => $pass['is_active'] ?? null,
+                'pass_name' => $pass->name,
+                'target_cafe_types' => $pass->target_cafe_types,
+                'target_cafe_types_type' => \gettype($pass->target_cafe_types),
+                'target_animal_types' => $pass->target_animal_types,
+                'is_active' => $pass->is_active,
             ]);
 
             // Validar compatibilidad pase-café-guests
@@ -147,9 +150,9 @@ final class ReservationService implements ReservationServiceInterface
                     'user_id' => $userId,
                     'cafe_id' => $cafeId,
                     'pass_product_id' => $passId,
-                    'pass_name' => $pass['name'],
-                    'pass_unit_price' => (int) $pass['price'],
-                    'pass_duration_minutes' => (int) $pass['duration_minutes'],
+                    'pass_name' => $pass->name,
+                    'pass_unit_price' => (int) $pass->price,
+                    'pass_duration_minutes' => $pass->duration_minutes ?? 0,
                     'reservation_date' => $date,
                     'reservation_time' => $time . ':00',
                     'guest_count' => $guests,
@@ -222,6 +225,52 @@ final class ReservationService implements ReservationServiceInterface
             ]);
 
             return Result::fail('No se pudo cancelar la reserva');
+        }
+
+        return Result::ok(null);
+    }
+
+    #[Override]
+    public function adminCancel(int $id): Result
+    {
+        $reservation = $this->reservationRepo->findById($id);
+
+        if ($reservation === null) {
+            return Result::fail('Reserva no encontrada', 'not_found');
+        }
+
+        if (!ReservationStateMachine::isValidTransition($reservation->status, 'cancelled')) {
+            return Result::fail('No se puede cancelar la reserva en su estado actual', 'invalid_transition');
+        }
+
+        $success = $this->reservationRepo->updateStatus($id, 'cancelled');
+
+        if (!$success) {
+            Logger::warning('[ReservationService] adminCancel failed', ['reservation_id' => $id]);
+            return Result::fail('No se pudo cancelar la reserva');
+        }
+
+        return Result::ok(null);
+    }
+
+    #[Override]
+    public function adminConfirm(int $id): Result
+    {
+        $reservation = $this->reservationRepo->findById($id);
+
+        if ($reservation === null) {
+            return Result::fail('Reserva no encontrada', 'not_found');
+        }
+
+        if (!ReservationStateMachine::isValidTransition($reservation->status, 'confirmed')) {
+            return Result::fail('No se puede confirmar la reserva en su estado actual', 'invalid_transition');
+        }
+
+        $success = $this->reservationRepo->updateStatus($id, 'confirmed');
+
+        if (!$success) {
+            Logger::warning('[ReservationService] adminConfirm failed', ['reservation_id' => $id]);
+            return Result::fail('No se pudo confirmar la reserva');
         }
 
         return Result::ok(null);
@@ -320,7 +369,7 @@ final class ReservationService implements ReservationServiceInterface
      * @throws BusinessRuleException
      * @throws NotFoundException
      */
-    private function getCafeOrFail(int $cafeId): array
+    private function getCafeOrFail(int $cafeId): \App\Domain\DTO\CafeDTO
     {
         $cafe = $this->cafeRepo->findById($cafeId);
 
@@ -328,7 +377,7 @@ final class ReservationService implements ReservationServiceInterface
             throw NotFoundException::cafe($cafeId);
         }
 
-        if (!$cafe['is_active'] || !$cafe['has_reservations']) {
+        if (!$cafe->is_active || !$cafe->has_reservations) {
             throw BusinessRuleException::cafeNotAcceptingReservations();
         }
 
@@ -339,7 +388,7 @@ final class ReservationService implements ReservationServiceInterface
      * @throws BusinessRuleException
      * @throws NotFoundException
      */
-    private function getPassOrFail(int $passId): array
+    private function getPassOrFail(int $passId): ProductDTO
     {
         $pass = $this->productRepo->findById($passId);
 
@@ -347,15 +396,15 @@ final class ReservationService implements ReservationServiceInterface
             throw NotFoundException::pass($passId);
         }
 
-        if (!$pass['is_active']) {
+        if (!$pass->is_active) {
             throw BusinessRuleException::passNotAvailable();
         }
 
-        if ($pass['product_type'] !== 'pass') {
+        if ($pass->product_type !== 'pass') {
             throw BusinessRuleException::productNotAvailable();
         }
 
-        if (empty($pass['duration_minutes']) || $pass['duration_minutes'] <= 0) {
+        if (empty($pass->duration_minutes) || $pass->duration_minutes <= 0) {
             throw new BusinessRuleException(
                 'El pase no tiene una duración válida',
                 'invalid_pass_duration'
@@ -368,11 +417,11 @@ final class ReservationService implements ReservationServiceInterface
     /**
      * @throws BusinessRuleException
      */
-    private function validatePassCompatibility(array $pass, array $cafe, int $guests): void
+    private function validatePassCompatibility(ProductDTO $pass, CafeDTO $cafe, int $guests): void
     {
         // Validar número de personas
-        $minPax = (int) ($pass['min_pax'] ?? 1);
-        $maxPax = $pass['max_pax'] !== null ? (int) $pass['max_pax'] : null;
+        $minPax = $pass->min_pax ?? 1;
+        $maxPax = $pass->max_pax;
 
         if ($guests < $minPax) {
             throw BusinessRuleException::minimumGuestsRequired($minPax);
@@ -383,22 +432,22 @@ final class ReservationService implements ReservationServiceInterface
         }
 
         // Validar tipo de café
-        $targetCafeTypes = $this->parseJsonArray($pass['target_cafe_types'] ?? null);
-        if (!empty($targetCafeTypes) && !\in_array($cafe['category'], $targetCafeTypes, true)) {
+        $targetCafeTypes = $this->parseJsonArray($pass->target_cafe_types);
+        if (!empty($targetCafeTypes) && !\in_array($cafe->category, $targetCafeTypes, true)) {
             throw new BusinessRuleException(
                 'Este pase no está disponible para este tipo de café',
                 'pass_incompatible_cafe_type',
-                ['cafe_type' => $cafe['category'], 'allowed_types' => $targetCafeTypes]
+                ['cafe_type' => $cafe->category, 'allowed_types' => $targetCafeTypes]
             );
         }
 
         // Validar tipo de animal
-        $targetAnimalTypes = $this->parseJsonArray($pass['target_animal_types'] ?? null);
-        if (!empty($targetAnimalTypes) && !\in_array($cafe['animal_type'], $targetAnimalTypes, true)) {
+        $targetAnimalTypes = $this->parseJsonArray($pass->target_animal_types);
+        if (!empty($targetAnimalTypes) && !\in_array($cafe->animal_type, $targetAnimalTypes, true)) {
             throw new BusinessRuleException(
                 'Este pase no está disponible para este tipo de animal',
                 'pass_incompatible_animal_type',
-                ['animal_type' => $cafe['animal_type'], 'allowed_types' => $targetAnimalTypes]
+                ['animal_type' => $cafe->animal_type, 'allowed_types' => $targetAnimalTypes]
             );
         }
     }
@@ -406,19 +455,19 @@ final class ReservationService implements ReservationServiceInterface
     /**
      * @throws BusinessRuleException
      */
-    private function validateTimeSlot(array $cafe, array $pass, string $time): void
+    private function validateTimeSlot(CafeDTO $cafe, ProductDTO $pass, string $time): void
     {
-        $openMinutes = $this->timeToMinutes($cafe['opening_time']);
-        $closeMinutes = $this->timeToMinutes($cafe['closing_time']);
+        $openMinutes = $this->timeToMinutes($cafe->opening_time);
+        $closeMinutes = $this->timeToMinutes($cafe->closing_time);
         $startMinutes = $this->timeToMinutes($time);
-        $duration = (int) $pass['duration_minutes'];
+        $duration = $pass->duration_minutes ?? 0;
 
         // El pase debe empezar dentro del horario
         if ($startMinutes < $openMinutes) {
             throw new BusinessRuleException(
                 'El café aún no está abierto a esa hora',
                 'cafe_not_open',
-                ['opening_time' => $cafe['opening_time'], 'requested_time' => $time]
+                ['opening_time' => $cafe->opening_time, 'requested_time' => $time]
             );
         }
 
@@ -428,7 +477,7 @@ final class ReservationService implements ReservationServiceInterface
             throw new BusinessRuleException(
                 'No hay tiempo suficiente para este pase antes del cierre',
                 'insufficient_time_before_close',
-                ['closing_time' => $cafe['closing_time'], 'duration_minutes' => $duration]
+                ['closing_time' => $cafe->closing_time, 'duration_minutes' => $duration]
             );
         }
 
@@ -439,9 +488,9 @@ final class ReservationService implements ReservationServiceInterface
     /**
      * @throws BusinessRuleException
      */
-    private function validatePassTimeRestrictions(array $pass, int $startMinutes, int $duration): void
+    private function validatePassTimeRestrictions(ProductDTO $pass, int $startMinutes, int $duration): void
     {
-        $attributes = $pass['attributes'] ?? [];
+        $attributes = $this->parseJsonArray($pass->attributes);
 
         if (empty($attributes)) {
             return;

@@ -65,9 +65,10 @@ final class CafeController
         }
 
         View::render('manager/cafe/show', [
-            'titulo' => 'Gestión de Café',
-            'cafe' => $cafe,
+            'titulo'     => 'Gestión de Café',
+            'cafe'       => $cafe,
             'csrf_token' => Csrf::token(),
+            'extraJs'    => ['manager/manager-cafe.js'],
         ], ['manager/cafe-management.css'], 'backoffice');
 
         return null;
@@ -85,7 +86,7 @@ final class CafeController
 
         if (!$cafeId) {
             return $this->response->json([
-                'success' => false,
+                'ok' => false,
                 'error' => 'No tienes un café asignado',
             ], 403);
         }
@@ -96,14 +97,14 @@ final class CafeController
         // Validaciones de negocio
         if ($capacityMax <= 0) {
             return $this->response->json([
-                'success' => false,
+                'ok' => false,
                 'error' => 'La capacidad debe ser mayor a 0',
             ], 400);
         }
 
         if ($capacityMax > 500) {
             return $this->response->json([
-                'success' => false,
+                'ok' => false,
                 'error' => 'La capacidad máxima permitida es 500',
             ], 400);
         }
@@ -114,13 +115,12 @@ final class CafeController
             ]);
 
             return $this->response->json([
-                'success' => true,
-                'message' => 'Capacidad actualizada correctamente',
-                'capacity_max' => $capacityMax,
+                'ok' => true,
+                'data' => ['message' => 'Capacidad actualizada correctamente', 'capacity_max' => $capacityMax],
             ]);
         } catch (Exception $e) {
             return $this->response->json([
-                'success' => false,
+                'ok' => false,
                 'error' => 'Error al actualizar capacidad: ' . $e->getMessage(),
             ], 500);
         }
@@ -138,7 +138,7 @@ final class CafeController
 
         if (!$cafeId) {
             return $this->response->json([
-                'success' => false,
+                'ok' => false,
                 'error' => 'No tienes un café asignado',
             ], 403);
         }
@@ -150,7 +150,7 @@ final class CafeController
         // Validar formato HH:MM o HH:MM:SS
         if (!TimeHelper::isValid($openingTime) || !TimeHelper::isValid($closingTime)) {
             return $this->response->json([
-                'success' => false,
+                'ok' => false,
                 'error' => 'Formato de hora inválido. Use HH:MM',
             ], 400);
         }
@@ -158,7 +158,7 @@ final class CafeController
         // Validar que apertura < cierre
         if (TimeHelper::compare($openingTime, $closingTime) >= 0) {
             return $this->response->json([
-                'success' => false,
+                'ok' => false,
                 'error' => 'La hora de apertura debe ser menor que la de cierre',
             ], 400);
         }
@@ -170,14 +170,16 @@ final class CafeController
             ]);
 
             return $this->response->json([
-                'success' => true,
-                'message' => 'Horarios actualizados correctamente',
-                'opening_time' => TimeHelper::normalize($openingTime),
-                'closing_time' => TimeHelper::normalize($closingTime),
+                'ok' => true,
+                'data' => [
+                    'message' => 'Horarios actualizados correctamente',
+                    'opening_time' => TimeHelper::normalize($openingTime),
+                    'closing_time' => TimeHelper::normalize($closingTime),
+                ],
             ]);
         } catch (Exception $e) {
             return $this->response->json([
-                'success' => false,
+                'ok' => false,
                 'error' => 'Error al actualizar horarios: ' . $e->getMessage(),
             ], 500);
         }
@@ -196,7 +198,7 @@ final class CafeController
 
         if (!$cafeId) {
             return $this->response->json([
-                'success' => false,
+                'ok' => false,
                 'error' => 'No tienes un café asignado',
             ], 403);
         }
@@ -209,7 +211,7 @@ final class CafeController
             $description = \trim($body['description']);
             if (\mb_strlen($description) > 2000) {
                 return $this->response->json([
-                    'success' => false,
+                    'ok' => false,
                     'error' => 'La descripción no puede superar 2000 caracteres',
                 ], 400);
             }
@@ -221,7 +223,7 @@ final class CafeController
             $price = (int) $body['price_per_hour'];
             if ($price < 0 || $price > 100) {
                 return $this->response->json([
-                    'success' => false,
+                    'ok' => false,
                     'error' => 'El precio debe estar entre 0 y 100€',
                 ], 400);
             }
@@ -230,7 +232,7 @@ final class CafeController
 
         if (empty($updates)) {
             return $this->response->json([
-                'success' => false,
+                'ok' => false,
                 'error' => 'No hay campos para actualizar',
             ], 400);
         }
@@ -239,13 +241,12 @@ final class CafeController
             $this->cafeService->update($cafeId, $updates);
 
             return $this->response->json([
-                'success' => true,
-                'message' => 'Configuración actualizada correctamente',
-                'updates' => $updates,
+                'ok' => true,
+                'data' => ['message' => 'Configuración actualizada correctamente', 'updates' => $updates],
             ]);
         } catch (Exception $e) {
             return $this->response->json([
-                'success' => false,
+                'ok' => false,
                 'error' => 'Error al actualizar configuración: ' . $e->getMessage(),
             ], 500);
         }

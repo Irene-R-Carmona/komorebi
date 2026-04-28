@@ -73,6 +73,7 @@ final class KitchenController
         // Renderizar vista de KDS
         View::render('kitchen/index', [
             'titulo' => "KDS - $cafeName",
+            'cafe_id' => $cafeId,
             'stations' => $stations,
             'cafe_name' => $cafeName,
             'backlog_alert' => \count($itemsRaw) > 10,
@@ -117,26 +118,6 @@ final class KitchenController
     }
 
     /**
-     * POST /ops/kitchen/ready
-     * Marca un ítem de comanda como listo (AJAX KDS).
-     *
-     * @throws ValidationException
-     */
-    public function ready(ServerRequestInterface $request): ResponseInterface
-    {
-        $body = (array) $request->getParsedBody();
-        $itemId = (int) ($body['item_id'] ?? 0);
-
-        if ($itemId <= 0) {
-            throw ValidationException::required('item_id');
-        }
-
-        $this->service->markReady($itemId);
-
-        return $this->response->json(['ok' => true]);
-    }
-
-    /**
      * GET /ops/kitchen/orders
      * Lista de órdenes activas en el KDS.
      */
@@ -159,28 +140,6 @@ final class KitchenController
         View::render('kitchen/index', ['orders' => $orders], ['workspaces/kds.css'], 'kds');
 
         return null;
-    }
-
-    /**
-     * POST /ops/kitchen/orders/{id}/complete
-     * Marca una comanda como completada.
-     */
-    public function completeOrder(ServerRequestInterface $request): ResponseInterface
-    {
-        $id = (int) $request->getAttribute('id');
-        $body = (array) $request->getParsedBody();
-
-        $ok = $this->service->markReady($id);
-
-        if (!$ok) {
-            Flash::error('No se pudo completar el pedido.');
-
-            return $this->response->redirect('/ops/kitchen');
-        }
-
-        Flash::success('Pedido completado.');
-
-        return $this->response->redirect('/ops/kitchen');
     }
 
     // ─────────────────────────────────────────────────────────────

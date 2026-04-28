@@ -8,6 +8,8 @@ use App\Core\BaseService;
 use App\Core\Container;
 use App\Core\Database;
 use App\Core\Result;
+use App\Domain\AnimalVocabulary;
+use App\Domain\CareLogVocabulary;
 use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
@@ -40,7 +42,7 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
     #[Override]
     public function getAnimalById(int $id): ?array
     {
-        return $this->animalRepo->findById($id);
+        return $this->animalRepo->findById($id)?->toViewArray();
     }
 
     #[Override]
@@ -48,6 +50,10 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
     {
         if (empty($data['name']) || empty($data['species'])) {
             return Result::fail('Nombre y especie son obligatorios');
+        }
+
+        if (!AnimalVocabulary::isValidSpecies((string) $data['species'])) {
+            return Result::fail('Especie no válida', 'invalid_species');
         }
 
         $status = $data['status'] ?? 'active';
@@ -142,7 +148,7 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
     #[Override]
     public function getIncidentById(int $id): ?array
     {
-        return $this->incidentRepo->findById($id);
+        return $this->incidentRepo->findById($id)?->toViewArray();
     }
 
     #[Override]
@@ -207,7 +213,7 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
                 if ($notes) {
                     $this->createCareLog([
                         'animal_id' => $animalId,
-                        'activity_type' => 'health_check',
+                        'activity_type' => 'observation',
                         'notes' => $notes,
                         'logged_by_user_id' => $userId,
                     ]);
@@ -283,9 +289,16 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
             return Result::fail('ID de animal inválido');
         }
 
-        $validActivities = ['feeding', 'grooming', 'health_check', 'play', 'cleaning', 'medication', 'exercise', 'other'];
-        if (empty($data['activity_type']) || !\in_array($data['activity_type'], $validActivities, true)) {
+        if (empty($data['activity_type']) || !CareLogVocabulary::isValidActivityType((string) $data['activity_type'])) {
             return Result::fail('Tipo de actividad inválido');
+        }
+
+        if (!empty($data['mood_before']) && !CareLogVocabulary::isValidMood((string) $data['mood_before'])) {
+            return Result::fail('Estado de ánimo inicial inválido');
+        }
+
+        if (!empty($data['mood_after']) && !CareLogVocabulary::isValidMood((string) $data['mood_after'])) {
+            return Result::fail('Estado de ánimo final inválido');
         }
 
         return Result::ok();
@@ -295,6 +308,14 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
     {
         if (empty($data['animal_id']) || $data['animal_id'] <= 0) {
             return Result::fail('ID de animal inválido');
+        }
+
+        if (!empty($data['incident_type']) && !AnimalVocabulary::isValidIncidentType((string) $data['incident_type'])) {
+            return Result::fail('Tipo de incidente inválido');
+        }
+
+        if (!empty($data['incident_status']) && !AnimalVocabulary::isValidIncidentStatus((string) $data['incident_status'])) {
+            return Result::fail('Estado de incidente inválido');
         }
 
         $validSeverities = ['low', 'medium', 'high', 'critical'];

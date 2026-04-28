@@ -25,6 +25,7 @@ use App\Http\Middleware\CsrfMiddleware;
 use App\Http\Middleware\ErrorHandlerMiddleware;
 use App\Http\Middleware\GuestMiddleware;
 use App\Http\Middleware\HttpRateLimitMiddleware;
+use App\Http\Middleware\IdempotencyMiddleware;
 use App\Http\Middleware\PayloadSizeMiddleware;
 use App\Http\Middleware\RequestLogMiddleware;
 use App\Http\Middleware\RoleMiddleware;
@@ -143,6 +144,16 @@ final class MiddlewareFactory
     public function maxPayload(int $kb = 256): PayloadSizeMiddleware
     {
         return new PayloadSizeMiddleware($this->response, $kb);
+    }
+
+    /**
+     * Garantiza idempotencia en POST /api/v1/reservations via Idempotency-Key UUID v4.
+     * Hit  → devuelve respuesta cacheada sin re-ejecutar el handler.
+     * Miss → ejecuta handler y almacena respuesta si status < 400.
+     */
+    public function idempotency(): IdempotencyMiddleware
+    {
+        return new IdempotencyMiddleware($this->response);
     }
 
     /**

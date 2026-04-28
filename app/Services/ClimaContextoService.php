@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Logger;
 use App\Services\Contracts\ClimaContextoServiceInterface;
+use App\Services\Contracts\WeatherServiceInterface;
 use DateMalformedStringException;
 use DateTime;
 use DateTimeZone;
@@ -87,9 +88,7 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
         ],
     ];
 
-    public function __construct(private readonly WeatherService $weatherService)
-    {
-    }
+    public function __construct(private readonly WeatherServiceInterface $weatherService) {}
 
     /**
      * Obtiene el clima actual de Tokyo con contexto poético.

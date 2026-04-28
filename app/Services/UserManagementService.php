@@ -145,7 +145,7 @@ final class UserManagementService extends BaseService implements UserManagementS
             return Result::fail('Usuario no encontrado');
         }
 
-        $existing = $data['email'] !== $user['email'] ? $this->userRepo->findByEmail($data['email']) : null;
+        $existing = $data['email'] !== $user->email ? $this->userRepo->findByEmail($data['email']) : null;
         $emailTaken = $existing && (int) $existing['id'] !== $userId;
 
         return $emailTaken ? Result::fail('El email ya está registrado') : null;
@@ -173,7 +173,7 @@ final class UserManagementService extends BaseService implements UserManagementS
 
             $this->userRepo->toggleStatus($userId);
             $updated = $this->userRepo->findById($userId);
-            $newStatus = (bool) ($updated['is_active'] ?? false);
+            $newStatus = $updated->is_active;
             $statusText = $newStatus ? 'activado' : 'desactivado';
 
             return Result::ok([

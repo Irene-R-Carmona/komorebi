@@ -6,7 +6,8 @@ namespace App\Services;
 
 use App\Core\Env;
 use App\Core\Result;
-use App\Models\User;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\Contracts\AuthTokenServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\EmailVerificationServiceInterface;
 use Override;
@@ -20,11 +21,10 @@ use Random\RandomException;
 final class EmailVerificationService implements EmailVerificationServiceInterface
 {
     public function __construct(
-        private readonly User $userModel,
-        private readonly AuthTokenService $tokenService,
+        private readonly UserRepositoryInterface $userRepo,
+        private readonly AuthTokenServiceInterface $tokenService,
         private readonly EmailServiceInterface $emailService,
-    ) {
-    }
+    ) {}
 
     /**
      * Enviar email de verificación al usuario.
@@ -35,7 +35,7 @@ final class EmailVerificationService implements EmailVerificationServiceInterfac
     #[Override]
     public function sendVerificationEmail(int $userId): Result
     {
-        $user = $this->userModel->findById($userId);
+        $user = $this->userRepo->findById($userId);
         if (!$user) {
             return Result::fail('Usuario no encontrado.');
         }
@@ -49,8 +49,8 @@ final class EmailVerificationService implements EmailVerificationServiceInterfac
             $verifyUrl = Env::get('APP_URL') . "/auth/verify-email?token=$token";
 
             $this->emailService->sendVerificationEmail(
-                (string) ($user['email'] ?? ''),
-                (string) ($user['name'] ?? ''),
+                $user->email,
+                $user->name,
                 $verifyUrl
             );
 

@@ -8,10 +8,12 @@ use App\Core\Queue;
 use App\Core\Result;
 use App\Core\TransactionalService;
 use App\Core\WideEvent;
+use App\Domain\DTO\ReservationDTO;
 use App\Jobs\WaitlistPromotionJob;
-use App\Models\Reservation;
-use App\Models\TimeSlot;
 use App\Models\Waitlist;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Repositories\Contracts\TimeSlotRepositoryInterface;
+use App\Repositories\Contracts\WaitlistRepositoryInterface;
 use App\Services\Contracts\ReservationTimeSlotServiceInterface;
 use Override;
 use PDO;
@@ -22,15 +24,15 @@ use PDO;
  */
 final class ReservationTimeSlotService extends TransactionalService implements ReservationTimeSlotServiceInterface
 {
-    private Reservation $reservation;
-    private TimeSlot $timeSlot;
-    private Waitlist $waitlist;
+    private ReservationRepositoryInterface $reservation;
+    private TimeSlotRepositoryInterface $timeSlot;
+    private WaitlistRepositoryInterface $waitlist;
 
     public function __construct(
         PDO $db,
-        Reservation $reservation,
-        TimeSlot $timeSlot,
-        Waitlist $waitlist
+        ReservationRepositoryInterface $reservation,
+        TimeSlotRepositoryInterface $timeSlot,
+        WaitlistRepositoryInterface $waitlist
     ) {
         parent::__construct($db);
         $this->reservation = $reservation;
@@ -72,49 +74,34 @@ final class ReservationTimeSlotService extends TransactionalService implements R
                 return Result::fail('Datos de reserva incompletos.');
             }
 
-            // 1. Buscar slot disponible (usar la API del modelo con parámetros posicionales)
-            $slotResult = $this->timeSlot->findAvailable(
-                $cafeId,
-                $reservationDate,
-                $reservationDate,
-                $guestCount
-            );
+            // 1. Buscar slot disponible
+            $slots = $this->timeSlot->findAvailableByDateFiltered($reservationDate, $cafeId, $guestCount);
 
-            if (!$slotResult->ok) {
-                return Result::fail('No hay slots disponibles para la fecha/hora seleccionada');
-            }
-
-            $slots = [];
-            if (\is_array($slotResult->data ?? null) && isset($slotResult->data['slots']) && \is_array($slotResult->data['slots'])) {
-                $slots = $slotResult->data['slots'];
-            }
             if (empty($slots)) {
-                return Result::fail('No se encontraron slots con capacidad suficiente');
+                return Result::fail('No hay slots disponibles para la fecha/hora seleccionada');
             }
 
             $slot = $slots[0]; // Primer slot disponible
 
-            // 2. Decrementar spots (atómico con lock)
-            $decrementResult = $this->timeSlot->decrementSpots((int) $slot['id'], $guestCount);
-            if (!$decrementResult->ok) {
-                return Result::fail($decrementResult->error);
+            // 2. Reservar spots (atómico con lock)
+            if (!$this->timeSlot->reserveSpots((int) $slot['id'], $guestCount)) {
+                return Result::fail('No se pudo reservar el slot seleccionado');
             }
 
             // 3. Crear reserva
             $data['time_slot_id'] = (int) $slot['id'];
             $data['status'] = 'confirmed'; // Auto-confirmar si hay slot
-            $data['guests'] = $guestCount; // Mapear guest_count -> guests para Reservation::create()
+            $data['guests'] = $guestCount; // Mapear guest_count -> guests para ReservationRepository::create()
 
-            $reservationResult = $this->reservation->create($data);
-            if (!$reservationResult->ok) {
-                return Result::fail($reservationResult->error);
+            $reservationId = $this->reservation->create($data);
+            if ($reservationId <= 0) {
+                $this->timeSlot->releaseSpots((int) $slot['id'], $guestCount);
+                return Result::fail('Error al crear la reserva');
             }
-
-            $reservationId = (int) ($reservationResult->data['reservation_id'] ?? 0);
 
             return Result::ok([
                 'reservation_id' => $reservationId,
-                'time_slot_id' => isset($slot['id']) ? (int) $slot['id'] : 0,
+                'time_slot_id' => (int) $slot['id'],
                 'status' => 'confirmed',
                 'message' => 'Reserva creada y confirmada exitosamente',
             ]);
@@ -140,9 +127,8 @@ final class ReservationTimeSlotService extends TransactionalService implements R
             $reservationData = $result->data;
 
             // 2. Cancelar reserva
-            $cancelResult = $this->reservation->cancel($reservationId);
-            if (!$cancelResult->ok) {
-                return Result::fail($cancelResult->error);
+            if (!$this->reservation->updateStatus($reservationId, 'cancelled')) {
+                return Result::fail('No se pudo cancelar la reserva');
             }
 
             // 3. Liberar slots y promover waitlist si aplica
@@ -161,30 +147,29 @@ final class ReservationTimeSlotService extends TransactionalService implements R
      */
     private function validateAndFetchReservation(int $reservationId): Result
     {
-        $reservationData = $this->reservation->findById($reservationId);
+        $dto = $this->reservation->findById($reservationId);
 
-        if (!$reservationData) {
+        if ($dto === null) {
             return Result::fail('Reserva no encontrada');
         }
 
-        return Result::ok($reservationData);
+        return Result::ok($dto);
     }
 
     /**
      * Libera spots y promueve siguiente en waitlist
      */
-    private function releaseSlotsAndPromote(array $reservationData): int
+    private function releaseSlotsAndPromote(ReservationDTO $reservationData): int
     {
-        if (!isset($reservationData['time_slot_id']) || !$reservationData['time_slot_id']) {
+        if ($reservationData->time_slot_id === null) {
             return 0;
         }
 
-        $timeSlotId = (int) $reservationData['time_slot_id'];
-        $guestCount = isset($reservationData['guest_count']) ? (int) $reservationData['guest_count'] : 1;
+        $timeSlotId = $reservationData->time_slot_id;
+        $guestCount = $reservationData->guest_count;
 
         // Liberar spots
-        $incrementResult = $this->timeSlot->incrementSpots($timeSlotId, $guestCount);
-        if (!$incrementResult->ok) {
+        if (!$this->timeSlot->releaseSpots($timeSlotId, $guestCount)) {
             return 0;
         }
 
@@ -197,15 +182,12 @@ final class ReservationTimeSlotService extends TransactionalService implements R
      */
     private function promoteNextInWaitlist(int $timeSlotId): int
     {
-        $nextResult = $this->waitlist->getNextInQueue($timeSlotId);
-        if (!$nextResult->ok || !\is_array($nextResult->data ?? null) || !isset($nextResult->data['id'])) {
+        $waitlistEntry = $this->waitlist->getNextInLine($timeSlotId);
+        if ($waitlistEntry === null || !isset($waitlistEntry['id'])) {
             return 0;
         }
 
-        $waitlistEntry = $nextResult->data;
-        $notifyResult = $this->waitlist->markAsNotified((int) $waitlistEntry['id']);
-
-        if ($notifyResult->ok) {
+        if ($this->waitlist->updateStatus((int) $waitlistEntry['id'], Waitlist::STATUS_NOTIFIED)) {
             Queue::push(WaitlistPromotionJob::class, [
                 'waitlist_entry_id' => (int) $waitlistEntry['id'],
                 '_correlation_id' => WideEvent::get('request_id') ?? '',
@@ -233,7 +215,11 @@ final class ReservationTimeSlotService extends TransactionalService implements R
     #[Override]
     public function addToWaitlist(array $data): Result
     {
-        return $this->waitlist->addToWaitlist((int) $data['time_slot_id'], (int) $data['user_id'], $data);
+        $id = $this->waitlist->create($data);
+
+        return $id > 0
+            ? Result::ok(['waitlist_id' => $id])
+            : Result::fail('Error al añadir a lista de espera');
     }
 
     /**
@@ -246,28 +232,31 @@ final class ReservationTimeSlotService extends TransactionalService implements R
     public function confirmWaitlistEntry(string $token): Result
     {
         return $this->transact(function () use ($token): Result {
-            // 1. Confirmar por token
-            $confirmResult = $this->waitlist->confirmByToken($token);
-            if (!$confirmResult->ok) {
-                return Result::fail($confirmResult->error);
+            // 1. Buscar entrada por token
+            $entry = $this->waitlist->findByToken($token);
+            if ($entry === null) {
+                return Result::fail('Token no válido o expirado');
             }
 
-            $waitlistEntry = $confirmResult->data;
+            if ($entry->status !== Waitlist::STATUS_NOTIFIED) {
+                return Result::fail('Esta promoción ya fue procesada o expiró');
+            }
 
             // 2. Verificar que el slot sigue disponible
-            $slotResult = $this->timeSlot->hasAvailability(
-                (int) $waitlistEntry['time_slot_id'],
-                (int) $waitlistEntry['guest_count']
-            );
-
-            if (!$slotResult->ok || empty($slotResult->data)) {
+            $capacity = $this->timeSlot->getAvailableCapacity($entry->time_slot_id);
+            if ($capacity < $entry->guest_count) {
                 return Result::fail('El slot ya no tiene capacidad disponible');
             }
 
+            // 3. Confirmar entrada
+            if (!$this->waitlist->updateStatus($entry->id, Waitlist::STATUS_CONFIRMED)) {
+                return Result::fail('Error al confirmar la entrada en lista de espera');
+            }
+
             return Result::ok([
-                'waitlist_id' => $waitlistEntry['id'],
-                'time_slot_id' => $waitlistEntry['time_slot_id'],
-                'guest_count' => $waitlistEntry['guest_count'],
+                'waitlist_id' => $entry->id,
+                'time_slot_id' => $entry->time_slot_id,
+                'guest_count' => $entry->guest_count,
                 'message' => 'Confirmación exitosa. Proceda a crear su reserva.',
             ]);
         });

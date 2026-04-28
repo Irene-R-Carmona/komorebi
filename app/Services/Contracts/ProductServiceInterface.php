@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services\Contracts;
 
+use App\Domain\DTO\ProductDTO;
+
 interface ProductServiceInterface
 {
     public function getAll(): array;
 
     public function getAllPaginated(int $page = 1, int $perPage = 20, array $filters = []): array;
 
-    public function getById(int $id): ?array;
+    public function getById(int $id): ?ProductDTO;
 
     public function create(array $data): int;
 

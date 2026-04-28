@@ -169,7 +169,7 @@ final class AnimalCareController
         }
 
         $user = Session::user();
-        if (!$user || !isset($user['cafe_id']) || $animal['cafe_id'] !== (int) $user['cafe_id']) {
+        if (!$user || !isset($user['cafe_id']) || $animal->cafe_id !== (int) $user['cafe_id']) {
             throw ValidationException::withMessage('No tienes permisos para subir fotos de este animal', 403);
         }
 

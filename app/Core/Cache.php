@@ -7,6 +7,7 @@ namespace App\Core;
 use Redis;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
+use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Cache\Psr16Cache;
 use Throwable;
 
@@ -21,6 +22,7 @@ final class Cache
 {
     private static ?Redis $redis = null;
     private static ?Psr16Cache $pool = null;
+    private static ?TagAwareAdapter $tagAdapter = null;
     private static bool $initialized = false;
 
     /** Número de accesos que encontraron el valor en cache en este ciclo de request. */
@@ -48,7 +50,8 @@ final class Cache
                         Logger::warning('[Cache] Redis auth failed');
                     }
                     self::$redis = $r;
-                    self::$pool = new Psr16Cache(new RedisAdapter($r));
+                    self::$tagAdapter = new TagAwareAdapter(new RedisAdapter($r));
+                    self::$pool = new Psr16Cache(self::$tagAdapter);
 
                     return;
                 }
@@ -60,7 +63,8 @@ final class Cache
         }
 
         // Fallback: symfony/cache ArrayAdapter (reemplaza la clase anónima de ~200 líneas)
-        self::$pool = new Psr16Cache(new ArrayAdapter(defaultLifetime: 0, storeSerialized: true));
+        self::$tagAdapter = new TagAwareAdapter(new ArrayAdapter(defaultLifetime: 0, storeSerialized: true));
+        self::$pool = new Psr16Cache(self::$tagAdapter);
     }
 
     /**
@@ -297,8 +301,88 @@ final class Cache
     {
         self::$redis = null;
         self::$pool = null;
+        self::$tagAdapter = null;
         self::$initialized = false;
         self::$hits = 0;
         self::$misses = 0;
+    }
+
+    // ── TagAware operations ───────────────────────────────────────────────────
+
+    /**
+     * Invalida todas las entradas de cache asociadas a los tags dados.
+     *
+     * @param string[] $tags
+     */
+    public static function invalidateTags(array $tags): bool
+    {
+        self::init();
+        if (self::$tagAdapter === null) {
+            return false;
+        }
+        try {
+            return self::$tagAdapter->invalidateTags($tags);
+        } catch (Throwable $e) {
+            Logger::warning('[Cache] invalidateTags failed', ['exception' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+    /**
+     * Almacena un valor con tags de invalidación asociados.
+     *
+     * @param string[] $tags
+     */
+    public static function setWithTags(string $key, mixed $value, array $tags, int $ttl = 3600): bool
+    {
+        self::init();
+        if (self::$tagAdapter === null) {
+            return self::set($key, $value, $ttl);
+        }
+        try {
+            $item = self::$tagAdapter->getItem(self::sanitizeKey($key));
+            $item->set($value);
+            $item->expiresAfter($ttl);
+            $item->tag($tags);
+            return self::$tagAdapter->save($item);
+        } catch (Throwable $e) {
+            Logger::warning('[Cache] setWithTags failed', ['exception' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+    /**
+     * Retorna el valor cacheado; si no existe, ejecuta $fn, lo guarda y lo retorna.
+     * Si se pasan tags, usa TagAwareAdapter para permitir invalidación por grupo.
+     *
+     * @param string[] $tags
+     */
+    public static function computeIfAbsent(string $key, callable $fn, int $ttl = 3600, array $tags = []): mixed
+    {
+        self::init();
+        $sKey = self::sanitizeKey($key);
+        if (self::$tagAdapter !== null) {
+            try {
+                $item = self::$tagAdapter->getItem($sKey);
+                if ($item->isHit()) {
+                    self::$hits++;
+                    return $item->get();
+                }
+                self::$misses++;
+                $value = $fn();
+                $item->set($value);
+                $item->expiresAfter($ttl);
+                if ($tags !== []) {
+                    $item->tag($tags);
+                }
+                self::$tagAdapter->save($item);
+                return $value;
+            } catch (Throwable $e) {
+                Logger::warning('[Cache] computeIfAbsent failed, falling back to remember()', [
+                    'exception' => $e->getMessage(),
+                ]);
+            }
+        }
+        return self::remember($key, $fn, $ttl);
     }
 }

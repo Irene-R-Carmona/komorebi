@@ -7,7 +7,6 @@ namespace App\Services;
 use App\Core\Logger;
 use App\Core\Result;
 use App\Core\Session;
-use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
 use Override;
@@ -22,9 +21,7 @@ final class UserAccountService implements UserAccountServiceInterface
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepo,
-        private readonly User $userModel,
-    ) {
-    }
+    ) {}
 
     /**
      * Cambia la contraseña del usuario.
@@ -52,8 +49,8 @@ final class UserAccountService implements UserAccountServiceInterface
             return Result::fail('La contraseña debe contener al menos un número.');
         }
 
-        // Preferir el modelo legacy; fallback al repo si no devuelve usuario
-        $user = $this->userModel->findById($userId) ?? $this->userRepo->findById($userId);
+        // Usar findByIdForSecurity para obtener el hash de la contraseña
+        $user = $this->userRepo->findByIdForSecurity($userId);
 
         if (!$user) {
             return Result::fail('Usuario no encontrado.');
@@ -66,7 +63,7 @@ final class UserAccountService implements UserAccountServiceInterface
         }
 
         try {
-            $this->userModel->updatePassword($userId, $newPassword);
+            $this->userRepo->updatePassword($userId, $newPassword);
 
             return Result::ok('Contraseña actualizada correctamente');
         } catch (RuntimeException $e) {
@@ -82,13 +79,13 @@ final class UserAccountService implements UserAccountServiceInterface
     #[Override]
     public function deleteAccount(int $userId, string $password): Result
     {
-        $user = $this->userRepo->findById($userId);
+        $user = $this->userRepo->findByIdForSecurity($userId);
 
         if (!$user) {
             return Result::fail('Usuario no encontrado.');
         }
 
-        if (!$this->userModel->verifyPassword($user, $password)) {
+        if (!$this->userRepo->verifyPassword($user, $password)) {
             return Result::fail('Contraseña incorrecta.');
         }
 
@@ -114,7 +111,7 @@ final class UserAccountService implements UserAccountServiceInterface
     public function verifyEmail(int $userId): Result
     {
         try {
-            $this->userModel->verifyEmail($userId);
+            $this->userRepo->verifyEmail($userId);
 
             return Result::ok('Email verificado');
         } catch (RuntimeException $e) {
@@ -131,7 +128,7 @@ final class UserAccountService implements UserAccountServiceInterface
     public function deactivateAccount(int $userId): Result
     {
         try {
-            $ok = $this->userModel->setActive($userId, false);
+            $ok = $this->userRepo->setActive($userId, false);
 
             return $ok
                 ? Result::ok('Cuenta desactivada')
@@ -150,7 +147,7 @@ final class UserAccountService implements UserAccountServiceInterface
     public function reactivateAccount(int $userId): Result
     {
         try {
-            $ok = $this->userModel->setActive($userId, true);
+            $ok = $this->userRepo->setActive($userId, true);
 
             return $ok
                 ? Result::ok('Cuenta reactivada')

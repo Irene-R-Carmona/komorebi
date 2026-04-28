@@ -21,8 +21,7 @@ final class ReviewModerationService implements ReviewModerationServiceInterface
         private ReviewRepositoryInterface $reviewRepository,
         private CafeRepositoryInterface $cafeRepository,
         private ?EventDispatcherInterface $eventDispatcher = null,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function approveReview(int $reviewId): Result
@@ -36,7 +35,7 @@ final class ReviewModerationService implements ReviewModerationServiceInterface
 
             $this->reviewRepository->updateStatus($reviewId, 'approved');
 
-            $cafeId = (int) $review['cafe_id'];
+            $cafeId = (int) $review->cafe_id;
             $this->cafeRepository->updateRating($cafeId);
 
             Logger::info('Reseña aprobada', [
@@ -47,10 +46,10 @@ final class ReviewModerationService implements ReviewModerationServiceInterface
 
             if ($this->eventDispatcher !== null) {
                 $this->eventDispatcher->dispatch(new ReviewPublishedEvent(
-                    (int) $review['id'],
-                    (int) $review['user_id'],
-                    (int) $review['rating'],
-                    (string) ($review['body'] ?? ''),
+                    $review->id,
+                    $review->user_id,
+                    $review->rating,
+                    $review->body,
                     new DateTimeImmutable(),
                 ));
             }
@@ -110,7 +109,7 @@ final class ReviewModerationService implements ReviewModerationServiceInterface
             $result = $this->reviewRepository->updateStatus($reviewId, $status);
 
             if ($result && $review && \in_array($status, ['approved', 'rejected'], true)) {
-                $cafeId = (int) $review['cafe_id'];
+                $cafeId = (int) $review->cafe_id;
                 $this->cafeRepository->updateRating($cafeId);
             }
 

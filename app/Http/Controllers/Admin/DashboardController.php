@@ -52,6 +52,13 @@ final class DashboardController
                 Logger::info('[DashboardController::index] User Roles: ' . \json_encode(Session::get('user_roles', [])));
             }
 
+            // 103 Early Hints — enviar antes de las queries pesadas de estadísticas
+            \header('Link: </css/admin/admin-dashboard.css>; rel=preload; as=style', false);
+            \header('Link: </js/admin/admin-dashboard.js>; rel=preload; as=script', false);
+            if (\function_exists('headers_send')) {
+                \headers_send(103);
+            }
+
             // Obtener estadísticas y datos del dashboard desde el servicio
             $stats = $this->statisticsService->getSystemStatistics();
 

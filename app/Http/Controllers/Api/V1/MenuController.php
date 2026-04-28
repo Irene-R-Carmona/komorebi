@@ -33,9 +33,18 @@ final class MenuController extends AbstractApiController
      */
     public function allergens(ServerRequestInterface $request): ResponseInterface
     {
-        $allergens = $this->menuService->getAllergens();
+        $allergens  = $this->menuService->getAllergens();
+        $etag       = $this->makeEtag($allergens);
+        $cc         = 'public, max-age=3600, stale-while-revalidate=86400';
 
-        return $this->collection($allergens, $this->allergenTransformer);
+        if ($request->getHeaderLine('If-None-Match') === $etag) {
+            return $this->notModified($etag, $cc);
+        }
+
+        return $this->collection($allergens, $this->allergenTransformer, [], [
+            'Cache-Control' => $cc,
+            'ETag'          => $etag,
+        ]);
     }
 
     /**
@@ -52,20 +61,30 @@ final class MenuController extends AbstractApiController
     }
 
     /**
-     * POST /api/menu/view-product
-     * Body: {"product_id": 123}
+     * GET /api/v1/menu/products/{id}
+     * Registra visualización del producto y retorna confirmación.
      */
-    public function viewProduct(ServerRequestInterface $request): ResponseInterface
+    public function getProduct(ServerRequestInterface $request): ResponseInterface
     {
-        $input = \json_decode((string) $request->getBody(), true) ?? [];
+        $id = (int) ($request->getAttribute('id') ?? 0);
 
-        if (empty($input['product_id'])) {
-            return $this->unprocessable('product_id requerido', 'missing_product_id');
+        if ($id <= 0) {
+            return $this->unprocessable('id requerido y debe ser positivo', 'invalid_id');
         }
 
-        $productId = (int) $input['product_id'];
-        $this->recentlyViewedService->add($productId);
+        $this->recentlyViewedService->add($id);
 
-        return $this->success(['message' => 'Producto registrado']);
+        $data = ['product_id' => $id];
+        $etag = $this->makeEtag($data);
+        $cc   = 'public, max-age=300';
+
+        if ($request->getHeaderLine('If-None-Match') === $etag) {
+            return $this->notModified($etag, $cc);
+        }
+
+        return $this->success($data, 200, [
+            'Cache-Control' => $cc,
+            'ETag'          => $etag,
+        ]);
     }
 }

@@ -29,6 +29,60 @@ final class CookieController extends AbstractApiController
     }
 
     /**
+     * Gestionar consentimiento de cookies (consolida accept/reject/update)
+     * PATCH /api/v1/cookies
+     * Body: {"consent": "all"|"none"|"custom", [essential, functional, analytics]}
+     */
+    public function consent(ServerRequestInterface $request): ResponseInterface
+    {
+        $body = (array) ($request->getParsedBody() ?? []);
+        $type = (string) ($body['consent'] ?? '');
+
+        if ($type === '') {
+            return $this->unprocessable('El campo consent es requerido');
+        }
+
+        return match ($type) {
+            'all'  => $this->handleAcceptAll(),
+            'none' => $this->handleRejectOptional(),
+            'custom' => $this->handleCustomConsent($body),
+            default => $this->unprocessable('consent debe ser all, none o custom'),
+        };
+    }
+
+    private function handleAcceptAll(): ResponseInterface
+    {
+        CookieManager::acceptAll();
+
+        return $this->success(['message' => 'Todas las cookies funcionales han sido aceptadas']);
+    }
+
+    private function handleRejectOptional(): ResponseInterface
+    {
+        CookieManager::rejectOptional();
+
+        return $this->success(['message' => 'Solo se utilizarán cookies esenciales']);
+    }
+
+    private function handleCustomConsent(array $body): ResponseInterface
+    {
+        if (!isset($body['essential'], $body['functional'], $body['analytics'])) {
+            return $this->unprocessable('Faltan campos requeridos: essential, functional, analytics');
+        }
+
+        CookieManager::saveConsent($body);
+
+        if (!$body['functional']) {
+            CookieManager::delete(CookieManager::FILTER_PREFERENCES);
+            CookieManager::delete(CookieManager::RECENTLY_VIEWED);
+            CookieManager::delete(CookieManager::NEWSLETTER_PROMPTED);
+            CookieManager::delete(CookieManager::DIETARY_PREFERENCES);
+        }
+
+        return $this->success(['message' => 'Preferencias guardadas correctamente']);
+    }
+
+    /**
      * Aceptar todas las cookies funcionales
      * POST /api/cookies/accept
      */
@@ -124,13 +178,13 @@ final class CookieController extends AbstractApiController
 
     /**
      * Limpiar filtros guardados
-     * POST /api/cookies/clear-filters
+     * DELETE /api/v1/cookies/filters
      */
     public function clearFilters(ServerRequestInterface $request): ResponseInterface
     {
         CookieManager::delete(CookieManager::FILTER_PREFERENCES);
 
-        return $this->success(['message' => 'Filtros eliminados']);
+        return $this->noContent();
     }
 
     /**
@@ -210,16 +264,13 @@ final class CookieController extends AbstractApiController
 
     /**
      * Limpiar historial de vistos recientemente
-     * DELETE /api/cookies/recently-viewed/clear
+     * DELETE /api/v1/cookies/recently-viewed
      */
     public function clearRecentlyViewed(ServerRequestInterface $request): ResponseInterface
     {
-        $result = $this->recentlyViewed->clear();
+        $this->recentlyViewed->clear();
 
-        return $this->success([
-            'cleared' => $result,
-            'message' => $result ? 'Historial eliminado' : 'Error al eliminar',
-        ]);
+        return $this->noContent();
     }
 
     /**

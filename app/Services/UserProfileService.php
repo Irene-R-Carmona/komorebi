@@ -8,7 +8,6 @@ use App\Core\Result;
 use App\Core\Session;
 use App\Exceptions\AuthenticationException;
 use App\Exceptions\NotFoundException;
-use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
 use Override;
@@ -23,9 +22,7 @@ final class UserProfileService implements UserProfileServiceInterface
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepo,
-        private readonly User $userModel,
-    ) {
-    }
+    ) {}
 
     /**
      * Obtiene el perfil del usuario autenticado en la sesión actual.
@@ -65,18 +62,18 @@ final class UserProfileService implements UserProfileServiceInterface
         $roleCodes = \array_column($roles, 'slug');
 
         return [
-            'id' => (int) ($user['id'] ?? 0),
-            'uuid' => $user['uuid'] ?? null,
-            'name' => $user['name'] ?? '',
-            'email' => $user['email'] ?? null,
+            'id' => $user->id,
+            'uuid' => $user->uuid,
+            'name' => $user->name,
+            'email' => $user->email,
             'roles' => $roleCodes,
-            'is_active' => isset($user['is_active']) ? (bool) $user['is_active'] : false,
-            'cafe_id' => isset($user['cafe_id']) && $user['cafe_id'] ? (int) $user['cafe_id'] : null,
-            'avatar' => $user['avatar'] ?? null,
-            'preferences' => isset($user['preferences']) && $user['preferences']
-                ? \json_decode($user['preferences'], true)
+            'is_active' => $user->is_active,
+            'cafe_id' => $user->cafe_id,
+            'avatar' => $user->avatar,
+            'preferences' => $user->preferences !== null
+                ? \json_decode($user->preferences, true)
                 : [],
-            'created_at' => $user['created_at'] ?? null,
+            'created_at' => $user->created_at,
         ];
     }
 
@@ -142,7 +139,7 @@ final class UserProfileService implements UserProfileServiceInterface
     public function updateAvatar(int $userId, ?string $filename): Result
     {
         try {
-            $this->userModel->updateAvatar($userId, $filename);
+            $this->userRepo->updateAvatar($userId, $filename);
 
             return Result::ok($filename);
         } catch (RuntimeException $e) {

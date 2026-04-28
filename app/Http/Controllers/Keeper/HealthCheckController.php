@@ -12,6 +12,7 @@ use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
+use App\Domain\Mappers\AnimalMapper;
 use App\Repositories\AnimalRepository;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Repositories\HealthCheckRepository;
@@ -42,7 +43,7 @@ final class HealthCheckController
         if ($healthCheckService === null || $animalRepo === null) {
             $db = Database::getConnection();
             $this->healthCheckService = $healthCheckService ?? new HealthCheckService(new HealthCheckRepository($db));
-            $this->animalRepo = $animalRepo ?? new AnimalRepository($db);
+            $this->animalRepo = $animalRepo ?? new AnimalRepository(new AnimalMapper(), $db);
         } else {
             $this->healthCheckService = $healthCheckService;
             $this->animalRepo = $animalRepo;
@@ -96,7 +97,7 @@ final class HealthCheckController
 
         View::render('backoffice/keeper/health-checks/create', [
             'titulo' => 'Nuevo Chequeo de Salud',
-            'animal' => $animal,
+            'animal' => $animal->toViewArray(),
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
 
@@ -202,7 +203,7 @@ final class HealthCheckController
 
         View::render('backoffice/keeper/health-checks/history', [
             'titulo' => 'Historial de Chequeos',
-            'animal' => $animal,
+            'animal' => $animal->toViewArray(),
             'history' => $history,
             'limit' => $limit,
             'csrf_token' => Csrf::token(),
