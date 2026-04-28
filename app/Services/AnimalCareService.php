@@ -283,6 +283,22 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
         }
     }
 
+    #[Override]
+    public function updateIncident(int $id, array $data): Result
+    {
+        if ($this->incidentRepo->findById($id) === null) {
+            return Result::fail('Incidente no encontrado');
+        }
+
+        $updated = $this->incidentRepo->update($id, $data);
+
+        if (!$updated) {
+            return Result::fail('Error al actualizar el incidente');
+        }
+
+        return Result::ok(true);
+    }
+
     private function validateCareLogData(array $data): Result
     {
         if (empty($data['animal_id']) || $data['animal_id'] <= 0) {

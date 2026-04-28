@@ -330,4 +330,32 @@ final class HealthCheckService implements HealthCheckServiceInterface
 
         return Result::ok([]);
     }
+
+    /**
+     * Actualizar un chequeo existente (solo corrección de errores).
+     *
+     * @param int $id ID del chequeo a actualizar
+     * @param array $data Campos a corregir
+     * @return Result Success o Error con mensaje
+     */
+    #[Override]
+    public function update(int $id, array $data): Result
+    {
+        if ($this->repository->findById($id) === null) {
+            return Result::fail('Chequeo no encontrado');
+        }
+
+        $validation = $this->validateMetrics($data);
+        if (!$validation->ok) {
+            return $validation;
+        }
+
+        $updated = $this->repository->update($id, $data);
+
+        if (!$updated) {
+            return Result::fail('Error al actualizar el chequeo');
+        }
+
+        return Result::ok(true);
+    }
 }

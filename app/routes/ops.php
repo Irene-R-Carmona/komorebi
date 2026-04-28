@@ -83,12 +83,16 @@ if (Env::bool('FEATURE_KEEPER', true)) {
         $r->get('/health-checks/create/{animalId}', 'Keeper\HealthCheckController@create');
         $r->post('/health-checks', 'Keeper\HealthCheckController@store', [$mw->csrf()]);
         $r->get('/health-checks/{checkId}', 'Keeper\HealthCheckController@show');
+        $r->get('/health-checks/{checkId}/edit', 'Keeper\HealthCheckController@edit');
+        $r->post('/health-checks/{checkId}', 'Keeper\HealthCheckController@update', [$mw->csrf()]);
         $r->get('/health-checks/history/{animalId}', 'Keeper\HealthCheckController@history');
 
-        // Incidentes de animales - flujo web (GETs)
+        // Incidentes de animales - flujo web
         $r->get('/incidents', 'Keeper\AnimalIncidentController@index');
         $r->get('/incidents/create', 'Keeper\AnimalIncidentController@create');
         $r->get('/incidents/{id}', 'Keeper\AnimalIncidentController@show');
+        $r->get('/incidents/{id}/edit', 'Keeper\AnimalIncidentController@edit');
+        $r->post('/incidents/{id}', 'Keeper\AnimalIncidentController@update', [$mw->csrf()]);
     });
 
     // API Keeper — mutaciones AJAX (FASE 4B)

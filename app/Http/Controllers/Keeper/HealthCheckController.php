@@ -211,4 +211,64 @@ final class HealthCheckController
 
         return null;
     }
+
+    /**
+     * GET /keeper/health-checks/{checkId}/edit
+     * Formulario de corrección de datos de un chequeo existente.
+     *
+     * @throws NotFoundException Si el chequeo no existe
+     */
+    public function edit(ServerRequestInterface $request, int $checkId): ?ResponseInterface
+    {
+        $check = $this->healthCheckService->getCheckById($checkId);
+
+        if ($check === null) {
+            throw new NotFoundException('Chequeo no encontrado');
+        }
+
+        View::render('backoffice/keeper/health-checks/edit', [
+            'titulo' => 'Corregir Chequeo de Salud',
+            'check' => $check,
+            'csrf_token' => Csrf::token(),
+        ], [], 'backoffice');
+
+        return null;
+    }
+
+    /**
+     * POST /keeper/health-checks/{checkId}
+     * Guardar la corrección de un chequeo (solo errores de entrada).
+     *
+     * @throws ValidationException Si CSRF inválido o datos incorrectos
+     */
+    public function update(ServerRequestInterface $request, int $checkId): ResponseInterface
+    {
+        if (!Csrf::validate($request)) {
+            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+        }
+
+        $body = (array) $request->getParsedBody();
+
+        $data = [
+            'weight_kg'        => !empty($body['weight_kg'])       ? (float) $body['weight_kg']       : null,
+            'temperature_c'    => !empty($body['temperature_c'])   ? (float) $body['temperature_c']   : null,
+            'appetite'         => $body['appetite']         ?? null,
+            'energy_level'     => $body['energy_level']     ?? null,
+            'coat_condition'   => $body['coat_condition']   ?? null,
+            'notes'            => isset($body['notes'])     ? \trim($body['notes'])             : null,
+        ];
+
+        $data = \array_filter($data, static fn (mixed $v): bool => $v !== null);
+
+        $result = $this->healthCheckService->update($checkId, $data);
+
+        if (!$result->ok) {
+            Flash::error($result->error ?? 'Error al actualizar chequeo');
+            return $this->response->redirect('/keeper/health-checks/' . $checkId . '/edit');
+        }
+
+        Flash::success('Chequeo corregido correctamente.');
+
+        return $this->response->redirect('/keeper/health-checks/' . $checkId);
+    }
 }

@@ -159,4 +159,58 @@ final class AnimalIncidentController
 
         return $this->response->redirect('/keeper/incidents');
     }
+
+    /**
+     * GET /keeper/incidents/{id}/edit
+     * Formulario de corrección de un incidente existente.
+     *
+     * @throws NotFoundException
+     */
+    public function edit(ServerRequestInterface $request, int $id): ?ResponseInterface
+    {
+        $incident = $this->service->getIncidentById($id);
+
+        if ($incident === null) {
+            throw NotFoundException::forResource('Incidente', $id);
+        }
+
+        View::render('backoffice/keeper/incidents/edit', \compact('incident'), [], 'backoffice');
+
+        return null;
+    }
+
+    /**
+     * POST /keeper/incidents/{id}
+     * Guardar la corrección de datos de un incidente.
+     *
+     * @throws ValidationException
+     */
+    public function update(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        if (!Csrf::validate($request)) {
+            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+        }
+
+        $body = (array) $request->getParsedBody();
+
+        $data = [];
+
+        if (isset($body['severity']) && $body['severity'] !== '') {
+            $data['severity'] = $body['severity'];
+        }
+
+        if (isset($body['description']) && $body['description'] !== '') {
+            $data['description'] = \trim($body['description']);
+        }
+
+        $result = $this->service->updateIncident($id, $data);
+
+        if ($result->ok) {
+            Flash::success('Incidente actualizado correctamente.');
+        } else {
+            Flash::error($result->error ?? 'Error al actualizar el incidente');
+        }
+
+        return $this->response->redirect('/keeper/incidents/' . $id);
+    }
 }

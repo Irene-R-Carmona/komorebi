@@ -81,6 +81,15 @@ interface HealthCheckRepositoryInterface
     public function create(array $data): int;
 
     /**
+     * Actualizar un chequeo existente (solo corrección de errores).
+     *
+     * @param int $id ID del chequeo
+     * @param array $data Campos a actualizar
+     * @return bool True si se actualizó correctamente
+     */
+    public function update(int $id, array $data): bool;
+
+    /**
      * Verificar si existe un chequeo para un animal en una fecha.
      *
      * @param int $animalId ID del animal

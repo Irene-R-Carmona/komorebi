@@ -23,4 +23,6 @@ interface HealthCheckServiceInterface
     public function getKeeperStatistics(int $keeperId, ?string $startDate = null, ?string $endDate = null): array;
 
     public function detectAlerts(array $data): array;
+
+    public function update(int $id, array $data): Result;
 }
