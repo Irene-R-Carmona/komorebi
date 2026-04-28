@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí? AdminStatisticsService: delegación a statsRepo y cálculo de tendencias.
- * ¿Qué me quieres demostrar? Que el servicio devuelve arrays con las claves esperadas y que los errores de PDO se manejan graciosamente.
- * ¿Qué va a fallar en este test si se cambia el código? Si se eliminan las claves del array de estadísticas o se pierde el manejo de PDOException.
+ * ¿Qué pruebas aquí? AdminStatisticsService: delegación a statsRepo, cálculo de tendencias y Result pattern.
+ * ¿Qué me quieres demostrar? Que el servicio devuelve Result::ok con arrays correctos y maneja PDOException graciosamente.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se eliminan las claves del array o se pierde el manejo de PDOException o el Result pattern.
  */
 
 namespace Tests\Unit\Services;
@@ -36,10 +36,11 @@ final class AdminStatisticsServiceTest extends TestCase
 
         $result = $this->service->getSystemStatistics();
 
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('total_users', $result);
-        $this->assertArrayHasKey('users_trend', $result);
-        $this->assertArrayHasKey('reservations_trend', $result);
+        $this->assertTrue($result->ok);
+        $this->assertIsArray($result->data);
+        $this->assertArrayHasKey('total_users', $result->data);
+        $this->assertArrayHasKey('users_trend', $result->data);
+        $this->assertArrayHasKey('reservations_trend', $result->data);
     }
 
     public function testGetSystemStatisticsHandlesPDOException(): void
@@ -49,9 +50,10 @@ final class AdminStatisticsServiceTest extends TestCase
 
         $result = $this->service->getSystemStatistics();
 
-        $this->assertIsArray($result);
-        $this->assertSame('0%', $result['users_trend']);
-        $this->assertSame('0%', $result['reservations_trend']);
+        $this->assertTrue($result->ok);
+        $this->assertIsArray($result->data);
+        $this->assertSame('0%', $result->data['users_trend']);
+        $this->assertSame('0%', $result->data['reservations_trend']);
     }
 
     public function testGetMonthlyStatsReturnsArray(): void
@@ -64,7 +66,8 @@ final class AdminStatisticsServiceTest extends TestCase
 
         $result = $this->service->getMonthlyStats(4, 2026);
 
-        $this->assertIsArray($result);
+        $this->assertTrue($result->ok);
+        $this->assertIsArray($result->data);
     }
 
     public function testGetTopCafesReturnsArray(): void
@@ -73,8 +76,9 @@ final class AdminStatisticsServiceTest extends TestCase
 
         $result = $this->service->getTopCafes('2026-01-01', '2026-12-31', 5);
 
-        $this->assertIsArray($result);
-        $this->assertCount(1, $result);
+        $this->assertTrue($result->ok);
+        $this->assertIsArray($result->data);
+        $this->assertCount(1, $result->data);
     }
 
     public function testGetUserDistributionByRoleReturnsArray(): void
@@ -83,6 +87,7 @@ final class AdminStatisticsServiceTest extends TestCase
 
         $result = $this->service->getUserDistributionByRole();
 
-        $this->assertIsArray($result);
+        $this->assertTrue($result->ok);
+        $this->assertIsArray($result->data);
     }
 }

@@ -4,22 +4,21 @@ declare(strict_types=1);
 
 namespace App\Services\Contracts;
 
+use App\Core\Result;
+
 interface AdminStatisticsServiceInterface
 {
-    /**
-     * @return array{users: int, cafes: int, reservations: int, reviews: int, pending_reviews: int, users_trend: string, reservations_trend: string}
-     */
-    public function getSystemStatistics(): array;
+    public function getSystemStatistics(): Result;
 
-    public function getMonthlyStats(int $month, int $year): array;
+    public function getMonthlyStats(int $month, int $year): Result;
 
-    public function getCafePerformanceStats(string $dateFrom, string $dateTo, int $limit = 10): array;
+    public function getCafePerformanceStats(string $dateFrom, string $dateTo, int $limit = 10): Result;
 
-    public function getReservationTrendStats(string $dateFrom, string $dateTo): array;
+    public function getReservationTrendStats(string $dateFrom, string $dateTo): Result;
 
-    public function getReservationsByCafeType(string $dateFrom, string $dateTo): array;
+    public function getReservationsByCafeType(string $dateFrom, string $dateTo): Result;
 
-    public function getUserDistributionByRole(): array;
+    public function getUserDistributionByRole(): Result;
 
-    public function getTopCafes(string $dateFrom, string $dateTo, int $limit = 10): array;
+    public function getTopCafes(string $dateFrom, string $dateTo, int $limit = 10): Result;
 }

@@ -62,8 +62,10 @@ final class ReportController
             return $this->getReportesData();
         }
 
-        $systemStats = $this->statisticsService->getSystemStatistics();
-        $monthlyStats = $this->statisticsService->getMonthlyStats((int) \date('n'), (int) \date('Y'));
+        $statsResult = $this->statisticsService->getSystemStatistics();
+        $systemStats = $statsResult->ok ? $statsResult->data : [];
+        $monthlyResult = $this->statisticsService->getMonthlyStats((int) \date('n'), (int) \date('Y'));
+        $monthlyStats = $monthlyResult->ok ? $monthlyResult->data : [];
 
         View::render('admin/reportes', [
             'titulo' => 'Reportes y Estadísticas',
@@ -90,12 +92,18 @@ final class ReportController
         $dateFrom = $_GET['date_from'] ?? \date('Y-m-d', \strtotime('-30 days'));
         $dateTo = $_GET['date_to'] ?? \date('Y-m-d');
 
-        $summary = $this->reportService->getReportsSummary($dateFrom, $dateTo);
-        $reservationTrend = $this->statisticsService->getReservationTrendStats($dateFrom, $dateTo);
-        $cafeTypes = $this->statisticsService->getReservationsByCafeType($dateFrom, $dateTo);
-        $cafePerformance = $this->statisticsService->getCafePerformanceStats($dateFrom, $dateTo, 10);
-        $userRoles = $this->statisticsService->getUserDistributionByRole();
-        $topCafes = $this->statisticsService->getTopCafes($dateFrom, $dateTo, 10);
+        $summaryResult = $this->reportService->getReportsSummary($dateFrom, $dateTo);
+        $summary = $summaryResult->ok ? $summaryResult->data : [];
+        $trendResult = $this->statisticsService->getReservationTrendStats($dateFrom, $dateTo);
+        $reservationTrend = $trendResult->ok ? $trendResult->data : [];
+        $cafeTypesResult = $this->statisticsService->getReservationsByCafeType($dateFrom, $dateTo);
+        $cafeTypes = $cafeTypesResult->ok ? $cafeTypesResult->data : [];
+        $cafePerformanceResult = $this->statisticsService->getCafePerformanceStats($dateFrom, $dateTo, 10);
+        $cafePerformance = $cafePerformanceResult->ok ? $cafePerformanceResult->data : [];
+        $userRolesResult = $this->statisticsService->getUserDistributionByRole();
+        $userRoles = $userRolesResult->ok ? $userRolesResult->data : [];
+        $topCafesResult = $this->statisticsService->getTopCafes($dateFrom, $dateTo, 10);
+        $topCafes = $topCafesResult->ok ? $topCafesResult->data : [];
 
         return $this->response->json(['ok' => true, 'data' => [
             'summary' => $summary,
@@ -123,9 +131,12 @@ final class ReportController
                 throw ValidationException::withMessage('Formato no soportado', 400);
             }
 
-            $topCafes = $this->statisticsService->getTopCafes($dateFrom, $dateTo, 50);
-            $cafePerformance = $this->statisticsService->getCafePerformanceStats($dateFrom, $dateTo, 50);
-            $summary = $this->reportService->getReportsSummary($dateFrom, $dateTo);
+            $topCafesResult = $this->statisticsService->getTopCafes($dateFrom, $dateTo, 50);
+            $topCafes = $topCafesResult->ok ? $topCafesResult->data : [];
+            $cafePerformanceResult = $this->statisticsService->getCafePerformanceStats($dateFrom, $dateTo, 50);
+            $cafePerformance = $cafePerformanceResult->ok ? $cafePerformanceResult->data : [];
+            $summaryResult = $this->reportService->getReportsSummary($dateFrom, $dateTo);
+            $summary = $summaryResult->ok ? $summaryResult->data : [];
 
             $tmp = \fopen('php://temp', 'rw+');
 

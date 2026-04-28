@@ -60,14 +60,16 @@ final class DashboardController
             }
 
             // Obtener estadísticas y datos del dashboard desde el servicio
-            $stats = $this->statisticsService->getSystemStatistics();
+            $statsResult = $this->statisticsService->getSystemStatistics();
+            $stats = $statsResult->ok ? $statsResult->data : [];
 
             if (Env::get('APP_ENV') === 'local') {
                 Logger::debug('[DashboardController::index] Stats loaded: ' . \json_encode($stats));
             }
 
+            $reservationsResult = $this->activityService->getRecentReservations(10);
             $recentReservations = $this->reservationTransformer->collection(
-                $this->activityService->getRecentReservations(10)
+                $reservationsResult->ok ? $reservationsResult->data : []
             );
 
             if (Env::get('APP_ENV') === 'local') {
@@ -75,10 +77,14 @@ final class DashboardController
             }
 
             // Obtener actividad reciente REAL del sistema
-            $recentActivity = $this->activityService->getRecentActivity(6);
+            $activityResult = $this->activityService->getRecentActivity(6);
+            $recentActivity = $activityResult->ok ? $activityResult->data : [];
 
             // Obtener estado del sistema VERIFICADO
-            $systemStatus = $this->activityService->getSystemStatus();
+            $statusResult = $this->activityService->getSystemStatus();
+            $systemStatus = $statusResult->ok
+                ? $statusResult->data
+                : ['database' => 'unknown', 'cache' => 'unknown', 'email' => 'unknown'];
 
             // Generar saludo según hora del día
             $hour = (int) \date('H');
@@ -89,7 +95,8 @@ final class DashboardController
             };
 
             // Datos del gráfico (últimos 7 días de reservas)
-            $chartData = $this->activityService->getReservationsChartData();
+            $chartResult = $this->activityService->getReservationsChartData();
+            $chartData = $chartResult->ok ? $chartResult->data : ['labels' => [], 'values' => []];
 
             View::render('admin/home', [
                 'titulo' => 'Dashboard - Admin',

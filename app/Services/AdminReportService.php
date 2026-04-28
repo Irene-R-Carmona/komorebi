@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Container;
+use App\Core\Result;
 use App\Repositories\Contracts\StatisticsRepositoryInterface;
 use App\Services\Contracts\AdminReportServiceInterface;
 use Override;
+use PDOException;
 
 final class AdminReportService implements AdminReportServiceInterface
 {
@@ -19,8 +21,12 @@ final class AdminReportService implements AdminReportServiceInterface
     }
 
     #[Override]
-    public function getReportsSummary(string $dateFrom, string $dateTo): array
+    public function getReportsSummary(string $dateFrom, string $dateTo): Result
     {
-        return $this->statsRepo->getReportsSummary($dateFrom, $dateTo);
+        try {
+            return Result::ok($this->statsRepo->getReportsSummary($dateFrom, $dateTo));
+        } catch (PDOException $e) {
+            return Result::fail($e->getMessage(), 'db_error');
+        }
     }
 }

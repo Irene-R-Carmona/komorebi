@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí? AdminReportService: getReportsSummary delega al repositorio.
- * ¿Qué me quieres demostrar? Que getReportsSummary retorna lo que retorna el statsRepo.
- * ¿Qué va a fallar en este test si se cambia el código? Si se deja de delegar al repositorio o cambia la firma.
+ * ¿Qué pruebas aquí? AdminReportService: getReportsSummary delega al repositorio y retorna Result.
+ * ¿Qué me quieres demostrar? Que getReportsSummary retorna Result::ok con lo que devuelve el statsRepo.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se deja de delegar al repositorio, cambia la firma, o se elimina el Result pattern.
  */
 
 namespace Tests\Unit\Services;
@@ -28,6 +28,7 @@ final class AdminReportServiceTest extends TestCase
         $service = new AdminReportService($statsRepoStub);
         $result  = $service->getReportsSummary('2025-01-01', '2025-01-31');
 
-        $this->assertSame($expected, $result);
+        $this->assertTrue($result->ok);
+        $this->assertSame($expected, $result->data);
     }
 }
