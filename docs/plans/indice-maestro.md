@@ -1,7 +1,7 @@
 # Índice Maestro — Komorebi Café (Prioridades Operativas)
 
 **Fecha:** 28 de abril de 2026
-**Estado:** índice actualizado — P6-rem ✅ verificado y cerrado (`c6a133d`)
+**Estado:** índice actualizado — P3 ✅ verificado y cerrado (`c8fbd8c`)
 **Criterio:** primero arranque estable en Railway, después seguridad, luego hardening, deuda técnica y rendimiento.
 
 ---
@@ -20,7 +20,7 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 | P0 | Railway listo para producción (arranque, persistencia, env, workers) | `2026-04-20-railway-readiness.md` | ✅ Completo |
 | P1 | Seguridad activa antes de tráfico real | `2026-04-17-business-rules-hardening.md` (Sprint 0-2) | ✅ Completo |
 | P2 | Hardening funcional de reglas de negocio | `2026-04-17-business-rules-hardening.md` (Sprint 3-5) | ✅ Completo |
-| P3 | Observabilidad y deuda técnica controlada | `2026-04-15-infra-calidad-integral.md` (C, D, E) | 🟡 En implementación parcial |
+| P3 | Observabilidad y deuda técnica controlada | `2026-04-15-infra-calidad-integral.md` (C, D, E) | ✅ Verificado y cerrado |
 | P4 | Optimización de rendimiento y stack | `2026-04-15-frankenphp-stack-optimization.md` | ✅ Implementación completa |
 
 ---
@@ -32,7 +32,7 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 | P0 | Railway Readiness | ~~`docs/plans/2026-04-20-railway-readiness.md`~~ | ✅ Completado y eliminado (2026-04-20) | R1-R10 + validación mínima |
 | P1 | Business Rules Hardening (Seguridad) | `docs/plans/2026-04-17-business-rules-hardening.md` | ✅ Completo | S0, S1, S2 |
 | P2 | Business Rules Hardening (Calidad funcional) | `docs/plans/2026-04-17-business-rules-hardening.md` | ✅ Completo | S3, S4, S5 |
-| P3 | Infra + Calidad Integral | `docs/plans/2026-04-15-infra-calidad-integral.md` | 🟡 En implementación | A5 + C1-C3 + D1-D5 + E1-E2 |
+| P3 | Infra + Calidad Integral | ~~`docs/plans/2026-04-15-infra-calidad-integral.md`~~ | ✅ Completado y eliminado (2026-04-28) | A1-A5 + B1-B2 + C1-C3 + D1-D5 + E1-E2 + F1-F3 |
 | P4 | FrankenPHP + Stack Optimization | `docs/plans/2026-04-15-frankenphp-stack-optimization.md` | ✅ Implementación completa | Todas las fases ejecutadas |
 
 ---
