@@ -1,4 +1,4 @@
-.PHONY: help up down restart logs bash db-reset db-seed db-migrate clean test test-unit test-integration test-coverage test-build test-clean ci coverage cs-check cs-fix audit sonar-up sonar-down analyze e2e e2e-a11y lighthouse playwright-install dev dev-full workers-up workers-down xdebug-on phpstan phpstan-quick
+.PHONY: help up down restart logs bash db-reset db-seed db-migrate clean test test-unit test-integration test-coverage test-build test-clean ci coverage coverage-check cs-check cs-fix audit sonar-up sonar-down analyze e2e e2e-a11y lighthouse playwright-install dev dev-full workers-up workers-down xdebug-on phpstan phpstan-quick
 
 # Colores para output
 GREEN=\033[0;32m
@@ -122,11 +122,11 @@ test-integration: ## Tests de integración con BD efímera
 		sh -c "php scripts/apply-db.php --force && php vendor/bin/phpunit --testsuite 'Integration Tests' --testdox"; \
 		EXIT=$$?; docker compose -f docker-compose.test.yml down -v; exit $$EXIT
 
-test-coverage: ## Tests con cobertura de código (genera HTML + Clover)
+test-coverage: ## Tests con cobertura de código (genera HTML + Clover) y verifica umbral 85%
 	@echo "$(GREEN)Construyendo imagen de test...$(NC)"
 	docker compose -f docker-compose.test.yml build php-test
 	@docker compose -f docker-compose.test.yml run --rm php-test \
-		sh -c "php scripts/apply-db.php --force && php vendor/bin/phpunit --coverage-text --coverage-clover tests/reports/coverage.xml --coverage-html tests/reports/coverage/"; \
+		sh -c "php scripts/apply-db.php --force && php vendor/bin/phpunit --coverage-text --coverage-clover tests/reports/coverage.xml --coverage-html tests/reports/coverage/ && php scripts/check-coverage.php tests/reports/coverage.xml 85"; \
 		EXIT=$$?; docker compose -f docker-compose.test.yml down -v; exit $$EXIT
 
 test-build: ## Construir imagen de test sin ejecutar
@@ -140,6 +140,9 @@ phpstan: ## Análisis estático con PHPStan (guarda output; nunca pierde por tim
 
 phpstan-quick: ## PHPStan solo sobre app/ (rápido, sin scripts/ ni tests/)
 	docker compose exec app sh -c "php vendor/bin/phpstan analyse app/ --memory-limit=512M --no-progress --allow-unmatched-ignores 2>&1"
+
+coverage-check: ## Verificar umbral 85% sobre XML ya generado (tests/reports/coverage.xml)
+	docker compose exec app php scripts/check-coverage.php tests/reports/coverage.xml 85
 
 ci: ## Suite completa de calidad (phpstan + test + cs)
 	$(MAKE) phpstan

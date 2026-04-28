@@ -12,6 +12,7 @@ namespace Tests\Unit\Services;
 
 use App\Repositories\Contracts\StatisticsRepositoryInterface;
 use App\Services\AdminReportService;
+use PDOException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -30,5 +31,17 @@ final class AdminReportServiceTest extends TestCase
 
         $this->assertTrue($result->ok);
         $this->assertSame($expected, $result->data);
+    }
+
+    public function testGetReportsSummaryReturnsFail(): void
+    {
+        $statsRepoStub = $this->createStub(StatisticsRepositoryInterface::class);
+        $statsRepoStub->method('getReportsSummary')->willThrowException(new PDOException('DB error'));
+
+        $service = new AdminReportService($statsRepoStub);
+        $result  = $service->getReportsSummary('2025-01-01', '2025-01-31');
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('db_error', $result->code);
     }
 }

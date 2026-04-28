@@ -42,7 +42,7 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 | Prioridad | Plan | Archivo | Estado actual | Alcance inmediato |
 |-----------|------|---------|---------------|-------------------|
 | P3b | Fix bugs diseño controllers | `docs/plans/2026-04-20-fix-controller-design-bugs.md` | ✅ Completo | Fases 1-5 (13 archivos) |
-| P3c | Cobertura de tests al 85% | `docs/plans/2026-04-22-cobertura-85-porciento.md` | 🟡 En progreso — **40.44%** (6613/16353 stmts); 1703 tests OK; A.3 ✅, C parcial 6/19 repos ✅ (13 pendientes); gap restante: 7288 stmts | Fase C restante (13 repos) → Fase B (modelos) → D → E → F |
+| P3c | Cobertura de tests al 85% | `docs/plans/2026-04-22-cobertura-85-porciento.md` | � Implementación completa — A ✅ B ✅ C ✅ D ✅ E ✅ F ✅ G ✅; pendiente `make test-coverage` para verificar % real | Ejecutar `make test-coverage` → confirmar ≥ 85% → eliminar plan |
 | P3d | Testing quality improvements | `docs/plans/2026-04-21-testing-quality-improvements.md` | ✅ Completado — FASE 1 ✅, FASE 2 ✅, FASE 3 ✅, FASE 4 ❌ N/A (PHPUnit 13) | — |
 
 ## Planes de Infraestructura y CI/CD

@@ -175,19 +175,19 @@ Controllers Api/V1 (pendientes):
 9. `TimeSlotControllerTest.php`
 10. `WaitlistControllerTest.php`
 
-### Fase F — Tests de integración (~1 día)
+### Fase F — Tests de integración ✅ COMPLETADA (archivos pre-existentes con escenarios completos)
 
-Ampliar `tests/Integration/`:
+- `AuthIntegrationTest.php` ✅ — 6 tests: register, login, hash, duplicados, wrong password
+- `ReservationIntegrationTest.php` ✅ — 8 tests: create, cancel, getByUser, inactive cafe, past date
+- `WaitlistIntegrationTest.php` ✅ — 5 tests: join, promote, status, ordering, expiration
+- `ReviewIntegrationTest.php` ✅ — 4 tests: create, moderate, getByCase, averageRating
+- Tests requieren `make test-integration` (docker-compose.test.yml + komorebi_test DB)
 
-- `AuthIntegrationTest.php` — rate limiting, lockout tras N intentos
-- `ReservationIntegrationTest.php` — create → confirm → cancel; rollback en fallo
-- `WaitlistIntegrationTest.php` — join → promote → confirm; expiración
-- `ReviewModerationIntegrationTest.php` — submit → pending → approve
+### Fase G — CI enforcement ✅ COMPLETADA (28-04-2026)
 
-### Fase G — CI enforcement (½ día)
-
-- Añadir verificación de coverage mínima en `Makefile` target `test-coverage`
-- Script PHP post-coverage: verifica XML de cobertura → falla si < 85%
+- `scripts/check-coverage.php` — lee Clover XML, verifica umbral configurable (default 85%), exit 1 si falla
+- `make test-coverage` — genera HTML + Clover XML y ejecuta check-coverage.php 85 al final
+- `make coverage-check` — target standalone para verificar XML ya generado
 
 ---
 

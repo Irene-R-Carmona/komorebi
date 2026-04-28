@@ -90,4 +90,103 @@ final class AdminStatisticsServiceTest extends TestCase
         $this->assertTrue($result->ok);
         $this->assertIsArray($result->data);
     }
+
+    public function testGetCafePerformanceStatsReturnsDelegatedData(): void
+    {
+        $expected = [['cafe_id' => 1, 'reservations' => 20]];
+        $this->statsRepoStub->method('getCafePerformanceStats')->willReturn($expected);
+
+        $result = $this->service->getCafePerformanceStats('2026-01-01', '2026-01-31');
+
+        $this->assertTrue($result->ok);
+        $this->assertSame($expected, $result->data);
+    }
+
+    public function testGetCafePerformanceStatsReturnsFail(): void
+    {
+        $this->statsRepoStub->method('getCafePerformanceStats')
+            ->willThrowException(new PDOException('DB error'));
+
+        $result = $this->service->getCafePerformanceStats('2026-01-01', '2026-01-31');
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('db_error', $result->code);
+    }
+
+    public function testGetReservationTrendStatsReturnsDelegatedData(): void
+    {
+        $expected = [['date' => '2026-01-01', 'count' => 5]];
+        $this->statsRepoStub->method('getReservationTrendStats')->willReturn($expected);
+
+        $result = $this->service->getReservationTrendStats('2026-01-01', '2026-01-31');
+
+        $this->assertTrue($result->ok);
+        $this->assertSame($expected, $result->data);
+    }
+
+    public function testGetReservationTrendStatsReturnsFail(): void
+    {
+        $this->statsRepoStub->method('getReservationTrendStats')
+            ->willThrowException(new PDOException('DB error'));
+
+        $result = $this->service->getReservationTrendStats('2026-01-01', '2026-01-31');
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('db_error', $result->code);
+    }
+
+    public function testGetReservationsByCafeTypeReturnsDelegatedData(): void
+    {
+        $expected = [['type' => 'animal_cafe', 'count' => 10]];
+        $this->statsRepoStub->method('getReservationsByCafeType')->willReturn($expected);
+
+        $result = $this->service->getReservationsByCafeType('2026-01-01', '2026-01-31');
+
+        $this->assertTrue($result->ok);
+        $this->assertSame($expected, $result->data);
+    }
+
+    public function testGetReservationsByCafeTypeReturnsFail(): void
+    {
+        $this->statsRepoStub->method('getReservationsByCafeType')
+            ->willThrowException(new PDOException('DB error'));
+
+        $result = $this->service->getReservationsByCafeType('2026-01-01', '2026-01-31');
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('db_error', $result->code);
+    }
+
+    public function testGetMonthlyStatsReturnsFail(): void
+    {
+        $this->statsRepoStub->method('getMonthlyStats')
+            ->willThrowException(new PDOException('DB error'));
+
+        $result = $this->service->getMonthlyStats(1, 2026);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('db_error', $result->code);
+    }
+
+    public function testGetTopCafesReturnsFail(): void
+    {
+        $this->statsRepoStub->method('getTopCafes')
+            ->willThrowException(new PDOException('DB error'));
+
+        $result = $this->service->getTopCafes('2026-01-01', '2026-01-31');
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('db_error', $result->code);
+    }
+
+    public function testGetSystemStatisticsOuterPDOException(): void
+    {
+        $this->statsRepoStub->method('getSystemCounts')
+            ->willThrowException(new PDOException('DB error'));
+
+        $result = $this->service->getSystemStatistics();
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('db_error', $result->code);
+    }
 }

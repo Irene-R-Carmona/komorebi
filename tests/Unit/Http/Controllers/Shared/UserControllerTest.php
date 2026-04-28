@@ -24,6 +24,7 @@ use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Services\Contracts\GamificationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
@@ -65,6 +66,7 @@ final class UserControllerTest extends TestCase
             accountService: $this->createStub(UserAccountServiceInterface::class),
             reservations: $reservations,
             reviews: $this->createStub(ReviewQueryServiceInterface::class),
+            gamification: $this->createStub(GamificationServiceInterface::class),
             response: new ResponseFactory(),
         );
     }
