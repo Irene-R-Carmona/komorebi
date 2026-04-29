@@ -8,7 +8,7 @@ use App\Core\Logger;
 use App\Services\Contracts\ClimaContextoServiceInterface;
 use App\Services\Contracts\WeatherServiceInterface;
 use DateMalformedStringException;
-use DateTime;
+use DateTimeImmutable;
 use DateTimeZone;
 use Override;
 
@@ -88,7 +88,9 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
         ],
     ];
 
-    public function __construct(private readonly WeatherServiceInterface $weatherService) {}
+    public function __construct(private readonly WeatherServiceInterface $weatherService)
+    {
+    }
 
     /**
      * Obtiene el clima actual de Tokyo con contexto poético.
@@ -102,7 +104,7 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
     #[Override]
     public function obtenerClimaActual(): array
     {
-        $horaTokyoObj = new DateTime('now', new DateTimeZone('Asia/Tokyo'));
+        $horaTokyoObj = new DateTimeImmutable('now', new DateTimeZone('Asia/Tokyo'));
 
         $result = $this->weatherService->getWeather(self::TOKYO_LAT, self::TOKYO_LON, 'Asia/Tokyo');
 
@@ -146,7 +148,7 @@ final class ClimaContextoService implements ClimaContextoServiceInterface
      *
      * @throws DateMalformedStringException
      */
-    private function obtenerClimaPorDefecto(DateTime $horaTokyoObj): array
+    private function obtenerClimaPorDefecto(DateTimeImmutable $horaTokyoObj): array
     {
         return [
             'condicion' => 'clouds',

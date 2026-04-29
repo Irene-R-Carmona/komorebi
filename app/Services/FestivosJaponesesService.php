@@ -6,7 +6,7 @@ namespace App\Services;
 
 use App\Services\Contracts\FestivosJaponesesServiceInterface;
 use DateMalformedStringException;
-use DateTime;
+use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 
@@ -166,7 +166,7 @@ final class FestivosJaponesesService implements FestivosJaponesesServiceInterfac
     public function obtenerFestivosDelAnio(?int $anio = null): array
     {
         if ($anio === null) {
-            $dateTime = new DateTime('now', new DateTimeZone('Asia/Tokyo'));
+            $dateTime = new DateTimeImmutable('now', new DateTimeZone('Asia/Tokyo'));
             $anio = (int) $dateTime->format('Y');
         }
         $festivos = [];
@@ -265,7 +265,7 @@ final class FestivosJaponesesService implements FestivosJaponesesServiceInterfac
     /**
      * Calcula festivos móviles para una fecha específica
      */
-    private function calcularFestivoMovil(DateTime $fecha): ?array
+    private function calcularFestivoMovil(DateTimeInterface $fecha): ?array
     {
         $anio = (int) $fecha->format('Y');
         $mes = (int) $fecha->format('m');
@@ -446,46 +446,43 @@ final class FestivosJaponesesService implements FestivosJaponesesServiceInterfac
      * @param integer $anio
      * @param integer $mes
      * @param integer $numero
-     * @return DateTime
+     * @return DateTimeImmutable
      * @throws DateMalformedStringException
      */
-    private function calcularNesimoLunes(int $anio, int $mes, int $numero): DateTime
+    private function calcularNesimoLunes(int $anio, int $mes, int $numero): DateTimeImmutable
     {
-        $fecha = new DateTime("$anio-$mes-01", new DateTimeZone('Asia/Tokyo'));
+        $fecha = new DateTimeImmutable("$anio-$mes-01", new DateTimeZone('Asia/Tokyo'));
 
         // Encontrar el primer lunes del mes
         while ((int) $fecha->format('N') !== 1) {
-            $fecha->modify('+1 day');
+            $fecha = $fecha->modify('+1 day');
         }
 
         // Avanzar al n-ésimo lunes
         if ($numero > 1) {
-            $fecha->modify('+' . ($numero - 1) . ' weeks');
+            $fecha = $fecha->modify('+' . ($numero - 1) . ' weeks');
         }
 
         return $fecha;
     }
 
     /**
-     * Normaliza una fecha a DateTime en timezone Tokyo
+     * Normaliza una fecha a DateTimeImmutable en timezone Tokyo
      * @param DateTimeInterface|string|null $fecha
-     * @return DateTime
+     * @return DateTimeImmutable
      * @throws DateMalformedStringException
      */
-    private function normalizarFecha(DateTimeInterface|string|null $fecha): DateTime
+    private function normalizarFecha(DateTimeInterface|string|null $fecha): DateTimeImmutable
     {
         if ($fecha === null) {
-            return new DateTime('now', new DateTimeZone('Asia/Tokyo'));
+            return new DateTimeImmutable('now', new DateTimeZone('Asia/Tokyo'));
         }
 
         if (\is_string($fecha)) {
-            return new DateTime($fecha, new DateTimeZone('Asia/Tokyo'));
+            return new DateTimeImmutable($fecha, new DateTimeZone('Asia/Tokyo'));
         }
 
         // Si ya es DateTimeInterface, crear copia en timezone Tokyo
-        $dt = DateTime::createFromInterface($fecha);
-        $dt->setTimezone(new DateTimeZone('Asia/Tokyo'));
-
-        return $dt;
+        return DateTimeImmutable::createFromInterface($fecha)->setTimezone(new DateTimeZone('Asia/Tokyo'));
     }
 }

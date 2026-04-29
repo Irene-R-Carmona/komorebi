@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use DateMalformedStringException;
-use DateTime;
+use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 
@@ -280,7 +280,7 @@ final class MicroestacionesService
     public function obtenerActual(?DateTimeInterface $fecha = null): array
     {
         if ($fecha === null) {
-            $fecha = new DateTime('now', new DateTimeZone('Asia/Tokyo'));
+            $fecha = new DateTimeImmutable('now', new DateTimeZone('Asia/Tokyo'));
         }
 
         $fechaActualStr = $fecha->format('m-d');
@@ -344,7 +344,7 @@ final class MicroestacionesService
      */
     public function obtenerPorFecha(string $fecha): ?array
     {
-        $fechaObj = DateTime::createFromFormat('m-d', $fecha);
+        $fechaObj = DateTimeImmutable::createFromFormat('m-d', $fecha);
 
         if (!$fechaObj) {
             return null;

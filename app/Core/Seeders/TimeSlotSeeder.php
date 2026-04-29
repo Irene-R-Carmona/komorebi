@@ -6,7 +6,7 @@ namespace App\Core\Seeders;
 
 use App\Core\Database;
 use App\Core\Logger;
-use DateTime;
+use DateTimeImmutable;
 use PDO;
 
 /**
@@ -159,7 +159,7 @@ final class TimeSlotSeeder
     private function createTimeSlots(array $cafes): void
     {
         $created = 0;
-        $today = new DateTime();
+        $today = new DateTimeImmutable();
 
         // Slots cada 30 minutos durante el horario del café
         $slotDuration = 30;
@@ -169,19 +169,19 @@ final class TimeSlotSeeder
 
             // Generar slots para los próximos 14 días
             for ($day = 0; $day < 14; $day++) {
-                $date = (clone $today)->modify("+$day days");
+                $date = $today->modify("+$day days");
                 $dateStr = $date->format('Y-m-d');
 
                 // Parsear horarios del café
-                $opening = DateTime::createFromFormat('H:i:s', $cafe['opening_time']);
-                $closing = DateTime::createFromFormat('H:i:s', $cafe['closing_time']);
+                $opening = DateTimeImmutable::createFromFormat('H:i:s', $cafe['opening_time']);
+                $closing = DateTimeImmutable::createFromFormat('H:i:s', $cafe['closing_time']);
 
                 if (!$opening || !$closing) {
                     continue;
                 }
 
                 // Generar slots cada 30 minutos
-                $currentTime = clone $opening;
+                $currentTime = $opening;
                 while ($currentTime < $closing) {
                     $timeStr = $currentTime->format('H:i:s');
 
@@ -205,7 +205,7 @@ final class TimeSlotSeeder
                     ]);
 
                     $created++;
-                    $currentTime->modify("+$slotDuration minutes");
+                    $currentTime = $currentTime->modify("+$slotDuration minutes");
                 }
             }
         }
