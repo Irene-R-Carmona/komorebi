@@ -96,4 +96,66 @@ final class AuthServiceTest extends TestCase
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('registrado', $result->error);
     }
+
+    public function testLoginFailsWhenUserNotFound(): void
+    {
+        $this->userRepoStub->method('findByEmailWithCredentials')->willReturn(null);
+
+        $result = $this->service->login('noexiste@example.com', 'password');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Credenciales', $result->error);
+    }
+
+    public function testLoginFailsWhenAccountIsLocked(): void
+    {
+        $user = ['id' => 1, 'email' => 'test@example.com', 'is_active' => true, 'failed_attempts' => 5];
+        $this->userRepoStub->method('findByEmailWithCredentials')->willReturn($user);
+        $this->userRepoStub->method('isLocked')->willReturn(true);
+        $this->userRepoStub->method('lockoutMinutesRemaining')->willReturn(10);
+
+        $result = $this->service->login('test@example.com', 'password');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('bloqueada', $result->error);
+    }
+
+    public function testLoginFailsWhenAccountIsDeactivated(): void
+    {
+        $user = ['id' => 1, 'email' => 'test@example.com', 'is_active' => false, 'failed_attempts' => 0];
+        $this->userRepoStub->method('findByEmailWithCredentials')->willReturn($user);
+        $this->userRepoStub->method('isLocked')->willReturn(false);
+
+        $result = $this->service->login('test@example.com', 'password');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('desactivada', $result->error);
+    }
+
+    public function testLoginFailsWhenPasswordIsWrong(): void
+    {
+        $user = ['id' => 1, 'email' => 'test@example.com', 'is_active' => true, 'failed_attempts' => 0];
+        $this->userRepoStub->method('findByEmailWithCredentials')->willReturn($user);
+        $this->userRepoStub->method('isLocked')->willReturn(false);
+        $this->userRepoStub->method('verifyPassword')->willReturn(false);
+
+        $result = $this->service->login('test@example.com', 'wrong-password');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Credenciales', $result->error);
+    }
+
+    public function testCheckReturnsFalseWhenNotAuthenticated(): void
+    {
+        $result = $this->service->check();
+
+        $this->assertFalse($result);
+    }
+
+    public function testUserReturnsNullWhenNotAuthenticated(): void
+    {
+        $result = $this->service->user();
+
+        $this->assertNull($result);
+    }
 }

@@ -125,4 +125,96 @@ final class LoyaltyServiceTest extends TestCase
 
         $this->assertIsArray($result);
     }
+
+    public function testAddStampFailsWhenAddStampsReturnsFalse(): void
+    {
+        $card = new LoyaltyCardDTO(
+            id: 1,
+            user_id: 1,
+            stamps: 0,
+            current_tier: 'bronze',
+            visits_count: 0,
+            total_rewards_redeemed: 0,
+            last_stamp_at: null,
+            created_at: '2024-01-01',
+            updated_at: '2024-01-01',
+        );
+        $this->repoStub->method('findOrCreateCardByUserId')->willReturn($card);
+        $this->repoStub->method('addStamps')->willReturn(false);
+
+        $result = $this->service->addStamp(1, 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('sellos', $result->error);
+    }
+
+    public function testAddStampSucceedsWithoutTierChange(): void
+    {
+        $card = new LoyaltyCardDTO(
+            id: 1,
+            user_id: 1,
+            stamps: 2,
+            current_tier: 'bronze',
+            visits_count: 2,
+            total_rewards_redeemed: 0,
+            last_stamp_at: null,
+            created_at: '2024-01-01',
+            updated_at: '2024-01-01',
+        );
+        $updatedCard = new LoyaltyCardDTO(
+            id: 1,
+            user_id: 1,
+            stamps: 3,
+            current_tier: 'bronze',
+            visits_count: 3,
+            total_rewards_redeemed: 0,
+            last_stamp_at: null,
+            created_at: '2024-01-01',
+            updated_at: '2024-01-01',
+        );
+        $this->repoStub->method('findOrCreateCardByUserId')->willReturn($card);
+        $this->repoStub->method('addStamps')->willReturn(true);
+        $this->repoStub->method('findCardById')->willReturn($updatedCard);
+
+        $result = $this->service->addStamp(1, 1);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(1, $result->data['stamps_added']);
+        $this->assertFalse($result->data['tier_changed']);
+    }
+
+    public function testAddStampSuccessWithTierChange(): void
+    {
+        $card = new LoyaltyCardDTO(
+            id: 1,
+            user_id: 1,
+            stamps: 8,
+            current_tier: 'bronze',
+            visits_count: 8,
+            total_rewards_redeemed: 0,
+            last_stamp_at: null,
+            created_at: '2024-01-01',
+            updated_at: '2024-01-01',
+        );
+        $updatedCard = new LoyaltyCardDTO(
+            id: 1,
+            user_id: 1,
+            stamps: 10,
+            current_tier: 'silver',
+            visits_count: 10,
+            total_rewards_redeemed: 0,
+            last_stamp_at: null,
+            created_at: '2024-01-01',
+            updated_at: '2024-01-01',
+        );
+        $this->repoStub->method('findOrCreateCardByUserId')->willReturn($card);
+        $this->repoStub->method('addStamps')->willReturn(true);
+        $this->repoStub->method('findCardById')->willReturn($updatedCard);
+
+        $result = $this->service->addStamp(1, 2);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame('silver', $result->data['new_tier']);
+        $this->assertTrue($result->data['tier_changed']);
+    }
 }

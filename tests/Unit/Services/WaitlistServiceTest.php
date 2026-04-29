@@ -211,4 +211,252 @@ final class WaitlistServiceTest extends TestCase
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('procesada', $result->error);
     }
+
+    public function testExpireTokensReturnsOkWithExpiredCount(): void
+    {
+        $waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
+        $waitlistRepoStub->method('expireTokens')->willReturn(3);
+
+        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
+
+        $service = new WaitlistService(
+            $this->pdoStub,
+            $this->emailServiceStub,
+            $waitlistRepoStub,
+            $timeSlotRepoStub,
+            $reservationRepoStub
+        );
+
+        $result = $service->expireTokens();
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(3, $result->data['expired_count']);
+    }
+
+    public function testExpireTokensReturnsZeroWhenNoneExpired(): void
+    {
+        $waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
+        $waitlistRepoStub->method('expireTokens')->willReturn(0);
+
+        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
+
+        $service = new WaitlistService(
+            $this->pdoStub,
+            $this->emailServiceStub,
+            $waitlistRepoStub,
+            $timeSlotRepoStub,
+            $reservationRepoStub
+        );
+
+        $result = $service->expireTokens();
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(0, $result->data['expired_count']);
+    }
+
+    public function testGetPositionReturnsPositionData(): void
+    {
+        $waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
+        $waitlistRepoStub->method('getPosition')->willReturn(2);
+        $waitlistRepoStub->method('countByTimeSlotAndStatus')->willReturn(5);
+
+        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
+
+        $service = new WaitlistService(
+            $this->pdoStub,
+            $this->emailServiceStub,
+            $waitlistRepoStub,
+            $timeSlotRepoStub,
+            $reservationRepoStub
+        );
+
+        $result = $service->getPosition(1, 1);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(2, $result->data['position']);
+        $this->assertSame(5, $result->data['total_waiting']);
+    }
+
+    public function testGetPositionReturnsNullPositionWhenNotInWaitlist(): void
+    {
+        $waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
+        $waitlistRepoStub->method('getPosition')->willReturn(null);
+        $waitlistRepoStub->method('countByTimeSlotAndStatus')->willReturn(0);
+
+        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
+
+        $service = new WaitlistService(
+            $this->pdoStub,
+            $this->emailServiceStub,
+            $waitlistRepoStub,
+            $timeSlotRepoStub,
+            $reservationRepoStub
+        );
+
+        $result = $service->getPosition(1, 1);
+
+        $this->assertTrue($result->ok);
+        $this->assertNull($result->data['position']);
+    }
+
+    public function testCancelWaitlistFailsWhenEntryNotFound(): void
+    {
+        $waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
+        $waitlistRepoStub->method('findByIdAndUser')->willReturn(null);
+
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('inTransaction')->willReturn(false);
+        $pdoStub->method('beginTransaction')->willReturn(true);
+        $pdoStub->method('rollBack')->willReturn(true);
+
+        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
+
+        $service = new WaitlistService(
+            $pdoStub,
+            $this->emailServiceStub,
+            $waitlistRepoStub,
+            $timeSlotRepoStub,
+            $reservationRepoStub
+        );
+
+        $result = $service->cancelWaitlist(999, 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('no encontrada', $result->error);
+    }
+
+    public function testCancelWaitlistFailsWhenStatusIsNotCancellable(): void
+    {
+        $waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
+        $waitlistRepoStub->method('findByIdAndUser')->willReturn([
+            'id' => 1,
+            'status' => 'confirmed',
+            'time_slot_id' => 5,
+            'position' => 1,
+        ]);
+
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('inTransaction')->willReturn(false);
+        $pdoStub->method('beginTransaction')->willReturn(true);
+        $pdoStub->method('rollBack')->willReturn(true);
+
+        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
+
+        $service = new WaitlistService(
+            $pdoStub,
+            $this->emailServiceStub,
+            $waitlistRepoStub,
+            $timeSlotRepoStub,
+            $reservationRepoStub
+        );
+
+        $result = $service->cancelWaitlist(1, 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('cancelar', $result->error);
+    }
+
+    public function testCancelWaitlistSucceedsWhenWaiting(): void
+    {
+        $waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
+        $waitlistRepoStub->method('findByIdAndUser')->willReturn([
+            'id' => 1,
+            'status' => 'waiting',
+            'time_slot_id' => 5,
+            'position' => 2,
+        ]);
+
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('inTransaction')->willReturn(false);
+        $pdoStub->method('beginTransaction')->willReturn(true);
+        $pdoStub->method('commit')->willReturn(true);
+
+        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
+
+        $service = new WaitlistService(
+            $pdoStub,
+            $this->emailServiceStub,
+            $waitlistRepoStub,
+            $timeSlotRepoStub,
+            $reservationRepoStub
+        );
+
+        $result = $service->cancelWaitlist(1, 1);
+
+        $this->assertTrue($result->ok);
+        $this->assertTrue($result->data['cancelled']);
+    }
+
+    public function testJoinWaitlistSucceedsWhenAllValid(): void
+    {
+        $this->waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
+        $this->waitlistRepoStub->method('userInWaitlist')->willReturn(false);
+        $this->waitlistRepoStub->method('create')->willReturn(10);
+        $this->waitlistRepoStub->method('getPosition')->willReturn(1);
+
+        $result = $this->makeService($this->slotWithSpots(0))->joinWaitlist(1, 1, [
+            'guest_count' => 2,
+            'email' => 'test@example.com',
+            'user_name' => 'Test User',
+        ]);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(10, $result->data['waitlist_id']);
+        $this->assertSame(1, $result->data['position']);
+    }
+
+    public function testJoinWaitlistFailsWhenRepoReturnsZero(): void
+    {
+        $this->waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
+        $this->waitlistRepoStub->method('userInWaitlist')->willReturn(false);
+        $this->waitlistRepoStub->method('create')->willReturn(0);
+
+        $result = $this->makeService($this->slotWithSpots(0))->joinWaitlist(1, 1, [
+            'guest_count' => 2,
+        ]);
+
+        $this->assertFalse($result->ok);
+    }
+
+    public function testPromoteNextSuccessfullyPromotesFirstInLine(): void
+    {
+        $waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
+        $waitlistRepoStub->method('getNextInLine')->willReturn([
+            'id' => 5,
+            'user_id' => 10,
+            'token' => 'abc123',
+            'contact_email' => 'user@example.com',
+            'guest_count' => 2,
+            'response_timeout_minutes' => 15,
+        ]);
+
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('inTransaction')->willReturn(false);
+        $pdoStub->method('beginTransaction')->willReturn(true);
+        $pdoStub->method('commit')->willReturn(true);
+
+        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
+
+        $service = new WaitlistService(
+            $pdoStub,
+            $this->emailServiceStub,
+            $waitlistRepoStub,
+            $timeSlotRepoStub,
+            $reservationRepoStub
+        );
+
+        $result = $service->promoteNext(1);
+
+        $this->assertTrue($result->ok);
+        $this->assertTrue($result->data['promoted']);
+        $this->assertSame(5, $result->data['waitlist_id']);
+    }
 }

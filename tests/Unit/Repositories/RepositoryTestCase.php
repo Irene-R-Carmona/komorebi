@@ -113,7 +113,7 @@ abstract class RepositoryTestCase extends TestCase
         $stmtCount = \count($stmts);
         $callIndex = 0;
 
-        $pdo = $this->createMock(PDO::class);
+        $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnCallback(
             function () use ($stmts, $stmtCount, &$callIndex): PDOStatement {
                 $stmt = $stmts[\min($callIndex, $stmtCount - 1)];
