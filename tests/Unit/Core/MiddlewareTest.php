@@ -121,4 +121,257 @@ final class MiddlewareTest extends TestCase
 
         Middleware::can('reservation.create');
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // Constantes de roles
+    // ─────────────────────────────────────────────────────────────
+
+    public function testRoleAdminConstantValue(): void
+    {
+        self::assertSame('admin', Middleware::ROLE_ADMIN);
+    }
+
+    public function testRoleManagerConstantValue(): void
+    {
+        self::assertSame('manager', Middleware::ROLE_MANAGER);
+    }
+
+    public function testRoleSupervisorConstantValue(): void
+    {
+        self::assertSame('supervisor', Middleware::ROLE_SUPERVISOR);
+    }
+
+    public function testRoleReceptionConstantValue(): void
+    {
+        self::assertSame('reception', Middleware::ROLE_RECEPTION);
+    }
+
+    public function testRoleKitchenConstantValue(): void
+    {
+        self::assertSame('kitchen', Middleware::ROLE_KITCHEN);
+    }
+
+    public function testRoleKeeperConstantValue(): void
+    {
+        self::assertSame('keeper', Middleware::ROLE_KEEPER);
+    }
+
+    public function testRoleUserConstantValue(): void
+    {
+        self::assertSame('user', Middleware::ROLE_USER);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // BACKOFFICE_ROLES
+    // ─────────────────────────────────────────────────────────────
+
+    public function testBackofficeRolesContainsAdmin(): void
+    {
+        self::assertContains('admin', Middleware::BACKOFFICE_ROLES);
+    }
+
+    public function testBackofficeRolesContainsManager(): void
+    {
+        self::assertContains('manager', Middleware::BACKOFFICE_ROLES);
+    }
+
+    public function testBackofficeRolesContainsSupervisor(): void
+    {
+        self::assertContains('supervisor', Middleware::BACKOFFICE_ROLES);
+    }
+
+    public function testBackofficeRolesContainsKitchen(): void
+    {
+        self::assertContains('kitchen', Middleware::BACKOFFICE_ROLES);
+    }
+
+    public function testBackofficeRolesDoesNotContainUser(): void
+    {
+        self::assertNotContains('user', Middleware::BACKOFFICE_ROLES);
+    }
+
+    public function testBackofficeRolesHasSixEntries(): void
+    {
+        self::assertCount(6, Middleware::BACKOFFICE_ROLES);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // getUserRoles()
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetUserRolesReturnsEmptyWhenNoSession(): void
+    {
+        unset($_SESSION['user_roles']);
+
+        self::assertSame([], Middleware::getUserRoles());
+    }
+
+    public function testGetUserRolesReturnsArrayFromSession(): void
+    {
+        $_SESSION['user_roles'] = ['admin', 'manager'];
+
+        self::assertSame(['admin', 'manager'], Middleware::getUserRoles());
+    }
+
+    public function testGetUserRolesReturnsEmptyForNonArrayValue(): void
+    {
+        $_SESSION['user_roles'] = 'admin';
+
+        self::assertSame([], Middleware::getUserRoles());
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // getPrimaryRole()
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetPrimaryRoleReturnsNullWithNoRoles(): void
+    {
+        unset($_SESSION['user_roles']);
+
+        self::assertNull(Middleware::getPrimaryRole());
+    }
+
+    public function testGetPrimaryRoleReturnsFirstRole(): void
+    {
+        $_SESSION['user_roles'] = ['manager', 'supervisor'];
+
+        self::assertSame('manager', Middleware::getPrimaryRole());
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // userId()
+    // ─────────────────────────────────────────────────────────────
+
+    public function testUserIdReturnsNullWhenNotSet(): void
+    {
+        unset($_SESSION['user_id']);
+
+        self::assertNull(Middleware::userId());
+    }
+
+    public function testUserIdReturnsIntWhenSet(): void
+    {
+        $_SESSION['user_id'] = 42;
+
+        self::assertSame(42, Middleware::userId());
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // hasRole()
+    // ─────────────────────────────────────────────────────────────
+
+    public function testHasRoleReturnsFalseWithNoSessionRoles(): void
+    {
+        unset($_SESSION['user_roles']);
+
+        self::assertFalse(Middleware::hasRole('admin'));
+    }
+
+    public function testHasRoleReturnsTrueWhenMatches(): void
+    {
+        $_SESSION['user_roles'] = ['kitchen'];
+
+        self::assertTrue(Middleware::hasRole('kitchen'));
+    }
+
+    public function testHasRoleReturnsTrueForAnyMatchInVariadic(): void
+    {
+        $_SESSION['user_roles'] = ['reception'];
+
+        self::assertTrue(Middleware::hasRole('admin', 'manager', 'reception'));
+    }
+
+    public function testHasRoleReturnsFalseWhenNoMatch(): void
+    {
+        $_SESSION['user_roles'] = ['user'];
+
+        self::assertFalse(Middleware::hasRole('admin', 'manager'));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // canAccessBackoffice()
+    // ─────────────────────────────────────────────────────────────
+
+    public function testCanAccessBackofficeReturnsFalseWithNoRoles(): void
+    {
+        unset($_SESSION['user_roles']);
+
+        self::assertFalse(Middleware::canAccessBackoffice());
+    }
+
+    public function testCanAccessBackofficeReturnsTrueForAdminRole(): void
+    {
+        $_SESSION['user_roles'] = ['admin'];
+
+        self::assertTrue(Middleware::canAccessBackoffice());
+    }
+
+    public function testCanAccessBackofficeReturnsFalseForUserRole(): void
+    {
+        $_SESSION['user_roles'] = ['user'];
+
+        self::assertFalse(Middleware::canAccessBackoffice());
+    }
+
+    public function testCanAccessBackofficeReturnsTrueForKeeperRole(): void
+    {
+        $_SESSION['user_roles'] = ['keeper'];
+
+        self::assertTrue(Middleware::canAccessBackoffice());
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // hasPermission() via session cache (sin BD)
+    // ─────────────────────────────────────────────────────────────
+
+    public function testHasPermissionReturnsTrueFromSessionCache(): void
+    {
+        $_SESSION['user_permissions'] = ['cafe.kitchen.view' => true];
+
+        self::assertTrue(Middleware::hasPermission('cafe.kitchen.view'));
+    }
+
+    public function testHasPermissionReturnsFalseWhenNotInPopulatedCache(): void
+    {
+        $_SESSION['user_permissions'] = ['admin.users.view' => true];
+
+        self::assertFalse(Middleware::hasPermission('cafe.kitchen.view'));
+    }
+
+    public function testHasPermissionReturnsFalseForEmptyCache(): void
+    {
+        $_SESSION['user_permissions'] = [];
+
+        self::assertFalse(Middleware::hasPermission('cafe.kitchen.view'));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // securityHeaders() / security()
+    // ─────────────────────────────────────────────────────────────
+
+    public function testSecurityHeadersDevModeDoesNotThrow(): void
+    {
+        $this->expectNotToPerformAssertions();
+        Middleware::securityHeaders(false);
+    }
+
+    public function testSecurityHeadersStrictModeDoesNotThrow(): void
+    {
+        $this->expectNotToPerformAssertions();
+        Middleware::securityHeaders(true);
+    }
+
+    public function testSecurityHeadersStrictWithHttpsDoesNotThrow(): void
+    {
+        $this->expectNotToPerformAssertions();
+        $_SERVER['HTTPS'] = 'on';
+        Middleware::securityHeaders(true);
+        unset($_SERVER['HTTPS']);
+    }
+
+    public function testSecurityMethodDoesNotThrow(): void
+    {
+        $this->expectNotToPerformAssertions();
+        Middleware::security();
+    }
 }
