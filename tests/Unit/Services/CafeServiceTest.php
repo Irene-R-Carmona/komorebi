@@ -175,7 +175,9 @@ final class CafeServiceTest extends TestCase
         $this->cafeRepoStub->method('create')->willThrowException(new \PDOException('DB error'));
 
         $result = $this->service->create([
-            'name' => 'Café Neko', 'slug' => 'cafe-neko', 'location' => 'Madrid',
+            'name' => 'Café Neko',
+            'slug' => 'cafe-neko',
+            'location' => 'Madrid',
         ]);
 
         $this->assertFalse($result->ok);

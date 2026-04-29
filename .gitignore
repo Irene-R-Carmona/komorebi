@@ -69,6 +69,15 @@ screenshots/
 .playwright/
 .playwright-mcp/
 
+# Tool output artefacts (no deben commitearse)
+/coverage.xml
+/coverage_*.txt
+/phpstan_out.txt
+/phpunit_full.txt
+/test_output.txt
+/debug-snippet.txt
+/analyze_coverage.php
+
 # Build artifacts
 public/build/
 public/hot

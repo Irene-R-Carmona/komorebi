@@ -152,11 +152,24 @@ final class CartServiceTest extends TestCase
     public function testUpdateItemAddsProductToCartWhenValidActiveItem(): void
     {
         $dto = new ProductDTO(
-            id: 1, name: 'Matcha', slug: 'matcha', description: null, price: 5.0,
-            category_id: 1, category_name: 'Bebidas', allergens: [], is_active: true,
-            image_url: null, product_type: 'item', min_pax: null, max_pax: null,
-            duration_minutes: null, attributes: null, target_cafe_types: null,
-            target_animal_types: null, stock_quantity: null,
+            id: 1,
+            name: 'Matcha',
+            slug: 'matcha',
+            description: null,
+            price: 5.0,
+            category_id: 1,
+            category_name: 'Bebidas',
+            allergens: [],
+            is_active: true,
+            image_url: null,
+            product_type: 'item',
+            min_pax: null,
+            max_pax: null,
+            duration_minutes: null,
+            attributes: null,
+            target_cafe_types: null,
+            target_animal_types: null,
+            stock_quantity: null,
         );
         $this->productRepoStub->method('findById')->willReturn($dto);
         $this->productRepoStub->method('findByIds')->willReturn([]);
@@ -169,11 +182,24 @@ final class CartServiceTest extends TestCase
     public function testUpdateItemRemovesItemWhenNewQtyIsNegative(): void
     {
         $dto = new ProductDTO(
-            id: 2, name: 'Chai', slug: 'chai', description: null, price: 3.5,
-            category_id: 1, category_name: 'Bebidas', allergens: [], is_active: true,
-            image_url: null, product_type: 'item', min_pax: null, max_pax: null,
-            duration_minutes: null, attributes: null, target_cafe_types: null,
-            target_animal_types: null, stock_quantity: null,
+            id: 2,
+            name: 'Chai',
+            slug: 'chai',
+            description: null,
+            price: 3.5,
+            category_id: 1,
+            category_name: 'Bebidas',
+            allergens: [],
+            is_active: true,
+            image_url: null,
+            product_type: 'item',
+            min_pax: null,
+            max_pax: null,
+            duration_minutes: null,
+            attributes: null,
+            target_cafe_types: null,
+            target_animal_types: null,
+            stock_quantity: null,
         );
         $this->productRepoStub->method('findById')->willReturn($dto);
         $this->productRepoStub->method('findByIds')->willReturn([]);
@@ -187,11 +213,24 @@ final class CartServiceTest extends TestCase
     public function testSetQuantityDelegatesToUpdateItem(): void
     {
         $dto = new ProductDTO(
-            id: 3, name: 'Hojicha', slug: 'hojicha', description: null, price: 4.0,
-            category_id: 1, category_name: 'Bebidas', allergens: [], is_active: true,
-            image_url: null, product_type: 'item', min_pax: null, max_pax: null,
-            duration_minutes: null, attributes: null, target_cafe_types: null,
-            target_animal_types: null, stock_quantity: null,
+            id: 3,
+            name: 'Hojicha',
+            slug: 'hojicha',
+            description: null,
+            price: 4.0,
+            category_id: 1,
+            category_name: 'Bebidas',
+            allergens: [],
+            is_active: true,
+            image_url: null,
+            product_type: 'item',
+            min_pax: null,
+            max_pax: null,
+            duration_minutes: null,
+            attributes: null,
+            target_cafe_types: null,
+            target_animal_types: null,
+            stock_quantity: null,
         );
         $this->productRepoStub->method('findById')->willReturn($dto);
         $this->productRepoStub->method('findByIds')->willReturn([]);
@@ -276,11 +315,24 @@ final class CartServiceTest extends TestCase
     {
         $_SESSION['cart'] = ['items' => [7 => 95], 'totalQty' => 95, 'totalPrice' => 0.0];
         $dto = new ProductDTO(
-            id: 7, name: 'Sencha', slug: 'sencha', description: null, price: 4.0,
-            category_id: 1, category_name: 'Bebidas', allergens: [], is_active: true,
-            image_url: null, product_type: 'item', min_pax: null, max_pax: null,
-            duration_minutes: null, attributes: null, target_cafe_types: null,
-            target_animal_types: null, stock_quantity: null,
+            id: 7,
+            name: 'Sencha',
+            slug: 'sencha',
+            description: null,
+            price: 4.0,
+            category_id: 1,
+            category_name: 'Bebidas',
+            allergens: [],
+            is_active: true,
+            image_url: null,
+            product_type: 'item',
+            min_pax: null,
+            max_pax: null,
+            duration_minutes: null,
+            attributes: null,
+            target_cafe_types: null,
+            target_animal_types: null,
+            stock_quantity: null,
         );
         $this->productRepoStub->method('findById')->willReturn($dto);
         $this->productRepoStub->method('findByIds')->willReturn([
@@ -301,11 +353,24 @@ final class CartServiceTest extends TestCase
         $_SESSION['cart'] = ['items' => $items, 'totalQty' => 50, 'totalPrice' => 0.0];
 
         $dto = new ProductDTO(
-            id: 200, name: 'Genmaicha', slug: 'genmaicha', description: null, price: 3.0,
-            category_id: 1, category_name: 'Bebidas', allergens: [], is_active: true,
-            image_url: null, product_type: 'item', min_pax: null, max_pax: null,
-            duration_minutes: null, attributes: null, target_cafe_types: null,
-            target_animal_types: null, stock_quantity: null,
+            id: 200,
+            name: 'Genmaicha',
+            slug: 'genmaicha',
+            description: null,
+            price: 3.0,
+            category_id: 1,
+            category_name: 'Bebidas',
+            allergens: [],
+            is_active: true,
+            image_url: null,
+            product_type: 'item',
+            min_pax: null,
+            max_pax: null,
+            duration_minutes: null,
+            attributes: null,
+            target_cafe_types: null,
+            target_animal_types: null,
+            stock_quantity: null,
         );
         $this->productRepoStub->method('findById')->willReturn($dto);
 
@@ -338,11 +403,24 @@ final class CartServiceTest extends TestCase
     public function testUpdateItemRecalculatesCartTotals(): void
     {
         $dto = new ProductDTO(
-            id: 3, name: 'Hojicha', slug: 'hojicha', description: null, price: 5.0,
-            category_id: 1, category_name: 'Bebidas', allergens: [], is_active: true,
-            image_url: null, product_type: 'item', min_pax: null, max_pax: null,
-            duration_minutes: null, attributes: null, target_cafe_types: null,
-            target_animal_types: null, stock_quantity: null,
+            id: 3,
+            name: 'Hojicha',
+            slug: 'hojicha',
+            description: null,
+            price: 5.0,
+            category_id: 1,
+            category_name: 'Bebidas',
+            allergens: [],
+            is_active: true,
+            image_url: null,
+            product_type: 'item',
+            min_pax: null,
+            max_pax: null,
+            duration_minutes: null,
+            attributes: null,
+            target_cafe_types: null,
+            target_animal_types: null,
+            stock_quantity: null,
         );
         $this->productRepoStub->method('findById')->willReturn($dto);
         $this->productRepoStub->method('findByIds')->willReturn([
@@ -362,11 +440,24 @@ final class CartServiceTest extends TestCase
         $_SESSION['cart'] = ['items' => [99 => 0], 'totalQty' => 0, 'totalPrice' => 0.0];
 
         $dto = new ProductDTO(
-            id: 1, name: 'Matcha', slug: 'matcha', description: null, price: 5.0,
-            category_id: 1, category_name: 'Bebidas', allergens: [], is_active: true,
-            image_url: null, product_type: 'item', min_pax: null, max_pax: null,
-            duration_minutes: null, attributes: null, target_cafe_types: null,
-            target_animal_types: null, stock_quantity: null,
+            id: 1,
+            name: 'Matcha',
+            slug: 'matcha',
+            description: null,
+            price: 5.0,
+            category_id: 1,
+            category_name: 'Bebidas',
+            allergens: [],
+            is_active: true,
+            image_url: null,
+            product_type: 'item',
+            min_pax: null,
+            max_pax: null,
+            duration_minutes: null,
+            attributes: null,
+            target_cafe_types: null,
+            target_animal_types: null,
+            stock_quantity: null,
         );
         $this->productRepoStub->method('findById')->willReturn($dto);
         // findByIds devuelve ambos productos como activos; producto 99 tiene qty=0 en recalculate()

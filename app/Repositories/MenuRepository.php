@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Domain\DTO\MenuDTO;
+use App\Core\Database;
 use App\Repositories\Contracts\MenuRepositoryInterface;
-use Override;
 use PDO;
 
 /**
@@ -15,23 +14,13 @@ use PDO;
  * Encapsula el acceso a datos relacionados con categorías de menú,
  * productos, pases y alérgenos.
  */
-final class MenuRepository extends AbstractRepository implements MenuRepositoryInterface
+final class MenuRepository implements MenuRepositoryInterface
 {
+    private PDO $db;
+
     public function __construct(?PDO $db = null)
     {
-        parent::__construct($db);
-    }
-
-    #[Override]
-    protected function getTable(): string
-    {
-        return 'products';
-    }
-
-    #[Override]
-    protected function getSelectFields(): array
-    {
-        return ['id', 'name', 'slug', 'price', 'category_id', 'product_type', 'is_active', 'image_url'];
+        $this->db = $db ?? Database::getConnection();
     }
 
     /**
@@ -47,7 +36,7 @@ final class MenuRepository extends AbstractRepository implements MenuRepositoryI
 
         $sql .= ' ORDER BY display_order, id';
 
-        $stmt = $this->getDb()->query($sql);
+        $stmt = $this->db->query($sql);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
@@ -57,7 +46,7 @@ final class MenuRepository extends AbstractRepository implements MenuRepositoryI
      */
     public function getProductsByCategory(array $excludeAllergenIds = []): array
     {
-        $excludeAllergenIds = \array_values(\array_filter(\array_map('intval', $excludeAllergenIds), static fn ($v) => $v > 0));
+        $excludeAllergenIds = \array_values(\array_filter(\array_map('intval', $excludeAllergenIds), static fn($v) => $v > 0));
 
         $sql = "
             SELECT
@@ -99,17 +88,14 @@ final class MenuRepository extends AbstractRepository implements MenuRepositoryI
         $sql .= ' GROUP BY p.id, p.name, p.japanese_name, p.description, p.price, p.category_id, p.product_type, p.is_active, p.image_url, p.target_cafe_types, p.target_animal_types, mc.name, mc.slug
                   ORDER BY mc.display_order, p.name';
 
-        $stmt = $this->getDb()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute($excludeAllergenIds);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        return \array_map(static fn (array $row): MenuDTO => MenuDTO::fromArray($row), $rows);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
     /**
      * Obtener todos los productos activos
-     *
-     * @return MenuDTO[]
      */
     public function getAllProducts(): array
     {
@@ -117,15 +103,12 @@ final class MenuRepository extends AbstractRepository implements MenuRepositoryI
             SELECT
                 p.id,
                 p.name,
-                p.slug,
                 p.description,
                 p.price,
                 p.category_id,
                 p.product_type,
                 p.is_active,
                 p.image_url,
-                p.stock_quantity,
-                p.created_at,
                 mc.name AS category_name,
                 mc.slug AS category_slug
             FROM products p
@@ -135,10 +118,9 @@ final class MenuRepository extends AbstractRepository implements MenuRepositoryI
             ORDER BY mc.display_order, p.name
         ";
 
-        $stmt = $this->getDb()->query($sql);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt = $this->db->query($sql);
 
-        return \array_map(static fn (array $row): MenuDTO => MenuDTO::fromArray($row), $rows);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
     /**
@@ -164,7 +146,7 @@ final class MenuRepository extends AbstractRepository implements MenuRepositoryI
             ORDER BY p.price ASC
         ";
 
-        $stmt = $this->getDb()->query($sql);
+        $stmt = $this->db->query($sql);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
@@ -216,7 +198,7 @@ final class MenuRepository extends AbstractRepository implements MenuRepositoryI
 
         $sql .= ' ORDER BY p.price ASC';
 
-        $stmt = $this->getDb()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -229,7 +211,7 @@ final class MenuRepository extends AbstractRepository implements MenuRepositoryI
     {
         $sql = 'SELECT id, name, code, japanese_name AS name_jp, icon_class AS icon, icon_color, severity FROM allergens ORDER BY name';
 
-        $stmt = $this->getDb()->query($sql);
+        $stmt = $this->db->query($sql);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
@@ -254,7 +236,7 @@ final class MenuRepository extends AbstractRepository implements MenuRepositoryI
             ORDER BY a.name
         ';
 
-        $stmt = $this->getDb()->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute(['product_id' => $productId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];

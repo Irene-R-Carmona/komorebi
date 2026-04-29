@@ -1,9 +1,3 @@
-<?php
-$catalogoConfig = json_encode([
-    'cafes'     => $cafes    ?? [],
-    'favoritos' => $favoritos ?? [],
-], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
-?>
 <section class="seccion seccion--activa">
     <!-- Skeleton: visible antes de Alpine.js (x-cloak oculta el contenido real) -->
     <div id="catalogo-skeleton" class="seccion__container" aria-hidden="true">
@@ -21,7 +15,7 @@ $catalogoConfig = json_encode([
         </div>
     </div>
 
-    <div class="seccion__container" x-data='catalogoApp(<?= $catalogoConfig ?>)' x-cloak x-init="document.getElementById('catalogo-skeleton')?.remove()">
+    <div class="seccion__container" x-data="catalogoApp(<?= json_encode($favoritos, JSON_THROW_ON_ERROR) ?>)" x-cloak x-init="document.getElementById('catalogo-skeleton')?.remove()">
         <header class="seccion__header">
             <h2 class="seccion__titulo">Nuestros Cafés</h2>
             <p class="seccion__subtitulo">Encuentra tu lugar perfecto para relajarte</p>

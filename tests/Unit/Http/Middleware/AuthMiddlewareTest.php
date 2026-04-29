@@ -62,7 +62,7 @@ final class AuthMiddlewareTest extends TestCase
 
     private function makeHandler(int $status = 200): RequestHandlerInterface
     {
-        return new class ($status, $this->psr17) implements RequestHandlerInterface {
+        return new class($status, $this->psr17) implements RequestHandlerInterface {
             public function __construct(
                 private readonly int $status,
                 private readonly Psr17Factory $psr17
@@ -114,7 +114,7 @@ final class AuthMiddlewareTest extends TestCase
         $_SESSION['user_roles'] = ['admin'];
 
         $capturedRequest = null;
-        $handler = new class ($capturedRequest, $this->psr17) implements RequestHandlerInterface {
+        $handler = new class($capturedRequest, $this->psr17) implements RequestHandlerInterface {
             public function __construct(
                 public ?ServerRequestInterface &$captured,
                 private readonly Psr17Factory $psr17

@@ -12,7 +12,6 @@ use App\Core\View;
 use App\Domain\AvatarOptions;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
-use App\Services\Contracts\GamificationServiceInterface;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
@@ -24,15 +23,10 @@ use Random\RandomException;
 
 final class UserController
 {
-    private const string ROUTE_LOGIN  = '/login';
-    private const string ROUTE_PERFIL = '/perfil';
-    private const string MSG_AUTH     = 'Necesitas iniciar sesión para continuar.';
-
     private UserProfileServiceInterface $profileService;
     private UserAccountServiceInterface $accountService;
     private ReservationServiceInterface $reservations;
     private ReviewQueryServiceInterface $reviews;
-    private GamificationServiceInterface $gamification;
     private ResponseFactory $response;
 
     public function __construct(
@@ -40,49 +34,32 @@ final class UserController
         ?UserAccountServiceInterface $accountService = null,
         ?ReservationServiceInterface $reservations = null,
         ?ReviewQueryServiceInterface $reviews = null,
-        ?GamificationServiceInterface $gamification = null,
         ?ResponseFactory $response = null
     ) {
         $this->profileService = $profileService ?? Container::make(UserProfileServiceInterface::class);
         $this->accountService = $accountService ?? Container::make(UserAccountServiceInterface::class);
         $this->reservations = $reservations ?? Container::make(ReservationServiceInterface::class);
         $this->reviews = $reviews ?? Container::make(ReviewQueryServiceInterface::class);
-        $this->gamification = $gamification ?? Container::make(GamificationServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
     }
 
-    public function profile(): ?ResponseInterface
+    public function profile(ServerRequestInterface $request): ?ResponseInterface
     {
         $userId = Session::userId();
         if ($userId === null) {
-            Flash::error(self::MSG_AUTH);
+            Flash::error('Necesitas iniciar sesión para continuar.');
             $returnTo = $_SERVER['REQUEST_URI'] ?? '/';
             if ($returnTo === '' || $returnTo[0] !== '/' || \preg_match('/[\r\n]/', $returnTo) || \str_starts_with($returnTo, '//')) {
                 $returnTo = '/';
             }
             Session::set('redirect_after_login', $returnTo);
 
-            return $this->response->redirect(self::ROUTE_LOGIN);
+            return $this->response->redirect('/login');
         }
 
-        $rawProfile = $this->profileService->getProfile($userId);
-        $reservationList = $this->reservations->getByUser($userId);
-        $reservationCount = \count($reservationList);
-
         View::render('shared/user/profile', [
-            'titulo'        => 'Mi Perfil',
-            'flash'         => Flash::consume(),
-            'profile'       => [
-                'name'       => (string) ($rawProfile['name'] ?? ''),
-                'email'      => (string) ($rawProfile['email'] ?? ''),
-                'avatar_url' => isset($rawProfile['avatar']) ? (string) $rawProfile['avatar'] : null,
-                'created_at' => (string) ($rawProfile['created_at'] ?? ''),
-            ],
-            'stats'         => [
-                'reservations_count' => $reservationCount,
-                'level'              => $this->gamification->calculateUserLevel($reservationCount),
-            ],
-            'avatarOptions' => AvatarOptions::toList(),
+            'titulo' => 'Mi Perfil',
+            'flash'  => Flash::consume(),
         ], ['profile.css', 'reviews.css']);
 
         return null;
@@ -98,9 +75,9 @@ final class UserController
     {
         $userId = Session::userId();
         if ($userId === null) {
-            Flash::error(self::MSG_AUTH);
+            Flash::error('Necesitas iniciar sesión para continuar.');
 
-            return $this->response->redirect(self::ROUTE_LOGIN);
+            return $this->response->redirect('/login');
         }
 
         $body = (array) $request->getParsedBody();
@@ -119,7 +96,7 @@ final class UserController
 
         Flash::success('Tu perfil se ha actualizado con éxito.');
 
-        return $this->response->redirect(self::ROUTE_PERFIL);
+        return $this->response->redirect('/perfil');
     }
 
     /**
@@ -133,9 +110,9 @@ final class UserController
         $userId = Session::userId();
         if ($userId === null) {
             // Backup defensivo (middleware 'auth' ya verificó)
-            Flash::error(self::MSG_AUTH);
+            Flash::error('Necesitas iniciar sesión para continuar.');
 
-            return $this->response->redirect(self::ROUTE_LOGIN);
+            return $this->response->redirect('/login');
         }
 
         // RECOPILACIÓN DE INPUTS
@@ -150,13 +127,13 @@ final class UserController
             // Error en validación: mostrar genérico (no revelar si current es válida)
             Flash::error($result->error ?? 'No se pudo cambiar la contraseña.');
 
-            return $this->response->redirect(self::ROUTE_PERFIL);
+            return $this->response->redirect('/perfil');
         }
 
         // UX: Confirmar cambio
         Flash::success('Tu contraseña se ha actualizado correctamente.');
 
-        return $this->response->redirect(self::ROUTE_PERFIL);
+        return $this->response->redirect('/perfil');
     }
 
     /**
@@ -175,11 +152,6 @@ final class UserController
         $body     = (array) ($request->getParsedBody() ?? []);
         $avatarId = \trim((string) ($body['avatar_id'] ?? ''));
 
-        return $this->processAvatarUpdate($userId, $avatarId);
-    }
-
-    private function processAvatarUpdate(int $userId, string $avatarId): ResponseInterface
-    {
         if (!AvatarOptions::isValid($avatarId)) {
             return $this->response->json(['success' => false, 'message' => 'Avatar no válido'], 422);
         }
@@ -191,11 +163,15 @@ final class UserController
             return $this->response->json(['success' => false, 'message' => $result->error ?? 'Error al actualizar el avatar.'], 500);
         }
 
-        Session::set('user', $this->profileService->getProfile($userId));
+        $profile = $this->profileService->getProfile($userId);
+        Session::set('user', $profile);
 
         return $this->response->json([
             'ok'   => true,
-            'data' => ['avatar_id' => $avatarId, 'avatar_url' => $avatarUrl],
+            'data' => [
+                'avatar_id'  => $avatarId,
+                'avatar_url' => $avatarUrl,
+            ],
         ]);
     }
 
@@ -204,7 +180,7 @@ final class UserController
      *
      * Eliminar avatar del usuario
      */
-    public function deleteAvatar(): ?ResponseInterface
+    public function deleteAvatar(ServerRequestInterface $request): ?ResponseInterface
     {
         // VALIDACIÓN CONTEXTO: Usuario autenticado
         $userId = Session::userId();
@@ -248,14 +224,14 @@ final class UserController
      * @throws NotFoundException
      * @throws JsonException
      */
-    public function exportData(): ?ResponseInterface
+    public function exportData(ServerRequestInterface $request): ?ResponseInterface
     {
         // VALIDACIÓN CONTEXTO: Usuario autenticado
         $userId = Session::userId();
         if ($userId === null) {
             Flash::error('Necesitas iniciar sesión para exportar tus datos.');
 
-            return $this->response->redirect(self::ROUTE_LOGIN);
+            return $this->response->redirect('/login');
         }
 
         // Recopilar todos los datos personales

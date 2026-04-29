@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Kitchen;
 use App\Core\Container;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
+use App\Core\Result;
+use App\Core\ServiceErrorCode;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
@@ -118,6 +120,26 @@ final class KitchenController
     }
 
     /**
+     * POST /ops/kitchen/ready
+     * Marca un ítem de comanda como listo (AJAX KDS).
+     *
+     * @throws ValidationException
+     */
+    public function ready(ServerRequestInterface $request): ResponseInterface
+    {
+        $body = (array) $request->getParsedBody();
+        $itemId = (int) ($body['item_id'] ?? 0);
+
+        if ($itemId <= 0) {
+            throw ValidationException::required('item_id');
+        }
+
+        $this->service->markReady($itemId);
+
+        return $this->response->json(['ok' => true]);
+    }
+
+    /**
      * GET /ops/kitchen/orders
      * Lista de órdenes activas en el KDS.
      */
@@ -140,6 +162,22 @@ final class KitchenController
         View::render('kitchen/index', ['orders' => $orders], ['workspaces/kds.css'], 'kds');
 
         return null;
+    }
+
+    /**
+     * POST /api/v1/ops/kitchen/orders/{id}/complete → 200
+     */
+    public function completeOrder(ServerRequestInterface $request): ResponseInterface
+    {
+        $id = (int) $request->getAttribute('id');
+
+        $ok = $this->service->markReady($id);
+
+        if (!$ok) {
+            return $this->response->problem(Result::fail('No se pudo completar el pedido', ServiceErrorCode::BUSINESS_RULE), 422);
+        }
+
+        return $this->response->json(['ok' => true, 'data' => ['message' => 'Pedido completado']]);
     }
 
     // ─────────────────────────────────────────────────────────────

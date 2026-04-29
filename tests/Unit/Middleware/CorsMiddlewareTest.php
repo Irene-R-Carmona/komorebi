@@ -64,12 +64,10 @@ final class CorsMiddlewareTest extends TestCase
      */
     private function makeHandler(int $status = 200): RequestHandlerInterface
     {
-        return new class ($status, $this->factory) implements RequestHandlerInterface {
+        return new class($status, $this->factory) implements RequestHandlerInterface {
             public int $callCount = 0;
 
-            public function __construct(private readonly int $status, private readonly Psr17Factory $factory)
-            {
-            }
+            public function __construct(private readonly int $status, private readonly Psr17Factory $factory) {}
 
             #[Override]
             public function handle(ServerRequestInterface $request): ResponseInterface

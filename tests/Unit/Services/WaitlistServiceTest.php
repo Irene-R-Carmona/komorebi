@@ -489,10 +489,19 @@ final class WaitlistServiceTest extends TestCase
     public function testGetWaitlistStatusFailsWhenSlotNotFound(): void
     {
         $entry = new WaitlistEntryDTO(
-            id: 1, token: 'tok', status: 'waiting', position: 1,
-            time_slot_id: 99, user_id: 5, slot_date: '2025-12-01', slot_time: '10:00:00',
-            cafe_name: 'Café Test', guest_count: 2, contact_email: 'a@b.com',
-            expires_at: null, special_requests: null,
+            id: 1,
+            token: 'tok',
+            status: 'waiting',
+            position: 1,
+            time_slot_id: 99,
+            user_id: 5,
+            slot_date: '2025-12-01',
+            slot_time: '10:00:00',
+            cafe_name: 'Café Test',
+            guest_count: 2,
+            contact_email: 'a@b.com',
+            expires_at: null,
+            special_requests: null,
         );
         $this->waitlistRepoStub->method('findByToken')->willReturn($entry);
         // makeService() returns null for findById by default

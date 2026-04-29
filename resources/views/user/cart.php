@@ -157,7 +157,9 @@
                             'Content-Type': 'application/json',
                             'X-CSRF-Token': csrfToken
                         },
-                        body: JSON.stringify({ change: delta })
+                        body: JSON.stringify({
+                            change: delta
+                        })
                     });
                     const json = await res.json();
                     if (json.ok) {
@@ -174,7 +176,9 @@
                 try {
                     const res = await fetch(`/api/v1/cart/items/${itemId}`, {
                         method: 'DELETE',
-                        headers: { 'X-CSRF-Token': csrfToken }
+                        headers: {
+                            'X-CSRF-Token': csrfToken
+                        }
                     });
                     const json = await res.json();
                     if (json.ok) {
@@ -192,7 +196,9 @@
                 try {
                     const res = await fetch('/api/v1/cart/items', {
                         method: 'DELETE',
-                        headers: { 'X-CSRF-Token': csrfToken }
+                        headers: {
+                            'X-CSRF-Token': csrfToken
+                        }
                     });
                     const json = await res.json();
                     if (json.ok) {

@@ -75,7 +75,7 @@ final class MiddlewarePipelineTest extends TestCase
         $finalResponse = $this->makeResponse(200);
         $finalHandler = $this->makeFinalHandler(200);
 
-        $middleware = new class ($finalResponse) implements MiddlewareInterface {
+        $middleware = new class($finalResponse) implements MiddlewareInterface {
             public function __construct(private readonly ResponseInterface $response) {}
 
             #[Override]

@@ -1,1 +1,0 @@
-cion__container rsv2" x-data="reservaForm({&quot;cafes&quot;:[{&quot;id&quot;:1,&quot;name&quot;:&quot;Neko no Niwa&quot;,&quot;slug&quot;:&quot;neko-no-niwa&quot;,&quot;location&quot;:&quot;Shibuya, Tokyo&quot;,&quot;category&quo

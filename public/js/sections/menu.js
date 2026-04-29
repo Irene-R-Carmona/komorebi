@@ -1,5 +1,5 @@
 document.addEventListener('alpine:init', () => {
-  Alpine.data('menuApp', (catInicial, cartInicial = null) => ({
+  Alpine.data('menuApp', (catInicial) => ({
     // UI
     activeTab: catInicial,
     search: '',
@@ -7,17 +7,15 @@ document.addEventListener('alpine:init', () => {
     showAllergenFilter: false,
 
     // Estado carrito
-    cart: cartInicial ?? { items: {}, total_qty: 0, totalPrice: 0 },
-    loading: false,
+    cart: { items: {}, total_qty: 0, totalPrice: 0 },
+    loading: true,
 
     // Filtros
     excludedAllergens: [],
     selectedCafeType: null, // null = todos, 'lounge' | 'playroom' | 'farm' | 'zen',
 
     async init() {
-      if (cartInicial === null) {
-        await this.fetchCart();
-      }
+      await this.fetchCart();
       // Si no vino desde el servidor, leer parámetros de la URL
       try {
         const params = new URLSearchParams(globalThis.location.search);

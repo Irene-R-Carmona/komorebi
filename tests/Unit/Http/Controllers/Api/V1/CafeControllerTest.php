@@ -107,7 +107,10 @@ final class CafeControllerTest extends ControllerTestCase
     {
         $cafeRepo = $this->createStub(CafeRepositoryInterface::class);
         $cafeRepo->method('findBySlug')->willReturn([
-            'id' => 1, 'slug' => 'neko-cat', 'name' => 'Neko Cat Café', 'is_active' => true,
+            'id' => 1,
+            'slug' => 'neko-cat',
+            'name' => 'Neko Cat Café',
+            'is_active' => true,
         ]);
 
         $request = $this->makeGetRequest('/api/v1/cafes/neko-cat')

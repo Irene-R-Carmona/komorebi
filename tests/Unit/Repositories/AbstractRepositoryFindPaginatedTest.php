@@ -118,7 +118,8 @@ final class AbstractRepositoryFindPaginatedTest extends TestCase
 
         // findPaginated retorna exactamente lo que fetchAll devuelve (sin podar el sentinel)
         $this->assertCount(3, $result);
-        $this->assertTrue($pagination->hasNextPage(\count($result)));    }
+        $this->assertTrue($pagination->hasNextPage(\count($result)));
+    }
 
     public function testSecondPageUsesCorrectOffset(): void
     {

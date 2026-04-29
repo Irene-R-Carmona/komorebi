@@ -62,9 +62,14 @@ declare(strict_types=1);
                             <label for="species" class="form-label fw-semibold">Especie <span class="text-danger">*</span></label>
                             <?php
                             $speciesLabels = [
-                                'cat' => 'Gato', 'dog' => 'Perro', 'rabbit' => 'Conejo',
-                                'bird' => 'Pájaro', 'hedgehog' => 'Erizo', 'capybara' => 'Capibara',
-                                'hamster' => 'Hámster', 'other' => 'Otro',
+                                'cat' => 'Gato',
+                                'dog' => 'Perro',
+                                'rabbit' => 'Conejo',
+                                'bird' => 'Pájaro',
+                                'hedgehog' => 'Erizo',
+                                'capybara' => 'Capibara',
+                                'hamster' => 'Hámster',
+                                'other' => 'Otro',
                             ];
                             $selectedSpecies = $_POST['species'] ?? '';
                             ?>

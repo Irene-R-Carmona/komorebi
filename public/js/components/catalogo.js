@@ -3,12 +3,12 @@
 (function () {
   'use strict';
 
-  globalThis.catalogoApp = function (config = {}) {
+  globalThis.catalogoApp = function (favoritosIniciales = []) {
     return {
       filtroTipo: 'todos',
       busqueda: '',
-      cafes: Array.isArray(config.cafes) ? config.cafes : [],
-      favoritos: new Set((Array.isArray(config.favoritos) ? config.favoritos : []).map(String)),
+      cafes: [],
+      favoritos: new Set((favoritosIniciales || []).map(String)),
       filtrosGuardados: false,
 
       get hayResultados() {
@@ -21,6 +21,17 @@
       },
 
       async init() {
+        try {
+          const res = await fetch('/api/v1/cafes');
+          if (res.ok) {
+            const j = await res.json();
+            this.cafes = j.data?.items ?? [];
+          } else {
+            console.error('❌ Error cargando cafés:', res.status);
+          }
+        } catch (e) {
+          console.error('❌ catalogoApp init error:', e);
+        }
         await this.restaurarFiltros();
       },
 

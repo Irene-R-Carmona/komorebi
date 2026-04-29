@@ -87,7 +87,9 @@
                 try {
                     const res = await fetch(`/api/v1/favorites/${cafeId}`, {
                         method: 'DELETE',
-                        headers: { 'X-CSRF-Token': csrfToken }
+                        headers: {
+                            'X-CSRF-Token': csrfToken
+                        }
                     });
                     const json = await res.json();
                     if (json.ok) {

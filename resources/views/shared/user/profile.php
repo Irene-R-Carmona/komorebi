@@ -9,11 +9,6 @@ $toastClass = null;
 $toastIcon  = null;
 $toastMsg   = null;
 
-$profileConfig = json_encode([
-    'profile' => $profile ?? [],
-    'stats'   => $stats   ?? [],
-], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
-
 if (!empty($flash) && isset($flash['type'], $flash['message'])) {
     $toastMsg = (string) $flash['message'];
     if ($flash['type'] === 'success') {
@@ -29,7 +24,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
 }
 ?>
 
-<section class="seccion seccion--activa" x-data='profileApp(<?= $profileConfig ?>)'>
+<section class="seccion seccion--activa" x-data="profileApp()">
     <div class="seccion__container">
 
         <?php if ($toastClass && $toastMsg): ?>
@@ -56,8 +51,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                         <div
                             class="member-card__avatar-wrapper"
                             x-data="avatarUpload"
-                            :data-current-avatar="profile.avatar_url ?? ''"
-                            data-avatar-options="<?= htmlspecialchars(json_encode($avatarOptions ?? [], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8') ?>">
+                            :data-current-avatar="profile.avatar_url ?? ''">
 
                             <img
                                 :src="currentAvatar || profile.avatar_url || '/images/avatars/default.svg'"
@@ -131,8 +125,8 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
 
                             <!-- Progreso visual -->
                             <div class="member-progress"
-                                 :style="'--progress: ' + Math.min(100, Math.max(0, level.progreso || 0)) + '%'"
-                                 x-show="level.siguiente > 0">
+                                :style="'--progress: ' + Math.min(100, Math.max(0, level.progreso || 0)) + '%'"
+                                x-show="level.siguiente > 0">
                                 <div class="member-progress__bar">
                                     <div class="member-progress__fill"></div>
                                 </div>
@@ -156,11 +150,11 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                             class="next-adventure__img"
                             alt=""
                             src="data:image/svg+xml;utf8,<?=
-                                rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'>
+                                                            rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'>
                                 <rect width='80' height='80' rx='12' fill='%23f3efe9'/>
                                 <text x='40' y='48' font-size='34' text-anchor='middle'>🍵</text>
                                 </svg>")
-                            ?>" />
+                                                            ?>" />
 
                         <div class="next-adventure__details">
                             <h3 x-text="nextReservation?.cafe_name ?? 'Café'"></h3>
@@ -365,67 +359,67 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                 </div>
 
                 <div class="reviews-empty" x-show="!loading && reviews.length === 0" x-cloak>
-                        <p>Aún no has dejado reseñas. Cuando visites un café que ya hayas visitado, podrás compartir tu opinión.</p>
-                        <a href="/cafes" class="btn btn--primario btn--pequeno">Explorar cafés</a>
-                    </div>
+                    <p>Aún no has dejado reseñas. Cuando visites un café que ya hayas visitado, podrás compartir tu opinión.</p>
+                    <a href="/cafes" class="btn btn--primario btn--pequeno">Explorar cafés</a>
+                </div>
 
-                    <div class="my-reviews-list" x-show="reviews.length > 0" x-cloak>
-                        <template x-for="rev in reviews" :key="rev.id">
-                            <article class="my-review-card">
-                                <!-- Header -->
-                                <div class="my-review__header">
-                                    <div class="my-review__top">
-                                        <h4 class="my-review__title" x-text="rev.title ?? ''"></h4>
-                                        <span class="my-review__cafe" x-text="rev.cafe_name ?? ''"></span>
-                                    </div>
-
-                                    <!-- Status badge -->
-                                    <span class="my-review__status" :class="'my-review__status--' + reviewStatusClass(rev.status)" x-text="reviewStatusLabel(rev.status)"></span>
+                <div class="my-reviews-list" x-show="reviews.length > 0" x-cloak>
+                    <template x-for="rev in reviews" :key="rev.id">
+                        <article class="my-review-card">
+                            <!-- Header -->
+                            <div class="my-review__header">
+                                <div class="my-review__top">
+                                    <h4 class="my-review__title" x-text="rev.title ?? ''"></h4>
+                                    <span class="my-review__cafe" x-text="rev.cafe_name ?? ''"></span>
                                 </div>
 
-                                <!-- Rating -->
-                                <div class="my-review__rating">
-                                    <template x-for="i in 5" :key="i">
-                                        <span class="review-star" :class="i <= (rev.rating ?? 0) ? 'review-star--filled' : ''">★</span>
-                                    </template>
-                                </div>
+                                <!-- Status badge -->
+                                <span class="my-review__status" :class="'my-review__status--' + reviewStatusClass(rev.status)" x-text="reviewStatusLabel(rev.status)"></span>
+                            </div>
 
-                                <!-- Body -->
-                                <p class="my-review__body" x-text="rev.body ?? ''"></p>
-
-                                <!-- Meta -->
-                                <div class="my-review__meta">
-                                    <time x-text="reviewDateHuman(rev.created_at)"></time>
-                                </div>
-
-                                <!-- Actions -->
-                                <div class="my-review__actions">
-                                    <form method="POST" action="/reviews/update" class="form-inline" style="display: contents;">
-                                        <?= Csrf::field() ?>
-                                        <input type="hidden" name="id" :value="rev.id">
-                                        <button type="button" class="btn-icon-text" @click="editReview(rev.id)">
-                                            ✏️ Editar
-                                        </button>
-                                    </form>
-
-                                    <form method="POST" action="/reviews/delete" class="form-inline" style="display: contents;" data-action="confirm" data-confirm="¿Eliminar esta reseña?">
-                                        <?= Csrf::field() ?>
-                                        <input type="hidden" name="id" :value="rev.id">
-                                        <button type="submit" class="btn-icon-text btn-icon-text--danger">
-                                            🗑️ Eliminar
-                                        </button>
-                                    </form>
-                                </div>
-
-                                <!-- Motivo de rechazo si aplica -->
-                                <template x-if="rev.status === 'rejected' && rev.rejection_reason">
-                                    <div class="my-review__rejection-reason">
-                                        <strong>Motivo del rechazo:</strong> <span x-text="rev.rejection_reason"></span>
-                                    </div>
+                            <!-- Rating -->
+                            <div class="my-review__rating">
+                                <template x-for="i in 5" :key="i">
+                                    <span class="review-star" :class="i <= (rev.rating ?? 0) ? 'review-star--filled' : ''">★</span>
                                 </template>
-                            </article>
-                        </template>
-                    </div>
+                            </div>
+
+                            <!-- Body -->
+                            <p class="my-review__body" x-text="rev.body ?? ''"></p>
+
+                            <!-- Meta -->
+                            <div class="my-review__meta">
+                                <time x-text="reviewDateHuman(rev.created_at)"></time>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="my-review__actions">
+                                <form method="POST" action="/reviews/update" class="form-inline" style="display: contents;">
+                                    <?= Csrf::field() ?>
+                                    <input type="hidden" name="id" :value="rev.id">
+                                    <button type="button" class="btn-icon-text" @click="editReview(rev.id)">
+                                        ✏️ Editar
+                                    </button>
+                                </form>
+
+                                <form method="POST" action="/reviews/delete" class="form-inline" style="display: contents;" data-action="confirm" data-confirm="¿Eliminar esta reseña?">
+                                    <?= Csrf::field() ?>
+                                    <input type="hidden" name="id" :value="rev.id">
+                                    <button type="submit" class="btn-icon-text btn-icon-text--danger">
+                                        🗑️ Eliminar
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Motivo de rechazo si aplica -->
+                            <template x-if="rev.status === 'rejected' && rev.rejection_reason">
+                                <div class="my-review__rejection-reason">
+                                    <strong>Motivo del rechazo:</strong> <span x-text="rev.rejection_reason"></span>
+                                </div>
+                            </template>
+                        </article>
+                    </template>
+                </div>
             </div>
 
         </div>

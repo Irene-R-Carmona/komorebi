@@ -57,7 +57,7 @@ final class CsrfMiddlewareTest extends TestCase
         $request = $this->createStub(ServerRequestInterface::class);
         $request->method('getMethod')->willReturn($method);
         $request->method('getAttribute')->willReturnCallback(
-            fn (string $attr) => $attr === 'auth_method' ? ($authMethod ?: null) : null
+            fn(string $attr) => $attr === 'auth_method' ? ($authMethod ?: null) : null
         );
 
         return $request;

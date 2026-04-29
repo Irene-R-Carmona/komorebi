@@ -150,7 +150,9 @@ namespace {
 
         public function testExactRouteMatchWithNoParams(): void
         {
-            $this->router->get('/about', function ($req) { return 'about-page'; });
+            $this->router->get('/about', function ($req) {
+                return 'about-page';
+            });
 
             $result = $this->router->dispatch('/about', 'GET');
 
@@ -167,7 +169,9 @@ namespace {
 
         public function testSetNotFoundHandlerUsesCustomHandler(): void
         {
-            $this->router->setNotFoundHandler(function () { return 'custom-not-found'; });
+            $this->router->setNotFoundHandler(function () {
+                return 'custom-not-found';
+            });
 
             $result = $this->router->dispatch('/nonexistent', 'GET');
 
@@ -176,7 +180,9 @@ namespace {
 
         public function testClosureHandlerCanReturnString(): void
         {
-            $this->router->get('/ping', function ($req) { return 'pong'; });
+            $this->router->get('/ping', function ($req) {
+                return 'pong';
+            });
 
             $result = $this->router->dispatch('/ping', 'GET');
 
@@ -185,7 +191,9 @@ namespace {
 
         public function testClosureHandlerCanReturnNullGives204EmptyBody(): void
         {
-            $this->router->get('/nothing', function ($req) { return null; });
+            $this->router->get('/nothing', function ($req) {
+                return null;
+            });
 
             $result = $this->router->dispatch('/nothing', 'GET');
 
@@ -201,7 +209,9 @@ namespace {
             $mockResponse->method('getBody')->willReturn($mockBody);
             $mockResponse->method('getHeaderLine')->willReturn('');
 
-            $this->router->get('/direct', function ($req) use ($mockResponse) { return $mockResponse; });
+            $this->router->get('/direct', function ($req) use ($mockResponse) {
+                return $mockResponse;
+            });
 
             $result = $this->router->dispatch('/direct', 'GET');
 
@@ -210,7 +220,9 @@ namespace {
 
         public function testClosureHandlerReturningInvalidTypeThrowsRouterException(): void
         {
-            $this->router->get('/bad-type', function ($req) { return new \stdClass(); });
+            $this->router->get('/bad-type', function ($req) {
+                return new \stdClass();
+            });
 
             $this->expectException(RouterException::class);
             $this->router->dispatch('/bad-type', 'GET');
@@ -242,7 +254,9 @@ namespace {
 
         public function testPostRouteDispatchesCorrectly(): void
         {
-            $this->router->post('/create', function ($req) { return ['created' => true]; });
+            $this->router->post('/create', function ($req) {
+                return ['created' => true];
+            });
 
             $result = $this->router->dispatch('/create', 'POST');
 
@@ -299,7 +313,9 @@ namespace {
         public function testGroupPrefixIsPrependedToRoutes(): void
         {
             $this->router->group(['prefix' => '/api'], function (Router $r): void {
-                $r->get('/users', function ($req) { return ['users' => []]; });
+                $r->get('/users', function ($req) {
+                    return ['users' => []];
+                });
             });
 
             $result = $this->router->dispatch('/api/users', 'GET');
@@ -309,7 +325,9 @@ namespace {
 
         public function testNormalizePathStripsTrailingSlash(): void
         {
-            $this->router->get('/about', function ($req) { return 'about-page'; });
+            $this->router->get('/about', function ($req) {
+                return 'about-page';
+            });
 
             $result = $this->router->dispatch('/about/', 'GET');
 

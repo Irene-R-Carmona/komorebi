@@ -77,7 +77,6 @@ final class CafeController
 
         View::render('public/cafes/index', [
             'titulo'    => 'Nuestros Cafés',
-            'cafes'     => $this->cafeRepo->findActive(),
             'favoritos' => $favoritos,
         ], ['catalogo.css']);
 

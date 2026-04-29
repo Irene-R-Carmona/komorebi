@@ -265,11 +265,21 @@ final class HealthCheckServiceTest extends TestCase
     public function testUpdateFailsWhenMetricsValidationFails(): void
     {
         $dto = new AnimalHealthCheckDTO(
-            id: 1, animal_id: 1, checked_by: 1, check_date: '2024-01-01',
-            created_at: '2024-01-01', weight_kg: 5.0, temperature_c: 38.0,
-            appetite: 'normal', energy_level: 'normal', coat_condition: 'good',
-            eyes_clear: true, breathing_normal: true, mobility_normal: true,
-            notes: null, alerts: null,
+            id: 1,
+            animal_id: 1,
+            checked_by: 1,
+            check_date: '2024-01-01',
+            created_at: '2024-01-01',
+            weight_kg: 5.0,
+            temperature_c: 38.0,
+            appetite: 'normal',
+            energy_level: 'normal',
+            coat_condition: 'good',
+            eyes_clear: true,
+            breathing_normal: true,
+            mobility_normal: true,
+            notes: null,
+            alerts: null,
         );
         $this->repoStub->method('findById')->willReturn($dto);
 
@@ -282,11 +292,21 @@ final class HealthCheckServiceTest extends TestCase
     public function testUpdateFailsWhenRepoReturnsFalse(): void
     {
         $dto = new AnimalHealthCheckDTO(
-            id: 1, animal_id: 1, checked_by: 1, check_date: '2024-01-01',
-            created_at: '2024-01-01', weight_kg: 5.0, temperature_c: 38.0,
-            appetite: 'normal', energy_level: 'normal', coat_condition: 'good',
-            eyes_clear: true, breathing_normal: true, mobility_normal: true,
-            notes: null, alerts: null,
+            id: 1,
+            animal_id: 1,
+            checked_by: 1,
+            check_date: '2024-01-01',
+            created_at: '2024-01-01',
+            weight_kg: 5.0,
+            temperature_c: 38.0,
+            appetite: 'normal',
+            energy_level: 'normal',
+            coat_condition: 'good',
+            eyes_clear: true,
+            breathing_normal: true,
+            mobility_normal: true,
+            notes: null,
+            alerts: null,
         );
         $this->repoStub->method('findById')->willReturn($dto);
         $this->repoStub->method('update')->willReturn(false);
@@ -300,11 +320,21 @@ final class HealthCheckServiceTest extends TestCase
     public function testUpdateSucceeds(): void
     {
         $dto = new AnimalHealthCheckDTO(
-            id: 1, animal_id: 1, checked_by: 1, check_date: '2024-01-01',
-            created_at: '2024-01-01', weight_kg: 5.0, temperature_c: 38.0,
-            appetite: 'normal', energy_level: 'normal', coat_condition: 'good',
-            eyes_clear: true, breathing_normal: true, mobility_normal: true,
-            notes: null, alerts: null,
+            id: 1,
+            animal_id: 1,
+            checked_by: 1,
+            check_date: '2024-01-01',
+            created_at: '2024-01-01',
+            weight_kg: 5.0,
+            temperature_c: 38.0,
+            appetite: 'normal',
+            energy_level: 'normal',
+            coat_condition: 'good',
+            eyes_clear: true,
+            breathing_normal: true,
+            mobility_normal: true,
+            notes: null,
+            alerts: null,
         );
         $this->repoStub->method('findById')->willReturn($dto);
         $this->repoStub->method('update')->willReturn(true);

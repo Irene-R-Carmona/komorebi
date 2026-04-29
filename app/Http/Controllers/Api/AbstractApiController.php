@@ -22,8 +22,7 @@ abstract class AbstractApiController
 {
     public function __construct(
         protected readonly ResponseFactory $response
-    ) {
-    }
+    ) {}
 
     /**
      * Respuesta de éxito.

@@ -104,7 +104,9 @@ final class UserControllerTest extends ControllerTestCase
     {
         $reservationService = $this->createStub(ReservationServiceInterface::class);
         $reservationService->method('getByUser')->willReturn([
-            ['id' => 1], ['id' => 2], ['id' => 3],
+            ['id' => 1],
+            ['id' => 2],
+            ['id' => 3],
         ]);
 
         $gamificationService = $this->createStub(GamificationServiceInterface::class);
@@ -147,8 +149,13 @@ final class UserControllerTest extends ControllerTestCase
         $queryService = $this->createStub(ReviewQueryServiceInterface::class);
         $queryService->method('listUserReviews')->willReturn([
             [
-                'id' => 1, 'cafe_id' => 1, 'cafe_name' => 'Neko', 'rating' => 5,
-                'title' => 'Genial', 'body' => 'Me encantó', 'status' => 'approved',
+                'id' => 1,
+                'cafe_id' => 1,
+                'cafe_name' => 'Neko',
+                'rating' => 5,
+                'title' => 'Genial',
+                'body' => 'Me encantó',
+                'status' => 'approved',
                 'created_at' => '2024-01-01',
             ],
         ]);

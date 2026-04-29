@@ -70,8 +70,12 @@ declare(strict_types=1);
                             <label for="incident_type" class="form-label fw-semibold">Tipo de incidente</label>
                             <?php
                             $incidentTypeLabels = [
-                                'bite' => 'Mordedura', 'injury' => 'Lesión', 'escape' => 'Escape',
-                                'illness' => 'Enfermedad', 'behavior' => 'Comportamiento', 'other' => 'Otro',
+                                'bite' => 'Mordedura',
+                                'injury' => 'Lesión',
+                                'escape' => 'Escape',
+                                'illness' => 'Enfermedad',
+                                'behavior' => 'Comportamiento',
+                                'other' => 'Otro',
                             ];
                             ?>
                             <select id="incident_type" name="incident_type" class="form-select">

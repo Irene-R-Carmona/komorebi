@@ -91,7 +91,7 @@ db-seed: ## Ejecutar seeders solamente (sin migraciones)
 	docker compose exec app php -r "require 'vendor/autoload.php'; (new App\Core\DatabaseSeeder())->run();"
 
 db-verify: ## Verificar estado de la base de datos
-	docker compose exec app php scripts/verify-db-schema.php
+	@echo "$(YELLOW)⚠ Schema verification script no encontrado. Verificación manual requerida.$(NC)"
 
 db-backup: ## Crear backup de la base de datos
 	@mkdir -p backups

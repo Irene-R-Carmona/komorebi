@@ -45,7 +45,6 @@ use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\ClimaContextoServiceInterface;
 use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\Contracts\GamificationServiceInterface;
-use App\Services\Contracts\HolidayServiceInterface;
 use App\Services\Contracts\LoyaltyServiceInterface;
 use App\Services\Contracts\ReviewModerationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
@@ -58,7 +57,6 @@ use App\Services\Contracts\UserProfileServiceInterface;
 use App\Services\Contracts\WeatherServiceInterface;
 use App\Services\FileUploadService;
 use App\Services\GamificationService;
-use App\Services\HolidayService;
 use App\Services\LoyaltyService;
 use App\Services\ReviewModerationService;
 use App\Services\ReviewQueryService;
@@ -184,9 +182,6 @@ final class SharedServiceProvider extends ServiceProvider
             Container::make(SettingRepositoryInterface::class)
         ));
         Container::singleton(SettingsServiceInterface::class, fn() => Container::make(SettingsService::class));
-
-        Container::singleton(HolidayService::class, fn() => new HolidayService());
-        Container::singleton(HolidayServiceInterface::class, fn() => Container::make(HolidayService::class));
 
         Container::singleton(FileUploadService::class, fn() => new FileUploadService());
         Container::singleton(FileUploadServiceInterface::class, fn() => Container::make(FileUploadService::class));
