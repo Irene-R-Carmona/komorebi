@@ -16,6 +16,7 @@ infraestructura de tests reutilizable y profundización de los tests existentes.
 | Classes | 23.72% (65 / 274) |
 
 Distribución:
+
 - 0% cobertura: 53 clases
 - 1–29% cobertura: 48 clases
 - 30–79% cobertura: 66 clases
