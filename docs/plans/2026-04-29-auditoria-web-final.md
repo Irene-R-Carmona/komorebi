@@ -72,6 +72,7 @@ Para cada página, probar todos los elementos interactivos detectados:
 ## Checklist de diseño profesional por página
 
 ### Accesibilidad — CRÍTICA (ui-ux-pro-max Priority 1)
+
 - [ ] Contraste mínimo 4.5:1 en texto normal
 - [ ] Focus rings visibles en elementos interactivos (no eliminados con `outline: none`)
 - [ ] Alt text descriptivo en imágenes significativas
@@ -80,6 +81,7 @@ Para cada página, probar todos los elementos interactivos detectados:
 - [ ] Orden lógico de lectura para screen readers
 
 ### Interacción — CRÍTICA (ui-ux-pro-max Priority 2 + 8)
+
 - [ ] Botones async desactivados + spinner durante la operación
 - [ ] Touch targets mínimo 44×44px
 - [ ] `cursor:pointer` en todos los elementos clicables
@@ -92,6 +94,7 @@ Para cada página, probar todos los elementos interactivos detectados:
 - [ ] Confirmación antes de acciones destructivas
 
 ### Estilo y consistencia visual (ui-ux-pro-max Priority 4 + 6)
+
 - [ ] Sin emojis en UI — sustituir por símbolo tipográfico o icono SVG
 - [ ] Un solo set de iconos (mismo trazo, grosor, esquinas) en todo el producto
 - [ ] Una única acción primaria por pantalla (CTAs secundarios subordinados)
@@ -101,18 +104,21 @@ Para cada página, probar todos los elementos interactivos detectados:
 - [ ] Sin texto cuerpo menor de 12px
 
 ### Layout y responsive (ui-ux-pro-max Priority 5)
+
 - [ ] Sin scroll horizontal en 1280px
 - [ ] `max-width` de contenedores consistente entre páginas
 - [ ] Navbar/topbar fija reserva padding al contenido
 - [ ] Sin z-index overlapping no intencionados
 
 ### Navegación (ui-ux-pro-max Priority 9)
+
 - [ ] Estado activo visible en nav lateral/topbar
 - [ ] Items de nav: icono + etiqueta de texto (nunca icon-only)
 - [ ] Back/cancelar predecible en flujos multi-paso y modales
 - [ ] Breadcrumbs en backoffice con jerarquía profunda
 
 ### Coherencia estética del producto (frontend-design + interface-design)
+
 - [ ] Identidad visual unificada entre módulos (público, backoffice, OPS, keeper)
 - [ ] Tipografía con personalidad coherente con el concepto café
 - [ ] Paleta de color consistente entre todos los módulos
@@ -123,6 +129,7 @@ Para cada página, probar todos los elementos interactivos detectados:
 ## Fases de ejecución
 
 ### FASE 0 — Verificación del entorno
+
 - [ ] GET `http://localhost:8080/health` → confirmar JSON con `db`, `redis`, `queue` todos `ok`
 - [ ] Localizar credenciales seeded en `scripts/` o seeders → recopilar email+password por rol
 - [ ] Confirmar en `.env`: `FEATURE_BACKOFFICE=1`, `FEATURE_OPS=1`, `FEATURE_KEEPER=1`
@@ -157,6 +164,7 @@ Para cada página, probar todos los elementos interactivos detectados:
 - [ ] `/verify-email` — si existe usuario sin verificar
 
 Acciones:
+
 - [ ] Login con credenciales inválidas → mensaje de error visible
 - [ ] Login correcto como `user` → redirect correcto
 
@@ -281,6 +289,7 @@ Acciones:
 ```
 
 Leyenda:
+
 - **Estado:** Operativa / Parcial / Rota
 - **Datos:** BD real / Hardcodeado / Sin datos
 - **JS Err:** Sí / No

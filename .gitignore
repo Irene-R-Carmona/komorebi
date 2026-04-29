@@ -120,4 +120,3 @@ docker/redis/dump.rdb
 
 # Logs de desarrollo sueltos en raíz
 logs.txt
-
