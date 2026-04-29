@@ -46,11 +46,6 @@
       "sourceType": "github",
       "computedHash": "368a26f2b079ffe0d584f48006524f65cf997cb9369411aa8c6ead216dee22eb"
     },
-    "compress": {
-      "source": "JuliusBrussee/caveman",
-      "sourceType": "github",
-      "computedHash": "f71138e885d3e0df8c78b4814554ae146a1a6dbe76bafcc32e95f2ba6d4073c9"
-    },
     "dispatching-parallel-agents": {
       "source": "obra/superpowers",
       "sourceType": "github",
@@ -130,6 +125,16 @@
       "source": "obra/superpowers",
       "sourceType": "github",
       "computedHash": "b0e3065034610df41b9119445b5fd052042752bb3e598ca66aea2403a7c7685e"
+    },
+    "zoom-out": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "computedHash": "2a6894c7f9b1c9c55f451c625a834c4f377e217b623a85280e55db5fe9cacf48"
+    },
+    "improve-codebase-architecture": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "computedHash": "16bcce7ba8db8ee30b5931f17e86134a527498c8901b35da96c587ff155d067b"
     }
   }
 }

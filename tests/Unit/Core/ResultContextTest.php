@@ -110,4 +110,124 @@ final class ResultContextTest extends TestCase
         $this->assertTrue($result->ok);
         $this->assertSame(['id' => 1, 'name' => 'Test'], $result->data);
     }
+
+    // ── toArray() ───────────────────────────────────────────────────────
+
+    public function testToArrayForOkResultContainsDataKey(): void
+    {
+        $result = Result::ok(['id' => 5]);
+
+        $arr = $result->toArray();
+
+        $this->assertTrue($arr['ok']);
+        $this->assertSame(['id' => 5], $arr['data']);
+        $this->assertArrayNotHasKey('error', $arr);
+    }
+
+    public function testToArrayForOkResultWithNullData(): void
+    {
+        $result = Result::ok();
+
+        $arr = $result->toArray();
+
+        $this->assertTrue($arr['ok']);
+        $this->assertNull($arr['data']);
+    }
+
+    public function testToArrayForFailResultContainsErrorAndCode(): void
+    {
+        $result = Result::fail('Mensaje de error', 'my_code');
+
+        $arr = $result->toArray();
+
+        $this->assertFalse($arr['ok']);
+        $this->assertSame('Mensaje de error', $arr['error']);
+        $this->assertSame('my_code', $arr['code']);
+        $this->assertArrayNotHasKey('data', $arr);
+    }
+
+    public function testToArrayForFailResultWithDataIncludesDataKey(): void
+    {
+        $result = Result::fail('Error con datos', 'validation', ['field' => 'required']);
+
+        $arr = $result->toArray();
+
+        $this->assertFalse($arr['ok']);
+        $this->assertSame(['field' => 'required'], $arr['data']);
+    }
+
+    public function testToArrayForFailResultWithNullErrorUsesDefault(): void
+    {
+        $result = Result::fail('', 'code');
+
+        $arr = $result->toArray();
+
+        $this->assertFalse($arr['ok']);
+        // error vacío se almacena tal cual
+        $this->assertSame('', $arr['error']);
+    }
+
+    // ── toFlash() ───────────────────────────────────────────────────────
+
+    public function testToFlashForOkResultSetsSuccessMessage(): void
+    {
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
+        }
+
+        Result::ok()->toFlash('¡Guardado!');
+
+        $this->assertSame('¡Guardado!', $_SESSION['_flash_messages'][0]['message']);
+        $this->assertSame('success', $_SESSION['_flash_messages'][0]['type']);
+
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
+        }
+    }
+
+    public function testToFlashForOkResultWithStringDataUsesDataAsMessage(): void
+    {
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
+        }
+
+        Result::ok('Operación completada')->toFlash();
+
+        $this->assertSame('Operación completada', $_SESSION['_flash_messages'][0]['message']);
+
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
+        }
+    }
+
+    public function testToFlashForOkResultWithNoDataUsesDefaultMessage(): void
+    {
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
+        }
+
+        Result::ok()->toFlash();
+
+        $this->assertSame('Operación completada exitosamente', $_SESSION['_flash_messages'][0]['message']);
+
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
+        }
+    }
+
+    public function testToFlashForFailResultSetsErrorMessage(): void
+    {
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
+        }
+
+        Result::fail('Algo salió mal')->toFlash();
+
+        $this->assertSame('Algo salió mal', $_SESSION['_flash_messages'][0]['message']);
+        $this->assertSame('error', $_SESSION['_flash_messages'][0]['type']);
+
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
+        }
+    }
 }

@@ -28,6 +28,7 @@ final readonly class MenuDTO implements DomainTransferObject
         public int     $category_id,
         public string  $category_name,
         public string  $category_slug,
+        public ?string $japanese_name,
         public string  $product_type,
         public bool    $is_active,
         public ?string $image_url,
@@ -76,6 +77,7 @@ final readonly class MenuDTO implements DomainTransferObject
             category_id: (int) ($row['category_id'] ?? 0),
             category_name: (string) ($row['category_name'] ?? ''),
             category_slug: (string) ($row['category_slug'] ?? ''),
+            japanese_name: isset($row['japanese_name']) ? (string) $row['japanese_name'] : null,
             product_type: (string) ($row['product_type'] ?? 'item'),
             is_active: (bool) ($row['is_active'] ?? false),
             image_url: isset($row['image_url']) ? (string) $row['image_url'] : null,
@@ -94,6 +96,7 @@ final readonly class MenuDTO implements DomainTransferObject
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'japanese_name' => $this->japanese_name,
             'slug' => $this->slug,
             'description' => $this->description,
             'price' => $this->price,

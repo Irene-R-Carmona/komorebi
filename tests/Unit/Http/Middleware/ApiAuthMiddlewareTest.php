@@ -49,13 +49,13 @@ final class ApiAuthMiddlewareTest extends TestCase
         return $request;
     }
 
-    /** @phpstan-ignore method.unused */
     private function requestWithoutAuth(): ServerRequestInterface
     {
         $request = $this->createStub(ServerRequestInterface::class);
         $request->method('getHeaderLine')->willReturn('');
         $request->method('getServerParams')->willReturn(['REMOTE_ADDR' => '127.0.0.1']);
         $request->method('getRequestTarget')->willReturn('/api/v1/test');
+        $request->method('withAttribute')->willReturnSelf();
 
         return $request;
     }
@@ -149,5 +149,59 @@ final class ApiAuthMiddlewareTest extends TestCase
         $mw->process($request, $handler);
 
         $this->assertSame('bearer', $capturedAttribute);
+    }
+
+    protected function tearDown(): void
+    {
+        $_SESSION = [];
+    }
+
+    public function testSessionUnauthenticatedReturns401(): void
+    {
+        $_SESSION = [];
+
+        $mw      = new ApiAuthMiddleware($this->responseFactory, null);
+        $handler = $this->createStub(RequestHandlerInterface::class);
+
+        $response = $mw->process($this->requestWithoutAuth(), $handler);
+
+        $this->assertSame(401, $response->getStatusCode());
+        $body = \json_decode((string) $response->getBody(), true);
+        $this->assertSame('unauthenticated', $body['code'] ?? null);
+    }
+
+    public function testSessionActiveUserPassesToHandler(): void
+    {
+        $_SESSION = [
+            'user_id'    => 5,
+            'user'       => ['id' => 5, 'name' => 'Ana', 'is_active' => true],
+            'user_roles' => ['admin'],
+        ];
+
+        $mw      = new ApiAuthMiddleware($this->responseFactory, null);
+        $handler = $this->createStub(RequestHandlerInterface::class);
+        $handler->method('handle')->willReturn($this->responseFactory->createResponse(200));
+
+        $response = $mw->process($this->requestWithoutAuth(), $handler);
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    public function testSessionInactiveUserReturns401(): void
+    {
+        $_SESSION = [
+            'user_id'    => 5,
+            'user'       => ['id' => 5, 'name' => 'Ana', 'is_active' => false],
+            'user_roles' => ['admin'],
+        ];
+
+        $mw      = new ApiAuthMiddleware($this->responseFactory, null);
+        $handler = $this->createStub(RequestHandlerInterface::class);
+
+        $response = $mw->process($this->requestWithoutAuth(), $handler);
+
+        $this->assertSame(401, $response->getStatusCode());
+        $body = \json_decode((string) $response->getBody(), true);
+        $this->assertSame('account_disabled', $body['code'] ?? null);
     }
 }

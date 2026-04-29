@@ -277,4 +277,140 @@ final class AvailabilityServiceTest extends ServiceTestCase
 
         $this->assertIsArray($result);
     }
+
+    // ──────────────────────────────────────────────
+    // Capacidad del café inválida (cero)
+    // ──────────────────────────────────────────────
+
+    public function testGetAvailableSlotsFailsWhenCafeCapacityIsZero(): void
+    {
+        $this->cafeRepoStub->method('findById')->willReturn($this->makeCafe(capacityMax: 0));
+        $this->productRepoStub->method('findById')->willReturn($this->makePass(maxPax: null, duration: 60));
+
+        $result = $this->service->getAvailableSlots(1, 1, $this->validFutureDate(), 2);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('cafe_capacity_invalid', $result->code);
+    }
+
+    // ──────────────────────────────────────────────
+    // passMatchesCafe — pass no compatible con tipo de café
+    // ──────────────────────────────────────────────
+
+    public function testGetAvailableSlotsFailsWhenPassNotAllowedForCafeCategory(): void
+    {
+        $this->cafeRepoStub->method('findById')->willReturn($this->makeCafe(category: 'cat_cafe'));
+        $this->productRepoStub->method('findById')->willReturn(
+            $this->makePass(targetCafeTypes: '["dog_cafe"]', duration: 60)
+        );
+
+        $result = $this->service->getAvailableSlots(1, 1, $this->validFutureDate(), 2);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('pass_not_allowed', $result->code);
+    }
+
+    public function testGetAvailableSlotsFailsWhenPassNotAllowedForAnimalType(): void
+    {
+        $this->cafeRepoStub->method('findById')->willReturn($this->makeCafe(animalType: 'cat'));
+        $this->productRepoStub->method('findById')->willReturn(
+            $this->makePass(targetAnimalTypes: '["dog"]', duration: 60)
+        );
+
+        $result = $this->service->getAvailableSlots(1, 1, $this->validFutureDate(), 2);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('pass_not_allowed', $result->code);
+    }
+
+    // ──────────────────────────────────────────────
+    // Camino feliz — genera slots de disponibilidad
+    // ──────────────────────────────────────────────
+
+    public function testGetAvailableSlotsReturnsNonEmptySlots(): void
+    {
+        $this->cafeRepoStub->method('findById')->willReturn($this->makeCafe());
+        $this->productRepoStub->method('findById')->willReturn($this->makePass(duration: 60));
+        $this->reservationRepoStub->method('findByCafeAndDate')->willReturn([]);
+
+        $result = $this->service->getAvailableSlots(1, 1, $this->validFutureDate(), 2);
+
+        $this->assertTrue($result->ok);
+        $this->assertArrayHasKey('slots', $result->data);
+        $this->assertIsArray($result->data['slots']);
+        $this->assertNotEmpty($result->data['slots']);
+    }
+
+    public function testGetAvailableSlotsResultContainsExpectedKeys(): void
+    {
+        $this->cafeRepoStub->method('findById')->willReturn($this->makeCafe());
+        $this->productRepoStub->method('findById')->willReturn($this->makePass(duration: 60));
+        $this->reservationRepoStub->method('findByCafeAndDate')->willReturn([]);
+
+        $result = $this->service->getAvailableSlots(1, 1, $this->validFutureDate(), 2);
+
+        $this->assertTrue($result->ok);
+        $this->assertArrayHasKey('cafe_id', $result->data);
+        $this->assertArrayHasKey('date', $result->data);
+        $this->assertArrayHasKey('guests', $result->data);
+        $this->assertArrayHasKey('step_minutes', $result->data);
+    }
+
+    public function testGetAvailableSlotsExcludesSlotWhenCapacityFull(): void
+    {
+        $this->cafeRepoStub->method('findById')->willReturn($this->makeCafe(capacityMax: 2));
+        $this->productRepoStub->method('findById')->willReturn($this->makePass(maxPax: null, duration: 60));
+        // Reservation at 09:00 for 2 guests fills entire capacity for that slot
+        $this->reservationRepoStub->method('findByCafeAndDate')->willReturn([
+            ['reservation_time' => '09:00', 'pass_duration_minutes' => 60, 'guests' => 2],
+        ]);
+
+        $result = $this->service->getAvailableSlots(1, 1, $this->validFutureDate(), 1);
+
+        $this->assertTrue($result->ok);
+        $slots = $result->data['slots'];
+        $this->assertNotContains('09:00', $slots);
+    }
+
+    // ──────────────────────────────────────────────
+    // assertSlotAvailable — camino feliz y slot no disponible
+    // ──────────────────────────────────────────────
+
+    public function testAssertSlotAvailableSucceedsWhenSlotExists(): void
+    {
+        $this->cafeRepoStub->method('findById')->willReturn($this->makeCafe());
+        $this->productRepoStub->method('findById')->willReturn($this->makePass(duration: 60));
+        $this->reservationRepoStub->method('findByCafeAndDate')->willReturn([]);
+
+        // Café abre a las 09:00 → primer slot disponible = 09:00
+        $result = $this->service->assertSlotAvailable(1, 1, $this->validFutureDate(), '09:00', 2);
+
+        $this->assertTrue($result->ok);
+    }
+
+    public function testAssertSlotAvailableFailsWhenSlotNotInList(): void
+    {
+        $this->cafeRepoStub->method('findById')->willReturn($this->makeCafe());
+        $this->productRepoStub->method('findById')->willReturn($this->makePass(duration: 60));
+        $this->reservationRepoStub->method('findByCafeAndDate')->willReturn([]);
+
+        // 03:00 está antes de la apertura (09:00) → no estará en los slots
+        $result = $this->service->assertSlotAvailable(1, 1, $this->validFutureDate(), '03:00', 2);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('no_availability', $result->code);
+    }
+
+    // ──────────────────────────────────────────────
+    // getAvailableCafesById — delegación al repositorio
+    // ──────────────────────────────────────────────
+
+    public function testGetAvailablesCafesByIdDelegatesToRepo(): void
+    {
+        $this->cafeRepoStub->method('findAvailableForReservationById')->willReturn([1 => 'Test Café', 2 => 'Otro Café']);
+
+        $result = $this->service->getAvailableCafesById();
+
+        $this->assertSame([1 => 'Test Café', 2 => 'Otro Café'], $result);
+    }
 }

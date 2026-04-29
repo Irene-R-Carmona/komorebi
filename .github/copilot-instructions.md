@@ -43,13 +43,16 @@ Cuando haya ≥ 1 % de probabilidad de que una skill aplique → **invócala sin
 **Planificación:** `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development`,
 `dispatching-parallel-agents`
 
-**Desarrollo:** `test-driven-development`, `systematic-debugging`, `ui-ux-pro-max`, `frontend-design`,
+**Desarrollo:** `test-driven-development`, `systematic-debugging`, `zoom-out`,
+`improve-codebase-architecture`, `ui-ux-pro-max`, `frontend-design`,
 `interface-design`, `api-design-principles`
 
 **Calidad:** `verification-before-completion`, `requesting-code-review`, `receiving-code-review`,
 `finishing-a-development-branch`
 
 **Marca:** `branding`, `brand-visual-generator`, `logo-generator`, `svg-logo-designer`
+
+**Límites de contexto (suite caveman):** `caveman`, `caveman-compress`, `caveman-help`, `caveman-review`
 
 **Utilidades:** `using-superpowers`, `writing-skills`, `find-skills`, `troubleshoot`, `agent-customization`
 
@@ -88,4 +91,3 @@ Cuando haya ≥ 1 % de probabilidad de que una skill aplique → **invócala sin
 | `/nuevo-componente-ui` | Componente de vista con ui-ux-pro-max + Lighthouse audit   |
 | `/finalizar-rama`      | Verificación + PR siguiendo Definition of Done             |
 | `/revision-codigo`     | Code review estructurado con checklist                     |
-

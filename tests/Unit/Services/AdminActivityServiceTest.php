@@ -129,4 +129,136 @@ final class AdminActivityServiceTest extends TestCase
         $this->assertCount(1, $result->data);
         $this->assertSame([], $result->data[0]['roles']);
     }
+
+    public function testGetProductsWithCategoriesReturnsOkWithData(): void
+    {
+        $row = ['id' => 1, 'name' => 'Matcha Latte', 'category_name' => 'Bebidas'];
+
+        $stmtStub = $this->createStub(PDOStatement::class);
+        $stmtStub->method('fetchAll')->willReturn([$row]);
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('query')->willReturn($stmtStub);
+
+        $service = new AdminActivityService($pdoStub);
+        $result  = $service->getProductsWithCategories();
+
+        $this->assertTrue($result->ok);
+        $this->assertCount(1, $result->data);
+        $this->assertSame('Matcha Latte', $result->data[0]['name']);
+    }
+
+    public function testGetProductsWithCategoriesReturnsFailOnPdoException(): void
+    {
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('query')->willThrowException(new PDOException('DB error'));
+
+        $service = new AdminActivityService($pdoStub);
+        $result  = $service->getProductsWithCategories();
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('db_error', $result->code);
+    }
+
+    public function testGetReservationsWithDetailsReturnsOkWithData(): void
+    {
+        $row = ['id' => 1, 'cafe_name' => 'Komorebi Central', 'customer_name' => 'Ana', 'customer_email' => 'ana@example.com'];
+
+        $stmtStub = $this->createStub(PDOStatement::class);
+        $stmtStub->method('execute')->willReturn(true);
+        $stmtStub->method('fetchAll')->willReturn([$row]);
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('prepare')->willReturn($stmtStub);
+
+        $service = new AdminActivityService($pdoStub);
+        $result  = $service->getReservationsWithDetails(10);
+
+        $this->assertTrue($result->ok);
+        $this->assertCount(1, $result->data);
+        $this->assertSame('Komorebi Central', $result->data[0]['cafe_name']);
+    }
+
+    public function testGetReservationsWithDetailsReturnsFailOnPdoException(): void
+    {
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('prepare')->willThrowException(new PDOException('DB error'));
+
+        $service = new AdminActivityService($pdoStub);
+        $result  = $service->getReservationsWithDetails();
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('db_error', $result->code);
+    }
+
+    public function testGetRecentActivityReturnsOkWithMergedResults(): void
+    {
+        $twoHoursAgo = \date('Y-m-d H:i:s', \time() - 7200);
+
+        $stmtRes = $this->createStub(PDOStatement::class);
+        $stmtRes->method('fetchAll')->willReturn([
+            ['cafe_name' => 'Café Komorebi', 'user_name' => 'Ana', 'created_at' => $twoHoursAgo],
+        ]);
+
+        $stmtUsers = $this->createStub(PDOStatement::class);
+        $stmtUsers->method('fetchAll')->willReturn([
+            ['email' => 'nueva@example.com', 'created_at' => $twoHoursAgo],
+        ]);
+
+        $stmtReviews = $this->createStub(PDOStatement::class);
+        $stmtReviews->method('fetchAll')->willReturn([
+            ['cafe_name' => 'Café Komorebi', 'created_at' => $twoHoursAgo],
+        ]);
+
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('query')->willReturnOnConsecutiveCalls($stmtRes, $stmtUsers, $stmtReviews);
+
+        $service = new AdminActivityService($pdoStub);
+        $result  = $service->getRecentActivity(10);
+
+        $this->assertTrue($result->ok);
+        $this->assertIsArray($result->data);
+        $this->assertCount(3, $result->data);
+    }
+
+    public function testGetRecentActivityReturnsFailOnPdoException(): void
+    {
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('query')->willThrowException(new PDOException('DB error'));
+
+        $service = new AdminActivityService($pdoStub);
+        $result  = $service->getRecentActivity();
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('db_error', $result->code);
+    }
+
+    public function testGetReservationsChartDataReturnsOkWithLabelsAndValues(): void
+    {
+        $stmtStub = $this->createStub(PDOStatement::class);
+        $stmtStub->method('execute')->willReturn(true);
+        $stmtStub->method('fetchColumn')->willReturn(5);
+
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('prepare')->willReturn($stmtStub);
+
+        $service = new AdminActivityService($pdoStub);
+        $result  = $service->getReservationsChartData();
+
+        $this->assertTrue($result->ok);
+        $this->assertArrayHasKey('labels', $result->data);
+        $this->assertArrayHasKey('values', $result->data);
+        $this->assertCount(7, $result->data['labels']);
+        $this->assertCount(7, $result->data['values']);
+    }
+
+    public function testGetReservationsChartDataReturnsFailOnException(): void
+    {
+        $pdoStub = $this->createStub(PDO::class);
+        $pdoStub->method('prepare')->willThrowException(new PDOException('DB error'));
+
+        $service = new AdminActivityService($pdoStub);
+        $result  = $service->getReservationsChartData();
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('chart_error', $result->code);
+    }
 }

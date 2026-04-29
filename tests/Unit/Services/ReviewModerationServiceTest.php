@@ -123,4 +123,105 @@ final class ReviewModerationServiceTest extends TestCase
 
         $this->assertIsArray($reviews);
     }
+
+    public function testListPendingReviewsReturnsEmptyOnException(): void
+    {
+        $this->reviewRepoStub->method('findPendingPaginated')->willThrowException(new \Exception('DB error'));
+
+        $reviews = $this->service->listPendingReviews();
+
+        $this->assertSame([], $reviews);
+    }
+
+    public function testModerateReviewReturnsFalseWhenRepoThrows(): void
+    {
+        $this->reviewRepoStub->method('findById')->willThrowException(new \Exception('DB error'));
+
+        $result = $this->service->moderateReview(1, 'approved');
+
+        $this->assertFalse($result);
+    }
+
+    public function testModerateReviewReturnsTrueOnSuccess(): void
+    {
+        $this->reviewRepoStub->method('findById')->willReturn(
+            new ReviewDTO(
+                id: 1,
+                user_id: 1,
+                cafe_id: 2,
+                cafe_name: '',
+                user_name: '',
+                rating: 4,
+                title: '',
+                body: '',
+                status: 'pending',
+                created_at: '',
+            )
+        );
+        $this->reviewRepoStub->method('updateStatus')->willReturn(true);
+
+        $result = $this->service->moderateReview(1, 'approved');
+
+        $this->assertTrue($result);
+    }
+
+    public function testModerateReviewReturnsFalseWhenUpdateFails(): void
+    {
+        $this->reviewRepoStub->method('findById')->willReturn(null);
+        $this->reviewRepoStub->method('updateStatus')->willReturn(false);
+
+        $result = $this->service->moderateReview(1, 'rejected');
+
+        $this->assertFalse($result);
+    }
+
+    public function testModerateReviewWithPendingStatusDoesNotUpdateRating(): void
+    {
+        $this->reviewRepoStub->method('findById')->willReturn(
+            new ReviewDTO(
+                id: 1,
+                user_id: 1,
+                cafe_id: 2,
+                cafe_name: '',
+                user_name: '',
+                rating: 2,
+                title: '',
+                body: '',
+                status: 'pending',
+                created_at: '',
+            )
+        );
+        $this->reviewRepoStub->method('updateStatus')->willReturn(true);
+
+        $result = $this->service->moderateReview(1, 'pending');
+
+        $this->assertTrue($result);
+    }
+
+    public function testDeleteReviewByIdReturnsTrueOnSuccess(): void
+    {
+        $this->reviewRepoStub->method('delete')->willReturn(true);
+
+        $result = $this->service->deleteReviewById(1);
+
+        $this->assertTrue($result);
+    }
+
+    public function testDeleteReviewByIdReturnsFalseWhenRepoReturnsFalse(): void
+    {
+        $this->reviewRepoStub->method('delete')->willReturn(false);
+
+        $result = $this->service->deleteReviewById(1);
+
+        $this->assertFalse($result);
+    }
+
+    public function testDeleteReviewByIdReturnsFalseOnException(): void
+    {
+        $this->reviewRepoStub->method('delete')->willThrowException(new \Exception('DB error'));
+
+        $result = $this->service->deleteReviewById(1);
+
+        $this->assertFalse($result);
+    }
 }

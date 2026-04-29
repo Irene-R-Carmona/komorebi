@@ -292,4 +292,274 @@ final class AnimalCareServiceTest extends TestCase
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('no encontrado', $result->error);
     }
+
+    public function testCreateAnimalFailsWhenSpeciesInvalid(): void
+    {
+        $result = $this->service->createAnimal(['name' => 'Mochi', 'species' => 'dragon', 'cafe_id' => 1]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('invalid_species', $result->code);
+    }
+
+    public function testCreateAnimalFailsWhenAgeIsNegative(): void
+    {
+        $result = $this->service->createAnimal([
+            'name'      => 'Mochi',
+            'species'   => 'cat',
+            'cafe_id'   => 1,
+            'age_years' => -1,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('invalid_age', $result->code);
+    }
+
+    public function testCreateAnimalHandlesException(): void
+    {
+        $this->animalRepoStub->method('createAnimal')
+            ->willThrowException(new \RuntimeException('DB error'));
+
+        $result = $this->service->createAnimal(['name' => 'Mochi', 'species' => 'cat', 'cafe_id' => 1]);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testUpdateAnimalHandlesException(): void
+    {
+        $this->animalRepoStub->method('updateAnimal')
+            ->willThrowException(new \RuntimeException('DB error'));
+
+        $result = $this->service->updateAnimal(1, ['name' => 'Mochi']);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testDeleteAnimalHandlesException(): void
+    {
+        $this->animalRepoStub->method('softDeleteAnimal')
+            ->willThrowException(new \RuntimeException('DB error'));
+
+        $result = $this->service->deleteAnimal(1);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testToggleActiveHandlesException(): void
+    {
+        $this->animalRepoStub->method('toggleStatus')
+            ->willThrowException(new \RuntimeException('DB error'));
+
+        $result = $this->service->toggleActive(1);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testResolveIncidentHandlesException(): void
+    {
+        $this->incidentRepoStub->method('resolve')
+            ->willThrowException(new \RuntimeException('DB error'));
+
+        $result = $this->service->resolveIncident(1);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testUpdateIncidentFailsWhenUpdateReturnsFalse(): void
+    {
+        $this->incidentRepoStub->method('findById')->willReturn(
+            new \App\Domain\DTO\AnimalIncidentDTO(
+                id: 1,
+                animal_id: 1,
+                incident_type: 'injury',
+                description: 'Test incident',
+                severity: 'low',
+                reported_by: null,
+                resolved_at: null,
+                resolved_by: null,
+                created_at: '2024-01-01',
+                status: 'open',
+            )
+        );
+        $this->incidentRepoStub->method('update')->willReturn(false);
+
+        $result = $this->service->updateIncident(1, ['description' => 'Updated']);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testUpdateIncidentSucceeds(): void
+    {
+        $this->incidentRepoStub->method('findById')->willReturn(
+            new \App\Domain\DTO\AnimalIncidentDTO(
+                id: 2,
+                animal_id: 1,
+                incident_type: 'injury',
+                description: 'Test incident',
+                severity: 'low',
+                reported_by: null,
+                resolved_at: null,
+                resolved_by: null,
+                created_at: '2024-01-01',
+                status: 'open',
+            )
+        );
+        $this->incidentRepoStub->method('update')->willReturn(true);
+
+        $result = $this->service->updateIncident(2, ['description' => 'Updated']);
+
+        $this->assertTrue($result->ok);
+    }
+
+    public function testCreateCareLogFailsWithInvalidMoodBefore(): void
+    {
+        $result = $this->service->createCareLog([
+            'animal_id'     => 1,
+            'activity_type' => 'feeding',
+            'mood_before'   => 'unknown_mood',
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('ánimo', $result->error);
+    }
+
+    public function testCreateCareLogFailsWithInvalidMoodAfter(): void
+    {
+        $result = $this->service->createCareLog([
+            'animal_id'     => 1,
+            'activity_type' => 'feeding',
+            'mood_after'    => 'unknown_mood',
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('ánimo', $result->error);
+    }
+
+    public function testCreateCareLogHandlesException(): void
+    {
+        $this->healthCheckRepoStub->method('createCareLog')
+            ->willThrowException(new \RuntimeException('DB error'));
+
+        $result = $this->service->createCareLog([
+            'animal_id'     => 1,
+            'activity_type' => 'feeding',
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testGetAnimalsWithCafeInfoDelegatesToGetAllAnimals(): void
+    {
+        $this->animalRepoStub->method('getAnimalsWithCafeInfoOptimized')->willReturn([['id' => 1]]);
+
+        $result = $this->service->getAnimalsWithCafeInfo();
+
+        $this->assertCount(1, $result);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // createCareLog — optional fields path (duration_minutes, mood_before,
+    // mood_after, notes) — cubre líneas 168, 171, 174, 177
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function testCreateCareLogBuildsFullNotesWithAllOptionalFields(): void
+    {
+        $this->healthCheckRepoStub->method('createCareLog')->willReturn(12);
+
+        $result = $this->service->createCareLog([
+            'animal_id'          => 1,
+            'activity_type'      => 'feeding',
+            'logged_by_user_id'  => 2,
+            'duration_minutes'   => 20,
+            'mood_before'        => 'happy',
+            'mood_after'         => 'calm',
+            'notes'              => 'Todo bien',
+        ]);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(12, $result->data);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // validateIncidentData — vía createIncident
+    // cubre líneas 323-346 (condición incident_type, incident_status,
+    // severity y description)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function testCreateIncidentFailsWhenIncidentTypeIsInvalid(): void
+    {
+        $result = $this->service->createIncident([
+            'animal_id'     => 1,
+            'incident_type' => 'INVALID_TYPE',
+            'severity'      => 'low',
+            'description'   => 'Descripción larga suficiente',
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('incidente', $result->error);
+    }
+
+    public function testCreateIncidentFailsWhenIncidentStatusIsInvalid(): void
+    {
+        $result = $this->service->createIncident([
+            'animal_id'       => 1,
+            'incident_status' => 'INVALID_STATUS',
+            'severity'        => 'low',
+            'description'     => 'Descripción larga suficiente',
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Estado de incidente', $result->error);
+    }
+
+    public function testCreateIncidentFailsWhenSeverityIsInvalid(): void
+    {
+        $result = $this->service->createIncident([
+            'animal_id'   => 1,
+            'severity'    => 'extreme',
+            'description' => 'Descripción larga suficiente',
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('severidad', $result->error);
+    }
+
+    public function testCreateIncidentFailsWhenSeverityIsMissing(): void
+    {
+        $result = $this->service->createIncident([
+            'animal_id'   => 1,
+            'description' => 'Descripción larga suficiente',
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('severidad', $result->error);
+    }
+
+    public function testCreateIncidentFailsWhenDescriptionIsTooShort(): void
+    {
+        $result = $this->service->createIncident([
+            'animal_id'   => 1,
+            'severity'    => 'low',
+            'description' => 'Corta',
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('10 caracteres', $result->error);
+    }
+
+    public function testCreateIncidentFailsWhenAnimalIdIsMissing(): void
+    {
+        $result = $this->service->createIncident([
+            'severity'    => 'low',
+            'description' => 'Descripción larga suficiente',
+        ]);
+
+        $this->assertFalse($result->ok);
+    }
 }

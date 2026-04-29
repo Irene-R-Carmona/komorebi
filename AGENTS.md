@@ -401,6 +401,8 @@ en el perfil de usuario o extensión — no se registran en el lock file del pro
 |---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `test-driven-development` | Al implementar cualquier feature o bugfix — escribe el test antes del código. Todos los tests en `tests/Unit/` o `tests/Integration/`.                                                                                             |
 | `systematic-debugging`    | Ante cualquier bug, test fallido o comportamiento inesperado. ANTES de proponer un fix.                                                                                                                                            |
+| `zoom-out`                | Al desconocer un área del código — genera un mapa de módulos y callers usando el vocabulario de `CONTEXT.md`.                                                                                                                      |
+| `improve-codebase-architecture` | Al detectar fricciones arquitectónicas: módulos superficiales, acoplamiento, testabilidad. Requiere `CONTEXT.md` para vocabulario del dominio.                                                                             |
 | `ui-ux-pro-max`           | **Skill primaria para TODO trabajo visual**: componentes, layouts, dark mode, accesibilidad, colores, tipografía, animaciones, formularios, placeholders. Incluye 99 guías UX, 50+ estilos y checklists de accesibilidad WCAG 2.1. |
 | `frontend-design`         | Vistas con lógica interactiva compleja (Alpine.js, animaciones CSS custom, micro-interacciones).                                                                                                                                   |
 | `interface-design`        | Dashboards y paneles admin/operativos con alta densidad de información: backoffice, KDS, recepción, keeper.                                                                                                                        |
@@ -433,3 +435,12 @@ en el perfil de usuario o extensión — no se registran en el lock file del pro
 | `find-skills`         | Cuando se identifica una necesidad que podría tener una skill instalable (`npx skills find`).                      |
 | `troubleshoot`        | Cuando el comportamiento del agente es inesperado (tools ignoradas, skills no cargadas, instrucciones omitidas).   |
 | `agent-customization` | Al crear o editar archivos de configuración del agente: `.instructions.md`, `.prompt.md`, `AGENTS.md`, `SKILL.md`. |
+
+### Límites de contexto / sesiones largas (suite caveman)
+
+| Skill              | Cuándo invocarla en Komorebi Café                                                                                             |
+|--------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| `caveman`          | Sesión muy larga o límite de tokens próximo — respuestas ultra-comprimidas con ~75% menos tokens sin perder precisión técnica. |
+| `caveman-compress` | Antes de cerrar sesiones largas — comprime `CLAUDE.md`, todos o preferencias para que el contexto sea pequeño en la siguiente sesión. |
+| `caveman-help`     | Para ver todos los comandos y modos disponibles del sistema caveman.                                                          |
+| `caveman-review`   | Code review con muchos archivos (contexto grande) — una línea por problema.                                                   |

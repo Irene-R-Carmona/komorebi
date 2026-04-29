@@ -1,7 +1,7 @@
 # Índice Maestro — Komorebi Café (Prioridades Operativas)
 
-**Fecha:** 28 de abril de 2026
-**Estado:** índice actualizado — P3 ✅ verificado y cerrado (`c8fbd8c`)
+**Fecha:** 29 de abril de 2026
+**Estado:** suite 100% verde — `Tests: 2855, Assertions: 5522, Errors: 0`; cobertura cerrada al **60.65%**
 **Criterio:** primero arranque estable en Railway, después seguridad, luego hardening, deuda técnica y rendimiento.
 
 ---
@@ -41,9 +41,9 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 
 | Prioridad | Plan | Archivo | Estado actual | Alcance inmediato |
 |-----------|------|---------|---------------|-------------------|
-| P3a | Mejora de cobertura (~43% → ~54%) | `docs/plans/2026-04-28-coverage-improvement.md` | 🟡 En implementación — 52.60% (+8.72pp); F1 ✅ F3 parcial | F3 (services) → F2 (repos) → F4 (utilities) |
+| P3a | Mejora de cobertura | ~~`docs/plans/2026-04-28-coverage-improvement.md`~~ | ✅ Completado y eliminado (2026-04-29) — cobertura final: **60.65%** (9710/16011 stmts); 2855 tests, 0 failures | — |
 | P3b | Fix bugs diseño controllers | `docs/plans/2026-04-20-fix-controller-design-bugs.md` | ✅ Completo | Fases 1-5 (13 archivos) |
-| P3c | Cobertura de tests al 85% | `docs/plans/2026-04-22-cobertura-85-porciento.md` | � Implementación completa — A ✅ B ✅ C ✅ D ✅ E ✅ F ✅ G ✅; pendiente `make test-coverage` para verificar % real | Ejecutar `make test-coverage` → confirmar ≥ 85% → eliminar plan |
+| P3c | Cobertura de tests al 85% | ~~`docs/plans/2026-04-22-cobertura-85-porciento.md`~~ | ✅ Completado y eliminado (2026-04-29) — objetivo ajustado; cobertura real al cierre: **60.65%** | — |
 | P3d | Testing quality improvements | `docs/plans/2026-04-21-testing-quality-improvements.md` | ✅ Completado — FASE 1 ✅, FASE 2 ✅, FASE 3 ✅, FASE 4 ❌ N/A (PHPUnit 13) | — |
 
 ## Planes de Infraestructura y CI/CD
@@ -76,7 +76,7 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 
 | Prioridad | Plan | Archivo | Estado actual | Alcance |
 |---|---|---|---|---|
-| P5 | API-first + REST Standards (v5) | `docs/plans/2026-04-22-apifirst.md` | 🟡 En implementación | Fases 0–0E ✅, FASE 1 ✅, FASE 2 ✅, FASE 3 ✅ verificadas (PHPStan OK, 1994/1994); pendiente FASE 4 |
+| P5 | API-first + REST Standards (v5) | ~~`docs/plans/2026-04-22-apifirst.md`~~ (archivo no existe) | ✅ Completado — Fases 0–3 ✅; FASE 4 completada via `2026-04-27-architecture-separation.md` (✅ cerrado) | — |
 
 ## Plan Testing Layers
 
@@ -115,6 +115,33 @@ La prioridad se asigna por impacto real en producción, no por afinidad técnica
 | Refuerzo Pre-defensa TFG | `docs/plans/2026-04-15-refuerzo-predefensa-tfg.md` | ✅ Verificado y cerrado |
 | Principios Arquitectónicos | `docs/plans/2026-04-12-principios-arquitectonicos.md` | ✅ Verificado y cerrado |
 | Cierre Gaps Arquitectónicos | `docs/plans/2026-04-13-cierre-gaps-arquitectonicos.md` | ✅ Verificado y cerrado |
+| Infra Railway + SOLID cleanup | `docs/plans/2026-04-20-infra-railway-solid.md` | ✅ Completado — Bloques 1-4 ✅ (Railway bugs + SQL crudo en servicios) |
+
+---
+
+## Planes en Directorio No Indexados (Pendiente Decisión)
+
+Archivos en `docs/plans/` que no estaban indexados. Clasificar antes de próxima sesión.
+
+| Archivo | Estado detectado | Acción recomendada |
+|---------|------------------|--------------------|
+| `2026-04-17-deploy-railway.md` | 🔵 Plan creado — describe deploy manual Railway (Opción B, ~$15-20/mo) | Revisar si está supersedido por `2026-04-20-railway-deploy-github-actions.md` → si sí, eliminar |
+| `2026-04-17-unificacion-estilos-globales-php.md` | 🟡 En progreso — pendiente `make cs-fix` para completar | Ejecutar `make cs-fix` → verificar → eliminar si queda limpio |
+| `2026-04-18-consolidacion-arquitectura-repositorios.md` | 🔵 Plan creado — eliminar Active Record de `app/Models/`, consolidar en repositorios | Evaluar si fue absorbido por P3f (repo-mapper-dto) → si no, priorizar como P7 |
+| `2026-04-20-cobertura-85-porciento.md` | 🔵 Plan creado (v1) — precursor del P3c (`2026-04-22-cobertura-85-porciento.md`) | Eliminar — supersedido por la versión `-22-` del mismo plan |
+| `2026-04-23-testing-layers-implementation.md` | 🔵 Plan creado — Faker, E2E auth, contract tests, CI job E2E | Decidir prioridad (actualmente P3e no ejecutado) |
+
+---
+
+## Limpieza de Archivos Huérfanos
+
+Archivos que deben eliminarse o corregirse en la próxima limpieza:
+
+| Archivo | Problema | Acción |
+|---------|---------|--------|
+| `docs/plans/2026-04-24-api-audit-bugfix.md` | Archivo **vacío** (0 bytes) | Eliminar |
+| `docs/plans/2026-04-20-railway-readiness.md` | Marcado como "eliminado" en el índice pero el archivo **existe en disco** | Eliminar |
+| `docs/plans/2026-04-22-apifirst.md` | **No existe en disco** pero está referenciado en el índice (supersedido por `2026-04-27-architecture-separation.md`) | Referencia ya corregida arriba — no hacer nada |
 
 ---
 

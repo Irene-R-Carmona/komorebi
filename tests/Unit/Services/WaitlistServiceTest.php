@@ -459,4 +459,75 @@ final class WaitlistServiceTest extends TestCase
         $this->assertTrue($result->data['promoted']);
         $this->assertSame(5, $result->data['waitlist_id']);
     }
+
+    public function testGetUserHistoryReturnsOkWithEntries(): void
+    {
+        $entries = [
+            ['id' => 1, 'status' => 'expired'],
+            ['id' => 2, 'status' => 'cancelled'],
+        ];
+        $this->waitlistRepoStub->method('getUserHistory')->willReturn($entries);
+        $service = $this->makeService();
+
+        $result = $service->getUserHistory(42, 10);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(2, $result->data['count']);
+        $this->assertSame($entries, $result->data['entries']);
+    }
+
+    public function testGetWaitlistStatusFailsWhenTokenNotFound(): void
+    {
+        $this->waitlistRepoStub->method('findByToken')->willReturn(null);
+        $service = $this->makeService();
+
+        $result = $service->getWaitlistStatus('nonexistent-token');
+
+        $this->assertFalse($result->ok);
+    }
+
+    public function testGetWaitlistStatusFailsWhenSlotNotFound(): void
+    {
+        $entry = new WaitlistEntryDTO(
+            id: 1, token: 'tok', status: 'waiting', position: 1,
+            time_slot_id: 99, user_id: 5, slot_date: '2025-12-01', slot_time: '10:00:00',
+            cafe_name: 'Café Test', guest_count: 2, contact_email: 'a@b.com',
+            expires_at: null, special_requests: null,
+        );
+        $this->waitlistRepoStub->method('findByToken')->willReturn($entry);
+        // makeService() returns null for findById by default
+        $service = $this->makeService(null);
+
+        $result = $service->getWaitlistStatus('tok');
+
+        $this->assertFalse($result->ok);
+    }
+
+    public function testGetUserWaitlistsActiveOnlyDelegatesToFindActive(): void
+    {
+        $this->waitlistRepoStub->method('findActiveByUserId')->willReturn([
+            ['id' => 1, 'status' => 'waiting'],
+        ]);
+        $service = $this->makeService();
+
+        $result = $service->getUserWaitlists(7, true);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(1, $result->data['count']);
+    }
+
+    public function testGetUserWaitlistsAllHistoryDelegatesToGetUserHistory(): void
+    {
+        $this->waitlistRepoStub->method('getUserHistory')->willReturn([
+            ['id' => 1],
+            ['id' => 2],
+            ['id' => 3],
+        ]);
+        $service = $this->makeService();
+
+        $result = $service->getUserWaitlists(7, false);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(3, $result->data['count']);
+    }
 }

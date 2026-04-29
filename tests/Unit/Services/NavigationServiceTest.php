@@ -100,4 +100,105 @@ final class NavigationServiceTest extends TestCase
     {
         $this->assertInstanceOf(NavigationServiceInterface::class, $this->service);
     }
+
+    public function testGetMenuReturnsSomeItemsForManagerRole(): void
+    {
+        $menu = $this->service->getMenu('manager');
+
+        $this->assertIsArray($menu);
+        $this->assertNotEmpty($menu);
+    }
+
+    public function testGetMenuReturnsSomeItemsForKeeperRole(): void
+    {
+        $menu = $this->service->getMenu('keeper');
+
+        $this->assertIsArray($menu);
+        $this->assertNotEmpty($menu);
+    }
+
+    public function testGetMenuReturnsSomeItemsForSupervisorRole(): void
+    {
+        $menu = $this->service->getMenu('supervisor');
+
+        $this->assertIsArray($menu);
+        $this->assertNotEmpty($menu);
+    }
+
+    public function testGetMenuReturnsSomeItemsForReceptionRole(): void
+    {
+        $menu = $this->service->getMenu('reception');
+
+        $this->assertIsArray($menu);
+        $this->assertNotEmpty($menu);
+    }
+
+    public function testGetMenuReturnsSomeItemsForKitchenRole(): void
+    {
+        $menu = $this->service->getMenu('kitchen');
+
+        $this->assertIsArray($menu);
+        $this->assertNotEmpty($menu);
+    }
+
+    public function testIsBackofficePathReturnsTrueForOpsPath(): void
+    {
+        $this->assertTrue($this->service->isBackofficePath('/ops/reception'));
+    }
+
+    public function testIsBackofficePathReturnsTrueForKeeperPath(): void
+    {
+        $this->assertTrue($this->service->isBackofficePath('/keeper/dashboard'));
+    }
+
+    public function testSuggestedLinkReturnsManagerDashboardForManager(): void
+    {
+        $link = $this->service->suggestedLink('/manager/products', true, 'manager');
+
+        $this->assertStringContainsString('/manager/dashboard', $link['href']);
+    }
+
+    public function testSuggestedLinkReturnsKeeperDashboardForKeeper(): void
+    {
+        $link = $this->service->suggestedLink('/keeper/animals', true, 'keeper');
+
+        $this->assertStringContainsString('/keeper/dashboard', $link['href']);
+    }
+
+    public function testSuggestedLinkReturnsOpsForStaff(): void
+    {
+        $link = $this->service->suggestedLink('/ops/reception', true, 'staff');
+
+        $this->assertStringContainsString('/ops/reception', $link['href']);
+    }
+
+    public function testSuggestedLinkReturnsHomeForDefaultBackofficeRole(): void
+    {
+        $link = $this->service->suggestedLink('/admin/something', true, 'other');
+
+        $this->assertSame('/', $link['href']);
+    }
+
+    public function testSuggestedLinkReturnsHomeWhenAuthenticatedButNotBackofficePath(): void
+    {
+        $link = $this->service->suggestedLink('/menu', true, 'admin');
+
+        $this->assertSame('/', $link['href']);
+    }
+
+    public function testGetMenuBadgedAttachesBadgeWhenKeyMatches(): void
+    {
+        $menu = $this->service->getMenuBadged('admin', ['admin/reservations' => 5]);
+
+        $found = false;
+        foreach ($menu as $items) {
+            foreach ($items as $item) {
+                if ($item['url'] === '/admin/reservations' && isset($item['badge']) && $item['badge'] === 5) {
+                    $found = true;
+                }
+            }
+        }
+
+        $this->assertTrue($found);
+    }
 }

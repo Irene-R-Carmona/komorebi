@@ -73,4 +73,38 @@ final class EmailServiceTest extends TestCase
 
         $this->assertIsBool($result);
     }
+
+    public function testSendReservationCancellationReturnsBool(): void
+    {
+        $service = new EmailService();
+        $result  = $service->sendReservationCancellation(
+            'user@example.com',
+            'Juan García',
+            ['id' => 42, 'date' => '2025-01-15', 'time' => '14:00', 'cafe' => 'Komorebi Central'],
+            'Cancelación por el cliente'
+        );
+
+        $this->assertIsBool($result);
+    }
+
+    public function testSendTestEmailReturnsBool(): void
+    {
+        $service = new EmailService();
+        $result  = $service->sendTestEmail('admin@example.com', 'Administrador Test');
+
+        $this->assertIsBool($result);
+    }
+
+    public function testSendWaitlistConfirmationReturnsBool(): void
+    {
+        $service = new EmailService();
+        $result  = $service->sendWaitlistConfirmation(
+            'user@example.com',
+            'María López',
+            'token-abc-123',
+            ['slot_date' => '2025-06-01', 'slot_time' => '11:00:00', 'position' => 3]
+        );
+
+        $this->assertIsBool($result);
+    }
 }

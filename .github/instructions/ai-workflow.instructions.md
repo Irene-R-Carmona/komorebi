@@ -108,6 +108,58 @@ Usar cuando la feature tiene invariantes claros, multiples implementadores o rie
 | Heap snapshots, análisis de memoria                  | `chrome-devtools`        | `chr_take_memory_snapshot`                               |
 | Errores JS en consola, peticiones de red             | `chrome-devtools`        | `chr_list_console_messages`, `chr_list_network_requests` |
 
+### Contexto ampliado / arquitectura del proyecto
+
+| Situación                                                        | Skill / Herramienta              |
+|------------------------------------------------------------------|----------------------------------|
+| Desconoces un área del código — mapa de módulos y callers        | `zoom-out`                       |
+| Detectar módulos superficiales y proponer refactors de profundidad | `improve-codebase-architecture` |
+| Consultar glosario de dominio del proyecto                       | `CONTEXT.md` (raíz del repo)     |
+
+> `improve-codebase-architecture` requiere que `CONTEXT.md` exista con el glosario del dominio.
+> `zoom-out` usa el vocabulario de `CONTEXT.md` para nombrar módulos y callers.
+
+### Límites de contexto / sesiones largas (suite caveman)
+
+Cuando el contexto de la sesión es muy grande o acercas al límite de tokens:
+
+| Situación                                                    | Skill             | Cómo activar                |
+|--------------------------------------------------------------|-------------------|-----------------------------|
+| Sesión larga — reducir tokens en respuestas del agente       | `caveman`         | "caveman mode"              |
+| Comprimir archivo de memoria (CLAUDE.md, todos, preferencias) | `caveman-compress` | "compress [archivo]"       |
+| Ver todos los comandos y modos disponibles del sistema caveman | `caveman-help`   | "caveman help"              |
+| Code review con muchos archivos (contexto grande)            | `caveman-review`  | "/caveman-review"           |
+
+> La suite caveman reduce el uso de tokens ~75% manteniendo precisión técnica completa.
+> Usar `caveman-compress` **antes** de cerrar sesiones largas para que el contexto en CLAUDE.md
+> sea pequeño en la siguiente sesión.
+
+### Contexto ampliado / arquitectura del proyecto
+
+| Situación                                                        | Skill / Herramienta              |
+|------------------------------------------------------------------|----------------------------------|
+| Desconoces un área del código — mapa de módulos y callers        | `zoom-out`                       |
+| Detectar módulos superficiales y proponer refactors de profundidad | `improve-codebase-architecture` |
+| Consultar glosario de dominio del proyecto                       | `CONTEXT.md` (raíz del repo)     |
+
+> `improve-codebase-architecture` requiere que `CONTEXT.md` exista con el glosario del dominio.
+> `zoom-out` usa el vocabulario de `CONTEXT.md` para nombrar módulos y callers.
+
+### Límites de contexto / sesiones largas (suite caveman)
+
+Cuando el contexto de la sesión es muy grande o acercas al límite de tokens:
+
+| Situación                                                    | Skill             | Cómo activar                |
+|--------------------------------------------------------------|-------------------|-----------------------------|
+| Sesión larga — reducir tokens en respuestas del agente       | `caveman`         | "caveman mode"              |
+| Comprimir archivo de memoria (CLAUDE.md, todos, preferencias) | `caveman-compress` | "compress [archivo]"       |
+| Ver todos los comandos y modos disponibles del sistema caveman | `caveman-help`   | "caveman help"              |
+| Code review con muchos archivos (contexto grande)            | `caveman-review`  | "/caveman-review"           |
+
+> La suite caveman reduce el uso de tokens ~75% manteniendo precisión técnica completa.
+> Usar `caveman-compress` **antes** de cerrar sesiones largas para que el contexto en CLAUDE.md
+> sea pequeño en la siguiente sesión.
+
 ### Utilidades
 
 | Situación                                                  | Skill / Herramienta   |

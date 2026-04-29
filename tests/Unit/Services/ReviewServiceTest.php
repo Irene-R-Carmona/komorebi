@@ -350,4 +350,96 @@ final class ReviewServiceTest extends ServiceTestCase
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Descripción', $result->error);
     }
+
+    // ──────────────────────────────────────────────
+    // Exception paths
+    // ──────────────────────────────────────────────
+
+    public function testCreateReviewHandlesRuntimeException(): void
+    {
+        $this->userRepoStub->method('findById')
+            ->willThrowException(new \RuntimeException('Connection lost'));
+
+        $result = $this->service->createReview(1, 1, 3, 'Título válido aquí', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Connection lost', $result->error);
+    }
+
+    public function testCreateReviewHandlesGenericException(): void
+    {
+        $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
+        $this->reviewRepoStub->method('userHasReview')->willReturn(false);
+        $this->reviewRepoStub->method('create')
+            ->willThrowException(new \Exception('Unexpected error'));
+
+        $result = $this->service->createReview(1, 1, 4, 'Título válido aquí', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testUpdateReviewHandlesException(): void
+    {
+        $this->reviewRepoStub->method('findById')
+            ->willThrowException(new \Exception('DB error'));
+
+        $result = $this->service->updateReview(1, 1, 4, 'Título válido', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testDeleteReviewHandlesException(): void
+    {
+        $this->reviewRepoStub->method('findById')
+            ->willThrowException(new \Exception('DB error'));
+
+        $result = $this->service->deleteReview(1, 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testDeleteReviewAdminHandlesException(): void
+    {
+        $this->reviewRepoStub->method('delete')
+            ->willThrowException(new \Exception('DB error'));
+
+        $result = $this->service->deleteReviewAdmin(1);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('delete_error', $result->code);
+    }
+
+    public function testCanUserReviewHandlesException(): void
+    {
+        $this->reviewRepoStub->method('userHasReview')
+            ->willThrowException(new \Exception('DB error'));
+
+        $result = $this->service->canUserReview(1, 1);
+
+        $this->assertFalse($result['can_review']);
+        $this->assertStringContainsString('Error', $result['reason']);
+    }
+
+    public function testUserHasCompletedReservationHandlesException(): void
+    {
+        $this->reservationRepoStub->method('hasCompletedReservation')
+            ->willThrowException(new \Exception('DB error'));
+
+        $result = $this->service->userHasCompletedReservation(1, 1);
+
+        $this->assertFalse($result);
+    }
+
+    public function testUserHasReviewInCafeHandlesException(): void
+    {
+        $this->reviewRepoStub->method('userHasReview')
+            ->willThrowException(new \Exception('DB error'));
+
+        $result = $this->service->userHasReviewInCafe(1, 1);
+
+        $this->assertFalse($result);
+    }
 }

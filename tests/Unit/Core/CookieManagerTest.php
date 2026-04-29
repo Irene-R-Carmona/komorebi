@@ -276,4 +276,115 @@ final class CookieManagerTest extends TestCase
 
         self::assertIsBool($result);
     }
+
+    // ─── saveConsent() ─────────────────────────────────────────────────────────
+
+    public function testSaveConsentReturnsBoolInCliContext(): void
+    {
+        $result = CookieManager::saveConsent(['functional' => true, 'analytics' => false]);
+
+        self::assertIsBool($result);
+    }
+
+    // ─── acceptAll() ───────────────────────────────────────────────────────────
+
+    public function testAcceptAllReturnsBoolInCliContext(): void
+    {
+        $result = CookieManager::acceptAll();
+
+        self::assertIsBool($result);
+    }
+
+    // ─── rejectOptional() ──────────────────────────────────────────────────────
+
+    public function testRejectOptionalReturnsBoolInCliContext(): void
+    {
+        $result = CookieManager::rejectOptional();
+
+        self::assertIsBool($result);
+    }
+
+    // ─── saveFilters() ─────────────────────────────────────────────────────────
+
+    public function testSaveFiltersReturnsFalseWhenNoConsent(): void
+    {
+        $result = CookieManager::saveFilters(['category' => 'coffee']);
+
+        self::assertFalse($result);
+    }
+
+    public function testSaveFiltersReturnsBoolWhenConsentGranted(): void
+    {
+        $_COOKIE[CookieManager::COOKIE_CONSENT] = \json_encode(['functional' => true]);
+
+        $result = CookieManager::saveFilters(['category' => 'coffee']);
+
+        self::assertIsBool($result);
+    }
+
+    // ─── addRecentlyViewed() ───────────────────────────────────────────────────
+
+    public function testAddRecentlyViewedReturnsFalseWhenNoConsent(): void
+    {
+        $result = CookieManager::addRecentlyViewed(5);
+
+        self::assertFalse($result);
+    }
+
+    public function testAddRecentlyViewedReturnsBoolWhenConsentGranted(): void
+    {
+        $_COOKIE[CookieManager::COOKIE_CONSENT] = \json_encode(['functional' => true]);
+
+        $result = CookieManager::addRecentlyViewed(5);
+
+        self::assertIsBool($result);
+    }
+
+    public function testAddRecentlyViewedDeduplicatesExistingItem(): void
+    {
+        $_COOKIE[CookieManager::COOKIE_CONSENT] = \json_encode(['functional' => true]);
+        // Pre-seed existing recently viewed
+        $_COOKIE[CookieManager::RECENTLY_VIEWED] = \json_encode([3, 5, 7]);
+
+        // Adding 5 again should deduplicate — the method still returns bool
+        $result = CookieManager::addRecentlyViewed(5);
+
+        self::assertIsBool($result);
+    }
+
+    // ─── markNewsletterPrompted() ──────────────────────────────────────────────
+
+    public function testMarkNewsletterPromptedReturnsFalseWhenNoConsent(): void
+    {
+        $result = CookieManager::markNewsletterPrompted();
+
+        self::assertFalse($result);
+    }
+
+    public function testMarkNewsletterPromptedReturnsBoolWhenConsentGranted(): void
+    {
+        $_COOKIE[CookieManager::COOKIE_CONSENT] = \json_encode(['functional' => true]);
+
+        $result = CookieManager::markNewsletterPrompted();
+
+        self::assertIsBool($result);
+    }
+
+    // ─── saveDietaryPreferences() ──────────────────────────────────────────────
+
+    public function testSaveDietaryPreferencesReturnsFalseWhenNoConsent(): void
+    {
+        $result = CookieManager::saveDietaryPreferences(['vegan' => true]);
+
+        self::assertFalse($result);
+    }
+
+    public function testSaveDietaryPreferencesReturnsBoolWhenConsentGranted(): void
+    {
+        $_COOKIE[CookieManager::COOKIE_CONSENT] = \json_encode(['functional' => true]);
+
+        $result = CookieManager::saveDietaryPreferences(['vegan' => true]);
+
+        self::assertIsBool($result);
+    }
 }

@@ -127,4 +127,86 @@ final class CafeServiceTest extends TestCase
 
         $this->assertCount(1, $results);
     }
+
+    public function testGetAllWithNoFiltersCallsFindFiltered(): void
+    {
+        $this->cafeRepoStub->method('findFiltered')->willReturn([['id' => 3, 'name' => 'Café Inu']]);
+
+        $result = $this->service->getAll();
+
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result);
+    }
+
+    public function testGetAllWithBothCategoryAndActiveFilterCallsFindFiltered(): void
+    {
+        $this->cafeRepoStub->method('findFiltered')->willReturn([['id' => 4, 'name' => 'Café Mix']]);
+
+        $result = $this->service->getAll(['category' => 'neko', 'is_active' => 1]);
+
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result);
+    }
+
+    public function testUpdateReturnsOkTrueWhenNoFieldsToUpdate(): void
+    {
+        $dto = new CafeDTO(1, 'cafe-shiba', 'Café Shiba', null, null, 'Madrid', 'neko', 'cat', 5.0, 20, 4.5, '09:00', '21:00', 'Europe/Madrid', true, true, null);
+        $this->cafeRepoStub->method('findById')->willReturn($dto);
+
+        $result = $this->service->update(1, ['unknown_field_that_does_not_exist' => 'val']);
+
+        $this->assertTrue($result->ok);
+        $this->assertTrue($result->data);
+    }
+
+    public function testGetStatsDelegatesToStatsRepository(): void
+    {
+        $statsRepoStub = $this->createStub(\App\Repositories\Contracts\StatisticsRepositoryInterface::class);
+        $statsRepoStub->method('getCafeStats')->willReturn(['total' => 5, 'active' => 3]);
+        $service = new CafeService($this->cafeRepoStub, $statsRepoStub);
+
+        $stats = $service->getStats();
+
+        $this->assertSame(5, $stats['total']);
+    }
+
+    public function testCreateReturnsFailOnPDOException(): void
+    {
+        $this->cafeRepoStub->method('create')->willThrowException(new \PDOException('DB error'));
+
+        $result = $this->service->create([
+            'name' => 'Café Neko', 'slug' => 'cafe-neko', 'location' => 'Madrid',
+        ]);
+
+        $this->assertFalse($result->ok);
+    }
+
+    public function testUpdateCoversFieldProcessingAndPDOException(): void
+    {
+        $dto = new CafeDTO(1, 'cafe-shiba', 'Café Shiba', null, null, 'Madrid', 'neko', 'cat', 5.0, 20, 4.5, '09:00', '21:00', 'Europe/Madrid', true, true, null);
+        $this->cafeRepoStub->method('findById')->willReturn($dto);
+        $this->cafeRepoStub->method('update')->willThrowException(new \PDOException('DB error'));
+
+        $result = $this->service->update(1, ['price_per_hour' => 100, 'name' => 'New Name']);
+
+        $this->assertFalse($result->ok);
+    }
+
+    public function testToggleActiveCoversNotFoundPath(): void
+    {
+        $this->cafeRepoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->toggleActive(99);
+
+        $this->assertFalse($result->ok);
+    }
+
+    public function testDeleteCoversNotFoundPath(): void
+    {
+        $this->cafeRepoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->delete(99);
+
+        $this->assertFalse($result->ok);
+    }
 }

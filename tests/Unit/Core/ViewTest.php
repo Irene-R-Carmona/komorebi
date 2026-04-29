@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Core;
 
+use App\Core\Raw;
 use App\Core\View;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -126,6 +127,9 @@ final class ViewTest extends TestCase
     protected function tearDown(): void
     {
         unset($_SERVER['HTTP_REFERER']);
+        // Restaurar $viewsDir a null para que tests posteriores no hereden un path temporal corrupto
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, null);
     }
 
     // ─── img() ────────────────────────────────────────────────────────────────
@@ -221,5 +225,232 @@ final class ViewTest extends TestCase
         $this->expectExceptionMessage('Vista no encontrada');
 
         View::componentToString('totally/nonexistent/view-that-does-not-exist');
+    }
+
+    // ─── componentToString() — success path ────────────────────────────────────
+
+    public function testComponentToStringRendersSimpleViewWithData(): void
+    {
+        $tmpDir = \sys_get_temp_dir() . '/komorebi_view_tests_' . \getmypid();
+        \mkdir($tmpDir, 0777, true);
+        \file_put_contents($tmpDir . '/hello.php', '<?php echo htmlspecialchars($name, ENT_QUOTES, "UTF-8"); ?>');
+
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, $tmpDir . '/');
+
+        $output = View::componentToString('hello', ['name' => 'World']);
+
+        // cleanup
+        \unlink($tmpDir . '/hello.php');
+        \rmdir($tmpDir);
+
+        self::assertSame('World', $output);
+    }
+
+    public function testComponentToStringEscapesHtmlSpecialChars(): void
+    {
+        $tmpDir = \sys_get_temp_dir() . '/komorebi_view_tests2_' . \getmypid();
+        \mkdir($tmpDir, 0777, true);
+        // The view just echoes the variable — escapeData() happens before the view receives it
+        \file_put_contents($tmpDir . '/xss.php', '<?php echo $label; ?>');
+
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, $tmpDir . '/');
+
+        $output = View::componentToString('xss', ['label' => '<script>alert(1)</script>']);
+
+        \unlink($tmpDir . '/xss.php');
+        \rmdir($tmpDir);
+
+        self::assertStringContainsString('&lt;script&gt;', $output);
+    }
+
+    public function testComponentToStringEscapesNestedArrayData(): void
+    {
+        $tmpDir = \sys_get_temp_dir() . '/komorebi_view_tests3_' . \getmypid();
+        \mkdir($tmpDir, 0777, true);
+        \file_put_contents($tmpDir . '/nested.php', '<?php echo $items[0]; ?>');
+
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, $tmpDir . '/');
+
+        $output = View::componentToString('nested', ['items' => ['<b>bold</b>']]);
+
+        \unlink($tmpDir . '/nested.php');
+        \rmdir($tmpDir);
+
+        self::assertStringContainsString('&lt;b&gt;', $output);
+    }
+
+    // ─── renderToString() — layout = null ─────────────────────────────────────
+
+    public function testRenderToStringWithNoLayoutOutputsViewDirectly(): void
+    {
+        $tmpDir = \sys_get_temp_dir() . '/komorebi_render_' . \getmypid();
+        \mkdir($tmpDir, 0777, true);
+        \file_put_contents($tmpDir . '/simple.php', '<?php echo $title; ?>');
+
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, $tmpDir . '/');
+
+        $output = View::renderToString('simple', ['title' => 'Hello'], [], null);
+
+        \unlink($tmpDir . '/simple.php');
+        \rmdir($tmpDir);
+
+        self::assertSame('Hello', $output);
+    }
+
+    public function testRenderToStringExtractExtraCssFromData(): void
+    {
+        $tmpDir = \sys_get_temp_dir() . '/komorebi_render_css_' . \getmypid();
+        \mkdir($tmpDir, 0777, true);
+        \file_put_contents($tmpDir . '/page.php', '<?php echo "page"; ?>');
+
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, $tmpDir . '/');
+
+        $output = View::renderToString('page', ['extraCss' => ['style.css']], [], null);
+
+        \unlink($tmpDir . '/page.php');
+        \rmdir($tmpDir);
+
+        self::assertSame('page', $output);
+    }
+
+    public function testRenderToStringExtractExtraJsFromData(): void
+    {
+        $tmpDir = \sys_get_temp_dir() . '/komorebi_render_js_' . \getmypid();
+        \mkdir($tmpDir, 0777, true);
+        \file_put_contents($tmpDir . '/page.php', '<?php echo "js_page"; ?>');
+
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, $tmpDir . '/');
+
+        $output = View::renderToString('page', ['extraJs' => ['app.js']], [], null);
+
+        \unlink($tmpDir . '/page.php');
+        \rmdir($tmpDir);
+
+        self::assertSame('js_page', $output);
+    }
+
+    public function testRenderToStringWithLayoutRendersLayout(): void
+    {
+        $tmpDir = \sys_get_temp_dir() . '/komorebi_render_layout_' . \getmypid();
+        \mkdir($tmpDir . '/layouts', 0777, true);
+        \file_put_contents($tmpDir . '/inner.php', '<?php echo "inner-content"; ?>');
+        \file_put_contents($tmpDir . '/layouts/simple.php', '<?php echo $content; ?>');
+
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, $tmpDir . '/');
+
+        $output = View::renderToString('inner', [], [], 'simple');
+
+        \unlink($tmpDir . '/inner.php');
+        \unlink($tmpDir . '/layouts/simple.php');
+        \rmdir($tmpDir . '/layouts');
+        \rmdir($tmpDir);
+
+        self::assertStringContainsString('inner-content', $output);
+    }
+
+    // ─── component() ──────────────────────────────────────────────────────────
+
+    public function testComponentOutputsRenderedContent(): void
+    {
+        $tmpDir = \sys_get_temp_dir() . '/komorebi_comp_' . \getmypid();
+        \mkdir($tmpDir, 0777, true);
+        \file_put_contents($tmpDir . '/widget.php', '<?php echo $label; ?>');
+
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, $tmpDir . '/');
+
+        \ob_start();
+        View::component('widget', ['label' => 'ButtonText']);
+        $output = (string) \ob_get_clean();
+
+        \unlink($tmpDir . '/widget.php');
+        \rmdir($tmpDir);
+
+        self::assertSame('ButtonText', $output);
+    }
+
+    // ─── capture() scope — section methods ───────────────────────────────────
+
+    public function testCaptureStartEndSectionReturnsSectionContent(): void
+    {
+        $tmpDir = \sys_get_temp_dir() . '/komorebi_sections_' . \getmypid();
+        \mkdir($tmpDir, 0777, true);
+        \file_put_contents(
+            $tmpDir . '/sectioned.php',
+            '<?php $this->start("content"); echo "section-body"; $this->end(); ?>'
+        );
+
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, $tmpDir . '/');
+
+        $output = View::componentToString('sectioned');
+
+        \unlink($tmpDir . '/sectioned.php');
+        \rmdir($tmpDir);
+
+        self::assertSame('section-body', $output);
+    }
+
+    public function testCaptureExtendDoesNotBreakRendering(): void
+    {
+        $tmpDir = \sys_get_temp_dir() . '/komorebi_extend_' . \getmypid();
+        \mkdir($tmpDir, 0777, true);
+        \file_put_contents(
+            $tmpDir . '/extending.php',
+            '<?php $this->extend("base"); echo "extended-content"; ?>'
+        );
+
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, $tmpDir . '/');
+
+        $output = View::componentToString('extending');
+
+        \unlink($tmpDir . '/extending.php');
+        \rmdir($tmpDir);
+
+        self::assertSame('extended-content', $output);
+    }
+
+    // ─── escapeData() — Raw and other scalar types ────────────────────────────
+
+    public function testComponentToStringPassesThroughRawDataUnescaped(): void
+    {
+        $tmpDir = \sys_get_temp_dir() . '/komorebi_raw_' . \getmypid();
+        \mkdir($tmpDir, 0777, true);
+        \file_put_contents($tmpDir . '/rawview.php', '<?php echo $html; ?>');
+
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, $tmpDir . '/');
+
+        $output = View::componentToString('rawview', ['html' => new Raw('<b>bold</b>')]);
+
+        \unlink($tmpDir . '/rawview.php');
+        \rmdir($tmpDir);
+
+        self::assertSame('<b>bold</b>', $output);
+    }
+
+    public function testComponentToStringPassesThroughIntDataUnchanged(): void
+    {
+        $tmpDir = \sys_get_temp_dir() . '/komorebi_int_' . \getmypid();
+        \mkdir($tmpDir, 0777, true);
+        \file_put_contents($tmpDir . '/intview.php', '<?php echo $count; ?>');
+
+        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref->setValue(null, $tmpDir . '/');
+
+        $output = View::componentToString('intview', ['count' => 42]);
+
+        \unlink($tmpDir . '/intview.php');
+        \rmdir($tmpDir);
+
+        self::assertSame('42', $output);
     }
 }

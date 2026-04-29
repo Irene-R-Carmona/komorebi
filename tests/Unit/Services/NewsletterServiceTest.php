@@ -97,4 +97,79 @@ final class NewsletterServiceTest extends TestCase
         $this->assertFalse($result['success']);
         $this->assertStringContainsString('inválido', $result['message']);
     }
+
+    public function testUnsubscribeSucceedsForValidToken(): void
+    {
+        $this->repoStub->method('findByToken')->willReturn(
+            NewsletterSubscriptionDTO::fromArray([
+                'id'           => 1,
+                'email'        => 'user@example.com',
+                'confirmed_at' => '2025-01-01 00:00:00',
+            ])
+        );
+
+        $result = $this->service->unsubscribe('valid-token');
+
+        $this->assertTrue($result['success']);
+        $this->assertStringContainsString('baja', $result['message']);
+    }
+
+    public function testConfirmFailsWhenAlreadyConfirmed(): void
+    {
+        $this->repoStub->method('findByToken')->willReturn(
+            NewsletterSubscriptionDTO::fromArray([
+                'id'           => 1,
+                'email'        => 'user@example.com',
+                'confirmed_at' => '2025-01-01 00:00:00',
+            ])
+        );
+
+        $result = $this->service->confirm('already-confirmed-token');
+
+        $this->assertFalse($result['success']);
+        $this->assertStringContainsString('confirmada', $result['message']);
+    }
+
+    public function testSubscribeNewEmailSendsConfirmationAndReturnsOk(): void
+    {
+        $this->repoStub->method('findByEmail')->willReturn(null);
+
+        $result = $this->service->subscribe('nuevo@example.com');
+
+        $this->assertTrue($result->ok);
+    }
+
+    public function testSubscribeReactivatesUnsubscribedEmailAndReturnsOk(): void
+    {
+        $this->repoStub->method('findByEmail')->willReturn(
+            NewsletterSubscriptionDTO::fromArray([
+                'id'              => 1,
+                'email'           => 'baja@example.com',
+                'confirmed_at'    => null,
+                'unsubscribed_at' => '2025-01-01 00:00:00',
+            ])
+        );
+
+        $result = $this->service->subscribe('baja@example.com');
+
+        $this->assertTrue($result->ok);
+    }
+
+    public function testSubscribeResendsConfirmationForUnconfirmedEmailAndReturnsOk(): void
+    {
+        $this->repoStub->method('findByEmail')->willReturn(
+            NewsletterSubscriptionDTO::fromArray([
+                'id'              => 2,
+                'email'           => 'pendiente@example.com',
+                'confirmed_at'    => null,
+                'unsubscribed_at' => null,
+                'token'           => 'existingtoken123',
+            ])
+        );
+        $this->repoStub->method('getTokenByEmail')->willReturn('existingtoken123');
+
+        $result = $this->service->subscribe('pendiente@example.com');
+
+        $this->assertTrue($result->ok);
+    }
 }

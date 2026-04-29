@@ -121,4 +121,195 @@ final class ProductServiceTest extends TestCase
 
         $this->assertSame($expected, $result);
     }
+
+    public function testCreateThrowsValidationExceptionWhenCategoryIdMissingOnUpdate(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        $this->service->update(1, ['name' => 'Test', 'slug' => 'test']);
+    }
+
+    public function testCreateThrowsValidationExceptionWhenProductTypeInvalid(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        $this->service->create(['name' => 'X', 'slug' => 'x', 'category_id' => 1, 'product_type' => 'invalid_type']);
+    }
+
+    public function testCreateThrowsValidationExceptionWhenStationInvalid(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        $this->service->create(['name' => 'X', 'slug' => 'x', 'category_id' => 1, 'station' => 'invalid_station']);
+    }
+
+    public function testGetAllPaginatedReturnsDelegatedArray(): void
+    {
+        $expected = ['data' => [], 'total' => 0, 'page' => 1, 'perPage' => 20, 'totalPages' => 0];
+        $this->repoStub->method('findFiltered')->willReturn($expected);
+
+        $result = $this->service->getAllPaginated(1, 20, []);
+
+        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('total', $result);
+    }
+
+    public function testUpdateThrowsValidationExceptionWhenProductTypeInvalid(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        $this->service->update(1, ['name' => 'X', 'slug' => 'x', 'category_id' => 1, 'product_type' => 'bad_type']);
+    }
+
+    public function testUpdateThrowsValidationExceptionWhenStationInvalid(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        $this->service->update(1, ['name' => 'X', 'slug' => 'x', 'category_id' => 1, 'station' => 'bad_station']);
+    }
+
+    public function testGetByCategoryReturnsDelegatedArray(): void
+    {
+        $expected = [['id' => 1, 'name' => 'Matcha Latte', 'category_id' => 2]];
+        $this->repoStub->method('findByCategoryId')->willReturn($expected);
+
+        $result = $this->service->getByCategory(2);
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testGetAllWithAllergensReturnsDelegatedArray(): void
+    {
+        $expected = [['id' => 2, 'name' => 'Onigiri', 'allergens' => ['gluten']]];
+        $this->repoStub->method('getAllWithAllergens')->willReturn($expected);
+
+        $result = $this->service->getAllWithAllergens();
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testGetAllWithAllergensWithCategoryIdFilters(): void
+    {
+        $expected = [['id' => 3, 'name' => 'Mochi', 'allergens' => []]];
+        $this->repoStub->method('getAllWithAllergens')->willReturn($expected);
+
+        $result = $this->service->getAllWithAllergens(5);
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testGetAllergensByProductReturnsDelegatedArray(): void
+    {
+        $expected = [['id' => 1, 'name' => 'Gluten'], ['id' => 3, 'name' => 'Lácteos']];
+        $this->repoStub->method('getAllergens')->willReturn($expected);
+
+        $result = $this->service->getAllergensByProduct(7);
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testGetWithoutAllergensReturnsDelegatedArrayWhenIdsProvided(): void
+    {
+        $expected = [['id' => 5, 'name' => 'Té verde sin gluten']];
+        $this->repoStub->method('findWithoutAllergensByCategory')->willReturn($expected);
+
+        $result = $this->service->getWithoutAllergens([1, 2], null);
+
+        $this->assertSame($expected, $result);
+    }
+
+    public function testDeleteReturnsFalseWhenRepoReturnsFalse(): void
+    {
+        $this->repoStub->method('softDelete')->willReturn(false);
+
+        $result = $this->service->delete(99);
+
+        $this->assertFalse($result);
+    }
+
+    public function testToggleActiveReturnsFalseWhenRepoReturnsFalse(): void
+    {
+        $this->repoStub->method('toggleAvailability')->willReturn(false);
+
+        $result = $this->service->toggleActive(99);
+
+        $this->assertFalse($result);
+    }
+
+    public function testSyncAllergensReturnsFalseWhenRepoReturnsFalse(): void
+    {
+        $this->repoStub->method('syncAllergens')->willReturn(false);
+
+        $result = $this->service->syncAllergens(1, [1, 2, 3]);
+
+        $this->assertFalse($result);
+    }
+
+    public function testCreateThrowsDatabaseExceptionOnPDOException(): void
+    {
+        $pdo = new \PDOException('Connection failed');
+        $this->repoStub->method('create')->willThrowException($pdo);
+
+        $this->expectException(\App\Exceptions\DatabaseException::class);
+
+        $this->service->create(['name' => 'X', 'slug' => 'x', 'category_id' => 1]);
+    }
+
+    public function testUpdateReturnsFalseWhenRepoReturnsFalse(): void
+    {
+        $this->repoStub->method('update')->willReturn(false);
+
+        $result = $this->service->update(1, ['name' => 'X', 'slug' => 'x', 'category_id' => 1]);
+
+        $this->assertFalse($result);
+    }
+
+    public function testUpdateThrowsDatabaseExceptionOnPDOException(): void
+    {
+        $this->repoStub->method('update')->willThrowException(new \PDOException('fail'));
+
+        $this->expectException(\App\Exceptions\DatabaseException::class);
+
+        $this->service->update(1, ['name' => 'X', 'slug' => 'x', 'category_id' => 1]);
+    }
+
+    public function testDeleteThrowsDatabaseExceptionOnPDOException(): void
+    {
+        $this->repoStub->method('softDelete')->willThrowException(new \PDOException('fail'));
+
+        $this->expectException(\App\Exceptions\DatabaseException::class);
+
+        $this->service->delete(5);
+    }
+
+    public function testToggleActiveReturnsTrueWhenRepoReturnsTrue(): void
+    {
+        $this->repoStub->method('toggleAvailability')->willReturn(true);
+
+        $result = $this->service->toggleActive(5);
+
+        $this->assertTrue($result);
+    }
+
+    public function testToggleActiveReturnsFalseOnPDOException(): void
+    {
+        $this->repoStub->method('toggleAvailability')->willThrowException(new \PDOException('fail'));
+
+        $result = $this->service->toggleActive(5);
+
+        $this->assertFalse($result);
+    }
+
+    public function testGetAllReturnsCachedDataWhenCacheHit(): void
+    {
+        $cached = [['id' => 42, 'name' => 'Cached Product']];
+        \App\Core\Cache::set('products:all', $cached);
+
+        try {
+            $result = $this->service->getAll();
+            $this->assertSame($cached, $result);
+        } finally {
+            \App\Core\Cache::delete('products:all');
+        }
+    }
 }
