@@ -24,7 +24,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testFindByIdReturnsDtoWhenRowFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: RowFactory::userRow());
+        $pdo = $this->makePdo(fetchReturn: RowFactory::userRow());
         $repo = new UserRepository($pdo);
 
         $result = $repo->findById(1);
@@ -34,7 +34,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testFindByIdReturnsNullWhenNoRow(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new UserRepository($pdo);
 
         $this->assertNull($repo->findById(99));
@@ -46,7 +46,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testFindByEmailReturnsArrayWhenFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: RowFactory::userRow());
+        $pdo = $this->makePdo(fetchReturn: RowFactory::userRow());
         $repo = new UserRepository($pdo);
 
         $result = $repo->findByEmail('user@test.com');
@@ -57,7 +57,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testFindByEmailReturnsNullWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new UserRepository($pdo);
 
         $this->assertNull($repo->findByEmail('nobody@test.com'));
@@ -69,10 +69,10 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testFindByEmailWithCredentialsReturnsArrayWhenFound(): void
     {
-        $row  = ['id' => 1, 'uuid' => 'abc', 'email' => 'u@t.com', 'password' => '$2y$hash',
+        $row = ['id' => 1, 'uuid' => 'abc', 'email' => 'u@t.com', 'password' => '$2y$hash',
                  'login_attempts' => 0, 'locked_until' => null,
                  'last_ip_address' => null, 'is_active' => 1, 'email_verified_at' => null];
-        $pdo  = $this->makePdo(fetchReturn: $row);
+        $pdo = $this->makePdo(fetchReturn: $row);
         $repo = new UserRepository($pdo);
 
         $result = $repo->findByEmailWithCredentials('u@t.com');
@@ -83,7 +83,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testFindByEmailWithCredentialsReturnsNullWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new UserRepository($pdo);
 
         $this->assertNull($repo->findByEmailWithCredentials('unknown@test.com'));
@@ -95,9 +95,9 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testFindByIdForSecurityReturnsArrayWhenFound(): void
     {
-        $row  = ['id' => 1, 'uuid' => 'abc', 'email' => 'u@t.com', 'password' => '$2y$h',
+        $row = ['id' => 1, 'uuid' => 'abc', 'email' => 'u@t.com', 'password' => '$2y$h',
                  'login_attempts' => 0, 'locked_until' => null, 'last_ip_address' => null];
-        $pdo  = $this->makePdo(fetchReturn: $row);
+        $pdo = $this->makePdo(fetchReturn: $row);
         $repo = new UserRepository($pdo);
 
         $result = $repo->findByIdForSecurity(1);
@@ -108,7 +108,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testFindByIdForSecurityReturnsNullWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new UserRepository($pdo);
 
         $this->assertNull($repo->findByIdForSecurity(99));
@@ -120,7 +120,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testEmailExistsReturnsTrueWhenFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['1' => '1']);
+        $pdo = $this->makePdo(fetchReturn: ['1' => '1']);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->emailExists('user@test.com'));
@@ -128,7 +128,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testEmailExistsReturnsFalseWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new UserRepository($pdo);
 
         $this->assertFalse($repo->emailExists('nobody@test.com'));
@@ -141,7 +141,7 @@ final class UserRepositoryTest extends RepositoryTestCase
     public function testGetRolesReturnsRoleRows(): void
     {
         $rows = [['name' => 'Admin', 'slug' => 'admin', 'description' => 'Administrador']];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new UserRepository($pdo);
 
         $result = $repo->getRoles(1);
@@ -152,7 +152,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testGetRolesReturnsEmptyWhenNoRoles(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: []);
+        $pdo = $this->makePdo(fetchAllReturn: []);
         $repo = new UserRepository($pdo);
 
         $this->assertSame([], $repo->getRoles(1));
@@ -165,7 +165,7 @@ final class UserRepositoryTest extends RepositoryTestCase
     public function testGetPermissionsReturnsPermissionRows(): void
     {
         $rows = [['name' => 'edit_menu', 'slug' => 'edit_menu', 'resource' => 'menu', 'action' => 'edit']];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new UserRepository($pdo);
 
         $result = $repo->getPermissions(1);
@@ -180,7 +180,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testHasPermissionReturnsTrueWhenGranted(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['1' => '1']);
+        $pdo = $this->makePdo(fetchReturn: ['1' => '1']);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->hasPermission(1, 'edit_menu'));
@@ -188,7 +188,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testHasPermissionReturnsFalseWhenNotGranted(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new UserRepository($pdo);
 
         $this->assertFalse($repo->hasPermission(1, 'delete_all'));
@@ -200,7 +200,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testSetActiveReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->setActive(1, true));
@@ -208,7 +208,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testToggleStatusReturnsFalseWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new UserRepository($pdo);
 
         $this->assertFalse($repo->toggleStatus(99));
@@ -231,7 +231,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testAssignRoleReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->assignRole(1, 2));
@@ -239,7 +239,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testRemoveRoleReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->removeRole(1, 2));
@@ -247,7 +247,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testClearRolesReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->clearRoles(1));
@@ -259,7 +259,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testUpdateLastLoginReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->updateLastLogin(1, '127.0.0.1'));
@@ -271,7 +271,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testIncrementFailedAttemptsReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->incrementFailedAttempts(1));
@@ -279,7 +279,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testLockAccountReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->lockAccount(1, 15));
@@ -291,7 +291,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testUpdatePasswordReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->updatePassword(1, 'NuevaContra123!'));
@@ -299,7 +299,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testVerifyEmailReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->verifyEmail(1));
@@ -307,7 +307,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testUpdateAvatarReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->updateAvatar(1, 'https://cdn.test/avatar.jpg'));
@@ -319,7 +319,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testSoftDeleteReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->softDelete(1));
@@ -327,7 +327,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testUpdatePreferencesReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->updatePreferences(1, ['theme' => 'dark']));
@@ -335,7 +335,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testAnonymizeReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->anonymize(1));
@@ -348,7 +348,7 @@ final class UserRepositoryTest extends RepositoryTestCase
     public function testFindByRoleReturnsUsers(): void
     {
         $rows = [RowFactory::userRow()];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new UserRepository($pdo);
 
         $result = $repo->findByRole('admin');
@@ -358,7 +358,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testFindByRoleReturnsEmptyWhenNone(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: []);
+        $pdo = $this->makePdo(fetchAllReturn: []);
         $repo = new UserRepository($pdo);
 
         $this->assertSame([], $repo->findByRole('keeper'));
@@ -371,7 +371,7 @@ final class UserRepositoryTest extends RepositoryTestCase
     public function testGetActiveUsersListReturnsRows(): void
     {
         $rows = [['id' => 1, 'name' => 'Test User', 'email' => 'u@t.com']];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new UserRepository($pdo);
 
         $result = $repo->getActiveUsersList();
@@ -387,7 +387,7 @@ final class UserRepositoryTest extends RepositoryTestCase
     public function testGetStaffByCafeReturnsRows(): void
     {
         $rows = [RowFactory::userRow(['cafe_id' => 1])];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new UserRepository($pdo);
 
         $result = $repo->getStaffByCafe(1);
@@ -401,7 +401,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testGetStaffByIdReturnsArrayWhenFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: RowFactory::userRow(['cafe_id' => 1]));
+        $pdo = $this->makePdo(fetchReturn: RowFactory::userRow(['cafe_id' => 1]));
         $repo = new UserRepository($pdo);
 
         $result = $repo->getStaffById(1, 1);
@@ -411,7 +411,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testGetStaffByIdReturnsNullWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new UserRepository($pdo);
 
         $this->assertNull($repo->getStaffById(99, 1));
@@ -419,7 +419,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testGetStaffBasicByIdReturnsArrayWhenFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['id' => 1, 'name' => 'Keeper Ana']);
+        $pdo = $this->makePdo(fetchReturn: ['id' => 1, 'name' => 'Keeper Ana']);
         $repo = new UserRepository($pdo);
 
         $result = $repo->getStaffBasicById(1, 1);
@@ -430,7 +430,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testGetStaffBasicByIdReturnsNullWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new UserRepository($pdo);
 
         $this->assertNull($repo->getStaffBasicById(99, 1));
@@ -442,7 +442,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testExistsInCafeReturnsTrueWhenBelongs(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['id' => 1]);
+        $pdo = $this->makePdo(fetchReturn: ['id' => 1]);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->existsInCafe(1, 1));
@@ -450,7 +450,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testExistsInCafeReturnsFalseWhenNotBelongs(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new UserRepository($pdo);
 
         $this->assertFalse($repo->existsInCafe(1, 99));
@@ -463,7 +463,7 @@ final class UserRepositoryTest extends RepositoryTestCase
     public function testGetUsersWithRolesReturnsRows(): void
     {
         $rows = [RowFactory::userRow(['roles' => 'admin', 'role_ids' => '1'])];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new UserRepository($pdo);
 
         $result = $repo->getUsersWithRoles();
@@ -517,7 +517,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testVerifyPasswordReturnsFalseWhenMissingFields(): void
     {
-        $pdo  = $this->makePdo();
+        $pdo = $this->makePdo();
         $repo = new UserRepository($pdo);
 
         $this->assertFalse($repo->verifyPassword([], 'pass'));
@@ -527,7 +527,7 @@ final class UserRepositoryTest extends RepositoryTestCase
     public function testVerifyPasswordReturnsFalseWhenWrongPassword(): void
     {
         $user = ['id' => 1, 'password' => \password_hash('correct', PASSWORD_ARGON2ID)];
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertFalse($repo->verifyPassword($user, 'wrong'));
@@ -536,7 +536,7 @@ final class UserRepositoryTest extends RepositoryTestCase
     public function testVerifyPasswordReturnsTrueWhenCorrect(): void
     {
         $user = ['id' => 1, 'password' => \password_hash('correct', PASSWORD_ARGON2ID)];
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $this->assertTrue($repo->verifyPassword($user, 'correct'));
@@ -548,7 +548,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testIsLockedReturnsFalseWhenNoLockUntil(): void
     {
-        $pdo  = $this->makePdo();
+        $pdo = $this->makePdo();
         $repo = new UserRepository($pdo);
 
         $this->assertFalse($repo->isLocked([]));
@@ -557,7 +557,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testIsLockedReturnsTrueWhenFutureTime(): void
     {
-        $pdo  = $this->makePdo();
+        $pdo = $this->makePdo();
         $repo = new UserRepository($pdo);
 
         $future = \date('Y-m-d H:i:s', \time() + 600);
@@ -566,7 +566,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testIsLockedReturnsFalseWhenPastTime(): void
     {
-        $pdo  = $this->makePdo();
+        $pdo = $this->makePdo();
         $repo = new UserRepository($pdo);
 
         $past = \date('Y-m-d H:i:s', \time() - 600);
@@ -575,7 +575,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testLockoutMinutesRemainingReturnsZeroWhenNotLocked(): void
     {
-        $pdo  = $this->makePdo();
+        $pdo = $this->makePdo();
         $repo = new UserRepository($pdo);
 
         $this->assertSame(0, $repo->lockoutMinutesRemaining([]));
@@ -583,8 +583,8 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testLockoutMinutesRemainingReturnsPositiveWhenLocked(): void
     {
-        $pdo   = $this->makePdo();
-        $repo  = new UserRepository($pdo);
+        $pdo = $this->makePdo();
+        $repo = new UserRepository($pdo);
         $future = \date('Y-m-d H:i:s', \time() + 600);
 
         $minutes = $repo->lockoutMinutesRemaining(['locked_until' => $future]);
@@ -598,7 +598,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testCreateGeneratesUuidAndReturnsId(): void
     {
-        $pdo  = $this->makePdo(lastInsertId: '42');
+        $pdo = $this->makePdo(lastInsertId: '42');
         $repo = new UserRepository($pdo);
 
         $id = $repo->create(['name' => 'New User', 'email' => 'new@test.com', 'password' => 'hash']);
@@ -608,7 +608,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testCreateUsesProvidedUuidWhenGiven(): void
     {
-        $pdo  = $this->makePdo(lastInsertId: '5');
+        $pdo = $this->makePdo(lastInsertId: '5');
         $repo = new UserRepository($pdo);
 
         $id = $repo->create(['name' => 'User', 'email' => 'u@t.com', 'password' => 'h',
@@ -623,7 +623,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testClearLoginAttemptsExecutesWithoutException(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new UserRepository($pdo);
 
         $repo->clearLoginAttempts(1);
@@ -634,7 +634,7 @@ final class UserRepositoryTest extends RepositoryTestCase
     {
         $pdo = $this->makeMultiCallPdo([
             ['rowCount' => 1],
-            ['fetch'    => ['id' => 1, 'login_attempts' => 2, 'locked_until' => null,
+            ['fetch' => ['id' => 1, 'login_attempts' => 2, 'locked_until' => null,
                             'uuid' => 'abc', 'email' => 'u@t.com', 'password' => '',
                             'last_ip_address' => null]],
         ]);

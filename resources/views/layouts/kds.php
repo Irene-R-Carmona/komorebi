@@ -60,7 +60,7 @@
 
     <script nonce="<?= $cspNonce ?? '' ?>">
         window.__MERCURE__ = {
-            cafeId: <?= (int)($cafe_id ?? 0) ?>,
+            cafeId: <?= (int) ($cafe_id ?? 0) ?>,
             hub: '/.well-known/mercure'
         };
     </script>

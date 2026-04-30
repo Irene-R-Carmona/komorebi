@@ -42,7 +42,7 @@ final class SendEmailJobTest extends TestCase
         $this->expectException(ExternalServiceException::class);
         $this->job->handle([
             'subject' => 'Test',
-            'body'    => '<p>Hello</p>',
+            'body' => '<p>Hello</p>',
         ]);
     }
 
@@ -50,9 +50,9 @@ final class SendEmailJobTest extends TestCase
     {
         $this->expectException(ExternalServiceException::class);
         $this->job->handle([
-            'to'      => '',
+            'to' => '',
             'subject' => 'Test',
-            'body'    => '<p>Hello</p>',
+            'body' => '<p>Hello</p>',
         ]);
     }
 
@@ -60,7 +60,7 @@ final class SendEmailJobTest extends TestCase
     {
         $this->expectException(ExternalServiceException::class);
         $this->job->handle([
-            'to'   => 'user@example.com',
+            'to' => 'user@example.com',
             'body' => '<p>Hello</p>',
         ]);
     }
@@ -69,9 +69,9 @@ final class SendEmailJobTest extends TestCase
     {
         $this->expectException(ExternalServiceException::class);
         $this->job->handle([
-            'to'      => 'user@example.com',
+            'to' => 'user@example.com',
             'subject' => '',
-            'body'    => '<p>Hello</p>',
+            'body' => '<p>Hello</p>',
         ]);
     }
 
@@ -79,7 +79,7 @@ final class SendEmailJobTest extends TestCase
     {
         $this->expectException(ExternalServiceException::class);
         $this->job->handle([
-            'to'      => 'user@example.com',
+            'to' => 'user@example.com',
             'subject' => 'Test',
         ]);
     }
@@ -88,9 +88,9 @@ final class SendEmailJobTest extends TestCase
     {
         $this->expectException(ExternalServiceException::class);
         $this->job->handle([
-            'to'      => 'user@example.com',
+            'to' => 'user@example.com',
             'subject' => 'Test',
-            'body'    => '',
+            'body' => '',
         ]);
     }
 
@@ -102,9 +102,9 @@ final class SendEmailJobTest extends TestCase
     {
         $this->expectException(ExternalServiceException::class);
         $this->job->handle([
-            'to'      => 'not-an-email',
+            'to' => 'not-an-email',
             'subject' => 'Test',
-            'body'    => '<p>Hello</p>',
+            'body' => '<p>Hello</p>',
         ]);
     }
 
@@ -112,9 +112,9 @@ final class SendEmailJobTest extends TestCase
     {
         $this->expectException(ExternalServiceException::class);
         $this->job->handle([
-            'to'      => 'user@',
+            'to' => 'user@',
             'subject' => 'Test',
-            'body'    => '<p>Hello</p>',
+            'body' => '<p>Hello</p>',
         ]);
     }
 
@@ -122,9 +122,9 @@ final class SendEmailJobTest extends TestCase
     {
         $this->expectException(ExternalServiceException::class);
         $this->job->handle([
-            'to'      => 'user @example.com',
+            'to' => 'user @example.com',
             'subject' => 'Test',
-            'body'    => '<p>Hello</p>',
+            'body' => '<p>Hello</p>',
         ]);
     }
 
@@ -137,7 +137,7 @@ final class SendEmailJobTest extends TestCase
         try {
             $this->job->handle([
                 'subject' => 'Test',
-                'body'    => '<p>Hello</p>',
+                'body' => '<p>Hello</p>',
             ]);
             self::fail('Expected ExternalServiceException');
         } catch (ExternalServiceException $e) {

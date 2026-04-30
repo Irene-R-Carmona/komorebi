@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Domain\DTO\CafeDTO;
 use App\Core\Middleware;
+use App\Domain\DTO\CafeDTO;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Services\Contracts\ContextServiceInterface;
 use Override;
@@ -28,7 +28,8 @@ final class ContextServiceInstance implements ContextServiceInterface
         private readonly string $role,
         private readonly ?int $userCafeId,
         private readonly ?int $adminSelectedCafeId
-    ) {}
+    ) {
+    }
 
     // ─────────────────────────────────────────────────────────────
     // Obtención de Contexto

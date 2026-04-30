@@ -16,7 +16,8 @@ final readonly class AnimalDTO implements DomainTransferObject
         public ?string $description,
         public ?string $image_url,
         public bool $is_active,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

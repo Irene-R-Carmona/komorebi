@@ -11,6 +11,7 @@ use App\Domain\DTO\ReservationDTO;
 use App\Domain\DTO\ReviewDTO;
 use App\Domain\DTO\UserDTO;
 use App\Domain\DTO\WaitlistEntryDTO;
+use DateTime;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -29,7 +30,7 @@ abstract class ServiceTestCase extends TestCase
      */
     protected function validFutureDate(): string
     {
-        return (new \DateTime('+7 days'))->format('Y-m-d');
+        return new DateTime('+7 days')->format('Y-m-d');
     }
 
     // ──── DTO factories ───────────────────────────────────────────────────────
@@ -127,22 +128,22 @@ abstract class ServiceTestCase extends TestCase
     protected function makeReservation(array $overrides = []): ReservationDTO
     {
         $defaults = [
-            'id'             => 1,
-            'uuid'           => 'b1b2c3d4-0000-0000-0000-000000000001',
-            'cafe_id'        => 1,
-            'user_id'        => 1,
-            'date'           => $this->validFutureDate(),
-            'time'           => '11:00:00',
-            'guest_count'    => 2,
-            'status'         => 'confirmed',
-            'time_slot_id'   => null,
-            'pass_name'      => null,
-            'check_in_at'    => null,
-            'check_out_at'   => null,
-            'final_amount'   => null,
+            'id' => 1,
+            'uuid' => 'b1b2c3d4-0000-0000-0000-000000000001',
+            'cafe_id' => 1,
+            'user_id' => 1,
+            'date' => $this->validFutureDate(),
+            'time' => '11:00:00',
+            'guest_count' => 2,
+            'status' => 'confirmed',
+            'time_slot_id' => null,
+            'pass_name' => null,
+            'check_in_at' => null,
+            'check_out_at' => null,
+            'final_amount' => null,
             'payment_status' => null,
             'payment_method' => null,
-            'notes'          => null,
+            'notes' => null,
         ];
 
         $data = \array_merge($defaults, $overrides);
@@ -153,15 +154,15 @@ abstract class ServiceTestCase extends TestCase
     protected function makeLoyaltyCard(array $overrides = []): LoyaltyCardDTO
     {
         $defaults = [
-            'id'                     => 1,
-            'user_id'                => 1,
-            'stamps'                 => 3,
-            'current_tier'           => 'bronze',
-            'visits_count'           => 3,
+            'id' => 1,
+            'user_id' => 1,
+            'stamps' => 3,
+            'current_tier' => 'bronze',
+            'visits_count' => 3,
             'total_rewards_redeemed' => 0,
-            'last_stamp_at'          => '2025-04-01 10:00:00',
-            'created_at'             => '2025-01-01 00:00:00',
-            'updated_at'             => '2025-04-01 10:00:00',
+            'last_stamp_at' => '2025-04-01 10:00:00',
+            'created_at' => '2025-01-01 00:00:00',
+            'updated_at' => '2025-04-01 10:00:00',
         ];
 
         $data = \array_merge($defaults, $overrides);
@@ -172,18 +173,18 @@ abstract class ServiceTestCase extends TestCase
     protected function makeWaitlistEntry(array $overrides = []): WaitlistEntryDTO
     {
         $defaults = [
-            'id'               => 1,
-            'token'            => 'wl-token-0001',
-            'status'           => 'waiting',
-            'position'         => 1,
-            'time_slot_id'     => 10,
-            'user_id'          => 1,
-            'slot_date'        => '2025-06-20',
-            'slot_time'        => '11:00:00',
-            'cafe_name'        => 'Komorebi Madrid',
-            'guest_count'      => 2,
-            'contact_email'    => 'user@test.com',
-            'expires_at'       => null,
+            'id' => 1,
+            'token' => 'wl-token-0001',
+            'status' => 'waiting',
+            'position' => 1,
+            'time_slot_id' => 10,
+            'user_id' => 1,
+            'slot_date' => '2025-06-20',
+            'slot_time' => '11:00:00',
+            'cafe_name' => 'Komorebi Madrid',
+            'guest_count' => 2,
+            'contact_email' => 'user@test.com',
+            'expires_at' => null,
             'special_requests' => null,
         ];
 

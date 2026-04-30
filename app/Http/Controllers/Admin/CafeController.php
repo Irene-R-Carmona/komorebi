@@ -24,10 +24,10 @@ final class CafeController
 
     public function __construct(
         ?CafeTransformer $cafeTransformer = null,
-        ?CafeRepository  $cafeRepo        = null,
+        ?CafeRepository  $cafeRepo = null,
     ) {
         $this->cafeTransformer = $cafeTransformer ?? new CafeTransformer();
-        $this->cafeRepo        = $cafeRepo        ?? Container::make(CafeRepository::class);
+        $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepository::class);
     }
 
     /**
@@ -36,13 +36,13 @@ final class CafeController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $params   = PaginationParams::fromRequest($request);
-        $q        = $request->getQueryParams();
+        $params = PaginationParams::fromRequest($request);
+        $q = $request->getQueryParams();
         $category = \trim((string) ($q['category'] ?? ''));
-        $status   = \trim((string) ($q['status']   ?? ''));
+        $status = \trim((string) ($q['status'] ?? ''));
 
         $pagination = $params->toPagination(20);
-        $rawCafes   = $this->cafeRepo->findPaginatedAdmin(
+        $rawCafes = $this->cafeRepo->findPaginatedAdmin(
             $pagination,
             $params->search,
             $category,
@@ -51,19 +51,19 @@ final class CafeController
             $params->dir,
         );
 
-        $hasNext      = $pagination->hasNextPage(\count($rawCafes));
-        $cafes        = $this->cafeTransformer->collection(\array_slice($rawCafes, 0, $pagination->limit));
-        $stats        = $this->cafeRepo->getAdminStats();
-        $meta         = $pagination->toMeta($hasNext);
+        $hasNext = $pagination->hasNextPage(\count($rawCafes));
+        $cafes = $this->cafeTransformer->collection(\array_slice($rawCafes, 0, $pagination->limit));
+        $stats = $this->cafeRepo->getAdminStats();
+        $meta = $pagination->toMeta($hasNext);
         $currentParams = $params->toQueryArray(['category' => $category, 'status' => $status]);
 
         View::render('admin/cafes/index', [
-            'titulo'        => 'Gestión de Cafés',
-            'cafes'         => $cafes,
-            'stats'         => $stats,
-            'meta'          => $meta,
+            'titulo' => 'Gestión de Cafés',
+            'cafes' => $cafes,
+            'stats' => $stats,
+            'meta' => $meta,
             'currentParams' => $currentParams,
-            'extraJs'       => ['admin/admin-cafes.js'],
+            'extraJs' => ['admin/admin-cafes.js'],
         ], ['admin/admin-cafes.css'], 'backoffice');
 
         return null;

@@ -14,15 +14,17 @@ namespace App\Core;
  */
 final class CacheTags
 {
-    public const string MENU          = 'menu';
-    public const string CAFE          = 'cafe';
-    public const string LOYALTY       = 'loyalty';
-    public const string USERS         = 'users';
-    public const string RESERVATIONS  = 'reservations';
-    public const string ANIMALS       = 'animals';
-    public const string PRODUCTS      = 'products';
-    public const string SETTINGS      = 'settings';
+    public const string MENU = 'menu';
+    public const string CAFE = 'cafe';
+    public const string LOYALTY = 'loyalty';
+    public const string USERS = 'users';
+    public const string RESERVATIONS = 'reservations';
+    public const string ANIMALS = 'animals';
+    public const string PRODUCTS = 'products';
+    public const string SETTINGS = 'settings';
 
     /** @codeCoverageIgnore */
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 }

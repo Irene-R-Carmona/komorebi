@@ -35,19 +35,19 @@ final class StaffApiController extends AbstractApiController
      */
     public function assignShift(ServerRequestInterface $request): ResponseInterface
     {
-        $user   = Session::user();
+        $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
 
         if (!$cafeId) {
             return $this->forbidden('No tienes un café asignado', 'cafe_not_assigned');
         }
 
-        $body       = (array) ($request->getParsedBody() ?? []);
-        $userId     = (int) ($body['user_id'] ?? 0);
-        $shiftDate  = (string) ($body['shift_date'] ?? '');
+        $body = (array) ($request->getParsedBody() ?? []);
+        $userId = (int) ($body['user_id'] ?? 0);
+        $shiftDate = (string) ($body['shift_date'] ?? '');
         $shiftStart = (string) ($body['shift_start'] ?? '');
-        $shiftEnd   = (string) ($body['shift_end'] ?? '');
-        $notes      = isset($body['notes']) ? (string) $body['notes'] : null;
+        $shiftEnd = (string) ($body['shift_end'] ?? '');
+        $notes = isset($body['notes']) ? (string) $body['notes'] : null;
 
         if ($userId <= 0) {
             return $this->badRequest('Staff member no válido', 'user_id_invalid');
@@ -85,13 +85,14 @@ final class StaffApiController extends AbstractApiController
 
         if (!$result->ok) {
             $status = $result->code === 'shift_overlap' ? 400 : 500;
+
             return $status === 400
                 ? $this->badRequest((string) $result->error, (string) $result->code)
                 : $this->serverError((string) $result->error, (string) $result->code);
         }
 
         return $this->success([
-            'message'  => 'Turno asignado correctamente',
+            'message' => 'Turno asignado correctamente',
             'shift_id' => $result->data['shift_id'],
         ]);
     }
@@ -110,7 +111,7 @@ final class StaffApiController extends AbstractApiController
         }
 
         return $this->response->json([
-            'ok'    => false,
+            'ok' => false,
             'error' => 'Funcionalidad en desarrollo (RBAC avanzado)',
         ], 501);
     }
@@ -120,7 +121,7 @@ final class StaffApiController extends AbstractApiController
      */
     public function viewPerformance(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        $user   = Session::user();
+        $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
 
         if (!$cafeId) {
@@ -140,7 +141,7 @@ final class StaffApiController extends AbstractApiController
         }
 
         return $this->success([
-            'staff'   => $staffMember,
+            'staff' => $staffMember,
             'metrics' => $metricsResult->data,
         ]);
     }

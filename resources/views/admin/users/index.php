@@ -12,14 +12,14 @@
 use App\Core\Csrf;
 use App\Core\View;
 
-$users         ??= [];
-$roles         ??= [];
-$meta          ??= ['page' => 1, 'has_next_page' => false];
+$users ??= [];
+$roles ??= [];
+$meta ??= ['page' => 1, 'has_next_page' => false];
 $currentParams ??= [];
-$currentUserId   = $_SESSION['user_id'] ?? null;
+$currentUserId = $_SESSION['user_id'] ?? null;
 
 $alpineConfig = json_encode([
-    'csrfToken'     => Csrf::token(),
+    'csrfToken' => Csrf::token(),
     'currentUserId' => $currentUserId,
 ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
 ?>

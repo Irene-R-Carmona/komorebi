@@ -29,7 +29,8 @@ final class PayloadSizeMiddleware implements MiddlewareInterface
     public function __construct(
         private readonly ResponseFactory $response,
         private readonly int $maxKilobytes = 256,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -49,7 +50,7 @@ final class PayloadSizeMiddleware implements MiddlewareInterface
         $transferEncoding = \strtolower($request->getHeaderLine('Transfer-Encoding'));
         if (\str_contains($transferEncoding, 'chunked')) {
             $bodySize = $request->getBody()->getSize();
-            $limit    = ($bodySize === null) ? self::NON_SEEKABLE_LIMIT : $this->maxKilobytes * 1024;
+            $limit = ($bodySize === null) ? self::NON_SEEKABLE_LIMIT : $this->maxKilobytes * 1024;
 
             if ($bodySize !== null && $bodySize > $limit) {
                 return $this->tooLarge();

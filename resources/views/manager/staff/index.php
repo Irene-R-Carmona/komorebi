@@ -11,9 +11,9 @@ declare(strict_types=1);
  * @var string $csrf_token  - Token CSRF
  */
 
-$staff      ??= [];
-$shifts     ??= [];
-$cafe_id    ??= 0;
+$staff ??= [];
+$shifts ??= [];
+$cafe_id ??= 0;
 $csrf_token ??= '';
 
 $alpineConfig = json_encode([
@@ -117,15 +117,15 @@ $alpineConfig = json_encode([
                 <?php else: ?>
                 <?php foreach ($shifts as $shift): ?>
                 <?php
-                    $start    = new DateTime((string) ($shift['shift_start'] ?? 'now'));
-                    $end      = new DateTime((string) ($shift['shift_end']   ?? 'now'));
+                    $start = new DateTime((string) ($shift['shift_start'] ?? 'now'));
+                    $end = new DateTime((string) ($shift['shift_end'] ?? 'now'));
                     $duration = $start->diff($end);
-                ?>
+                    ?>
                 <tr>
                     <td><?= htmlspecialchars((string) ($shift['staff_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars(date('d/m/Y', strtotime((string) ($shift['shift_date'] ?? 'now'))), ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars(substr((string) ($shift['shift_start'] ?? ''), 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars(substr((string) ($shift['shift_end']   ?? ''), 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars(substr((string) ($shift['shift_end'] ?? ''), 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= $duration->h ?>h <?= $duration->i ?>m</td>
                     <td><?= htmlspecialchars((string) ($shift['notes'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
                 </tr>
@@ -140,12 +140,12 @@ $alpineConfig = json_encode([
         <div class="calendar-grid">
             <?php
             $today = new DateTime();
-            for ($i = 0; $i < 7; $i++):
-                $day = clone $today;
-                $day->modify("+{$i} days");
-                $dateStr   = $day->format('Y-m-d');
-                $dayShifts = array_filter($shifts, static fn($s) => ($s['shift_date'] ?? '') === $dateStr);
-            ?>
+for ($i = 0; $i < 7; $i++):
+    $day = clone $today;
+    $day->modify("+{$i} days");
+    $dateStr = $day->format('Y-m-d');
+    $dayShifts = array_filter($shifts, static fn ($s) => ($s['shift_date'] ?? '') === $dateStr);
+    ?>
             <div class="calendar-day">
                 <div class="day-header">
                     <strong><?= $day->format('D d/m') ?></strong>

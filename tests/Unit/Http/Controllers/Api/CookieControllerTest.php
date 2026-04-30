@@ -80,7 +80,7 @@ final class CookieControllerTest extends ControllerTestCase
 
     public function test_consent_returns_422_when_consent_field_missing(): void
     {
-        $request = (new ServerRequest('PATCH', '/api/v1/cookies'))
+        $request = new ServerRequest('PATCH', '/api/v1/cookies')
             ->withParsedBody([]);
 
         $result = $this->makeController()->consent($request);
@@ -91,7 +91,7 @@ final class CookieControllerTest extends ControllerTestCase
 
     public function test_consent_returns_422_when_invalid_consent_value(): void
     {
-        $request = (new ServerRequest('PATCH', '/api/v1/cookies'))
+        $request = new ServerRequest('PATCH', '/api/v1/cookies')
             ->withParsedBody(['consent' => 'invalid']);
 
         $result = $this->makeController()->consent($request);
@@ -102,7 +102,7 @@ final class CookieControllerTest extends ControllerTestCase
 
     public function test_consent_all_returns_200(): void
     {
-        $request = (new ServerRequest('PATCH', '/api/v1/cookies'))
+        $request = new ServerRequest('PATCH', '/api/v1/cookies')
             ->withParsedBody(['consent' => 'all']);
 
         $result = $this->makeController()->consent($request);
@@ -115,7 +115,7 @@ final class CookieControllerTest extends ControllerTestCase
 
     public function test_consent_none_returns_200(): void
     {
-        $request = (new ServerRequest('PATCH', '/api/v1/cookies'))
+        $request = new ServerRequest('PATCH', '/api/v1/cookies')
             ->withParsedBody(['consent' => 'none']);
 
         $result = $this->makeController()->consent($request);
@@ -128,7 +128,7 @@ final class CookieControllerTest extends ControllerTestCase
 
     public function test_consent_custom_returns_422_when_preference_fields_missing(): void
     {
-        $request = (new ServerRequest('PATCH', '/api/v1/cookies'))
+        $request = new ServerRequest('PATCH', '/api/v1/cookies')
             ->withParsedBody(['consent' => 'custom']);
 
         $result = $this->makeController()->consent($request);
@@ -139,12 +139,12 @@ final class CookieControllerTest extends ControllerTestCase
 
     public function test_consent_custom_returns_200_with_valid_preferences(): void
     {
-        $request = (new ServerRequest('PATCH', '/api/v1/cookies'))
+        $request = new ServerRequest('PATCH', '/api/v1/cookies')
             ->withParsedBody([
-                'consent'    => 'custom',
-                'essential'  => true,
+                'consent' => 'custom',
+                'essential' => true,
                 'functional' => false,
-                'analytics'  => false,
+                'analytics' => false,
             ]);
 
         $result = $this->makeController()->consent($request);

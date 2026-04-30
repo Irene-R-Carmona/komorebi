@@ -51,7 +51,7 @@ final class ReviewApiController extends AbstractApiController
      */
     public function reject(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        $body   = (array) ($request->getParsedBody() ?? []);
+        $body = (array) ($request->getParsedBody() ?? []);
         $reason = (string) ($body['reason'] ?? 'Contenido inapropiado');
 
         $result = $this->moderationService->rejectReview($id, $reason);

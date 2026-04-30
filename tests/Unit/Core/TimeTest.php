@@ -24,6 +24,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Throwable;
 
 #[CoversClass(Time::class)]
 final class TimeTest extends TestCase
@@ -42,7 +43,7 @@ final class TimeTest extends TestCase
     {
         // Env::get() usa caché interna — validamos que el tz devuelto es un tz válido de PHP
         $tz = Time::businessTz();
-        $allTz = \DateTimeZone::listIdentifiers();
+        $allTz = DateTimeZone::listIdentifiers();
         self::assertContains($tz->getName(), $allTz);
     }
 
@@ -112,37 +113,37 @@ final class TimeTest extends TestCase
 
     public function testCombineBusinessThrowsOnInvalidDateFormat(): void
     {
-        $this->expectException(\Throwable::class);
+        $this->expectException(Throwable::class);
         Time::combineBusiness('25-06-15', '10:30'); // DD-MM-YY instead of YYYY-MM-DD
     }
 
     public function testCombineBusinessThrowsOnDateWithoutHyphens(): void
     {
-        $this->expectException(\Throwable::class);
+        $this->expectException(Throwable::class);
         Time::combineBusiness('20250615', '10:30');
     }
 
     public function testCombineBusinessThrowsOnInvalidTimeFormat(): void
     {
-        $this->expectException(\Throwable::class);
+        $this->expectException(Throwable::class);
         Time::combineBusiness('2025-06-15', '1030'); // no colon
     }
 
     public function testCombineBusinessThrowsOnTimeWithSeconds(): void
     {
-        $this->expectException(\Throwable::class);
+        $this->expectException(Throwable::class);
         Time::combineBusiness('2025-06-15', '10:30:00'); // HH:MM:SS not accepted
     }
 
     public function testCombineBusinessThrowsOnEmptyDate(): void
     {
-        $this->expectException(\Throwable::class);
+        $this->expectException(Throwable::class);
         Time::combineBusiness('', '10:30');
     }
 
     public function testCombineBusinessThrowsOnEmptyTime(): void
     {
-        $this->expectException(\Throwable::class);
+        $this->expectException(Throwable::class);
         Time::combineBusiness('2025-06-15', '');
     }
 
@@ -172,7 +173,7 @@ final class TimeTest extends TestCase
 
     public function testDaysAheadBusinessThrowsOnInvalidFormat(): void
     {
-        $this->expectException(\Throwable::class);
+        $this->expectException(Throwable::class);
         Time::daysAheadBusiness('15/06/2025');
     }
 }

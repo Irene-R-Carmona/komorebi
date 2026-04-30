@@ -15,6 +15,7 @@ namespace Tests\Unit\Repositories;
 
 use App\Repositories\AuthLogRepository;
 use PDO;
+use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Support\RepositoryTestCase;
 
@@ -106,7 +107,7 @@ final class AuthLogRepositoryTest extends RepositoryTestCase
     {
         $rows = [['id' => 1, 'event_type' => 'login', 'user_name' => 'Alice']];
 
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn($rows);
         $stmt->method('fetchColumn')->willReturn(1);
@@ -129,7 +130,7 @@ final class AuthLogRepositoryTest extends RepositoryTestCase
 
     public function testFindFilteredWithUserIdFilter(): void
     {
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([]);
         $stmt->method('fetchColumn')->willReturn(0);
@@ -147,7 +148,7 @@ final class AuthLogRepositoryTest extends RepositoryTestCase
 
     public function testFindFilteredWithEventTypeFilter(): void
     {
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([]);
         $stmt->method('fetchColumn')->willReturn(0);
@@ -164,7 +165,7 @@ final class AuthLogRepositoryTest extends RepositoryTestCase
 
     public function testFindFilteredWithSuccessFilter(): void
     {
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([]);
         $stmt->method('fetchColumn')->willReturn(0);
@@ -181,7 +182,7 @@ final class AuthLogRepositoryTest extends RepositoryTestCase
 
     public function testFindFilteredWithDateRangeFilters(): void
     {
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([]);
         $stmt->method('fetchColumn')->willReturn(0);
@@ -198,7 +199,7 @@ final class AuthLogRepositoryTest extends RepositoryTestCase
 
     public function testFindFilteredWithIpAddressFilter(): void
     {
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn([]);
         $stmt->method('fetchColumn')->willReturn(0);
@@ -225,16 +226,17 @@ final class AuthLogRepositoryTest extends RepositoryTestCase
             'failed_logins' => 15,
             'lockouts' => 2,
             'unique_users' => 20,
-            'unique_ips' => 10
+            'unique_ips' => 10,
         ];
         $byTypeRows = [['event_type' => 'login', 'count' => 80]];
         $topIpsRows = [['ip_address' => '1.2.3.4', 'count' => 30]];
 
         $call = 0;
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturnCallback(function () use ($totalsRow, &$call) {
             $call++;
+
             return $call === 1 ? $totalsRow : false;
         });
         $stmt->method('fetchAll')->willReturnOnConsecutiveCalls($byTypeRows, $topIpsRows);
@@ -252,7 +254,7 @@ final class AuthLogRepositoryTest extends RepositoryTestCase
 
     public function testGetStatsWithDateFilters(): void
     {
-        $stmt = $this->createStub(\PDOStatement::class);
+        $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturn([
             'total_events' => 5,
@@ -260,7 +262,7 @@ final class AuthLogRepositoryTest extends RepositoryTestCase
             'failed_logins' => 2,
             'lockouts' => 0,
             'unique_users' => 2,
-            'unique_ips' => 1
+            'unique_ips' => 1,
         ]);
         $stmt->method('fetchAll')->willReturn([]);
 

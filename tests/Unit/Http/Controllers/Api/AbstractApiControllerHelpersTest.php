@@ -24,7 +24,6 @@ use App\Http\Controllers\Api\AbstractApiController;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 
 /** Subclase concreta mínima para ejercitar los helpers protegidos */
 final class ConcreteApiController extends AbstractApiController
@@ -109,7 +108,7 @@ final class AbstractApiControllerHelpersTest extends TestCase
     public function test_paginated_returns_200(): void
     {
         $pagination = Pagination::fromRequest(1, 10);
-        $response   = $this->controller->callPaginated([['id' => 1], ['id' => 2]], $pagination);
+        $response = $this->controller->callPaginated([['id' => 1], ['id' => 2]], $pagination);
 
         $this->assertSame(200, $response->getStatusCode());
     }
@@ -117,8 +116,8 @@ final class AbstractApiControllerHelpersTest extends TestCase
     public function test_paginated_body_contains_items_and_meta(): void
     {
         $pagination = Pagination::fromRequest(2, 5);
-        $items      = [['id' => 1], ['id' => 2], ['id' => 3]];
-        $response   = $this->controller->callPaginated($items, $pagination);
+        $items = [['id' => 1], ['id' => 2], ['id' => 3]];
+        $response = $this->controller->callPaginated($items, $pagination);
 
         $body = \json_decode((string) $response->getBody(), true);
 

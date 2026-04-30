@@ -171,8 +171,8 @@ final class ResultContextTest extends TestCase
 
     public function testToFlashForOkResultSetsSuccessMessage(): void
     {
-        if (\session_status() === PHP_SESSION_ACTIVE) {
-            \session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
         }
 
         Result::ok()->toFlash('¡Guardado!');
@@ -180,45 +180,45 @@ final class ResultContextTest extends TestCase
         $this->assertSame('¡Guardado!', $_SESSION['_flash_messages'][0]['message']);
         $this->assertSame('success', $_SESSION['_flash_messages'][0]['type']);
 
-        if (\session_status() === PHP_SESSION_ACTIVE) {
-            \session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
         }
     }
 
     public function testToFlashForOkResultWithStringDataUsesDataAsMessage(): void
     {
-        if (\session_status() === PHP_SESSION_ACTIVE) {
-            \session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
         }
 
         Result::ok('Operación completada')->toFlash();
 
         $this->assertSame('Operación completada', $_SESSION['_flash_messages'][0]['message']);
 
-        if (\session_status() === PHP_SESSION_ACTIVE) {
-            \session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
         }
     }
 
     public function testToFlashForOkResultWithNoDataUsesDefaultMessage(): void
     {
-        if (\session_status() === PHP_SESSION_ACTIVE) {
-            \session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
         }
 
         Result::ok()->toFlash();
 
         $this->assertSame('Operación completada exitosamente', $_SESSION['_flash_messages'][0]['message']);
 
-        if (\session_status() === PHP_SESSION_ACTIVE) {
-            \session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
         }
     }
 
     public function testToFlashForFailResultSetsErrorMessage(): void
     {
-        if (\session_status() === PHP_SESSION_ACTIVE) {
-            \session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
         }
 
         Result::fail('Algo salió mal')->toFlash();
@@ -226,8 +226,8 @@ final class ResultContextTest extends TestCase
         $this->assertSame('Algo salió mal', $_SESSION['_flash_messages'][0]['message']);
         $this->assertSame('error', $_SESSION['_flash_messages'][0]['type']);
 
-        if (\session_status() === PHP_SESSION_ACTIVE) {
-            \session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
         }
     }
 }

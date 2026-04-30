@@ -12,7 +12,8 @@ final readonly class FavoriteDTO implements DomainTransferObject
         public int $user_id,
         public int $cafe_id,
         public string $created_at,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

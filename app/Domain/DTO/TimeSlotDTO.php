@@ -21,7 +21,8 @@ final readonly class TimeSlotDTO implements DomainTransferObject
         public int $duration_minutes,
         public string $created_at,
         public string $updated_at,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

@@ -51,7 +51,7 @@ final class CafeApiControllerTest extends ControllerTestCase
 
     public function test_updateCapacity_returns_403_without_cafe(): void
     {
-        $request  = $this->makePostRequest('/api/v1/manager/cafe/capacity', ['capacity_max' => 50]);
+        $request = $this->makePostRequest('/api/v1/manager/cafe/capacity', ['capacity_max' => 50]);
         $response = $this->makeController()->updateCapacity($request);
 
         $this->assertSame(403, $response->getStatusCode());
@@ -60,7 +60,7 @@ final class CafeApiControllerTest extends ControllerTestCase
     public function test_updateCapacity_returns_400_when_zero(): void
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 1);
-        $request  = $this->makePostRequest('/api/v1/manager/cafe/capacity', ['capacity_max' => 0]);
+        $request = $this->makePostRequest('/api/v1/manager/cafe/capacity', ['capacity_max' => 0]);
         $response = $this->makeController()->updateCapacity($request);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -69,7 +69,7 @@ final class CafeApiControllerTest extends ControllerTestCase
     public function test_updateCapacity_returns_400_when_over_limit(): void
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 1);
-        $request  = $this->makePostRequest('/api/v1/manager/cafe/capacity', ['capacity_max' => 501]);
+        $request = $this->makePostRequest('/api/v1/manager/cafe/capacity', ['capacity_max' => 501]);
         $response = $this->makeController()->updateCapacity($request);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -78,7 +78,7 @@ final class CafeApiControllerTest extends ControllerTestCase
     public function test_updateCapacity_returns_200_with_valid_input(): void
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 1);
-        $request  = $this->makePostRequest('/api/v1/manager/cafe/capacity', ['capacity_max' => 100]);
+        $request = $this->makePostRequest('/api/v1/manager/cafe/capacity', ['capacity_max' => 100]);
         $response = $this->makeController()->updateCapacity($request);
 
         $this->assertSame(200, $response->getStatusCode());
@@ -90,7 +90,7 @@ final class CafeApiControllerTest extends ControllerTestCase
 
     public function test_updateSchedule_returns_403_without_cafe(): void
     {
-        $request  = $this->makePostRequest('/api/v1/manager/cafe/schedule', [
+        $request = $this->makePostRequest('/api/v1/manager/cafe/schedule', [
             'opening_time' => '09:00',
             'closing_time' => '21:00',
         ]);
@@ -102,7 +102,7 @@ final class CafeApiControllerTest extends ControllerTestCase
     public function test_updateSchedule_returns_400_with_invalid_time_format(): void
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 1);
-        $request  = $this->makePostRequest('/api/v1/manager/cafe/schedule', [
+        $request = $this->makePostRequest('/api/v1/manager/cafe/schedule', [
             'opening_time' => 'not-a-time',
             'closing_time' => '21:00',
         ]);
@@ -114,7 +114,7 @@ final class CafeApiControllerTest extends ControllerTestCase
     public function test_updateSchedule_returns_400_when_open_after_close(): void
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 1);
-        $request  = $this->makePostRequest('/api/v1/manager/cafe/schedule', [
+        $request = $this->makePostRequest('/api/v1/manager/cafe/schedule', [
             'opening_time' => '22:00',
             'closing_time' => '09:00',
         ]);
@@ -126,7 +126,7 @@ final class CafeApiControllerTest extends ControllerTestCase
     public function test_updateSchedule_returns_200_with_valid_times(): void
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 1);
-        $request  = $this->makePostRequest('/api/v1/manager/cafe/schedule', [
+        $request = $this->makePostRequest('/api/v1/manager/cafe/schedule', [
             'opening_time' => '09:00',
             'closing_time' => '21:00',
         ]);
@@ -141,7 +141,7 @@ final class CafeApiControllerTest extends ControllerTestCase
 
     public function test_updateSettings_returns_403_without_cafe(): void
     {
-        $request  = $this->makePostRequest('/api/v1/manager/cafe/settings', ['price_per_hour' => 10]);
+        $request = $this->makePostRequest('/api/v1/manager/cafe/settings', ['price_per_hour' => 10]);
         $response = $this->makeController()->updateSettings($request);
 
         $this->assertSame(403, $response->getStatusCode());
@@ -150,7 +150,7 @@ final class CafeApiControllerTest extends ControllerTestCase
     public function test_updateSettings_returns_400_when_price_out_of_range(): void
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 1);
-        $request  = $this->makePostRequest('/api/v1/manager/cafe/settings', ['price_per_hour' => 999]);
+        $request = $this->makePostRequest('/api/v1/manager/cafe/settings', ['price_per_hour' => 999]);
         $response = $this->makeController()->updateSettings($request);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -159,7 +159,7 @@ final class CafeApiControllerTest extends ControllerTestCase
     public function test_updateSettings_returns_400_when_no_fields(): void
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 1);
-        $request  = $this->makePostRequest('/api/v1/manager/cafe/settings', []);
+        $request = $this->makePostRequest('/api/v1/manager/cafe/settings', []);
         $response = $this->makeController()->updateSettings($request);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -168,7 +168,7 @@ final class CafeApiControllerTest extends ControllerTestCase
     public function test_updateSettings_returns_200_with_valid_price(): void
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 1);
-        $request  = $this->makePostRequest('/api/v1/manager/cafe/settings', ['price_per_hour' => 15]);
+        $request = $this->makePostRequest('/api/v1/manager/cafe/settings', ['price_per_hour' => 15]);
         $response = $this->makeController()->updateSettings($request);
 
         $this->assertSame(200, $response->getStatusCode());

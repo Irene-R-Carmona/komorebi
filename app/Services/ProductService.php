@@ -15,6 +15,7 @@ use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\Contracts\ProductServiceInterface;
 use Override;
 use PDOException;
+use Throwable;
 
 /**
  * Servicio de gestión de productos
@@ -150,7 +151,7 @@ final class ProductService extends BaseService implements ProductServiceInterfac
                 null,
                 ['name' => $productData['name'], 'category_id' => $productData['category_id'], 'price' => $productData['price']]
             );
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Ignorar fallos del log de auditoría
         }
 

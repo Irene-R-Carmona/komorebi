@@ -19,9 +19,9 @@ use PDO;
  */
 final class CafeRepository extends AbstractRepository implements CafeCatalogRepositoryInterface
 {
-    private const string SQL_NOT_DELETED     = 'deleted_at IS NULL';
+    private const string SQL_NOT_DELETED = 'deleted_at IS NULL';
     private const string SQL_FILTER_CATEGORY = 'category = :category';
-    private const string SQL_AND             = ' AND ';
+    private const string SQL_AND = ' AND ';
 
     public function __construct(private readonly CafeMapper $mapper, ?PDO $db = null)
     {
@@ -540,19 +540,19 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         $sortDir = \strtolower($sortDir) === 'desc' ? 'DESC' : 'ASC';
 
         $fields = \implode(', ', $this->getSelectFields());
-        $where  = [self::SQL_NOT_DELETED];
+        $where = [self::SQL_NOT_DELETED];
         $params = [];
 
         if ($search !== '') {
-            $like         = '%' . \mb_substr(\trim($search), 0, 100) . '%';
-            $where[]      = '(name LIKE :s1 OR japanese_name LIKE :s2 OR location LIKE :s3)';
+            $like = '%' . \mb_substr(\trim($search), 0, 100) . '%';
+            $where[] = '(name LIKE :s1 OR japanese_name LIKE :s2 OR location LIKE :s3)';
             $params['s1'] = $like;
             $params['s2'] = $like;
             $params['s3'] = $like;
         }
 
         if ($category !== '') {
-            $where[]            = self::SQL_FILTER_CATEGORY;
+            $where[] = self::SQL_FILTER_CATEGORY;
             $params['category'] = $category;
         }
 
@@ -563,7 +563,7 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         }
 
         $whereClause = \implode(self::SQL_AND, $where);
-        $sql         = "SELECT {$fields}
+        $sql = "SELECT {$fields}
                         FROM cafes
                         WHERE {$whereClause}
                         ORDER BY {$sort} {$sortDir}

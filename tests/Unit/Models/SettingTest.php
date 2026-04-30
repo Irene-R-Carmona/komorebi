@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Models;
 
 use App\Models\Setting;
+use Exception;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\TestCase;
@@ -23,6 +24,7 @@ final class SettingTest extends TestCase
     {
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
+
         return $pdo;
     }
 
@@ -39,7 +41,7 @@ final class SettingTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('query')->willReturn($stmt);
 
-        $result = (new Setting($pdo))->findAll();
+        $result = new Setting($pdo)->findAll();
         $this->assertSame($rows, $result);
     }
 
@@ -53,7 +55,7 @@ final class SettingTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn($rows);
 
-        $result = (new Setting($this->stubPdoWithPrepare($stmt)))->findByGroup('email');
+        $result = new Setting($this->stubPdoWithPrepare($stmt))->findByGroup('email');
         $this->assertSame($rows, $result);
     }
 
@@ -62,7 +64,7 @@ final class SettingTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn([]);
 
-        $result = (new Setting($this->stubPdoWithPrepare($stmt)))->findByGroup('nonexistent');
+        $result = new Setting($this->stubPdoWithPrepare($stmt))->findByGroup('nonexistent');
         $this->assertSame([], $result);
     }
 
@@ -81,7 +83,7 @@ final class SettingTest extends TestCase
         $pdo->method('commit')->willReturn(true);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtUpdate, $stmtType);
 
-        $result = (new Setting($pdo))->updateBatch(['site_name' => 'Komorebi Café']);
+        $result = new Setting($pdo)->updateBatch(['site_name' => 'Komorebi Café']);
         $this->assertTrue($result);
     }
 
@@ -98,7 +100,7 @@ final class SettingTest extends TestCase
         $pdo->method('commit')->willReturn(true);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtUpdate, $stmtType);
 
-        $result = (new Setting($pdo))->updateBatch(['ghost_key' => 'value']);
+        $result = new Setting($pdo)->updateBatch(['ghost_key' => 'value']);
         $this->assertTrue($result);
     }
 
@@ -106,10 +108,10 @@ final class SettingTest extends TestCase
     {
         $pdo = $this->createStub(PDO::class);
         $pdo->method('beginTransaction')->willReturn(true);
-        $pdo->method('prepare')->willThrowException(new \Exception('DB error'));
+        $pdo->method('prepare')->willThrowException(new Exception('DB error'));
         $pdo->method('rollBack')->willReturn(true);
 
-        $result = (new Setting($pdo))->updateBatch(['site_name' => 'Test']);
+        $result = new Setting($pdo)->updateBatch(['site_name' => 'Test']);
         $this->assertFalse($result);
     }
 
@@ -120,7 +122,7 @@ final class SettingTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
 
-        $result = (new Setting($this->stubPdoWithPrepare($stmt)))->delete('site_name');
+        $result = new Setting($this->stubPdoWithPrepare($stmt))->delete('site_name');
         $this->assertTrue($result);
     }
 
@@ -129,7 +131,7 @@ final class SettingTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(false);
 
-        $result = (new Setting($this->stubPdoWithPrepare($stmt)))->delete('nonexistent_key');
+        $result = new Setting($this->stubPdoWithPrepare($stmt))->delete('nonexistent_key');
         $this->assertFalse($result);
     }
 }

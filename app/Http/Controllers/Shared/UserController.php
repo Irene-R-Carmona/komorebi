@@ -59,7 +59,7 @@ final class UserController
 
         View::render('shared/user/profile', [
             'titulo' => 'Mi Perfil',
-            'flash'  => Flash::consume(),
+            'flash' => Flash::consume(),
         ], ['profile.css', 'reviews.css']);
 
         return null;
@@ -149,7 +149,7 @@ final class UserController
             return $this->response->json(['success' => false, 'message' => 'No autenticado'], 401);
         }
 
-        $body     = (array) ($request->getParsedBody() ?? []);
+        $body = (array) ($request->getParsedBody() ?? []);
         $avatarId = \trim((string) ($body['avatar_id'] ?? ''));
 
         if (!AvatarOptions::isValid($avatarId)) {
@@ -157,7 +157,7 @@ final class UserController
         }
 
         $avatarUrl = AvatarOptions::toUrl($avatarId);
-        $result    = $this->profileService->updateAvatar($userId, $avatarUrl);
+        $result = $this->profileService->updateAvatar($userId, $avatarUrl);
 
         if (!$result->ok) {
             return $this->response->json(['success' => false, 'message' => $result->error ?? 'Error al actualizar el avatar.'], 500);
@@ -167,9 +167,9 @@ final class UserController
         Session::set('user', $profile);
 
         return $this->response->json([
-            'ok'   => true,
+            'ok' => true,
             'data' => [
-                'avatar_id'  => $avatarId,
+                'avatar_id' => $avatarId,
                 'avatar_url' => $avatarUrl,
             ],
         ]);

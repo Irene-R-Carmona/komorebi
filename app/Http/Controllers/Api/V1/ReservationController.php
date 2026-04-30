@@ -174,14 +174,14 @@ final class ReservationController extends AbstractApiController
         }
 
         $params = $request->getQueryParams();
-        $page   = \max(1, (int) ($params['page'] ?? 1));
-        $limit  = \max(1, (int) ($params['limit'] ?? Pagination::DEFAULT_LIMIT));
+        $page = \max(1, (int) ($params['page'] ?? 1));
+        $limit = \max(1, (int) ($params['limit'] ?? Pagination::DEFAULT_LIMIT));
         $status = isset($params['status']) && $params['status'] !== '' ? (string) $params['status'] : null;
 
         $pagination = Pagination::fromRequest($page, $limit);
 
         $result = $this->reservationRepo->findByUser((int) $userId, $status, $pagination->fetchLimit, $pagination->offset);
-        $items  = $this->transformer->collection($result['data']);
+        $items = $this->transformer->collection($result['data']);
 
         $hasNext = \count($result['data']) > $pagination->limit;
         if ($hasNext) {
@@ -190,7 +190,7 @@ final class ReservationController extends AbstractApiController
 
         return $this->success([
             'items' => $items,
-            'meta'  => $pagination->toMeta($hasNext),
+            'meta' => $pagination->toMeta($hasNext),
         ]);
     }
 }

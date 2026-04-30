@@ -16,7 +16,8 @@ final readonly class ReservationItemDTO implements DomainTransferObject
         public float $unit_price,
         public string $status,
         public string $created_at,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

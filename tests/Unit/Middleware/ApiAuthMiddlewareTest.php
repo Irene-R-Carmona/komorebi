@@ -161,10 +161,10 @@ final class ApiAuthMiddlewareTest extends TestCase
     public function testValidBearerSetsAuthMethodAttribute(): void
     {
         $tokenData = [
-            'user_id'    => 3,
-            'user'       => ['id' => 3, 'name' => 'Ana', 'is_active' => 1],
+            'user_id' => 3,
+            'user' => ['id' => 3, 'name' => 'Ana', 'is_active' => 1],
             'user_roles' => ['user'],
-            'token_id'   => 5,
+            'token_id' => 5,
         ];
 
         $tokenService = $this->createStub(ApiTokenServiceInterface::class);

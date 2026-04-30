@@ -146,14 +146,14 @@ final class WaitlistRepositoryTest extends RepositoryTestCase
         $repo = new WaitlistRepository($pdo);
 
         $id = $repo->create([
-            'user_id'          => 1,
-            'time_slot_id'     => 10,
-            'guest_count'      => 2,
-            'status'           => 'waiting',
-            'token'            => 'tok-abc',
-            'expires_at'       => null,
-            'contact_email'    => 'u@test.com',
-            'contact_phone'    => null,
+            'user_id' => 1,
+            'time_slot_id' => 10,
+            'guest_count' => 2,
+            'status' => 'waiting',
+            'token' => 'tok-abc',
+            'expires_at' => null,
+            'contact_email' => 'u@test.com',
+            'contact_phone' => null,
             'special_requests' => null,
         ]);
 
@@ -178,7 +178,7 @@ final class WaitlistRepositoryTest extends RepositoryTestCase
         $repo = new WaitlistRepository($pdo);
 
         $this->assertTrue($repo->updateStatusWithData(1, 'promoted', [
-            'expires_at'     => '2025-06-21 12:00:00',
+            'expires_at' => '2025-06-21 12:00:00',
             'reservation_id' => 42,
         ]));
     }

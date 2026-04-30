@@ -25,7 +25,7 @@ final class ReviewQueryServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repoStub = $this->createStub(ReviewRepositoryInterface::class);
-        $this->service  = new ReviewQueryService($this->repoStub);
+        $this->service = new ReviewQueryService($this->repoStub);
     }
 
     public function testGetReviewsByUserIdReturnsArray(): void

@@ -38,6 +38,7 @@ final class SessionRepositoryTest extends TestCase
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('rowCount')->willReturn($rowCount);
+
         return $stmt;
     }
 
@@ -47,6 +48,7 @@ final class SessionRepositoryTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('query')->willReturn($stmt);
+
         return $pdo;
     }
 

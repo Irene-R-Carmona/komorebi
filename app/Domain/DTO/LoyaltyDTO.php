@@ -15,7 +15,8 @@ final readonly class LoyaltyDTO implements DomainTransferObject
         public int $tier_level,
         public int $stamps_count,
         public ?int $next_reward_at,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

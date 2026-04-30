@@ -17,7 +17,8 @@ final readonly class AllergenDTO implements DomainTransferObject
         public ?string $icon_color,
         public string $severity,
         public ?string $description,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

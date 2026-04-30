@@ -30,7 +30,7 @@ final class MenuController
         $queryParams = $request->getQueryParams();
         $excludeAllergens = [];
         if (!empty($queryParams['exclude_allergens']) && \is_array($queryParams['exclude_allergens'])) {
-            $excludeAllergens = \array_values(\array_filter(\array_map('intval', $queryParams['exclude_allergens']), static fn($v) => $v > 0));
+            $excludeAllergens = \array_values(\array_filter(\array_map('intval', $queryParams['exclude_allergens']), static fn ($v) => $v > 0));
         }
 
         // 103 Early Hints — FrankenPHP envía la cabecera antes de las queries

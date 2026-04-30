@@ -144,10 +144,10 @@ final class ReviewRepositoryTest extends RepositoryTestCase
         $id = $repo->create([
             'user_id' => 1,
             'cafe_id' => 1,
-            'rating'  => 5,
-            'title'   => 'Genial',
-            'body'    => 'Muy buen lugar.',
-            'status'  => 'pending',
+            'rating' => 5,
+            'title' => 'Genial',
+            'body' => 'Muy buen lugar.',
+            'status' => 'pending',
             'rejection_reason' => null,
         ]);
 

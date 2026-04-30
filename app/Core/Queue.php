@@ -45,7 +45,9 @@ final class Queue
     /**
      * Constructor privado para evitar instanciación directa (Singleton)
      */
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     /**
      * Genera un nombre único de consumidor para este proceso worker.
@@ -78,7 +80,7 @@ final class Queue
 
             Logger::info('[Queue] Consumer group creado', [
                 'stream' => $streamKey,
-                'group'  => self::CONSUMER_GROUP,
+                'group' => self::CONSUMER_GROUP,
             ]);
         } catch (RedisException $e) {
             // BUSYGROUP: el grupo ya existe — ignorar
@@ -110,15 +112,15 @@ final class Queue
             $redis->xAck(self::REDIS_PREFIX . $queue, self::CONSUMER_GROUP, [$messageId]);
 
             Logger::debug('[Queue] Mensaje confirmado (XACK)', [
-                'queue'      => $queue,
+                'queue' => $queue,
                 'message_id' => $messageId,
             ]);
         } catch (Throwable $e) {
             // XACK fallido no es crítico: el mensaje quedará en PEL y puede reclamarse
             Logger::warning('[Queue] Error en XACK', [
-                'queue'      => $queue,
+                'queue' => $queue,
                 'message_id' => $messageId,
-                'error'      => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -240,7 +242,7 @@ final class Queue
             // '>' indica "solo mensajes pendientes de entrega" (not yet delivered to any consumer).
             // El mensaje permanece en el PEL hasta que se llame a acknowledge().
             $consumer = self::getConsumerName();
-            $blockMs  = self::BLOCKING_TIMEOUT * 1000;
+            $blockMs = self::BLOCKING_TIMEOUT * 1000;
 
             $result = $redis->xReadGroup(
                 self::CONSUMER_GROUP,
@@ -255,21 +257,21 @@ final class Queue
             }
 
             // PhpRedis devuelve: ['stream_key' => ['message_id' => ['field' => 'value']]]
-            $messages  = $result[$queueKey];
+            $messages = $result[$queueKey];
             $messageId = (string) \array_key_first($messages);
-            $fields    = $messages[$messageId];
+            $fields = $messages[$messageId];
 
             $jobData = \json_decode($fields['data'], true, 512, JSON_THROW_ON_ERROR);
 
             // Adjuntar el ID del stream para que el worker pueda llamar a acknowledge()
-            $jobData['_stream_id']    = $messageId;
+            $jobData['_stream_id'] = $messageId;
             $jobData['_stream_queue'] = $queue;
 
             Logger::debug('[Queue] Job leído del stream', [
-                'job'        => $jobData['job'] ?? 'unknown',
-                'queue'      => $queue,
+                'job' => $jobData['job'] ?? 'unknown',
+                'queue' => $queue,
                 'message_id' => $messageId,
-                'attempts'   => $jobData['attempts'] ?? 0,
+                'attempts' => $jobData['attempts'] ?? 0,
             ]);
 
             return $jobData;

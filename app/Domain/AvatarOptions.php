@@ -52,8 +52,8 @@ final class AvatarOptions
         $list = [];
         foreach (self::OPTIONS as $id) {
             $list[] = [
-                'id'    => $id,
-                'url'   => self::toUrl($id),
+                'id' => $id,
+                'url' => self::toUrl($id),
                 'label' => $id === 'initials' ? 'Iniciales' : 'Avatar ' . \substr($id, 7),
             ];
         }

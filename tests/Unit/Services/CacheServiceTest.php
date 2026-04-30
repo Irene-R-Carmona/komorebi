@@ -31,10 +31,11 @@ final class CacheServiceTest extends TestCase
 
     public function testRememberInvokesCallbackWhenKeyNotCached(): void
     {
-        $key      = '__test_remember_' . \uniqid();
-        $invoked  = false;
+        $key = '__test_remember_' . \uniqid();
+        $invoked = false;
         $callback = function () use (&$invoked): string {
             $invoked = true;
+
             return 'value';
         };
 
@@ -51,11 +52,12 @@ final class CacheServiceTest extends TestCase
     {
         $key = '__test_remember_cached_' . \uniqid();
 
-        $this->service->remember($key, fn() => 'original', 3600);
+        $this->service->remember($key, fn () => 'original', 3600);
 
         $callCount = 0;
-        $result    = $this->service->remember($key, function () use (&$callCount): string {
+        $result = $this->service->remember($key, function () use (&$callCount): string {
             $callCount++;
+
             return 'should-not-be-called';
         }, 3600);
 
@@ -68,7 +70,7 @@ final class CacheServiceTest extends TestCase
 
     public function testGetItemReturnsUnhitCacheItemForNewKey(): void
     {
-        $key  = '__test_getItem_' . \uniqid();
+        $key = '__test_getItem_' . \uniqid();
         $item = $this->service->getItem($key);
 
         $this->assertFalse($item->isHit());
@@ -76,7 +78,7 @@ final class CacheServiceTest extends TestCase
 
     public function testSaveAndGetItemRoundTrip(): void
     {
-        $key  = '__test_save_' . \uniqid();
+        $key = '__test_save_' . \uniqid();
         $item = $this->service->getItem($key);
         $item->set('hello');
 
@@ -91,7 +93,7 @@ final class CacheServiceTest extends TestCase
 
     public function testDeleteItemReturnsTrueAndRemovesKey(): void
     {
-        $key  = '__test_delete_' . \uniqid();
+        $key = '__test_delete_' . \uniqid();
         $item = $this->service->getItem($key);
         $item->set('to-delete');
         $this->service->save($item);
@@ -104,7 +106,7 @@ final class CacheServiceTest extends TestCase
 
     public function testSaveDeferredAndCommitPersistsItem(): void
     {
-        $key  = '__test_deferred_' . \uniqid();
+        $key = '__test_deferred_' . \uniqid();
         $item = $this->service->getItem($key);
         $item->set('deferred-value');
 

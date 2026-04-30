@@ -27,8 +27,8 @@ final class AuthServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->userRepoStub    = $this->createStub(UserRepositoryInterface::class);
-        $this->sessionStub     = $this->createStub(SessionManagementServiceInterface::class);
+        $this->userRepoStub = $this->createStub(UserRepositoryInterface::class);
+        $this->sessionStub = $this->createStub(SessionManagementServiceInterface::class);
         $this->rateLimiterStub = $this->createStub(RateLimitingServiceInterface::class);
 
         $this->rateLimiterStub->method('isBlocked')->willReturn(['blocked' => false]);

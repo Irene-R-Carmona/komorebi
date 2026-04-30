@@ -16,6 +16,7 @@ final class TimeSlotTest extends TestCase
     {
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
+
         return $pdo;
     }
 
@@ -29,7 +30,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn($rows);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->findAvailable(1, '2024-06-01', '2024-06-07');
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->findAvailable(1, '2024-06-01', '2024-06-07');
 
         $this->assertTrue($result->ok);
         $this->assertCount(1, $result->data);
@@ -40,7 +41,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn([]);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->findAvailable(1, '2024-06-01', '2024-06-07', 5);
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->findAvailable(1, '2024-06-01', '2024-06-07', 5);
 
         $this->assertTrue($result->ok);
         $this->assertSame([], $result->data);
@@ -51,7 +52,7 @@ final class TimeSlotTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willThrowException(new PDOException('DB error'));
 
-        $result = (new TimeSlot($pdo))->findAvailable(1, '2024-06-01', '2024-06-07');
+        $result = new TimeSlot($pdo)->findAvailable(1, '2024-06-01', '2024-06-07');
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Error al buscar slots', $result->error);
@@ -65,7 +66,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetch')->willReturn($row);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->findById(5);
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->findById(5);
 
         $this->assertTrue($result->ok);
         $this->assertSame(5, $result->data['id']);
@@ -76,7 +77,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetch')->willReturn(false);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->findById(999);
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->findById(999);
 
         $this->assertTrue($result->ok);
         $this->assertNull($result->data);
@@ -90,7 +91,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetch')->willReturn($row);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->findByIdForUpdate(3);
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->findByIdForUpdate(3);
 
         $this->assertTrue($result->ok);
         $this->assertSame(3, $result->data['id']);
@@ -101,7 +102,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetch')->willReturn(false);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->findByIdForUpdate(999);
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->findByIdForUpdate(999);
 
         $this->assertFalse($result->ok);
         $this->assertSame('Slot no encontrado', $result->error);
@@ -114,7 +115,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetch')->willReturn(['has_space' => 1, 'is_blocked' => 0]);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->hasAvailability(1, 2);
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->hasAvailability(1, 2);
 
         $this->assertTrue($result->ok);
         $this->assertTrue($result->data);
@@ -125,7 +126,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetch')->willReturn(['has_space' => 1, 'is_blocked' => 1]);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->hasAvailability(1);
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->hasAvailability(1);
 
         $this->assertTrue($result->ok);
         $this->assertFalse($result->data);
@@ -136,7 +137,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetch')->willReturn(['has_space' => 0, 'is_blocked' => 0]);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->hasAvailability(1, 5);
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->hasAvailability(1, 5);
 
         $this->assertTrue($result->ok);
         $this->assertFalse($result->data);
@@ -147,7 +148,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetch')->willReturn(false);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->hasAvailability(999);
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->hasAvailability(999);
 
         $this->assertFalse($result->ok);
     }
@@ -171,7 +172,7 @@ final class TimeSlotTest extends TestCase
         $pdo->method('commit')->willReturn(true);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtLock, $stmtUpdate);
 
-        $result = (new TimeSlot($pdo))->decrementSpots(1, 3);
+        $result = new TimeSlot($pdo)->decrementSpots(1, 3);
 
         $this->assertTrue($result->ok);
         $this->assertTrue($result->data);
@@ -187,7 +188,7 @@ final class TimeSlotTest extends TestCase
         $pdo->method('rollBack')->willReturn(true);
         $pdo->method('prepare')->willReturn($stmt);
 
-        $result = (new TimeSlot($pdo))->decrementSpots(999);
+        $result = new TimeSlot($pdo)->decrementSpots(999);
 
         $this->assertFalse($result->ok);
         $this->assertSame('Slot no encontrado', $result->error);
@@ -207,7 +208,7 @@ final class TimeSlotTest extends TestCase
         $pdo->method('rollBack')->willReturn(true);
         $pdo->method('prepare')->willReturn($stmt);
 
-        $result = (new TimeSlot($pdo))->decrementSpots(1);
+        $result = new TimeSlot($pdo)->decrementSpots(1);
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('bloqueado', $result->error);
@@ -227,7 +228,7 @@ final class TimeSlotTest extends TestCase
         $pdo->method('rollBack')->willReturn(true);
         $pdo->method('prepare')->willReturn($stmt);
 
-        $result = (new TimeSlot($pdo))->decrementSpots(1, 5);
+        $result = new TimeSlot($pdo)->decrementSpots(1, 5);
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('plazas', $result->error);
@@ -241,7 +242,7 @@ final class TimeSlotTest extends TestCase
         $pdo->method('rollBack')->willReturn(true);
         $pdo->method('prepare')->willThrowException(new PDOException('Lock wait'));
 
-        $result = (new TimeSlot($pdo))->decrementSpots(1);
+        $result = new TimeSlot($pdo)->decrementSpots(1);
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Error al decrementar', $result->error);
@@ -265,7 +266,7 @@ final class TimeSlotTest extends TestCase
         $pdo->method('commit')->willReturn(true);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtLock, $stmtUpdate);
 
-        $result = (new TimeSlot($pdo))->incrementSpots(1, 2);
+        $result = new TimeSlot($pdo)->incrementSpots(1, 2);
 
         $this->assertTrue($result->ok);
         $this->assertTrue($result->data);
@@ -281,7 +282,7 @@ final class TimeSlotTest extends TestCase
         $pdo->method('rollBack')->willReturn(true);
         $pdo->method('prepare')->willReturn($stmt);
 
-        $result = (new TimeSlot($pdo))->incrementSpots(999);
+        $result = new TimeSlot($pdo)->incrementSpots(999);
 
         $this->assertFalse($result->ok);
         $this->assertSame('Slot no encontrado', $result->error);
@@ -304,7 +305,7 @@ final class TimeSlotTest extends TestCase
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtLock, $stmtUpdate);
 
         // Adding 10 spots when only 2 are taken — should cap at 20
-        $result = (new TimeSlot($pdo))->incrementSpots(1, 10);
+        $result = new TimeSlot($pdo)->incrementSpots(1, 10);
 
         $this->assertTrue($result->ok);
     }
@@ -316,7 +317,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->blockSlot(1, 'Maintenance');
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->blockSlot(1, 'Maintenance');
 
         $this->assertTrue($result->ok);
         $this->assertTrue($result->data);
@@ -327,7 +328,7 @@ final class TimeSlotTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willThrowException(new PDOException('DB error'));
 
-        $result = (new TimeSlot($pdo))->blockSlot(1, 'Reason');
+        $result = new TimeSlot($pdo)->blockSlot(1, 'Reason');
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Error al bloquear', $result->error);
@@ -340,7 +341,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->unblockSlot(1);
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->unblockSlot(1);
 
         $this->assertTrue($result->ok);
         $this->assertTrue($result->data);
@@ -351,7 +352,7 @@ final class TimeSlotTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willThrowException(new PDOException('DB error'));
 
-        $result = (new TimeSlot($pdo))->unblockSlot(1);
+        $result = new TimeSlot($pdo)->unblockSlot(1);
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Error al desbloquear', $result->error);
@@ -368,7 +369,7 @@ final class TimeSlotTest extends TestCase
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('lastInsertId')->willReturn('7');
 
-        $result = (new TimeSlot($pdo))->create([
+        $result = new TimeSlot($pdo)->create([
             'cafe_id' => 1,
             'slot_date' => '2024-07-01',
             'slot_time' => '10:00:00',
@@ -388,7 +389,7 @@ final class TimeSlotTest extends TestCase
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('lastInsertId')->willReturn('3');
 
-        $result = (new TimeSlot($pdo))->create([
+        $result = new TimeSlot($pdo)->create([
             'cafe_id' => 1,
             'slot_date' => '2024-07-01',
             'slot_time' => '11:00:00',
@@ -402,7 +403,7 @@ final class TimeSlotTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willThrowException(new PDOException('Error'));
 
-        $result = (new TimeSlot($pdo))->create([
+        $result = new TimeSlot($pdo)->create([
             'cafe_id' => 1,
             'slot_date' => '2024-07-01',
             'slot_time' => '10:00:00',
@@ -426,7 +427,7 @@ final class TimeSlotTest extends TestCase
         $pdo->method('lastInsertId')->willReturn('1');
 
         // 1 day × 2 time slots = 2 created
-        $result = (new TimeSlot($pdo))->generateSlots(1, '2024-07-01', '2024-07-01', ['10:00', '14:00']);
+        $result = new TimeSlot($pdo)->generateSlots(1, '2024-07-01', '2024-07-01', ['10:00', '14:00']);
 
         $this->assertTrue($result->ok);
         $this->assertSame(2, $result->data);
@@ -438,7 +439,7 @@ final class TimeSlotTest extends TestCase
         $pdo->method('beginTransaction')->willThrowException(new PDOException('Error'));
         $pdo->method('inTransaction')->willReturn(false);
 
-        $result = (new TimeSlot($pdo))->generateSlots(1, '2024-07-01', '2024-07-01', ['10:00']);
+        $result = new TimeSlot($pdo)->generateSlots(1, '2024-07-01', '2024-07-01', ['10:00']);
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Error al generar', $result->error);
@@ -459,7 +460,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetch')->willReturn($stats);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->getOccupancyStats(1, '2024-07-01', '2024-07-31');
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->getOccupancyStats(1, '2024-07-01', '2024-07-31');
 
         $this->assertTrue($result->ok);
         $this->assertSame(10, $result->data['total_slots']);
@@ -470,7 +471,7 @@ final class TimeSlotTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetch')->willReturn(false);
 
-        $result = (new TimeSlot($this->stubPdoWithPrepare($stmt)))->getOccupancyStats(1, '2024-07-01', '2024-07-31');
+        $result = new TimeSlot($this->stubPdoWithPrepare($stmt))->getOccupancyStats(1, '2024-07-01', '2024-07-31');
 
         $this->assertTrue($result->ok);
         $this->assertSame([], $result->data);
@@ -481,7 +482,7 @@ final class TimeSlotTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willThrowException(new PDOException('Error'));
 
-        $result = (new TimeSlot($pdo))->getOccupancyStats(1, '2024-07-01', '2024-07-31');
+        $result = new TimeSlot($pdo)->getOccupancyStats(1, '2024-07-01', '2024-07-31');
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Error al obtener', $result->error);

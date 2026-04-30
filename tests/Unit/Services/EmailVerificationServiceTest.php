@@ -28,7 +28,7 @@ final class EmailVerificationServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->userRepoStub    = $this->createStub(UserRepositoryInterface::class);
+        $this->userRepoStub = $this->createStub(UserRepositoryInterface::class);
         $this->tokenServiceStub = $this->createStub(AuthTokenServiceInterface::class);
         $this->emailServiceStub = $this->createStub(EmailServiceInterface::class);
 

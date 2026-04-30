@@ -25,7 +25,8 @@ final readonly class ReservationDTO implements DomainTransferObject
         public ?string $payment_status,
         public ?string $payment_method,
         public ?string $notes,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

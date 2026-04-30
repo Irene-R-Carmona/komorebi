@@ -55,7 +55,7 @@ final class AdminActivityServiceTest extends TestCase
         $pdoStub->method('prepare')->willThrowException(new PDOException('DB error'));
 
         $service = new AdminActivityService($pdoStub);
-        $result  = $service->getRecentReservations(5);
+        $result = $service->getRecentReservations(5);
 
         $this->assertFalse($result->ok);
         $this->assertSame('db_error', $result->code);
@@ -64,14 +64,14 @@ final class AdminActivityServiceTest extends TestCase
     public function testGetRecentReservationsReturnsResultWithExpectedShape(): void
     {
         $row = [
-            'id'            => 1,
-            'date'          => '2025-01-15',
-            'time_slot'     => '14:00',
-            'status'        => 'confirmed',
-            'guests'        => 2,
-            'cafe_name'     => 'Komorebi Central',
+            'id' => 1,
+            'date' => '2025-01-15',
+            'time_slot' => '14:00',
+            'status' => 'confirmed',
+            'guests' => 2,
+            'cafe_name' => 'Komorebi Central',
             'customer_name' => 'Ana García',
-            'created_at'    => '2025-01-10 10:00:00',
+            'created_at' => '2025-01-10 10:00:00',
         ];
 
         $stmtStub = $this->createStub(PDOStatement::class);
@@ -81,7 +81,7 @@ final class AdminActivityServiceTest extends TestCase
         $pdoStub->method('prepare')->willReturn($stmtStub);
 
         $service = new AdminActivityService($pdoStub);
-        $result  = $service->getRecentReservations(1);
+        $result = $service->getRecentReservations(1);
 
         $this->assertTrue($result->ok);
         $this->assertCount(1, $result->data);
@@ -101,7 +101,7 @@ final class AdminActivityServiceTest extends TestCase
         $pdoStub->method('query')->willReturn($stmtStub);
 
         $service = new AdminActivityService($pdoStub);
-        $result  = $service->getUsersWithRoles();
+        $result = $service->getUsersWithRoles();
 
         $this->assertTrue($result->ok);
         $this->assertCount(1, $result->data);
@@ -123,7 +123,7 @@ final class AdminActivityServiceTest extends TestCase
         $pdoStub->method('query')->willReturn($stmtStub);
 
         $service = new AdminActivityService($pdoStub);
-        $result  = $service->getUsersWithRoles();
+        $result = $service->getUsersWithRoles();
 
         $this->assertTrue($result->ok);
         $this->assertCount(1, $result->data);
@@ -140,7 +140,7 @@ final class AdminActivityServiceTest extends TestCase
         $pdoStub->method('query')->willReturn($stmtStub);
 
         $service = new AdminActivityService($pdoStub);
-        $result  = $service->getProductsWithCategories();
+        $result = $service->getProductsWithCategories();
 
         $this->assertTrue($result->ok);
         $this->assertCount(1, $result->data);
@@ -153,7 +153,7 @@ final class AdminActivityServiceTest extends TestCase
         $pdoStub->method('query')->willThrowException(new PDOException('DB error'));
 
         $service = new AdminActivityService($pdoStub);
-        $result  = $service->getProductsWithCategories();
+        $result = $service->getProductsWithCategories();
 
         $this->assertFalse($result->ok);
         $this->assertSame('db_error', $result->code);
@@ -170,7 +170,7 @@ final class AdminActivityServiceTest extends TestCase
         $pdoStub->method('prepare')->willReturn($stmtStub);
 
         $service = new AdminActivityService($pdoStub);
-        $result  = $service->getReservationsWithDetails(10);
+        $result = $service->getReservationsWithDetails(10);
 
         $this->assertTrue($result->ok);
         $this->assertCount(1, $result->data);
@@ -183,7 +183,7 @@ final class AdminActivityServiceTest extends TestCase
         $pdoStub->method('prepare')->willThrowException(new PDOException('DB error'));
 
         $service = new AdminActivityService($pdoStub);
-        $result  = $service->getReservationsWithDetails();
+        $result = $service->getReservationsWithDetails();
 
         $this->assertFalse($result->ok);
         $this->assertSame('db_error', $result->code);
@@ -212,7 +212,7 @@ final class AdminActivityServiceTest extends TestCase
         $pdoStub->method('query')->willReturnOnConsecutiveCalls($stmtRes, $stmtUsers, $stmtReviews);
 
         $service = new AdminActivityService($pdoStub);
-        $result  = $service->getRecentActivity(10);
+        $result = $service->getRecentActivity(10);
 
         $this->assertTrue($result->ok);
         $this->assertIsArray($result->data);
@@ -225,7 +225,7 @@ final class AdminActivityServiceTest extends TestCase
         $pdoStub->method('query')->willThrowException(new PDOException('DB error'));
 
         $service = new AdminActivityService($pdoStub);
-        $result  = $service->getRecentActivity();
+        $result = $service->getRecentActivity();
 
         $this->assertFalse($result->ok);
         $this->assertSame('db_error', $result->code);
@@ -241,7 +241,7 @@ final class AdminActivityServiceTest extends TestCase
         $pdoStub->method('prepare')->willReturn($stmtStub);
 
         $service = new AdminActivityService($pdoStub);
-        $result  = $service->getReservationsChartData();
+        $result = $service->getReservationsChartData();
 
         $this->assertTrue($result->ok);
         $this->assertArrayHasKey('labels', $result->data);
@@ -256,7 +256,7 @@ final class AdminActivityServiceTest extends TestCase
         $pdoStub->method('prepare')->willThrowException(new PDOException('DB error'));
 
         $service = new AdminActivityService($pdoStub);
-        $result  = $service->getReservationsChartData();
+        $result = $service->getReservationsChartData();
 
         $this->assertFalse($result->ok);
         $this->assertSame('chart_error', $result->code);

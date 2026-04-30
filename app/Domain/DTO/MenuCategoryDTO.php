@@ -13,7 +13,8 @@ final readonly class MenuCategoryDTO implements DomainTransferObject
         public string $name,
         public string $slug,
         public int $display_order,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

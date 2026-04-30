@@ -16,6 +16,7 @@ use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use App\Services\AnimalCareService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 #[CoversClass(AnimalCareService::class)]
 final class AnimalCareServiceTest extends TestCase
@@ -27,8 +28,8 @@ final class AnimalCareServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->animalRepoStub      = $this->createStub(AnimalRepositoryInterface::class);
-        $this->incidentRepoStub    = $this->createStub(AnimalIncidentRepositoryInterface::class);
+        $this->animalRepoStub = $this->createStub(AnimalRepositoryInterface::class);
+        $this->incidentRepoStub = $this->createStub(AnimalIncidentRepositoryInterface::class);
         $this->healthCheckRepoStub = $this->createStub(HealthCheckRepositoryInterface::class);
 
         $this->service = new AnimalCareService(
@@ -74,9 +75,9 @@ final class AnimalCareServiceTest extends TestCase
     public function testCreateAnimalFailsWhenAgeOutOfRange(): void
     {
         $result = $this->service->createAnimal([
-            'name'      => 'Mochi',
-            'species'   => 'cat',
-            'cafe_id'   => 1,
+            'name' => 'Mochi',
+            'species' => 'cat',
+            'cafe_id' => 1,
             'age_years' => 99,
         ]);
 
@@ -304,9 +305,9 @@ final class AnimalCareServiceTest extends TestCase
     public function testCreateAnimalFailsWhenAgeIsNegative(): void
     {
         $result = $this->service->createAnimal([
-            'name'      => 'Mochi',
-            'species'   => 'cat',
-            'cafe_id'   => 1,
+            'name' => 'Mochi',
+            'species' => 'cat',
+            'cafe_id' => 1,
             'age_years' => -1,
         ]);
 
@@ -317,7 +318,7 @@ final class AnimalCareServiceTest extends TestCase
     public function testCreateAnimalHandlesException(): void
     {
         $this->animalRepoStub->method('createAnimal')
-            ->willThrowException(new \RuntimeException('DB error'));
+            ->willThrowException(new RuntimeException('DB error'));
 
         $result = $this->service->createAnimal(['name' => 'Mochi', 'species' => 'cat', 'cafe_id' => 1]);
 
@@ -328,7 +329,7 @@ final class AnimalCareServiceTest extends TestCase
     public function testUpdateAnimalHandlesException(): void
     {
         $this->animalRepoStub->method('updateAnimal')
-            ->willThrowException(new \RuntimeException('DB error'));
+            ->willThrowException(new RuntimeException('DB error'));
 
         $result = $this->service->updateAnimal(1, ['name' => 'Mochi']);
 
@@ -339,7 +340,7 @@ final class AnimalCareServiceTest extends TestCase
     public function testDeleteAnimalHandlesException(): void
     {
         $this->animalRepoStub->method('softDeleteAnimal')
-            ->willThrowException(new \RuntimeException('DB error'));
+            ->willThrowException(new RuntimeException('DB error'));
 
         $result = $this->service->deleteAnimal(1);
 
@@ -350,7 +351,7 @@ final class AnimalCareServiceTest extends TestCase
     public function testToggleActiveHandlesException(): void
     {
         $this->animalRepoStub->method('toggleStatus')
-            ->willThrowException(new \RuntimeException('DB error'));
+            ->willThrowException(new RuntimeException('DB error'));
 
         $result = $this->service->toggleActive(1);
 
@@ -361,7 +362,7 @@ final class AnimalCareServiceTest extends TestCase
     public function testResolveIncidentHandlesException(): void
     {
         $this->incidentRepoStub->method('resolve')
-            ->willThrowException(new \RuntimeException('DB error'));
+            ->willThrowException(new RuntimeException('DB error'));
 
         $result = $this->service->resolveIncident(1);
 
@@ -419,9 +420,9 @@ final class AnimalCareServiceTest extends TestCase
     public function testCreateCareLogFailsWithInvalidMoodBefore(): void
     {
         $result = $this->service->createCareLog([
-            'animal_id'     => 1,
+            'animal_id' => 1,
             'activity_type' => 'feeding',
-            'mood_before'   => 'unknown_mood',
+            'mood_before' => 'unknown_mood',
         ]);
 
         $this->assertFalse($result->ok);
@@ -431,9 +432,9 @@ final class AnimalCareServiceTest extends TestCase
     public function testCreateCareLogFailsWithInvalidMoodAfter(): void
     {
         $result = $this->service->createCareLog([
-            'animal_id'     => 1,
+            'animal_id' => 1,
             'activity_type' => 'feeding',
-            'mood_after'    => 'unknown_mood',
+            'mood_after' => 'unknown_mood',
         ]);
 
         $this->assertFalse($result->ok);
@@ -443,10 +444,10 @@ final class AnimalCareServiceTest extends TestCase
     public function testCreateCareLogHandlesException(): void
     {
         $this->healthCheckRepoStub->method('createCareLog')
-            ->willThrowException(new \RuntimeException('DB error'));
+            ->willThrowException(new RuntimeException('DB error'));
 
         $result = $this->service->createCareLog([
-            'animal_id'     => 1,
+            'animal_id' => 1,
             'activity_type' => 'feeding',
         ]);
 
@@ -473,13 +474,13 @@ final class AnimalCareServiceTest extends TestCase
         $this->healthCheckRepoStub->method('createCareLog')->willReturn(12);
 
         $result = $this->service->createCareLog([
-            'animal_id'          => 1,
-            'activity_type'      => 'feeding',
-            'logged_by_user_id'  => 2,
-            'duration_minutes'   => 20,
-            'mood_before'        => 'happy',
-            'mood_after'         => 'calm',
-            'notes'              => 'Todo bien',
+            'animal_id' => 1,
+            'activity_type' => 'feeding',
+            'logged_by_user_id' => 2,
+            'duration_minutes' => 20,
+            'mood_before' => 'happy',
+            'mood_after' => 'calm',
+            'notes' => 'Todo bien',
         ]);
 
         $this->assertTrue($result->ok);
@@ -495,10 +496,10 @@ final class AnimalCareServiceTest extends TestCase
     public function testCreateIncidentFailsWhenIncidentTypeIsInvalid(): void
     {
         $result = $this->service->createIncident([
-            'animal_id'     => 1,
+            'animal_id' => 1,
             'incident_type' => 'INVALID_TYPE',
-            'severity'      => 'low',
-            'description'   => 'Descripción larga suficiente',
+            'severity' => 'low',
+            'description' => 'Descripción larga suficiente',
         ]);
 
         $this->assertFalse($result->ok);
@@ -508,10 +509,10 @@ final class AnimalCareServiceTest extends TestCase
     public function testCreateIncidentFailsWhenIncidentStatusIsInvalid(): void
     {
         $result = $this->service->createIncident([
-            'animal_id'       => 1,
+            'animal_id' => 1,
             'incident_status' => 'INVALID_STATUS',
-            'severity'        => 'low',
-            'description'     => 'Descripción larga suficiente',
+            'severity' => 'low',
+            'description' => 'Descripción larga suficiente',
         ]);
 
         $this->assertFalse($result->ok);
@@ -521,8 +522,8 @@ final class AnimalCareServiceTest extends TestCase
     public function testCreateIncidentFailsWhenSeverityIsInvalid(): void
     {
         $result = $this->service->createIncident([
-            'animal_id'   => 1,
-            'severity'    => 'extreme',
+            'animal_id' => 1,
+            'severity' => 'extreme',
             'description' => 'Descripción larga suficiente',
         ]);
 
@@ -533,7 +534,7 @@ final class AnimalCareServiceTest extends TestCase
     public function testCreateIncidentFailsWhenSeverityIsMissing(): void
     {
         $result = $this->service->createIncident([
-            'animal_id'   => 1,
+            'animal_id' => 1,
             'description' => 'Descripción larga suficiente',
         ]);
 
@@ -544,8 +545,8 @@ final class AnimalCareServiceTest extends TestCase
     public function testCreateIncidentFailsWhenDescriptionIsTooShort(): void
     {
         $result = $this->service->createIncident([
-            'animal_id'   => 1,
-            'severity'    => 'low',
+            'animal_id' => 1,
+            'severity' => 'low',
             'description' => 'Corta',
         ]);
 
@@ -556,7 +557,7 @@ final class AnimalCareServiceTest extends TestCase
     public function testCreateIncidentFailsWhenAnimalIdIsMissing(): void
     {
         $result = $this->service->createIncident([
-            'severity'    => 'low',
+            'severity' => 'low',
             'description' => 'Descripción larga suficiente',
         ]);
 

@@ -55,10 +55,10 @@ final class StaffApiControllerTest extends ControllerTestCase
     private function validShiftBody(): array
     {
         return [
-            'user_id'     => 5,
-            'shift_date'  => '2025-07-01',
+            'user_id' => 5,
+            'shift_date' => '2025-07-01',
             'shift_start' => '09:00',
-            'shift_end'   => '17:00',
+            'shift_end' => '17:00',
         ];
     }
 
@@ -66,7 +66,7 @@ final class StaffApiControllerTest extends ControllerTestCase
 
     public function test_assignShift_returns_403_without_cafe(): void
     {
-        $request  = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $this->validShiftBody());
+        $request = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $this->validShiftBody());
         $response = $this->makeController()->assignShift($request);
 
         $this->assertSame(403, $response->getStatusCode());
@@ -76,9 +76,9 @@ final class StaffApiControllerTest extends ControllerTestCase
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 10);
 
-        $body     = $this->validShiftBody();
+        $body = $this->validShiftBody();
         $body['user_id'] = 0;
-        $request  = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $body);
+        $request = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $body);
         $response = $this->makeController()->assignShift($request);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -87,10 +87,10 @@ final class StaffApiControllerTest extends ControllerTestCase
     public function test_assignShift_returns_400_with_invalid_date(): void
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 10);
-        $body             = $this->validShiftBody();
+        $body = $this->validShiftBody();
         $body['shift_date'] = 'not-a-date';
 
-        $request  = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $body);
+        $request = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $body);
         $response = $this->makeController()->assignShift($request);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -99,11 +99,11 @@ final class StaffApiControllerTest extends ControllerTestCase
     public function test_assignShift_returns_400_when_start_after_end(): void
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 10);
-        $body             = $this->validShiftBody();
+        $body = $this->validShiftBody();
         $body['shift_start'] = '18:00';
-        $body['shift_end']   = '09:00';
+        $body['shift_end'] = '09:00';
 
-        $request  = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $body);
+        $request = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $body);
         $response = $this->makeController()->assignShift($request);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -116,7 +116,7 @@ final class StaffApiControllerTest extends ControllerTestCase
         $userRepo = $this->createStub(UserRepositoryInterface::class);
         $userRepo->method('existsInCafe')->willReturn(false);
 
-        $request  = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $this->validShiftBody());
+        $request = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $this->validShiftBody());
         $response = $this->makeController($userRepo)->assignShift($request);
 
         $this->assertSame(403, $response->getStatusCode());
@@ -132,7 +132,7 @@ final class StaffApiControllerTest extends ControllerTestCase
         $shiftService = $this->createStub(StaffShiftServiceInterface::class);
         $shiftService->method('assignShift')->willReturn(Result::fail('Overlap detected', 'shift_overlap'));
 
-        $request  = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $this->validShiftBody());
+        $request = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $this->validShiftBody());
         $response = $this->makeController($userRepo, $shiftService)->assignShift($request);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -148,7 +148,7 @@ final class StaffApiControllerTest extends ControllerTestCase
         $shiftService = $this->createStub(StaffShiftServiceInterface::class);
         $shiftService->method('assignShift')->willReturn(Result::ok(['shift_id' => 99]));
 
-        $request  = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $this->validShiftBody());
+        $request = $this->makePostRequest('/api/v1/manager/staff/assign-shift', $this->validShiftBody());
         $response = $this->makeController($userRepo, $shiftService)->assignShift($request);
 
         $this->assertSame(200, $response->getStatusCode());
@@ -161,7 +161,7 @@ final class StaffApiControllerTest extends ControllerTestCase
 
     public function test_editPermissions_returns_403_without_cafe(): void
     {
-        $request  = $this->makePostRequest('/api/v1/manager/staff/edit-permissions', ['user_id' => 5]);
+        $request = $this->makePostRequest('/api/v1/manager/staff/edit-permissions', ['user_id' => 5]);
         $response = $this->makeController()->editPermissions($request);
 
         $this->assertSame(403, $response->getStatusCode());
@@ -171,7 +171,7 @@ final class StaffApiControllerTest extends ControllerTestCase
     {
         $this->asUser(userId: 1, role: 'manager', cafeId: 10);
 
-        $request  = $this->makePostRequest('/api/v1/manager/staff/edit-permissions', ['user_id' => 5]);
+        $request = $this->makePostRequest('/api/v1/manager/staff/edit-permissions', ['user_id' => 5]);
         $response = $this->makeController()->editPermissions($request);
 
         $this->assertSame(501, $response->getStatusCode());
@@ -181,7 +181,7 @@ final class StaffApiControllerTest extends ControllerTestCase
 
     public function test_viewPerformance_returns_403_without_cafe(): void
     {
-        $request  = $this->makeGetRequest('/api/v1/manager/staff/performance/5');
+        $request = $this->makeGetRequest('/api/v1/manager/staff/performance/5');
         $response = $this->makeController()->viewPerformance($request, 5);
 
         $this->assertSame(403, $response->getStatusCode());
@@ -194,7 +194,7 @@ final class StaffApiControllerTest extends ControllerTestCase
         $userRepo = $this->createStub(UserRepositoryInterface::class);
         $userRepo->method('getStaffBasicById')->willReturn(null);
 
-        $request  = $this->makeGetRequest('/api/v1/manager/staff/performance/5');
+        $request = $this->makeGetRequest('/api/v1/manager/staff/performance/5');
         $response = $this->makeController($userRepo)->viewPerformance($request, 5);
 
         $this->assertSame(404, $response->getStatusCode());
@@ -212,7 +212,7 @@ final class StaffApiControllerTest extends ControllerTestCase
             Result::ok(['total_shifts' => 20, 'attended_shifts' => 18])
         );
 
-        $request  = $this->makeGetRequest('/api/v1/manager/staff/performance/5');
+        $request = $this->makeGetRequest('/api/v1/manager/staff/performance/5');
         $response = $this->makeController($userRepo, $shiftService)->viewPerformance($request, 5);
 
         $this->assertSame(200, $response->getStatusCode());

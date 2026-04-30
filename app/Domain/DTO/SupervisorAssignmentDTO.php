@@ -17,7 +17,8 @@ final readonly class SupervisorAssignmentDTO implements DomainTransferObject
         public bool $is_active,
         public string $assigned_at,
         public string $created_at,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

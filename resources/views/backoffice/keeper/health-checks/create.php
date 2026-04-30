@@ -35,8 +35,8 @@ declare(strict_types=1);
                                     'sick' => 'Enfermo',
                                     'retired' => 'Retirado',
                                 ];
-                                $animalStatusLabel = $animal['is_active'] ? 'Activo' : 'Inactivo';
-                                ?>
+$animalStatusLabel = $animal['is_active'] ? 'Activo' : 'Inactivo';
+?>
                                 Estado: <span class="badge bg-secondary"><?= htmlspecialchars($animalStatusLabel, ENT_QUOTES, 'UTF-8') ?></span>
                             </p>
                         </div>

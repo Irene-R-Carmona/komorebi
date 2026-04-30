@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Reception;
 
 use App\Core\Container;
+use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
@@ -24,12 +25,16 @@ final class ReceptionController
 
     private ?ContextServiceInstance $context = null;
 
+    private ResponseFactory $response;
+
     public function __construct(
         ?ReceptionServiceInterface $service = null,
         ?ContextServiceInstance $context = null,
+        ?ResponseFactory $response = null,
     ) {
         $this->service = $service ?? Container::make(ReceptionServiceInterface::class);
         $this->context = $context;
+        $this->response = $response ?? Container::make(ResponseFactory::class);
     }
 
     private function context(): ContextServiceInstance
@@ -104,6 +109,53 @@ final class ReceptionController
         ], [], 'reception');
 
         return null;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Acciones de check-in / check-out
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * POST /ops/reception/reservations/{id}/checkin
+     */
+    public function checkIn(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        if ($id <= 0) {
+            return $this->response->json(['ok' => false, 'message' => 'ID de reserva inválido'], 400);
+        }
+
+        $body = (array) ($request->getParsedBody() ?? []);
+        $trackerId = isset($body['tracker_id']) ? (int) $body['tracker_id'] : 0;
+
+        if ($trackerId <= 0) {
+            return $this->response->json(['ok' => false, 'message' => 'ID de tracker inválido'], 400);
+        }
+
+        $result = $this->service->processCheckin($id, $trackerId);
+
+        if (!$result->ok) {
+            return $this->response->json(['ok' => false, 'message' => $result->error], 422);
+        }
+
+        return $this->response->json(['ok' => true]);
+    }
+
+    /**
+     * POST /ops/reception/reservations/{id}/checkout
+     */
+    public function checkOut(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        if ($id <= 0) {
+            return $this->response->json(['ok' => false, 'message' => 'ID de reserva inválido'], 400);
+        }
+
+        $result = $this->service->processCheckout($id);
+
+        if (!$result->ok) {
+            return $this->response->json(['ok' => false, 'message' => $result->error], 422);
+        }
+
+        return $this->response->json(['ok' => true]);
     }
 
     // ─────────────────────────────────────────────────────────────

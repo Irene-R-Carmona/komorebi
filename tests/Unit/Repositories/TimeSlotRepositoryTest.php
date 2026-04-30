@@ -21,7 +21,6 @@ use PDO;
 use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 #[CoversClass(TimeSlotRepository::class)]
 final class TimeSlotRepositoryTest extends TestCase
@@ -41,6 +40,7 @@ final class TimeSlotRepositoryTest extends TestCase
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('rowCount')->willReturn($rowCount);
+
         return $stmt;
     }
 
@@ -48,6 +48,7 @@ final class TimeSlotRepositoryTest extends TestCase
     {
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
+
         return $pdo;
     }
 

@@ -40,6 +40,7 @@ final class ApiTokenRepositoryTest extends TestCase
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('rowCount')->willReturn($rowCount);
+
         return $stmt;
     }
 
@@ -48,6 +49,7 @@ final class ApiTokenRepositoryTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('lastInsertId')->willReturn($lastInsertId);
+
         return $pdo;
     }
 

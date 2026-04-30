@@ -25,7 +25,7 @@ final class HealthCheckServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repoStub = $this->createStub(HealthCheckRepositoryInterface::class);
-        $this->service  = new HealthCheckService($this->repoStub);
+        $this->service = new HealthCheckService($this->repoStub);
     }
 
     public function testCreateHealthCheckFailsWhenWeightTooLow(): void
@@ -183,12 +183,12 @@ final class HealthCheckServiceTest extends TestCase
     public function testDetectAlertsReturnsEmptyArrayWhenNoIssues(): void
     {
         $alerts = $this->service->detectAlerts([
-            'appetite'         => 'normal',
-            'energy_level'     => 'normal',
-            'mobility_normal'  => true,
+            'appetite' => 'normal',
+            'energy_level' => 'normal',
+            'mobility_normal' => true,
             'breathing_normal' => true,
-            'eyes_clear'       => true,
-            'coat_condition'   => 'good',
+            'eyes_clear' => true,
+            'coat_condition' => 'good',
         ]);
 
         $this->assertEmpty($alerts);

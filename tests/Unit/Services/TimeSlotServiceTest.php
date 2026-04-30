@@ -26,7 +26,7 @@ final class TimeSlotServiceTest extends TestCase
         $repoStub->method('findAvailableByDateFiltered')->willReturn($expected);
 
         $service = new TimeSlotService($repoStub);
-        $result  = $service->getAvailableSlots('2025-12-01', 1, 2);
+        $result = $service->getAvailableSlots('2025-12-01', 1, 2);
 
         $this->assertSame($expected, $result);
     }
@@ -37,7 +37,7 @@ final class TimeSlotServiceTest extends TestCase
         $repoStub->method('findAvailableByDateFiltered')->willReturn([]);
 
         $service = new TimeSlotService($repoStub);
-        $result  = $service->getAvailableSlots('2025-12-01');
+        $result = $service->getAvailableSlots('2025-12-01');
 
         $this->assertSame([], $result);
     }

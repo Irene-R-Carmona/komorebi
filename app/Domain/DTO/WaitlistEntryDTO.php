@@ -22,7 +22,8 @@ final readonly class WaitlistEntryDTO implements DomainTransferObject
         public string $contact_email,
         public ?string $expires_at,
         public ?string $special_requests,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

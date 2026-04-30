@@ -7,4 +7,6 @@ namespace App\Models;
 /**
  * Modelo LoyaltyCard — constantes de dominio.
  */
-final class LoyaltyCard {}
+final class LoyaltyCard
+{
+}

@@ -26,7 +26,8 @@ final readonly class CafeDTO implements DomainTransferObject
         public bool $is_active,
         public bool $has_reservations,
         public ?string $image_url,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

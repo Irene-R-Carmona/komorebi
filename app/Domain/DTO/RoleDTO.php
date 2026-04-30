@@ -13,7 +13,8 @@ final readonly class RoleDTO implements DomainTransferObject
         public string $code,
         public string $name,
         public ?string $description,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

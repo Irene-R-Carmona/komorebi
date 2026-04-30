@@ -1,4 +1,5 @@
 {
+  "name": "komorebi",
   "scripts": {
     "build:charts": "esbuild public/js/chart-bundle.js --bundle --minify --outfile=public/js/charts.min.js --format=iife --global-name=ChartBundle",
     "test:e2e": "playwright test tests/e2e",
@@ -13,6 +14,8 @@
     "@playwright/test": "^1.58.2",
     "chart.js": "^4.4.1",
     "esbuild": "^0.28",
-    "lighthouse": "^13.1.0"
+    "eslint": "^9.0.0",
+    "lighthouse": "^13.1.0",
+    "prettier": "^3.0.0"
   }
 }

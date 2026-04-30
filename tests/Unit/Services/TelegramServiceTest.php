@@ -21,7 +21,7 @@ final class TelegramServiceTest extends TestCase
     {
         // Without TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID env vars, the service silently skips
         $service = new TelegramService();
-        $result  = $service->sendMessage('Test message');
+        $result = $service->sendMessage('Test message');
 
         $this->assertTrue($result->ok);
     }
@@ -29,7 +29,7 @@ final class TelegramServiceTest extends TestCase
     public function testSendAlertReturnsOkWhenNotConfigured(): void
     {
         $service = new TelegramService();
-        $result  = $service->sendAlert('🔔', 'Test Alert', 'Test body');
+        $result = $service->sendAlert('🔔', 'Test Alert', 'Test body');
 
         $this->assertTrue($result->ok);
     }

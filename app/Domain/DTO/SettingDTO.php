@@ -15,7 +15,8 @@ final readonly class SettingDTO implements DomainTransferObject
         public string $group_name,
         public ?string $description,
         public bool $is_public,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

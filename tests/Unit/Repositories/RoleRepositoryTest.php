@@ -29,6 +29,7 @@ final class RoleRepositoryTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);
         $stmt->method('fetch')->willReturn($fetchReturn);
+
         return $stmt;
     }
 
@@ -44,6 +45,7 @@ final class RoleRepositoryTest extends TestCase
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('query')->willReturn($stmt);
         $pdo->method('lastInsertId')->willReturn('10');
+
         return $pdo;
     }
 
@@ -59,7 +61,7 @@ final class RoleRepositoryTest extends TestCase
             'name' => 'Admin',
             'description' => null,
             'permissions_count' => 5,
-            'users_count' => 3
+            'users_count' => 3,
         ]];
         $pdo = $this->makeSimplePdo($rows);
         $repo = new RoleRepository($pdo);
@@ -89,7 +91,7 @@ final class RoleRepositoryTest extends TestCase
             'name' => 'Admin',
             'description' => null,
             'permission_ids' => '1,2',
-            'permission_names' => 'Read,Write'
+            'permission_names' => 'Read,Write',
         ]];
         $pdo = $this->makeSimplePdo($rows);
         $repo = new RoleRepository($pdo);
@@ -111,7 +113,7 @@ final class RoleRepositoryTest extends TestCase
             'name' => 'Guest',
             'description' => null,
             'permission_ids' => null,
-            'permission_names' => null
+            'permission_names' => null,
         ]];
         $pdo = $this->makeSimplePdo($rows);
         $repo = new RoleRepository($pdo);
@@ -330,7 +332,7 @@ final class RoleRepositoryTest extends TestCase
             'name' => 'Read',
             'description' => null,
             'resource' => 'product',
-            'action' => 'read'
+            'action' => 'read',
         ]];
         $pdo = $this->makeSimplePdo($rows);
         $repo = new RoleRepository($pdo);
@@ -348,7 +350,7 @@ final class RoleRepositoryTest extends TestCase
             'name' => 'Write',
             'description' => null,
             'resource' => 'product',
-            'action' => 'write'
+            'action' => 'write',
         ];
         $pdo = $this->makeSimplePdo([], $row);
         $repo = new RoleRepository($pdo);

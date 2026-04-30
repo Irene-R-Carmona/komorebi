@@ -58,7 +58,7 @@ final class ReviewControllerTest extends ControllerTestCase
 
     public function test_create_returns_422_when_cafe_id_missing(): void
     {
-        $request = (new ServerRequest('POST', '/api/v1/reviews'))
+        $request = new ServerRequest('POST', '/api/v1/reviews')
             ->withAttribute('user_id', 1)
             ->withParsedBody(['rating' => 5, 'title' => 'Genial']);
 
@@ -67,7 +67,7 @@ final class ReviewControllerTest extends ControllerTestCase
 
     public function test_create_returns_422_when_rating_invalid(): void
     {
-        $request = (new ServerRequest('POST', '/api/v1/reviews'))
+        $request = new ServerRequest('POST', '/api/v1/reviews')
             ->withAttribute('user_id', 1)
             ->withParsedBody(['cafe_id' => 1, 'rating' => 6, 'title' => 'Genial']);
 
@@ -76,7 +76,7 @@ final class ReviewControllerTest extends ControllerTestCase
 
     public function test_create_returns_422_when_title_empty(): void
     {
-        $request = (new ServerRequest('POST', '/api/v1/reviews'))
+        $request = new ServerRequest('POST', '/api/v1/reviews')
             ->withAttribute('user_id', 1)
             ->withParsedBody(['cafe_id' => 1, 'rating' => 4, 'title' => '']);
 
@@ -90,7 +90,7 @@ final class ReviewControllerTest extends ControllerTestCase
             Result::ok(['id' => 42, 'cafe_id' => 1, 'rating' => 5, 'title' => 'Genial', 'body' => ''])
         );
 
-        $request = (new ServerRequest('POST', '/api/v1/reviews'))
+        $request = new ServerRequest('POST', '/api/v1/reviews')
             ->withAttribute('user_id', 1)
             ->withParsedBody(['cafe_id' => 1, 'rating' => 5, 'title' => 'Genial', 'body' => 'Excelente']);
 
@@ -107,7 +107,7 @@ final class ReviewControllerTest extends ControllerTestCase
             Result::fail('Ya tienes una reseña en este café', 'duplicate_review')
         );
 
-        $request = (new ServerRequest('POST', '/api/v1/reviews'))
+        $request = new ServerRequest('POST', '/api/v1/reviews')
             ->withAttribute('user_id', 1)
             ->withParsedBody(['cafe_id' => 1, 'rating' => 4, 'title' => 'Genial']);
 
@@ -122,7 +122,7 @@ final class ReviewControllerTest extends ControllerTestCase
 
     public function test_update_returns_401_when_no_user_id(): void
     {
-        $request = (new ServerRequest('PUT', '/api/v1/reviews/5'))
+        $request = new ServerRequest('PUT', '/api/v1/reviews/5')
             ->withAttribute('id', 5);
 
         $this->assertSame(401, $this->makeController()->update($request)->getStatusCode());
@@ -130,7 +130,7 @@ final class ReviewControllerTest extends ControllerTestCase
 
     public function test_update_returns_404_when_review_id_is_zero(): void
     {
-        $request = (new ServerRequest('PUT', '/api/v1/reviews/0'))
+        $request = new ServerRequest('PUT', '/api/v1/reviews/0')
             ->withAttribute('user_id', 1);
 
         $this->assertSame(404, $this->makeController()->update($request)->getStatusCode());
@@ -138,7 +138,7 @@ final class ReviewControllerTest extends ControllerTestCase
 
     public function test_update_returns_422_when_rating_invalid(): void
     {
-        $request = (new ServerRequest('PUT', '/api/v1/reviews/5'))
+        $request = new ServerRequest('PUT', '/api/v1/reviews/5')
             ->withAttribute('user_id', 1)
             ->withAttribute('id', 5)
             ->withParsedBody(['rating' => 0, 'title' => 'Bueno']);
@@ -165,7 +165,7 @@ final class ReviewControllerTest extends ControllerTestCase
             created_at: '2024-01-01',
         ));
 
-        $request = (new ServerRequest('PUT', '/api/v1/reviews/5'))
+        $request = new ServerRequest('PUT', '/api/v1/reviews/5')
             ->withAttribute('user_id', 1)
             ->withAttribute('id', 5)
             ->withParsedBody(['rating' => 4, 'title' => 'Actualizado', 'body' => 'Texto actualizado']);
@@ -181,7 +181,7 @@ final class ReviewControllerTest extends ControllerTestCase
 
     public function test_delete_returns_401_when_no_user_id(): void
     {
-        $request = (new ServerRequest('DELETE', '/api/v1/reviews/5'))
+        $request = new ServerRequest('DELETE', '/api/v1/reviews/5')
             ->withAttribute('id', 5);
 
         $this->assertSame(401, $this->makeController()->delete($request)->getStatusCode());
@@ -189,7 +189,7 @@ final class ReviewControllerTest extends ControllerTestCase
 
     public function test_delete_returns_404_when_review_id_is_zero(): void
     {
-        $request = (new ServerRequest('DELETE', '/api/v1/reviews/0'))
+        $request = new ServerRequest('DELETE', '/api/v1/reviews/0')
             ->withAttribute('user_id', 1);
 
         $this->assertSame(404, $this->makeController()->delete($request)->getStatusCode());
@@ -200,7 +200,7 @@ final class ReviewControllerTest extends ControllerTestCase
         $reviewService = $this->createStub(ReviewServiceInterface::class);
         $reviewService->method('deleteReview')->willReturn(Result::ok());
 
-        $request = (new ServerRequest('DELETE', '/api/v1/reviews/5'))
+        $request = new ServerRequest('DELETE', '/api/v1/reviews/5')
             ->withAttribute('user_id', 1)
             ->withAttribute('id', 5);
 

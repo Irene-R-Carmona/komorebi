@@ -26,7 +26,7 @@ final class SettingsServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repoStub = $this->createStub(SettingRepositoryInterface::class);
-        $this->service  = new SettingsService($this->repoStub);
+        $this->service = new SettingsService($this->repoStub);
     }
 
     public function testGetAllReturnsArray(): void

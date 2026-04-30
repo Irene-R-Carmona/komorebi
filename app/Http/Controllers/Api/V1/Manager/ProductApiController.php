@@ -7,9 +7,9 @@ namespace App\Http\Controllers\Api\V1\Manager;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Session;
+use App\Exceptions\ValidationException;
 use App\Http\Controllers\Api\AbstractApiController;
 use App\Services\Contracts\ProductServiceInterface;
-use App\Exceptions\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -48,7 +48,7 @@ final class ProductApiController extends AbstractApiController
             ]);
 
             return $this->created([
-                'message'    => 'El producto se ha creado correctamente.',
+                'message' => 'El producto se ha creado correctamente.',
                 'product_id' => $productId,
             ]);
         } catch (ValidationException $e) {

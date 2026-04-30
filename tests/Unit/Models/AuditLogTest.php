@@ -21,6 +21,7 @@ final class AuditLogTest extends TestCase
     {
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
+
         return $pdo;
     }
 
@@ -40,7 +41,7 @@ final class AuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtCount, $stmtData);
 
-        $result = (new AuditLog($pdo))->findAll();
+        $result = new AuditLog($pdo)->findAll();
 
         $this->assertArrayHasKey('data', $result);
         $this->assertArrayHasKey('total', $result);
@@ -66,7 +67,7 @@ final class AuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtCount, $stmtData);
 
-        $result = (new AuditLog($pdo))->findAll();
+        $result = new AuditLog($pdo)->findAll();
         $this->assertSame(['name' => 'Old'], $result['data'][0]['old_values']);
         $this->assertSame(['name' => 'New'], $result['data'][0]['new_values']);
     }
@@ -84,7 +85,7 @@ final class AuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtCount, $stmtData);
 
-        $result = (new AuditLog($pdo))->findAll(['user_id' => 5]);
+        $result = new AuditLog($pdo)->findAll(['user_id' => 5]);
         $this->assertSame(1, $result['total']);
     }
 
@@ -99,7 +100,7 @@ final class AuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtCount, $stmtData);
 
-        $result = (new AuditLog($pdo))->findAll(['action' => 'nonexistent']);
+        $result = new AuditLog($pdo)->findAll(['action' => 'nonexistent']);
         $this->assertSame(0, $result['total']);
         $this->assertSame([], $result['data']);
     }
@@ -130,7 +131,7 @@ final class AuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtTotals, $stmtActions, $stmtResources);
 
-        $result = (new AuditLog($pdo))->getStats();
+        $result = new AuditLog($pdo)->getStats();
         $this->assertArrayHasKey('totals', $result);
         $this->assertArrayHasKey('top_actions', $result);
         $this->assertArrayHasKey('top_resources', $result);
@@ -157,7 +158,7 @@ final class AuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtTotals, $stmtActions, $stmtResources);
 
-        $result = (new AuditLog($pdo))->getStats([
+        $result = new AuditLog($pdo)->getStats([
             'date_from' => '2024-01-01',
             'date_to' => '2024-01-31',
         ]);
@@ -174,7 +175,7 @@ final class AuditLogTest extends TestCase
             ['id' => 1, 'action' => 'update', 'old_values' => null, 'new_values' => null],
         ]);
 
-        $result = (new AuditLog($this->stubPdoWithPrepare($stmt)))->getResourceHistory('user', 1);
+        $result = new AuditLog($this->stubPdoWithPrepare($stmt))->getResourceHistory('user', 1);
         $this->assertCount(1, $result);
         $this->assertSame('update', $result[0]['action']);
     }
@@ -191,7 +192,7 @@ final class AuditLogTest extends TestCase
             ],
         ]);
 
-        $result = (new AuditLog($this->stubPdoWithPrepare($stmt)))->getResourceHistory('product', 3);
+        $result = new AuditLog($this->stubPdoWithPrepare($stmt))->getResourceHistory('product', 3);
         $this->assertSame(['status' => 'active'], $result[0]['old_values']);
         $this->assertSame(['status' => 'inactive'], $result[0]['new_values']);
     }
@@ -201,7 +202,7 @@ final class AuditLogTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn([]);
 
-        $result = (new AuditLog($this->stubPdoWithPrepare($stmt)))->getResourceHistory('cafe', 999);
+        $result = new AuditLog($this->stubPdoWithPrepare($stmt))->getResourceHistory('cafe', 999);
         $this->assertSame([], $result);
     }
 
@@ -212,7 +213,7 @@ final class AuditLogTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('rowCount')->willReturn(42);
 
-        $result = (new AuditLog($this->stubPdoWithPrepare($stmt)))->cleanup(365);
+        $result = new AuditLog($this->stubPdoWithPrepare($stmt))->cleanup(365);
         $this->assertSame(42, $result);
     }
 
@@ -221,7 +222,7 @@ final class AuditLogTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('rowCount')->willReturn(0);
 
-        $result = (new AuditLog($this->stubPdoWithPrepare($stmt)))->cleanup();
+        $result = new AuditLog($this->stubPdoWithPrepare($stmt))->cleanup();
         $this->assertSame(0, $result);
     }
 }

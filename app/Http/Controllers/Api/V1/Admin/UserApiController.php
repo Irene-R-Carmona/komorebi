@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Core\Http\ResponseFactory;
+use App\Exceptions\ValidationException;
 use App\Http\Controllers\Api\AbstractApiController;
 use App\Models\AuditLog;
 use App\Services\Contracts\UserManagementServiceInterface;
-use App\Exceptions\ValidationException;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -43,10 +43,10 @@ final class UserApiController extends AbstractApiController
     {
         $body = (array) ($request->getParsedBody() ?? []);
         $data = [
-            'name'     => isset($body['name'])     ? \trim($body['name'])     : '',
-            'email'    => isset($body['email'])    ? \trim($body['email'])    : '',
+            'name' => isset($body['name']) ? \trim($body['name']) : '',
+            'email' => isset($body['email']) ? \trim($body['email']) : '',
             'password' => $body['password'] ?? '',
-            'role_id'  => isset($body['role_id'])  ? (int) $body['role_id']  : 2,
+            'role_id' => isset($body['role_id']) ? (int) $body['role_id'] : 2,
         ];
 
         $result = $this->userManagementService->createUser($data);
@@ -85,8 +85,8 @@ final class UserApiController extends AbstractApiController
     {
         $body = (array) ($request->getParsedBody() ?? []);
         $data = [
-            'name'    => isset($body['name'])    ? \trim($body['name'])    : '',
-            'email'   => isset($body['email'])   ? \trim($body['email'])   : '',
+            'name' => isset($body['name']) ? \trim($body['name']) : '',
+            'email' => isset($body['email']) ? \trim($body['email']) : '',
             'role_id' => isset($body['role_id']) ? (int) $body['role_id'] : null,
         ];
 
@@ -102,7 +102,7 @@ final class UserApiController extends AbstractApiController
                 'user',
                 $id,
                 null,
-                \array_filter($data, static fn($v) => $v !== null)
+                \array_filter($data, static fn ($v) => $v !== null)
             );
 
             return $this->success(['message' => 'Usuario actualizado exitosamente']);

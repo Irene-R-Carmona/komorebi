@@ -43,7 +43,7 @@ final class CookieController extends AbstractApiController
         }
 
         return match ($type) {
-            'all'  => $this->handleAcceptAll(),
+            'all' => $this->handleAcceptAll(),
             'none' => $this->handleRejectOptional(),
             'custom' => $this->handleCustomConsent($body),
             default => $this->unprocessable('consent debe ser all, none o custom'),

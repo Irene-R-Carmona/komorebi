@@ -15,7 +15,6 @@ namespace Tests\Unit\Repositories;
 use App\Domain\DTO\ReservationDTO;
 use App\Repositories\ReservationRepository;
 use InvalidArgumentException;
-use PDO;
 
 final class ReservationRepositoryTest extends RepositoryTestCase
 {
@@ -180,7 +179,7 @@ final class ReservationRepositoryTest extends RepositoryTestCase
         $repo = new ReservationRepository($pdo);
 
         $result = $repo->checkOut(1, [
-            'final_amount'   => 25,
+            'final_amount' => 25,
             'payment_status' => 'paid',
             'payment_method' => 'cash',
         ]);
@@ -264,7 +263,7 @@ final class ReservationRepositoryTest extends RepositoryTestCase
     {
         $pdo = $this->makeMultiCallPdo([
             ['fetchColumn' => '5'],
-            ['fetchAll'    => [RowFactory::reservationRow(), RowFactory::reservationRow(['id' => 2])]],
+            ['fetchAll' => [RowFactory::reservationRow(), RowFactory::reservationRow(['id' => 2])]],
         ]);
         $repo = new ReservationRepository($pdo);
 
@@ -280,7 +279,7 @@ final class ReservationRepositoryTest extends RepositoryTestCase
     {
         $pdo = $this->makeMultiCallPdo([
             ['fetchColumn' => '1'],
-            ['fetchAll'    => [RowFactory::reservationRow(['status' => 'pending'])]],
+            ['fetchAll' => [RowFactory::reservationRow(['status' => 'pending'])]],
         ]);
         $repo = new ReservationRepository($pdo);
 
@@ -294,7 +293,7 @@ final class ReservationRepositoryTest extends RepositoryTestCase
     {
         $pdo = $this->makeMultiCallPdo([
             ['fetchColumn' => '0'],
-            ['fetchAll'    => []],
+            ['fetchAll' => []],
         ]);
         $repo = new ReservationRepository($pdo);
 

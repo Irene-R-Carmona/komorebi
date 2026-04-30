@@ -96,6 +96,7 @@ final class ReservationTimeSlotService extends TransactionalService implements R
             $reservationId = $this->reservation->create($data);
             if ($reservationId <= 0) {
                 $this->timeSlot->releaseSpots((int) $slot['id'], $guestCount);
+
                 return Result::fail('Error al crear la reserva');
             }
 

@@ -115,32 +115,32 @@ $router->get('/uploads/animals/{filename}', function (ServerRequestInterface $re
     $filename = (string) ($request->getAttribute('filename') ?? '');
 
     // 1. Solo caracteres seguros — sin path traversal
-    if ($filename === '' || !\preg_match('/^[a-zA-Z0-9_\-.]+$/', $filename)) {
+    if ($filename === '' || !preg_match('/^[a-zA-Z0-9_\-.]+$/', $filename)) {
         return $responseFactory->createResponse(404);
     }
 
     // 2. Solo extensiones de imagen permitidas
-    $ext = \strtolower(\pathinfo($filename, PATHINFO_EXTENSION));
-    if (!\in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
         return $responseFactory->createResponse(404);
     }
 
     // 3. Path seguro contra traversal
-    $baseDir = \realpath(__DIR__ . '/../storage/uploads/animals');
+    $baseDir = realpath(__DIR__ . '/../storage/uploads/animals');
     if ($baseDir === false) {
         return $responseFactory->createResponse(404);
     }
     $filepath = $baseDir . \DIRECTORY_SEPARATOR . $filename;
-    $realFile = \realpath($filepath);
-    if ($realFile === false || !\str_starts_with($realFile, $baseDir . \DIRECTORY_SEPARATOR)) {
+    $realFile = realpath($filepath);
+    if ($realFile === false || !str_starts_with($realFile, $baseDir . \DIRECTORY_SEPARATOR)) {
         return $responseFactory->createResponse(404);
     }
-    if (!\is_file($realFile)) {
+    if (!is_file($realFile)) {
         return $responseFactory->createResponse(404);
     }
 
     // 4. Servir con Content-Type correcto + cache
-    $content = \file_get_contents($realFile);
+    $content = file_get_contents($realFile);
     if ($content === false) {
         return $responseFactory->createResponse(500);
     }
@@ -150,7 +150,7 @@ $router->get('/uploads/animals/{filename}', function (ServerRequestInterface $re
     $response = $responseFactory->createResponse(200)
         ->withHeader('Content-Type', $contentTypes[$ext])
         ->withHeader('Cache-Control', 'public, max-age=86400')
-        ->withHeader('Content-Length', (string) \strlen($content));
+        ->withHeader('Content-Length', (string) strlen($content));
     $response->getBody()->write($content);
 
     return $response;
@@ -274,11 +274,6 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->get('/users/{id}/edit', 'Admin\UserController@edit');
 
         $r->get('/roles', 'Admin\RoleController@index');
-        $r->get('/roles/create', 'Admin\RoleController@create');
-        $r->post('/roles', 'Admin\RoleController@store', [$mw->csrf()]);
-        $r->get('/roles/{id}/edit', 'Admin\RoleController@edit');
-        $r->post('/roles/{id}', 'Admin\RoleController@update', [$mw->csrf()]);
-        $r->post('/roles/{id}/delete', 'Admin\RoleController@delete', [$mw->csrf()]);
 
         $r->get('/cafes', 'Admin\CafeController@index');
 
@@ -364,21 +359,21 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
     $managerApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager'])];
     $router->group(['prefix' => '/api/v1/manager', 'middleware' => $managerApiMiddleware], function (Router $r) use ($mw): void {
         // Café
-        $r->put('/cafe/capacity',           'Manager\CafeController@updateCapacity',          [$mw->csrf(), $mw->ownsCafe()]);
-        $r->put('/cafe/schedule',           'Manager\CafeController@updateSchedule',           [$mw->csrf(), $mw->ownsCafe()]);
-        $r->put('/cafe/settings',           'Manager\CafeController@updateSettings',           [$mw->csrf(), $mw->ownsCafe()]);
+        $r->put('/cafe/capacity', 'Manager\CafeController@updateCapacity', [$mw->csrf(), $mw->ownsCafe()]);
+        $r->put('/cafe/schedule', 'Manager\CafeController@updateSchedule', [$mw->csrf(), $mw->ownsCafe()]);
+        $r->put('/cafe/settings', 'Manager\CafeController@updateSettings', [$mw->csrf(), $mw->ownsCafe()]);
         // Products
-        $r->post('/products',              'Manager\ProductController@create',                 [$mw->csrf(), $mw->ownsCafe()]);
-        $r->put('/products/{id}',          'Manager\ProductController@update',                 [$mw->csrf(), $mw->ownsCafe()]);
-        $r->patch('/products/{id}/toggle', 'Manager\ProductController@toggleAvailability',     [$mw->csrf(), $mw->ownsCafe()]);
-        $r->delete('/products/{id}',       'Manager\ProductController@delete',                 [$mw->csrf(), $mw->ownsCafe()]);
+        $r->post('/products', 'Manager\ProductController@create', [$mw->csrf(), $mw->ownsCafe()]);
+        $r->put('/products/{id}', 'Manager\ProductController@update', [$mw->csrf(), $mw->ownsCafe()]);
+        $r->patch('/products/{id}/toggle', 'Manager\ProductController@toggleAvailability', [$mw->csrf(), $mw->ownsCafe()]);
+        $r->delete('/products/{id}', 'Manager\ProductController@delete', [$mw->csrf(), $mw->ownsCafe()]);
         // Staff mutations
-        $r->post('/staff/assign-shift',    'Manager\StaffController@assignShift',              [$mw->csrf(), $mw->ownsCafe()]);
-        $r->post('/staff/edit-permissions', 'Manager\StaffController@editPermissions',           [$mw->csrf(), $mw->ownsCafe()]);
-        $r->get('/staff/performance/{id}', 'Manager\StaffController@viewPerformance',          [$mw->ownsCafe()]);
+        $r->post('/staff/assign-shift', 'Manager\StaffController@assignShift', [$mw->csrf(), $mw->ownsCafe()]);
+        $r->post('/staff/edit-permissions', 'Manager\StaffController@editPermissions', [$mw->csrf(), $mw->ownsCafe()]);
+        $r->get('/staff/performance/{id}', 'Manager\StaffController@viewPerformance', [$mw->ownsCafe()]);
         // Reviews
-        $r->post('/reviews/{id}/approve',  'Admin\ReviewController@approve',                   [$mw->csrf()]);
-        $r->post('/reviews/{id}/reject',   'Admin\ReviewController@reject',                    [$mw->csrf()]);
+        $r->post('/reviews/{id}/approve', 'Admin\ReviewController@approve', [$mw->csrf()]);
+        $r->post('/reviews/{id}/reject', 'Admin\ReviewController@reject', [$mw->csrf()]);
     });
 
     // API Supervisor
@@ -403,49 +398,49 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
     $adminApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin'])];
     $router->group(['prefix' => '/api/v1/admin', 'middleware' => $adminApiMiddleware], function (Router $r) use ($mw): void {
         // Users
-        $r->post('/users',                      'Admin\UserController@create',              [$mw->csrf()]);
-        $r->put('/users/{id}',                  'Admin\UserController@update',              [$mw->csrf()]);
-        $r->delete('/users/{id}',               'Admin\UserController@delete',              [$mw->csrf()]);
-        $r->patch('/users/{id}/status',         'Admin\UserController@toggleActive',        [$mw->csrf()]);
+        $r->post('/users', 'Admin\UserController@create', [$mw->csrf()]);
+        $r->put('/users/{id}', 'Admin\UserController@update', [$mw->csrf()]);
+        $r->delete('/users/{id}', 'Admin\UserController@delete', [$mw->csrf()]);
+        $r->patch('/users/{id}/status', 'Admin\UserController@toggleActive', [$mw->csrf()]);
 
         // Cafes
-        $r->post('/cafes',                      'Admin\CafeController@create',              [$mw->csrf()]);
-        $r->put('/cafes/{id}',                  'Admin\CafeController@update',              [$mw->csrf()]);
-        $r->delete('/cafes/{id}',               'Admin\CafeController@delete',              [$mw->csrf()]);
-        $r->patch('/cafes/{id}/status',         'Admin\CafeController@toggleStatus',        [$mw->csrf()]);
+        $r->post('/cafes', 'Admin\CafeController@create', [$mw->csrf()]);
+        $r->put('/cafes/{id}', 'Admin\CafeController@update', [$mw->csrf()]);
+        $r->delete('/cafes/{id}', 'Admin\CafeController@delete', [$mw->csrf()]);
+        $r->patch('/cafes/{id}/status', 'Admin\CafeController@toggleStatus', [$mw->csrf()]);
 
         // Menu / Products
-        $r->post('/menu',                       'Admin\MenuController@create',              [$mw->csrf()]);
-        $r->put('/menu/{id}',                   'Admin\MenuController@update',              [$mw->csrf()]);
-        $r->delete('/menu/{id}',                'Admin\MenuController@delete',              [$mw->csrf()]);
-        $r->patch('/menu/{id}/toggle',          'Admin\MenuController@toggleAvailability',  [$mw->csrf()]);
+        $r->post('/menu', 'Admin\MenuController@create', [$mw->csrf()]);
+        $r->put('/menu/{id}', 'Admin\MenuController@update', [$mw->csrf()]);
+        $r->delete('/menu/{id}', 'Admin\MenuController@delete', [$mw->csrf()]);
+        $r->patch('/menu/{id}/toggle', 'Admin\MenuController@toggleAvailability', [$mw->csrf()]);
 
         // Reviews
-        $r->post('/reviews/{id}/approve',       'Admin\ReviewController@approve',           [$mw->csrf()]);
-        $r->post('/reviews/{id}/reject',        'Admin\ReviewController@reject',            [$mw->csrf()]);
-        $r->delete('/reviews/{id}',             'Admin\ReviewController@delete',            [$mw->csrf()]);
+        $r->post('/reviews/{id}/approve', 'Admin\ReviewController@approve', [$mw->csrf()]);
+        $r->post('/reviews/{id}/reject', 'Admin\ReviewController@reject', [$mw->csrf()]);
+        $r->delete('/reviews/{id}', 'Admin\ReviewController@delete', [$mw->csrf()]);
 
         // Reservations
-        $r->post('/reservations/{id}/confirm',  'Admin\ReservationController@confirm',      [$mw->csrf()]);
-        $r->post('/reservations/{id}/cancel',   'Admin\ReservationController@cancel',       [$mw->csrf()]);
+        $r->post('/reservations/{id}/confirm', 'Admin\ReservationController@confirm', [$mw->csrf()]);
+        $r->post('/reservations/{id}/cancel', 'Admin\ReservationController@cancel', [$mw->csrf()]);
 
         // Settings
-        $r->get('/settings',                    'Admin\SystemController@getSettingsData');
-        $r->put('/settings/{group}',            'Admin\SystemController@updateSettingsGroup', [$mw->csrf()]);
-        $r->post('/settings/test-email',        'Admin\SystemController@testEmail',         [$mw->csrf()]);
+        $r->get('/settings', 'Admin\SystemController@getSettingsData');
+        $r->put('/settings/{group}', 'Admin\SystemController@updateSettingsGroup', [$mw->csrf()]);
+        $r->post('/settings/test-email', 'Admin\SystemController@testEmail', [$mw->csrf()]);
 
         // Logs — Audit (GET, sin CSRF)
-        $r->get('/logs/audit',                  'Admin\AuditLogController@index');
-        $r->get('/logs/audit/export',           'Admin\AuditLogController@export');
+        $r->get('/logs/audit', 'Admin\AuditLogController@index');
+        $r->get('/logs/audit/export', 'Admin\AuditLogController@export');
 
         // Logs — Auth (GET, sin CSRF)
-        $r->get('/logs/auth',                   'Admin\AuthLogController@index');
-        $r->get('/logs/auth/suspicious-count',  'Admin\AuthLogController@suspiciousCount');
-        $r->get('/logs/auth/export',            'Admin\AuthLogController@export');
+        $r->get('/logs/auth', 'Admin\AuthLogController@index');
+        $r->get('/logs/auth/suspicious-count', 'Admin\AuthLogController@suspiciousCount');
+        $r->get('/logs/auth/export', 'Admin\AuthLogController@export');
 
         // Cache & Security
-        $r->post('/cache/clear',                'Admin\SystemController@clearCache',        [$mw->csrf()]);
-        $r->post('/security/block-ip',          'Admin\AuthLogController@blockIpStub',      [$mw->csrf()]);
+        $r->post('/cache/clear', 'Admin\SystemController@clearCache', [$mw->csrf()]);
+        $r->post('/security/block-ip', 'Admin\AuthLogController@blockIpStub', [$mw->csrf()]);
     });
 } // end FEATURE_BACKOFFICE
 
@@ -482,16 +477,16 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
     /** @var array<int, MiddlewareInterface> $opsReceptionApiMiddleware */
     $opsReceptionApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager', 'supervisor', 'reception'])];
     $router->group(['prefix' => '/api/v1/ops/reception', 'middleware' => $opsReceptionApiMiddleware], function (Router $r) use ($mw): void {
-        $r->get('/reservations',                'Reception\ReceptionController@todayReservations');
-        $r->post('/reservations/{id}/checkin',  'Reception\ReceptionController@checkIn',  [$mw->csrf()]);
+        $r->get('/reservations', 'Reception\ReceptionController@todayReservations');
+        $r->post('/reservations/{id}/checkin', 'Reception\ReceptionController@checkIn', [$mw->csrf()]);
         $r->post('/reservations/{id}/checkout', 'Reception\ReceptionController@checkOut', [$mw->csrf()]);
     });
 
     /** @var array<int, MiddlewareInterface> $opsKitchenApiMiddleware */
     $opsKitchenApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager', 'kitchen', 'supervisor'])];
     $router->group(['prefix' => '/api/v1/ops/kitchen', 'middleware' => $opsKitchenApiMiddleware], function (Router $r) use ($mw): void {
-        $r->get('/orders',                      'Kitchen\KitchenController@activeOrders');
-        $r->post('/orders/{id}/complete',       'Kitchen\KitchenController@completeOrder', [$mw->csrf()]);
+        $r->get('/orders', 'Kitchen\KitchenController@activeOrders');
+        $r->post('/orders/{id}/complete', 'Kitchen\KitchenController@completeOrder', [$mw->csrf()]);
     });
 } // end FEATURE_OPS
 
@@ -531,12 +526,12 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
     /** @var array<int, MiddlewareInterface> $keeperApiMiddleware */
     $keeperApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'keeper'])];
     $router->group(['prefix' => '/api/v1/keeper', 'middleware' => $keeperApiMiddleware], function (Router $r) use ($mw): void {
-        $r->post('/animals/{id}/photo',        'Api\V1\KeeperApiController@uploadPhoto');
-        $r->post('/animals/{id}/care-log',     'Api\V1\KeeperApiController@createCareLog',   [$mw->csrf()]);
-        $r->patch('/animals/{id}/health',      'Api\V1\KeeperApiController@updateHealth',    [$mw->csrf()]);
-        $r->patch('/animals/{id}/toggle',      'Api\V1\KeeperApiController@toggleActive',    [$mw->csrf()]);
-        $r->post('/incidents',                 'Api\V1\KeeperApiController@createIncident',  [$mw->csrf()]);
-        $r->patch('/incidents/{id}/resolve',   'Api\V1\KeeperApiController@resolveIncident', [$mw->csrf()]);
+        $r->post('/animals/{id}/photo', 'Api\V1\KeeperApiController@uploadPhoto');
+        $r->post('/animals/{id}/care-log', 'Api\V1\KeeperApiController@createCareLog', [$mw->csrf()]);
+        $r->patch('/animals/{id}/health', 'Api\V1\KeeperApiController@updateHealth', [$mw->csrf()]);
+        $r->patch('/animals/{id}/toggle', 'Api\V1\KeeperApiController@toggleActive', [$mw->csrf()]);
+        $r->post('/incidents', 'Api\V1\KeeperApiController@createIncident', [$mw->csrf()]);
+        $r->patch('/incidents/{id}/resolve', 'Api\V1\KeeperApiController@resolveIncident', [$mw->csrf()]);
     });
 } // end FEATURE_KEEPER
 
@@ -545,9 +540,9 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
 // ============================================================================
 
 $corsOnly = [$mw->cors()];
-$router->options('/api/v1/{resource}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{id}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{sub}/{id}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{id}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{sub}/{id}', fn () => '', $corsOnly);
 
 // ============================================================================
 // HEALTH CHECK
@@ -594,23 +589,23 @@ $router->get('/health', function () use ($responseFactory) {
     }
 
     // --- Runtime metrics (FrankenPHP Worker Mode + OPcache + PHP-DI) --------
-    $opcacheStatus = \function_exists('opcache_get_status') ? @\opcache_get_status(false) : false;
+    $opcacheStatus = function_exists('opcache_get_status') ? @opcache_get_status(false) : false;
     $checks['runtime'] = [
-        'worker_mode'       => \function_exists('frankenphp_handle_request'),
-        'php_version'       => PHP_VERSION,
-        'opcache_enabled'   => \is_array($opcacheStatus) && ($opcacheStatus['opcache_enabled'] ?? false),
-        'jit_active'        => \is_array($opcacheStatus) && ($opcacheStatus['jit']['on'] ?? false),
-        'di_compiled'       => \is_file(__DIR__ . '/../storage/cache/di/CompiledContainer.php'),
-        'preloaded_scripts' => \is_array($opcacheStatus)
+        'worker_mode' => function_exists('frankenphp_handle_request'),
+        'php_version' => PHP_VERSION,
+        'opcache_enabled' => is_array($opcacheStatus) && ($opcacheStatus['opcache_enabled'] ?? false),
+        'jit_active' => is_array($opcacheStatus) && ($opcacheStatus['jit']['on'] ?? false),
+        'di_compiled' => is_file(__DIR__ . '/../storage/cache/di/CompiledContainer.php'),
+        'preloaded_scripts' => is_array($opcacheStatus)
             ? (int) ($opcacheStatus['preload_statistics']['num_cached_scripts'] ?? 0)
             : 0,
     ];
 
     return $responseFactory->json([
-        'status'    => $status,
-        'timestamp' => \date('c'),
-        'version'   => \App\Core\Env::get('APP_VERSION', 'unknown'),
-        'checks'    => $checks,
+        'status' => $status,
+        'timestamp' => date('c'),
+        'version' => \App\Core\Env::get('APP_VERSION', 'unknown'),
+        'checks' => $checks,
     ], $httpCode);
 });
 

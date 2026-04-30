@@ -21,7 +21,8 @@ final readonly class StaffShiftDTO implements DomainTransferObject
         public string $updated_at,
         public ?string $deleted_at = null,
         public ?string $staff_name = null,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

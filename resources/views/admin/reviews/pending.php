@@ -21,9 +21,9 @@ $alpineConfig = json_encode([
 
     <!-- Header -->
     <?= View::componentToString('components/admin/page-header', [
-        'icon'        => 'star',
-        'title'       => 'Reseñas',
-        'subtitle'    => 'Revisa las opiniones de nuestros visitantes',
+        'icon' => 'star',
+        'title' => 'Reseñas',
+        'subtitle' => 'Revisa las opiniones de nuestros visitantes',
         'breadcrumbs' => [
             ['label' => 'Dashboard', 'url' => '/admin/dashboard', 'icon' => 'house'],
             ['label' => 'Reseñas Pendientes'],

@@ -12,7 +12,7 @@ namespace App\Core;
  */
 final readonly class Pagination
 {
-    public const int MAX_LIMIT   = 100;
+    public const int MAX_LIMIT = 100;
     public const int DEFAULT_LIMIT = 20;
 
     public readonly int $page;
@@ -23,9 +23,9 @@ final readonly class Pagination
 
     private function __construct(int $page, int $limit)
     {
-        $this->page       = \max(1, $page);
-        $this->limit      = \min(\max(1, $limit), self::MAX_LIMIT);
-        $this->offset     = ($this->page - 1) * $this->limit;
+        $this->page = \max(1, $page);
+        $this->limit = \min(\max(1, $limit), self::MAX_LIMIT);
+        $this->offset = ($this->page - 1) * $this->limit;
         $this->fetchLimit = $this->limit + 1;
     }
 
@@ -54,8 +54,8 @@ final readonly class Pagination
     public function toMeta(bool $hasNextPage): array
     {
         return [
-            'page'          => $this->page,
-            'limit'         => $this->limit,
+            'page' => $this->page,
+            'limit' => $this->limit,
             'has_next_page' => $hasNextPage,
         ];
     }

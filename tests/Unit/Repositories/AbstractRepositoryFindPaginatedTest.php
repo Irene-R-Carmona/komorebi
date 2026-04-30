@@ -39,7 +39,7 @@ final class AbstractRepositoryFindPaginatedTest extends TestCase
      */
     private function makeRepo(PDO $pdo): object
     {
-        return new class($pdo) extends AbstractRepository {
+        return new class ($pdo) extends AbstractRepository {
             #[Override]
             protected function getTable(): string
             {
@@ -69,6 +69,7 @@ final class AbstractRepositoryFindPaginatedTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn($rows);
+
         return $stmt;
     }
 
@@ -76,6 +77,7 @@ final class AbstractRepositoryFindPaginatedTest extends TestCase
     {
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
+
         return $pdo;
     }
 
@@ -89,7 +91,7 @@ final class AbstractRepositoryFindPaginatedTest extends TestCase
         $repo = $this->makeRepo($this->makePdo($this->makeStmt($rows)));
 
         $pagination = Pagination::fromRequest(1, 10);
-        $result     = $repo->paginatedPublic($pagination);
+        $result = $repo->paginatedPublic($pagination);
 
         $this->assertSame($rows, $result);
     }
@@ -99,7 +101,7 @@ final class AbstractRepositoryFindPaginatedTest extends TestCase
         $repo = $this->makeRepo($this->makePdo($this->makeStmt([])));
 
         $pagination = Pagination::fromRequest(1, 10);
-        $result     = $repo->paginatedPublic($pagination);
+        $result = $repo->paginatedPublic($pagination);
 
         $this->assertSame([], $result);
     }

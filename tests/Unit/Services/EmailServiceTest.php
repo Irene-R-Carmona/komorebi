@@ -20,7 +20,7 @@ final class EmailServiceTest extends TestCase
     public function testSendReturnsBoolWithoutThrowing(): void
     {
         $service = new EmailService();
-        $result  = $service->send('test@example.com', 'Asunto', '<p>Cuerpo</p>');
+        $result = $service->send('test@example.com', 'Asunto', '<p>Cuerpo</p>');
 
         $this->assertIsBool($result);
     }
@@ -28,7 +28,7 @@ final class EmailServiceTest extends TestCase
     public function testSendVerificationEmailReturnsBoolWithoutThrowing(): void
     {
         $service = new EmailService();
-        $result  = $service->sendVerificationEmail('test@example.com', 'Usuario', 'https://example.com/verify');
+        $result = $service->sendVerificationEmail('test@example.com', 'Usuario', 'https://example.com/verify');
 
         $this->assertIsBool($result);
     }
@@ -36,7 +36,7 @@ final class EmailServiceTest extends TestCase
     public function testSendPasswordResetEmailReturnsBoolWithoutThrowing(): void
     {
         $service = new EmailService();
-        $result  = $service->sendPasswordResetEmail(
+        $result = $service->sendPasswordResetEmail(
             'reset@example.com',
             'Usuario Test',
             'https://example.com/reset?token=abc123'
@@ -48,13 +48,13 @@ final class EmailServiceTest extends TestCase
     public function testSendReservationConfirmationWithStringUserNameReturnsBool(): void
     {
         $service = new EmailService();
-        $result  = $service->sendReservationConfirmation(
+        $result = $service->sendReservationConfirmation(
             'user@example.com',
             'Juan García',
             [
-                'date'   => '2025-01-15',
-                'time'   => '14:00',
-                'cafe'   => 'Komorebi Central',
+                'date' => '2025-01-15',
+                'time' => '14:00',
+                'cafe' => 'Komorebi Central',
                 'guests' => 2,
             ]
         );
@@ -66,7 +66,7 @@ final class EmailServiceTest extends TestCase
     {
         // Backwards-compatible call: sendReservationConfirmation(email, reservationData)
         $service = new EmailService();
-        $result  = $service->sendReservationConfirmation(
+        $result = $service->sendReservationConfirmation(
             'user@example.com',
             ['date' => '2025-01-15', 'time' => '14:00', 'cafe' => 'Komorebi', 'guests' => 2]
         );
@@ -77,7 +77,7 @@ final class EmailServiceTest extends TestCase
     public function testSendReservationCancellationReturnsBool(): void
     {
         $service = new EmailService();
-        $result  = $service->sendReservationCancellation(
+        $result = $service->sendReservationCancellation(
             'user@example.com',
             'Juan García',
             ['id' => 42, 'date' => '2025-01-15', 'time' => '14:00', 'cafe' => 'Komorebi Central'],
@@ -90,7 +90,7 @@ final class EmailServiceTest extends TestCase
     public function testSendTestEmailReturnsBool(): void
     {
         $service = new EmailService();
-        $result  = $service->sendTestEmail('admin@example.com', 'Administrador Test');
+        $result = $service->sendTestEmail('admin@example.com', 'Administrador Test');
 
         $this->assertIsBool($result);
     }
@@ -98,7 +98,7 @@ final class EmailServiceTest extends TestCase
     public function testSendWaitlistConfirmationReturnsBool(): void
     {
         $service = new EmailService();
-        $result  = $service->sendWaitlistConfirmation(
+        $result = $service->sendWaitlistConfirmation(
             'user@example.com',
             'María López',
             'token-abc-123',

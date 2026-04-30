@@ -22,7 +22,7 @@ final class MercurePublisherService
 {
     /** URL interna del Mercure Hub (PHP → FrankenPHP dentro del mismo proceso/contenedor) */
     private const string HUB_INTERNAL_URL = 'http://localhost/.well-known/mercure';
-    private const int    PUBLISH_TIMEOUT  = 3;
+    private const int    PUBLISH_TIMEOUT = 3;
 
     /**
      * Publica un evento SSE en el Mercure Hub.
@@ -36,6 +36,7 @@ final class MercurePublisherService
         $secret = $_ENV['MERCURE_JWT_SECRET'] ?? null;
         if ($secret === null) {
             Logger::debug('[Mercure] MERCURE_JWT_SECRET no configurado; evento omitido', ['topic' => $topic]);
+
             return false;
         }
 
@@ -43,19 +44,19 @@ final class MercurePublisherService
             $jwt = self::generatePublisherJwt($secret);
 
             $postFields = \http_build_query(\array_filter([
-                'topic'   => $topic,
-                'data'    => \json_encode($data, \JSON_THROW_ON_ERROR),
+                'topic' => $topic,
+                'data' => \json_encode($data, \JSON_THROW_ON_ERROR),
                 'private' => $private ? '1' : null,
             ]));
 
             $context = \stream_context_create([
                 'http' => [
-                    'method'        => 'POST',
-                    'header'        => "Content-Type: application/x-www-form-urlencoded\r\n"
+                    'method' => 'POST',
+                    'header' => "Content-Type: application/x-www-form-urlencoded\r\n"
                         . "Authorization: Bearer {$jwt}\r\n"
-                        . "Content-Length: " . \strlen($postFields) . "\r\n",
-                    'content'       => $postFields,
-                    'timeout'       => self::PUBLISH_TIMEOUT,
+                        . 'Content-Length: ' . \strlen($postFields) . "\r\n",
+                    'content' => $postFields,
+                    'timeout' => self::PUBLISH_TIMEOUT,
                     'ignore_errors' => true,
                 ],
             ]);
@@ -75,6 +76,7 @@ final class MercurePublisherService
                 'topic' => $topic,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -86,7 +88,7 @@ final class MercurePublisherService
      */
     private static function generatePublisherJwt(string $secret): string
     {
-        $header  = self::base64UrlEncode(
+        $header = self::base64UrlEncode(
             \json_encode(['alg' => 'HS256', 'typ' => 'JWT'], \JSON_THROW_ON_ERROR)
         );
         $payload = self::base64UrlEncode(

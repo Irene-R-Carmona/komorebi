@@ -38,6 +38,7 @@ final class AuthTokenRepositoryTest extends TestCase
         $stmt->method('execute')->willReturn($executeReturn);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('rowCount')->willReturn($rowCount);
+
         return $stmt;
     }
 
@@ -46,6 +47,7 @@ final class AuthTokenRepositoryTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('query')->willReturn($stmt);
+
         return $pdo;
     }
 

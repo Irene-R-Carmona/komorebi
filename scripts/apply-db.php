@@ -491,7 +491,7 @@ try {
         'evt_cleanup_old_animals',
     ];
 
-    $foundEvents = array_map(static fn($e) => $e['Name'], $events);
+    $foundEvents = array_map(static fn ($e) => $e['Name'], $events);
 
     logMsg('Eventos encontrados:');
     $totalFound = 0;

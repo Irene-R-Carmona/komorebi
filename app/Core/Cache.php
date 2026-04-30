@@ -320,10 +320,12 @@ final class Cache
         if (self::$tagAdapter === null) {
             return false;
         }
+
         try {
             return self::$tagAdapter->invalidateTags($tags);
         } catch (Throwable $e) {
             Logger::warning('[Cache] invalidateTags failed', ['exception' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -339,14 +341,17 @@ final class Cache
         if (self::$tagAdapter === null) {
             return self::set($key, $value, $ttl);
         }
+
         try {
             $item = self::$tagAdapter->getItem(self::sanitizeKey($key));
             $item->set($value);
             $item->expiresAfter($ttl);
             $item->tag($tags);
+
             return self::$tagAdapter->save($item);
         } catch (Throwable $e) {
             Logger::warning('[Cache] setWithTags failed', ['exception' => $e->getMessage()]);
+
             return false;
         }
     }
@@ -366,6 +371,7 @@ final class Cache
                 $item = self::$tagAdapter->getItem($sKey);
                 if ($item->isHit()) {
                     self::$hits++;
+
                     return $item->get();
                 }
                 self::$misses++;
@@ -376,6 +382,7 @@ final class Cache
                     $item->tag($tags);
                 }
                 self::$tagAdapter->save($item);
+
                 return $value;
             } catch (Throwable $e) {
                 Logger::warning('[Cache] computeIfAbsent failed, falling back to remember()', [
@@ -383,6 +390,7 @@ final class Cache
                 ]);
             }
         }
+
         return self::remember($key, $fn, $ttl);
     }
 }

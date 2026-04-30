@@ -61,11 +61,11 @@ final class ProductController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $q        = $request->getQueryParams();
-        $page     = \max(1, (int) ($q['page']     ?? 1));
-        $search   = \trim((string) ($q['search']   ?? ''));
-        $category = (int) ($q['category']          ?? 0);
-        $status   = \trim((string) ($q['status']   ?? ''));
+        $q = $request->getQueryParams();
+        $page = \max(1, (int) ($q['page'] ?? 1));
+        $search = \trim((string) ($q['search'] ?? ''));
+        $category = (int) ($q['category'] ?? 0);
+        $status = \trim((string) ($q['status'] ?? ''));
 
         $filters = [];
         if ($search !== '') {
@@ -92,25 +92,25 @@ final class ProductController
             $products[$k]['allergens_list'] = $allergenMap[(int) $p['id']] ?? [];
         }
 
-        $categories    = $this->productRepo->getCategories();
-        $stats         = $this->productRepo->getAdminStats();
+        $categories = $this->productRepo->getCategories();
+        $stats = $this->productRepo->getAdminStats();
         $currentParams = \array_filter([
-            'search'   => $search,
+            'search' => $search,
             'category' => $category > 0 ? (string) $category : '',
-            'status'   => $status,
+            'status' => $status,
         ], static fn ($v) => $v !== '');
 
         View::render('admin/products/index', [
-            'titulo'        => 'Gestión de Productos | Komorebi Admin',
-            'products'      => $products,
-            'categories'    => $categories,
-            'stats'         => $stats,
-            'meta'          => [
-                'page'          => $result['page'],
+            'titulo' => 'Gestión de Productos | Komorebi Admin',
+            'products' => $products,
+            'categories' => $categories,
+            'stats' => $stats,
+            'meta' => [
+                'page' => $result['page'],
                 'has_next_page' => $result['page'] < $result['totalPages'],
             ],
             'currentParams' => $currentParams,
-            'extraJs'       => ['admin/admin-products.js'],
+            'extraJs' => ['admin/admin-products.js'],
         ], [], 'backoffice');
 
         return null;

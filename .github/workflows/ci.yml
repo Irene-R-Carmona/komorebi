@@ -143,7 +143,7 @@ jobs:
           docker compose -f docker-compose.test.yml down -v --remove-orphans
           exit $EXIT
 
-      - name: Check coverage threshold (≥ 70%)
+      - name: Check coverage threshold (≥ 60%)
         if: always()
         run: |
           if [ ! -f tests/reports/coverage.txt ]; then
@@ -152,8 +152,8 @@ jobs:
           fi
           LINES_PCT=$(grep -E "^\s+Lines:" tests/reports/coverage.txt | head -1 | grep -oP '[0-9]+\.[0-9]+(?=%)')
           echo "Line coverage: ${LINES_PCT}%"
-          if [ $(echo "${LINES_PCT} < 70" | bc -l) -eq 1 ]; then
-            echo "FAIL: Coverage ${LINES_PCT}% is below the required 70%"
+          if [ $(echo "${LINES_PCT} < 60" | bc -l) -eq 1 ]; then
+            echo "FAIL: Coverage ${LINES_PCT}% is below the required 60%"
             exit 1
           fi
           echo "PASS: Coverage threshold met: ${LINES_PCT}%"

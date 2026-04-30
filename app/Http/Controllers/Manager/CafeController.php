@@ -65,10 +65,10 @@ final class CafeController
         }
 
         View::render('manager/cafe/show', [
-            'titulo'     => 'Gestión de Café',
-            'cafe'       => $cafe,
+            'titulo' => 'Gestión de Café',
+            'cafe' => $cafe,
             'csrf_token' => Csrf::token(),
-            'extraJs'    => ['manager/manager-cafe.js'],
+            'extraJs' => ['manager/manager-cafe.js'],
         ], ['manager/cafe-management.css'], 'backoffice');
 
         return null;

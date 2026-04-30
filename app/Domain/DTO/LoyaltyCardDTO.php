@@ -24,7 +24,8 @@ final readonly class LoyaltyCardDTO implements DomainTransferObject
         public ?string $last_stamp_at,
         public string $created_at,
         public string $updated_at,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

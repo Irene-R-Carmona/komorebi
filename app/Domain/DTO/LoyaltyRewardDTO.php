@@ -21,7 +21,8 @@ final readonly class LoyaltyRewardDTO implements DomainTransferObject
         public ?string $expires_at,
         public ?string $notes,
         public string $created_at,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

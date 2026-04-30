@@ -44,6 +44,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use ReflectionProperty;
 
 #[CoversClass(ExceptionLogger::class)]
@@ -262,7 +263,7 @@ final class ExceptionLoggerTest extends TestCase
         \file_put_contents($newLog, 'new log content');
 
         // Usar reflexión para llamar con el directorio temporal
-        $ref = new \ReflectionClass(ExceptionLogger::class);
+        $ref = new ReflectionClass(ExceptionLogger::class);
         // cleanOldLogs usa __DIR__ hardcoded, así que solo verificamos que no lanza
         ExceptionLogger::cleanOldLogs(30);
 
@@ -280,7 +281,7 @@ final class ExceptionLoggerTest extends TestCase
 
     public function testLogWithActiveSessionDoesNotThrow(): void
     {
-        $_SESSION['user_id']    = 99;
+        $_SESSION['user_id'] = 99;
         $_SESSION['user_email'] = 'test@example.com';
         $exception = new ValidationException('Con sesión', []);
         ExceptionLogger::log($exception, 'Test');

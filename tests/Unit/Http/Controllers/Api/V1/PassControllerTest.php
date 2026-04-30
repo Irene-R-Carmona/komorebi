@@ -73,10 +73,10 @@ final class PassControllerTest extends ControllerTestCase
 
         // Primera petición para obtener ETag
         $first = $controller->index($this->makeGetRequest('/api/v1/passes'));
-        $etag  = $first->getHeaderLine('ETag');
+        $etag = $first->getHeaderLine('ETag');
 
         // Segunda petición con If-None-Match
-        $request = (new ServerRequest('GET', '/api/v1/passes'))
+        $request = new ServerRequest('GET', '/api/v1/passes')
             ->withHeader('If-None-Match', $etag);
 
         $response = $controller->index($request);

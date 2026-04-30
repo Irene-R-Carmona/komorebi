@@ -25,7 +25,7 @@ final class ClimaContextoServiceTest extends TestCase
         $weatherStub->method('getWeather')->willReturn(Result::fail('Network error'));
 
         $service = new ClimaContextoService($weatherStub);
-        $result  = $service->obtenerClimaActual();
+        $result = $service->obtenerClimaActual();
 
         $this->assertIsArray($result);
     }
@@ -36,7 +36,7 @@ final class ClimaContextoServiceTest extends TestCase
         $weatherStub->method('getWeather')->willReturn(Result::fail('Not configured'));
 
         $service = new ClimaContextoService($weatherStub);
-        $result  = $service->obtenerConfiguracionEfectos('clear');
+        $result = $service->obtenerConfiguracionEfectos('clear');
 
         $this->assertIsArray($result);
     }
@@ -46,10 +46,10 @@ final class ClimaContextoServiceTest extends TestCase
         $weatherStub = $this->createStub(WeatherServiceInterface::class);
         $weatherStub->method('getWeather')->willReturn(Result::ok([
             'current' => ['weather_code' => 0, 'temp' => 22.5],
-            'cached'  => false,
+            'cached' => false,
         ]));
 
-        $result = (new ClimaContextoService($weatherStub))->obtenerClimaActual();
+        $result = new ClimaContextoService($weatherStub)->obtenerClimaActual();
 
         foreach (
             [
@@ -62,7 +62,7 @@ final class ClimaContextoServiceTest extends TestCase
                 'hora_local_tokyo',
                 'codigo_wmo',
                 'timestamp',
-                'desde_cache'
+                'desde_cache',
             ] as $key
         ) {
             $this->assertArrayHasKey($key, $result, "Missing key: {$key}");
@@ -74,10 +74,10 @@ final class ClimaContextoServiceTest extends TestCase
         $weatherStub = $this->createStub(WeatherServiceInterface::class);
         $weatherStub->method('getWeather')->willReturn(Result::ok([
             'current' => ['weather_code' => 0, 'temp' => 20.0],
-            'cached'  => false,
+            'cached' => false,
         ]));
 
-        $result = (new ClimaContextoService($weatherStub))->obtenerClimaActual();
+        $result = new ClimaContextoService($weatherStub)->obtenerClimaActual();
 
         $this->assertSame('clear', $result['condicion']);
         $this->assertSame(0, $result['codigo_wmo']);
@@ -89,10 +89,10 @@ final class ClimaContextoServiceTest extends TestCase
         $weatherStub = $this->createStub(WeatherServiceInterface::class);
         $weatherStub->method('getWeather')->willReturn(Result::ok([
             'current' => ['weather_code' => 61, 'temp' => 14.0],
-            'cached'  => true,
+            'cached' => true,
         ]));
 
-        $result = (new ClimaContextoService($weatherStub))->obtenerClimaActual();
+        $result = new ClimaContextoService($weatherStub)->obtenerClimaActual();
 
         $this->assertSame('rain', $result['condicion']);
         $this->assertSame(61, $result['codigo_wmo']);
@@ -104,10 +104,10 @@ final class ClimaContextoServiceTest extends TestCase
         $weatherStub = $this->createStub(WeatherServiceInterface::class);
         $weatherStub->method('getWeather')->willReturn(Result::ok([
             'current' => ['weather_code' => 95, 'temp' => 18.0],
-            'cached'  => false,
+            'cached' => false,
         ]));
 
-        $result = (new ClimaContextoService($weatherStub))->obtenerClimaActual();
+        $result = new ClimaContextoService($weatherStub)->obtenerClimaActual();
 
         $this->assertSame('thunderstorm', $result['condicion']);
         $this->assertSame((int) \round(18.0), $result['temperatura_celsius']);
@@ -121,7 +121,7 @@ final class ClimaContextoServiceTest extends TestCase
             // 'current' key intentionally absent
         ]));
 
-        $result = (new ClimaContextoService($weatherStub))->obtenerClimaActual();
+        $result = new ClimaContextoService($weatherStub)->obtenerClimaActual();
 
         $this->assertSame('clouds', $result['condicion']);
     }

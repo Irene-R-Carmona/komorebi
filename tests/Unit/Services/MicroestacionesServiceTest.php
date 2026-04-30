@@ -19,6 +19,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Services\MicroestacionesService;
+use DateTime;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -121,7 +122,7 @@ final class MicroestacionesServiceTest extends TestCase
     public function testObtenerActualConFechaEspecificaDevuelveSekkiCorrecto(): void
     {
         // Risshun (立春) cubre 02-04 → 02-18: usar 02-10 para ser determinista
-        $fecha = new \DateTime('2024-02-10');
+        $fecha = new DateTime('2024-02-10');
 
         $sekki = $this->service->obtenerActual($fecha);
 

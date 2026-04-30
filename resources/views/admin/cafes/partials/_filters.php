@@ -4,10 +4,10 @@
  * Partial: Filtros de cafés (HDA — GET form, zero fetch de datos)
  */
 
-$currentParams  ??= [];
-$currentSearch   = (string) ($currentParams['search']   ?? '');
+$currentParams ??= [];
+$currentSearch = (string) ($currentParams['search'] ?? '');
 $currentCategory = (string) ($currentParams['category'] ?? '');
-$currentStatus   = (string) ($currentParams['status']   ?? '');
+$currentStatus = (string) ($currentParams['status'] ?? '');
 
 $mkUrl = static function (string $key, string $val) use ($currentParams): string {
     $p = array_merge($currentParams, ['page' => '1']);
@@ -16,6 +16,7 @@ $mkUrl = static function (string $key, string $val) use ($currentParams): string
     } else {
         $p[$key] = $val;
     }
+
     return '/admin/cafes?' . http_build_query($p);
 };
 

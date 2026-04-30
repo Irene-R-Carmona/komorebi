@@ -22,7 +22,7 @@ declare(strict_types=1);
 // ============================================================================
 
 // --- Errores ----------------------------------------------------------------
-$env          = $_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? getenv('APP_ENV') ?: 'production';
+$env = $_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? getenv('APP_ENV') ?: 'production';
 $isProduction = $env === 'production';
 
 error_reporting($isProduction ? E_ALL & ~E_DEPRECATED & ~E_STRICT : E_ALL);
@@ -83,7 +83,7 @@ if ($sessionDriver === 'redis') {
     $redisHost = Config::getString('cache.redis.host', 'localhost');
     $redisPort = Config::getInt('cache.redis.port', 6379);
     $redisPass = Config::getString('cache.redis.password', '');
-    $savePath  = "tcp://$redisHost:$redisPort" . ($redisPass !== '' ? "?auth=$redisPass" : '');
+    $savePath = "tcp://$redisHost:$redisPort" . ($redisPass !== '' ? "?auth=$redisPass" : '');
     ini_set('session.save_handler', 'redis');
     ini_set('session.save_path', $savePath);
 } else {
@@ -108,7 +108,7 @@ ini_set('session.name', 'komorebi_session');
 $router = require __DIR__ . '/../app/routes.php';
 
 // Límite de requests por worker para controlar el crecimiento de memoria
-$maxRequests     = (int) (getenv('MAX_REQUESTS') ?: 500);
+$maxRequests = (int) (getenv('MAX_REQUESTS') ?: 500);
 $requestsHandled = 0;
 
 // ============================================================================
@@ -133,7 +133,7 @@ $handler = static function () use ($router, $isProduction): void {
     Csrf::init();
 
     try {
-        $request  = RequestFactory::fromGlobals();
+        $request = RequestFactory::fromGlobals();
         $pipeline = new MiddlewarePipeline($router);
 
         $pipeline->pipe(new \App\Middleware\SecurityHeadersMiddleware());
@@ -142,7 +142,7 @@ $handler = static function () use ($router, $isProduction): void {
         $pipeline->pipe($mwFactory->errorHandler());
 
         $response = $pipeline->handle($request);
-        (new ResponseEmitter())->emit($response);
+        new ResponseEmitter()->emit($response);
     } catch (Throwable $e) {
         ExceptionHandler::handle($e);
     } finally {

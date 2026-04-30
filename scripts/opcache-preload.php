@@ -16,7 +16,7 @@ declare(strict_types=1);
  * Referencia: https://www.php.net/manual/en/opcache.preloading.php
  */
 
-$baseDir = \dirname(__DIR__) . '/app';
+$baseDir = dirname(__DIR__) . '/app';
 
 // Directorios a precargar (orden importa: Core → contratos → servicios → DTOs)
 $dirs = [
@@ -30,10 +30,10 @@ $dirs = [
 ];
 
 $compiled = 0;
-$errors   = [];
+$errors = [];
 
 foreach ($dirs as $dir) {
-    if (!\is_dir($dir)) {
+    if (!is_dir($dir)) {
         continue;
     }
 
@@ -48,7 +48,7 @@ foreach ($dirs as $dir) {
         }
 
         $path = $file->getPathname();
-        if (\opcache_compile_file($path)) {
+        if (opcache_compile_file($path)) {
             $compiled++;
         } else {
             $errors[] = $path;
@@ -57,5 +57,5 @@ foreach ($dirs as $dir) {
 }
 
 if ($errors !== []) {
-    \error_log('[opcache-preload] Failed to compile ' . \count($errors) . ' file(s): ' . \implode(', ', $errors));
+    error_log('[opcache-preload] Failed to compile ' . count($errors) . ' file(s): ' . implode(', ', $errors));
 }

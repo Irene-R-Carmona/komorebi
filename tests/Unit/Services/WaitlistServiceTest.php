@@ -30,7 +30,7 @@ final class WaitlistServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdoStub          = $this->createStub(PDO::class);
+        $this->pdoStub = $this->createStub(PDO::class);
         $this->emailServiceStub = $this->createStub(EmailServiceInterface::class);
         $this->waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
     }
@@ -127,7 +127,7 @@ final class WaitlistServiceTest extends TestCase
         $pdoStub->method('beginTransaction')->willReturn(true);
         $pdoStub->method('commit')->willReturn(true);
 
-        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $timeSlotRepoStub = $this->createStub(TimeSlotRepositoryInterface::class);
         $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
 
         $service = new WaitlistService(
@@ -154,7 +154,7 @@ final class WaitlistServiceTest extends TestCase
         $pdoStub->method('beginTransaction')->willReturn(true);
         $pdoStub->method('rollBack')->willReturn(true);
 
-        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $timeSlotRepoStub = $this->createStub(TimeSlotRepositoryInterface::class);
         $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
 
         $service = new WaitlistService(
@@ -195,7 +195,7 @@ final class WaitlistServiceTest extends TestCase
         $pdoStub->method('beginTransaction')->willReturn(true);
         $pdoStub->method('rollBack')->willReturn(true);
 
-        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $timeSlotRepoStub = $this->createStub(TimeSlotRepositoryInterface::class);
         $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
 
         $service = new WaitlistService(
@@ -217,7 +217,7 @@ final class WaitlistServiceTest extends TestCase
         $waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
         $waitlistRepoStub->method('expireTokens')->willReturn(3);
 
-        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $timeSlotRepoStub = $this->createStub(TimeSlotRepositoryInterface::class);
         $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
 
         $service = new WaitlistService(
@@ -239,7 +239,7 @@ final class WaitlistServiceTest extends TestCase
         $waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
         $waitlistRepoStub->method('expireTokens')->willReturn(0);
 
-        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $timeSlotRepoStub = $this->createStub(TimeSlotRepositoryInterface::class);
         $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
 
         $service = new WaitlistService(
@@ -262,7 +262,7 @@ final class WaitlistServiceTest extends TestCase
         $waitlistRepoStub->method('getPosition')->willReturn(2);
         $waitlistRepoStub->method('countByTimeSlotAndStatus')->willReturn(5);
 
-        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $timeSlotRepoStub = $this->createStub(TimeSlotRepositoryInterface::class);
         $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
 
         $service = new WaitlistService(
@@ -286,7 +286,7 @@ final class WaitlistServiceTest extends TestCase
         $waitlistRepoStub->method('getPosition')->willReturn(null);
         $waitlistRepoStub->method('countByTimeSlotAndStatus')->willReturn(0);
 
-        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $timeSlotRepoStub = $this->createStub(TimeSlotRepositoryInterface::class);
         $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
 
         $service = new WaitlistService(
@@ -313,7 +313,7 @@ final class WaitlistServiceTest extends TestCase
         $pdoStub->method('beginTransaction')->willReturn(true);
         $pdoStub->method('rollBack')->willReturn(true);
 
-        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $timeSlotRepoStub = $this->createStub(TimeSlotRepositoryInterface::class);
         $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
 
         $service = new WaitlistService(
@@ -345,7 +345,7 @@ final class WaitlistServiceTest extends TestCase
         $pdoStub->method('beginTransaction')->willReturn(true);
         $pdoStub->method('rollBack')->willReturn(true);
 
-        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $timeSlotRepoStub = $this->createStub(TimeSlotRepositoryInterface::class);
         $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
 
         $service = new WaitlistService(
@@ -377,7 +377,7 @@ final class WaitlistServiceTest extends TestCase
         $pdoStub->method('beginTransaction')->willReturn(true);
         $pdoStub->method('commit')->willReturn(true);
 
-        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $timeSlotRepoStub = $this->createStub(TimeSlotRepositoryInterface::class);
         $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
 
         $service = new WaitlistService(
@@ -442,7 +442,7 @@ final class WaitlistServiceTest extends TestCase
         $pdoStub->method('beginTransaction')->willReturn(true);
         $pdoStub->method('commit')->willReturn(true);
 
-        $timeSlotRepoStub    = $this->createStub(TimeSlotRepositoryInterface::class);
+        $timeSlotRepoStub = $this->createStub(TimeSlotRepositoryInterface::class);
         $reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
 
         $service = new WaitlistService(

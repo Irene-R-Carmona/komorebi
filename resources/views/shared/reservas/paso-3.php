@@ -12,10 +12,10 @@ use App\Core\Csrf;
  * @var float  $passTotal   - Total del pase
  * @var float  $grandTotal  - Total con extras
  */
-$wizard      ??= [];
+$wizard ??= [];
 $cartDetails ??= [];
-$passTotal   ??= 0.0;
-$grandTotal  ??= 0.0;
+$passTotal ??= 0.0;
+$grandTotal ??= 0.0;
 
 $fechaFmt = !empty($wizard['fecha'])
     ? date('d/m/Y', strtotime($wizard['fecha']))

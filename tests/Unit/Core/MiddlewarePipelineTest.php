@@ -75,8 +75,10 @@ final class MiddlewarePipelineTest extends TestCase
         $finalResponse = $this->makeResponse(200);
         $finalHandler = $this->makeFinalHandler(200);
 
-        $middleware = new class($finalResponse) implements MiddlewareInterface {
-            public function __construct(private readonly ResponseInterface $response) {}
+        $middleware = new class ($finalResponse) implements MiddlewareInterface {
+            public function __construct(private readonly ResponseInterface $response)
+            {
+            }
 
             #[Override]
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -97,7 +99,7 @@ final class MiddlewarePipelineTest extends TestCase
     {
         $finalHandler = $this->makeFinalHandler(200);
 
-        $middleware = new class implements MiddlewareInterface {
+        $middleware = new class () implements MiddlewareInterface {
             #[Override]
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
             {
@@ -153,11 +155,13 @@ final class MiddlewarePipelineTest extends TestCase
 
         $first = static function (ServerRequestInterface $req, RequestHandlerInterface $next) use (&$log): ResponseInterface {
             $log[] = 'first';
+
             return $next->handle($req);
         };
 
         $second = static function (ServerRequestInterface $req, RequestHandlerInterface $next) use (&$log): ResponseInterface {
             $log[] = 'second';
+
             return $next->handle($req);
         };
 
@@ -173,7 +177,7 @@ final class MiddlewarePipelineTest extends TestCase
     {
         $pipeline = new MiddlewarePipeline();
 
-        $callable = static fn($req, $next) => $next->handle($req);
+        $callable = static fn ($req, $next) => $next->handle($req);
         $result = $pipeline->pipe($callable);
 
         self::assertSame($pipeline, $result);

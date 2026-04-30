@@ -75,14 +75,14 @@ $animalId = (int) ($animal['id'] ?? 0);
                                 'hamster' => 'Hámster',
                                 'other' => 'Otro',
                             ];
-                            $selectedSpecies = $_POST['species'] ?? ($animal['species'] ?? '');
-                            ?>
+$selectedSpecies = $_POST['species'] ?? ($animal['species'] ?? '');
+?>
                             <select class="form-select" id="species" name="species" required>
                                 <option value="">Selecciona especie…</option>
                                 <?php foreach (\App\Domain\AnimalVocabulary::SPECIES as $s): ?>
                                     <option value="<?= htmlspecialchars($s, ENT_QUOTES, 'UTF-8') ?>"
                                         <?= $selectedSpecies === $s ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($speciesLabels[$s] ?? \ucfirst($s), ENT_QUOTES, 'UTF-8') ?>
+                                        <?= htmlspecialchars($speciesLabels[$s] ?? ucfirst($s), ENT_QUOTES, 'UTF-8') ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -130,7 +130,7 @@ $animalId = (int) ($animal['id'] ?? 0);
     <?php if ($animalId > 0): ?>
         <div class="row justify-content-center mt-4"
             x-data="{
-             imageUrl: <?= \json_encode($animal['image_url'] ?? '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
+             imageUrl: <?= json_encode($animal['image_url'] ?? '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
              uploading: false,
              error: '',
              success: '',

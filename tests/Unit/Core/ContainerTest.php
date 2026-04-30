@@ -36,7 +36,7 @@ final class ContainerTest extends TestCase
      */
     public function testSingletonReturnsSameInstance(): void
     {
-        Container::singleton(PDO::class, fn() => $this->createStub(PDO::class));
+        Container::singleton(PDO::class, fn () => $this->createStub(PDO::class));
 
         $instance1 = Container::make(PDO::class);
         $instance2 = Container::make(PDO::class);
@@ -49,7 +49,7 @@ final class ContainerTest extends TestCase
      */
     public function testBindReturnsNewInstance(): void
     {
-        Container::bind(PDO::class, fn() => $this->createStub(PDO::class));
+        Container::bind(PDO::class, fn () => $this->createStub(PDO::class));
 
         $instance1 = Container::make(PDO::class);
         $instance2 = Container::make(PDO::class);
@@ -88,7 +88,7 @@ final class ContainerTest extends TestCase
 
     public function testContainerHasReturnsTrueForRegisteredBindings(): void
     {
-        Container::bind(PDO::class, fn() => $this->createStub(PDO::class));
+        Container::bind(PDO::class, fn () => $this->createStub(PDO::class));
 
         $this->assertTrue(Container::getInstance()->has(PDO::class));
     }
@@ -105,7 +105,7 @@ final class ContainerTest extends TestCase
      */
     public function testEnableCompilationBuildsContainerWithoutErrors(): void
     {
-        $tmpDir = \sys_get_temp_dir() . '/container_compile_test_' . \uniqid('', true);
+        $tmpDir = sys_get_temp_dir() . '/container_compile_test_' . uniqid('', true);
 
         Container::enableCompilation($tmpDir);
 
@@ -117,10 +117,10 @@ final class ContainerTest extends TestCase
         $this->assertDirectoryExists($tmpDir);
 
         // Limpieza: eliminar el directorio generado
-        $files = \glob($tmpDir . '/*') ?: [];
+        $files = glob($tmpDir . '/*') ?: [];
         foreach ($files as $file) {
-            \unlink($file);
+            unlink($file);
         }
-        \rmdir($tmpDir);
+        rmdir($tmpDir);
     }
 }

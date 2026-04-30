@@ -153,7 +153,7 @@ final class RoleApiController extends AbstractApiController
      */
     public function grantPermission(int $id, int $permissionId): ResponseInterface
     {
-        $role       = $this->roleModel->findById($id);
+        $role = $this->roleModel->findById($id);
         $permission = $this->permissionModel->findById($permissionId);
 
         if (!$role || !$permission) {
@@ -177,7 +177,7 @@ final class RoleApiController extends AbstractApiController
      */
     public function revokePermission(int $id, int $permissionId): ResponseInterface
     {
-        $role       = $this->roleModel->findById($id);
+        $role = $this->roleModel->findById($id);
         $permission = $this->permissionModel->findById($permissionId);
 
         if (!$role || !$permission) {

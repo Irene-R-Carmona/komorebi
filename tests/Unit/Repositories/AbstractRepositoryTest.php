@@ -49,7 +49,7 @@ final class AbstractRepositoryTest extends RepositoryTestCase
             lastInsertId: $lastInsertId,
         );
 
-        return new class($pdo) extends AbstractRepository {
+        return new class ($pdo) extends AbstractRepository {
             #[Override]
             protected function getTable(): string
             {
@@ -123,7 +123,7 @@ final class AbstractRepositoryTest extends RepositoryTestCase
 
     public function testFindByIdReturnsArrayWhenFound(): void
     {
-        $row  = ['id' => 3, 'name' => 'Matcha'];
+        $row = ['id' => 3, 'name' => 'Matcha'];
         $repo = $this->makeRepo(fetchReturn: $row);
 
         $result = $repo->findById(3);

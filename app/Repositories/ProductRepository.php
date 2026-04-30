@@ -309,6 +309,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
                 }
             }
         }
+
         return $passes;
     }
 
@@ -824,7 +825,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
                 $severities = \explode(',', $row['allergen_severities']);
 
                 $row['allergens_list'] = \array_map(
-                    static fn(string $id, string $name, string $code, string $severity): array => [
+                    static fn (string $id, string $name, string $code, string $severity): array => [
                         'id' => (int) $id,
                         'name' => $name,
                         'code' => $code,

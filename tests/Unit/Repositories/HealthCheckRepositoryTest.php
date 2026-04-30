@@ -34,6 +34,7 @@ final class HealthCheckRepositoryTest extends TestCase
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('query')->willReturn($stmt);
         $pdo->method('lastInsertId')->willReturn('42');
+
         return $pdo;
     }
 
@@ -357,7 +358,7 @@ final class HealthCheckRepositoryTest extends TestCase
             'fever_count' => 1,
             'appetite_count' => 1,
             'lethargy_count' => 0,
-            'respiratory_count' => 1
+            'respiratory_count' => 1,
         ]];
         $pdo = $this->makePdo($rows);
         $repo = new HealthCheckRepository($pdo);

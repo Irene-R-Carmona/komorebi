@@ -32,10 +32,10 @@ final class ReservationTimeSlotServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdoStub        = $this->createStub(PDO::class);
+        $this->pdoStub = $this->createStub(PDO::class);
         $this->reservationStub = $this->createStub(ReservationRepositoryInterface::class);
-        $this->timeSlotStub   = $this->createStub(TimeSlotRepositoryInterface::class);
-        $this->waitlistStub   = $this->createStub(WaitlistRepositoryInterface::class);
+        $this->timeSlotStub = $this->createStub(TimeSlotRepositoryInterface::class);
+        $this->waitlistStub = $this->createStub(WaitlistRepositoryInterface::class);
 
         $this->service = new ReservationTimeSlotService(
             $this->pdoStub,
@@ -63,7 +63,7 @@ final class ReservationTimeSlotServiceTest extends TestCase
     public function testCreateReservationWithSlotFailsWhenDateMissing(): void
     {
         $result = $this->service->createReservationWithSlot([
-            'cafe_id'          => 1,
+            'cafe_id' => 1,
             'reservation_time' => '10:00',
         ]);
 
@@ -73,7 +73,7 @@ final class ReservationTimeSlotServiceTest extends TestCase
     public function testCreateReservationWithSlotFailsWhenTimeMissing(): void
     {
         $result = $this->service->createReservationWithSlot([
-            'cafe_id'          => 1,
+            'cafe_id' => 1,
             'reservation_date' => '2025-12-01',
         ]);
 
@@ -184,14 +184,14 @@ final class ReservationTimeSlotServiceTest extends TestCase
     private function validCreateData(): array
     {
         return [
-            'cafe_id'          => 1,
+            'cafe_id' => 1,
             'reservation_date' => '2026-06-01',
             'reservation_time' => '10:00',
-            'guest_count'      => 2,
-            'user_id'          => 1,
-            'pass_product_id'  => 1,
-            'pass_name'        => 'Pase básico',
-            'pass_unit_price'  => 1500,
+            'guest_count' => 2,
+            'user_id' => 1,
+            'pass_product_id' => 1,
+            'pass_name' => 'Pase básico',
+            'pass_unit_price' => 1500,
             'pass_duration_minutes' => 60,
         ];
     }

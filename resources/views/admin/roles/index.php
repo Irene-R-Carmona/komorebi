@@ -13,15 +13,15 @@
 use App\Core\Csrf;
 use App\Core\View;
 
-$roles           ??= [];
-$permissions     ??= [];
+$roles ??= [];
+$permissions ??= [];
 $rolePermissions ??= [];
-$stats           ??= ['total_roles' => 0, 'total_permissions' => 0, 'total_modules' => 0, 'users_with_roles' => 0];
+$stats ??= ['total_roles' => 0, 'total_permissions' => 0, 'total_modules' => 0, 'users_with_roles' => 0];
 
 $alpineConfig = json_encode([
-    'permissions'     => $permissions,
+    'permissions' => $permissions,
     'rolePermissions' => $rolePermissions,
-    'csrfToken'       => Csrf::token(),
+    'csrfToken' => Csrf::token(),
 ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
 ?>
 
@@ -29,12 +29,12 @@ $alpineConfig = json_encode([
 
     <!-- Header -->
     <?= View::componentToString('components/admin/page-header', [
-        'icon'        => 'people',
-        'title'       => 'Roles y Permisos',
-        'subtitle'    => 'Define quién puede hacer qué',
+        'icon' => 'people',
+        'title' => 'Roles y Permisos',
+        'subtitle' => 'Define quién puede hacer qué',
         'actionLabel' => 'Nuevo Rol',
         'actionClick' => 'openCreateModal()',
-        'actionIcon'  => 'plus-circle',
+        'actionIcon' => 'plus-circle',
     ]) ?>
 
     <!-- Estadísticas -->

@@ -44,11 +44,11 @@ final class ReviewController extends AbstractApiController
             return $this->unauthorized('Debes iniciar sesión para reseñar');
         }
 
-        $body   = (array) ($request->getParsedBody() ?? []);
+        $body = (array) ($request->getParsedBody() ?? []);
         $cafeId = (int) ($body['cafe_id'] ?? 0);
         $rating = (int) ($body['rating'] ?? 0);
-        $title  = \trim((string) ($body['title'] ?? ''));
-        $text   = \trim((string) ($body['body'] ?? ''));
+        $title = \trim((string) ($body['title'] ?? ''));
+        $text = \trim((string) ($body['body'] ?? ''));
 
         if ($cafeId <= 0) {
             return $this->unprocessable('cafe_id requerido y debe ser positivo', 'invalid_cafe_id');
@@ -96,10 +96,10 @@ final class ReviewController extends AbstractApiController
             return $this->notFound('Reseña no encontrada');
         }
 
-        $body   = (array) ($request->getParsedBody() ?? []);
+        $body = (array) ($request->getParsedBody() ?? []);
         $rating = (int) ($body['rating'] ?? 0);
-        $title  = \trim((string) ($body['title'] ?? ''));
-        $text   = \trim((string) ($body['body'] ?? ''));
+        $title = \trim((string) ($body['title'] ?? ''));
+        $text = \trim((string) ($body['body'] ?? ''));
 
         if ($rating < 1 || $rating > 5) {
             return $this->unprocessable('rating debe estar entre 1 y 5', 'invalid_rating');

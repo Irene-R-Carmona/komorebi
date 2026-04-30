@@ -38,6 +38,7 @@ final class MenuCategoryRepositoryTest extends TestCase
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);
         $stmt->method('fetch')->willReturn($fetchReturn);
+
         return $stmt;
     }
 
@@ -46,6 +47,7 @@ final class MenuCategoryRepositoryTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('query')->willReturn($stmt);
+
         return $pdo;
     }
 

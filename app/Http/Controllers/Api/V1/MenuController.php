@@ -33,9 +33,9 @@ final class MenuController extends AbstractApiController
      */
     public function allergens(ServerRequestInterface $request): ResponseInterface
     {
-        $allergens  = $this->menuService->getAllergens();
-        $etag       = $this->makeEtag($allergens);
-        $cc         = 'public, max-age=3600, stale-while-revalidate=86400';
+        $allergens = $this->menuService->getAllergens();
+        $etag = $this->makeEtag($allergens);
+        $cc = 'public, max-age=3600, stale-while-revalidate=86400';
 
         if ($request->getHeaderLine('If-None-Match') === $etag) {
             return $this->notModified($etag, $cc);
@@ -43,7 +43,7 @@ final class MenuController extends AbstractApiController
 
         return $this->collection($allergens, $this->allergenTransformer, [], [
             'Cache-Control' => $cc,
-            'ETag'          => $etag,
+            'ETag' => $etag,
         ]);
     }
 
@@ -76,7 +76,7 @@ final class MenuController extends AbstractApiController
 
         $data = ['product_id' => $id];
         $etag = $this->makeEtag($data);
-        $cc   = 'public, max-age=300';
+        $cc = 'public, max-age=300';
 
         if ($request->getHeaderLine('If-None-Match') === $etag) {
             return $this->notModified($etag, $cc);
@@ -84,7 +84,7 @@ final class MenuController extends AbstractApiController
 
         return $this->success($data, 200, [
             'Cache-Control' => $cc,
-            'ETag'          => $etag,
+            'ETag' => $etag,
         ]);
     }
 }

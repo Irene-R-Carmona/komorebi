@@ -27,7 +27,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 final class IdempotencyMiddleware implements MiddlewareInterface
 {
-    private const int    TTL        = 86_400;             // 24 h en segundos
+    private const int    TTL = 86_400;             // 24 h en segundos
     private const string KEY_PREFIX = 'idempotency:reservation:';
 
     /** Patrón UUID v4 canónico (case-insensitive). */
@@ -35,7 +35,8 @@ final class IdempotencyMiddleware implements MiddlewareInterface
 
     public function __construct(
         private readonly ResponseFactory $response,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -63,7 +64,7 @@ final class IdempotencyMiddleware implements MiddlewareInterface
         }
 
         $redisKey = self::KEY_PREFIX . $key;
-        $cached   = $redis->get($redisKey);
+        $cached = $redis->get($redisKey);
 
         // Cache hit: reproducir respuesta almacenada
         if ($cached !== false && \is_string($cached)) {
@@ -79,8 +80,8 @@ final class IdempotencyMiddleware implements MiddlewareInterface
         // Almacenar sólo respuestas exitosas (< 400)
         if ($response->getStatusCode() < 400) {
             $stored = \json_encode([
-                'status'   => $response->getStatusCode(),
-                'body'     => (string) $response->getBody(),
+                'status' => $response->getStatusCode(),
+                'body' => (string) $response->getBody(),
                 'location' => $response->getHeaderLine('Location'),
             ]);
 
@@ -99,7 +100,7 @@ final class IdempotencyMiddleware implements MiddlewareInterface
      */
     private function replayResponse(array $stored, string $key): ResponseInterface
     {
-        $factory  = new Psr17Factory();
+        $factory = new Psr17Factory();
         $response = $factory->createResponse($stored['status'])
             ->withHeader('Content-Type', 'application/json; charset=utf-8')
             ->withHeader('Idempotency-Key', $key)

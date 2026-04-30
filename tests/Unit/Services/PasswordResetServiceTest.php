@@ -34,10 +34,10 @@ final class PasswordResetServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->userRepoStub    = $this->createStub(UserRepositoryInterface::class);
+        $this->userRepoStub = $this->createStub(UserRepositoryInterface::class);
         $this->tokenServiceStub = $this->createStub(AuthTokenServiceInterface::class);
-        $this->sessionStub      = $this->createStub(SessionManagementServiceInterface::class);
-        $this->rateLimiterStub  = $this->createStub(RateLimitingServiceInterface::class);
+        $this->sessionStub = $this->createStub(SessionManagementServiceInterface::class);
+        $this->rateLimiterStub = $this->createStub(RateLimitingServiceInterface::class);
         $this->emailServiceStub = $this->createStub(EmailServiceInterface::class);
 
         $this->service = new PasswordResetService(

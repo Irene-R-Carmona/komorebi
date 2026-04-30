@@ -18,17 +18,17 @@ final class ReservationTest extends TestCase
 
     public function testStatusConstants(): void
     {
-        $this->assertSame('pending',   Reservation::STATUS_PENDING);
+        $this->assertSame('pending', Reservation::STATUS_PENDING);
         $this->assertSame('confirmed', Reservation::STATUS_CONFIRMED);
-        $this->assertSame('active',    Reservation::STATUS_ACTIVE);
+        $this->assertSame('active', Reservation::STATUS_ACTIVE);
         $this->assertSame('completed', Reservation::STATUS_COMPLETED);
         $this->assertSame('cancelled', Reservation::STATUS_CANCELLED);
-        $this->assertSame('no_show',   Reservation::STATUS_NO_SHOW);
+        $this->assertSame('no_show', Reservation::STATUS_NO_SHOW);
     }
 
     public function testCancellableStatusesContainsPendingAndConfirmed(): void
     {
-        $this->assertContains('pending',   Reservation::CANCELLABLE_STATUSES);
+        $this->assertContains('pending', Reservation::CANCELLABLE_STATUSES);
         $this->assertContains('confirmed', Reservation::CANCELLABLE_STATUSES);
     }
 

@@ -251,7 +251,7 @@ final class RequestLogMiddlewareTest extends TestCase
 
     public function testAddsXRequestIdToResponseHeader(): void
     {
-        $capturedHeaderName  = null;
+        $capturedHeaderName = null;
         $capturedHeaderValue = null;
 
         $response = $this->createMock(ResponseInterface::class);
@@ -260,8 +260,9 @@ final class RequestLogMiddlewareTest extends TestCase
             ->method('withHeader')
             ->willReturnCallback(
                 function (string $name, string $value) use ($response, &$capturedHeaderName, &$capturedHeaderValue): ResponseInterface {
-                    $capturedHeaderName  = $name;
+                    $capturedHeaderName = $name;
                     $capturedHeaderValue = $value;
+
                     return $response;
                 }
             );

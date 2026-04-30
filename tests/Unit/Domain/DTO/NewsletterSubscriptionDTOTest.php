@@ -28,13 +28,13 @@ final class NewsletterSubscriptionDTOTest extends TestCase
     private function fullRow(): array
     {
         return [
-            'id'              => 7,
-            'email'           => 'suscriptor@ejemplo.com',
-            'token'           => 'abc123token',
-            'confirmed_at'    => '2025-05-10 12:00:00',
+            'id' => 7,
+            'email' => 'suscriptor@ejemplo.com',
+            'token' => 'abc123token',
+            'confirmed_at' => '2025-05-10 12:00:00',
             'unsubscribed_at' => null,
-            'created_at'      => '2025-05-01 09:00:00',
-            'expires_at'      => '2025-11-01 09:00:00',
+            'created_at' => '2025-05-01 09:00:00',
+            'expires_at' => '2025-11-01 09:00:00',
         ];
     }
 
@@ -67,13 +67,13 @@ final class NewsletterSubscriptionDTOTest extends TestCase
     public function testFromArrayHandlesNullableFieldsExplicitNull(): void
     {
         $row = [
-            'id'              => 3,
-            'email'           => 'test@test.com',
-            'token'           => null,
-            'confirmed_at'    => null,
+            'id' => 3,
+            'email' => 'test@test.com',
+            'token' => null,
+            'confirmed_at' => null,
             'unsubscribed_at' => null,
-            'created_at'      => null,
-            'expires_at'      => null,
+            'created_at' => null,
+            'expires_at' => null,
         ];
 
         $dto = NewsletterSubscriptionDTO::fromArray($row);
@@ -85,7 +85,7 @@ final class NewsletterSubscriptionDTOTest extends TestCase
 
     public function testToViewArrayContainsAllRequiredKeys(): void
     {
-        $dto  = NewsletterSubscriptionDTO::fromArray($this->fullRow());
+        $dto = NewsletterSubscriptionDTO::fromArray($this->fullRow());
         $view = $dto->toViewArray();
 
         foreach (['id', 'email', 'token', 'confirmed_at', 'unsubscribed_at', 'created_at', 'expires_at'] as $key) {
@@ -95,7 +95,7 @@ final class NewsletterSubscriptionDTOTest extends TestCase
 
     public function testToViewArrayValuesMatchProperties(): void
     {
-        $dto  = NewsletterSubscriptionDTO::fromArray($this->fullRow());
+        $dto = NewsletterSubscriptionDTO::fromArray($this->fullRow());
         $view = $dto->toViewArray();
 
         $this->assertSame($dto->id, $view['id']);

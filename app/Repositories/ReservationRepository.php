@@ -10,6 +10,7 @@ use App\Domain\Reservation\ReservationStateMachine;
 use App\Domain\ReservationVocabulary;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use DateTimeImmutable;
+use InvalidArgumentException;
 use Override;
 use PDO;
 
@@ -67,6 +68,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     public function findById(int $id): ?ReservationDTO
     {
         $row = $this->findByIdRaw($id);
+
         return $row !== null ? $this->mapper->toDTO($row) : null;
     }
 
@@ -96,7 +98,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     public function findByIdWithCafeDetails(int $id): ?array
     {
         $reservationFields = \array_map(
-            fn($field) => "r.$field",
+            fn ($field) => "r.$field",
             $this->getSelectFields()
         );
         $fields = \implode(', ', $reservationFields);
@@ -244,7 +246,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         }
         if (isset($paymentData['payment_method'])) {
             if (!ReservationVocabulary::isValidPaymentMethod((string) $paymentData['payment_method'])) {
-                throw new \InvalidArgumentException('Método de pago no válido: ' . $paymentData['payment_method']);
+                throw new InvalidArgumentException('Método de pago no válido: ' . $paymentData['payment_method']);
             }
 
             $data['payment_method'] = $paymentData['payment_method'];
@@ -302,7 +304,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         $total = (int) $stmt->fetchColumn();
 
         // Obtener datos con detalles del café
-        $fields = \implode(', ', \array_map(fn($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
                 FROM reservations r
@@ -330,7 +332,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findUpcomingByUser(int $userId, int $limit = 5): array
     {
-        $fields = \implode(', ', \array_map(fn($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
 
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
@@ -478,7 +480,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
     public function findByIdAndUser(int $id, int $userId): ?array
     {
-        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
 
         $stmt = $this->getDb()->prepare(
             "SELECT $fields, c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image

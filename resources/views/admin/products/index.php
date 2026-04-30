@@ -15,10 +15,10 @@ use App\Core\Csrf;
 use App\Core\View;
 use App\Support\ViewHelpers;
 
-$products      ??= [];
-$categories    ??= [];
-$stats         ??= ['total_products' => 0, 'active_products' => 0, 'category_count' => 0, 'with_allergens' => 0];
-$meta          ??= ['page' => 1, 'has_next_page' => false];
+$products ??= [];
+$categories ??= [];
+$stats ??= ['total_products' => 0, 'active_products' => 0, 'category_count' => 0, 'with_allergens' => 0];
+$meta ??= ['page' => 1, 'has_next_page' => false];
 $currentParams ??= [];
 
 $alpineConfig = json_encode([
@@ -30,12 +30,12 @@ $alpineConfig = json_encode([
 
     <!-- Header -->
     <?= View::componentToString('components/admin/page-header', [
-        'icon'        => 'cup-hot',
-        'title'       => 'Carta y Productos',
-        'subtitle'    => 'Gestiona el menú con información de alérgenos',
+        'icon' => 'cup-hot',
+        'title' => 'Carta y Productos',
+        'subtitle' => 'Gestiona el menú con información de alérgenos',
         'actionLabel' => 'Añadir Producto',
-        'actionUrl'   => '/admin/productos/crear',
-        'actionIcon'  => 'plus-lg',
+        'actionUrl' => '/admin/productos/crear',
+        'actionIcon' => 'plus-lg',
     ]) ?>
 
     <!-- Estadísticas -->
@@ -141,12 +141,12 @@ $alpineConfig = json_encode([
         <?php if ($products === []): ?>
         <div class="card-admin__body">
             <?= View::componentToString('components/admin/empty-state', [
-                'icon'        => 'inbox',
-                'title'       => 'No hay productos',
-                'message'     => 'Prueba ajustando los filtros o comienza agregando tu primer producto al menú',
+                'icon' => 'inbox',
+                'title' => 'No hay productos',
+                'message' => 'Prueba ajustando los filtros o comienza agregando tu primer producto al menú',
                 'actionLabel' => 'Crear Producto',
-                'actionUrl'   => '/admin/productos/crear',
-                'compact'     => true,
+                'actionUrl' => '/admin/productos/crear',
+                'compact' => true,
             ]) ?>
         </div>
         <?php else: ?>
@@ -166,11 +166,11 @@ $alpineConfig = json_encode([
                 <tbody>
                     <?php foreach ($products as $product): ?>
                     <?php
-                        $productId   = (int) $product['id'];
-                        $isActive    = !empty($product['is_active']);
+                        $productId = (int) $product['id'];
+                        $isActive = !empty($product['is_active']);
                         $productName = htmlspecialchars((string) ($product['name'] ?? ''), ENT_QUOTES, 'UTF-8');
-                        $allergens   = \is_array($product['allergens_list'] ?? null) ? $product['allergens_list'] : [];
-                    ?>
+                        $allergens = is_array($product['allergens_list'] ?? null) ? $product['allergens_list'] : [];
+                        ?>
                     <tr data-product-id="<?= $productId ?>" class="<?= $isActive ? '' : 'product-row--inactive' ?>">
                         <td>
                             <?php if (!empty($product['image_url'])): ?>
@@ -212,23 +212,23 @@ $alpineConfig = json_encode([
                         <td>
                             <?php if ($allergens !== []): ?>
                             <div class="allergen-badges">
-                                <?php foreach (\array_slice($allergens, 0, 3) as $allergen): ?>
+                                <?php foreach (array_slice($allergens, 0, 3) as $allergen): ?>
                                 <?php
-                                    $severity  = (string) ($allergen['severity'] ?? 'low');
+                                        $severity = (string) ($allergen['severity'] ?? 'low');
                                     $badgeClass = match($severity) {
-                                        'high'   => 'bg-danger',
+                                        'high' => 'bg-danger',
                                         'medium' => 'bg-warning text-dark',
-                                        default  => 'bg-info',
+                                        default => 'bg-info',
                                     };
                                     $allergenName = htmlspecialchars((string) ($allergen['name'] ?? ''), ENT_QUOTES, 'UTF-8');
                                     $allergenCode = htmlspecialchars((string) ($allergen['code'] ?? $allergen['name'] ?? ''), ENT_QUOTES, 'UTF-8');
-                                ?>
+                                    ?>
                                 <span class="badge <?= $badgeClass ?>" title="<?= $allergenName ?>">
                                     <i class="bi bi-exclamation-triangle-fill me-1"></i><?= $allergenCode ?>
                                 </span>
                                 <?php endforeach; ?>
-                                <?php if (\count($allergens) > 3): ?>
-                                <span class="badge bg-secondary">+<?= \count($allergens) - 3 ?></span>
+                                <?php if (count($allergens) > 3): ?>
+                                <span class="badge bg-secondary">+<?= count($allergens) - 3 ?></span>
                                 <?php endif; ?>
                             </div>
                             <?php else: ?>

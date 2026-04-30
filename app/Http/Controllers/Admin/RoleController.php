@@ -65,19 +65,19 @@ final class RoleController
         $allPermissions = $this->permissionModel->all();
 
         $stats = [
-            'total_roles'       => \count($roles),
+            'total_roles' => \count($roles),
             'total_permissions' => \count($allPermissions),
-            'total_modules'     => \count(\array_unique(\array_filter(\array_column($allPermissions, 'resource')))),
-            'users_with_roles'  => $this->roleModel->getStats()['users_with_roles'] ?? 0,
+            'total_modules' => \count(\array_unique(\array_filter(\array_column($allPermissions, 'resource')))),
+            'users_with_roles' => $this->roleModel->getStats()['users_with_roles'] ?? 0,
         ];
 
         View::render('admin/roles/index', [
-            'titulo'          => 'Gestión de Roles y Permisos | Komorebi Admin',
-            'roles'           => $roles,
-            'permissions'     => $allPermissions,
+            'titulo' => 'Gestión de Roles y Permisos | Komorebi Admin',
+            'roles' => $roles,
+            'permissions' => $allPermissions,
             'rolePermissions' => $rolePermissions,
-            'stats'           => $stats,
-            'extraJs'         => ['admin/admin-roles.js'],
+            'stats' => $stats,
+            'extraJs' => ['admin/admin-roles.js'],
         ], ['admin/admin-roles.css'], 'backoffice');
 
         return null;

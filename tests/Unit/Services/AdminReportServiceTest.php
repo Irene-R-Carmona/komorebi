@@ -27,7 +27,7 @@ final class AdminReportServiceTest extends TestCase
         $statsRepoStub->method('getReportsSummary')->willReturn($expected);
 
         $service = new AdminReportService($statsRepoStub);
-        $result  = $service->getReportsSummary('2025-01-01', '2025-01-31');
+        $result = $service->getReportsSummary('2025-01-01', '2025-01-31');
 
         $this->assertTrue($result->ok);
         $this->assertSame($expected, $result->data);
@@ -39,7 +39,7 @@ final class AdminReportServiceTest extends TestCase
         $statsRepoStub->method('getReportsSummary')->willThrowException(new PDOException('DB error'));
 
         $service = new AdminReportService($statsRepoStub);
-        $result  = $service->getReportsSummary('2025-01-01', '2025-01-31');
+        $result = $service->getReportsSummary('2025-01-01', '2025-01-31');
 
         $this->assertFalse($result->ok);
         $this->assertSame('db_error', $result->code);

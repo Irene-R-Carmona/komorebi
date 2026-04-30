@@ -10,13 +10,13 @@
 
 use App\Support\ViewHelpers;
 
-$reservations  ??= [];
-$meta          ??= ['page' => 1, 'has_next_page' => false];
+$reservations ??= [];
+$meta ??= ['page' => 1, 'has_next_page' => false];
 $currentParams ??= [];
 
 $statusLabels = [
     'confirmed' => 'Confirmada',
-    'pending'   => 'Pendiente',
+    'pending' => 'Pendiente',
     'cancelled' => 'Cancelada',
     'completed' => 'Completada',
 ];
@@ -41,8 +41,8 @@ $statusLabels = [
                 <tr>
                     <td colspan="7">
                         <?= \App\Core\View::componentToString('components/admin/empty-state', [
-                            'icon'    => 'calendar-x',
-                            'title'   => 'No hay reservas aquí',
+                            'icon' => 'calendar-x',
+                            'title' => 'No hay reservas aquí',
                             'message' => 'Ajusta los filtros o espera nuevas reservas',
                             'compact' => true,
                         ]) ?>
@@ -51,31 +51,31 @@ $statusLabels = [
                 <?php else: ?>
                 <?php foreach ($reservations as $reservation): ?>
                 <?php
-                    $resId        = (int) $reservation['id'];
-                    $status       = (string) ($reservation['status']       ?? '');
-                    $statusLabel  = $statusLabels[$status] ?? $status;
-                    $customerName = htmlspecialchars((string) ($reservation['customer_name']  ?? 'Invitado'), ENT_QUOTES, 'UTF-8');
-                    $cafeName     = htmlspecialchars((string) ($reservation['cafe_name']      ?? ''), ENT_QUOTES, 'UTF-8');
-                    $guestCount   = (int) ($reservation['guest_count'] ?? 1);
-                    $resDate      = (string) ($reservation['reservation_date'] ?? '');
-                    $resTime      = (string) ($reservation['reservation_time'] ?? '');
-                    $canConfirm   = $status === 'pending';
-                    $canCancel    = \in_array($status, ['confirmed', 'pending'], true);
-                    $initial      = \mb_strtoupper(\mb_substr((string) ($reservation['customer_name'] ?? 'U'), 0, 1));
+                    $resId = (int) $reservation['id'];
+                    $status = (string) ($reservation['status'] ?? '');
+                    $statusLabel = $statusLabels[$status] ?? $status;
+                    $customerName = htmlspecialchars((string) ($reservation['customer_name'] ?? 'Invitado'), ENT_QUOTES, 'UTF-8');
+                    $cafeName = htmlspecialchars((string) ($reservation['cafe_name'] ?? ''), ENT_QUOTES, 'UTF-8');
+                    $guestCount = (int) ($reservation['guest_count'] ?? 1);
+                    $resDate = (string) ($reservation['reservation_date'] ?? '');
+                    $resTime = (string) ($reservation['reservation_time'] ?? '');
+                    $canConfirm = $status === 'pending';
+                    $canCancel = in_array($status, ['confirmed', 'pending'], true);
+                    $initial = mb_strtoupper(mb_substr((string) ($reservation['customer_name'] ?? 'U'), 0, 1));
 
-                    $modalData = htmlspecialchars(\json_encode([
-                        'id'             => $resId,
-                        'status'         => $status,
-                        'date'           => $resDate,
-                        'time'           => $resTime,
-                        'customer_name'  => (string) ($reservation['customer_name']  ?? ''),
+                    $modalData = htmlspecialchars(json_encode([
+                        'id' => $resId,
+                        'status' => $status,
+                        'date' => $resDate,
+                        'time' => $resTime,
+                        'customer_name' => (string) ($reservation['customer_name'] ?? ''),
                         'customer_email' => (string) ($reservation['customer_email'] ?? ''),
-                        'cafe_name'      => (string) ($reservation['cafe_name']      ?? ''),
-                        'guest_count'    => $guestCount,
-                        'notes'          => (string) ($reservation['notes']          ?? ''),
-                        'created_at'     => (string) ($reservation['created_at']     ?? ''),
+                        'cafe_name' => (string) ($reservation['cafe_name'] ?? ''),
+                        'guest_count' => $guestCount,
+                        'notes' => (string) ($reservation['notes'] ?? ''),
+                        'created_at' => (string) ($reservation['created_at'] ?? ''),
                     ], \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_THROW_ON_ERROR), \ENT_QUOTES, 'UTF-8');
-                ?>
+                    ?>
                 <tr>
                     <td>
                         <span class="font-monospace text-muted">#<?= $resId ?></span>

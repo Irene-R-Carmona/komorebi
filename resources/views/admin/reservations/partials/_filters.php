@@ -7,7 +7,7 @@
  * @var array $currentParams - Parámetros activos
  */
 
-$cafeNames     ??= [];
+$cafeNames ??= [];
 $currentParams ??= [];
 ?>
 
@@ -36,7 +36,7 @@ $currentParams ??= [];
             <select id="filter-status" name="status" class="form-select" @change="$el.form.requestSubmit()">
                 <option value="">Todos</option>
                 <option value="confirmed" <?= ($currentParams['status'] ?? '') === 'confirmed' ? 'selected' : '' ?>>Confirmada</option>
-                <option value="pending"   <?= ($currentParams['status'] ?? '') === 'pending'   ? 'selected' : '' ?>>Pendiente</option>
+                <option value="pending"   <?= ($currentParams['status'] ?? '') === 'pending' ? 'selected' : '' ?>>Pendiente</option>
                 <option value="cancelled" <?= ($currentParams['status'] ?? '') === 'cancelled' ? 'selected' : '' ?>>Cancelada</option>
                 <option value="completed" <?= ($currentParams['status'] ?? '') === 'completed' ? 'selected' : '' ?>>Completada</option>
             </select>

@@ -25,7 +25,7 @@ final class AccountDeletionServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->userRepoStub = $this->createStub(UserRepositoryInterface::class);
-        $this->service      = new AccountDeletionService($this->userRepoStub);
+        $this->service = new AccountDeletionService($this->userRepoStub);
     }
 
     public function testDeleteAndAnonymizeReturnsFailWhenRepoThrows(): void

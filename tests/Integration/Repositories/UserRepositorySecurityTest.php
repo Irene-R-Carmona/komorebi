@@ -24,6 +24,7 @@ use App\Repositories\UserRepository;
 use Override;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use ReflectionClass;
+use ReflectionProperty;
 use Tests\Support\BaseIntegrationTest;
 
 #[CoversNothing]
@@ -88,8 +89,8 @@ final class UserRepositorySecurityTest extends BaseIntegrationTest
 
         $this->assertInstanceOf(UserDTO::class, $user, 'findById debe devolver el usuario de prueba');
         $props = \array_map(
-            static fn(\ReflectionProperty $p) => $p->getName(),
-            (new ReflectionClass($user))->getProperties()
+            static fn (ReflectionProperty $p) => $p->getName(),
+            new ReflectionClass($user)->getProperties()
         );
         $this->assertNotContains('password', $props, 'findById no debe devolver password');
         $this->assertNotContains('last_ip_address', $props);

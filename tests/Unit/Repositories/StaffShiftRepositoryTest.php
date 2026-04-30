@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use App\Domain\DTO\StaffShiftDTO;
 use App\Repositories\StaffShiftRepository;
 use PDO;
 use PDOStatement;
@@ -41,6 +40,7 @@ final class StaffShiftRepositoryTest extends TestCase
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('rowCount')->willReturn($rowCount);
         $stmt->method('bindValue')->willReturn(true);
+
         return $stmt;
     }
 
@@ -49,6 +49,7 @@ final class StaffShiftRepositoryTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('lastInsertId')->willReturn($lastInsertId);
+
         return $pdo;
     }
 
@@ -59,16 +60,16 @@ final class StaffShiftRepositoryTest extends TestCase
     public function testFindByIdReturnsArrayWhenFound(): void
     {
         $row = [
-            'id'         => 1,
-            'user_id'    => 5,
-            'cafe_id'    => 1,
+            'id' => 1,
+            'user_id' => 5,
+            'cafe_id' => 1,
             'shift_date' => '2026-01-01',
             'shift_start' => '08:00:00',
-            'shift_end'   => '16:00:00',
-            'notes'       => null,
-            'created_by'  => null,
-            'created_at'  => '2026-01-01 00:00:00',
-            'updated_at'  => '2026-01-01 00:00:00',
+            'shift_end' => '16:00:00',
+            'notes' => null,
+            'created_by' => null,
+            'created_at' => '2026-01-01 00:00:00',
+            'updated_at' => '2026-01-01 00:00:00',
         ];
         $stmt = $this->makeStmt(fetchReturn: $row);
         $repo = new StaffShiftRepository($this->makePdo($stmt));

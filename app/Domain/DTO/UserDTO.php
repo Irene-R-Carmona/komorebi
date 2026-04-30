@@ -19,7 +19,8 @@ final readonly class UserDTO implements DomainTransferObject
         public ?int $cafe_id,
         public string $created_at,
         public ?string $preferences = null,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

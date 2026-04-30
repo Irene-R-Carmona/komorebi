@@ -41,8 +41,8 @@ final class RewardUnlockedJobTest extends TestCase
         $this->expectExceptionMessage('user_id requerido');
 
         $job->handle([
-            'stamps'    => 5,
-            'tier'      => 'bronze',
+            'stamps' => 5,
+            'tier' => 'bronze',
             'milestone' => 5,
         ]);
     }
@@ -55,9 +55,9 @@ final class RewardUnlockedJobTest extends TestCase
         $this->expectException(Exception::class);
 
         $job->handle([
-            'user_id'   => null,
-            'stamps'    => 5,
-            'tier'      => 'bronze',
+            'user_id' => null,
+            'stamps' => 5,
+            'tier' => 'bronze',
             'milestone' => 5,
         ]);
     }
@@ -81,9 +81,9 @@ final class RewardUnlockedJobTest extends TestCase
         $this->expectExceptionMessage('Usuario no encontrado');
 
         $job->handle([
-            'user_id'   => 999,
-            'stamps'    => 5,
-            'tier'      => 'bronze',
+            'user_id' => 999,
+            'stamps' => 5,
+            'tier' => 'bronze',
             'milestone' => 5,
         ]);
     }
@@ -101,9 +101,9 @@ final class RewardUnlockedJobTest extends TestCase
 
         try {
             $job->handle([
-                'user_id'   => 42,
-                'stamps'    => 5,
-                'tier'      => 'bronze',
+                'user_id' => 42,
+                'stamps' => 5,
+                'tier' => 'bronze',
                 'milestone' => 5,
             ]);
             self::fail('Expected Exception');

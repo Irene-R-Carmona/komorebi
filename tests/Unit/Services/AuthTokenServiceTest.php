@@ -24,7 +24,7 @@ final class AuthTokenServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repoStub = $this->createStub(AuthTokenRepositoryInterface::class);
-        $this->service  = new AuthTokenService($this->repoStub);
+        $this->service = new AuthTokenService($this->repoStub);
     }
 
     public function testCreateEmailVerificationTokenReturnsNonEmptyString(): void

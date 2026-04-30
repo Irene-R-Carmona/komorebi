@@ -26,7 +26,7 @@ final class FileUploadServiceTest extends TestCase
 
     public function testUploadAvatarFailsWhenNoFileSelected(): void
     {
-        $file   = ['error' => UPLOAD_ERR_NO_FILE, 'name' => '', 'size' => 0, 'tmp_name' => ''];
+        $file = ['error' => UPLOAD_ERR_NO_FILE, 'name' => '', 'size' => 0, 'tmp_name' => ''];
         $result = $this->service->uploadAvatar($file, 1);
 
         $this->assertFalse($result->ok);
@@ -35,7 +35,7 @@ final class FileUploadServiceTest extends TestCase
 
     public function testUploadAvatarFailsWhenFileExceedsMaxSize(): void
     {
-        $file   = ['error' => UPLOAD_ERR_INI_SIZE, 'name' => 'photo.jpg', 'size' => 0, 'tmp_name' => ''];
+        $file = ['error' => UPLOAD_ERR_INI_SIZE, 'name' => 'photo.jpg', 'size' => 0, 'tmp_name' => ''];
         $result = $this->service->uploadAvatar($file, 1);
 
         $this->assertFalse($result->ok);
@@ -51,7 +51,7 @@ final class FileUploadServiceTest extends TestCase
 
     public function testUploadAnimalPhotoFailsWhenNoFileSelected(): void
     {
-        $file   = ['error' => UPLOAD_ERR_NO_FILE, 'name' => '', 'size' => 0, 'tmp_name' => ''];
+        $file = ['error' => UPLOAD_ERR_NO_FILE, 'name' => '', 'size' => 0, 'tmp_name' => ''];
         $result = $this->service->uploadAnimalPhoto($file, 1);
 
         $this->assertFalse($result->ok);
@@ -60,7 +60,7 @@ final class FileUploadServiceTest extends TestCase
 
     public function testUploadAnimalPhotoFailsWhenFileExceedsIniMaxSize(): void
     {
-        $file   = ['error' => UPLOAD_ERR_INI_SIZE, 'name' => 'big.jpg', 'size' => 0, 'tmp_name' => ''];
+        $file = ['error' => UPLOAD_ERR_INI_SIZE, 'name' => 'big.jpg', 'size' => 0, 'tmp_name' => ''];
         $result = $this->service->uploadAnimalPhoto($file, 5);
 
         $this->assertFalse($result->ok);
@@ -148,7 +148,7 @@ final class FileUploadServiceTest extends TestCase
     public function testDeleteFileSucceedsWhenFileExists(): void
     {
         $avatarDir = \sys_get_temp_dir() . '/avatars';
-        $filename  = 'test_del_' . \getmypid() . '.jpg';
+        $filename = 'test_del_' . \getmypid() . '.jpg';
         \file_put_contents($avatarDir . '/' . $filename, 'fake image content');
 
         $result = $this->service->deleteFile('/storage/uploads/avatars/' . $filename);

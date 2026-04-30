@@ -46,7 +46,7 @@ final class MenuApiController extends AbstractApiController
             $productId = $this->productService->create($body);
 
             return $this->created([
-                'message'    => 'El producto se ha creado correctamente.',
+                'message' => 'El producto se ha creado correctamente.',
                 'product_id' => $productId,
             ]);
         } catch (ValidationException $e) {

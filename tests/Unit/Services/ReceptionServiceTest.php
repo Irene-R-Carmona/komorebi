@@ -28,8 +28,8 @@ final class ReceptionServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
-        $this->trackerRepoStub     = $this->createStub(TrackerRepositoryInterface::class);
-        $this->cafeRepoStub        = $this->createStub(CafeRepositoryInterface::class);
+        $this->trackerRepoStub = $this->createStub(TrackerRepositoryInterface::class);
+        $this->cafeRepoStub = $this->createStub(CafeRepositoryInterface::class);
 
         $this->service = new ReceptionService(
             $this->reservationRepoStub,

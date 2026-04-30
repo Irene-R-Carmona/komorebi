@@ -39,7 +39,7 @@ final class CafeApiController extends AbstractApiController
      */
     public function create(ServerRequestInterface $request): ResponseInterface
     {
-        $body   = (array) ($request->getParsedBody() ?? []);
+        $body = (array) ($request->getParsedBody() ?? []);
         $result = $this->cafeService->create($body);
 
         if ($result->ok) {
@@ -60,7 +60,7 @@ final class CafeApiController extends AbstractApiController
      */
     public function update(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        $body   = (array) ($request->getParsedBody() ?? []);
+        $body = (array) ($request->getParsedBody() ?? []);
         $result = $this->cafeService->update($id, $body);
 
         if ($result->ok) {
@@ -107,10 +107,10 @@ final class CafeApiController extends AbstractApiController
     private function handleFailResult(Result $result): ResponseInterface
     {
         return match ($result->code) {
-            'not_found'        => $this->notFound($result->error ?? 'Café no encontrado'),
+            'not_found' => $this->notFound($result->error ?? 'Café no encontrado'),
             'validation',
             'validation_error' => $this->unprocessable($result->error ?? 'Datos inválidos'),
-            default            => $this->serverError($result->error ?? 'Error del servidor'),
+            default => $this->serverError($result->error ?? 'Error del servidor'),
         };
     }
 }

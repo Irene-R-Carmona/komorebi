@@ -27,7 +27,8 @@ final class HttpRateLimitMiddleware implements MiddlewareInterface
         private readonly ResponseFactory $response,
         private readonly RateLimitingServiceInterface $rateLimitingService,
         private readonly string $action,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -38,15 +39,15 @@ final class HttpRateLimitMiddleware implements MiddlewareInterface
         if ($userId !== null) {
             // Usuario autenticado: identificar por user_id (no por IP)
             $identifier = 'user:' . $userId;
-            $ip         = (string) ($request->getServerParams()['REMOTE_ADDR'] ?? '0.0.0.0');
+            $ip = (string) ($request->getServerParams()['REMOTE_ADDR'] ?? '0.0.0.0');
         } else {
             // Usuario anónimo: respetar X-Forwarded-For solo si viene de un proxy de confianza
-            $remoteAddr   = (string) ($request->getServerParams()['REMOTE_ADDR'] ?? '0.0.0.0');
+            $remoteAddr = (string) ($request->getServerParams()['REMOTE_ADDR'] ?? '0.0.0.0');
             $trustedProxy = Env::get('TRUSTED_PROXY_IP', '');
 
             if ($trustedProxy !== '' && $remoteAddr === $trustedProxy) {
                 $forwarded = $request->getHeaderLine('X-Forwarded-For');
-                $ip        = \trim(\explode(',', $forwarded)[0]) ?: $remoteAddr;
+                $ip = \trim(\explode(',', $forwarded)[0]) ?: $remoteAddr;
             } else {
                 $ip = $remoteAddr;
             }

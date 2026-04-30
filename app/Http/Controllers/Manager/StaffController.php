@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Manager;
 
 use App\Core\Container;
 use App\Core\Csrf;
+use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
 use App\Repositories\Contracts\UserRepositoryInterface;
@@ -25,13 +26,17 @@ final class StaffController
 {
     private UserRepositoryInterface $userRepo;
 
+    private ResponseFactory $response;
+
     private StaffShiftServiceInterface $shiftService;
 
     public function __construct(
         ?UserRepositoryInterface $userRepo = null,
+        ?ResponseFactory $response = null,
         ?StaffShiftServiceInterface $shiftService = null,
     ) {
         $this->userRepo = $userRepo ?? Container::make(UserRepository::class);
+        $this->response = $response ?? Container::make(ResponseFactory::class);
         $this->shiftService = $shiftService ?? Container::make(StaffShiftService::class);
     }
 
@@ -62,12 +67,12 @@ final class StaffController
         $shifts = $weekResult->ok ? $weekResult->data : [];
 
         View::render('manager/staff/index', [
-            'titulo'     => 'Gestión de Staff',
-            'staff'      => $staff,
-            'shifts'     => $shifts,
-            'cafe_id'    => $cafeId,
+            'titulo' => 'Gestión de Staff',
+            'staff' => $staff,
+            'shifts' => $shifts,
+            'cafe_id' => $cafeId,
             'csrf_token' => Csrf::token(),
-            'extraJs'    => ['manager/manager-staff.js'],
+            'extraJs' => ['manager/manager-staff.js'],
         ], ['manager/staff.css'], 'backoffice');
 
         return null;
@@ -104,20 +109,93 @@ final class StaffController
 
         // Historial de turnos (últimos 30 días)
         $historyResult = $this->shiftService->getStaffHistory($userId, $cafeId);
-        $shiftHistory  = $historyResult->ok ? $historyResult->data : [];
+        $shiftHistory = $historyResult->ok ? $historyResult->data : [];
 
         // Métricas de performance (PHP-injected — no AJAX)
         $metricsResult = $this->shiftService->getPerformanceMetrics($userId, $cafeId);
-        $metrics       = $metricsResult->ok ? ($metricsResult->data ?? []) : [];
+        $metrics = $metricsResult->ok ? ($metricsResult->data ?? []) : [];
 
         View::render('manager/staff/show', [
-            'titulo'        => 'Detalle de Staff',
-            'staff'         => $staffMember,
+            'titulo' => 'Detalle de Staff',
+            'staff' => $staffMember,
             'shift_history' => $shiftHistory,
-            'metrics'       => $metrics,
-            'csrf_token'    => Csrf::token(),
+            'metrics' => $metrics,
+            'csrf_token' => Csrf::token(),
         ], ['manager/staff.css'], 'backoffice');
 
         return null;
+    }
+
+    /**
+     * POST /manager/staff/shifts
+     *
+     * Asignar turno a un staff member del café
+     */
+    public function assignShift(ServerRequestInterface $request): ResponseInterface
+    {
+        $user = Session::user();
+        $cafeId = $user['cafe_id'] ?? null;
+
+        if (!$cafeId) {
+            return $this->response->json(['ok' => false, 'error' => 'No tienes un café asignado.'], 403);
+        }
+
+        $body = (array) ($request->getParsedBody() ?? []);
+        $userId = isset($body['user_id']) ? (int) $body['user_id'] : 0;
+        $date = \trim((string) ($body['shift_date'] ?? ''));
+        $start = \trim((string) ($body['shift_start'] ?? ''));
+        $end = \trim((string) ($body['shift_end'] ?? ''));
+        $notes = isset($body['notes']) ? (string) $body['notes'] : null;
+
+        if ($userId <= 0) {
+            return $this->response->json(['ok' => false, 'error' => 'ID de usuario no válido.'], 400);
+        }
+
+        if (!\preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return $this->response->json(['ok' => false, 'error' => 'Fecha inválida. Formato esperado: YYYY-MM-DD.'], 400);
+        }
+
+        if (!\preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $start)) {
+            return $this->response->json(['ok' => false, 'error' => 'Hora de inicio inválida. Formato esperado: HH:MM.'], 400);
+        }
+
+        if (!\preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $end)) {
+            return $this->response->json(['ok' => false, 'error' => 'Hora de fin inválida. Formato esperado: HH:MM.'], 400);
+        }
+
+        if ($start >= $end) {
+            return $this->response->json(['ok' => false, 'error' => 'La hora de inicio debe ser menor que la hora de fin.'], 400);
+        }
+
+        $result = $this->shiftService->assignShift($userId, (int) $cafeId, $date, $start, $end, $notes, (int) ($user['id'] ?? 0));
+
+        if (!$result->ok) {
+            return $this->response->json(['ok' => false, 'error' => $result->error], 400);
+        }
+
+        return $this->response->json(['ok' => true]);
+    }
+
+    /**
+     * GET /manager/staff/{id}/performance
+     *
+     * Métricas de rendimiento de un staff member
+     */
+    public function viewPerformance(int $userId): ResponseInterface
+    {
+        $user = Session::user();
+        $cafeId = $user['cafe_id'] ?? null;
+
+        if (!$cafeId) {
+            return $this->response->json(['ok' => false, 'error' => 'No tienes un café asignado.'], 403);
+        }
+
+        $metricsResult = $this->shiftService->getPerformanceMetrics($userId, (int) $cafeId);
+
+        if (!$metricsResult->ok) {
+            return $this->response->json(['ok' => false, 'error' => $metricsResult->error], 422);
+        }
+
+        return $this->response->json(['ok' => true, 'data' => $metricsResult->data ?? []]);
     }
 }

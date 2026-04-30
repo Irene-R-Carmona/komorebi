@@ -44,7 +44,7 @@ final class RouteRegistrationTest extends TestCase
     public function testAdminRolesHasCreateRoleHandler(): void
     {
         $this->assertStringContainsString(
-            "RoleApiController@createRole",
+            'RoleApiController@createRole',
             $this->routesContent,
             'La ruta POST /api/v1/admin/roles debe apuntar a RoleApiController@createRole'
         );
@@ -53,7 +53,7 @@ final class RouteRegistrationTest extends TestCase
     public function testAdminRolesHasUpdateRoleHandler(): void
     {
         $this->assertStringContainsString(
-            "RoleApiController@updateRole",
+            'RoleApiController@updateRole',
             $this->routesContent,
             'La ruta PUT /api/v1/admin/roles/{id} debe apuntar a RoleApiController@updateRole'
         );
@@ -62,7 +62,7 @@ final class RouteRegistrationTest extends TestCase
     public function testAdminRolesHasDeleteRoleHandler(): void
     {
         $this->assertStringContainsString(
-            "RoleApiController@deleteRole",
+            'RoleApiController@deleteRole',
             $this->routesContent,
             'La ruta DELETE /api/v1/admin/roles/{id} debe apuntar a RoleApiController@deleteRole'
         );
@@ -71,7 +71,7 @@ final class RouteRegistrationTest extends TestCase
     public function testAdminRolesHasGrantPermissionRoute(): void
     {
         $this->assertStringContainsString(
-            "RoleApiController@grantPermission",
+            'RoleApiController@grantPermission',
             $this->routesContent,
             'La ruta POST /api/v1/admin/roles/.../grant debe apuntar a RoleApiController@grantPermission'
         );
@@ -80,7 +80,7 @@ final class RouteRegistrationTest extends TestCase
     public function testAdminRolesHasRevokePermissionRoute(): void
     {
         $this->assertStringContainsString(
-            "RoleApiController@revokePermission",
+            'RoleApiController@revokePermission',
             $this->routesContent,
             'La ruta POST /api/v1/admin/roles/.../revoke debe apuntar a RoleApiController@revokePermission'
         );
@@ -107,7 +107,7 @@ final class RouteRegistrationTest extends TestCase
     public function testAdminRolesHasNoDeadStoreMethod(): void
     {
         $this->assertStringNotContainsString(
-            "RoleController@store",
+            'RoleController@store',
             $this->routesContent,
             'RoleController@store no existe — debe reemplazarse por RoleController@createRole'
         );
@@ -165,7 +165,7 @@ final class RouteRegistrationTest extends TestCase
     public function testManagerHasProductsCreateRoute(): void
     {
         $this->assertStringContainsString(
-            "ProductApiController@create",
+            'ProductApiController@create',
             $this->routesContent,
             'La ruta POST /api/v1/manager/products debe apuntar a ProductApiController@create'
         );
@@ -174,7 +174,7 @@ final class RouteRegistrationTest extends TestCase
     public function testManagerHasProductsUpdateRoute(): void
     {
         $this->assertStringContainsString(
-            "ProductApiController@update",
+            'ProductApiController@update',
             $this->routesContent,
             'La ruta PUT /api/v1/manager/products/{id} debe apuntar a ProductApiController@update'
         );
@@ -192,7 +192,7 @@ final class RouteRegistrationTest extends TestCase
     public function testManagerHasProductsDeleteRoute(): void
     {
         $this->assertStringContainsString(
-            "ProductApiController@delete",
+            'ProductApiController@delete',
             $this->routesContent,
             'La ruta DELETE /api/v1/manager/products/{id} debe apuntar a ProductApiController@delete'
         );

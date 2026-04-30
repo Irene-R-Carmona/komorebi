@@ -25,7 +25,7 @@ final class AdminStatisticsServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->statsRepoStub = $this->createStub(StatisticsRepositoryInterface::class);
-        $this->service       = new AdminStatisticsService($this->statsRepoStub);
+        $this->service = new AdminStatisticsService($this->statsRepoStub);
     }
 
     public function testGetSystemStatisticsReturnsArray(): void
@@ -60,8 +60,8 @@ final class AdminStatisticsServiceTest extends TestCase
     {
         $this->statsRepoStub->method('getMonthlyStats')->willReturn([
             'reservations' => ['total_reservations' => 5, 'total_guests' => 10, 'unique_users' => 3, 'completed_reservations' => 4, 'cancelled_reservations' => 1, 'no_shows' => 0],
-            'users'        => ['new_users' => 2],
-            'reviews'      => ['total_reviews' => 3, 'avg_rating' => '4.2'],
+            'users' => ['new_users' => 2],
+            'reviews' => ['total_reviews' => 3, 'avg_rating' => '4.2'],
         ]);
 
         $result = $this->service->getMonthlyStats(4, 2026);

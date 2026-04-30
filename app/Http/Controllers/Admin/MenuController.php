@@ -41,7 +41,7 @@ final class MenuController
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $productsData = $this->productRepo->findAllAdmin();
-        $categories = \array_map(fn($dto) => $dto->toViewArray(), $this->categoryRepo->findAll());
+        $categories = \array_map(fn ($dto) => $dto->toViewArray(), $this->categoryRepo->findAll());
 
         // Mapeo de categorías de café para UI
         $cafeTypeLabels = [
@@ -58,7 +58,7 @@ final class MenuController
             // Formatear target_cafe_types
             if (!empty($product['target_cafe_types']) && \is_array($product['target_cafe_types'])) {
                 $product['cafe_types_display'] = \array_map(
-                    fn($type) => $cafeTypeLabels[$type] ?? $type,
+                    fn ($type) => $cafeTypeLabels[$type] ?? $type,
                     $product['target_cafe_types']
                 );
             } else {

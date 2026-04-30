@@ -15,7 +15,9 @@ use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\ReviewService;
+use Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
+use RuntimeException;
 
 #[CoversClass(ReviewService::class)]
 final class ReviewServiceTest extends ServiceTestCase
@@ -27,10 +29,10 @@ final class ReviewServiceTest extends ServiceTestCase
 
     protected function setUp(): void
     {
-        $this->userRepoStub        = $this->createStub(UserRepositoryInterface::class);
-        $this->reviewRepoStub      = $this->createStub(ReviewRepositoryInterface::class);
+        $this->userRepoStub = $this->createStub(UserRepositoryInterface::class);
+        $this->reviewRepoStub = $this->createStub(ReviewRepositoryInterface::class);
         $this->reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
-        $this->service             = new ReviewService(
+        $this->service = new ReviewService(
             $this->userRepoStub,
             $this->reviewRepoStub,
             $this->reservationRepoStub
@@ -358,7 +360,7 @@ final class ReviewServiceTest extends ServiceTestCase
     public function testCreateReviewHandlesRuntimeException(): void
     {
         $this->userRepoStub->method('findById')
-            ->willThrowException(new \RuntimeException('Connection lost'));
+            ->willThrowException(new RuntimeException('Connection lost'));
 
         $result = $this->service->createReview(1, 1, 3, 'Título válido aquí', 'Cuerpo suficientemente largo para pasar');
 
@@ -371,7 +373,7 @@ final class ReviewServiceTest extends ServiceTestCase
         $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
         $this->reviewRepoStub->method('userHasReview')->willReturn(false);
         $this->reviewRepoStub->method('create')
-            ->willThrowException(new \Exception('Unexpected error'));
+            ->willThrowException(new Exception('Unexpected error'));
 
         $result = $this->service->createReview(1, 1, 4, 'Título válido aquí', 'Cuerpo suficientemente largo para pasar');
 
@@ -382,7 +384,7 @@ final class ReviewServiceTest extends ServiceTestCase
     public function testUpdateReviewHandlesException(): void
     {
         $this->reviewRepoStub->method('findById')
-            ->willThrowException(new \Exception('DB error'));
+            ->willThrowException(new Exception('DB error'));
 
         $result = $this->service->updateReview(1, 1, 4, 'Título válido', 'Cuerpo suficientemente largo para pasar');
 
@@ -393,7 +395,7 @@ final class ReviewServiceTest extends ServiceTestCase
     public function testDeleteReviewHandlesException(): void
     {
         $this->reviewRepoStub->method('findById')
-            ->willThrowException(new \Exception('DB error'));
+            ->willThrowException(new Exception('DB error'));
 
         $result = $this->service->deleteReview(1, 1);
 
@@ -404,7 +406,7 @@ final class ReviewServiceTest extends ServiceTestCase
     public function testDeleteReviewAdminHandlesException(): void
     {
         $this->reviewRepoStub->method('delete')
-            ->willThrowException(new \Exception('DB error'));
+            ->willThrowException(new Exception('DB error'));
 
         $result = $this->service->deleteReviewAdmin(1);
 
@@ -415,7 +417,7 @@ final class ReviewServiceTest extends ServiceTestCase
     public function testCanUserReviewHandlesException(): void
     {
         $this->reviewRepoStub->method('userHasReview')
-            ->willThrowException(new \Exception('DB error'));
+            ->willThrowException(new Exception('DB error'));
 
         $result = $this->service->canUserReview(1, 1);
 
@@ -426,7 +428,7 @@ final class ReviewServiceTest extends ServiceTestCase
     public function testUserHasCompletedReservationHandlesException(): void
     {
         $this->reservationRepoStub->method('hasCompletedReservation')
-            ->willThrowException(new \Exception('DB error'));
+            ->willThrowException(new Exception('DB error'));
 
         $result = $this->service->userHasCompletedReservation(1, 1);
 
@@ -436,7 +438,7 @@ final class ReviewServiceTest extends ServiceTestCase
     public function testUserHasReviewInCafeHandlesException(): void
     {
         $this->reviewRepoStub->method('userHasReview')
-            ->willThrowException(new \Exception('DB error'));
+            ->willThrowException(new Exception('DB error'));
 
         $result = $this->service->userHasReviewInCafe(1, 1);
 

@@ -46,7 +46,7 @@ final class MenuRepository implements MenuRepositoryInterface
      */
     public function getProductsByCategory(array $excludeAllergenIds = []): array
     {
-        $excludeAllergenIds = \array_values(\array_filter(\array_map('intval', $excludeAllergenIds), static fn($v) => $v > 0));
+        $excludeAllergenIds = \array_values(\array_filter(\array_map('intval', $excludeAllergenIds), static fn ($v) => $v > 0));
 
         $sql = "
             SELECT

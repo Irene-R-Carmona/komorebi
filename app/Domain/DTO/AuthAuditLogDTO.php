@@ -18,7 +18,8 @@ final readonly class AuthAuditLogDTO implements DomainTransferObject
         public ?string $user_agent,
         public ?string $device_name,
         public string $created_at,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

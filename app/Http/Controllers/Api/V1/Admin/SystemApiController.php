@@ -58,7 +58,7 @@ final class SystemApiController extends AbstractApiController
      */
     public function updateSettingsGroup(ServerRequestInterface $request, string $group): ResponseInterface
     {
-        $input    = (array) ($request->getParsedBody() ?? []);
+        $input = (array) ($request->getParsedBody() ?? []);
         $settings = $input['settings'] ?? [];
 
         if (empty($settings)) {
@@ -86,9 +86,9 @@ final class SystemApiController extends AbstractApiController
             throw ValidationException::withMessage('El envío de emails está desactivado', 400);
         }
 
-        $user       = Session::get('user');
+        $user = Session::get('user');
         $adminEmail = $user['email'] ?? null;
-        $adminName  = $user['name'] ?? 'Administrador';
+        $adminName = $user['name'] ?? 'Administrador';
 
         if (!$adminEmail) {
             throw ValidationException::withMessage('No se pudo obtener el email del usuario', 400);
@@ -110,7 +110,7 @@ final class SystemApiController extends AbstractApiController
         );
 
         return $this->success([
-            'message'   => "Email de prueba enviado exitosamente a $adminEmail",
+            'message' => "Email de prueba enviado exitosamente a $adminEmail",
             'recipient' => $adminEmail,
         ]);
     }

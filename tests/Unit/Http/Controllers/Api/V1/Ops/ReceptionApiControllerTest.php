@@ -55,7 +55,7 @@ final class ReceptionApiControllerTest extends ControllerTestCase
 
     public function test_todayReservations_returns_403_without_cafe(): void
     {
-        $request  = $this->makeGetRequest('/api/v1/ops/reception/reservations');
+        $request = $this->makeGetRequest('/api/v1/ops/reception/reservations');
         $response = $this->makeController()->todayReservations($request);
 
         $this->assertSame(403, $response->getStatusCode());
@@ -70,8 +70,8 @@ final class ReceptionApiControllerTest extends ControllerTestCase
         $service->method('processCheckin')->willReturn(Result::ok());
         $service->method('processCheckout')->willReturn(Result::ok());
 
-        $request  = $this->makeGetRequest('/api/v1/ops/reception/reservations');
-        $response = (new ReceptionApiController(new ResponseFactory(), $service))->todayReservations($request);
+        $request = $this->makeGetRequest('/api/v1/ops/reception/reservations');
+        $response = new ReceptionApiController(new ResponseFactory(), $service)->todayReservations($request);
 
         $this->assertSame(200, $response->getStatusCode());
     }
@@ -80,7 +80,7 @@ final class ReceptionApiControllerTest extends ControllerTestCase
 
     public function test_checkIn_returns_400_with_invalid_id(): void
     {
-        $request  = $this->makePostRequest('/api/v1/ops/reception/reservations/0/checkin', ['tracker_id' => 3]);
+        $request = $this->makePostRequest('/api/v1/ops/reception/reservations/0/checkin', ['tracker_id' => 3]);
         $response = $this->makeController()->checkIn($request, 0);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -90,7 +90,7 @@ final class ReceptionApiControllerTest extends ControllerTestCase
     {
         $this->asUser(userId: 1, role: 'reception', cafeId: 5);
 
-        $request  = $this->makePostRequest('/api/v1/ops/reception/reservations/1/checkin', ['tracker_id' => 0]);
+        $request = $this->makePostRequest('/api/v1/ops/reception/reservations/1/checkin', ['tracker_id' => 0]);
         $response = $this->makeController()->checkIn($request, 1);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -102,15 +102,15 @@ final class ReceptionApiControllerTest extends ControllerTestCase
         $service->method('processCheckin')->willReturn(Result::fail('Tracker ocupado', 'tracker_busy'));
         $service->method('processCheckout')->willReturn(Result::ok());
 
-        $request  = $this->makePostRequest('/api/v1/ops/reception/reservations/1/checkin', ['tracker_id' => 3]);
-        $response = (new ReceptionApiController(new ResponseFactory(), $service))->checkIn($request, 1);
+        $request = $this->makePostRequest('/api/v1/ops/reception/reservations/1/checkin', ['tracker_id' => 3]);
+        $response = new ReceptionApiController(new ResponseFactory(), $service)->checkIn($request, 1);
 
         $this->assertSame(422, $response->getStatusCode());
     }
 
     public function test_checkIn_returns_200_with_valid_input(): void
     {
-        $request  = $this->makePostRequest('/api/v1/ops/reception/reservations/1/checkin', ['tracker_id' => 3]);
+        $request = $this->makePostRequest('/api/v1/ops/reception/reservations/1/checkin', ['tracker_id' => 3]);
         $response = $this->makeController()->checkIn($request, 1);
 
         $this->assertSame(200, $response->getStatusCode());
@@ -120,7 +120,7 @@ final class ReceptionApiControllerTest extends ControllerTestCase
 
     public function test_checkOut_returns_400_with_invalid_id(): void
     {
-        $request  = $this->makePostRequest('/api/v1/ops/reception/reservations/0/checkout', []);
+        $request = $this->makePostRequest('/api/v1/ops/reception/reservations/0/checkout', []);
         $response = $this->makeController()->checkOut($request, 0);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -132,15 +132,15 @@ final class ReceptionApiControllerTest extends ControllerTestCase
         $service->method('processCheckin')->willReturn(Result::ok());
         $service->method('processCheckout')->willReturn(Result::fail('No se encontró la reserva', 'not_found'));
 
-        $request  = $this->makePostRequest('/api/v1/ops/reception/reservations/7/checkout', []);
-        $response = (new ReceptionApiController(new ResponseFactory(), $service))->checkOut($request, 7);
+        $request = $this->makePostRequest('/api/v1/ops/reception/reservations/7/checkout', []);
+        $response = new ReceptionApiController(new ResponseFactory(), $service)->checkOut($request, 7);
 
         $this->assertSame(422, $response->getStatusCode());
     }
 
     public function test_checkOut_returns_200_with_valid_id(): void
     {
-        $request  = $this->makePostRequest('/api/v1/ops/reception/reservations/7/checkout', []);
+        $request = $this->makePostRequest('/api/v1/ops/reception/reservations/7/checkout', []);
         $response = $this->makeController()->checkOut($request, 7);
 
         $this->assertSame(200, $response->getStatusCode());

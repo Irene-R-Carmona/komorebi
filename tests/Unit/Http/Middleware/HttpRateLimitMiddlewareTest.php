@@ -183,11 +183,11 @@ final class HttpRateLimitMiddlewareTest extends TestCase
     {
         $rateLimiter = $this->createStub(RateLimitingServiceInterface::class);
         $rateLimiter->method('isBlocked')->willReturn([
-            'blocked'           => true,
+            'blocked' => true,
             'minutes_remaining' => 3,
         ]);
 
-        $mw       = new HttpRateLimitMiddleware($this->responseFactory, $rateLimiter, 'login');
+        $mw = new HttpRateLimitMiddleware($this->responseFactory, $rateLimiter, 'login');
         $response = $mw->process($this->makeRequest(), $this->handler);
 
         $this->assertSame(429, $response->getStatusCode());

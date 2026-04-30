@@ -13,12 +13,11 @@
 
 use App\Core\Csrf;
 use App\Core\View;
-use App\Support\ViewHelpers;
 
-$reservations  ??= [];
-$stats         ??= ['total' => 0, 'confirmed' => 0, 'pending' => 0, 'cancelled' => 0];
-$cafeNames     ??= [];
-$meta          ??= ['page' => 1, 'has_next_page' => false];
+$reservations ??= [];
+$stats ??= ['total' => 0, 'confirmed' => 0, 'pending' => 0, 'cancelled' => 0];
+$cafeNames ??= [];
+$meta ??= ['page' => 1, 'has_next_page' => false];
 $currentParams ??= [];
 
 $alpineConfig = json_encode([
@@ -30,8 +29,8 @@ $alpineConfig = json_encode([
 
     <!-- Header -->
     <?= View::componentToString('components/admin/page-header', [
-        'icon'     => 'calendar-check',
-        'title'    => 'Reservas',
+        'icon' => 'calendar-check',
+        'title' => 'Reservas',
         'subtitle' => 'Gestiona las visitas programadas',
     ]) ?>
 

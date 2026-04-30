@@ -33,8 +33,8 @@ final class PassController extends AbstractApiController
     public function index(ServerRequestInterface $request): ResponseInterface
     {
         $passes = $this->availability->getAvailablePassesForReservation();
-        $etag   = $this->makeEtag($passes);
-        $cc     = 'public, max-age=300';
+        $etag = $this->makeEtag($passes);
+        $cc = 'public, max-age=300';
 
         if ($request->getHeaderLine('If-None-Match') === $etag) {
             return $this->notModified($etag, $cc);

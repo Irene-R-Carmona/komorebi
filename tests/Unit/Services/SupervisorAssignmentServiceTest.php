@@ -24,15 +24,15 @@ final class SupervisorAssignmentServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repoStub = $this->createStub(SupervisorAssignmentRepositoryInterface::class);
-        $this->service  = new SupervisorAssignmentService($this->repoStub);
+        $this->service = new SupervisorAssignmentService($this->repoStub);
     }
 
     public function testCreateFromArrayFailsWhenReservationIdMissing(): void
     {
         $result = $this->service->createFromArray([
-            'table_code'    => 'A1',
+            'table_code' => 'A1',
             'supervisor_id' => 1,
-            'cafe_id'       => 1,
+            'cafe_id' => 1,
         ]);
 
         $this->assertFalse($result->ok);
@@ -43,9 +43,9 @@ final class SupervisorAssignmentServiceTest extends TestCase
     {
         $result = $this->service->createFromArray([
             'reservation_id' => 5,
-            'table_code'     => '',
-            'supervisor_id'  => 1,
-            'cafe_id'        => 1,
+            'table_code' => '',
+            'supervisor_id' => 1,
+            'cafe_id' => 1,
         ]);
 
         $this->assertFalse($result->ok);
@@ -56,9 +56,9 @@ final class SupervisorAssignmentServiceTest extends TestCase
     {
         $result = $this->service->createFromArray([
             'reservation_id' => 5,
-            'table_code'     => 'B2',
-            'supervisor_id'  => 0,
-            'cafe_id'        => 1,
+            'table_code' => 'B2',
+            'supervisor_id' => 0,
+            'cafe_id' => 1,
         ]);
 
         $this->assertFalse($result->ok);
@@ -69,9 +69,9 @@ final class SupervisorAssignmentServiceTest extends TestCase
     {
         $result = $this->service->createFromArray([
             'reservation_id' => 5,
-            'table_code'     => 'B2',
-            'supervisor_id'  => 1,
-            'cafe_id'        => 0,
+            'table_code' => 'B2',
+            'supervisor_id' => 1,
+            'cafe_id' => 0,
         ]);
 
         $this->assertFalse($result->ok);

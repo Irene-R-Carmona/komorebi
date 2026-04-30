@@ -28,7 +28,7 @@ final class RateLimitingServiceTest extends TestCase
         $cacheStub->method('getItem')->willReturn($itemStub);
 
         $service = new RateLimitingService($cacheStub);
-        $result  = $service->isBlocked('login', 'user@example.com');
+        $result = $service->isBlocked('login', 'user@example.com');
 
         $this->assertFalse($result['blocked']);
     }
@@ -38,7 +38,7 @@ final class RateLimitingServiceTest extends TestCase
         $itemStub = $this->createStub(CacheItemInterface::class);
         $itemStub->method('isHit')->willReturn(true);
         $itemStub->method('get')->willReturn([
-            'attempts'     => 5,
+            'attempts' => 5,
             'locked_until' => \time() + 300,
         ]);
 
@@ -46,7 +46,7 @@ final class RateLimitingServiceTest extends TestCase
         $cacheStub->method('getItem')->willReturn($itemStub);
 
         $service = new RateLimitingService($cacheStub);
-        $result  = $service->isBlocked('login', 'user@example.com');
+        $result = $service->isBlocked('login', 'user@example.com');
 
         $this->assertTrue($result['blocked']);
         $this->assertArrayHasKey('minutes_remaining', $result);
@@ -57,7 +57,7 @@ final class RateLimitingServiceTest extends TestCase
         $itemStub = $this->createStub(CacheItemInterface::class);
         $itemStub->method('isHit')->willReturn(true);
         $itemStub->method('get')->willReturn([
-            'attempts'     => 5,
+            'attempts' => 5,
             'locked_until' => \time() - 60,
         ]);
 
@@ -65,7 +65,7 @@ final class RateLimitingServiceTest extends TestCase
         $cacheStub->method('getItem')->willReturn($itemStub);
 
         $service = new RateLimitingService($cacheStub);
-        $result  = $service->isBlocked('login', 'user@example.com');
+        $result = $service->isBlocked('login', 'user@example.com');
 
         $this->assertFalse($result['blocked']);
     }

@@ -47,9 +47,9 @@ final class WaitlistController extends AbstractApiController
         }
 
         $data = [
-            'guest_count'      => (int) ($body['guest_count'] ?? 1),
-            'contact_email'    => (string) ($body['contact_email'] ?? ''),
-            'contact_phone'    => (string) ($body['contact_phone'] ?? ''),
+            'guest_count' => (int) ($body['guest_count'] ?? 1),
+            'contact_email' => (string) ($body['contact_email'] ?? ''),
+            'contact_phone' => (string) ($body['contact_phone'] ?? ''),
             'special_requests' => (string) ($body['special_requests'] ?? ''),
         ];
 
@@ -60,13 +60,13 @@ final class WaitlistController extends AbstractApiController
         }
 
         $waitlistData = (array) ($result->data ?? []);
-        $position     = (int) ($waitlistData['position'] ?? 0);
+        $position = (int) ($waitlistData['position'] ?? 0);
 
         return $this->created([
-            'id'       => (int) ($waitlistData['id'] ?? 0),
-            'token'    => (string) ($waitlistData['token'] ?? ''),
+            'id' => (int) ($waitlistData['id'] ?? 0),
+            'token' => (string) ($waitlistData['token'] ?? ''),
             'position' => $position,
-            'message'  => "Te has unido a la lista de espera en posición {$position}",
+            'message' => "Te has unido a la lista de espera en posición {$position}",
         ]);
     }
 
@@ -110,7 +110,7 @@ final class WaitlistController extends AbstractApiController
             return $this->unprocessable('Token requerido');
         }
 
-        $body   = (array) ($request->getParsedBody() ?? []);
+        $body = (array) ($request->getParsedBody() ?? []);
         $result = $this->service->confirmPromotion($token, $body);
 
         if (!$result->ok) {
@@ -121,7 +121,7 @@ final class WaitlistController extends AbstractApiController
 
         return $this->success([
             'reservation_id' => (int) ($data['reservation_id'] ?? 0),
-            'message'        => 'Reserva confirmada exitosamente',
+            'message' => 'Reserva confirmada exitosamente',
         ]);
     }
 }

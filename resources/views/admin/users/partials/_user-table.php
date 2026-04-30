@@ -7,11 +7,11 @@
 use App\Core\View;
 use App\Support\ViewHelpers;
 
-$users         ??= [];
-$meta          ??= ['page' => 1, 'has_next_page' => false];
+$users ??= [];
+$meta ??= ['page' => 1, 'has_next_page' => false];
 $currentParams ??= [];
 
-$sl = static fn(string $label, string $field): string
+$sl = static fn (string $label, string $field): string
     => ViewHelpers::sortLink($label, $field, $currentParams);
 ?>
 
@@ -34,8 +34,8 @@ $sl = static fn(string $label, string $field): string
                 <tr>
                     <td colspan="7">
                         <?= View::componentToString('components/admin/empty-state', [
-                            'icon'    => 'people',
-                            'title'   => 'No encontramos usuarios',
+                            'icon' => 'people',
+                            'title' => 'No encontramos usuarios',
                             'message' => 'Prueba ajustando los filtros o crea uno nuevo',
                             'compact' => true,
                         ]) ?>
@@ -44,28 +44,28 @@ $sl = static fn(string $label, string $field): string
             <?php else: ?>
                 <?php foreach ($users as $user): ?>
                 <?php
-                    $isActive   = !empty($user['is_active']);
-                    $rolesArr   = array_filter(array_map('trim', explode(',', (string) ($user['roles'] ?? ''))));
+                    $isActive = !empty($user['is_active']);
+                    $rolesArr = array_filter(array_map('trim', explode(',', (string) ($user['roles'] ?? ''))));
                     $primaryRole = strtolower((string) ($rolesArr[0] ?? ''));
                     $avatarClass = match ($primaryRole) {
-                        'admin'      => 'user-avatar--admin',
-                        'manager'    => 'user-avatar--manager',
+                        'admin' => 'user-avatar--admin',
+                        'manager' => 'user-avatar--manager',
                         'supervisor' => 'user-avatar--supervisor',
-                        default      => '',
+                        default => '',
                     };
                     $initial = strtoupper(substr((string) ($user['name'] ?? '?'), 0, 1));
 
                     $editData = htmlspecialchars(json_encode([
-                        'id'        => (int) $user['id'],
-                        'name'      => (string) $user['name'],
-                        'email'     => (string) $user['email'],
-                        'role_id'   => $user['role_id'] !== null ? (int) $user['role_id'] : null,
+                        'id' => (int) $user['id'],
+                        'name' => (string) $user['name'],
+                        'email' => (string) $user['email'],
+                        'role_id' => $user['role_id'] !== null ? (int) $user['role_id'] : null,
                         'is_active' => $isActive,
                     ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8');
 
                     $userName = htmlspecialchars((string) $user['name'], ENT_QUOTES, 'UTF-8');
-                    $userId   = (int) $user['id'];
-                ?>
+                    $userId = (int) $user['id'];
+                    ?>
                 <tr class="user-row<?= $isActive ? '' : ' user-row--inactive' ?>">
                     <td><span class="fw-semibold text-muted">#<?= $userId ?></span></td>
 
@@ -96,17 +96,17 @@ $sl = static fn(string $label, string $field): string
                         <?php else: ?>
                             <?php foreach ($rolesArr as $roleName): ?>
                             <?php
-                                $rKey = strtolower(trim($roleName));
+                                    $rKey = strtolower(trim($roleName));
                                 $badgeClass = match ($rKey) {
-                                    'admin'      => 'role-badge--admin',
-                                    'manager'    => 'role-badge--manager',
+                                    'admin' => 'role-badge--admin',
+                                    'manager' => 'role-badge--manager',
                                     'supervisor' => 'role-badge--supervisor',
-                                    'reception'  => 'role-badge--reception',
-                                    'kitchen'    => 'role-badge--kitchen',
-                                    'keeper'     => 'role-badge--keeper',
-                                    default      => 'role-badge--user',
+                                    'reception' => 'role-badge--reception',
+                                    'kitchen' => 'role-badge--kitchen',
+                                    'keeper' => 'role-badge--keeper',
+                                    default => 'role-badge--user',
                                 };
-                            ?>
+                                ?>
                             <span class="role-badge <?= $badgeClass ?>">
                                 <?= htmlspecialchars($roleName, ENT_QUOTES, 'UTF-8') ?>
                             </span>

@@ -77,12 +77,12 @@ declare(strict_types=1);
                                 'behavior' => 'Comportamiento',
                                 'other' => 'Otro',
                             ];
-                            ?>
+?>
                             <select id="incident_type" name="incident_type" class="form-select">
                                 <option value="">Selecciona tipo (opcional)…</option>
                                 <?php foreach (\App\Domain\AnimalVocabulary::INCIDENT_TYPES as $t): ?>
                                     <option value="<?= htmlspecialchars($t, ENT_QUOTES, 'UTF-8') ?>">
-                                        <?= htmlspecialchars($incidentTypeLabels[$t] ?? \ucfirst($t), ENT_QUOTES, 'UTF-8') ?>
+                                        <?= htmlspecialchars($incidentTypeLabels[$t] ?? ucfirst($t), ENT_QUOTES, 'UTF-8') ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>

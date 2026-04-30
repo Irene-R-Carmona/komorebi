@@ -62,7 +62,7 @@ final class ReceptionApiController extends AbstractApiController
             return $this->badRequest('Identificador de reserva inválido', 'reservation_id_invalid');
         }
 
-        $body    = (array) ($request->getParsedBody() ?? []);
+        $body = (array) ($request->getParsedBody() ?? []);
         $trackId = (int) ($body['tracker_id'] ?? 0);
 
         if ($trackId <= 0) {

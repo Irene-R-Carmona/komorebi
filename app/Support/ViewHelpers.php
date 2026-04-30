@@ -23,12 +23,12 @@ final class ViewHelpers
     public static function sortLink(string $label, string $field, array $currentParams): string
     {
         $isActive = ($currentParams['sort'] ?? '') === $field;
-        $newDir   = ($isActive && ($currentParams['dir'] ?? 'asc') === 'asc')
+        $newDir = ($isActive && ($currentParams['dir'] ?? 'asc') === 'asc')
             ? PaginationParams::DIR_DESC
             : PaginationParams::DIR_ASC;
 
         $params = \array_merge($currentParams, ['sort' => $field, 'dir' => $newDir, 'page' => '1']);
-        $url    = '?' . \http_build_query($params);
+        $url = '?' . \http_build_query($params);
 
         $arrow = '';
         if ($isActive) {
@@ -53,7 +53,7 @@ final class ViewHelpers
      */
     public static function paginationLinks(array $meta, array $currentParams): string
     {
-        $page        = (int) ($meta['page'] ?? 1);
+        $page = (int) ($meta['page'] ?? 1);
         $hasNextPage = (bool) ($meta['has_next_page'] ?? false);
 
         if ($page <= 1 && !$hasNextPage) {
@@ -64,16 +64,16 @@ final class ViewHelpers
 
         if ($page > 1) {
             $params = \array_merge($currentParams, ['page' => (string) ($page - 1)]);
-            $url    = '?' . \http_build_query($params);
-            $html  .= "<a href=\"{$url}\" class=\"pagination-prev\">&laquo; Anterior</a>";
+            $url = '?' . \http_build_query($params);
+            $html .= "<a href=\"{$url}\" class=\"pagination-prev\">&laquo; Anterior</a>";
         }
 
         $html .= "<span class=\"pagination-current\">Página {$page}</span>";
 
         if ($hasNextPage) {
             $params = \array_merge($currentParams, ['page' => (string) ($page + 1)]);
-            $url    = '?' . \http_build_query($params);
-            $html  .= "<a href=\"{$url}\" class=\"pagination-next\">Siguiente &raquo;</a>";
+            $url = '?' . \http_build_query($params);
+            $html .= "<a href=\"{$url}\" class=\"pagination-next\">Siguiente &raquo;</a>";
         }
 
         $html .= '</nav>';

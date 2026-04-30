@@ -29,7 +29,8 @@ final class ApiAuthMiddleware implements MiddlewareInterface
     public function __construct(
         private readonly ResponseFactory $response,
         private readonly ?ApiTokenServiceInterface $tokenService = null,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function process(
@@ -44,7 +45,7 @@ final class ApiAuthMiddleware implements MiddlewareInterface
 
             if ($result === null) {
                 Logger::warning('[ApiAuth] Bearer token rejected — service unavailable', [
-                    'ip'   => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown',
+                    'ip' => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown',
                     'path' => $request->getRequestTarget(),
                 ]);
 
@@ -55,8 +56,8 @@ final class ApiAuthMiddleware implements MiddlewareInterface
                 $code = $result->code ?? 'invalid_token';
 
                 Logger::warning('[ApiAuth] Bearer token rejected', [
-                    'ip'           => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown',
-                    'path'         => $request->getRequestTarget(),
+                    'ip' => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown',
+                    'path' => $request->getRequestTarget(),
                     'token_prefix' => \substr(\hash('sha256', $plain), 0, 8),
                 ]);
 
@@ -79,7 +80,7 @@ final class ApiAuthMiddleware implements MiddlewareInterface
 
         if (empty($userId)) {
             Logger::warning('[ApiAuth] Unauthenticated request', [
-                'ip'   => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown',
+                'ip' => $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown',
                 'path' => $request->getRequestTarget(),
             ]);
 

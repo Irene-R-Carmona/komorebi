@@ -7,25 +7,25 @@
 use App\Core\View;
 use App\Support\ViewHelpers;
 
-$cafes         ??= [];
-$meta          ??= ['page' => 1, 'has_next_page' => false];
+$cafes ??= [];
+$meta ??= ['page' => 1, 'has_next_page' => false];
 $currentParams ??= [];
 
 $categoryMap = [
-    'lounge'   => ['label' => 'Lounge',   'icon' => '🛋️', 'class' => 'category-badge--lounge'],
+    'lounge' => ['label' => 'Lounge',   'icon' => '🛋️', 'class' => 'category-badge--lounge'],
     'playroom' => ['label' => 'Playroom', 'icon' => '🎮', 'class' => 'category-badge--playroom'],
-    'farm'     => ['label' => 'Farm',     'icon' => '🌾', 'class' => 'category-badge--farm'],
-    'zen'      => ['label' => 'Zen',      'icon' => '🧘', 'class' => 'category-badge--zen'],
+    'farm' => ['label' => 'Farm',     'icon' => '🌾', 'class' => 'category-badge--farm'],
+    'zen' => ['label' => 'Zen',      'icon' => '🧘', 'class' => 'category-badge--zen'],
 ];
 
 $animalMap = [
-    'cat'      => ['label' => 'Gatos',    'icon' => '🐱'],
-    'dog'      => ['label' => 'Perros',   'icon' => '🐶'],
-    'rabbit'   => ['label' => 'Conejos',  'icon' => '🐰'],
-    'bird'     => ['label' => 'Aves',     'icon' => '🦜'],
+    'cat' => ['label' => 'Gatos',    'icon' => '🐱'],
+    'dog' => ['label' => 'Perros',   'icon' => '🐶'],
+    'rabbit' => ['label' => 'Conejos',  'icon' => '🐰'],
+    'bird' => ['label' => 'Aves',     'icon' => '🦜'],
     'hedgehog' => ['label' => 'Erizos',   'icon' => '🦔'],
     'capybara' => ['label' => 'Capibaras','icon' => '🦫'],
-    'mixed'    => ['label' => 'Mixto',    'icon' => '🐾'],
+    'mixed' => ['label' => 'Mixto',    'icon' => '🐾'],
 ];
 ?>
 
@@ -33,9 +33,9 @@ $animalMap = [
 <div class="card-admin">
     <div class="card-admin__body">
         <?= View::componentToString('components/admin/empty-state', [
-            'icon'        => 'shop',
-            'title'       => 'No encontramos cafés',
-            'message'     => 'Prueba ajustando los filtros o añade una nueva sede',
+            'icon' => 'shop',
+            'title' => 'No encontramos cafés',
+            'message' => 'Prueba ajustando los filtros o añade una nueva sede',
             'actionLabel' => 'Crear Café',
             'actionClick' => 'openCreateModal()',
         ]) ?>
@@ -46,36 +46,36 @@ $animalMap = [
 <div class="cafe-grid">
     <?php foreach ($cafes as $cafe): ?>
     <?php
-        $cafeId   = (int) $cafe['id'];
+        $cafeId = (int) $cafe['id'];
         $isActive = !empty($cafe['is_active']);
-        $hasRes   = !empty($cafe['has_reservations']);
-        $category = (string) ($cafe['category']    ?? '');
-        $animal   = (string) ($cafe['animal_type'] ?? '');
-        $rating   = (float)  ($cafe['rating_avg']  ?? 0);
+        $hasRes = !empty($cafe['has_reservations']);
+        $category = (string) ($cafe['category'] ?? '');
+        $animal = (string) ($cafe['animal_type'] ?? '');
+        $rating = (float) ($cafe['rating_avg'] ?? 0);
         $fullStars = (int) $rating;
 
-        $catInfo    = $categoryMap[$category] ?? ['label' => $category, 'icon' => '📍', 'class' => ''];
-        $animalInfo = $animalMap[$animal]     ?? ['label' => $animal,   'icon' => '🐾'];
+        $catInfo = $categoryMap[$category] ?? ['label' => $category, 'icon' => '📍', 'class' => ''];
+        $animalInfo = $animalMap[$animal] ?? ['label' => $animal,   'icon' => '🐾'];
 
         $cafeName = htmlspecialchars((string) ($cafe['name'] ?? ''), ENT_QUOTES, 'UTF-8');
         $editData = htmlspecialchars(json_encode([
-            'id'              => $cafeId,
-            'name'            => (string) ($cafe['name']          ?? ''),
-            'japanese_name'   => (string) ($cafe['japanese_name'] ?? ''),
-            'slug'            => (string) ($cafe['slug']          ?? ''),
-            'location'        => (string) ($cafe['location']      ?? ''),
-            'category'        => $category,
-            'animal_type'     => $animal,
-            'description'     => (string) ($cafe['description']   ?? ''),
-            'price_per_hour'  => (int)    ($cafe['price_per_hour'] ?? 0),
-            'capacity_max'    => (int)    ($cafe['capacity_max']   ?? 0),
-            'opening_time'    => (string) ($cafe['opening_time']  ?? ''),
-            'closing_time'    => (string) ($cafe['closing_time']  ?? ''),
-            'image_url'       => (string) ($cafe['image_url']     ?? ''),
-            'is_active'       => $isActive,
-            'has_reservations'=> $hasRes,
+            'id' => $cafeId,
+            'name' => (string) ($cafe['name'] ?? ''),
+            'japanese_name' => (string) ($cafe['japanese_name'] ?? ''),
+            'slug' => (string) ($cafe['slug'] ?? ''),
+            'location' => (string) ($cafe['location'] ?? ''),
+            'category' => $category,
+            'animal_type' => $animal,
+            'description' => (string) ($cafe['description'] ?? ''),
+            'price_per_hour' => (int) ($cafe['price_per_hour'] ?? 0),
+            'capacity_max' => (int) ($cafe['capacity_max'] ?? 0),
+            'opening_time' => (string) ($cafe['opening_time'] ?? ''),
+            'closing_time' => (string) ($cafe['closing_time'] ?? ''),
+            'image_url' => (string) ($cafe['image_url'] ?? ''),
+            'is_active' => $isActive,
+            'has_reservations' => $hasRes,
         ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR), ENT_QUOTES, 'UTF-8');
-    ?>
+        ?>
     <article class="cafe-card<?= $isActive ? '' : ' cafe-card--inactive' ?>">
 
         <!-- Imagen -->

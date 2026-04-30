@@ -38,6 +38,7 @@ final class StatisticsRepositoryTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('query')->willReturn($stmt);
+
         return $pdo;
     }
 
@@ -102,10 +103,10 @@ final class StatisticsRepositoryTest extends TestCase
             'unique_users' => 8,
             'completed_reservations' => 7,
             'cancelled_reservations' => 2,
-            'no_shows' => 1
+            'no_shows' => 1,
         ];
-        $userRow        = ['new_users' => 3];
-        $reviewRow      = ['total_reviews' => 5, 'avg_rating' => 4.2];
+        $userRow = ['new_users' => 3];
+        $reviewRow = ['total_reviews' => 5, 'avg_rating' => 4.2];
 
         $fetchIdx = 0;
         $fetchRows = [$reservationRow, $userRow, $reviewRow];
@@ -144,9 +145,9 @@ final class StatisticsRepositoryTest extends TestCase
             'total_guests' => 60,
             'completed' => 15,
             'cancelled' => 5,
-            'completion_rate' => 75.0
+            'completion_rate' => 75.0,
         ]];
-        $pdo  = $this->makePdo($rows);
+        $pdo = $this->makePdo($rows);
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getCafePerformanceStats('2024-01-01', '2024-06-30', 10);
@@ -156,7 +157,7 @@ final class StatisticsRepositoryTest extends TestCase
 
     public function testGetCafePerformanceStatsReturnsEmptyArray(): void
     {
-        $pdo  = $this->makePdo([]);
+        $pdo = $this->makePdo([]);
         $repo = new StatisticsRepository($pdo);
 
         $this->assertSame([], $repo->getCafePerformanceStats('2024-01-01', '2024-01-31'));
@@ -173,9 +174,9 @@ final class StatisticsRepositoryTest extends TestCase
             'total_reservations' => 5,
             'total_guests' => 15,
             'completed' => 4,
-            'cancelled' => 1
+            'cancelled' => 1,
         ]];
-        $pdo  = $this->makePdo($rows);
+        $pdo = $this->makePdo($rows);
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getReservationTrendStats('2024-06-01', '2024-06-30');
@@ -184,7 +185,7 @@ final class StatisticsRepositoryTest extends TestCase
 
     public function testGetReservationTrendStatsReturnsEmpty(): void
     {
-        $pdo  = $this->makePdo([]);
+        $pdo = $this->makePdo([]);
         $repo = new StatisticsRepository($pdo);
 
         $this->assertSame([], $repo->getReservationTrendStats('2024-06-01', '2024-06-30'));
@@ -197,7 +198,7 @@ final class StatisticsRepositoryTest extends TestCase
     public function testGetReservationsByCafeTypeReturnsRows(): void
     {
         $rows = [['type' => 'cat', 'total_reservations' => 30, 'total_guests' => 90, 'percentage' => 60.0]];
-        $pdo  = $this->makePdo($rows);
+        $pdo = $this->makePdo($rows);
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getReservationsByCafeType('2024-01-01', '2024-06-30');
@@ -212,7 +213,7 @@ final class StatisticsRepositoryTest extends TestCase
     public function testGetUserDistributionByRoleReturnsRows(): void
     {
         $rows = [['role_name' => 'Admin', 'role_code' => 'admin', 'user_count' => 2]];
-        $pdo  = $this->makePdo($rows);
+        $pdo = $this->makePdo($rows);
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getUserDistributionByRole();
@@ -234,9 +235,9 @@ final class StatisticsRepositoryTest extends TestCase
             'total_reservations' => 50,
             'total_guests' => 150,
             'avg_rating' => 4.5,
-            'review_count' => 12
+            'review_count' => 12,
         ]];
-        $pdo  = $this->makePdo($rows);
+        $pdo = $this->makePdo($rows);
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getTopCafes('2024-01-01', '2024-06-30', 5);
@@ -245,7 +246,7 @@ final class StatisticsRepositoryTest extends TestCase
 
     public function testGetTopCafesReturnsEmpty(): void
     {
-        $pdo  = $this->makePdo([]);
+        $pdo = $this->makePdo([]);
         $repo = new StatisticsRepository($pdo);
 
         $this->assertSame([], $repo->getTopCafes('2024-01-01', '2024-01-31'));
@@ -257,8 +258,8 @@ final class StatisticsRepositoryTest extends TestCase
 
     public function testGetCafeStatsReturnsArray(): void
     {
-        $row  = ['total' => 5, 'active' => 4, 'with_reservations' => 3, 'categories' => 2, 'animal_types' => 2];
-        $pdo  = $this->makePdo([], $row);
+        $row = ['total' => 5, 'active' => 4, 'with_reservations' => 3, 'categories' => 2, 'animal_types' => 2];
+        $pdo = $this->makePdo([], $row);
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getCafeStats();
@@ -268,7 +269,7 @@ final class StatisticsRepositoryTest extends TestCase
 
     public function testGetCafeStatsReturnsFalseWhenEmpty(): void
     {
-        $pdo  = $this->makePdo([], false);
+        $pdo = $this->makePdo([], false);
         $repo = new StatisticsRepository($pdo);
 
         $this->assertFalse($repo->getCafeStats());
@@ -281,7 +282,7 @@ final class StatisticsRepositoryTest extends TestCase
     public function testGetReportsSummaryWithReservations(): void
     {
         // fetchColumn siempre devuelve '10'; avg_guests = round(10/10, 2) = 1.0
-        $pdo  = $this->makePdo([], false, '10');
+        $pdo = $this->makePdo([], false, '10');
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getReportsSummary('2024-01-01', '2024-06-30');
@@ -298,7 +299,7 @@ final class StatisticsRepositoryTest extends TestCase
     public function testGetReportsSummaryWithZeroReservations(): void
     {
         // total_reservations = 0 → avg_guests = 0 (else branch)
-        $pdo  = $this->makePdo([], false, '0');
+        $pdo = $this->makePdo([], false, '0');
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getReportsSummary('2024-01-01', '2024-06-30');
@@ -311,7 +312,7 @@ final class StatisticsRepositoryTest extends TestCase
 
     public function testGetDataViewerStatsReturnsAllKeys(): void
     {
-        $pdo  = $this->makePdo([], false, '20');
+        $pdo = $this->makePdo([], false, '20');
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getDataViewerStats();
@@ -327,7 +328,7 @@ final class StatisticsRepositoryTest extends TestCase
             'time_slots',
             'time_slots_available',
             'reviews',
-            'incidents'
+            'incidents',
         ];
         foreach ($keys as $key) {
             $this->assertArrayHasKey($key, $result);
@@ -349,9 +350,9 @@ final class StatisticsRepositoryTest extends TestCase
             'guests' => 2,
             'cafe_name' => 'Neko',
             'customer_name' => 'Ana',
-            'created_at' => '2024-06-01 09:00:00'
+            'created_at' => '2024-06-01 09:00:00',
         ]];
-        $pdo  = $this->makePdo($rows);
+        $pdo = $this->makePdo($rows);
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getRecentReservations(10);
@@ -369,9 +370,9 @@ final class StatisticsRepositoryTest extends TestCase
             'cafe_name' => 'Neko',
             'customer_name' => 'Ana',
             'customer_email' => 'ana@test.com',
-            'reservation_date' => '2024-06-01'
+            'reservation_date' => '2024-06-01',
         ]];
-        $pdo  = $this->makePdo($rows);
+        $pdo = $this->makePdo($rows);
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getReservationsWithDetails(100);
@@ -385,7 +386,7 @@ final class StatisticsRepositoryTest extends TestCase
     public function testGetProductsWithCategoriesReturnsRows(): void
     {
         $rows = [['id' => 1, 'name' => 'Entrada básica', 'category_name' => 'Entradas']];
-        $pdo  = $this->makePdo($rows);
+        $pdo = $this->makePdo($rows);
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getProductsWithCategories();
@@ -399,12 +400,12 @@ final class StatisticsRepositoryTest extends TestCase
     public function testGetRecentActivityCoversBranchesWhenRowsPresent(): void
     {
         // Un mismo stmt que devuelve siempre 1 fila con todos los campos necesarios
-        $row  = [
+        $row = [
             'created_at' => '2024-06-01 10:00:00',
             'cafe_name' => 'Neko',
             'user_name' => 'Ana',
             'name' => 'Ana',
-            'email' => 'ana@test.com'
+            'email' => 'ana@test.com',
         ];
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn([$row]);
@@ -412,7 +413,7 @@ final class StatisticsRepositoryTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('query')->willReturn($stmt);
 
-        $repo   = new StatisticsRepository($pdo);
+        $repo = new StatisticsRepository($pdo);
         $result = $repo->getRecentActivity(10);
 
         $this->assertCount(3, $result); // 1 reserva + 1 usuario + 1 reseña
@@ -440,7 +441,7 @@ final class StatisticsRepositoryTest extends TestCase
 
     public function testGetReservationsChartDataReturnsSevenEntries(): void
     {
-        $pdo  = $this->makePdo([], false, '3');
+        $pdo = $this->makePdo([], false, '3');
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getReservationsChartData();
@@ -458,7 +459,7 @@ final class StatisticsRepositoryTest extends TestCase
 
     public function testGetDataViewerSamplesReturnsAllSections(): void
     {
-        $pdo  = $this->makePdo([]);
+        $pdo = $this->makePdo([]);
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getDataViewerSamples();

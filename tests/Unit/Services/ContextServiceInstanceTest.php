@@ -22,7 +22,7 @@ final class ContextServiceInstanceTest extends TestCase
     public function testAdminWithNoSelectionIsGlobalView(): void
     {
         $cafeRepo = $this->createStub(CafeRepositoryInterface::class);
-        $service  = new ContextServiceInstance($cafeRepo, Middleware::ROLE_ADMIN, null, null);
+        $service = new ContextServiceInstance($cafeRepo, Middleware::ROLE_ADMIN, null, null);
 
         $this->assertTrue($service->isGlobalView());
         $this->assertFalse($service->hasCafeContext());
@@ -32,7 +32,7 @@ final class ContextServiceInstanceTest extends TestCase
     public function testAdminWithSelectedCafeHasContext(): void
     {
         $cafeRepo = $this->createStub(CafeRepositoryInterface::class);
-        $service  = new ContextServiceInstance($cafeRepo, Middleware::ROLE_ADMIN, null, 5);
+        $service = new ContextServiceInstance($cafeRepo, Middleware::ROLE_ADMIN, null, 5);
 
         $this->assertFalse($service->isGlobalView());
         $this->assertTrue($service->hasCafeContext());
@@ -42,7 +42,7 @@ final class ContextServiceInstanceTest extends TestCase
     public function testManagerWithAssignedCafeHasContext(): void
     {
         $cafeRepo = $this->createStub(CafeRepositoryInterface::class);
-        $service  = new ContextServiceInstance($cafeRepo, Middleware::ROLE_MANAGER, 3, null);
+        $service = new ContextServiceInstance($cafeRepo, Middleware::ROLE_MANAGER, 3, null);
 
         $this->assertFalse($service->isGlobalView());
         $this->assertTrue($service->hasCafeContext());

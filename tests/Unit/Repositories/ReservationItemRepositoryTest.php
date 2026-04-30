@@ -43,6 +43,7 @@ final class ReservationItemRepositoryTest extends TestCase
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('rowCount')->willReturn($rowCount);
         $stmt->method('fetchColumn')->willReturn($fetchColumnReturn);
+
         return $stmt;
     }
 
@@ -51,6 +52,7 @@ final class ReservationItemRepositoryTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('lastInsertId')->willReturn($lastInsertId);
+
         return $pdo;
     }
 

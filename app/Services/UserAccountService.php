@@ -21,7 +21,8 @@ final class UserAccountService implements UserAccountServiceInterface
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepo,
-    ) {}
+    ) {
+    }
 
     /**
      * Cambia la contraseña del usuario.

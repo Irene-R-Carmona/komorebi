@@ -30,7 +30,8 @@ final class PasswordResetService implements PasswordResetServiceInterface
         private readonly SessionManagementServiceInterface $sessionService,
         private readonly RateLimitingServiceInterface $rateLimiter,
         private readonly EmailServiceInterface $emailService,
-    ) {}
+    ) {
+    }
 
     /**
      * Solicitar reset de contraseña (forgot password).

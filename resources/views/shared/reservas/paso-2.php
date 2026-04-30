@@ -10,15 +10,15 @@ use App\Core\Csrf;
  * @var array  $wizard   - Datos del wizard (cafe_id, cafe_name, pass_name, guests, etc.)
  * @var array  $festivos - Festivos del año (PHP-injected)
  */
-$wizard   ??= [];
+$wizard ??= [];
 $festivos ??= [];
 
-$festivos_json   = json_encode($festivos,         JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
-$wizard_json     = json_encode([
-    'cafeId'   => (int) ($wizard['cafe_id'] ?? 0),
+$festivos_json = json_encode($festivos, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+$wizard_json = json_encode([
+    'cafeId' => (int) ($wizard['cafe_id'] ?? 0),
     'cafeName' => (string) ($wizard['cafe_name'] ?? ''),
     'passName' => (string) ($wizard['pass_name'] ?? ''),
-    'guests'   => (int) ($wizard['guests'] ?? 1),
+    'guests' => (int) ($wizard['guests'] ?? 1),
     'festivos' => $festivos,
 ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
 ?>

@@ -22,19 +22,19 @@ use App\Core\Env;
 header('Content-Type: application/json');
 
 // --- Token gate -------------------------------------------------------
-$healthToken  = Env::get('HEALTH_TOKEN', '');
+$healthToken = Env::get('HEALTH_TOKEN', '');
 $requestToken = $_SERVER['HTTP_X_HEALTH_TOKEN'] ?? '';
-$tokenValid   = $healthToken !== '' && \hash_equals($healthToken, $requestToken);
+$tokenValid = $healthToken !== '' && hash_equals($healthToken, $requestToken);
 
 if ($healthToken === '' || !$tokenValid) {
     // Liveness probe público — sin detalles internos
-    echo \json_encode(['status' => 'ok']);
+    echo json_encode(['status' => 'ok']);
     exit(0);
 }
 // ----------------------------------------------------------------------
 
-$checks    = [];
-$healthy   = true;
+$checks = [];
+$healthy = true;
 $statusCode = 200;
 
 // 1. Verificar Base de Datos
@@ -44,12 +44,12 @@ try {
     $mysqlUrl = Env::get('MYSQL_URL') ?: Env::get('DATABASE_URL') ?: '';
 
     if ($mysqlUrl !== '') {
-        $parts  = \parse_url($mysqlUrl);
+        $parts = parse_url($mysqlUrl);
         $dbHost = $parts['host'] ?? 'db';
         $dbPort = (int) ($parts['port'] ?? 3306);
-        $dbName = \ltrim($parts['path'] ?? '/komorebi', '/');
-        $dbUser = \urldecode($parts['user'] ?? 'root');
-        $dbPass = \urldecode($parts['pass'] ?? '');
+        $dbName = ltrim($parts['path'] ?? '/komorebi', '/');
+        $dbUser = urldecode($parts['user'] ?? 'root');
+        $dbPass = urldecode($parts['pass'] ?? '');
     } else {
         $dbHost = Env::get('DB_HOST', 'db');
         $dbPort = (int) Env::get('DB_PORT', '3306');
@@ -69,7 +69,7 @@ try {
     $checks['database'] = ['status' => 'ok'];
 } catch (Throwable $e) {
     $checks['database'] = ['status' => 'error', 'message' => 'Connection failed'];
-    $healthy   = false;
+    $healthy = false;
     $statusCode = 503;
 }
 
@@ -77,7 +77,7 @@ try {
 $redis = null;
 if (Env::get('REDIS_HOST', '') !== '') {
     try {
-        $redis     = new Redis();
+        $redis = new Redis();
         $redisHost = Env::get('REDIS_HOST', 'cache');
         $redisPort = (int) Env::get('REDIS_PORT', '6379');
 
@@ -92,15 +92,15 @@ if (Env::get('REDIS_HOST', '') !== '') {
         $checks['redis'] = ['status' => 'ok'];
     } catch (Throwable $e) {
         $checks['redis'] = ['status' => 'error', 'message' => 'Connection failed'];
-        $healthy   = false;
+        $healthy = false;
         $statusCode = 503;
     }
 }
 
 // 3. Espacio en disco (básico)
-$freeSpace    = \disk_free_space(__DIR__);
-$totalSpace   = \disk_total_space(__DIR__);
-$usagePercent = $totalSpace > 0 ? \round((1 - $freeSpace / $totalSpace) * 100, 2) : 0;
+$freeSpace = disk_free_space(__DIR__);
+$totalSpace = disk_total_space(__DIR__);
+$usagePercent = $totalSpace > 0 ? round((1 - $freeSpace / $totalSpace) * 100, 2) : 0;
 
 if ($usagePercent > 90) {
     $checks['disk'] = ['status' => 'warning', 'usage_percent' => $usagePercent];
@@ -111,7 +111,7 @@ if ($usagePercent > 90) {
 // 4. Verificar queues de workers (Redis debe estar disponible)
 if ($redis !== null) {
     try {
-        $emailPending        = (int) ($redis->lLen('queue:emails') ?: 0);
+        $emailPending = (int) ($redis->lLen('queue:emails') ?: 0);
         $notificationPending = (int) ($redis->lLen('queue:notifications') ?: 0);
 
         $queueStatus = static function (int $pending): string {
@@ -125,22 +125,22 @@ if ($redis !== null) {
             return 'ok';
         };
 
-        $emailStatus        = $queueStatus($emailPending);
+        $emailStatus = $queueStatus($emailPending);
         $notificationStatus = $queueStatus($notificationPending);
 
         $checks['workers'] = [
             'emails' => [
-                'status'  => $emailStatus,
+                'status' => $emailStatus,
                 'pending' => $emailPending,
             ],
             'notifications' => [
-                'status'  => $notificationStatus,
+                'status' => $notificationStatus,
                 'pending' => $notificationPending,
             ],
         ];
 
         if ($emailStatus === 'unhealthy' || $notificationStatus === 'unhealthy') {
-            $healthy   = false;
+            $healthy = false;
             $statusCode = 503;
         }
     } catch (Throwable $e) {
@@ -149,10 +149,10 @@ if ($redis !== null) {
 }
 
 // Respuesta
-\http_response_code($statusCode);
-echo \json_encode([
-    'status'    => $healthy ? 'healthy' : 'unhealthy',
-    'timestamp' => \date('c'),
-    'version'   => Env::get('APP_VERSION', 'unknown'),
-    'checks'    => $checks,
+http_response_code($statusCode);
+echo json_encode([
+    'status' => $healthy ? 'healthy' : 'unhealthy',
+    'timestamp' => date('c'),
+    'version' => Env::get('APP_VERSION', 'unknown'),
+    'checks' => $checks,
 ], JSON_PRETTY_PRINT);

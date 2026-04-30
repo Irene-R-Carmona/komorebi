@@ -16,10 +16,10 @@ final class WaitlistTest extends TestCase
 {
     public function testStatusConstants(): void
     {
-        $this->assertSame('waiting',   Waitlist::STATUS_WAITING);
-        $this->assertSame('notified',  Waitlist::STATUS_NOTIFIED);
+        $this->assertSame('waiting', Waitlist::STATUS_WAITING);
+        $this->assertSame('notified', Waitlist::STATUS_NOTIFIED);
         $this->assertSame('confirmed', Waitlist::STATUS_CONFIRMED);
-        $this->assertSame('expired',   Waitlist::STATUS_EXPIRED);
+        $this->assertSame('expired', Waitlist::STATUS_EXPIRED);
         $this->assertSame('cancelled', Waitlist::STATUS_CANCELLED);
     }
 

@@ -14,6 +14,7 @@ use App\Domain\DTO\ProductDTO;
 use App\Exceptions\ValidationException;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\ProductService;
+use PDOException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -26,7 +27,7 @@ final class ProductServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repoStub = $this->createStub(ProductRepositoryInterface::class);
-        $this->service  = new ProductService($this->repoStub);
+        $this->service = new ProductService($this->repoStub);
     }
 
     public function testCreateThrowsValidationExceptionWhenNameMissing(): void
@@ -247,7 +248,7 @@ final class ProductServiceTest extends TestCase
 
     public function testCreateThrowsDatabaseExceptionOnPDOException(): void
     {
-        $pdo = new \PDOException('Connection failed');
+        $pdo = new PDOException('Connection failed');
         $this->repoStub->method('create')->willThrowException($pdo);
 
         $this->expectException(\App\Exceptions\DatabaseException::class);
@@ -266,7 +267,7 @@ final class ProductServiceTest extends TestCase
 
     public function testUpdateThrowsDatabaseExceptionOnPDOException(): void
     {
-        $this->repoStub->method('update')->willThrowException(new \PDOException('fail'));
+        $this->repoStub->method('update')->willThrowException(new PDOException('fail'));
 
         $this->expectException(\App\Exceptions\DatabaseException::class);
 
@@ -275,7 +276,7 @@ final class ProductServiceTest extends TestCase
 
     public function testDeleteThrowsDatabaseExceptionOnPDOException(): void
     {
-        $this->repoStub->method('softDelete')->willThrowException(new \PDOException('fail'));
+        $this->repoStub->method('softDelete')->willThrowException(new PDOException('fail'));
 
         $this->expectException(\App\Exceptions\DatabaseException::class);
 
@@ -293,7 +294,7 @@ final class ProductServiceTest extends TestCase
 
     public function testToggleActiveReturnsFalseOnPDOException(): void
     {
-        $this->repoStub->method('toggleAvailability')->willThrowException(new \PDOException('fail'));
+        $this->repoStub->method('toggleAvailability')->willThrowException(new PDOException('fail'));
 
         $result = $this->service->toggleActive(5);
 

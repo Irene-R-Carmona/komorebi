@@ -30,6 +30,7 @@ final class SettingRepositoryTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);
+
         return $stmt;
     }
 
@@ -38,6 +39,7 @@ final class SettingRepositoryTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('query')->willReturn($stmt);
+
         return $pdo;
     }
 

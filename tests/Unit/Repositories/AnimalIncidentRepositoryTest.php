@@ -37,6 +37,7 @@ final class AnimalIncidentRepositoryTest extends TestCase
         $stmt->method('execute')->willReturn($executeReturn);
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);
         $stmt->method('fetch')->willReturn($fetchReturn);
+
         return $stmt;
     }
 
@@ -46,6 +47,7 @@ final class AnimalIncidentRepositoryTest extends TestCase
         $pdo->method('prepare')->willReturn($stmt);
         $pdo->method('query')->willReturn($stmt);
         $pdo->method('lastInsertId')->willReturn($lastInsertId);
+
         return $pdo;
     }
 

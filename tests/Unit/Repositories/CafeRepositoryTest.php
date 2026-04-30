@@ -30,7 +30,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindByIdReturnsDtoWhenFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: RowFactory::cafeRow());
+        $pdo = $this->makePdo(fetchReturn: RowFactory::cafeRow());
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $dto = $repo->findById(1);
@@ -41,7 +41,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindByIdReturnsNullWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertNull($repo->findById(99));
@@ -53,7 +53,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindBySlugReturnsArrayWhenFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: RowFactory::cafeRow());
+        $pdo = $this->makePdo(fetchReturn: RowFactory::cafeRow());
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $result = $repo->findBySlug('komorebi-madrid');
@@ -64,7 +64,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindBySlugReturnsNullWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertNull($repo->findBySlug('no-cafe'));
@@ -76,7 +76,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindActiveReturnsRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $result = $repo->findActive();
@@ -86,7 +86,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindActiveReturnsEmptyArray(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: []);
+        $pdo = $this->makePdo(fetchAllReturn: []);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertSame([], $repo->findActive());
@@ -98,7 +98,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindAvailableForReservationReturnsRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertCount(1, $repo->findAvailableForReservation());
@@ -110,7 +110,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindAvailableForReservationByIdIndexesByIdKey(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow(['id' => 5])]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow(['id' => 5])]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $result = $repo->findAvailableForReservationById();
@@ -120,7 +120,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindAvailableForReservationByIdReturnsEmptyWhenNone(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: []);
+        $pdo = $this->makePdo(fetchAllReturn: []);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertSame([], $repo->findAvailableForReservationById());
@@ -132,7 +132,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testExistsAndActiveReturnsTrueWhenFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['id' => 1]);
+        $pdo = $this->makePdo(fetchReturn: ['id' => 1]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertTrue($repo->existsAndActive(1));
@@ -140,7 +140,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testExistsAndActiveReturnsFalseWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertFalse($repo->existsAndActive(99));
@@ -152,7 +152,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindByCategoryReturnsRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertCount(1, $repo->findByCategory('neko'));
@@ -160,7 +160,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindByCategoryReturnsEmptyArray(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: []);
+        $pdo = $this->makePdo(fetchAllReturn: []);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertSame([], $repo->findByCategory('shiba'));
@@ -172,7 +172,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindByAnimalTypeReturnsRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertCount(1, $repo->findByAnimalType('cat'));
@@ -184,7 +184,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testUpdateRatingReturnsTrue(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertTrue($repo->updateRating(1));
@@ -196,7 +196,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindFilteredNoFiltersReturnsRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertCount(1, $repo->findFiltered());
@@ -204,7 +204,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindFilteredWithFiltersReturnsRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertCount(1, $repo->findFiltered(['category' => 'neko', 'is_active' => true]));
@@ -252,7 +252,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testUpdateReturnsTrueWithValidFields(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertTrue($repo->update(1, ['name' => 'Nuevo Nombre', 'is_active' => 1]));
@@ -260,7 +260,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testUpdateReturnsTrueWithEmptyData(): void
     {
-        $pdo  = $this->makePdo(rowCount: 0);
+        $pdo = $this->makePdo(rowCount: 0);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertTrue($repo->update(1, []));
@@ -268,7 +268,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testUpdateReturnsTrueWhenNoValidFields(): void
     {
-        $pdo  = $this->makePdo(rowCount: 0);
+        $pdo = $this->makePdo(rowCount: 0);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         // Ningún campo del array es válido → early return true
@@ -281,7 +281,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindAllFilteredNoFiltersReturnsRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertCount(1, $repo->findAllFiltered());
@@ -289,7 +289,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindAllFilteredWithFiltersReturnsRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertCount(1, $repo->findAllFiltered('neko', 'cat', 'rating_avg', 'DESC'));
@@ -298,7 +298,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
     public function testFindAllFilteredSanitizesInvalidOrderBy(): void
     {
         // orderBy inválido → silenciosamente cae a 'name'; no lanza excepción
-        $pdo  = $this->makePdo(fetchAllReturn: []);
+        $pdo = $this->makePdo(fetchAllReturn: []);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $result = $repo->findAllFiltered(null, null, 'INJECTION; DROP TABLE cafes;--', 'ASC');
@@ -313,7 +313,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
     public function testFindWithAnimalsReturnsCafeWithAnimalsKey(): void
     {
         $pdo = $this->makeMultiCallPdo([
-            ['fetch'    => RowFactory::cafeRow()],      // findBySlug
+            ['fetch' => RowFactory::cafeRow()],      // findBySlug
             ['fetchAll' => [['id' => 1, 'name' => 'Mochi']]],  // animales
         ]);
         $repo = new CafeRepository($this->mapper(), $pdo);
@@ -327,7 +327,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindWithAnimalsReturnsNullWhenSlugNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertNull($repo->findWithAnimals('no-such-cafe'));
@@ -339,7 +339,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testGetZonesReturnsRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [['id' => 1, 'name' => 'Sala principal']]);
+        $pdo = $this->makePdo(fetchAllReturn: [['id' => 1, 'name' => 'Sala principal']]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertCount(1, $repo->getZones(1));
@@ -351,7 +351,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testGetFavoritesCountReturnsInt(): void
     {
-        $pdo  = $this->makePdo(fetchColumnReturn: '12');
+        $pdo = $this->makePdo(fetchColumnReturn: '12');
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertSame(12, $repo->getFavoritesCount(1));
@@ -359,7 +359,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testGetFavoritesCountReturnsZero(): void
     {
-        $pdo  = $this->makePdo(fetchColumnReturn: '0');
+        $pdo = $this->makePdo(fetchColumnReturn: '0');
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertSame(0, $repo->getFavoritesCount(99));
@@ -371,7 +371,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindByIdsReturnsRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertCount(1, $repo->findByIds([1]));
@@ -379,7 +379,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindByIdsReturnsEmptyArrayWhenIdsEmpty(): void
     {
-        $pdo  = $this->makePdo();
+        $pdo = $this->makePdo();
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertSame([], $repo->findByIds([]));
@@ -391,7 +391,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testSearchReturnsMatchingRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertCount(1, $repo->search('komorebi'));
@@ -399,7 +399,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testSearchReturnsEmptyWhenNoMatch(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: []);
+        $pdo = $this->makePdo(fetchAllReturn: []);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $this->assertSame([], $repo->search('xyz123'));
@@ -411,7 +411,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindPaginatedAdminReturnsRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
         $repo = new CafeRepository($this->mapper(), $pdo);
         $pagination = Pagination::fromRequest(1, 20);
 
@@ -420,7 +420,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindPaginatedAdminWithFiltersReturnsRows(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::cafeRow()]);
         $repo = new CafeRepository($this->mapper(), $pdo);
         $pagination = Pagination::fromRequest(1, 20);
 
@@ -431,7 +431,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testFindPaginatedAdminSanitizesInvalidSort(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: []);
+        $pdo = $this->makePdo(fetchAllReturn: []);
         $repo = new CafeRepository($this->mapper(), $pdo);
         $pagination = Pagination::fromRequest(1, 20);
 
@@ -448,12 +448,12 @@ final class CafeRepositoryTest extends RepositoryTestCase
     public function testGetAdminStatsReturnsStatsRow(): void
     {
         $statsRow = [
-            'total_cafes'              => '10',
-            'active_cafes'             => '8',
-            'cafes_with_reservations'  => '5',
-            'avg_rating'               => '4.3',
+            'total_cafes' => '10',
+            'active_cafes' => '8',
+            'cafes_with_reservations' => '5',
+            'avg_rating' => '4.3',
         ];
-        $pdo  = $this->makePdo(fetchReturn: $statsRow);
+        $pdo = $this->makePdo(fetchReturn: $statsRow);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $result = $repo->getAdminStats();
@@ -464,7 +464,7 @@ final class CafeRepositoryTest extends RepositoryTestCase
 
     public function testGetAdminStatsReturnsDefaultWhenQueryFails(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new CafeRepository($this->mapper(), $pdo);
 
         $result = $repo->getAdminStats();

@@ -16,6 +16,7 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\UserManagementService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 #[CoversClass(UserManagementService::class)]
 final class UserManagementServiceTest extends TestCase
@@ -26,18 +27,18 @@ final class UserManagementServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->userRepoStub     = $this->createStub(UserRepositoryInterface::class);
+        $this->userRepoStub = $this->createStub(UserRepositoryInterface::class);
         $this->userMgmtRepoStub = $this->createStub(UserManagementRepositoryInterface::class);
-        $this->service          = new UserManagementService($this->userRepoStub, $this->userMgmtRepoStub);
+        $this->service = new UserManagementService($this->userRepoStub, $this->userMgmtRepoStub);
     }
 
     private function validUserData(): array
     {
         return [
-            'name'     => 'María García',
-            'email'    => 'maria@example.com',
+            'name' => 'María García',
+            'email' => 'maria@example.com',
             'password' => 'Password123',
-            'role_id'  => 3,
+            'role_id' => 3,
         ];
     }
 
@@ -50,7 +51,7 @@ final class UserManagementServiceTest extends TestCase
 
     public function testValidateUserDataFailsWhenNameTooShort(): void
     {
-        $data         = $this->validUserData();
+        $data = $this->validUserData();
         $data['name'] = 'A';
 
         $result = $this->service->validateUserData($data);
@@ -61,7 +62,7 @@ final class UserManagementServiceTest extends TestCase
 
     public function testValidateUserDataFailsWhenEmailInvalid(): void
     {
-        $data          = $this->validUserData();
+        $data = $this->validUserData();
         $data['email'] = 'not-an-email';
 
         $result = $this->service->validateUserData($data);
@@ -71,7 +72,7 @@ final class UserManagementServiceTest extends TestCase
 
     public function testValidateUserDataFailsWhenPasswordTooShort(): void
     {
-        $data             = $this->validUserData();
+        $data = $this->validUserData();
         $data['password'] = 'abc';
 
         $result = $this->service->validateUserData($data);
@@ -109,7 +110,7 @@ final class UserManagementServiceTest extends TestCase
 
     public function testValidateUserDataFailsWhenNameTooLong(): void
     {
-        $data         = $this->validUserData();
+        $data = $this->validUserData();
         $data['name'] = \str_repeat('a', 101);
 
         $result = $this->service->validateUserData($data);
@@ -149,7 +150,7 @@ final class UserManagementServiceTest extends TestCase
     public function testGetUsersWithRolesReturnsEmptyArrayOnException(): void
     {
         $this->userMgmtRepoStub->method('getUsersWithRoles')
-            ->willThrowException(new \RuntimeException('DB error'));
+            ->willThrowException(new RuntimeException('DB error'));
 
         $result = $this->service->getUsersWithRoles();
 
@@ -225,7 +226,7 @@ final class UserManagementServiceTest extends TestCase
     public function testDeactivateUserReturnsFailWhenExceptionThrown(): void
     {
         $this->userRepoStub->method('setActive')
-            ->willThrowException(new \RuntimeException('DB Error'));
+            ->willThrowException(new RuntimeException('DB Error'));
 
         $result = $this->service->deactivateUser(1);
 

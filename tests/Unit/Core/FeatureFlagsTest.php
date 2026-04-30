@@ -164,7 +164,7 @@ final class FeatureFlagsTest extends TestCase
     {
         $routes = $this->loadRoutesAndGetRegistered(['FEATURE_KEEPER' => '0']);
 
-        $get  = $routes['GET']  ?? [];
+        $get = $routes['GET'] ?? [];
         $post = $routes['POST'] ?? [];
 
         // Dashboard directo (F5/F6 routes depend on this block)
@@ -172,13 +172,13 @@ final class FeatureFlagsTest extends TestCase
 
         // F5: rutas POST de cuidado de animales (AnimalCareController)
         $this->assertArrayNotHasKey('/keeper/animals/{id}/feeding', $post, 'Keeper feeding route must be absent when FEATURE_KEEPER=0');
-        $this->assertArrayNotHasKey('/keeper/animals/{id}/health',  $post, 'Keeper health route must be absent when FEATURE_KEEPER=0');
+        $this->assertArrayNotHasKey('/keeper/animals/{id}/health', $post, 'Keeper health route must be absent when FEATURE_KEEPER=0');
 
         // F6: rutas de edición/actualización de HealthCheck e Incident
-        $this->assertArrayNotHasKey('/keeper/health-checks/{checkId}/edit', $get,  'Keeper health-check edit must be absent when FEATURE_KEEPER=0');
-        $this->assertArrayNotHasKey('/keeper/health-checks/{checkId}',      $post, 'Keeper health-check update must be absent when FEATURE_KEEPER=0');
-        $this->assertArrayNotHasKey('/keeper/incidents/{id}/edit',          $get,  'Keeper incident edit must be absent when FEATURE_KEEPER=0');
-        $this->assertArrayNotHasKey('/keeper/incidents/{id}',               $post, 'Keeper incident update must be absent when FEATURE_KEEPER=0');
+        $this->assertArrayNotHasKey('/keeper/health-checks/{checkId}/edit', $get, 'Keeper health-check edit must be absent when FEATURE_KEEPER=0');
+        $this->assertArrayNotHasKey('/keeper/health-checks/{checkId}', $post, 'Keeper health-check update must be absent when FEATURE_KEEPER=0');
+        $this->assertArrayNotHasKey('/keeper/incidents/{id}/edit', $get, 'Keeper incident edit must be absent when FEATURE_KEEPER=0');
+        $this->assertArrayNotHasKey('/keeper/incidents/{id}', $post, 'Keeper incident update must be absent when FEATURE_KEEPER=0');
     }
 
     // -------------------------------------------------------------------------

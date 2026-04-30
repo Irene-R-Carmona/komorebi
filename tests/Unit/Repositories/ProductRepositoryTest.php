@@ -18,14 +18,13 @@ use PDOStatement;
 
 final class ProductRepositoryTest extends RepositoryTestCase
 {
-
     // ------------------------------------------------------------------
     // findById
     // ------------------------------------------------------------------
 
     public function testFindByIdReturnsDtoWhenRowFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: RowFactory::productRow());
+        $pdo = $this->makePdo(fetchReturn: RowFactory::productRow());
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findById(1);
@@ -37,7 +36,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testFindByIdReturnsNullWhenNoRow(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new ProductRepository($pdo);
 
         $this->assertNull($repo->findById(99));
@@ -49,8 +48,8 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testFindWithRecipeReturnsArrayWhenFound(): void
     {
-        $row  = RowFactory::productRow(['station' => 'bar']);
-        $pdo  = $this->makePdo(fetchReturn: $row);
+        $row = RowFactory::productRow(['station' => 'bar']);
+        $pdo = $this->makePdo(fetchReturn: $row);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findWithRecipe(1);
@@ -61,7 +60,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testFindWithRecipeReturnsNullWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new ProductRepository($pdo);
 
         $this->assertNull($repo->findWithRecipe(99));
@@ -77,7 +76,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
             RowFactory::productRow(),
             RowFactory::productRow(['id' => 2, 'name' => 'Té Verde']),
         ];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findByCafeId(1);
@@ -93,7 +92,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindByCategoryIdWithoutCafeId(): void
     {
         $rows = [RowFactory::productRow(['category_id' => 3])];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findByCategoryId(3);
@@ -104,7 +103,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindByCategoryIdWithCafeId(): void
     {
         $rows = [RowFactory::productRow()];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findByCategoryId(2, 1);
@@ -119,7 +118,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindByProductTypeWithoutCafeId(): void
     {
         $rows = [RowFactory::productRow(['product_type' => 'pass'])];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findByProductType('pass', null);
@@ -131,7 +130,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindByProductTypeWithCafeId(): void
     {
         $rows = [RowFactory::productRow(['product_type' => 'item'])];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findByProductType('item', 1);
@@ -146,7 +145,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindPassesDelegatesToFindByProductType(): void
     {
         $rows = [RowFactory::productRow(['product_type' => 'pass'])];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findPasses();
@@ -158,7 +157,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindItemsDelegatesToFindByProductType(): void
     {
         $rows = [RowFactory::productRow(['product_type' => 'item'])];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findItems(1);
@@ -173,12 +172,12 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindAvailablePassesDecodesJsonColumns(): void
     {
         $passRow = RowFactory::productRow([
-            'product_type'        => 'pass',
-            'target_cafe_types'   => '["cat","dog"]',
+            'product_type' => 'pass',
+            'target_cafe_types' => '["cat","dog"]',
             'target_animal_types' => '["cat"]',
-            'attributes'          => '{"sessions":5}',
+            'attributes' => '{"sessions":5}',
         ]);
-        $pdo  = $this->makePdo(fetchAllReturn: [$passRow]);
+        $pdo = $this->makePdo(fetchAllReturn: [$passRow]);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findAvailablePasses();
@@ -193,12 +192,12 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindAvailablePassesLeavesNullColumnsAsNull(): void
     {
         $passRow = RowFactory::productRow([
-            'product_type'        => 'pass',
-            'target_cafe_types'   => null,
+            'product_type' => 'pass',
+            'target_cafe_types' => null,
             'target_animal_types' => null,
-            'attributes'          => null,
+            'attributes' => null,
         ]);
-        $pdo  = $this->makePdo(fetchAllReturn: [$passRow]);
+        $pdo = $this->makePdo(fetchAllReturn: [$passRow]);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findAvailablePasses();
@@ -209,7 +208,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testFindAvailablePassesReturnsEmptyArray(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: []);
+        $pdo = $this->makePdo(fetchAllReturn: []);
         $repo = new ProductRepository($pdo);
 
         $this->assertSame([], $repo->findAvailablePasses());
@@ -221,7 +220,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testExistsAndActivePassReturnsTrueWhenFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['id' => 1, 'product_type' => 'pass']);
+        $pdo = $this->makePdo(fetchReturn: ['id' => 1, 'product_type' => 'pass']);
         $repo = new ProductRepository($pdo);
 
         $this->assertTrue($repo->existsAndActivePass(1));
@@ -229,7 +228,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testExistsAndActivePassReturnsFalseWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new ProductRepository($pdo);
 
         $this->assertFalse($repo->existsAndActivePass(99));
@@ -241,7 +240,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testFindItemsByIdsReturnsEmptyArrayForEmptyInput(): void
     {
-        $pdo  = $this->createStub(PDO::class);
+        $pdo = $this->createStub(PDO::class);
         $repo = new ProductRepository($pdo);
 
         $this->assertSame([], $repo->findItemsByIds([]));
@@ -253,7 +252,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
             ['id' => 10, 'name' => 'Matcha Latte', 'price' => 650],
             ['id' => 20, 'name' => 'Croissant', 'price' => 350],
         ];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findItemsByIds([10, 20]);
@@ -267,7 +266,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testFindByIdsReturnsEmptyArrayForEmptyInput(): void
     {
-        $pdo  = $this->createStub(PDO::class);
+        $pdo = $this->createStub(PDO::class);
         $repo = new ProductRepository($pdo);
 
         $this->assertSame([], $repo->findByIds([]));
@@ -285,7 +284,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
 
-        $repo   = new ProductRepository($pdo);
+        $repo = new ProductRepository($pdo);
         $result = $repo->findByIds([1, 2]);
 
         $this->assertArrayHasKey(1, $result);
@@ -299,7 +298,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testHasStockReturnsFalseWhenProductNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new ProductRepository($pdo);
 
         $this->assertFalse($repo->hasStock(99, 1));
@@ -307,7 +306,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testHasStockReturnsTrueForUnlimitedStock(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['stock_quantity' => null, 'is_active' => 1, 'deleted_at' => null]);
+        $pdo = $this->makePdo(fetchReturn: ['stock_quantity' => null, 'is_active' => 1, 'deleted_at' => null]);
         $repo = new ProductRepository($pdo);
 
         $this->assertTrue($repo->hasStock(1, 100));
@@ -315,7 +314,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testHasStockReturnsTrueWhenSufficientStock(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['stock_quantity' => 10, 'is_active' => 1, 'deleted_at' => null]);
+        $pdo = $this->makePdo(fetchReturn: ['stock_quantity' => 10, 'is_active' => 1, 'deleted_at' => null]);
         $repo = new ProductRepository($pdo);
 
         $this->assertTrue($repo->hasStock(1, 5));
@@ -323,7 +322,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testHasStockReturnsFalseWhenInsufficientStock(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['stock_quantity' => 2, 'is_active' => 1, 'deleted_at' => null]);
+        $pdo = $this->makePdo(fetchReturn: ['stock_quantity' => 2, 'is_active' => 1, 'deleted_at' => null]);
         $repo = new ProductRepository($pdo);
 
         $this->assertFalse($repo->hasStock(1, 5));
@@ -331,7 +330,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testHasStockReturnsFalseWhenProductInactive(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['stock_quantity' => 10, 'is_active' => 0, 'deleted_at' => null]);
+        $pdo = $this->makePdo(fetchReturn: ['stock_quantity' => 10, 'is_active' => 0, 'deleted_at' => null]);
         $repo = new ProductRepository($pdo);
 
         $this->assertFalse($repo->hasStock(1, 1));
@@ -343,7 +342,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testDecrementStockReturnsFalseWhenProductNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new ProductRepository($pdo);
 
         $this->assertFalse($repo->decrementStock(99));
@@ -351,7 +350,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testDecrementStockReturnsTrueForUnlimitedStock(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['stock_quantity' => null]);
+        $pdo = $this->makePdo(fetchReturn: ['stock_quantity' => null]);
         $repo = new ProductRepository($pdo);
 
         $this->assertTrue($repo->decrementStock(1));
@@ -359,7 +358,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testDecrementStockReturnsFalseWhenInsufficientStock(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['stock_quantity' => 1]);
+        $pdo = $this->makePdo(fetchReturn: ['stock_quantity' => 1]);
         $repo = new ProductRepository($pdo);
 
         $this->assertFalse($repo->decrementStock(1, 5));
@@ -368,7 +367,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testDecrementStockSucceedsWithSufficientStock(): void
     {
         $pdo = $this->makeMultiCallPdo([
-            ['fetch'    => ['stock_quantity' => 10]],
+            ['fetch' => ['stock_quantity' => 10]],
             ['rowCount' => 1],
         ]);
         $repo = new ProductRepository($pdo);
@@ -382,7 +381,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testIncrementStockReturnsFalseWhenProductNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new ProductRepository($pdo);
 
         $this->assertFalse($repo->incrementStock(99));
@@ -390,7 +389,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testIncrementStockReturnsTrueForUnlimitedStock(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['stock_quantity' => null]);
+        $pdo = $this->makePdo(fetchReturn: ['stock_quantity' => null]);
         $repo = new ProductRepository($pdo);
 
         $this->assertTrue($repo->incrementStock(1));
@@ -399,7 +398,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testIncrementStockSucceedsForControlledStock(): void
     {
         $pdo = $this->makeMultiCallPdo([
-            ['fetch'    => ['stock_quantity' => 5]],
+            ['fetch' => ['stock_quantity' => 5]],
             ['rowCount' => 1],
         ]);
         $repo = new ProductRepository($pdo);
@@ -413,7 +412,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testToggleAvailabilityReturnsFalseWhenProductNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new ProductRepository($pdo);
 
         $this->assertFalse($repo->toggleAvailability(99));
@@ -422,7 +421,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testToggleAvailabilityTogglesActiveProduct(): void
     {
         $pdo = $this->makeMultiCallPdo([
-            ['fetch'    => RowFactory::productRow(['is_active' => 1])],
+            ['fetch' => RowFactory::productRow(['is_active' => 1])],
             ['rowCount' => 1],
         ]);
         $repo = new ProductRepository($pdo);
@@ -433,7 +432,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testToggleAvailabilityTogglesInactiveProduct(): void
     {
         $pdo = $this->makeMultiCallPdo([
-            ['fetch'    => RowFactory::productRow(['is_active' => 0])],
+            ['fetch' => RowFactory::productRow(['is_active' => 0])],
             ['rowCount' => 1],
         ]);
         $repo = new ProductRepository($pdo);
@@ -451,7 +450,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
             ['id' => 1, 'name' => 'Gluten'],
             ['id' => 2, 'name' => 'Leche'],
         ];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->getAllergens(1);
@@ -462,7 +461,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testGetAllergensReturnsEmptyWhenNone(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: []);
+        $pdo = $this->makePdo(fetchAllReturn: []);
         $repo = new ProductRepository($pdo);
 
         $this->assertSame([], $repo->getAllergens(1));
@@ -475,7 +474,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindWithoutAllergensWithoutCafeId(): void
     {
         $rows = [RowFactory::productRow()];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findWithoutAllergens([1, 2]);
@@ -486,7 +485,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindWithoutAllergensWithCafeId(): void
     {
         $rows = [RowFactory::productRow()];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findWithoutAllergens([1], 2);
@@ -497,7 +496,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindWithoutAllergensWithEmptyListReturnsAll(): void
     {
         $rows = [RowFactory::productRow(), RowFactory::productRow(['id' => 2])];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findWithoutAllergens([]);
@@ -513,7 +512,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     {
         $pdo = $this->makeMultiCallPdo([
             ['fetchColumn' => '5'],
-            ['fetchAll'    => [RowFactory::productRow(), RowFactory::productRow(['id' => 2])]],
+            ['fetchAll' => [RowFactory::productRow(), RowFactory::productRow(['id' => 2])]],
         ]);
         $repo = new ProductRepository($pdo);
 
@@ -529,7 +528,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     {
         $pdo = $this->makeMultiCallPdo([
             ['fetchColumn' => '2'],
-            ['fetchAll'    => [RowFactory::productRow(['product_type' => 'pass'])]],
+            ['fetchAll' => [RowFactory::productRow(['product_type' => 'pass'])]],
         ]);
         $repo = new ProductRepository($pdo);
 
@@ -546,7 +545,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     {
         $pdo = $this->makeMultiCallPdo([
             ['fetchColumn' => '1'],
-            ['fetchAll'    => [RowFactory::productRow(['name' => 'Matcha Latte'])]],
+            ['fetchAll' => [RowFactory::productRow(['name' => 'Matcha Latte'])]],
         ]);
         $repo = new ProductRepository($pdo);
 
@@ -562,13 +561,13 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindAllAdminDecodesJsonFields(): void
     {
         $row = RowFactory::productRow([
-            'attributes'          => '{"sessions":5}',
-            'target_cafe_types'   => '["cat","dog"]',
+            'attributes' => '{"sessions":5}',
+            'target_cafe_types' => '["cat","dog"]',
             'target_animal_types' => '["cat"]',
         ]);
         $pdo = $this->makeMultiCallPdo([
             ['fetchColumn' => '1'],
-            ['fetchAll'    => [$row]],
+            ['fetchAll' => [$row]],
         ]);
         $repo = new ProductRepository($pdo);
 
@@ -583,13 +582,13 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindAllAdminSetsNullForMissingJsonFields(): void
     {
         $row = RowFactory::productRow([
-            'attributes'          => null,
-            'target_cafe_types'   => null,
+            'attributes' => null,
+            'target_cafe_types' => null,
             'target_animal_types' => null,
         ]);
         $pdo = $this->makeMultiCallPdo([
             ['fetchColumn' => '1'],
-            ['fetchAll'    => [$row]],
+            ['fetchAll' => [$row]],
         ]);
         $repo = new ProductRepository($pdo);
 
@@ -604,7 +603,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testFindAllActiveReturnsActiveProducts(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: [RowFactory::productRow()]);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::productRow()]);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findAllActive();
@@ -619,7 +618,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindByCategoryReturnsMatchingProducts(): void
     {
         $rows = [RowFactory::productRow(['category_name' => 'Bebidas'])];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findByCategory('bebidas');
@@ -634,12 +633,12 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testGetAllWithAllergensNormalizesGroupConcatAllergens(): void
     {
         $row = RowFactory::productRow([
-            'allergen_ids'        => '1,2',
-            'allergen_names'      => 'Gluten,Leche',
-            'allergen_codes'      => 'GLU,LAC',
+            'allergen_ids' => '1,2',
+            'allergen_names' => 'Gluten,Leche',
+            'allergen_codes' => 'GLU,LAC',
             'allergen_severities' => 'high,medium',
         ]);
-        $pdo  = $this->makePdo(fetchAllReturn: [$row]);
+        $pdo = $this->makePdo(fetchAllReturn: [$row]);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->getAllWithAllergens();
@@ -655,12 +654,12 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testGetAllWithAllergensReturnsEmptyListWhenNoAllergens(): void
     {
         $row = RowFactory::productRow([
-            'allergen_ids'        => null,
-            'allergen_names'      => null,
-            'allergen_codes'      => null,
+            'allergen_ids' => null,
+            'allergen_names' => null,
+            'allergen_codes' => null,
             'allergen_severities' => null,
         ]);
-        $pdo  = $this->makePdo(fetchAllReturn: [$row]);
+        $pdo = $this->makePdo(fetchAllReturn: [$row]);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->getAllWithAllergens();
@@ -671,12 +670,12 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testGetAllWithAllergensWithCategoryFilter(): void
     {
         $row = RowFactory::productRow([
-            'allergen_ids'        => null,
-            'allergen_names'      => null,
-            'allergen_codes'      => null,
+            'allergen_ids' => null,
+            'allergen_names' => null,
+            'allergen_codes' => null,
             'allergen_severities' => null,
         ]);
-        $pdo  = $this->makePdo(fetchAllReturn: [$row]);
+        $pdo = $this->makePdo(fetchAllReturn: [$row]);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->getAllWithAllergens(categoryId: 2);
@@ -694,7 +693,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
             ['id' => 1, 'name' => 'Bebidas', 'display_order' => 1],
             ['id' => 2, 'name' => 'Comida', 'display_order' => 2],
         ];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->getCategories();
@@ -710,7 +709,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindAllWithCategoryNameReturnsRowsWithCategory(): void
     {
         $rows = [RowFactory::productRow(['category_name' => 'Bebidas'])];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findAllWithCategoryName();
@@ -726,7 +725,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testSearchReturnsMatchingProducts(): void
     {
         $rows = [RowFactory::productRow(['name' => 'Matcha Latte'])];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->search('matcha');
@@ -736,7 +735,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testSearchReturnsEmptyWhenNoMatch(): void
     {
-        $pdo  = $this->makePdo(fetchAllReturn: []);
+        $pdo = $this->makePdo(fetchAllReturn: []);
         $repo = new ProductRepository($pdo);
 
         $this->assertSame([], $repo->search('xyz-no-existe'));
@@ -748,7 +747,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testSyncAllergensWithEmptyListOnlyDeletes(): void
     {
-        $pdo  = $this->makeMultiCallPdo([
+        $pdo = $this->makeMultiCallPdo([
             ['rowCount' => 1],
         ]);
         $repo = new ProductRepository($pdo);
@@ -758,7 +757,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testSyncAllergensWithAllergenIdsDeletesThenInserts(): void
     {
-        $pdo  = $this->makeMultiCallPdo([
+        $pdo = $this->makeMultiCallPdo([
             ['rowCount' => 1],
             ['rowCount' => 1],
         ]);
@@ -774,7 +773,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindWithoutAllergensByCategoryReturnsRows(): void
     {
         $rows = [RowFactory::productRow()];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findWithoutAllergensByCategory([1, 2]);
@@ -785,7 +784,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindWithoutAllergensByCategoryWithCategoryFilter(): void
     {
         $rows = [RowFactory::productRow()];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findWithoutAllergensByCategory([1], 3);
@@ -796,7 +795,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testFindWithoutAllergensByCategoryDelegatesToAllWhenEmpty(): void
     {
         $rows = [RowFactory::productRow()];
-        $pdo  = $this->makePdo(fetchAllReturn: $rows);
+        $pdo = $this->makePdo(fetchAllReturn: $rows);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->findWithoutAllergensByCategory([]);
@@ -811,14 +810,14 @@ final class ProductRepositoryTest extends RepositoryTestCase
     public function testGetAdminStatsReturnsExpectedFields(): void
     {
         $statsRow = [
-            'total_products'    => 10,
-            'active_products'   => 8,
+            'total_products' => 10,
+            'active_products' => 8,
             'inactive_products' => 2,
-            'category_count'    => 3,
-            'with_allergens'    => 4,
-            'with_stock'        => 6,
+            'category_count' => 3,
+            'with_allergens' => 4,
+            'with_stock' => 6,
         ];
-        $pdo  = $this->makePdo(fetchReturn: $statsRow);
+        $pdo = $this->makePdo(fetchReturn: $statsRow);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->getAdminStats();
@@ -830,7 +829,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testGetAdminStatsReturnsDefaultsWhenRowIsFalse(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->getAdminStats();
@@ -845,7 +844,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testCreateReturnsLastInsertId(): void
     {
-        $pdo  = $this->makePdo(lastInsertId: '42');
+        $pdo = $this->makePdo(lastInsertId: '42');
         $repo = new ProductRepository($pdo);
 
         $id = $repo->create(['name' => 'Nuevo producto', 'price' => 5.00, 'category_id' => 1]);
@@ -855,7 +854,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testUpdateReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new ProductRepository($pdo);
 
         $result = $repo->update(1, ['name' => 'Producto renombrado']);
@@ -865,7 +864,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testDeleteReturnsTrueOnSuccess(): void
     {
-        $pdo  = $this->makePdo(rowCount: 1);
+        $pdo = $this->makePdo(rowCount: 1);
         $repo = new ProductRepository($pdo);
 
         $this->assertTrue($repo->delete(1));
@@ -873,7 +872,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testExistsReturnsTrueWhenRowFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: ['id' => 1]);
+        $pdo = $this->makePdo(fetchReturn: ['id' => 1]);
         $repo = new ProductRepository($pdo);
 
         $this->assertTrue($repo->exists(1));
@@ -881,7 +880,7 @@ final class ProductRepositoryTest extends RepositoryTestCase
 
     public function testExistsReturnsFalseWhenNotFound(): void
     {
-        $pdo  = $this->makePdo(fetchReturn: false);
+        $pdo = $this->makePdo(fetchReturn: false);
         $repo = new ProductRepository($pdo);
 
         $this->assertFalse($repo->exists(99));

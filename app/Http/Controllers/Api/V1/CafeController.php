@@ -35,8 +35,8 @@ final class CafeController extends AbstractApiController
     public function index(ServerRequestInterface $request): ResponseInterface
     {
         $cafes = $this->cafeRepo->findActive();
-        $etag  = $this->makeEtag($cafes);
-        $cc    = 'public, max-age=3600, stale-while-revalidate=86400';
+        $etag = $this->makeEtag($cafes);
+        $cc = 'public, max-age=3600, stale-while-revalidate=86400';
 
         if ($request->getHeaderLine('If-None-Match') === $etag) {
             return $this->notModified($etag, $cc);
@@ -44,7 +44,7 @@ final class CafeController extends AbstractApiController
 
         return $this->collection($cafes, $this->transformer, [], [
             'Cache-Control' => $cc,
-            'ETag'          => $etag,
+            'ETag' => $etag,
         ]);
     }
 

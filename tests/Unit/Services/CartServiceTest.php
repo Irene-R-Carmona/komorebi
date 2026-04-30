@@ -27,8 +27,8 @@ final class CartServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->productRepoStub = $this->createStub(ProductRepositoryInterface::class);
-        $this->itemRepoStub    = $this->createStub(ReservationItemRepositoryInterface::class);
-        $this->service         = new CartService($this->productRepoStub, $this->itemRepoStub);
+        $this->itemRepoStub = $this->createStub(ReservationItemRepositoryInterface::class);
+        $this->service = new CartService($this->productRepoStub, $this->itemRepoStub);
     }
 
     public function testUpdateItemReturnsOkWhenProductIdIsZero(): void
@@ -294,12 +294,12 @@ final class CartServiceTest extends TestCase
         $_SESSION['cart'] = ['items' => [1 => 2], 'totalQty' => 2, 'totalPrice' => 1000.0];
         $this->productRepoStub->method('findByIds')->willReturn([
             1 => [
-                'name'          => 'Matcha',
+                'name' => 'Matcha',
                 'japanese_name' => '抹茶',
-                'price'         => 500,
-                'is_active'     => true,
-                'image_url'     => null,
-                'station'       => 'bar',
+                'price' => 500,
+                'is_active' => true,
+                'image_url' => null,
+                'station' => 'bar',
             ],
         ]);
 
@@ -385,12 +385,12 @@ final class CartServiceTest extends TestCase
         $_SESSION['cart'] = ['items' => [1 => 2], 'totalQty' => 2, 'totalPrice' => 1000.0];
         $this->productRepoStub->method('findByIds')->willReturn([
             1 => [
-                'name'          => 'Matcha',
+                'name' => 'Matcha',
                 'japanese_name' => '抹茶',
-                'price'         => 500,
-                'is_active'     => true,
-                'image_url'     => null,
-                'station'       => null,
+                'price' => 500,
+                'is_active' => true,
+                'image_url' => null,
+                'station' => null,
             ],
         ]);
 
@@ -463,7 +463,7 @@ final class CartServiceTest extends TestCase
         // findByIds devuelve ambos productos como activos; producto 99 tiene qty=0 en recalculate()
         $this->productRepoStub->method('findByIds')->willReturn([
             99 => ['is_active' => true, 'product_type' => 'item', 'price' => 300],
-            1  => ['is_active' => true, 'product_type' => 'item', 'price' => 500],
+            1 => ['is_active' => true, 'product_type' => 'item', 'price' => 500],
         ]);
 
         // updateItem(1, 1) añade producto 1; recalculate procesa [99=>0, 1=>1]

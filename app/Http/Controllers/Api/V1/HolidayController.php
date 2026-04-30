@@ -42,10 +42,10 @@ final class HolidayController extends AbstractApiController
     {
         $data = [
             'holidays' => self::HOLIDAY_DATES,
-            'count'    => \count(self::HOLIDAY_DATES),
+            'count' => \count(self::HOLIDAY_DATES),
         ];
         $etag = $this->makeEtag($data);
-        $cc   = 'public, max-age=86400';
+        $cc = 'public, max-age=86400';
 
         if ($request->getHeaderLine('If-None-Match') === $etag) {
             return $this->notModified($etag, $cc);
@@ -53,7 +53,7 @@ final class HolidayController extends AbstractApiController
 
         return $this->success($data, 200, [
             'Cache-Control' => $cc,
-            'ETag'          => $etag,
+            'ETag' => $etag,
         ]);
     }
 

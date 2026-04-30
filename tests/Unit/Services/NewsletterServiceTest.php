@@ -25,7 +25,7 @@ final class NewsletterServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repoStub = $this->createStub(NewsletterSubscriptionRepositoryInterface::class);
-        $this->service  = new NewsletterService($this->repoStub);
+        $this->service = new NewsletterService($this->repoStub);
     }
 
     public function testSubscribeFailsWithInvalidEmail(): void
@@ -40,9 +40,9 @@ final class NewsletterServiceTest extends TestCase
     {
         $this->repoStub->method('findByEmail')->willReturn(
             NewsletterSubscriptionDTO::fromArray([
-                'id'              => 1,
-                'email'           => 'user@example.com',
-                'confirmed_at'    => '2025-01-01 00:00:00',
+                'id' => 1,
+                'email' => 'user@example.com',
+                'confirmed_at' => '2025-01-01 00:00:00',
                 'unsubscribed_at' => null,
             ])
         );
@@ -76,8 +76,8 @@ final class NewsletterServiceTest extends TestCase
     {
         $this->repoStub->method('findByToken')->willReturn(
             NewsletterSubscriptionDTO::fromArray([
-                'id'           => 1,
-                'email'        => 'user@example.com',
+                'id' => 1,
+                'email' => 'user@example.com',
                 'confirmed_at' => null,
             ])
         );
@@ -102,8 +102,8 @@ final class NewsletterServiceTest extends TestCase
     {
         $this->repoStub->method('findByToken')->willReturn(
             NewsletterSubscriptionDTO::fromArray([
-                'id'           => 1,
-                'email'        => 'user@example.com',
+                'id' => 1,
+                'email' => 'user@example.com',
                 'confirmed_at' => '2025-01-01 00:00:00',
             ])
         );
@@ -118,8 +118,8 @@ final class NewsletterServiceTest extends TestCase
     {
         $this->repoStub->method('findByToken')->willReturn(
             NewsletterSubscriptionDTO::fromArray([
-                'id'           => 1,
-                'email'        => 'user@example.com',
+                'id' => 1,
+                'email' => 'user@example.com',
                 'confirmed_at' => '2025-01-01 00:00:00',
             ])
         );
@@ -143,9 +143,9 @@ final class NewsletterServiceTest extends TestCase
     {
         $this->repoStub->method('findByEmail')->willReturn(
             NewsletterSubscriptionDTO::fromArray([
-                'id'              => 1,
-                'email'           => 'baja@example.com',
-                'confirmed_at'    => null,
+                'id' => 1,
+                'email' => 'baja@example.com',
+                'confirmed_at' => null,
                 'unsubscribed_at' => '2025-01-01 00:00:00',
             ])
         );
@@ -159,11 +159,11 @@ final class NewsletterServiceTest extends TestCase
     {
         $this->repoStub->method('findByEmail')->willReturn(
             NewsletterSubscriptionDTO::fromArray([
-                'id'              => 2,
-                'email'           => 'pendiente@example.com',
-                'confirmed_at'    => null,
+                'id' => 2,
+                'email' => 'pendiente@example.com',
+                'confirmed_at' => null,
                 'unsubscribed_at' => null,
-                'token'           => 'existingtoken123',
+                'token' => 'existingtoken123',
             ])
         );
         $this->repoStub->method('getTokenByEmail')->willReturn('existingtoken123');

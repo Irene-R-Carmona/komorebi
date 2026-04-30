@@ -4,14 +4,12 @@
  * Partial: Filtros de usuarios (HDA — GET form, cero fetch de datos)
  */
 
-use App\Support\ViewHelpers;
+$roles ??= [];
+$currentParams ??= [];
 
-$roles          ??= [];
-$currentParams  ??= [];
-
-$currentSearch  = (string) ($currentParams['search'] ?? '');
-$currentStatus  = (string) ($currentParams['status'] ?? '');
-$currentRole    = (string) ($currentParams['role']   ?? '');
+$currentSearch = (string) ($currentParams['search'] ?? '');
+$currentStatus = (string) ($currentParams['status'] ?? '');
+$currentRole = (string) ($currentParams['role'] ?? '');
 ?>
 
 <form method="GET" action="/admin/users" x-data class="filter-bar">
@@ -41,9 +39,10 @@ $currentRole    = (string) ($currentParams['role']   ?? '');
                 } else {
                     $p['status'] = $val;
                 }
+
                 return '/admin/users?' . http_build_query($p);
             };
-            ?>
+?>
             <?php $active = ' filter-btn-group__btn--active'; ?>
             <div class="filter-btn-group">
                 <a href="<?= htmlspecialchars($mkStatusUrl(''), ENT_QUOTES, 'UTF-8') ?>"

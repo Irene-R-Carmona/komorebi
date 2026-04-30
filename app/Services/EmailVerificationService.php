@@ -24,7 +24,8 @@ final class EmailVerificationService implements EmailVerificationServiceInterfac
         private readonly UserRepositoryInterface $userRepo,
         private readonly AuthTokenServiceInterface $tokenService,
         private readonly EmailServiceInterface $emailService,
-    ) {}
+    ) {
+    }
 
     /**
      * Enviar email de verificación al usuario.

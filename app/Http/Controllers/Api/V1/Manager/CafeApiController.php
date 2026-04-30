@@ -58,7 +58,7 @@ final class CafeApiController extends AbstractApiController
             $this->cafeService->update($cafeId, ['capacity_max' => $capacityMax]);
 
             return $this->success([
-                'message'      => 'Capacidad actualizada correctamente',
+                'message' => 'Capacidad actualizada correctamente',
                 'capacity_max' => $capacityMax,
             ]);
         } catch (Exception $e) {
@@ -98,7 +98,7 @@ final class CafeApiController extends AbstractApiController
             ]);
 
             return $this->success([
-                'message'      => 'Horarios actualizados correctamente',
+                'message' => 'Horarios actualizados correctamente',
                 'opening_time' => TimeHelper::normalize($openingTime),
                 'closing_time' => TimeHelper::normalize($closingTime),
             ]);

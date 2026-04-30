@@ -19,7 +19,7 @@ final class ValidatesDataTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->harness = new class {
+        $this->harness = new class () {
             use ValidatesData;
 
             public function callValidateRequired(array $data, array $fields): void

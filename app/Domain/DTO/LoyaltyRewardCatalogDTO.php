@@ -19,7 +19,8 @@ final readonly class LoyaltyRewardCatalogDTO implements DomainTransferObject
         public bool $is_active,
         public int $display_order,
         public ?string $icon,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

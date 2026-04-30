@@ -33,6 +33,7 @@ services:
     volumes:
       - ./:/app
       - komorebi_storage:/app/storage
+      - komorebi_vendor:/app/vendor
     environment:
       <<: *app-env
       XDEBUG_MODE: "off"
@@ -52,6 +53,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 180s
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -291,6 +293,7 @@ volumes:
   db_data:
   redis_data:
   komorebi_storage:
+  komorebi_vendor:
 
 # ============================================================================
 # NETWORKS

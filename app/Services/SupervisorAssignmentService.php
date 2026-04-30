@@ -28,7 +28,8 @@ final class SupervisorAssignmentService implements SupervisorAssignmentServiceIn
 {
     public function __construct(
         private readonly SupervisorAssignmentRepositoryInterface $repo,
-    ) {}
+    ) {
+    }
 
     /**
      * Crea una asignación leyendo el cuerpo JSON de la petición HTTP.

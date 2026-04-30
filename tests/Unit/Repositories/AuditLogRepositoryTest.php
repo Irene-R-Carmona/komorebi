@@ -27,8 +27,9 @@ final class AuditLogRepositoryTest extends TestCase
         $idx = 0;
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnCallback(function () use (&$idx, $stmts) {
-            return $stmts[$idx++] ?? $stmts[array_key_last($stmts)];
+            return $stmts[$idx++] ?? $stmts[\array_key_last($stmts)];
         });
+
         return $pdo;
     }
 
@@ -44,6 +45,7 @@ final class AuditLogRepositoryTest extends TestCase
 
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
+
         return $pdo;
     }
 
@@ -66,7 +68,7 @@ final class AuditLogRepositoryTest extends TestCase
                 'resource_id' => 5,
                 'ip_address' => '1.2.3.4',
                 'user_agent' => 'Mozilla',
-                'created_at' => '2024-01-01'
+                'created_at' => '2024-01-01',
             ],
         ];
 
@@ -106,7 +108,7 @@ final class AuditLogRepositoryTest extends TestCase
                 'resource_id' => 1,
                 'ip_address' => '2.2.2.2',
                 'user_agent' => null,
-                'created_at' => '2024-01-02'
+                'created_at' => '2024-01-02',
             ],
         ];
 
@@ -183,7 +185,7 @@ final class AuditLogRepositoryTest extends TestCase
             'unique_users' => 10,
             'unique_ips' => 5,
             'last_24h' => 3,
-            'critical_actions' => 2
+            'critical_actions' => 2,
         ];
         $topActions = [['action' => 'create', 'count' => 20]];
         $topResources = [['resource_type' => 'product', 'count' => 15]];
@@ -193,6 +195,7 @@ final class AuditLogRepositoryTest extends TestCase
         $stmt->method('execute')->willReturn(true);
         $stmt->method('fetch')->willReturnCallback(function () use ($totals, &$call) {
             $call++;
+
             return $call === 1 ? $totals : false;
         });
         $stmt->method('fetchAll')->willReturnOnConsecutiveCalls($topActions, $topResources);
@@ -218,7 +221,7 @@ final class AuditLogRepositoryTest extends TestCase
             'unique_users' => 2,
             'unique_ips' => 1,
             'last_24h' => 1,
-            'critical_actions' => 0
+            'critical_actions' => 0,
         ]);
         $stmt->method('fetchAll')->willReturn([]);
 
@@ -243,7 +246,7 @@ final class AuditLogRepositoryTest extends TestCase
                 'user_name' => 'Alice',
                 'user_email' => 'a@b.com',
                 'old_values' => '{"name":"old"}',
-                'new_values' => null
+                'new_values' => null,
             ],
         ];
         $pdo = $this->makeSimplePdo($rows);

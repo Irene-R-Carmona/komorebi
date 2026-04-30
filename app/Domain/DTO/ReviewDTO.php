@@ -19,7 +19,8 @@ final readonly class ReviewDTO implements DomainTransferObject
         public string $body,
         public string $status,
         public string $created_at,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

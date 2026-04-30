@@ -118,6 +118,7 @@ abstract class RepositoryTestCase extends TestCase
             function () use ($stmts, $stmtCount, &$callIndex): PDOStatement {
                 $stmt = $stmts[\min($callIndex, $stmtCount - 1)];
                 $callIndex++;
+
                 return $stmt;
             }
         );
@@ -125,6 +126,7 @@ abstract class RepositoryTestCase extends TestCase
             function () use ($stmts, $stmtCount, &$callIndex): PDOStatement {
                 $stmt = $stmts[\min($callIndex, $stmtCount - 1)];
                 $callIndex++;
+
                 return $stmt;
             }
         );

@@ -308,6 +308,7 @@ final class CacheTest extends TestCase
         $callCount = 0;
         $fn = static function () use (&$callCount): string {
             $callCount++;
+
             return 'computed-value';
         };
 
@@ -325,6 +326,7 @@ final class CacheTest extends TestCase
         $callCount = 0;
         $fn = static function () use (&$callCount): string {
             $callCount++;
+
             return 'computed-value';
         };
 
@@ -345,6 +347,7 @@ final class CacheTest extends TestCase
         $callCount = 0;
         $fn = static function () use (&$callCount): string {
             $callCount++;
+
             return 'tagged-value';
         };
 

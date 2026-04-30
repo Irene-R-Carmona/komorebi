@@ -71,14 +71,14 @@ declare(strict_types=1);
                                 'hamster' => 'Hámster',
                                 'other' => 'Otro',
                             ];
-                            $selectedSpecies = $_POST['species'] ?? '';
-                            ?>
+$selectedSpecies = $_POST['species'] ?? '';
+?>
                             <select class="form-select" id="species" name="species" required>
                                 <option value="">Selecciona especie…</option>
                                 <?php foreach (\App\Domain\AnimalVocabulary::SPECIES as $s): ?>
                                     <option value="<?= htmlspecialchars($s, ENT_QUOTES, 'UTF-8') ?>"
                                         <?= $selectedSpecies === $s ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($speciesLabels[$s] ?? \ucfirst($s), ENT_QUOTES, 'UTF-8') ?>
+                                        <?= htmlspecialchars($speciesLabels[$s] ?? ucfirst($s), ENT_QUOTES, 'UTF-8') ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>

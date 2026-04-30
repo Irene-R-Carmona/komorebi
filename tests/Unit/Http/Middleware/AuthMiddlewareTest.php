@@ -19,13 +19,13 @@ namespace Tests\Unit\Http\Middleware;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Middleware\AuthMiddleware;
+use Nyholm\Psr7\Factory\Psr17Factory;
 use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Nyholm\Psr7\Factory\Psr17Factory;
 
 #[CoversClass(AuthMiddleware::class)]
 final class AuthMiddlewareTest extends TestCase
@@ -62,11 +62,12 @@ final class AuthMiddlewareTest extends TestCase
 
     private function makeHandler(int $status = 200): RequestHandlerInterface
     {
-        return new class($status, $this->psr17) implements RequestHandlerInterface {
+        return new class ($status, $this->psr17) implements RequestHandlerInterface {
             public function __construct(
                 private readonly int $status,
                 private readonly Psr17Factory $psr17
-            ) {}
+            ) {
+            }
 
             #[Override]
             public function handle(ServerRequestInterface $request): ResponseInterface
@@ -114,11 +115,12 @@ final class AuthMiddlewareTest extends TestCase
         $_SESSION['user_roles'] = ['admin'];
 
         $capturedRequest = null;
-        $handler = new class($capturedRequest, $this->psr17) implements RequestHandlerInterface {
+        $handler = new class ($capturedRequest, $this->psr17) implements RequestHandlerInterface {
             public function __construct(
                 public ?ServerRequestInterface &$captured,
                 private readonly Psr17Factory $psr17
-            ) {}
+            ) {
+            }
 
             #[Override]
             public function handle(ServerRequestInterface $request): ResponseInterface

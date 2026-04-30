@@ -8,6 +8,7 @@ use App\Core\Raw;
 use App\Core\View;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 use RuntimeException;
 
 #[CoversClass(View::class)]
@@ -16,7 +17,7 @@ final class ViewTest extends TestCase
     protected function setUp(): void
     {
         // Limpiar $viewsDir estático para tests que necesiten paths controlados
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, null);
     }
 
@@ -128,7 +129,7 @@ final class ViewTest extends TestCase
     {
         unset($_SERVER['HTTP_REFERER']);
         // Restaurar $viewsDir a null para que tests posteriores no hereden un path temporal corrupto
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, null);
     }
 
@@ -232,10 +233,10 @@ final class ViewTest extends TestCase
     public function testComponentToStringRendersSimpleViewWithData(): void
     {
         $tmpDir = \sys_get_temp_dir() . '/komorebi_view_tests_' . \getmypid();
-        \mkdir($tmpDir, 0777, true);
+        \mkdir($tmpDir, 0o777, true);
         \file_put_contents($tmpDir . '/hello.php', '<?php echo htmlspecialchars($name, ENT_QUOTES, "UTF-8"); ?>');
 
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, $tmpDir . '/');
 
         $output = View::componentToString('hello', ['name' => 'World']);
@@ -250,11 +251,11 @@ final class ViewTest extends TestCase
     public function testComponentToStringEscapesHtmlSpecialChars(): void
     {
         $tmpDir = \sys_get_temp_dir() . '/komorebi_view_tests2_' . \getmypid();
-        \mkdir($tmpDir, 0777, true);
+        \mkdir($tmpDir, 0o777, true);
         // The view just echoes the variable — escapeData() happens before the view receives it
         \file_put_contents($tmpDir . '/xss.php', '<?php echo $label; ?>');
 
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, $tmpDir . '/');
 
         $output = View::componentToString('xss', ['label' => '<script>alert(1)</script>']);
@@ -268,10 +269,10 @@ final class ViewTest extends TestCase
     public function testComponentToStringEscapesNestedArrayData(): void
     {
         $tmpDir = \sys_get_temp_dir() . '/komorebi_view_tests3_' . \getmypid();
-        \mkdir($tmpDir, 0777, true);
+        \mkdir($tmpDir, 0o777, true);
         \file_put_contents($tmpDir . '/nested.php', '<?php echo $items[0]; ?>');
 
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, $tmpDir . '/');
 
         $output = View::componentToString('nested', ['items' => ['<b>bold</b>']]);
@@ -287,10 +288,10 @@ final class ViewTest extends TestCase
     public function testRenderToStringWithNoLayoutOutputsViewDirectly(): void
     {
         $tmpDir = \sys_get_temp_dir() . '/komorebi_render_' . \getmypid();
-        \mkdir($tmpDir, 0777, true);
+        \mkdir($tmpDir, 0o777, true);
         \file_put_contents($tmpDir . '/simple.php', '<?php echo $title; ?>');
 
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, $tmpDir . '/');
 
         $output = View::renderToString('simple', ['title' => 'Hello'], [], null);
@@ -304,10 +305,10 @@ final class ViewTest extends TestCase
     public function testRenderToStringExtractExtraCssFromData(): void
     {
         $tmpDir = \sys_get_temp_dir() . '/komorebi_render_css_' . \getmypid();
-        \mkdir($tmpDir, 0777, true);
+        \mkdir($tmpDir, 0o777, true);
         \file_put_contents($tmpDir . '/page.php', '<?php echo "page"; ?>');
 
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, $tmpDir . '/');
 
         $output = View::renderToString('page', ['extraCss' => ['style.css']], [], null);
@@ -321,10 +322,10 @@ final class ViewTest extends TestCase
     public function testRenderToStringExtractExtraJsFromData(): void
     {
         $tmpDir = \sys_get_temp_dir() . '/komorebi_render_js_' . \getmypid();
-        \mkdir($tmpDir, 0777, true);
+        \mkdir($tmpDir, 0o777, true);
         \file_put_contents($tmpDir . '/page.php', '<?php echo "js_page"; ?>');
 
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, $tmpDir . '/');
 
         $output = View::renderToString('page', ['extraJs' => ['app.js']], [], null);
@@ -338,11 +339,11 @@ final class ViewTest extends TestCase
     public function testRenderToStringWithLayoutRendersLayout(): void
     {
         $tmpDir = \sys_get_temp_dir() . '/komorebi_render_layout_' . \getmypid();
-        \mkdir($tmpDir . '/layouts', 0777, true);
+        \mkdir($tmpDir . '/layouts', 0o777, true);
         \file_put_contents($tmpDir . '/inner.php', '<?php echo "inner-content"; ?>');
         \file_put_contents($tmpDir . '/layouts/simple.php', '<?php echo $content; ?>');
 
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, $tmpDir . '/');
 
         $output = View::renderToString('inner', [], [], 'simple');
@@ -360,10 +361,10 @@ final class ViewTest extends TestCase
     public function testComponentOutputsRenderedContent(): void
     {
         $tmpDir = \sys_get_temp_dir() . '/komorebi_comp_' . \getmypid();
-        \mkdir($tmpDir, 0777, true);
+        \mkdir($tmpDir, 0o777, true);
         \file_put_contents($tmpDir . '/widget.php', '<?php echo $label; ?>');
 
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, $tmpDir . '/');
 
         \ob_start();
@@ -381,13 +382,13 @@ final class ViewTest extends TestCase
     public function testCaptureStartEndSectionReturnsSectionContent(): void
     {
         $tmpDir = \sys_get_temp_dir() . '/komorebi_sections_' . \getmypid();
-        \mkdir($tmpDir, 0777, true);
+        \mkdir($tmpDir, 0o777, true);
         \file_put_contents(
             $tmpDir . '/sectioned.php',
             '<?php $this->start("content"); echo "section-body"; $this->end(); ?>'
         );
 
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, $tmpDir . '/');
 
         $output = View::componentToString('sectioned');
@@ -401,13 +402,13 @@ final class ViewTest extends TestCase
     public function testCaptureExtendDoesNotBreakRendering(): void
     {
         $tmpDir = \sys_get_temp_dir() . '/komorebi_extend_' . \getmypid();
-        \mkdir($tmpDir, 0777, true);
+        \mkdir($tmpDir, 0o777, true);
         \file_put_contents(
             $tmpDir . '/extending.php',
             '<?php $this->extend("base"); echo "extended-content"; ?>'
         );
 
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, $tmpDir . '/');
 
         $output = View::componentToString('extending');
@@ -423,10 +424,10 @@ final class ViewTest extends TestCase
     public function testComponentToStringPassesThroughRawDataUnescaped(): void
     {
         $tmpDir = \sys_get_temp_dir() . '/komorebi_raw_' . \getmypid();
-        \mkdir($tmpDir, 0777, true);
+        \mkdir($tmpDir, 0o777, true);
         \file_put_contents($tmpDir . '/rawview.php', '<?php echo $html; ?>');
 
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, $tmpDir . '/');
 
         $output = View::componentToString('rawview', ['html' => new Raw('<b>bold</b>')]);
@@ -440,10 +441,10 @@ final class ViewTest extends TestCase
     public function testComponentToStringPassesThroughIntDataUnchanged(): void
     {
         $tmpDir = \sys_get_temp_dir() . '/komorebi_int_' . \getmypid();
-        \mkdir($tmpDir, 0777, true);
+        \mkdir($tmpDir, 0o777, true);
         \file_put_contents($tmpDir . '/intview.php', '<?php echo $count; ?>');
 
-        $ref = new \ReflectionProperty(View::class, 'viewsDir');
+        $ref = new ReflectionProperty(View::class, 'viewsDir');
         $ref->setValue(null, $tmpDir . '/');
 
         $output = View::componentToString('intview', ['count' => 42]);

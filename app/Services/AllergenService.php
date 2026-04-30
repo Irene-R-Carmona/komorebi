@@ -20,7 +20,8 @@ final class AllergenService implements AllergenServiceInterface
 {
     public function __construct(
         private readonly AllergenRepositoryInterface $repository,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function listAll(bool $orderBySeverity = true): array

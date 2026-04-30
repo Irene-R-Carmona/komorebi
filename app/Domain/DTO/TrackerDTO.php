@@ -16,7 +16,8 @@ final readonly class TrackerDTO implements DomainTransferObject
         public string $status,
         public ?string $last_assigned_at,
         public ?string $cafe_name,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

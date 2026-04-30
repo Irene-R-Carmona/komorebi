@@ -24,8 +24,8 @@ final class ReservationItemTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdo   = $this->createStub(PDO::class);
-        $this->stmt  = $this->createStub(PDOStatement::class);
+        $this->pdo = $this->createStub(PDO::class);
+        $this->stmt = $this->createStub(PDOStatement::class);
         $this->pdo->method('prepare')->willReturn($this->stmt);
         $this->model = new ReservationItem($this->pdo);
     }

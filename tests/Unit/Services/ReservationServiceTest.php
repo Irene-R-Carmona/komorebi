@@ -32,10 +32,10 @@ final class ReservationServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
-        $this->cafeRepoStub        = $this->createStub(CafeRepositoryInterface::class);
-        $this->productRepoStub     = $this->createStub(ProductRepositoryInterface::class);
-        $this->invoiceServiceStub  = $this->createStub(InvoicePDFServiceInterface::class);
-        $this->emailServiceStub    = $this->createStub(EmailServiceInterface::class);
+        $this->cafeRepoStub = $this->createStub(CafeRepositoryInterface::class);
+        $this->productRepoStub = $this->createStub(ProductRepositoryInterface::class);
+        $this->invoiceServiceStub = $this->createStub(InvoicePDFServiceInterface::class);
+        $this->emailServiceStub = $this->createStub(EmailServiceInterface::class);
 
         $this->service = new ReservationService(
             $this->reservationRepoStub,
@@ -57,12 +57,12 @@ final class ReservationServiceTest extends TestCase
     public function testCreateReturnsFailWhenDateFormatInvalid(): void
     {
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '20-12-2025',
-            'time'            => '10:00',
-            'guests'          => 2,
+            'date' => '20-12-2025',
+            'time' => '10:00',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -72,12 +72,12 @@ final class ReservationServiceTest extends TestCase
     public function testCreateReturnsFailWhenTimeFormatInvalid(): void
     {
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2099-12-20',
-            'time'            => '9am',
-            'guests'          => 2,
+            'date' => '2099-12-20',
+            'time' => '9am',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -87,12 +87,12 @@ final class ReservationServiceTest extends TestCase
     public function testCreateReturnsFailWhenGuestsOutOfRange(): void
     {
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2099-12-20',
-            'time'            => '10:00',
-            'guests'          => 0,
+            'date' => '2099-12-20',
+            'time' => '10:00',
+            'guests' => 0,
         ]);
 
         $this->assertFalse($result->ok);
@@ -207,12 +207,12 @@ final class ReservationServiceTest extends TestCase
     public function testCreateReturnsFailWhenPastDate(): void
     {
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2000-01-01',
-            'time'            => '10:00',
-            'guests'          => 2,
+            'date' => '2000-01-01',
+            'time' => '10:00',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -224,12 +224,12 @@ final class ReservationServiceTest extends TestCase
         $this->cafeRepoStub->method('findById')->willReturn(null);
 
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 99,
+            'user_id' => 1,
+            'cafe_id' => 99,
             'pass_product_id' => 1,
-            'date'            => '2099-12-01',
-            'time'            => '10:00',
-            'guests'          => 2,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -242,12 +242,12 @@ final class ReservationServiceTest extends TestCase
         $this->cafeRepoStub->method('findById')->willReturn($cafe);
 
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2099-12-01',
-            'time'            => '10:00',
-            'guests'          => 2,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -260,12 +260,12 @@ final class ReservationServiceTest extends TestCase
         $this->cafeRepoStub->method('findById')->willReturn($cafe);
 
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2099-12-01',
-            'time'            => '10:00',
-            'guests'          => 2,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -279,12 +279,12 @@ final class ReservationServiceTest extends TestCase
         $this->productRepoStub->method('findById')->willReturn(null);
 
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 99,
-            'date'            => '2099-12-01',
-            'time'            => '10:00',
-            'guests'          => 2,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -299,12 +299,12 @@ final class ReservationServiceTest extends TestCase
         $this->productRepoStub->method('findById')->willReturn($pass);
 
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2099-12-01',
-            'time'            => '10:00',
-            'guests'          => 2,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -319,12 +319,12 @@ final class ReservationServiceTest extends TestCase
         $this->productRepoStub->method('findById')->willReturn($pass);
 
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2099-12-01',
-            'time'            => '10:00',
-            'guests'          => 2,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -339,12 +339,12 @@ final class ReservationServiceTest extends TestCase
         $this->productRepoStub->method('findById')->willReturn($pass);
 
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2099-12-01',
-            'time'            => '10:00',
-            'guests'          => 1,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 1,
         ]);
 
         $this->assertFalse($result->ok);
@@ -359,12 +359,12 @@ final class ReservationServiceTest extends TestCase
         $this->productRepoStub->method('findById')->willReturn($pass);
 
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2099-12-01',
-            'time'            => '10:00',
-            'guests'          => 5,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 5,
         ]);
 
         $this->assertFalse($result->ok);
@@ -379,12 +379,12 @@ final class ReservationServiceTest extends TestCase
         $this->productRepoStub->method('findById')->willReturn($pass);
 
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2099-12-01',
-            'time'            => '09:00',
-            'guests'          => 2,
+            'date' => '2099-12-01',
+            'time' => '09:00',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -400,12 +400,12 @@ final class ReservationServiceTest extends TestCase
         $this->productRepoStub->method('findById')->willReturn($pass);
 
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2099-12-01',
-            'time'            => '21:30',
-            'guests'          => 2,
+            'date' => '2099-12-01',
+            'time' => '21:30',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -421,12 +421,12 @@ final class ReservationServiceTest extends TestCase
         $this->productRepoStub->method('findById')->willReturn($pass);
 
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2099-12-01',
-            'time'            => '11:00',
-            'guests'          => 2,
+            'date' => '2099-12-01',
+            'time' => '11:00',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);
@@ -443,12 +443,12 @@ final class ReservationServiceTest extends TestCase
         $this->reservationRepoStub->method('existsForUserAndDateTime')->willReturn(true);
 
         $result = $this->service->create([
-            'user_id'         => 1,
-            'cafe_id'         => 1,
+            'user_id' => 1,
+            'cafe_id' => 1,
             'pass_product_id' => 1,
-            'date'            => '2099-12-01',
-            'time'            => '11:00',
-            'guests'          => 2,
+            'date' => '2099-12-01',
+            'time' => '11:00',
+            'guests' => 2,
         ]);
 
         $this->assertFalse($result->ok);

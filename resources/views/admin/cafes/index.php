@@ -13,9 +13,9 @@
 use App\Core\Csrf;
 use App\Core\View;
 
-$cafes         ??= [];
-$stats         ??= [];
-$meta          ??= ['page' => 1, 'has_next_page' => false];
+$cafes ??= [];
+$stats ??= [];
+$meta ??= ['page' => 1, 'has_next_page' => false];
 $currentParams ??= [];
 
 $alpineConfig = json_encode([
@@ -27,12 +27,12 @@ $alpineConfig = json_encode([
 
     <!-- Header -->
     <?= View::componentToString('components/admin/page-header', [
-        'icon'        => 'shop',
-        'title'       => 'Cafeterías',
-        'subtitle'    => 'Espacios acogedores con gatitos',
+        'icon' => 'shop',
+        'title' => 'Cafeterías',
+        'subtitle' => 'Espacios acogedores con gatitos',
         'actionLabel' => 'Nueva Cafetería',
         'actionClick' => 'openCreateModal()',
-        'actionIcon'  => 'plus-lg',
+        'actionIcon' => 'plus-lg',
     ]) ?>
 
     <!-- Estadísticas -->

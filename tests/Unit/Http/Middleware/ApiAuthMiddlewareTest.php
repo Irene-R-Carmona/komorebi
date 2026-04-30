@@ -98,10 +98,10 @@ final class ApiAuthMiddlewareTest extends TestCase
     {
         $tokenService = $this->createStub(ApiTokenServiceInterface::class);
         $tokenService->method('validate')->willReturn(Result::ok([
-            'user_id'    => 7,
-            'user'       => ['id' => 7, 'name' => 'Ana'],
+            'user_id' => 7,
+            'user' => ['id' => 7, 'name' => 'Ana'],
             'user_roles' => ['admin'],
-            'token_id'   => 1,
+            'token_id' => 1,
         ]));
 
         $mw = new ApiAuthMiddleware($this->responseFactory, $tokenService);
@@ -118,16 +118,16 @@ final class ApiAuthMiddlewareTest extends TestCase
     {
         $tokenService = $this->createStub(ApiTokenServiceInterface::class);
         $tokenService->method('validate')->willReturn(Result::ok([
-            'user_id'    => 5,
-            'user'       => ['id' => 5, 'name' => 'Bot'],
+            'user_id' => 5,
+            'user' => ['id' => 5, 'name' => 'Bot'],
             'user_roles' => ['manager'],
-            'token_id'   => 2,
+            'token_id' => 2,
         ]));
 
         $mw = new ApiAuthMiddleware($this->responseFactory, $tokenService);
 
         $capturedAttribute = null;
-        $request           = $this->createStub(ServerRequestInterface::class);
+        $request = $this->createStub(ServerRequestInterface::class);
         $request->method('getHeaderLine')->willReturnMap([
             ['Authorization', 'Bearer validtoken'],
         ]);

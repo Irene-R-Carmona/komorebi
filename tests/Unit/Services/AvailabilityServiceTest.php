@@ -28,10 +28,10 @@ final class AvailabilityServiceTest extends ServiceTestCase
 
     protected function setUp(): void
     {
-        $this->cafeRepoStub        = $this->createStub(CafeRepositoryInterface::class);
-        $this->productRepoStub     = $this->createStub(ProductRepositoryInterface::class);
+        $this->cafeRepoStub = $this->createStub(CafeRepositoryInterface::class);
+        $this->productRepoStub = $this->createStub(ProductRepositoryInterface::class);
         $this->reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
-        $this->service             = new AvailabilityService(
+        $this->service = new AvailabilityService(
             $this->cafeRepoStub,
             $this->productRepoStub,
             $this->reservationRepoStub

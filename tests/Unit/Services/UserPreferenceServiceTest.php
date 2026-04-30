@@ -25,7 +25,7 @@ final class UserPreferenceServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->userRepoStub = $this->createStub(UserRepositoryInterface::class);
-        $this->service      = new UserPreferenceService($this->userRepoStub);
+        $this->service = new UserPreferenceService($this->userRepoStub);
     }
 
     public function testGetPreferencesReturnsArray(): void

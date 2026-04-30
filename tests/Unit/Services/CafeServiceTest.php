@@ -14,6 +14,7 @@ use App\Domain\DTO\CafeDTO;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\StatisticsRepositoryInterface;
 use App\Services\CafeService;
+use PDOException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -26,8 +27,8 @@ final class CafeServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->cafeRepoStub = $this->createStub(CafeRepositoryInterface::class);
-        $statsRepoStub      = $this->createStub(StatisticsRepositoryInterface::class);
-        $this->service      = new CafeService($this->cafeRepoStub, $statsRepoStub);
+        $statsRepoStub = $this->createStub(StatisticsRepositoryInterface::class);
+        $this->service = new CafeService($this->cafeRepoStub, $statsRepoStub);
     }
 
     public function testGetAllWithActiveFilterCallsFindActive(): void
@@ -172,7 +173,7 @@ final class CafeServiceTest extends TestCase
 
     public function testCreateReturnsFailOnPDOException(): void
     {
-        $this->cafeRepoStub->method('create')->willThrowException(new \PDOException('DB error'));
+        $this->cafeRepoStub->method('create')->willThrowException(new PDOException('DB error'));
 
         $result = $this->service->create([
             'name' => 'Café Neko',
@@ -187,7 +188,7 @@ final class CafeServiceTest extends TestCase
     {
         $dto = new CafeDTO(1, 'cafe-shiba', 'Café Shiba', null, null, 'Madrid', 'neko', 'cat', 5.0, 20, 4.5, '09:00', '21:00', 'Europe/Madrid', true, true, null);
         $this->cafeRepoStub->method('findById')->willReturn($dto);
-        $this->cafeRepoStub->method('update')->willThrowException(new \PDOException('DB error'));
+        $this->cafeRepoStub->method('update')->willThrowException(new PDOException('DB error'));
 
         $result = $this->service->update(1, ['price_per_hour' => 100, 'name' => 'New Name']);
 

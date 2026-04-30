@@ -24,7 +24,7 @@ final class KitchenServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->itemRepoStub = $this->createStub(ReservationItemRepositoryInterface::class);
-        $this->service      = new KitchenService($this->itemRepoStub);
+        $this->service = new KitchenService($this->itemRepoStub);
     }
 
     public function testGetPendingByStationReturnsArray(): void

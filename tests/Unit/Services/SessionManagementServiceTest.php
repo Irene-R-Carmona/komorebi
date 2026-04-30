@@ -27,7 +27,7 @@ final class SessionManagementServiceTest extends TestCase
     {
         $this->sessionRepoStub = $this->createStub(SessionRepositoryInterface::class);
         $this->authLogRepoStub = $this->createStub(AuthLogRepositoryInterface::class);
-        $this->service         = new SessionManagementService(
+        $this->service = new SessionManagementService(
             $this->sessionRepoStub,
             $this->authLogRepoStub
         );

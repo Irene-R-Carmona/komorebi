@@ -51,7 +51,7 @@ final class KitchenApiControllerTest extends ControllerTestCase
 
     public function test_activeOrders_returns_403_without_cafe(): void
     {
-        $request  = $this->makeGetRequest('/api/v1/ops/kitchen/orders');
+        $request = $this->makeGetRequest('/api/v1/ops/kitchen/orders');
         $response = $this->makeController()->activeOrders($request);
 
         $this->assertSame(403, $response->getStatusCode());
@@ -64,8 +64,8 @@ final class KitchenApiControllerTest extends ControllerTestCase
         $service = $this->createStub(KitchenServiceInterface::class);
         $service->method('getAllPending')->willReturn([['id' => 10, 'name' => 'Café latte']]);
 
-        $request  = $this->makeGetRequest('/api/v1/ops/kitchen/orders');
-        $response = (new KitchenApiController(new ResponseFactory(), $service))->activeOrders($request);
+        $request = $this->makeGetRequest('/api/v1/ops/kitchen/orders');
+        $response = new KitchenApiController(new ResponseFactory(), $service)->activeOrders($request);
 
         $this->assertSame(200, $response->getStatusCode());
     }
@@ -74,7 +74,7 @@ final class KitchenApiControllerTest extends ControllerTestCase
 
     public function test_completeOrder_returns_400_with_invalid_id(): void
     {
-        $request  = $this->makePostRequest('/api/v1/ops/kitchen/orders/0/complete', []);
+        $request = $this->makePostRequest('/api/v1/ops/kitchen/orders/0/complete', []);
         $response = $this->makeController()->completeOrder($request, 0);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -85,8 +85,8 @@ final class KitchenApiControllerTest extends ControllerTestCase
         $service = $this->createStub(KitchenServiceInterface::class);
         $service->method('markReady')->willReturn(false);
 
-        $request  = $this->makePostRequest('/api/v1/ops/kitchen/orders/5/complete', []);
-        $response = (new KitchenApiController(new ResponseFactory(), $service))->completeOrder($request, 5);
+        $request = $this->makePostRequest('/api/v1/ops/kitchen/orders/5/complete', []);
+        $response = new KitchenApiController(new ResponseFactory(), $service)->completeOrder($request, 5);
 
         $this->assertSame(422, $response->getStatusCode());
     }
@@ -96,8 +96,8 @@ final class KitchenApiControllerTest extends ControllerTestCase
         $service = $this->createStub(KitchenServiceInterface::class);
         $service->method('markReady')->willReturn(true);
 
-        $request  = $this->makePostRequest('/api/v1/ops/kitchen/orders/5/complete', []);
-        $response = (new KitchenApiController(new ResponseFactory(), $service))->completeOrder($request, 5);
+        $request = $this->makePostRequest('/api/v1/ops/kitchen/orders/5/complete', []);
+        $response = new KitchenApiController(new ResponseFactory(), $service)->completeOrder($request, 5);
 
         $this->assertSame(200, $response->getStatusCode());
     }

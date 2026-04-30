@@ -32,8 +32,8 @@ final class UserController
         ?UserTransformer $userTransformer = null,
         ?RoleRepositoryInterface $roleRepo = null,
     ) {
-        $this->roleRepo        = $roleRepo        ?? Container::make(RoleRepositoryInterface::class);
-        $this->userRepo        = $userRepo        ?? Container::make(UserRepositoryInterface::class);
+        $this->roleRepo = $roleRepo ?? Container::make(RoleRepositoryInterface::class);
+        $this->userRepo = $userRepo ?? Container::make(UserRepositoryInterface::class);
         $this->userTransformer = $userTransformer ?? new UserTransformer();
     }
 
@@ -45,29 +45,29 @@ final class UserController
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $params = PaginationParams::fromRequest($request);
-        $q      = $request->getQueryParams();
+        $q = $request->getQueryParams();
         $status = \trim((string) ($q['status'] ?? ''));
-        $role   = \trim((string) ($q['role']   ?? ''));
+        $role = \trim((string) ($q['role'] ?? ''));
 
         /** @var UserRepository $repo */
-        $repo       = $this->userRepo;
+        $repo = $this->userRepo;
         $pagination = $params->toPagination(20);
-        $rawUsers   = $repo->findPaginatedWithRoles($pagination, $params->search, $status, $role, $params->sort, $params->dir);
-        $hasNext    = $pagination->hasNextPage(\count($rawUsers));
-        $users      = $this->userTransformer->collection(\array_slice($rawUsers, 0, $pagination->limit));
-        $meta       = $pagination->toMeta($hasNext);
+        $rawUsers = $repo->findPaginatedWithRoles($pagination, $params->search, $status, $role, $params->sort, $params->dir);
+        $hasNext = $pagination->hasNextPage(\count($rawUsers));
+        $users = $this->userTransformer->collection(\array_slice($rawUsers, 0, $pagination->limit));
+        $meta = $pagination->toMeta($hasNext);
 
         $currentParams = $params->toQueryArray(['status' => $status, 'role' => $role]);
 
         View::render('admin/users/index', [
-            'titulo'        => 'Gestión de Usuarios',
-            'users'         => $users,
-            'roles'         => $this->roleRepo->findAllWithCounts(),
-            'stats'         => $repo->getUserStats(),
-            'meta'          => $meta,
+            'titulo' => 'Gestión de Usuarios',
+            'users' => $users,
+            'roles' => $this->roleRepo->findAllWithCounts(),
+            'stats' => $repo->getUserStats(),
+            'meta' => $meta,
             'currentParams' => $currentParams,
-            'csrf_token'    => Csrf::token(),
-            'extraJs'       => ['admin/admin-users.js'],
+            'csrf_token' => Csrf::token(),
+            'extraJs' => ['admin/admin-users.js'],
         ], ['admin/admin-users.css'], 'backoffice');
 
         return null;

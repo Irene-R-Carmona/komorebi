@@ -31,7 +31,7 @@ final class SettingRepository implements SettingRepositoryInterface
             'SELECT * FROM settings ORDER BY group_name, `key`'
         )->fetchAll(PDO::FETCH_ASSOC);
 
-        return \array_map(fn(array $row): SettingDTO => $this->mapper->toDTO($row), $rows);
+        return \array_map(fn (array $row): SettingDTO => $this->mapper->toDTO($row), $rows);
     }
 
     /**
@@ -45,6 +45,6 @@ final class SettingRepository implements SettingRepositoryInterface
         $stmt->execute(['group' => $group]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return \array_map(fn(array $row): SettingDTO => $this->mapper->toDTO($row), $rows);
+        return \array_map(fn (array $row): SettingDTO => $this->mapper->toDTO($row), $rows);
     }
 }

@@ -225,3 +225,12 @@ lighthouse: ## Auditoría Lighthouse (performance + a11y + best-practices)
 
 playwright-install: ## Instalar Playwright y sus dependencias de navegadores
 	docker compose exec app npx playwright install --with-deps
+
+npm-install: ## Instalar dependencias de Node en el host
+	npm ci
+
+lint-js: ## Linting de JS/TS (public/js/ y tests/e2e/)
+	npx eslint public/js/ tests/e2e/
+
+format-js: ## Formatear JS/TS con Prettier (public/js/ y tests/e2e/)
+	npx prettier --write public/js/ tests/e2e/

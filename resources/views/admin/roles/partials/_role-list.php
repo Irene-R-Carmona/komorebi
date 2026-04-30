@@ -10,15 +10,15 @@ use App\Core\View;
 
 $roles ??= [];
 
-$systemCodes  = ['admin', 'user'];
+$systemCodes = ['admin', 'user'];
 $badgeClasses = [
-    'admin'      => 'role-list-badge--admin',
-    'manager'    => 'role-list-badge--manager',
+    'admin' => 'role-list-badge--admin',
+    'manager' => 'role-list-badge--manager',
     'supervisor' => 'role-list-badge--supervisor',
-    'reception'  => 'role-list-badge--reception',
-    'kitchen'    => 'role-list-badge--kitchen',
-    'keeper'     => 'role-list-badge--keeper',
-    'user'       => 'role-list-badge--user',
+    'reception' => 'role-list-badge--reception',
+    'kitchen' => 'role-list-badge--kitchen',
+    'keeper' => 'role-list-badge--keeper',
+    'user' => 'role-list-badge--user',
 ];
 ?>
 
@@ -26,9 +26,9 @@ $badgeClasses = [
     <?php if ($roles === []): ?>
     <div class="col-12">
         <?= View::componentToString('components/admin/empty-state', [
-            'icon'        => 'people',
-            'title'       => 'No hay roles',
-            'message'     => 'Crea el primer rol para comenzar',
+            'icon' => 'people',
+            'title' => 'No hay roles',
+            'message' => 'Crea el primer rol para comenzar',
             'actionLabel' => 'Crear Rol',
             'actionClick' => 'openCreateModal()',
         ]) ?>
@@ -36,26 +36,26 @@ $badgeClasses = [
     <?php else: ?>
     <?php foreach ($roles as $role): ?>
     <?php
-        $roleId    = (int) $role['id'];
-        $roleCode  = (string) ($role['code']  ?? '');
-        $roleName  = htmlspecialchars((string) ($role['name'] ?? ''), ENT_QUOTES, 'UTF-8');
-        $isSystem  = \in_array($roleCode, $systemCodes, true);
+        $roleId = (int) $role['id'];
+        $roleCode = (string) ($role['code'] ?? '');
+        $roleName = htmlspecialchars((string) ($role['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $isSystem = in_array($roleCode, $systemCodes, true);
         $badgeClass = $badgeClasses[$roleCode] ?? 'role-list-badge--user';
 
-        $editData = htmlspecialchars(\json_encode([
-            'id'          => $roleId,
-            'code'        => $roleCode,
-            'name'        => (string) ($role['name']        ?? ''),
+        $editData = htmlspecialchars(json_encode([
+            'id' => $roleId,
+            'code' => $roleCode,
+            'name' => (string) ($role['name'] ?? ''),
             'description' => (string) ($role['description'] ?? ''),
         ], \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_THROW_ON_ERROR), \ENT_QUOTES, 'UTF-8');
 
-        $permData = htmlspecialchars(\json_encode([
-            'id'       => $roleId,
-            'code'     => $roleCode,
-            'name'     => (string) ($role['name'] ?? ''),
+        $permData = htmlspecialchars(json_encode([
+            'id' => $roleId,
+            'code' => $roleCode,
+            'name' => (string) ($role['name'] ?? ''),
             'isSystem' => $isSystem,
         ], \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_THROW_ON_ERROR), \ENT_QUOTES, 'UTF-8');
-    ?>
+        ?>
     <div class="col-md-6 col-lg-4">
         <div class="role-card<?= $isSystem ? ' role-card--system' : '' ?>">
 

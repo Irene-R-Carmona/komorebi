@@ -22,7 +22,8 @@ final class UserProfileService implements UserProfileServiceInterface
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepo,
-    ) {}
+    ) {
+    }
 
     /**
      * Obtiene el perfil del usuario autenticado en la sesión actual.

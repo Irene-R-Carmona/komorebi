@@ -40,6 +40,7 @@ final class TrackerRepositoryTest extends TestCase
         $stmt->method('fetchAll')->willReturn($fetchAllReturn);
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('rowCount')->willReturn($rowCount);
+
         return $stmt;
     }
 
@@ -47,6 +48,7 @@ final class TrackerRepositoryTest extends TestCase
     {
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
+
         return $pdo;
     }
 

@@ -5,12 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Core;
 
 use App\Core\ExceptionHandler;
-use App\Exceptions\NotFoundException;
-use App\Exceptions\ValidationException;
-use App\Exceptions\AuthenticationException;
-use App\Exceptions\AuthorizationException;
-use App\Exceptions\BusinessRuleException;
-use App\Exceptions\DatabaseException;
 use Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;

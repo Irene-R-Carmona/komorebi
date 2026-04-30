@@ -13,7 +13,7 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final readonly class PaginationParams
 {
-    public const string DIR_ASC  = 'asc';
+    public const string DIR_ASC = 'asc';
     public const string DIR_DESC = 'desc';
 
     private function __construct(
@@ -21,16 +21,17 @@ final readonly class PaginationParams
         public string $sort,
         public string $dir,
         public int    $page,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(ServerRequestInterface $request): self
     {
         $q = $request->getQueryParams();
 
         $search = \trim((string) ($q['search'] ?? ''));
-        $sort   = \trim((string) ($q['sort']   ?? ''));
-        $dir    = \strtolower(\trim((string) ($q['dir'] ?? self::DIR_ASC)));
-        $page   = \max(1, (int) ($q['page'] ?? 1));
+        $sort = \trim((string) ($q['sort'] ?? ''));
+        $dir = \strtolower(\trim((string) ($q['dir'] ?? self::DIR_ASC)));
+        $page = \max(1, (int) ($q['page'] ?? 1));
 
         return new self(
             search: $search,
@@ -56,6 +57,6 @@ final readonly class PaginationParams
     {
         $base = ['search' => $this->search, 'sort' => $this->sort, 'dir' => $this->dir];
 
-        return \array_filter(\array_merge($base, $extra), static fn($v) => $v !== '');
+        return \array_filter(\array_merge($base, $extra), static fn ($v) => $v !== '');
     }
 }

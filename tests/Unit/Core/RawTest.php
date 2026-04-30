@@ -88,6 +88,7 @@ final class RawTest extends TestCase
     {
         $this->expectException(JsonException::class);
         $resource = \fopen('php://memory', 'r');
+
         try {
             Raw::json(['res' => $resource]);
         } finally {

@@ -9,13 +9,13 @@ use App\Core\Logger;
 use App\Core\Result;
 use App\Domain\DTO\CafeDTO;
 use App\Domain\DTO\ProductDTO;
+use App\Domain\Reservation\ReservationStateMachine;
 use App\Events\ReservationConfirmedEvent;
 use App\Exceptions\BusinessRuleException;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
-use App\Domain\Reservation\ReservationStateMachine;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
@@ -247,6 +247,7 @@ final class ReservationService implements ReservationServiceInterface
 
         if (!$success) {
             Logger::warning('[ReservationService] adminCancel failed', ['reservation_id' => $id]);
+
             return Result::fail('No se pudo cancelar la reserva');
         }
 
@@ -270,6 +271,7 @@ final class ReservationService implements ReservationServiceInterface
 
         if (!$success) {
             Logger::warning('[ReservationService] adminConfirm failed', ['reservation_id' => $id]);
+
             return Result::fail('No se pudo confirmar la reserva');
         }
 

@@ -7,4 +7,6 @@ namespace App\Models;
 /**
  * Modelo Review — constantes de dominio.
  */
-final class Review {}
+final class Review
+{
+}

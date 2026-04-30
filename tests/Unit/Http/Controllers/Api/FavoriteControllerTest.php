@@ -83,7 +83,7 @@ final class FavoriteControllerTest extends ControllerTestCase
         $controller = new FavoriteController(new ResponseFactory(), $repo);
 
         // Construir request con user_id + id en atributos (como lo haría ApiAuthMiddleware + Router)
-        $request = (new ServerRequest('PUT', '/api/v1/favorites/1'))
+        $request = new ServerRequest('PUT', '/api/v1/favorites/1')
             ->withAttribute('user_id', 42)
             ->withAttribute('id', '1');
 
@@ -102,7 +102,7 @@ final class FavoriteControllerTest extends ControllerTestCase
 
         $controller = new FavoriteController(new ResponseFactory(), $repo);
 
-        $request = (new ServerRequest('GET', '/api/v1/favorites'))
+        $request = new ServerRequest('GET', '/api/v1/favorites')
             ->withAttribute('user_id', 42);
 
         $response = $controller->list($request);
@@ -131,7 +131,7 @@ final class FavoriteControllerTest extends ControllerTestCase
         $repo = $this->createStub(FavoriteRepositoryInterface::class);
         $repo->method('add')->willReturn(true);
         $controller = new FavoriteController(new ResponseFactory(), $repo);
-        $request    = (new ServerRequest('PUT', '/api/v1/favorites/5'))
+        $request = new ServerRequest('PUT', '/api/v1/favorites/5')
             ->withAttribute('user_id', 42)
             ->withAttribute('id', '5');
 
@@ -142,7 +142,7 @@ final class FavoriteControllerTest extends ControllerTestCase
 
     public function test_add_returns_422_when_id_is_zero(): void
     {
-        $request = (new ServerRequest('PUT', '/api/v1/favorites/0'))
+        $request = new ServerRequest('PUT', '/api/v1/favorites/0')
             ->withAttribute('user_id', 42)
             ->withAttribute('id', '0');
 
@@ -165,7 +165,7 @@ final class FavoriteControllerTest extends ControllerTestCase
         $repo = $this->createStub(FavoriteRepositoryInterface::class);
         $repo->method('remove')->willReturn(true);
         $controller = new FavoriteController(new ResponseFactory(), $repo);
-        $request    = (new ServerRequest('DELETE', '/api/v1/favorites/5'))
+        $request = new ServerRequest('DELETE', '/api/v1/favorites/5')
             ->withAttribute('user_id', 42)
             ->withAttribute('id', '5');
 
@@ -176,7 +176,7 @@ final class FavoriteControllerTest extends ControllerTestCase
 
     public function test_remove_returns_422_when_id_is_zero(): void
     {
-        $request = (new ServerRequest('DELETE', '/api/v1/favorites/0'))
+        $request = new ServerRequest('DELETE', '/api/v1/favorites/0')
             ->withAttribute('user_id', 42)
             ->withAttribute('id', '0');
 

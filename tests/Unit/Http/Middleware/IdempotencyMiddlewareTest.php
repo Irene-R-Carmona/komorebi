@@ -57,7 +57,7 @@ final class IdempotencyMiddlewareTest extends TestCase
 
     public function testAbsentHeaderPassesThrough(): void
     {
-        $mw      = new IdempotencyMiddleware($this->responseFactory);
+        $mw = new IdempotencyMiddleware($this->responseFactory);
         $request = $this->makeRequest('');
 
         $response = $mw->process($request, $this->handler);
@@ -67,7 +67,7 @@ final class IdempotencyMiddlewareTest extends TestCase
 
     public function testWhitespaceOnlyHeaderPassesThrough(): void
     {
-        $mw      = new IdempotencyMiddleware($this->responseFactory);
+        $mw = new IdempotencyMiddleware($this->responseFactory);
         $request = $this->makeRequest('   ');
 
         $response = $mw->process($request, $this->handler);
@@ -77,7 +77,7 @@ final class IdempotencyMiddlewareTest extends TestCase
 
     public function testInvalidKeyFormatReturns422(): void
     {
-        $mw      = new IdempotencyMiddleware($this->responseFactory);
+        $mw = new IdempotencyMiddleware($this->responseFactory);
         $request = $this->makeRequest('not-a-uuid');
 
         $response = $mw->process($request, $this->handler);
@@ -88,7 +88,7 @@ final class IdempotencyMiddlewareTest extends TestCase
     public function testInvalidKeyV1UuidReturns422(): void
     {
         // UUID v1 (version digit = 1) → inválido para idempotencia
-        $mw      = new IdempotencyMiddleware($this->responseFactory);
+        $mw = new IdempotencyMiddleware($this->responseFactory);
         $request = $this->makeRequest('550e8400-e29b-11d4-a716-446655440000');
 
         $response = $mw->process($request, $this->handler);
@@ -99,7 +99,7 @@ final class IdempotencyMiddlewareTest extends TestCase
     public function testValidUuidV4WithoutRedisPassesThrough(): void
     {
         // Sin Redis disponible (test en unit, sin infra) → pasa transparentemente
-        $mw      = new IdempotencyMiddleware($this->responseFactory);
+        $mw = new IdempotencyMiddleware($this->responseFactory);
         $request = $this->makeRequest('550e8400-e29b-4d4a-a716-446655440000');
 
         $response = $mw->process($request, $this->handler);
@@ -111,7 +111,7 @@ final class IdempotencyMiddlewareTest extends TestCase
 
     public function testValidUuidV4UppercasePassesThrough(): void
     {
-        $mw      = new IdempotencyMiddleware($this->responseFactory);
+        $mw = new IdempotencyMiddleware($this->responseFactory);
         $request = $this->makeRequest('550E8400-E29B-4D4A-A716-446655440000');
 
         $response = $mw->process($request, $this->handler);
@@ -121,11 +121,11 @@ final class IdempotencyMiddlewareTest extends TestCase
 
     public function testInvalidKeyBodyContainsCodeField(): void
     {
-        $mw      = new IdempotencyMiddleware($this->responseFactory);
+        $mw = new IdempotencyMiddleware($this->responseFactory);
         $request = $this->makeRequest('invalid-key!!');
 
         $response = $mw->process($request, $this->handler);
-        $body     = \json_decode((string) $response->getBody(), true);
+        $body = \json_decode((string) $response->getBody(), true);
 
         $this->assertSame(422, $response->getStatusCode());
         $this->assertIsArray($body);

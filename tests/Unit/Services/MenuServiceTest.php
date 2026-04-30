@@ -305,15 +305,15 @@ final class MenuServiceTest extends TestCase
     public function testGetProductsByCategoryParsesAllergenFieldsIntoAllergensList(): void
     {
         $dto = MenuDTO::fromArray([
-            'id'                  => 1,
-            'category_id'         => 1,
-            'name'                => 'Croissant',
-            'price'               => 300,
-            'is_active'           => true,
-            'allergen_ids'        => '1,2',
-            'allergen_names'      => 'Gluten,Leche',
-            'allergen_icons'      => 'wheat,milk',
-            'allergen_colors'     => '#D4A017,#ffffff',
+            'id' => 1,
+            'category_id' => 1,
+            'name' => 'Croissant',
+            'price' => 300,
+            'is_active' => true,
+            'allergen_ids' => '1,2',
+            'allergen_names' => 'Gluten,Leche',
+            'allergen_icons' => 'wheat,milk',
+            'allergen_colors' => '#D4A017,#ffffff',
             'allergen_severities' => 'high,moderate',
         ]);
 

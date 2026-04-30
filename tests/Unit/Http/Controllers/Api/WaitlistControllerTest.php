@@ -59,7 +59,7 @@ final class WaitlistControllerTest extends ControllerTestCase
 
     public function test_join_returns_422_when_time_slot_id_missing(): void
     {
-        $request = (new ServerRequest('POST', '/api/v1/waitlists'))
+        $request = new ServerRequest('POST', '/api/v1/waitlists')
             ->withAttribute('user_id', 5)
             ->withParsedBody([]);
 
@@ -76,7 +76,7 @@ final class WaitlistControllerTest extends ControllerTestCase
         );
         $controller = new WaitlistController(new ResponseFactory(), $service);
 
-        $request = (new ServerRequest('POST', '/api/v1/waitlists'))
+        $request = new ServerRequest('POST', '/api/v1/waitlists')
             ->withAttribute('user_id', 5)
             ->withParsedBody(['time_slot_id' => 10]);
 
@@ -91,7 +91,7 @@ final class WaitlistControllerTest extends ControllerTestCase
         $service->method('joinWaitlist')->willReturn(Result::fail('Ya en lista de espera'));
         $controller = new WaitlistController(new ResponseFactory(), $service);
 
-        $request = (new ServerRequest('POST', '/api/v1/waitlists'))
+        $request = new ServerRequest('POST', '/api/v1/waitlists')
             ->withAttribute('user_id', 5)
             ->withParsedBody(['time_slot_id' => 10]);
 
@@ -117,7 +117,7 @@ final class WaitlistControllerTest extends ControllerTestCase
         $service->method('getWaitlistStatus')->willReturn(Result::fail('Token no encontrado'));
         $controller = new WaitlistController(new ResponseFactory(), $service);
 
-        $request = (new ServerRequest('GET', '/api/v1/waitlists/tok123'))
+        $request = new ServerRequest('GET', '/api/v1/waitlists/tok123')
             ->withAttribute('token', 'tok123');
 
         $result = $controller->position($request);
@@ -133,7 +133,7 @@ final class WaitlistControllerTest extends ControllerTestCase
         );
         $controller = new WaitlistController(new ResponseFactory(), $service);
 
-        $request = (new ServerRequest('GET', '/api/v1/waitlists/tok123'))
+        $request = new ServerRequest('GET', '/api/v1/waitlists/tok123')
             ->withAttribute('token', 'tok123');
 
         $result = $controller->position($request);
@@ -158,7 +158,7 @@ final class WaitlistControllerTest extends ControllerTestCase
         $service->method('confirmPromotion')->willReturn(Result::fail('Token inválido o expirado'));
         $controller = new WaitlistController(new ResponseFactory(), $service);
 
-        $request = (new ServerRequest('POST', '/api/v1/waitlists/tok123/confirmations'))
+        $request = new ServerRequest('POST', '/api/v1/waitlists/tok123/confirmations')
             ->withAttribute('token', 'tok123');
 
         $result = $controller->confirm($request);
@@ -174,7 +174,7 @@ final class WaitlistControllerTest extends ControllerTestCase
         );
         $controller = new WaitlistController(new ResponseFactory(), $service);
 
-        $request = (new ServerRequest('POST', '/api/v1/waitlists/tok123/confirmations'))
+        $request = new ServerRequest('POST', '/api/v1/waitlists/tok123/confirmations')
             ->withAttribute('token', 'tok123');
 
         $result = $controller->confirm($request);

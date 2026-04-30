@@ -552,14 +552,14 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
     ): array {
         $sortWhitelist = ['id', 'name', 'email', 'is_active', 'created_at'];
         $safeSort = \in_array($sort, $sortWhitelist, true) ? $sort : 'created_at';
-        $safeDir  = \strtolower($sortDir) === 'asc' ? 'ASC' : 'DESC';
+        $safeDir = \strtolower($sortDir) === 'asc' ? 'ASC' : 'DESC';
 
-        $where  = [];
+        $where = [];
         $params = [];
 
         if ($search !== '') {
-            $where[]           = '(u.name LIKE :search OR u.email LIKE :search)';
-            $params['search']  = '%' . $search . '%';
+            $where[] = '(u.name LIKE :search OR u.email LIKE :search)';
+            $params['search'] = '%' . $search . '%';
         }
 
         if ($status === 'active') {
@@ -569,7 +569,7 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         }
 
         if ($role !== '') {
-            $where[]        = 'u.id IN (SELECT ur2.user_id FROM user_roles ur2 JOIN roles r2 ON ur2.role_id = r2.id WHERE r2.code = :role)';
+            $where[] = 'u.id IN (SELECT ur2.user_id FROM user_roles ur2 JOIN roles r2 ON ur2.role_id = r2.id WHERE r2.code = :role)';
             $params['role'] = $role;
         }
 
@@ -589,13 +589,13 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
             LIMIT :limit OFFSET :offset
         ";
 
-        $params['limit']  = $pagination->fetchLimit;
+        $params['limit'] = $pagination->fetchLimit;
         $params['offset'] = $pagination->offset;
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(static fn() => $stmt->execute($params), $sql, $params);
+        $this->execTimed(static fn () => $stmt->execute($params), $sql, $params);
 
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -616,13 +616,13 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
             LEFT JOIN roles r       ON ur.role_id = r.id
         ");
 
-        $row = $stmt ? $stmt->fetch(\PDO::FETCH_ASSOC) : [];
+        $row = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : [];
 
         return [
-            'total_users'    => (int) ($row['total']   ?? 0),
-            'active_users'   => (int) ($row['active']  ?? 0),
+            'total_users' => (int) ($row['total'] ?? 0),
+            'active_users' => (int) ($row['active'] ?? 0),
             'inactive_users' => (int) ($row['inactive'] ?? 0),
-            'admin_users'    => (int) ($row['admins']  ?? 0),
+            'admin_users' => (int) ($row['admins'] ?? 0),
         ];
     }
 

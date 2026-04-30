@@ -73,10 +73,10 @@ final class CafeControllerTest extends ControllerTestCase
 
         // Primera petición para obtener ETag real
         $first = $controller->index($this->makeGetRequest('/api/v1/cafes'));
-        $etag  = $first->getHeaderLine('ETag');
+        $etag = $first->getHeaderLine('ETag');
 
         // Segunda petición con If-None-Match
-        $request = (new ServerRequest('GET', '/api/v1/cafes'))
+        $request = new ServerRequest('GET', '/api/v1/cafes')
             ->withHeader('If-None-Match', $etag);
 
         $response = $controller->index($request);

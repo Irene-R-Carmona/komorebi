@@ -46,12 +46,12 @@ abstract class AbstractWorker
     public function run(): void
     {
         $workerName = $this->getWorkerName();
-        $queueName  = $this->getQueueName();
+        $queueName = $this->getQueueName();
 
         Logger::info("[$workerName] Iniciado", [
             'queue' => $queueName,
-            'pid'   => \getmypid(),
-            'env'   => Config::getString('app.env', 'production'),
+            'pid' => \getmypid(),
+            'env' => Config::getString('app.env', 'production'),
         ]);
 
         try {
@@ -62,7 +62,7 @@ abstract class AbstractWorker
 
         $this->echoToConsole("[$workerName] Escuchando cola '$queueName'...");
 
-        $this->startTime     = \microtime(true);
+        $this->startTime = \microtime(true);
         $this->lastHeartbeat = \microtime(true);
 
         while (!$this->shouldStop) {
@@ -106,20 +106,20 @@ abstract class AbstractWorker
         \file_put_contents($this->getHeartbeatFilePath(), (string) (int) $now);
 
         Logger::info("[{$this->getWorkerName()}] Heartbeat", [
-            'queue'       => $this->getQueueName(),
-            'pending'     => Queue::size($this->getQueueName()),
-            'processed'   => $this->processed,
-            'errors'      => $this->errors,
-            'uptime_s'    => (int) ($now - $this->startTime),
-            'pid'         => \getmypid(),
+            'queue' => $this->getQueueName(),
+            'pending' => Queue::size($this->getQueueName()),
+            'processed' => $this->processed,
+            'errors' => $this->errors,
+            'uptime_s' => (int) ($now - $this->startTime),
+            'pid' => \getmypid(),
         ]);
     }
 
     private function processJob(array $jobData): void
     {
         $workerName = $this->getWorkerName();
-        $queueName  = $this->getQueueName();
-        $jobClass   = $jobData['job'] ?? null;
+        $queueName = $this->getQueueName();
+        $jobClass = $jobData['job'] ?? null;
 
         if (!$jobClass || !\class_exists($jobClass)) {
             Logger::error("[$workerName] Job inválido", ['data' => $jobData]);
@@ -164,13 +164,13 @@ abstract class AbstractWorker
             WideEvent::set('duration_ms', $duration);
             WideEvent::set('outcome', 'error');
             WideEvent::setSection('error', [
-                'type'    => \get_class($e),
+                'type' => \get_class($e),
                 'message' => $e->getMessage(),
             ]);
             Logger::channel('queue')->info('job.canonical', WideEvent::all());
 
             Logger::error("[$workerName] Job falló", [
-                'job'   => $jobClass,
+                'job' => $jobClass,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -189,12 +189,12 @@ abstract class AbstractWorker
     private function retryJob(array $jobData): void
     {
         $workerName = $this->getWorkerName();
-        $queueName  = $this->getQueueName();
-        $attempts   = ($jobData['attempts'] ?? 0) + 1;
+        $queueName = $this->getQueueName();
+        $attempts = ($jobData['attempts'] ?? 0) + 1;
 
         if ($attempts < $this->getMaxRetries()) {
             Logger::warning("[$workerName] Reintentando job", [
-                'job'     => $jobData['job'] ?? 'unknown',
+                'job' => $jobData['job'] ?? 'unknown',
                 'attempt' => $attempts,
             ]);
 
@@ -208,7 +208,7 @@ abstract class AbstractWorker
             );
         } else {
             Logger::error("[$workerName] Job descartado (máximo de reintentos)", [
-                'job'      => $jobData['job'] ?? 'unknown',
+                'job' => $jobData['job'] ?? 'unknown',
                 'attempts' => $attempts,
             ]);
         }
@@ -223,7 +223,7 @@ abstract class AbstractWorker
         $handler = function (int $signo): void {
             $signalName = match ($signo) {
                 SIGTERM => 'SIGTERM',
-                SIGINT  => 'SIGINT',
+                SIGINT => 'SIGINT',
                 default => "Signal $signo",
             };
 
@@ -254,7 +254,7 @@ abstract class AbstractWorker
 
         Logger::info("[$workerName] Detenido", [
             'processed' => $this->processed,
-            'errors'    => $this->errors,
+            'errors' => $this->errors,
         ]);
 
         $this->echoToConsole(

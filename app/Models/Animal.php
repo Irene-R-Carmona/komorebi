@@ -9,9 +9,9 @@ namespace App\Models;
  */
 final class Animal
 {
-    public const string STATUS_ACTIVE  = 'active';
+    public const string STATUS_ACTIVE = 'active';
     public const string STATUS_RESTING = 'resting';
-    public const string STATUS_SICK    = 'sick';
+    public const string STATUS_SICK = 'sick';
     public const string STATUS_RETIRED = 'retired';
 
     public const array VALID_STATUSES = [

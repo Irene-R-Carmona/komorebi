@@ -52,9 +52,9 @@ final class PayloadSizeMiddlewareTest extends TestCase
         $request->method('getHeaderLine')
             ->willReturnCallback(static function (string $header) use ($contentLength, $transferEncoding): string {
                 return match (\strtolower($header)) {
-                    'content-length'     => $contentLength,
-                    'transfer-encoding'  => $transferEncoding,
-                    default              => '',
+                    'content-length' => $contentLength,
+                    'transfer-encoding' => $transferEncoding,
+                    default => '',
                 };
             });
 

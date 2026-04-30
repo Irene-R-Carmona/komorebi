@@ -27,7 +27,7 @@ final class LoyaltyServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repoStub = $this->createStub(LoyaltyRepositoryInterface::class);
-        $this->service  = new LoyaltyService($this->repoStub);
+        $this->service = new LoyaltyService($this->repoStub);
     }
 
     public function testCalculateTierReturnsBronzeForZeroVisits(): void
@@ -112,7 +112,7 @@ final class LoyaltyServiceTest extends TestCase
     public function testGetCardStatusFailsWhenRepoThrowsException(): void
     {
         $this->repoStub->method('findOrCreateCardByUserId')
-            ->willThrowException(new \RuntimeException('DB error'));
+            ->willThrowException(new RuntimeException('DB error'));
 
         $result = $this->service->getCardStatus(999);
 

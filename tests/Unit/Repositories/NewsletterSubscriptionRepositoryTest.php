@@ -43,6 +43,7 @@ final class NewsletterSubscriptionRepositoryTest extends TestCase
         $stmt->method('fetch')->willReturn($fetchReturn);
         $stmt->method('fetchColumn')->willReturn($fetchColumnReturn);
         $stmt->method('bindValue')->willReturn(true);
+
         return $stmt;
     }
 
@@ -50,6 +51,7 @@ final class NewsletterSubscriptionRepositoryTest extends TestCase
     {
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
+
         return $pdo;
     }
 

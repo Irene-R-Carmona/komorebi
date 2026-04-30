@@ -27,7 +27,8 @@ final readonly class ProductDTO implements DomainTransferObject
         public ?string $target_cafe_types,
         public ?string $target_animal_types,
         public ?int $stock_quantity,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

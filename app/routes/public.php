@@ -9,7 +9,6 @@ use App\Core\Router;
 use App\Core\View;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
 use Throwable;
 
 /** @var \App\Core\Router $router */
@@ -17,9 +16,9 @@ use Throwable;
 /** @var \App\Core\Http\ResponseFactory $responseFactory */
 
 $renderView = static function (string $template, array $data = [], array $styles = [], ?string $layout = 'main') use ($responseFactory): ResponseInterface {
-    \ob_start();
+    ob_start();
     View::render($template, $data, $styles, $layout);
-    $content = \ob_get_clean();
+    $content = ob_get_clean();
 
     return $responseFactory->html($content);
 };
@@ -108,32 +107,32 @@ $router->get('/uploads/animals/{filename}', function (ServerRequestInterface $re
     $filename = (string) ($request->getAttribute('filename') ?? '');
 
     // 1. Solo caracteres seguros — sin path traversal
-    if ($filename === '' || !\preg_match('/^[a-zA-Z0-9_\-.]+$/', $filename)) {
+    if ($filename === '' || !preg_match('/^[a-zA-Z0-9_\-.]+$/', $filename)) {
         return $responseFactory->createResponse(404);
     }
 
     // 2. Solo extensiones de imagen permitidas
-    $ext = \strtolower(\pathinfo($filename, PATHINFO_EXTENSION));
-    if (!\in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
         return $responseFactory->createResponse(404);
     }
 
     // 3. Path seguro contra traversal
-    $baseDir = \realpath(__DIR__ . '/../../storage/uploads/animals');
+    $baseDir = realpath(__DIR__ . '/../../storage/uploads/animals');
     if ($baseDir === false) {
         return $responseFactory->createResponse(404);
     }
     $filepath = $baseDir . \DIRECTORY_SEPARATOR . $filename;
-    $realFile = \realpath($filepath);
-    if ($realFile === false || !\str_starts_with($realFile, $baseDir . \DIRECTORY_SEPARATOR)) {
+    $realFile = realpath($filepath);
+    if ($realFile === false || !str_starts_with($realFile, $baseDir . \DIRECTORY_SEPARATOR)) {
         return $responseFactory->createResponse(404);
     }
-    if (!\is_file($realFile)) {
+    if (!is_file($realFile)) {
         return $responseFactory->createResponse(404);
     }
 
     // 4. Servir con Content-Type correcto + cache
-    $content = \file_get_contents($realFile);
+    $content = file_get_contents($realFile);
     if ($content === false) {
         return $responseFactory->createResponse(500);
     }
@@ -143,7 +142,7 @@ $router->get('/uploads/animals/{filename}', function (ServerRequestInterface $re
     $response = $responseFactory->createResponse(200)
         ->withHeader('Content-Type', $contentTypes[$ext])
         ->withHeader('Cache-Control', 'public, max-age=86400')
-        ->withHeader('Content-Length', (string) \strlen($content));
+        ->withHeader('Content-Length', (string) strlen($content));
     $response->getBody()->write($content);
 
     return $response;
@@ -154,9 +153,9 @@ $router->get('/uploads/animals/{filename}', function (ServerRequestInterface $re
 // ============================================================================
 
 $corsOnly = [$mw->cors()];
-$router->options('/api/v1/{resource}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{id}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{sub}/{id}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{id}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{sub}/{id}', fn () => '', $corsOnly);
 
 // ============================================================================
 // HEALTH CHECK
@@ -203,23 +202,23 @@ $router->get('/health', function () use ($responseFactory) {
     }
 
     // --- Runtime metrics (FrankenPHP Worker Mode + OPcache + PHP-DI) --------
-    $opcacheStatus = \function_exists('opcache_get_status') ? @\opcache_get_status(false) : false;
+    $opcacheStatus = function_exists('opcache_get_status') ? @opcache_get_status(false) : false;
     $checks['runtime'] = [
-        'worker_mode'       => \function_exists('frankenphp_handle_request'),
-        'php_version'       => PHP_VERSION,
-        'opcache_enabled'   => \is_array($opcacheStatus) && ($opcacheStatus['opcache_enabled'] ?? false),
-        'jit_active'        => \is_array($opcacheStatus) && ($opcacheStatus['jit']['on'] ?? false),
-        'di_compiled'       => \is_file(__DIR__ . '/../../storage/cache/di/CompiledContainer.php'),
-        'preloaded_scripts' => \is_array($opcacheStatus)
+        'worker_mode' => function_exists('frankenphp_handle_request'),
+        'php_version' => PHP_VERSION,
+        'opcache_enabled' => is_array($opcacheStatus) && ($opcacheStatus['opcache_enabled'] ?? false),
+        'jit_active' => is_array($opcacheStatus) && ($opcacheStatus['jit']['on'] ?? false),
+        'di_compiled' => is_file(__DIR__ . '/../../storage/cache/di/CompiledContainer.php'),
+        'preloaded_scripts' => is_array($opcacheStatus)
             ? (int) ($opcacheStatus['preload_statistics']['num_cached_scripts'] ?? 0)
             : 0,
     ];
 
     return $responseFactory->json([
-        'status'    => $status,
-        'timestamp' => \date('c'),
-        'version'   => \App\Core\Env::get('APP_VERSION', 'unknown'),
-        'checks'    => $checks,
+        'status' => $status,
+        'timestamp' => date('c'),
+        'version' => \App\Core\Env::get('APP_VERSION', 'unknown'),
+        'checks' => $checks,
     ], $httpCode);
 });
 

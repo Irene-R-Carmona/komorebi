@@ -14,6 +14,7 @@ use App\Domain\DTO\ReviewDTO;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Services\ReviewModerationService;
+use Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -27,8 +28,8 @@ final class ReviewModerationServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->reviewRepoStub = $this->createStub(ReviewRepositoryInterface::class);
-        $this->cafeRepoStub   = $this->createStub(CafeRepositoryInterface::class);
-        $this->service        = new ReviewModerationService(
+        $this->cafeRepoStub = $this->createStub(CafeRepositoryInterface::class);
+        $this->service = new ReviewModerationService(
             $this->reviewRepoStub,
             $this->cafeRepoStub,
             null
@@ -126,7 +127,7 @@ final class ReviewModerationServiceTest extends TestCase
 
     public function testListPendingReviewsReturnsEmptyOnException(): void
     {
-        $this->reviewRepoStub->method('findPendingPaginated')->willThrowException(new \Exception('DB error'));
+        $this->reviewRepoStub->method('findPendingPaginated')->willThrowException(new Exception('DB error'));
 
         $reviews = $this->service->listPendingReviews();
 
@@ -135,7 +136,7 @@ final class ReviewModerationServiceTest extends TestCase
 
     public function testModerateReviewReturnsFalseWhenRepoThrows(): void
     {
-        $this->reviewRepoStub->method('findById')->willThrowException(new \Exception('DB error'));
+        $this->reviewRepoStub->method('findById')->willThrowException(new Exception('DB error'));
 
         $result = $this->service->moderateReview(1, 'approved');
 
@@ -218,7 +219,7 @@ final class ReviewModerationServiceTest extends TestCase
 
     public function testDeleteReviewByIdReturnsFalseOnException(): void
     {
-        $this->reviewRepoStub->method('delete')->willThrowException(new \Exception('DB error'));
+        $this->reviewRepoStub->method('delete')->willThrowException(new Exception('DB error'));
 
         $result = $this->service->deleteReviewById(1);
 

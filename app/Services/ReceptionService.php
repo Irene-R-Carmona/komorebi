@@ -64,7 +64,7 @@ final class ReceptionService implements ReceptionServiceInterface
     {
         $reservations = $this->reservationRepo->findByCafeAndDate($cafeId, \date('Y-m-d'));
 
-        return \array_filter($reservations, static fn($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
+        return \array_filter($reservations, static fn ($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
     }
 
     #[Override]

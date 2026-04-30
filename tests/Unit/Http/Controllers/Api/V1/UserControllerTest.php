@@ -18,7 +18,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Api\V1;
 
 use App\Core\Http\ResponseFactory;
-use App\Core\Result;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Transformers\ReviewTransformer;
 use App\Http\Transformers\UserTransformer;
@@ -75,7 +74,7 @@ final class UserControllerTest extends ControllerTestCase
             'created_at' => '2024-01-01 00:00:00',
         ]);
 
-        $request = (new ServerRequest('GET', '/api/v1/user/profile'))
+        $request = new ServerRequest('GET', '/api/v1/user/profile')
             ->withAttribute('user_id', 1);
 
         $response = $this->makeController(profileService: $profileService)->profile($request);
@@ -116,7 +115,7 @@ final class UserControllerTest extends ControllerTestCase
             'next_level_at' => 5,
         ]);
 
-        $request = (new ServerRequest('GET', '/api/v1/user/stats'))
+        $request = new ServerRequest('GET', '/api/v1/user/stats')
             ->withAttribute('user_id', 1);
 
         $response = $this->makeController(
@@ -160,7 +159,7 @@ final class UserControllerTest extends ControllerTestCase
             ],
         ]);
 
-        $request = (new ServerRequest('GET', '/api/v1/user/reviews'))
+        $request = new ServerRequest('GET', '/api/v1/user/reviews')
             ->withAttribute('user_id', 1);
 
         $response = $this->makeController(reviewQueryService: $queryService)->reviews($request);
@@ -179,7 +178,7 @@ final class UserControllerTest extends ControllerTestCase
         $queryService = $this->createStub(ReviewQueryServiceInterface::class);
         $queryService->method('listUserReviews')->willReturn([]);
 
-        $request = (new ServerRequest('GET', '/api/v1/user/reviews'))
+        $request = new ServerRequest('GET', '/api/v1/user/reviews')
             ->withAttribute('user_id', 2);
 
         $response = $this->makeController(reviewQueryService: $queryService)->reviews($request);

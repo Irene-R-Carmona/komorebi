@@ -68,12 +68,12 @@ final class UserController extends AbstractApiController
         }
 
         $reservations = $this->reservationService->getByUser($userId);
-        $count        = \count($reservations);
-        $level        = $this->gamificationService->calculateUserLevel($count);
+        $count = \count($reservations);
+        $level = $this->gamificationService->calculateUserLevel($count);
 
         return $this->success([
             'reservations_count' => $count,
-            'level'              => $level,
+            'level' => $level,
         ]);
     }
 
@@ -92,13 +92,13 @@ final class UserController extends AbstractApiController
             return $this->unauthorized('Debes iniciar sesión');
         }
 
-        $params     = $request->getQueryParams();
-        $page       = \max(1, (int) ($params['page'] ?? 1));
-        $limit      = \max(1, (int) ($params['limit'] ?? Pagination::DEFAULT_LIMIT));
+        $params = $request->getQueryParams();
+        $page = \max(1, (int) ($params['page'] ?? 1));
+        $limit = \max(1, (int) ($params['limit'] ?? Pagination::DEFAULT_LIMIT));
         $pagination = Pagination::fromRequest($page, $limit);
 
-        $all    = $this->reviewQueryService->listUserReviews($userId);
-        $slice  = \array_slice($all, $pagination->offset, $pagination->fetchLimit);
+        $all = $this->reviewQueryService->listUserReviews($userId);
+        $slice = \array_slice($all, $pagination->offset, $pagination->fetchLimit);
         $hasNext = \count($slice) > $pagination->limit;
         if ($hasNext) {
             \array_pop($slice);
@@ -106,7 +106,7 @@ final class UserController extends AbstractApiController
 
         return $this->success([
             'items' => $this->reviewTransformer->collection($slice),
-            'meta'  => $pagination->toMeta($hasNext),
+            'meta' => $pagination->toMeta($hasNext),
         ]);
     }
 

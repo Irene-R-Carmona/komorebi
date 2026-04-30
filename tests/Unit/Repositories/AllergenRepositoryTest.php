@@ -52,7 +52,7 @@ final class AllergenRepositoryTest extends RepositoryTestCase
             'icon_class' => 'fa-wheat',
             'icon_color' => '#f59e0b',
             'severity' => 'high',
-            'description' => null
+            'description' => null,
         ];
         [$pdo] = $this->makePdoWithStmt([], $row);
         $repo = $this->makeRepo($pdo);
@@ -72,7 +72,7 @@ final class AllergenRepositoryTest extends RepositoryTestCase
             'icon_class' => 'fa-wheat',
             'icon_color' => null,
             'severity' => 'high',
-            'description' => null
+            'description' => null,
         ];
         [$pdo] = $this->makePdoWithStmt([], $row);
         $repo = $this->makeRepo($pdo);
@@ -108,7 +108,7 @@ final class AllergenRepositoryTest extends RepositoryTestCase
                 'icon_class' => null,
                 'icon_color' => null,
                 'severity' => 'high',
-                'description' => null
+                'description' => null,
             ],
         ];
         [$pdo] = $this->makePdoWithStmt($rows);
@@ -225,7 +225,7 @@ final class AllergenRepositoryTest extends RepositoryTestCase
             'icon_class' => null,
             'icon_color' => null,
             'severity' => 'high',
-            'description' => null
+            'description' => null,
         ];
 
         $stmt = $this->createStub(PDOStatement::class);

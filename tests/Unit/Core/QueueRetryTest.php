@@ -42,13 +42,14 @@ final class QueueRetryTest extends TestCase
         $zaddRef = &$this->zaddCalls;
         $xaddRef = &$this->xaddFailedCalls;
 
-        $fakeRedis = new class($zaddRef, $xaddRef) {
+        $fakeRedis = new class ($zaddRef, $xaddRef) {
             public function __construct(
                 /** @phpstan-ignore property.onlyWritten */
                 private array &$zaddCalls,
                 /** @phpstan-ignore property.onlyWritten */
                 private array &$xaddFailedCalls,
-            ) {}
+            ) {
+            }
 
             /** @param mixed ...$args */
             public function zAdd(string $key, array $options, float $score, mixed ...$args): mixed

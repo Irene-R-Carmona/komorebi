@@ -21,6 +21,7 @@ final class AuthAuditLogTest extends TestCase
     {
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
+
         return $pdo;
     }
 
@@ -39,7 +40,7 @@ final class AuthAuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtCount, $stmtData);
 
-        $result = (new AuthAuditLog($pdo))->findAll();
+        $result = new AuthAuditLog($pdo)->findAll();
 
         $this->assertArrayHasKey('data', $result);
         $this->assertArrayHasKey('total', $result);
@@ -60,7 +61,7 @@ final class AuthAuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtCount, $stmtData);
 
-        $result = (new AuthAuditLog($pdo))->findAll(['user_id' => 3]);
+        $result = new AuthAuditLog($pdo)->findAll(['user_id' => 3]);
 
         $this->assertSame(2, $result['total']);
         $this->assertCount(2, $result['data']);
@@ -79,7 +80,7 @@ final class AuthAuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtCount, $stmtData);
 
-        $result = (new AuthAuditLog($pdo))->findAll(['event_type' => 'failed_login']);
+        $result = new AuthAuditLog($pdo)->findAll(['event_type' => 'failed_login']);
 
         $this->assertSame(1, $result['total']);
     }
@@ -95,7 +96,7 @@ final class AuthAuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtCount, $stmtData);
 
-        $result = (new AuthAuditLog($pdo))->findAll(['success' => false]);
+        $result = new AuthAuditLog($pdo)->findAll(['success' => false]);
 
         $this->assertSame(0, $result['total']);
         $this->assertSame([], $result['data']);
@@ -114,7 +115,7 @@ final class AuthAuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtCount, $stmtData);
 
-        $result = (new AuthAuditLog($pdo))->findAll(['ip_address' => '192.168.1']);
+        $result = new AuthAuditLog($pdo)->findAll(['ip_address' => '192.168.1']);
 
         $this->assertSame(3, $result['total']);
     }
@@ -146,7 +147,7 @@ final class AuthAuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtTotals, $stmtByType, $stmtTopIps);
 
-        $result = (new AuthAuditLog($pdo))->getStats();
+        $result = new AuthAuditLog($pdo)->getStats();
 
         $this->assertArrayHasKey('totals', $result);
         $this->assertArrayHasKey('events_by_type', $result);
@@ -168,7 +169,7 @@ final class AuthAuditLogTest extends TestCase
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturnOnConsecutiveCalls($stmtTotals, $stmtByType, $stmtTopIps);
 
-        $result = (new AuthAuditLog($pdo))->getStats(['date_from' => '2024-01-01', 'date_to' => '2024-01-31']);
+        $result = new AuthAuditLog($pdo)->getStats(['date_from' => '2024-01-01', 'date_to' => '2024-01-31']);
 
         $this->assertArrayHasKey('totals', $result);
     }
@@ -180,7 +181,7 @@ final class AuthAuditLogTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchColumn')->willReturn(7);
 
-        $result = (new AuthAuditLog($this->makePdoWithPrepare($stmt)))->getRecentFailedLogins('192.168.1.1');
+        $result = new AuthAuditLog($this->makePdoWithPrepare($stmt))->getRecentFailedLogins('192.168.1.1');
 
         $this->assertSame(7, $result);
     }
@@ -190,7 +191,7 @@ final class AuthAuditLogTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchColumn')->willReturn(0);
 
-        $result = (new AuthAuditLog($this->makePdoWithPrepare($stmt)))->getRecentFailedLogins('10.0.0.1', 5);
+        $result = new AuthAuditLog($this->makePdoWithPrepare($stmt))->getRecentFailedLogins('10.0.0.1', 5);
 
         $this->assertSame(0, $result);
     }
@@ -206,7 +207,7 @@ final class AuthAuditLogTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn($rows);
 
-        $result = (new AuthAuditLog($this->makePdoWithPrepare($stmt)))->getUserHistory(42);
+        $result = new AuthAuditLog($this->makePdoWithPrepare($stmt))->getUserHistory(42);
 
         $this->assertCount(2, $result);
         $this->assertSame('login', $result[0]['event_type']);
@@ -217,7 +218,7 @@ final class AuthAuditLogTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn([]);
 
-        $result = (new AuthAuditLog($this->makePdoWithPrepare($stmt)))->getUserHistory(999);
+        $result = new AuthAuditLog($this->makePdoWithPrepare($stmt))->getUserHistory(999);
 
         $this->assertSame([], $result);
     }
@@ -229,7 +230,7 @@ final class AuthAuditLogTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('rowCount')->willReturn(42);
 
-        $result = (new AuthAuditLog($this->makePdoWithPrepare($stmt)))->cleanup(90);
+        $result = new AuthAuditLog($this->makePdoWithPrepare($stmt))->cleanup(90);
 
         $this->assertSame(42, $result);
     }
@@ -239,7 +240,7 @@ final class AuthAuditLogTest extends TestCase
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('rowCount')->willReturn(0);
 
-        $result = (new AuthAuditLog($this->makePdoWithPrepare($stmt)))->cleanup();
+        $result = new AuthAuditLog($this->makePdoWithPrepare($stmt))->cleanup();
 
         $this->assertSame(0, $result);
     }

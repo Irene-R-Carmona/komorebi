@@ -24,8 +24,8 @@ final class LoyaltyRewardCatalogTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdo   = $this->createStub(PDO::class);
-        $this->stmt  = $this->createStub(PDOStatement::class);
+        $this->pdo = $this->createStub(PDO::class);
+        $this->stmt = $this->createStub(PDOStatement::class);
         $this->model = new LoyaltyRewardCatalog($this->pdo);
     }
 

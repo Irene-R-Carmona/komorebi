@@ -28,19 +28,19 @@ final class MenuDTOTest extends TestCase
     private function minimalRow(): array
     {
         return [
-            'id'            => 42,
-            'name'          => 'Matcha Latte',
-            'slug'          => 'matcha-latte',
-            'description'   => 'Té verde japonés con leche de avena',
-            'price'         => '4.50',
-            'category_id'   => 3,
+            'id' => 42,
+            'name' => 'Matcha Latte',
+            'slug' => 'matcha-latte',
+            'description' => 'Té verde japonés con leche de avena',
+            'price' => '4.50',
+            'category_id' => 3,
             'category_name' => 'Bebidas calientes',
             'category_slug' => 'bebidas-calientes',
-            'product_type'  => 'drink',
-            'is_active'     => 1,
-            'image_url'     => '/images/matcha.jpg',
+            'product_type' => 'drink',
+            'is_active' => 1,
+            'image_url' => '/images/matcha.jpg',
             'stock_quantity' => 20,
-            'created_at'    => '2025-06-01 10:00:00',
+            'created_at' => '2025-06-01 10:00:00',
         ];
     }
 
@@ -73,10 +73,10 @@ final class MenuDTOTest extends TestCase
     public function testFromArrayParsesAllergensFromGroupConcat(): void
     {
         $row = $this->minimalRow() + [
-            'allergen_ids'        => '1,2',
-            'allergen_names'      => 'Lactosa,Gluten',
-            'allergen_icons'      => 'milk,wheat',
-            'allergen_colors'     => '#fff,#f00',
+            'allergen_ids' => '1,2',
+            'allergen_names' => 'Lactosa,Gluten',
+            'allergen_icons' => 'milk,wheat',
+            'allergen_colors' => '#fff,#f00',
             'allergen_severities' => 'low,high',
         ];
 
@@ -110,7 +110,7 @@ final class MenuDTOTest extends TestCase
 
     public function testToViewArrayContainsRequiredKeys(): void
     {
-        $dto  = MenuDTO::fromArray($this->minimalRow());
+        $dto = MenuDTO::fromArray($this->minimalRow());
         $view = $dto->toViewArray();
 
         foreach (['id', 'name', 'slug', 'price', 'category_id', 'category_name', 'category_slug', 'product_type', 'is_active', 'image_url', 'stock_quantity', 'allergens_list', 'created_at'] as $key) {
@@ -121,10 +121,10 @@ final class MenuDTOTest extends TestCase
     public function testToViewArrayReturnsAllergensListKey(): void
     {
         $row = $this->minimalRow() + [
-            'allergen_ids'        => '5',
-            'allergen_names'      => 'Soja',
-            'allergen_icons'      => 'soy',
-            'allergen_colors'     => '#green',
+            'allergen_ids' => '5',
+            'allergen_names' => 'Soja',
+            'allergen_icons' => 'soy',
+            'allergen_colors' => '#green',
             'allergen_severities' => 'moderate',
         ];
 

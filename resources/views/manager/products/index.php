@@ -11,10 +11,10 @@
 
 use App\Core\Csrf;
 
-$products   ??= [];
+$products ??= [];
 $categories ??= [];
-$cafeId     ??= 0;
-$search     ??= '';
+$cafeId ??= 0;
+$search ??= '';
 
 $alpineConfig = json_encode([
     'csrfToken' => Csrf::token(),
@@ -84,17 +84,17 @@ $alpineConfig = json_encode([
                         <?php else: ?>
                         <?php foreach ($products as $p): ?>
                         <?php
-                            $pid      = (int)   ($p['id'] ?? 0);
-                            $isAvail  = !empty($p['is_available']);
-                            $pName    = htmlspecialchars((string) ($p['name'] ?? ''), ENT_QUOTES, 'UTF-8');
-                            $editData = htmlspecialchars(\json_encode([
-                                'id'          => $pid,
-                                'name'        => (string) ($p['name']          ?? ''),
-                                'price'       => $p['price']                   ?? 0,
-                                'category_id' => $p['category_id']             ?? '',
-                                'description' => (string) ($p['description']   ?? ''),
+                            $pid = (int) ($p['id'] ?? 0);
+                            $isAvail = !empty($p['is_available']);
+                            $pName = htmlspecialchars((string) ($p['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+                            $editData = htmlspecialchars(json_encode([
+                                'id' => $pid,
+                                'name' => (string) ($p['name'] ?? ''),
+                                'price' => $p['price'] ?? 0,
+                                'category_id' => $p['category_id'] ?? '',
+                                'description' => (string) ($p['description'] ?? ''),
                             ], \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_THROW_ON_ERROR), \ENT_QUOTES, 'UTF-8');
-                        ?>
+                            ?>
                         <tr>
                             <td class="fw-semibold"><?= $pName ?></td>
                             <td><?= htmlspecialchars((string) ($p['category_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>

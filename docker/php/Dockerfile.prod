@@ -70,7 +70,11 @@ RUN groupadd -r appgroup && \
     chmod -R u+rw /app/storage
 
 # Defensive: ensure Xdebug is never activated even if the extension were installed
-ENV XDEBUG_MODE=off
+# Defaults for supervisor worker concurrency — override via Railway env vars
+ENV XDEBUG_MODE=off \
+    QUEUE_EMAILS_PROCS=1 \
+    QUEUE_NOTIFICATIONS_PROCS=1 \
+    QUEUE_DEFAULT_PROCS=1
 
 EXPOSE 80
 

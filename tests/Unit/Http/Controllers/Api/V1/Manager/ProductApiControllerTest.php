@@ -57,7 +57,7 @@ final class ProductApiControllerTest extends ControllerTestCase
 
     public function test_create_returns_201_on_success(): void
     {
-        $request  = $this->makePostRequest('/api/v1/manager/products', ['name' => 'Latte']);
+        $request = $this->makePostRequest('/api/v1/manager/products', ['name' => 'Latte']);
         $response = $this->makeController()->create($request);
 
         $this->assertSame(201, $response->getStatusCode());
@@ -71,7 +71,7 @@ final class ProductApiControllerTest extends ControllerTestCase
         $service = $this->createStub(ProductServiceInterface::class);
         $service->method('create')->willThrowException(new ValidationException('Nombre requerido'));
 
-        $request  = $this->makePostRequest('/api/v1/manager/products', []);
+        $request = $this->makePostRequest('/api/v1/manager/products', []);
         $response = $this->makeController($service)->create($request);
 
         $this->assertSame(422, $response->getStatusCode());
@@ -80,15 +80,16 @@ final class ProductApiControllerTest extends ControllerTestCase
     public function test_create_strips_image_url(): void
     {
         $captured = null;
-        $service  = $this->createMock(ProductServiceInterface::class);
+        $service = $this->createMock(ProductServiceInterface::class);
         $service->method('create')
             ->willReturnCallback(function (array $data) use (&$captured): int {
                 $captured = $data;
+
                 return 1;
             });
 
         $request = $this->makePostRequest('/api/v1/manager/products', [
-            'name'      => 'Latte',
+            'name' => 'Latte',
             'image_url' => 'https://evil.com/img.jpg',
         ]);
         $this->makeController($service)->create($request);
@@ -100,7 +101,7 @@ final class ProductApiControllerTest extends ControllerTestCase
 
     public function test_update_returns_200_on_success(): void
     {
-        $request  = $this->makePostRequest('/api/v1/manager/products/5', ['name' => 'Cappuccino']);
+        $request = $this->makePostRequest('/api/v1/manager/products/5', ['name' => 'Cappuccino']);
         $response = $this->makeController()->update($request, 5);
 
         $this->assertSame(200, $response->getStatusCode());
@@ -113,7 +114,7 @@ final class ProductApiControllerTest extends ControllerTestCase
         $service = $this->createStub(ProductServiceInterface::class);
         $service->method('update')->willThrowException(new ValidationException('Precio inválido'));
 
-        $request  = $this->makePostRequest('/api/v1/manager/products/5', ['price' => -1]);
+        $request = $this->makePostRequest('/api/v1/manager/products/5', ['price' => -1]);
         $response = $this->makeController($service)->update($request, 5);
 
         $this->assertSame(422, $response->getStatusCode());
@@ -123,7 +124,7 @@ final class ProductApiControllerTest extends ControllerTestCase
 
     public function test_toggleAvailability_returns_200_on_success(): void
     {
-        $request  = $this->makePostRequest('/api/v1/manager/products/3/toggle');
+        $request = $this->makePostRequest('/api/v1/manager/products/3/toggle');
         $response = $this->makeController()->toggleAvailability($request, 3);
 
         $this->assertSame(200, $response->getStatusCode());
@@ -134,7 +135,7 @@ final class ProductApiControllerTest extends ControllerTestCase
         $service = $this->createStub(ProductServiceInterface::class);
         $service->method('toggleActive')->willReturn(false);
 
-        $request  = $this->makePostRequest('/api/v1/manager/products/3/toggle');
+        $request = $this->makePostRequest('/api/v1/manager/products/3/toggle');
         $response = $this->makeController($service)->toggleAvailability($request, 3);
 
         $this->assertSame(500, $response->getStatusCode());
@@ -144,7 +145,7 @@ final class ProductApiControllerTest extends ControllerTestCase
 
     public function test_delete_returns_200_on_success(): void
     {
-        $request  = $this->makePostRequest('/api/v1/manager/products/7');
+        $request = $this->makePostRequest('/api/v1/manager/products/7');
         $response = $this->makeController()->delete($request, 7);
 
         $this->assertSame(200, $response->getStatusCode());

@@ -23,7 +23,8 @@ final class ApiTokenService implements ApiTokenServiceInterface
     public function __construct(
         private readonly ApiTokenRepositoryInterface $repository,
         private readonly UserRepositoryInterface $userRepo,
-    ) {}
+    ) {
+    }
 
     /**
      * Genera un nuevo token para el usuario y retorna el texto plano.

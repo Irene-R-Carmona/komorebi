@@ -75,14 +75,14 @@ final class MappersTest extends TestCase
     {
         $mapper = new AllergenMapper();
         $dto = $mapper->toDTO([
-            'id'            => '3',
-            'code'          => 'gluten',
-            'name'          => 'Gluten',
+            'id' => '3',
+            'code' => 'gluten',
+            'name' => 'Gluten',
             'japanese_name' => 'グルテン',
-            'icon_class'    => 'fa-wheat',
-            'icon_color'    => '#ff0',
-            'severity'      => 'high',
-            'description'   => 'Wheat-based allergen',
+            'icon_class' => 'fa-wheat',
+            'icon_color' => '#ff0',
+            'severity' => 'high',
+            'description' => 'Wheat-based allergen',
         ]);
 
         self::assertSame(3, $dto->id);
@@ -99,7 +99,7 @@ final class MappersTest extends TestCase
     {
         $mapper = new AllergenMapper();
         $dto = $mapper->toDTO([
-            'id'   => '1',
+            'id' => '1',
             'code' => 'lactose',
             'name' => 'Lactosa',
         ]);
@@ -119,12 +119,12 @@ final class MappersTest extends TestCase
     {
         $mapper = new AnimalMapper();
         $dto = $mapper->toDTO([
-            'id'             => '5',
-            'cafe_id'        => '2',
-            'name'           => 'Mochi',
-            'species_type'   => 'cat',
-            'description'    => 'Un gato naranja',
-            'image_url'      => '/img/mochi.jpg',
+            'id' => '5',
+            'cafe_id' => '2',
+            'name' => 'Mochi',
+            'species_type' => 'cat',
+            'description' => 'Un gato naranja',
+            'image_url' => '/img/mochi.jpg',
             'current_status' => 'active',
         ]);
 
@@ -141,9 +141,9 @@ final class MappersTest extends TestCase
     {
         $mapper = new AnimalMapper();
         $dto = $mapper->toDTO([
-            'id'      => '1',
+            'id' => '1',
             'cafe_id' => '1',
-            'name'    => 'Kumo',
+            'name' => 'Kumo',
         ]);
 
         self::assertFalse($dto->is_active);
@@ -160,25 +160,25 @@ final class MappersTest extends TestCase
     {
         $mapper = new AnimalHealthCheckMapper();
         $dto = $mapper->toDTO([
-            'id'               => '10',
-            'animal_id'        => '5',
-            'checked_by'       => '3',
-            'check_date'       => '2026-04-01',
-            'created_at'       => '2026-04-01 10:00:00',
-            'weight_kg'        => '4.5',
-            'temperature_c'    => '38.5',
-            'appetite'         => 'good',
-            'energy_level'     => 'high',
-            'coat_condition'   => 'shiny',
-            'eyes_clear'       => '1',
+            'id' => '10',
+            'animal_id' => '5',
+            'checked_by' => '3',
+            'check_date' => '2026-04-01',
+            'created_at' => '2026-04-01 10:00:00',
+            'weight_kg' => '4.5',
+            'temperature_c' => '38.5',
+            'appetite' => 'good',
+            'energy_level' => 'high',
+            'coat_condition' => 'shiny',
+            'eyes_clear' => '1',
             'breathing_normal' => '1',
-            'mobility_normal'  => '1',
-            'notes'            => 'Todo bien',
-            'alerts'           => null,
-            'animal_name'      => 'Mochi',
-            'species_type'     => 'cat',
-            'current_status'   => 'active',
-            'keeper_name'      => 'Tanaka',
+            'mobility_normal' => '1',
+            'notes' => 'Todo bien',
+            'alerts' => null,
+            'animal_name' => 'Mochi',
+            'species_type' => 'cat',
+            'current_status' => 'active',
+            'keeper_name' => 'Tanaka',
         ]);
 
         self::assertSame(10, $dto->id);
@@ -195,17 +195,17 @@ final class MappersTest extends TestCase
     {
         $mapper = new AnimalHealthCheckMapper();
         $dto = $mapper->toDTO([
-            'id'               => '1',
-            'animal_id'        => '2',
-            'checked_by'       => '1',
-            'check_date'       => '2026-04-01',
-            'created_at'       => '2026-04-01 09:00:00',
-            'appetite'         => 'normal',
-            'energy_level'     => 'normal',
-            'coat_condition'   => 'normal',
-            'eyes_clear'       => '0',
+            'id' => '1',
+            'animal_id' => '2',
+            'checked_by' => '1',
+            'check_date' => '2026-04-01',
+            'created_at' => '2026-04-01 09:00:00',
+            'appetite' => 'normal',
+            'energy_level' => 'normal',
+            'coat_condition' => 'normal',
+            'eyes_clear' => '0',
             'breathing_normal' => '0',
-            'mobility_normal'  => '0',
+            'mobility_normal' => '0',
         ]);
 
         self::assertNull($dto->weight_kg);
@@ -223,18 +223,18 @@ final class MappersTest extends TestCase
     {
         $mapper = new AnimalIncidentMapper();
         $dto = $mapper->toDTO([
-            'id'            => '7',
-            'animal_id'     => '3',
+            'id' => '7',
+            'animal_id' => '3',
             'incident_type' => 'injury',
-            'description'   => 'Pata lastimada',
-            'severity'      => 'medium',
-            'reported_by'   => '2',
-            'resolved_at'   => '2026-04-02 11:00:00',
-            'resolved_by'   => '4',
-            'created_at'    => '2026-04-01 08:00:00',
-            'status'        => 'resolved',
-            'animal_name'   => 'Kumo',
-            'species'       => 'dog',
+            'description' => 'Pata lastimada',
+            'severity' => 'medium',
+            'reported_by' => '2',
+            'resolved_at' => '2026-04-02 11:00:00',
+            'resolved_by' => '4',
+            'created_at' => '2026-04-01 08:00:00',
+            'status' => 'resolved',
+            'animal_name' => 'Kumo',
+            'species' => 'dog',
         ]);
 
         self::assertSame(7, $dto->id);
@@ -250,12 +250,12 @@ final class MappersTest extends TestCase
     {
         $mapper = new AnimalIncidentMapper();
         $dto = $mapper->toDTO([
-            'id'            => '1',
-            'animal_id'     => '1',
+            'id' => '1',
+            'animal_id' => '1',
             'incident_type' => 'behavior',
-            'description'   => 'Agresivo con visitante',
-            'severity'      => 'low',
-            'created_at'    => '2026-04-01 07:00:00',
+            'description' => 'Agresivo con visitante',
+            'severity' => 'low',
+            'created_at' => '2026-04-01 07:00:00',
         ]);
 
         self::assertSame('open', $dto->status);
@@ -272,16 +272,16 @@ final class MappersTest extends TestCase
     {
         $mapper = new AuditLogMapper();
         $dto = $mapper->toDTO([
-            'id'            => '100',
-            'user_id'       => '5',
-            'action'        => 'update_role',
+            'id' => '100',
+            'user_id' => '5',
+            'action' => 'update_role',
             'resource_type' => 'User',
-            'resource_id'   => '10',
-            'old_values'    => '{"role":"user"}',
-            'new_values'    => '{"role":"admin"}',
-            'ip_address'    => '192.168.1.1',
-            'user_agent'    => 'Mozilla/5.0',
-            'created_at'    => '2026-04-01 12:00:00',
+            'resource_id' => '10',
+            'old_values' => '{"role":"user"}',
+            'new_values' => '{"role":"admin"}',
+            'ip_address' => '192.168.1.1',
+            'user_agent' => 'Mozilla/5.0',
+            'created_at' => '2026-04-01 12:00:00',
         ]);
 
         self::assertSame(100, $dto->id);
@@ -296,8 +296,8 @@ final class MappersTest extends TestCase
     {
         $mapper = new AuditLogMapper();
         $dto = $mapper->toDTO([
-            'id'         => '1',
-            'action'     => 'login',
+            'id' => '1',
+            'action' => 'login',
             'created_at' => '2026-04-01 12:00:00',
         ]);
 
@@ -316,15 +316,15 @@ final class MappersTest extends TestCase
     {
         $mapper = new AuthAuditLogMapper();
         $dto = $mapper->toDTO([
-            'id'          => '20',
-            'user_id'     => '7',
-            'event_type'  => 'login_failed',
-            'success'     => '0',
-            'reason'      => 'bad_password',
-            'ip_address'  => '10.0.0.1',
-            'user_agent'  => 'Chrome/120',
+            'id' => '20',
+            'user_id' => '7',
+            'event_type' => 'login_failed',
+            'success' => '0',
+            'reason' => 'bad_password',
+            'ip_address' => '10.0.0.1',
+            'user_agent' => 'Chrome/120',
             'device_name' => 'Desktop',
-            'created_at'  => '2026-04-01 09:00:00',
+            'created_at' => '2026-04-01 09:00:00',
         ]);
 
         self::assertSame(20, $dto->id);
@@ -339,7 +339,7 @@ final class MappersTest extends TestCase
     {
         $mapper = new AuthAuditLogMapper();
         $dto = $mapper->toDTO([
-            'id'         => '1',
+            'id' => '1',
             'event_type' => 'login',
             'created_at' => '2026-04-01 09:00:00',
         ]);
@@ -358,23 +358,23 @@ final class MappersTest extends TestCase
     {
         $mapper = new CafeMapper();
         $dto = $mapper->toDTO([
-            'id'               => '1',
-            'slug'             => 'neko-cafe',
-            'name'             => 'Neko Café',
-            'japanese_name'    => 'ねこカフェ',
-            'description'      => 'Un café de gatos',
-            'location'         => 'Madrid',
-            'category'         => 'cat',
-            'animal_type'      => 'cat',
-            'price_per_hour'   => '12.50',
-            'capacity_max'     => '20',
-            'rating_avg'       => '4.8',
-            'opening_time'     => '10:00',
-            'closing_time'     => '22:00',
-            'timezone'         => 'Europe/Madrid',
-            'is_active'        => '1',
+            'id' => '1',
+            'slug' => 'neko-cafe',
+            'name' => 'Neko Café',
+            'japanese_name' => 'ねこカフェ',
+            'description' => 'Un café de gatos',
+            'location' => 'Madrid',
+            'category' => 'cat',
+            'animal_type' => 'cat',
+            'price_per_hour' => '12.50',
+            'capacity_max' => '20',
+            'rating_avg' => '4.8',
+            'opening_time' => '10:00',
+            'closing_time' => '22:00',
+            'timezone' => 'Europe/Madrid',
+            'is_active' => '1',
             'has_reservations' => '1',
-            'image_url'        => '/img/neko.jpg',
+            'image_url' => '/img/neko.jpg',
         ]);
 
         self::assertSame(1, $dto->id);
@@ -392,7 +392,7 @@ final class MappersTest extends TestCase
     {
         $mapper = new CafeMapper();
         $dto = $mapper->toDTO([
-            'id'   => '2',
+            'id' => '2',
             'slug' => 'dog-cafe',
             'name' => 'Dog Café',
         ]);
@@ -413,8 +413,8 @@ final class MappersTest extends TestCase
     {
         $mapper = new FavoriteMapper();
         $dto = $mapper->toDTO([
-            'user_id'    => '3',
-            'cafe_id'    => '5',
+            'user_id' => '3',
+            'cafe_id' => '5',
             'created_at' => '2026-03-15 11:00:00',
         ]);
 
@@ -431,15 +431,15 @@ final class MappersTest extends TestCase
     {
         $mapper = new LoyaltyCardMapper();
         $dto = $mapper->toDTO([
-            'id'                      => '8',
-            'user_id'                 => '4',
-            'stamps'                  => '7',
-            'current_tier'            => 'silver',
-            'visits_count'            => '15',
-            'total_rewards_redeemed'  => '2',
-            'last_stamp_at'           => '2026-04-10 14:00:00',
-            'created_at'              => '2025-01-01 00:00:00',
-            'updated_at'              => '2026-04-10 14:00:00',
+            'id' => '8',
+            'user_id' => '4',
+            'stamps' => '7',
+            'current_tier' => 'silver',
+            'visits_count' => '15',
+            'total_rewards_redeemed' => '2',
+            'last_stamp_at' => '2026-04-10 14:00:00',
+            'created_at' => '2025-01-01 00:00:00',
+            'updated_at' => '2026-04-10 14:00:00',
         ]);
 
         self::assertSame(8, $dto->id);
@@ -455,8 +455,8 @@ final class MappersTest extends TestCase
     {
         $mapper = new LoyaltyCardMapper();
         $dto = $mapper->toDTO([
-            'id'         => '1',
-            'user_id'    => '2',
+            'id' => '1',
+            'user_id' => '2',
             'created_at' => '2025-01-01 00:00:00',
             'updated_at' => '2025-01-01 00:00:00',
         ]);
@@ -474,18 +474,18 @@ final class MappersTest extends TestCase
     {
         $mapper = new LoyaltyRewardMapper();
         $dto = $mapper->toDTO([
-            'id'               => '5',
-            'user_id'          => '3',
-            'loyalty_card_id'  => '2',
-            'reward_type'      => 'free_drink',
-            'stamps_cost'      => '8',
-            'status'           => 'active',
-            'redemption_code'  => 'REWARD-ABC123',
-            'redeemed_at'      => '2026-04-01 10:00:00',
-            'used_at'          => '2026-04-05 12:00:00',
-            'expires_at'       => '2026-05-01 00:00:00',
-            'notes'            => 'VIP reward',
-            'created_at'       => '2026-04-01 09:00:00',
+            'id' => '5',
+            'user_id' => '3',
+            'loyalty_card_id' => '2',
+            'reward_type' => 'free_drink',
+            'stamps_cost' => '8',
+            'status' => 'active',
+            'redemption_code' => 'REWARD-ABC123',
+            'redeemed_at' => '2026-04-01 10:00:00',
+            'used_at' => '2026-04-05 12:00:00',
+            'expires_at' => '2026-05-01 00:00:00',
+            'notes' => 'VIP reward',
+            'created_at' => '2026-04-01 09:00:00',
         ]);
 
         self::assertSame(5, $dto->id);
@@ -500,13 +500,13 @@ final class MappersTest extends TestCase
     {
         $mapper = new LoyaltyRewardMapper();
         $dto = $mapper->toDTO([
-            'id'              => '1',
-            'user_id'         => '1',
+            'id' => '1',
+            'user_id' => '1',
             'loyalty_card_id' => '1',
-            'reward_type'     => 'discount',
+            'reward_type' => 'discount',
             'redemption_code' => 'CODE-XYZ',
-            'redeemed_at'     => '2026-04-01 00:00:00',
-            'created_at'      => '2026-04-01 00:00:00',
+            'redeemed_at' => '2026-04-01 00:00:00',
+            'created_at' => '2026-04-01 00:00:00',
         ]);
 
         self::assertSame('pending', $dto->status);
@@ -524,16 +524,16 @@ final class MappersTest extends TestCase
     {
         $mapper = new LoyaltyRewardCatalogMapper();
         $dto = $mapper->toDTO([
-            'id'               => '2',
-            'reward_type'      => 'free_entry',
-            'name_es'          => 'Entrada gratuita',
-            'name_en'          => 'Free entry',
-            'stamps_required'  => '10',
-            'tier_required'    => 'gold',
-            'validity_days'    => '60',
-            'is_active'        => '1',
-            'display_order'    => '3',
-            'icon'             => 'fa-ticket',
+            'id' => '2',
+            'reward_type' => 'free_entry',
+            'name_es' => 'Entrada gratuita',
+            'name_en' => 'Free entry',
+            'stamps_required' => '10',
+            'tier_required' => 'gold',
+            'validity_days' => '60',
+            'is_active' => '1',
+            'display_order' => '3',
+            'icon' => 'fa-ticket',
         ]);
 
         self::assertSame(2, $dto->id);
@@ -551,10 +551,10 @@ final class MappersTest extends TestCase
     {
         $mapper = new LoyaltyRewardCatalogMapper();
         $dto = $mapper->toDTO([
-            'id'        => '1',
+            'id' => '1',
             'reward_type' => 'free_drink',
-            'name_es'   => 'Bebida gratis',
-            'name_en'   => 'Free drink',
+            'name_es' => 'Bebida gratis',
+            'name_en' => 'Free drink',
         ]);
 
         self::assertSame('bronze', $dto->tier_required);
@@ -571,9 +571,9 @@ final class MappersTest extends TestCase
     {
         $mapper = new MenuCategoryMapper();
         $dto = $mapper->toDTO([
-            'id'            => '3',
-            'name'          => 'Bebidas',
-            'slug'          => 'bebidas',
+            'id' => '3',
+            'name' => 'Bebidas',
+            'slug' => 'bebidas',
             'display_order' => '2',
         ]);
 
@@ -587,7 +587,7 @@ final class MappersTest extends TestCase
     {
         $mapper = new MenuCategoryMapper();
         $dto = $mapper->toDTO([
-            'id'   => '1',
+            'id' => '1',
             'name' => 'Snacks',
             'slug' => 'snacks',
         ]);
@@ -603,12 +603,12 @@ final class MappersTest extends TestCase
     {
         $mapper = new PermissionMapper();
         $dto = $mapper->toDTO([
-            'id'          => '12',
-            'code'        => 'admin.users.edit',
-            'name'        => 'Edit users',
+            'id' => '12',
+            'code' => 'admin.users.edit',
+            'name' => 'Edit users',
             'description' => 'Can edit any user',
-            'resource'    => 'User',
-            'action'      => 'edit',
+            'resource' => 'User',
+            'action' => 'edit',
         ]);
 
         self::assertSame(12, $dto->id);
@@ -622,7 +622,7 @@ final class MappersTest extends TestCase
     {
         $mapper = new PermissionMapper();
         $dto = $mapper->toDTO([
-            'id'   => '1',
+            'id' => '1',
             'code' => 'view',
             'name' => 'View',
         ]);
@@ -640,24 +640,24 @@ final class MappersTest extends TestCase
     {
         $mapper = new ProductMapper();
         $dto = $mapper->toDTO([
-            'id'                  => '9',
-            'name'                => 'Matcha Latte',
-            'slug'                => 'matcha-latte',
-            'description'         => 'Té matcha con leche',
-            'price'               => '4.50',
-            'category_id'         => '2',
-            'category_name'       => 'Bebidas',
-            'allergens'           => '["lactose"]',
-            'is_active'           => '1',
-            'image_url'           => '/img/matcha.jpg',
-            'product_type'        => 'drink',
-            'min_pax'             => '1',
-            'max_pax'             => '4',
-            'duration_minutes'    => '30',
-            'attributes'          => '{}',
-            'target_cafe_types'   => 'cat,dog',
+            'id' => '9',
+            'name' => 'Matcha Latte',
+            'slug' => 'matcha-latte',
+            'description' => 'Té matcha con leche',
+            'price' => '4.50',
+            'category_id' => '2',
+            'category_name' => 'Bebidas',
+            'allergens' => '["lactose"]',
+            'is_active' => '1',
+            'image_url' => '/img/matcha.jpg',
+            'product_type' => 'drink',
+            'min_pax' => '1',
+            'max_pax' => '4',
+            'duration_minutes' => '30',
+            'attributes' => '{}',
+            'target_cafe_types' => 'cat,dog',
             'target_animal_types' => 'all',
-            'stock_quantity'      => '50',
+            'stock_quantity' => '50',
         ]);
 
         self::assertSame(9, $dto->id);
@@ -673,9 +673,9 @@ final class MappersTest extends TestCase
     {
         $mapper = new ProductMapper();
         $dto = $mapper->toDTO([
-            'id'          => '1',
-            'name'        => 'Cookie',
-            'slug'        => 'cookie',
+            'id' => '1',
+            'name' => 'Cookie',
+            'slug' => 'cookie',
             'category_id' => '1',
         ]);
 
@@ -690,11 +690,11 @@ final class MappersTest extends TestCase
     {
         $mapper = new ProductMapper();
         $dto = $mapper->toDTO([
-            'id'          => '1',
-            'name'        => 'Croissant',
-            'slug'        => 'croissant',
+            'id' => '1',
+            'name' => 'Croissant',
+            'slug' => 'croissant',
             'category_id' => '1',
-            'allergens'   => ['gluten', 'lactose'],
+            'allergens' => ['gluten', 'lactose'],
         ]);
 
         self::assertSame(['gluten', 'lactose'], $dto->allergens);
@@ -708,22 +708,22 @@ final class MappersTest extends TestCase
     {
         $mapper = new ReservationMapper();
         $dto = $mapper->toDTO([
-            'id'               => '42',
-            'uuid'             => 'abc-123',
-            'cafe_id'          => '1',
-            'user_id'          => '7',
+            'id' => '42',
+            'uuid' => 'abc-123',
+            'cafe_id' => '1',
+            'user_id' => '7',
             'reservation_date' => '2026-05-01',
             'reservation_time' => '11:00',
-            'guest_count'      => '4',
-            'status'           => 'confirmed',
-            'time_slot_id'     => '15',
-            'pass_name'        => 'Ana García',
-            'check_in_at'      => '2026-05-01 11:05:00',
-            'check_out_at'     => '2026-05-01 13:00:00',
-            'final_amount'     => '50.00',
-            'payment_status'   => 'paid',
-            'payment_method'   => 'card',
-            'notes'            => 'Alergia a gatos',
+            'guest_count' => '4',
+            'status' => 'confirmed',
+            'time_slot_id' => '15',
+            'pass_name' => 'Ana García',
+            'check_in_at' => '2026-05-01 11:05:00',
+            'check_out_at' => '2026-05-01 13:00:00',
+            'final_amount' => '50.00',
+            'payment_status' => 'paid',
+            'payment_method' => 'card',
+            'notes' => 'Alergia a gatos',
         ]);
 
         self::assertSame(42, $dto->id);
@@ -739,10 +739,10 @@ final class MappersTest extends TestCase
     {
         $mapper = new ReservationMapper();
         $dto = $mapper->toDTO([
-            'id'               => '1',
-            'uuid'             => 'uuid-001',
-            'cafe_id'          => '1',
-            'user_id'          => '1',
+            'id' => '1',
+            'uuid' => 'uuid-001',
+            'cafe_id' => '1',
+            'user_id' => '1',
             'reservation_date' => '2026-05-01',
             'reservation_time' => '10:00',
         ]);
@@ -762,13 +762,13 @@ final class MappersTest extends TestCase
     {
         $mapper = new ReservationItemMapper();
         $dto = $mapper->toDTO([
-            'id'             => '3',
+            'id' => '3',
             'reservation_id' => '42',
-            'product_id'     => '9',
-            'quantity'       => '2',
-            'unit_price'     => '4.50',
-            'status'         => 'served',
-            'created_at'     => '2026-05-01 11:00:00',
+            'product_id' => '9',
+            'quantity' => '2',
+            'unit_price' => '4.50',
+            'status' => 'served',
+            'created_at' => '2026-05-01 11:00:00',
         ]);
 
         self::assertSame(3, $dto->id);
@@ -782,10 +782,10 @@ final class MappersTest extends TestCase
     {
         $mapper = new ReservationItemMapper();
         $dto = $mapper->toDTO([
-            'id'             => '1',
+            'id' => '1',
             'reservation_id' => '1',
-            'product_id'     => '1',
-            'created_at'     => '2026-05-01 00:00:00',
+            'product_id' => '1',
+            'created_at' => '2026-05-01 00:00:00',
         ]);
 
         self::assertSame(1, $dto->quantity);
@@ -801,15 +801,15 @@ final class MappersTest extends TestCase
     {
         $mapper = new ReviewMapper();
         $dto = $mapper->toDTO([
-            'id'         => '55',
-            'user_id'    => '3',
-            'cafe_id'    => '1',
-            'cafe_name'  => 'Neko Café',
-            'user_name'  => 'María',
-            'rating'     => '5',
-            'title'      => '¡Increíble!',
-            'body'       => 'Me encantó la experiencia',
-            'status'     => 'approved',
+            'id' => '55',
+            'user_id' => '3',
+            'cafe_id' => '1',
+            'cafe_name' => 'Neko Café',
+            'user_name' => 'María',
+            'rating' => '5',
+            'title' => '¡Increíble!',
+            'body' => 'Me encantó la experiencia',
+            'status' => 'approved',
             'created_at' => '2026-03-20 16:00:00',
         ]);
 
@@ -824,7 +824,7 @@ final class MappersTest extends TestCase
     {
         $mapper = new ReviewMapper();
         $dto = $mapper->toDTO([
-            'id'      => '1',
+            'id' => '1',
             'cafe_id' => '1',
         ]);
 
@@ -842,9 +842,9 @@ final class MappersTest extends TestCase
     {
         $mapper = new RoleMapper();
         $dto = $mapper->toDTO([
-            'id'          => '2',
-            'code'        => 'admin',
-            'name'        => 'Administrador',
+            'id' => '2',
+            'code' => 'admin',
+            'name' => 'Administrador',
             'description' => 'Acceso total',
         ]);
 
@@ -858,7 +858,7 @@ final class MappersTest extends TestCase
     {
         $mapper = new RoleMapper();
         $dto = $mapper->toDTO([
-            'id'   => '1',
+            'id' => '1',
             'code' => 'user',
             'name' => 'Usuario',
         ]);
@@ -874,12 +874,12 @@ final class MappersTest extends TestCase
     {
         $mapper = new SettingMapper();
         $dto = $mapper->toDTO([
-            'key'          => 'max_capacity',
-            'value'        => '50',
-            'type'         => 'integer',
-            'group_name'   => 'reservations',
-            'description'  => 'Capacidad máxima',
-            'is_public'    => '1',
+            'key' => 'max_capacity',
+            'value' => '50',
+            'type' => 'integer',
+            'group_name' => 'reservations',
+            'description' => 'Capacidad máxima',
+            'is_public' => '1',
         ]);
 
         self::assertSame('max_capacity', $dto->key);
@@ -893,7 +893,7 @@ final class MappersTest extends TestCase
     {
         $mapper = new SettingMapper();
         $dto = $mapper->toDTO([
-            'key'   => 'site_name',
+            'key' => 'site_name',
             'value' => 'Komorebi',
         ]);
 
@@ -911,18 +911,18 @@ final class MappersTest extends TestCase
     {
         $mapper = new StaffShiftMapper();
         $dto = $mapper->toDTO([
-            'id'          => '11',
-            'user_id'     => '5',
-            'cafe_id'     => '1',
-            'shift_date'  => '2026-05-01',
+            'id' => '11',
+            'user_id' => '5',
+            'cafe_id' => '1',
+            'shift_date' => '2026-05-01',
             'shift_start' => '09:00:00',
-            'shift_end'   => '17:00:00',
-            'notes'       => 'Turno extra',
-            'created_by'  => '1',
-            'created_at'  => '2026-04-28 10:00:00',
-            'updated_at'  => '2026-04-28 10:00:00',
-            'deleted_at'  => null,
-            'staff_name'  => 'Yamamoto',
+            'shift_end' => '17:00:00',
+            'notes' => 'Turno extra',
+            'created_by' => '1',
+            'created_at' => '2026-04-28 10:00:00',
+            'updated_at' => '2026-04-28 10:00:00',
+            'deleted_at' => null,
+            'staff_name' => 'Yamamoto',
         ]);
 
         self::assertSame(11, $dto->id);
@@ -938,14 +938,14 @@ final class MappersTest extends TestCase
     {
         $mapper = new StaffShiftMapper();
         $dto = $mapper->toDTO([
-            'id'          => '1',
-            'user_id'     => '2',
-            'cafe_id'     => '1',
-            'shift_date'  => '2026-05-02',
+            'id' => '1',
+            'user_id' => '2',
+            'cafe_id' => '1',
+            'shift_date' => '2026-05-02',
             'shift_start' => '08:00:00',
-            'shift_end'   => '16:00:00',
-            'created_at'  => '2026-04-28 00:00:00',
-            'updated_at'  => '2026-04-28 00:00:00',
+            'shift_end' => '16:00:00',
+            'created_at' => '2026-04-28 00:00:00',
+            'updated_at' => '2026-04-28 00:00:00',
         ]);
 
         self::assertNull($dto->notes);
@@ -961,14 +961,14 @@ final class MappersTest extends TestCase
     {
         $mapper = new SupervisorAssignmentMapper();
         $dto = $mapper->toDTO([
-            'id'             => '4',
-            'supervisor_id'  => '6',
+            'id' => '4',
+            'supervisor_id' => '6',
             'reservation_id' => '42',
-            'table_code'     => 'T-03',
-            'cafe_id'        => '1',
-            'is_active'      => '1',
-            'assigned_at'    => '2026-05-01 11:00:00',
-            'created_at'     => '2026-05-01 10:55:00',
+            'table_code' => 'T-03',
+            'cafe_id' => '1',
+            'is_active' => '1',
+            'assigned_at' => '2026-05-01 11:00:00',
+            'created_at' => '2026-05-01 10:55:00',
         ]);
 
         self::assertSame(4, $dto->id);
@@ -987,18 +987,18 @@ final class MappersTest extends TestCase
     {
         $mapper = new TimeSlotMapper();
         $dto = $mapper->toDTO([
-            'id'               => '30',
-            'cafe_id'          => '1',
-            'slot_date'        => '2026-05-01',
-            'slot_time'        => '11:00:00',
-            'total_capacity'   => '25',
-            'available_spots'  => '10',
-            'reserved_spots'   => '15',
-            'is_blocked'       => '0',
-            'blocked_reason'   => null,
+            'id' => '30',
+            'cafe_id' => '1',
+            'slot_date' => '2026-05-01',
+            'slot_time' => '11:00:00',
+            'total_capacity' => '25',
+            'available_spots' => '10',
+            'reserved_spots' => '15',
+            'is_blocked' => '0',
+            'blocked_reason' => null,
             'duration_minutes' => '90',
-            'created_at'       => '2026-04-01 00:00:00',
-            'updated_at'       => '2026-04-28 00:00:00',
+            'created_at' => '2026-04-01 00:00:00',
+            'updated_at' => '2026-04-28 00:00:00',
         ]);
 
         self::assertSame(30, $dto->id);
@@ -1014,10 +1014,10 @@ final class MappersTest extends TestCase
     {
         $mapper = new TimeSlotMapper();
         $dto = $mapper->toDTO([
-            'id'         => '1',
-            'cafe_id'    => '1',
-            'slot_date'  => '2026-05-01',
-            'slot_time'  => '10:00:00',
+            'id' => '1',
+            'cafe_id' => '1',
+            'slot_date' => '2026-05-01',
+            'slot_time' => '10:00:00',
             'created_at' => '2026-04-01 00:00:00',
             'updated_at' => '2026-04-01 00:00:00',
         ]);
@@ -1036,13 +1036,13 @@ final class MappersTest extends TestCase
     {
         $mapper = new TrackerMapper();
         $dto = $mapper->toDTO([
-            'id'               => '7',
-            'cafe_id'          => '1',
-            'code'             => 'TRK-007',
-            'type'             => 'table',
-            'status'           => 'available',
+            'id' => '7',
+            'cafe_id' => '1',
+            'code' => 'TRK-007',
+            'type' => 'table',
+            'status' => 'available',
             'last_assigned_at' => '2026-04-20 15:00:00',
-            'cafe_name'        => 'Neko Café',
+            'cafe_name' => 'Neko Café',
         ]);
 
         self::assertSame(7, $dto->id);
@@ -1057,11 +1057,11 @@ final class MappersTest extends TestCase
     {
         $mapper = new TrackerMapper();
         $dto = $mapper->toDTO([
-            'id'      => '1',
+            'id' => '1',
             'cafe_id' => '1',
-            'code'    => 'TRK-001',
-            'type'    => 'wristband',
-            'status'  => 'in_use',
+            'code' => 'TRK-001',
+            'type' => 'wristband',
+            'status' => 'in_use',
         ]);
 
         self::assertNull($dto->last_assigned_at);
@@ -1076,15 +1076,15 @@ final class MappersTest extends TestCase
     {
         $mapper = new UserMapper();
         $dto = $mapper->toDTO([
-            'id'          => '10',
-            'uuid'        => 'uuid-user-010',
-            'name'        => 'Irene',
-            'email'       => 'irene@komorebi.cafe',
-            'avatar'      => '/img/irene.jpg',
-            'roles'       => '["admin"]',
-            'is_active'   => '1',
-            'cafe_id'     => '1',
-            'created_at'  => '2025-01-01 00:00:00',
+            'id' => '10',
+            'uuid' => 'uuid-user-010',
+            'name' => 'Irene',
+            'email' => 'irene@komorebi.cafe',
+            'avatar' => '/img/irene.jpg',
+            'roles' => '["admin"]',
+            'is_active' => '1',
+            'cafe_id' => '1',
+            'created_at' => '2025-01-01 00:00:00',
             'preferences' => '{"lang":"es"}',
         ]);
 
@@ -1101,9 +1101,9 @@ final class MappersTest extends TestCase
     {
         $mapper = new UserMapper();
         $dto = $mapper->toDTO([
-            'id'    => '1',
-            'uuid'  => 'uuid-001',
-            'name'  => 'Guest',
+            'id' => '1',
+            'uuid' => 'uuid-001',
+            'name' => 'Guest',
             'email' => 'guest@example.com',
         ]);
 
@@ -1118,9 +1118,9 @@ final class MappersTest extends TestCase
     {
         $mapper = new UserMapper();
         $dto = $mapper->toDTO([
-            'id'    => '1',
-            'uuid'  => 'uuid-001',
-            'name'  => 'Staff',
+            'id' => '1',
+            'uuid' => 'uuid-001',
+            'name' => 'Staff',
             'email' => 'staff@example.com',
             'roles' => ['manager', 'reception'],
         ]);
@@ -1136,18 +1136,18 @@ final class MappersTest extends TestCase
     {
         $mapper = new WaitlistMapper();
         $dto = $mapper->toDTO([
-            'id'               => '8',
-            'token'            => 'WAIT-TOKEN-8',
-            'status'           => 'notified',
-            'position'         => '3',
-            'time_slot_id'     => '15',
-            'user_id'          => '5',
-            'slot_date'        => '2026-05-03',
-            'slot_time'        => '14:00',
-            'cafe_name'        => 'Neko Café',
-            'guest_count'      => '2',
-            'contact_email'    => 'user@example.com',
-            'expires_at'       => '2026-05-04 14:00:00',
+            'id' => '8',
+            'token' => 'WAIT-TOKEN-8',
+            'status' => 'notified',
+            'position' => '3',
+            'time_slot_id' => '15',
+            'user_id' => '5',
+            'slot_date' => '2026-05-03',
+            'slot_time' => '14:00',
+            'cafe_name' => 'Neko Café',
+            'guest_count' => '2',
+            'contact_email' => 'user@example.com',
+            'expires_at' => '2026-05-04 14:00:00',
             'special_requests' => 'Silla alta para bebé',
         ]);
 
@@ -1164,7 +1164,7 @@ final class MappersTest extends TestCase
     {
         $mapper = new WaitlistMapper();
         $dto = $mapper->toDTO([
-            'id'    => '1',
+            'id' => '1',
             'token' => 'WAIT-001',
         ]);
 

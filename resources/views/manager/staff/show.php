@@ -10,9 +10,9 @@ declare(strict_types=1);
  * @var array  $metrics       - Métricas de performance (PHP-injected)
  */
 
-$staff         ??= [];
+$staff ??= [];
 $shift_history ??= [];
-$metrics       ??= [];
+$metrics ??= [];
 ?>
 
 <div class="container">
@@ -107,14 +107,14 @@ $metrics       ??= [];
                     <?php else: ?>
                     <?php foreach ($shift_history as $shift): ?>
                     <?php
-                        $start    = new DateTime((string) ($shift['shift_start'] ?? 'now'));
-                        $end      = new DateTime((string) ($shift['shift_end']   ?? 'now'));
+                        $start = new DateTime((string) ($shift['shift_start'] ?? 'now'));
+                        $end = new DateTime((string) ($shift['shift_end'] ?? 'now'));
                         $duration = $start->diff($end);
-                    ?>
+                        ?>
                     <tr>
                         <td><?= htmlspecialchars(date('d/m/Y', strtotime((string) ($shift['shift_date'] ?? 'now'))), ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars(substr((string) ($shift['shift_start'] ?? ''), 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td><?= htmlspecialchars(substr((string) ($shift['shift_end']   ?? ''), 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars(substr((string) ($shift['shift_end'] ?? ''), 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= $duration->h ?>h <?= $duration->i ?>m</td>
                         <td><?= htmlspecialchars((string) ($shift['notes'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
                         <td>Manager</td>

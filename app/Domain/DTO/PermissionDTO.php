@@ -15,7 +15,8 @@ final readonly class PermissionDTO implements DomainTransferObject
         public ?string $description,
         public ?string $resource,
         public ?string $action,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function toViewArray(): array

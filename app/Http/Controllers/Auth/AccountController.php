@@ -11,6 +11,7 @@ use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Core\Session;
 use App\Core\View;
+use App\Domain\AvatarOptions;
 use App\Exceptions\ValidationException;
 use App\Services\AuthService;
 use App\Services\Contracts\AccountDeletionServiceInterface;
@@ -19,7 +20,6 @@ use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\Contracts\SessionManagementServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
-use App\Domain\AvatarOptions;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -261,18 +261,18 @@ final class AccountController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $rawBody  = (string) \file_get_contents('php://input');
-        $parsed   = \json_decode($rawBody, true);
+        $rawBody = (string) \file_get_contents('php://input');
+        $parsed = \json_decode($rawBody, true);
         $avatarId = \trim((string) ($parsed['avatar_id'] ?? ($_POST['avatar_id'] ?? '')));
 
         if (!AvatarOptions::isValid($avatarId)) {
             return $this->response->problem(Result::fail('Avatar no válido', 'invalid_avatar'), 422);
         }
 
-        $user   = Session::user();
+        $user = Session::user();
         $userId = (int) $user['id'];
 
-        $avatarUrl    = AvatarOptions::toUrl($avatarId);
+        $avatarUrl = AvatarOptions::toUrl($avatarId);
         $updateResult = $this->profileService->updateAvatar($userId, $avatarUrl);
 
         if ($updateResult->error !== null) {
@@ -283,7 +283,7 @@ final class AccountController
         Session::set('user', $user);
 
         return $this->response->json(['ok' => true, 'data' => [
-            'avatar_id'  => $avatarId,
+            'avatar_id' => $avatarId,
             'avatar_url' => $avatarUrl,
         ]]);
     }
