@@ -123,12 +123,8 @@
           const data = await response.json();
 
           if (response.ok && data.ok) {
-            // Actualizar estado local
-            const reservation = this.reservations.find(r => r.id === id);
-            if (reservation) {
-              reservation.status = 'cancelled';
-            }
             KomorebiToast.success('Reserva cancelada correctamente');
+            setTimeout(() => window.location.reload(), 800);
           } else {
             KomorebiToast.error(data.message || 'Error al cancelar');
           }
@@ -158,12 +154,8 @@
           const data = await response.json();
 
           if (response.ok && data.ok) {
-            // Actualizar estado local
-            const reservation = this.reservations.find(r => r.id === id);
-            if (reservation) {
-              reservation.status = 'confirmed';
-            }
             KomorebiToast.success('Reserva confirmada correctamente');
+            setTimeout(() => window.location.reload(), 800);
           } else {
             KomorebiToast.error(data.message || 'Error al confirmar');
           }

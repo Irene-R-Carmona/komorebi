@@ -49,7 +49,7 @@ declare(strict_types=1);
             <div class="card shadow-sm">
                 <div class="card-body p-4">
                     <form method="POST" action="/admin/animals">
-                        <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8') ?>">
+                        <?= \App\Core\Csrf::field() ?>
 
                         <div class="mb-3">
                             <label for="name" class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>

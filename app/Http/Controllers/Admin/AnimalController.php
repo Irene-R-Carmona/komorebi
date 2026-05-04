@@ -44,15 +44,25 @@ final class AnimalController
      * @throws JsonException
      * @throws RandomException
      */
-    public function index(): ?ResponseInterface
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $animals = $this->animalTransformer->collection(
+        $page = \max(1, (int) ($request->getQueryParams()['page'] ?? 1));
+        $perPage = 25;
+
+        $allAnimals = $this->animalTransformer->collection(
             $this->animalCareService->getAllAnimals()
         );
+
+        $total = \count($allAnimals);
+        $animals = \array_slice($allAnimals, ($page - 1) * $perPage, $perPage);
+        $hasNextPage = ($page * $perPage) < $total;
+        $meta = ['page' => $page, 'has_next_page' => $hasNextPage];
 
         View::render('backoffice/keeper/animals/index', [
             'titulo' => 'Gestión de Animales',
             'animals' => $animals,
+            'total' => $total,
+            'meta' => $meta,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
 
@@ -120,8 +130,7 @@ final class AnimalController
      */
     public function edit(ServerRequestInterface $request): ?ResponseInterface
     {
-        $query = $request->getQueryParams();
-        $id = (int) ($query['id'] ?? 0);
+        $id = (int) $request->getAttribute('id');
         $animal = $this->animalCareService->getAnimalById($id);
 
         if (!$animal) {

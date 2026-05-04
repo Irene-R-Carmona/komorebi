@@ -29,7 +29,7 @@ final class AnimalIncidentRepository extends AbstractRepository implements Anima
     #[Override]
     protected function getSelectFields(): array
     {
-        return ['id', 'animal_id', 'severity', 'status', 'description', 'reported_at', 'resolved_at', 'created_at'];
+        return ['id', 'animal_id', 'incident_type', 'severity', 'status', 'description', 'resolution', 'resolved_at', 'created_at'];
     }
 
     public function getActiveIncidents(): array
@@ -40,6 +40,7 @@ final class AnimalIncidentRepository extends AbstractRepository implements Anima
             JOIN animals a ON ai.animal_id = a.id
             WHERE ai.resolved_at IS NULL
             ORDER BY ai.severity DESC, ai.created_at DESC
+            LIMIT 200
         ');
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -65,14 +66,15 @@ final class AnimalIncidentRepository extends AbstractRepository implements Anima
     {
         $stmt = $this->getDb()->prepare('
             INSERT INTO animal_incidents
-            (animal_id, severity, description, reported_by_user_id, reported_at, status)
-            VALUES (:animal_id, :severity, :description, :user_id, NOW(), "open")
+            (animal_id, incident_type, severity, description, reported_by, status)
+            VALUES (:animal_id, :incident_type, :severity, :description, :reported_by, \'open\')
         ');
         $stmt->execute([
-            'animal_id' => $data['animal_id'],
-            'severity' => $data['severity'],
-            'description' => $data['description'],
-            'user_id' => $data['reported_by_user_id'] ?? null,
+            'animal_id'     => $data['animal_id'],
+            'incident_type' => $data['incident_type'] ?? 'general',
+            'severity'      => $data['severity'],
+            'description'   => $data['description'],
+            'reported_by'   => $data['reported_by_user_id'] ?? null,
         ]);
 
         return (int) $this->getDb()->lastInsertId();
@@ -82,8 +84,8 @@ final class AnimalIncidentRepository extends AbstractRepository implements Anima
     {
         $stmt = $this->getDb()->prepare('
             UPDATE animal_incidents
-            SET status = "resolved", resolution = :resolution,
-                resolved_by_user_id = :user_id, resolved_at = NOW()
+            SET status = \'resolved\', resolution = :resolution,
+                resolved_by = :user_id, resolved_at = NOW()
             WHERE id = :id
         ');
 

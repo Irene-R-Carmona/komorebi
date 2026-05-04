@@ -33,6 +33,8 @@ if (Env::bool('FEATURE_BACKOFFICE', true)) {
         $r->get('/users/{id}/edit', 'Admin\UserController@edit');
 
         $r->get('/roles', 'Admin\RoleController@index');
+        $r->get('/menu', 'Admin\MenuController@index');
+        $r->get('/menu/create', 'Admin\MenuController@create');
         $r->get('/menu/{id}/edit', 'Admin\MenuController@edit');
 
         $r->get('/reviews', 'Admin\ReviewController@index');
@@ -75,6 +77,8 @@ if (Env::bool('FEATURE_BACKOFFICE', true)) {
         $r->get('/dashboard', 'Manager\DashboardController@index');
         $r->get('/reservations', 'Manager\ReservationController@index');
         $r->get('/reviews', 'Manager\ReviewController@index');
+        $r->post('/reviews/{id}/approve', 'Manager\ReviewController@approve', [$mw->csrf()]);
+        $r->post('/reviews/{id}/reject', 'Manager\ReviewController@reject', [$mw->csrf()]);
 
         // Staff Management — vistas web (GETs)
         $r->get('/staff', 'Manager\StaffController@index', [$mw->ownsCafe()]);

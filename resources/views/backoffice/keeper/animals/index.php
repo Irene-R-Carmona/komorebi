@@ -2,12 +2,20 @@
 
 declare(strict_types=1);
 
+use App\Support\ViewHelpers;
+
 /**
  * Lista de Animales - Módulo Keeper
  *
  * Variables disponibles (escapadas por View::render):
  * @var array $animals  Array de animales con café info (getAnimalsWithCafeInfoOptimized)
+ * @var int   $total
+ * @var array $meta  ['page' => int, 'has_next_page' => bool]
+ * @var string $csrf_token
  */
+
+$meta ??= ['page' => 1, 'has_next_page' => false];
+$total ??= count($animals);
 
 $getStatusBadgeClass = function (string $status): string {
     return match ($status) {
@@ -71,8 +79,11 @@ $getStatusLabel = function (string $status): string {
     <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
             <h5 class="mb-0 text-primary">
-                <i class="bi bi-table"></i> Animales (<?= count($animals) ?>)
+                <i class="bi bi-table"></i> Animales (<?= $total ?>)
             </h5>
+            <a href="/admin/animals/create" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg"></i> Nuevo Animal
+            </a>
         </div>
         <div class="card-body p-0">
             <?php if (empty($animals)): ?>
@@ -121,8 +132,8 @@ $getStatusLabel = function (string $status): string {
                                                     const csrfToken = document.querySelector('meta[name=csrf-token]')?.content ?? '';
                                                     const body = new FormData();
                                                     body.append('csrf_token', csrfToken);
-                                                    const res = await fetch('/keeper/animals/<?= (int) $animal['id'] ?>/toggle', {
-                                                        method: 'POST',
+                                                    const res = await fetch('/api/v1/keeper/animals/<?= (int) $animal['id'] ?>/toggle', {
+                                                        method: 'PATCH',
                                                         body
                                                     });
                                                     const json = await res.json();
@@ -167,5 +178,11 @@ $getStatusLabel = function (string $status): string {
                 </div>
             <?php endif; ?>
         </div>
+        <?php $paginationHtml = ViewHelpers::paginationLinks($meta, []); ?>
+        <?php if ($paginationHtml !== ''): ?>
+            <div class="d-flex justify-content-center mt-3 mb-2">
+                <?= $paginationHtml ?>
+            </div>
+        <?php endif; ?>
     </div>
 </div>

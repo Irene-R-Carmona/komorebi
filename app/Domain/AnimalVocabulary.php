@@ -38,8 +38,9 @@ final class AnimalVocabulary
     /** @var list<string> */
     public const array INCIDENT_STATUSES = [
         'open',
-        'investigating',
+        'monitoring',
         'resolved',
+        'archived',
     ];
 
     public static function isValidSpecies(string $value): bool

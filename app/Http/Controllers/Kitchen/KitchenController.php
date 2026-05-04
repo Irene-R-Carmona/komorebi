@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Kitchen;
 
 use App\Core\Container;
-use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Core\ServiceErrorCode;
@@ -141,27 +140,11 @@ final class KitchenController
 
     /**
      * GET /ops/kitchen/orders
-     * Lista de órdenes activas en el KDS.
+     * Redirige al panel KDS principal.
      */
-    public function activeOrders(ServerRequestInterface $request): ?ResponseInterface
+    public function activeOrders(ServerRequestInterface $request): ResponseInterface
     {
-        $cafeId = $this->context()->getCafeId();
-
-        if ($cafeId === null && Session::role() === 'admin') {
-            $cafeId = 1;
-        }
-
-        if ($cafeId === null) {
-            Flash::error('KDS requiere un contexto de sede. Contacta a tu administrador.');
-
-            return $this->response->redirect('/ops/kitchen');
-        }
-
-        $orders = $this->service->getAllPending($cafeId);
-
-        View::render('kitchen/index', ['orders' => $orders], ['workspaces/kds.css'], 'kds');
-
-        return null;
+        return $this->response->redirect('/ops/kitchen');
     }
 
     /**

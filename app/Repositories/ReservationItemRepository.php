@@ -76,18 +76,16 @@ final class ReservationItemRepository extends AbstractRepository implements Rese
     public function findPendingByStation(int $cafeId, string $station): array
     {
         $sql = '
-            SELECT ri.id, ri.reservation_id, ri.product_id, ri.quantity,
-                   ri.unit_price, ri.status, ri.created_at,
-                   p.name AS product_name, p.recipe_steps, p.prep_time,
-                   t.code AS tracker_code
+            SELECT ' . self::ITEM_SELECT . '
             FROM reservation_items ri
-            JOIN products p ON p.id = ri.product_id
-            JOIN reservations r ON r.id = ri.reservation_id
-            LEFT JOIN trackers t ON t.id = r.tracker_id
+            JOIN products p ON ri.product_id = p.id
+            JOIN reservations r ON ri.reservation_id = r.id
+            LEFT JOIN trackers t ON r.tracker_id = t.id
             WHERE r.cafe_id = :cafe_id
               AND p.station = :station
+              AND r.reservation_date = CURDATE()
               AND ri.status IN (\'pending\', \'kitchen\')
-              AND r.status = \'active\'
+              AND r.status IN (\'confirmed\', \'active\')
             ORDER BY ri.created_at
         ';
 
@@ -108,7 +106,7 @@ final class ReservationItemRepository extends AbstractRepository implements Rese
             WHERE r.cafe_id = :cafe_id
               AND r.reservation_date = CURDATE()
               AND ri.status IN (\'pending\', \'kitchen\')
-              AND r.status = \'active\'
+              AND r.status IN (\'confirmed\', \'active\')
             ORDER BY ri.created_at
         ';
 

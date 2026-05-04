@@ -21,6 +21,7 @@ final readonly class AnimalIncidentDTO implements DomainTransferObject
         public string $status,
         public ?string $animal_name = null,
         public ?string $species = null,
+        public ?string $resolution = null,
     ) {
     }
 
@@ -40,6 +41,7 @@ final readonly class AnimalIncidentDTO implements DomainTransferObject
             'status' => $this->status,
             'animal_name' => $this->animal_name,
             'species' => $this->species,
+            'resolution' => $this->resolution,
         ];
     }
 }

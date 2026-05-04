@@ -8,7 +8,7 @@ use App\Core\Container;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
-use App\Exceptions\ValidationException;
+use App\Exceptions\AuthorizationException;
 use App\Services\ContextServiceInstance;
 use App\Services\Contracts\ReceptionServiceInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -46,14 +46,14 @@ final class ReceptionController
      * GET /ops/reception
      * Muestra el panel de recepción con reservas próximas y grupos activos.
      *
-     * @throws ValidationException Si falta contexto de sede
+     * @throws AuthorizationException Si falta contexto de sede
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $cafeId = $this->context()->getCafeId();
 
         if ($cafeId === null) {
-            throw ValidationException::withMessage('Recepción requiere un contexto de sede');
+            throw new AuthorizationException('Recepción requiere un contexto de sede');
         }
 
         // Obtener datos del servicio
@@ -66,7 +66,7 @@ final class ReceptionController
         $reservasUI = $this->processReservationsForDisplay($reservasRaw);
 
         // Calcular ocupación actual
-        $ocupacion = \array_sum(\array_column($activeGroups, 'guests'));
+        $ocupacion = \array_sum(\array_column($activeGroups, 'guest_count'));
 
         // Guardar nombre de sede en sesión para el layout
         $cafeName = $this->context()->getCafeName();
@@ -80,8 +80,7 @@ final class ReceptionController
             'active_groups' => $activeGroups,
             'free_trackers' => $freeTrackers,
             'ocupacion' => $ocupacion,
-            'cap_max' => $capInfo['capacity_max'] ?? 0,
-            'extraJs' => ['sections/reception.js'],
+            'cap_max' => $capInfo['max'] ?? 0,
         ], ['workspaces/reception.css'], 'reception');
 
         return null;
@@ -89,26 +88,11 @@ final class ReceptionController
 
     /**
      * GET /ops/reception/reservations
-     * Lista las reservas del día actual para la sede activa.
-     *
-     * @throws ValidationException Si falta contexto de sede
+     * Redirige al panel principal de recepción.
      */
-    public function todayReservations(ServerRequestInterface $request): ?ResponseInterface
+    public function todayReservations(ServerRequestInterface $request): ResponseInterface
     {
-        $cafeId = $this->context()->getCafeId();
-
-        if ($cafeId === null) {
-            throw ValidationException::withMessage('Recepción requiere un contexto de sede');
-        }
-
-        $reservations = $this->service->getPendingArrivals($cafeId);
-
-        View::render('reception/index', [
-            'titulo' => 'Reservas de hoy - ' . $this->context()->getCafeName(),
-            'reservations' => $reservations,
-        ], [], 'reception');
-
-        return null;
+        return $this->response->redirect('/ops/reception');
     }
 
     // ─────────────────────────────────────────────────────────────

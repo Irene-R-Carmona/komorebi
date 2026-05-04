@@ -81,6 +81,15 @@ final class ReservationController
         return null;
     }
 
+    /**
+     * GET /admin/reservations/{id}
+     * Detalle no disponible como página independiente — redirige al listado.
+     */
+    public function show(): ResponseInterface
+    {
+        return (new \App\Core\Http\ResponseFactory())->redirect('/admin/reservations');
+    }
+
     private function matchesFilters(array $r, string $search, string $status, string $cafe, string $dateFrom, string $dateTo): bool
     {
         $statusOk = $status === '' || ($r['status'] ?? '') === $status;

@@ -25,6 +25,7 @@ final readonly class AnimalIncidentMapper implements MapperInterface
             status: (string) ($row['status'] ?? 'open'),
             animal_name: isset($row['animal_name']) ? (string) $row['animal_name'] : null,
             species: isset($row['species']) ? (string) $row['species'] : null,
+            resolution: isset($row['resolution']) ? (string) $row['resolution'] : null,
         );
     }
 }

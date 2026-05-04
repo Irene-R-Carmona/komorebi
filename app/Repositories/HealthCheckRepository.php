@@ -213,6 +213,37 @@ final class HealthCheckRepository extends AbstractRepository implements HealthCh
         return (int) $this->getDb()->lastInsertId();
     }
 
+    public function update(int $id, array $data): bool
+    {
+        $allowed = [
+            'weight_kg', 'temperature_c', 'appetite', 'energy_level',
+            'coat_condition', 'eyes_clear', 'breathing_normal', 'mobility_normal',
+            'notes', 'alerts',
+        ];
+
+        $sets = [];
+        $params = ['id' => $id];
+
+        foreach ($allowed as $field) {
+            if (\array_key_exists($field, $data)) {
+                $sets[] = "$field = :$field";
+                $params[$field] = ($field === 'alerts' && \is_array($data[$field]))
+                    ? \json_encode($data[$field])
+                    : $data[$field];
+            }
+        }
+
+        if (empty($sets)) {
+            return false;
+        }
+
+        $stmt = $this->getDb()->prepare(
+            'UPDATE animal_health_checks SET ' . \implode(', ', $sets) . ' WHERE id = :id'
+        );
+
+        return $stmt->execute($params);
+    }
+
     public function existsForAnimalOnDate(int $animalId, string $date): bool
     {
         $stmt = $this->getDb()->prepare('
