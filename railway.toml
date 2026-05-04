@@ -38,4 +38,9 @@ restartPolicyMaxRetries = 3
 #   FEATURE_OPS=1
 #   FEATURE_KEEPER=1
 #   MAX_REQUESTS=500                  # Requests por worker FrankenPHP antes de reciclar el proceso
+#
+# OBLIGATORIO PARA RAILWAY (evita doble ejecución de migraciones al reiniciar el contenedor):
+# Las migraciones se ejecutan UNA SOLA VEZ via releaseCommand (arriba).
+# Si SKIP_MIGRATIONS no está definida, el entrypoint también las ejecutaría (innecesario).
+#   SKIP_MIGRATIONS=1
 #   MERCURE_JWT_SECRET=genera-con-openssl-rand-base64-32

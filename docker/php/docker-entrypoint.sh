@@ -17,10 +17,10 @@ log "  Servicio: ${COMPOSE_SERVICE:-app} | Entorno: ${APP_ENV:-?}"
 log "==================================================="
 
 log "Creando directorios de almacenamiento..."
-mkdir -p "$STORAGE_DIR/uploads" "$STORAGE_DIR/logs" "$STORAGE_DIR/cache"
-chmod -R 755 "$STORAGE_DIR" 2>/dev/null || true
-chmod -R u+w "$STORAGE_DIR/logs" "$STORAGE_DIR/cache" "$STORAGE_DIR/uploads" 2>/dev/null || true
+mkdir -p "$STORAGE_DIR/uploads/avatars" "$STORAGE_DIR/uploads/animals" "$STORAGE_DIR/logs" "$STORAGE_DIR/cache" "$STORAGE_DIR/cache/di"
 chown -R www-data:www-data "$STORAGE_DIR" 2>/dev/null || true
+chmod -R 755 "$STORAGE_DIR" 2>/dev/null || true
+chmod -R 775 "$STORAGE_DIR/uploads" "$STORAGE_DIR/logs" "$STORAGE_DIR/cache" 2>/dev/null || true
 log "Directorios listos."
 
 # En volúmenes bind-mount de Windows/WSL2 chown puede fallar.
@@ -108,6 +108,8 @@ if [ "${SKIP_MIGRATIONS:-0}" = "0" ]; then
             log "--------------------------------------------------------------"
 
             # Ejecutar con salida en tiempo real (tee) y capturar exit code con PIPESTATUS
+            # --force: salta el prompt interactivo (no disponible en contenedor sin TTY).
+            # Las migraciones siguen siendo idempotentes: no aplica nada ya aplicado.
             php "$MIGRATE_SCRIPT" --force 2>&1 | tee /tmp/migrate-attempt.log
             rc=${PIPESTATUS[0]:-1}
 

@@ -67,7 +67,7 @@ bash: ## Acceder al shell del contenedor app
 	docker compose exec app bash
 
 db-bash: ## Acceder a MySQL CLI
-	docker compose exec db mysql -u komorebi_user -p komorebi_db
+	docker compose exec db mysql -u ${DB_USERNAME} -p ${DB_DATABASE}
 
 db-reset: ## Resetear base de datos completamente (elimina y recrea)
 	@echo "$(YELLOW)⚠️  ADVERTENCIA: Esto eliminará TODOS los datos de la BD$(NC)"
@@ -95,7 +95,7 @@ db-verify: ## Verificar estado de la base de datos
 
 db-backup: ## Crear backup de la base de datos
 	@mkdir -p backups
-	@docker compose exec db mysqldump -u komorebi_user -p komorebi_db > backups/backup_$$(date +%Y%m%d_%H%M%S).sql
+	@docker compose exec db mysqldump -u ${DB_USERNAME} -p ${DB_DATABASE} > backups/backup_$$(date +%Y%m%d_%H%M%S).sql
 	@echo "$(GREEN)✓ Backup creado en backups/$(NC)"
 
 clean: ## Limpiar cache y logs

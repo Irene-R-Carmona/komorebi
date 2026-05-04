@@ -44,11 +44,16 @@ RUN if [ "$XDEBUG_ENABLE" = "true" ]; then \
 
 COPY frankenphp.Caddyfile /app/frankenphp.Caddyfile
 
-# Crear directorio de storage antes de cambiar usuario
-RUN mkdir -p /app/storage/logs /app/storage/cache /app/storage/uploads \
-    && chown -R www-data:www-data /app/storage
-
-USER www-data
+# Crear directorios de storage completos antes de cambiar usuario
+RUN mkdir -p \
+    /app/storage/logs \
+    /app/storage/cache \
+    /app/storage/cache/di \
+    /app/storage/uploads \
+    /app/storage/uploads/avatars \
+    /app/storage/uploads/animals \
+    && chown -R www-data:www-data /app/storage \
+    && chmod -R 775 /app/storage
 
 EXPOSE 80
 

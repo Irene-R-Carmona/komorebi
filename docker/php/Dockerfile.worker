@@ -35,7 +35,7 @@ RUN install-php-extensions \
 COPY docker/php/ini/php.ini          /usr/local/etc/php/conf.d/00-php.ini
 COPY docker/php/ini/error-prod.ini   /usr/local/etc/php/conf.d/01-error.ini
 COPY docker/php/ini/memory.ini       /usr/local/etc/php/conf.d/03-memory.ini
-COPY docker/php/ini/opcache.ini      /usr/local/etc/php/conf.d/04-opcache.ini
+COPY docker/php/ini/opcache-worker.ini /usr/local/etc/php/conf.d/04-opcache.ini
 
 COPY --from=vendor-build /app /app
 

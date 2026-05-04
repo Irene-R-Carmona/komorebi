@@ -65,6 +65,12 @@ services:
       - db
     networks:
       - komorebi-net
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 128m
 
   # ==========================================================================
   # REDIS COMMANDER - Visor web de Redis (solo desarrollo)
