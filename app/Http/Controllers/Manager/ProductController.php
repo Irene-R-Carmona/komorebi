@@ -8,7 +8,6 @@ use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
-use App\Core\Raw;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
@@ -45,31 +44,42 @@ final class ProductController
     /**
      * GET /manager/products
      */
-    public function index(): ?ResponseInterface
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
 
         if (!$cafeId) {
-            View::render('errors/403', ['message' => 'No tienes un café asignado.']);
+            if (!\headers_sent()) {
+                @\http_response_code(403);
+            }
+            View::render('errors/403', ['message' => 'No tienes un café asignado.'], [], 'errors');
 
             return null;
         }
 
-        $productsData = $this->productRepo->findFiltered([], 1, 200);
-        $categories = $this->categoryRepo->findAll();
+        $query = $request->getQueryParams();
+        $search = \trim((string) ($query['search'] ?? ''));
 
-        $alpineConfig = Raw::json([
-            'products' => $productsData['data'] ?? [],
-            'categories' => $categories,
-            'cafeId' => $cafeId,
-            'csrfToken' => Csrf::token(),
-        ]);
+        $filters = [];
+        if ($search !== '') {
+            $filters['search'] = $search;
+        }
+
+        $productsData = $this->productRepo->findFiltered($filters, 1, 200);
+        $categories = \array_map(
+            static fn($dto) => $dto->toViewArray(),
+            $this->categoryRepo->findAll()
+        );
 
         View::render('manager/products/index', [
             'titulo' => 'Gestión de Productos',
-            'alpineConfig' => $alpineConfig,
+            'products' => $productsData['data'] ?? [],
+            'categories' => $categories,
+            'cafeId' => (int) $cafeId,
+            'search' => $search,
             'total' => $productsData['total'] ?? 0,
+            'extraJs' => ['manager/manager-products.js'],
         ], ['admin/admin-products.css'], 'backoffice');
 
         return null;

@@ -34,22 +34,39 @@ final class WaitlistController
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $queryParams = $request->getQueryParams();
+        $page = \max(1, (int) ($queryParams['page'] ?? 1));
+        $perPage = 25;
+
         $filters = [
             'cafe_id' => $queryParams['cafe_id'] ?? null,
             'status' => $queryParams['status'] ?? 'waiting',
             'date' => $queryParams['date'] ?? null,
         ];
 
-        $waitlists = $this->waitlistTransformer->collection(
+        $allWaitlists = $this->waitlistTransformer->collection(
             $this->waitlistRepo->getAllWithDetails($filters)
         );
 
+        $total = \count($allWaitlists);
+        $waitlists = \array_slice($allWaitlists, ($page - 1) * $perPage, $perPage);
+        $hasNextPage = ($page * $perPage) < $total;
+
         $summary = $this->waitlistRepo->getSummaryByStatus();
+
+        $meta = ['page' => $page, 'has_next_page' => $hasNextPage];
+        $currentParams = \array_filter([
+            'cafe_id' => $filters['cafe_id'] ?? '',
+            'status' => ($filters['status'] !== 'waiting') ? $filters['status'] : '',
+            'date' => $filters['date'] ?? '',
+        ], static fn($v) => $v !== '');
 
         View::render('admin/waitlist/index', [
             'waitlists' => $waitlists,
             'summary' => $summary,
             'filters' => $filters,
+            'total' => $total,
+            'meta' => $meta,
+            'currentParams' => $currentParams,
         ], [], 'backoffice');
 
         return null;

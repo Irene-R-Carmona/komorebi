@@ -46,7 +46,7 @@ final class FallbackExceptionRenderer extends AbstractExceptionRenderer
         $html = View::renderToString('errors/500', [
             'message' => $isDebug ? $e->getMessage() : 'Error interno del servidor.',
             'show_details' => $isDebug,
-        ]);
+        ], [], 'errors');
 
         return $this->response->html($html, 500);
     }

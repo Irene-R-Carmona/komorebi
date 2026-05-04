@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use Psr\Http\Message\ResponseInterface;
@@ -43,6 +44,8 @@ final class CafeScopeMiddleware implements MiddlewareInterface
             }
 
             // Redirección web
+            Flash::warning('No tienes una sede asignada. Contacta con administración.');
+
             return $this->response->redirect('/manager/dashboard');
         }
 
@@ -55,6 +58,8 @@ final class CafeScopeMiddleware implements MiddlewareInterface
                     'error' => 'Acceso denegado a este recurso.',
                 ], 403);
             }
+
+            Flash::warning('Acceso denegado a este recurso.');
 
             return $this->response->redirect('/manager/dashboard');
         }

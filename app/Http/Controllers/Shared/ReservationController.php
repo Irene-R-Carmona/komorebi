@@ -34,6 +34,7 @@ final class ReservationController
     private const string ROUTE_RESERVAR = '/reservar';
     private const string ROUTE_PASO2 = '/reservar/paso-2';
     private const string ROUTE_PASO3 = '/reservar/paso-3';
+    private const string MSG_NOT_FOUND = 'Reserva no encontrada.';
 
     private CartServiceInterface $cartService;
     private ReservationServiceInterface $reservationService;
@@ -100,7 +101,7 @@ final class ReservationController
         $userId = Session::userId();
 
         if (!$userId || $id <= 0) {
-            Flash::error('Reserva no encontrada.');
+            Flash::error(self::MSG_NOT_FOUND);
 
             return $this->response->redirect('/reservas');
         }
@@ -108,7 +109,7 @@ final class ReservationController
         $reservation = $this->reservationRepo->findByIdAndUser($id, $userId);
 
         if (!$reservation) {
-            Flash::error('Reserva no encontrada.');
+            Flash::error(self::MSG_NOT_FOUND);
 
             return $this->response->redirect('/reservas');
         }
@@ -119,6 +120,31 @@ final class ReservationController
         ], ['reservas.css']);
 
         return null;
+    }
+
+    /**
+     * POST /reservas/mis-reservas/{id}/cancel
+     */
+    public function cancelReservation(ServerRequestInterface $request): ResponseInterface
+    {
+        $id = (int) $request->getAttribute('id');
+        $userId = Session::userId();
+
+        if (!$userId || $id <= 0) {
+            Flash::error(self::MSG_NOT_FOUND);
+
+            return $this->response->redirect('/reservas/mis-reservas');
+        }
+
+        $result = $this->reservationService->cancel($id, $userId);
+
+        if (!$result->ok) {
+            Flash::error($result->error ?? 'No se pudo cancelar la reserva.');
+        } else {
+            Flash::success('Reserva cancelada correctamente.');
+        }
+
+        return $this->response->redirect('/reservas/mis-reservas');
     }
 
     /**
@@ -134,9 +160,12 @@ final class ReservationController
             return $this->response->redirect(self::ROUTE_LOGIN);
         }
 
+        $reservationData = $this->reservationService->getByUser($userId);
+
         View::render('shared/reservas/lista', [
             'titulo' => 'Mis Reservas',
-            'reservations' => $this->reservationService->getByUser($userId),
+            'reservations' => $reservationData['data'] ?? $reservationData,
+            'flash' => Flash::consume(),
         ], ['reservas.css']);
 
         return null;

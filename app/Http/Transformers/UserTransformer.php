@@ -28,7 +28,9 @@ final class UserTransformer extends AbstractTransformer
             'email' => (string) ($data['email'] ?? ''),
             'avatar' => isset($data['avatar']) ? (string) $data['avatar'] : null,
             'role' => isset($data['role']) ? (string) $data['role'] : null,
-            'roles' => isset($data['roles']) ? (string) $data['roles'] : null,
+            'roles' => isset($data['roles'])
+                ? (\is_array($data['roles']) ? \implode(',', $data['roles']) : (string) $data['roles'])
+                : null,
             'role_id' => isset($data['role_id']) ? (int) $data['role_id'] : null,
             'role_ids' => isset($data['role_ids']) ? (string) $data['role_ids'] : null,
             'cafe_id' => isset($data['cafe_id']) ? (int) $data['cafe_id'] : null,

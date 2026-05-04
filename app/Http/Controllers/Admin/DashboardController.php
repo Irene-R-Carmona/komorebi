@@ -53,8 +53,8 @@ final class DashboardController
             }
 
             // 103 Early Hints — enviar antes de las queries pesadas de estadísticas
-            \header('Link: </css/admin/admin-dashboard.css>; rel=preload; as=style', false);
-            \header('Link: </js/admin/admin-dashboard.js>; rel=preload; as=script', false);
+            \header('Link: </css/sections/admin/admin-dashboard.css>; rel=preload; as=style', false);
+            \header('Link: </js/sections/admin/admin-dashboard.js>; rel=preload; as=script', false);
             if (\function_exists('headers_send')) {
                 \headers_send(103);
             }
@@ -121,7 +121,7 @@ final class DashboardController
                 'titulo' => 'Error del Servidor',
                 'message' => 'Error al cargar el dashboard. Por favor, contacta al administrador.',
                 'details' => Env::get('APP_ENV') === 'local' ? $e->getMessage() : null,
-            ]);
+            ], [], 'errors');
         }
 
         return null;

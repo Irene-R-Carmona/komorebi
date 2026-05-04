@@ -47,7 +47,7 @@ final class NotFoundExceptionRenderer extends AbstractExceptionRenderer
         $html = View::renderToString('errors/404', [
             'message' => $e->getMessage(),
             'resource_type' => $e->getResourceType(),
-        ]);
+        ], [], 'errors');
 
         return $this->response->html($html, 404);
     }

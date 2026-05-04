@@ -27,8 +27,19 @@ final class DataViewerController
             $samples = $this->statsRepo->getDataViewerSamples();
         } catch (Throwable) {
             $stats = \array_fill_keys(
-                ['users', 'staff', 'cafes', 'animals', 'products', 'reservations',
-                 'reservations_with_slot', 'time_slots', 'time_slots_available', 'reviews', 'incidents'],
+                [
+                    'users',
+                    'staff',
+                    'cafes',
+                    'animals',
+                    'products',
+                    'reservations',
+                    'reservations_with_slot',
+                    'time_slots',
+                    'time_slots_available',
+                    'reviews',
+                    'incidents'
+                ],
                 0
             );
             $samples = \array_fill_keys(

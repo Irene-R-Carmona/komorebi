@@ -123,8 +123,9 @@ final class CafeController
         // Obtener estadísticas de reseñas
         $ratingStats = $this->queryService->getCafeRatingStats((int) $cafe['id']);
 
-        // Obtener reseñas aprobadas (página 1, 5 por página para mostrar)
-        $approvedReviews = $this->queryService->listApprovedReviews((int) $cafe['id'], 1);
+        // Obtener reseñas aprobadas paginadas
+        $page = \max(1, (int) ($request->getQueryParams()['page'] ?? 1));
+        $approvedReviews = $this->queryService->listApprovedReviews((int) $cafe['id'], $page);
 
         // Obtener experiencias disponibles para este café (filtradas por categoría y animal)
         $experiences = $this->menuService->getPassesForCafe($cafe['category'], $cafe['animal_type']);
@@ -146,7 +147,7 @@ final class CafeController
             'total_animals' => \count($rawAnimals),
             'active_animals' => \count(\array_filter(
                 $rawAnimals,
-                static fn ($a) => $a['current_status'] === 'active'
+                static fn($a) => $a['current_status'] === 'active'
             )),
             'favorites_count' => $this->cafeRepo->getFavoritesCount((int) $cafe['id']),
         ];
@@ -185,6 +186,7 @@ final class CafeController
             'stats' => $stats,
             'ratingStats' => $ratingStats,
             'approvedReviews' => $approvedReviews,
+            'page' => $page,
             'canReview' => $canReview,
             'reviewEligibility' => $reviewEligibility,
         ], ['catalogo.css', 'reviews.css']);

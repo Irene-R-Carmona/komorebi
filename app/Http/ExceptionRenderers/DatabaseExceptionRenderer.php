@@ -49,7 +49,7 @@ final class DatabaseExceptionRenderer extends AbstractExceptionRenderer
         $html = View::renderToString('errors/500', [
             'message' => $message,
             'show_details' => $isDebug,
-        ]);
+        ], [], 'errors');
 
         return $this->response->html($html, 500);
     }

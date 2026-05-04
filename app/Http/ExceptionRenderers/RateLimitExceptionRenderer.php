@@ -48,7 +48,7 @@ final class RateLimitExceptionRenderer extends AbstractExceptionRenderer
         $html = View::renderToString('errors/429', [
             'message' => $e->getMessage(),
             'retry_after' => $e->getRetryAfter(),
-        ]);
+        ], [], 'errors');
 
         return $this->response->html($html, 429)
             ->withHeader('Retry-After', (string) $e->getRetryAfter());

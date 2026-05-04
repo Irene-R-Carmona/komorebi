@@ -104,13 +104,12 @@ final class ReservationController extends AbstractApiController
             return $this->unprocessable($result->error, 'reservation_error');
         }
 
-        $id = $result->data['id'] ?? null;
+        $id = (int) $result->data;
 
         return $this->success([
             'reservation_id' => $id,
-            'confirmation_code' => $result->data['confirmation_code'] ?? null,
         ], 201, [
-            'Location' => '/reservas/confirmacion/' . (int) $id,
+            'Location' => '/reservas/confirmacion/' . $id,
         ]);
     }
 

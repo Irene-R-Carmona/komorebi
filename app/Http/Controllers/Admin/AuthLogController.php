@@ -40,19 +40,51 @@ final class AuthLogController
 
     /**
      * GET /admin/logs/auth
-     * Vista de logs de autenticación
+     * Vista de logs de autenticación o datos JSON paginados (si es AJAX)
      * @throws RandomException
+     * @throws JsonException
      */
     public function index(): ?ResponseInterface
     {
-        // Renderizar vista
+        $acceptHeader = $_SERVER['HTTP_ACCEPT'] ?? '';
+        $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && \strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+            || \str_contains($acceptHeader, 'application/json');
+
+        if ($isAjax) {
+            $page = \max(1, (int) ($_GET['page'] ?? 1));
+            $perPage = \min(100, \max(10, (int) ($_GET['perPage'] ?? 50)));
+            $offset = ($page - 1) * $perPage;
+
+            $filters = \array_filter([
+                'event_type' => $_GET['event'] ?? null,
+                'ip_address' => $_GET['search'] ?? null,
+                'date_from' => $_GET['dateFrom'] ?? null,
+                'date_to' => $_GET['dateTo'] ?? null,
+            ], static fn ($v) => $v !== null && $v !== '');
+
+            if (isset($_GET['status'])) {
+                $filters['success'] = $_GET['status'] === 'success';
+            }
+
+            $result = $this->authLogRepo->findFiltered($filters, $perPage, $offset);
+
+            return $this->response->json([
+                'ok' => true,
+                'data' => $result['data'],
+                'total' => $result['total'],
+            ]);
+        }
+
+        $rawStats = $this->authLogRepo->getStats();
+        $suspicious = $this->authLogRepo->findSuspiciousActivity(15, 5);
+
         View::render('admin/logs/auth', [
             'titulo' => 'Logs de Autenticación',
             'csrf_token' => Csrf::token(),
             'stats' => [
-                'successful_logins' => 0,
-                'failed_attempts' => 0,
-                'suspicious_activity' => 0,
+                'successful_logins' => (int) ($rawStats['totals']['successful_logins'] ?? 0),
+                'failed_attempts' => (int) ($rawStats['totals']['failed_logins'] ?? 0),
+                'suspicious_activity' => \count($suspicious),
                 'active_today' => 0,
             ],
             'extraJs' => ['admin/admin-logs.js'],

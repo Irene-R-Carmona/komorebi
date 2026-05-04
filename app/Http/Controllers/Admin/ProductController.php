@@ -98,7 +98,7 @@ final class ProductController
             'search' => $search,
             'category' => $category > 0 ? (string) $category : '',
             'status' => $status,
-        ], static fn ($v) => $v !== '');
+        ], static fn($v) => $v !== '');
 
         View::render('admin/products/index', [
             'titulo' => 'Gestión de Productos | Komorebi Admin',
@@ -126,8 +126,8 @@ final class ProductController
         // Obtener categorías
         $categories = $this->productRepo->getCategories();
 
-        // Obtener alérgenos
-        $allergens = $this->allergenRepo->findAll(true);
+        // Obtener alérgenos como arrays para la vista
+        $allergens = \array_map(static fn($dto) => $dto->toViewArray(), $this->allergenRepo->findAll(true));
 
         View::render('admin/products/create', [
             'titulo' => 'Nuevo Producto | Komorebi Admin',
@@ -192,8 +192,8 @@ final class ProductController
         // Obtener categorías
         $categories = $this->productRepo->getCategories();
 
-        // Obtener alérgenos
-        $allergens = $this->allergenRepo->findAll(true);
+        // Obtener alérgenos como arrays para la vista
+        $allergens = \array_map(static fn($dto) => $dto->toViewArray(), $this->allergenRepo->findAll(true));
 
         // Obtener alérgenos asignados al producto
         $product_allergens = $this->productRepo->getAllergens($id);

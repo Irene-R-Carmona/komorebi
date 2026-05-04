@@ -34,7 +34,7 @@ final class MenuController
         }
 
         // 103 Early Hints — FrankenPHP envía la cabecera antes de las queries
-        \header('Link: </css/menu.css>; rel=preload; as=style', false);
+        \header('Link: </css/sections/menu.css>; rel=preload; as=style', false);
         if (\function_exists('headers_send')) {
             \headers_send(103);
         }

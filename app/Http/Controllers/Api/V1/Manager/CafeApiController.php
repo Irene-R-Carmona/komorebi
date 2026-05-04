@@ -134,7 +134,7 @@ final class CafeApiController extends AbstractApiController
         if (isset($body['price_per_hour'])) {
             $price = (int) $body['price_per_hour'];
             if ($price < 0 || $price > 100) {
-                return $this->badRequest('El precio debe estar entre 0 y 100€', 'price_out_of_range');
+                return $this->badRequest('El precio debe estar entre ¥0 y ¥10,000', 'price_out_of_range');
             }
             $updates['price_per_hour'] = $price;
         }

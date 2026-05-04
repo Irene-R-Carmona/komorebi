@@ -74,7 +74,7 @@ final class SystemController
      * Obtiene los datos de configuración
      * @throws JsonException
      */
-    private function getSettingsData(): ResponseInterface
+    public function getSettingsData(): ResponseInterface
     {
         $settings = $this->settingsService->getAll();
 

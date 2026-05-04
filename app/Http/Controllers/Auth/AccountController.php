@@ -210,7 +210,7 @@ final class AccountController
         if (!$this->authService->check()) {
             Flash::error('Debes iniciar sesión.');
 
-            return $this->response->redirect('/auth/login');
+            return $this->response->redirect('/login');
         }
 
         return null;

@@ -72,7 +72,7 @@ final class PageController
             } else {
                 Logger::error('[PageController::view] headers already sent; skipping http_response_code(404)', ['page' => $page]);
             }
-            View::render('errors/404');
+            View::render('errors/404', ['titulo' => '404 - Página no encontrada'], [], 'errors');
 
             return;
         }
@@ -86,7 +86,7 @@ final class PageController
             } else {
                 Logger::error('[PageController::view] headers already sent; skipping http_response_code(404)', ['page' => $page]);
             }
-            View::render('errors/404');
+            View::render('errors/404', ['titulo' => '404 - Página no encontrada'], [], 'errors');
 
             return;
         }
@@ -102,7 +102,7 @@ final class PageController
             } else {
                 Logger::error('[PageController::view] headers already sent; skipping http_response_code(500)', ['page' => $page]);
             }
-            View::render('errors/500');
+            View::render('errors/500', ['titulo' => '500 - Error del servidor'], [], 'errors');
 
             return;
         }

@@ -47,7 +47,7 @@ final class AuthorizationExceptionRenderer extends AbstractExceptionRenderer
         $html = View::renderToString('errors/403', [
             'message' => $e->getMessage(),
             'permission' => $e->getPermission(),
-        ]);
+        ], [], 'errors');
 
         return $this->response->html($html, 403);
     }

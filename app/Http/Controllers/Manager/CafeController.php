@@ -221,10 +221,10 @@ final class CafeController
         // Precio por hora
         if (isset($body['price_per_hour'])) {
             $price = (int) $body['price_per_hour'];
-            if ($price < 0 || $price > 100) {
+            if ($price < 0 || $price > 10000) {
                 return $this->response->json([
                     'ok' => false,
-                    'error' => 'El precio debe estar entre 0 y 100€',
+                    'error' => 'El precio debe estar entre ¥0 y ¥10,000',
                 ], 400);
             }
             $updates['price_per_hour'] = $price;
@@ -251,5 +251,4 @@ final class CafeController
             ], 500);
         }
     }
-
 }

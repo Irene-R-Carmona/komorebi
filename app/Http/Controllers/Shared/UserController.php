@@ -236,7 +236,7 @@ final class UserController
 
         // Recopilar todos los datos personales
         $profile = $this->profileService->getProfile($userId);
-        $reservations = $this->reservations->getByUser($userId, 'all');
+        $reservations = $this->reservations->getByUser($userId);
         $reviews = $this->reviews->listUserReviews($userId);
 
         // Construir estructura JSON con todos los datos

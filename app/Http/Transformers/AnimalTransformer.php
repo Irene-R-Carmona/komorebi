@@ -26,7 +26,16 @@ final class AnimalTransformer extends AbstractTransformer
             'personality' => isset($data['personality']) ? (string) $data['personality'] : null,
             'description' => isset($data['description']) ? (string) $data['description'] : null,
             'interaction_level' => (int) ($data['interaction_level'] ?? 3),
-            'attributes' => \is_array($data['attributes'] ?? null) ? $data['attributes'] : null,
+            'attributes' => (static function (mixed $raw): ?array {
+                if (\is_array($raw)) {
+                    return $raw;
+                }
+                if (\is_string($raw) && $raw !== '') {
+                    $decoded = \json_decode($raw, true);
+                    return \is_array($decoded) ? $decoded : null;
+                }
+                return null;
+            })($data['attributes'] ?? null),
             'image_url' => isset($data['image_url']) ? (string) $data['image_url'] : null,
             'current_status' => (string) ($data['current_status'] ?? 'active'),
         ];

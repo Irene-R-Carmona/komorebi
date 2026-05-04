@@ -48,7 +48,7 @@ final class WaitlistController
 
         View::render('user/waitlists', [
             'titulo' => 'Mis Listas de Espera - Komorebi Café',
-            'waitlists' => $result->data,
+            'waitlists' => $result->data['waitlists'] ?? [],
             'extraCss' => ['loyalty.css'],
         ]);
 

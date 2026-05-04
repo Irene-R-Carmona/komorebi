@@ -71,7 +71,7 @@ final class ManagerController extends AbstractApiController
             'labels' => $labels,
             'datasets' => [
                 [
-                    'label' => 'Ingresos (€)',
+                    'label' => 'Ingresos (¥)',
                     'data' => $data,
                     'borderColor' => 'rgb(75, 192, 192)',
                     'backgroundColor' => 'rgba(75, 192, 192, 0.2)',

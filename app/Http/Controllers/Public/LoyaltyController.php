@@ -51,11 +51,11 @@ final class LoyaltyController
         }
 
         View::render('public/loyalty/card', [
-            'card' => $result->data['card'],
+            'card' => $result->data['card']->toViewArray(),
             'available_rewards' => $result->data['available_rewards'],
             'redeemed_rewards' => $result->data['redeemed_rewards'],
             'tier_progress' => $result->data['tier_progress'],
-            'page_title' => '🎴 Mi Tarjeta de Fidelización - Komorebi Café',
+            'titulo' => 'Mi Tarjeta de Fidelización',
             'extraCss' => ['loyalty.css'],
         ]);
 

@@ -13,6 +13,7 @@ use App\Core\View;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use Error;
 use Exception;
+use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
@@ -32,10 +33,38 @@ final class AuditLogController
 
     /**
      * GET /admin/logs/audit
+     * Vista de logs de auditoría o datos JSON paginados (si es AJAX)
      * @throws RandomException
+     * @throws JsonException
      */
     public function index(): ?ResponseInterface
     {
+        $acceptHeader = $_SERVER['HTTP_ACCEPT'] ?? '';
+        $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && \strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+            || \str_contains($acceptHeader, 'application/json');
+
+        if ($isAjax) {
+            $page = \max(1, (int) ($_GET['page'] ?? 1));
+            $perPage = \min(100, \max(10, (int) ($_GET['perPage'] ?? 50)));
+            $offset = ($page - 1) * $perPage;
+
+            $filters = \array_filter([
+                'action' => $_GET['action'] ?? null,
+                'resource_type' => $_GET['resource'] ?? null,
+                'user_id' => !empty($_GET['user']) ? (int) $_GET['user'] : null,
+                'date_from' => $_GET['dateFrom'] ?? null,
+                'date_to' => $_GET['dateTo'] ?? null,
+            ], static fn ($v) => $v !== null && $v !== '');
+
+            $result = $this->auditLogRepo->findFiltered($filters, $perPage, $offset);
+
+            return $this->response->json([
+                'ok' => true,
+                'data' => $result['data'],
+                'total' => $result['total'],
+            ]);
+        }
+
         $rawStats = $this->auditLogRepo->getStats();
         View::render('admin/logs/audit', [
             'titulo' => 'Logs de Auditoría',

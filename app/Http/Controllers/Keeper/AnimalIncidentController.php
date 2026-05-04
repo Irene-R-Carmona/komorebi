@@ -96,6 +96,7 @@ final class AnimalIncidentController
             'animal_id' => isset($body['animal_id']) ? (int) $body['animal_id'] : 0,
             'severity' => $body['severity'] ?? '',
             'description' => isset($body['description']) ? \trim((string) $body['description']) : '',
+            'incident_type' => $body['incident_type'] ?? null,
             'reported_by_user_id' => $user ? (int) $user['id'] : null,
         ];
 

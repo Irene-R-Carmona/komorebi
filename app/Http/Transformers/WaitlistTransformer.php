@@ -31,6 +31,8 @@ final class WaitlistTransformer extends AbstractTransformer
             'notified_at' => isset($data['notified_at']) ? (string) $data['notified_at'] : null,
             'expires_at' => isset($data['expires_at']) ? (string) $data['expires_at'] : null,
             'created_at' => (string) ($data['created_at'] ?? ''),
+            'user_name' => isset($data['user_name']) ? (string) $data['user_name'] : null,
+            'user_email' => isset($data['user_email']) ? (string) $data['user_email'] : null,
         ];
     }
 }

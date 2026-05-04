@@ -38,7 +38,7 @@ final class HomeController
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         // 103 Early Hints — FrankenPHP envía la cabecera antes de las queries
-        \header('Link: </css/home.css>; rel=preload; as=style', false);
+        \header('Link: </css/sections/home.css>; rel=preload; as=style', false);
         if (\function_exists('headers_send')) {
             \headers_send(103);
         }

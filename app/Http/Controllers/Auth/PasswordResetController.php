@@ -45,7 +45,7 @@ final class PasswordResetController
     }
 
     /**
-     * GET /auth/forgot-password
+     * GET /forgot-password
      * Mostrar formulario de olvido de contraseña
      */
     public function forgotPasswordForm(ServerRequestInterface $request): ?ResponseInterface
@@ -62,7 +62,7 @@ final class PasswordResetController
     }
 
     /**
-     * POST /auth/forgot-password
+     * POST /forgot-password
      * Procesar solicitud de reset de contraseña
      *
      * @throws RandomException
@@ -76,7 +76,7 @@ final class PasswordResetController
         if (!$email) {
             Flash::error('Email es requerido.');
 
-            return $this->response->redirect('/auth/forgot-password');
+            return $this->response->redirect('/forgot-password');
         }
 
         $serverParams = $request->getServerParams();
@@ -89,19 +89,19 @@ final class PasswordResetController
             // Mensaje genérico por seguridad (siempre mostrar éxito por seguridad)
             Flash::success('Si el email existe, recibirás instrucciones para recuperar tu contraseña.');
 
-            return $this->response->redirect('/auth/forgot-password');
+            return $this->response->redirect('/forgot-password');
         } catch (Throwable $e) {
             // Loguear para diagnóstico y evitar que una excepción externa provoque 500 no gestionado
             \App\Core\Logger::error('[PasswordReset] ' . $e->getMessage(), ['exception' => (string) $e]);
 
             Flash::error('Ocurrió un error procesando la solicitud. Por favor intenta más tarde.');
 
-            return $this->response->redirect('/auth/forgot-password');
+            return $this->response->redirect('/forgot-password');
         }
     }
 
     /**
-     * GET /auth/reset-password
+     * GET /reset-password
      * Mostrar formulario de reset con token
      */
     public function resetPasswordForm(ServerRequestInterface $request): ?ResponseInterface
@@ -115,7 +115,7 @@ final class PasswordResetController
         if (!$token) {
             Flash::error('Token inválido o expirado.');
 
-            return $this->response->redirect('/auth/forgot-password');
+            return $this->response->redirect('/forgot-password');
         }
 
         // Validar token sin consumirlo
@@ -124,7 +124,7 @@ final class PasswordResetController
         if ($validation->error !== null) {
             Flash::error($validation->error);
 
-            return $this->response->redirect('/auth/forgot-password');
+            return $this->response->redirect('/forgot-password');
         }
 
         View::render('auth/reset-password', [
@@ -136,7 +136,7 @@ final class PasswordResetController
     }
 
     /**
-     * POST /auth/reset-password
+     * POST /reset-password
      * Procesar cambio de contraseña
      */
     public function processReset(ServerRequestInterface $request): ResponseInterface
@@ -149,7 +149,7 @@ final class PasswordResetController
         if (!$token) {
             Flash::error('Token inválido.');
 
-            return $this->response->redirect('/auth/forgot-password');
+            return $this->response->redirect('/forgot-password');
         }
 
         $result = $this->passwordResetService->resetPasswordWithToken($token, $newPassword, $confirmPassword);
@@ -157,16 +157,16 @@ final class PasswordResetController
         if ($result->ok) {
             Flash::success('Contraseña actualizada exitosamente. Por favor inicia sesión.');
 
-            return $this->response->redirect('/auth/login');
+            return $this->response->redirect('/login');
         }
 
         Flash::error($result->error);
 
-        return $this->response->redirect('/auth/reset-password?token=' . \urlencode($token));
+        return $this->response->redirect('/reset-password?token=' . \urlencode($token));
     }
 
     /**
-     * GET /auth/verify-email
+     * GET /verify-email
      * Verificar email con token
      */
     public function verifyEmail(ServerRequestInterface $request): ResponseInterface
@@ -190,7 +190,7 @@ final class PasswordResetController
             }
 
             // Si no, redirigir a login
-            return $this->response->redirect('/auth/login');
+            return $this->response->redirect('/login');
         }
 
         Flash::error($result->error);
@@ -235,7 +235,7 @@ final class PasswordResetController
         if (!$this->authService->check()) {
             Flash::error('Debes iniciar sesión.');
 
-            return $this->response->redirect('/auth/login');
+            return $this->response->redirect('/login');
         }
 
         return null;
