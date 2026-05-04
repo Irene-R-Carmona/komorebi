@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS time_slots (
         CHECK (duration_minutes BETWEEN 30 AND 240),
 
     -- Índices críticos para rendimiento
-    UNIQUE KEY uk_time_slots_unique (cafe_id, slot_date, slot_time)
+    UNIQUE KEY uk_time_slots_cafe_date_time (cafe_id, slot_date, slot_time)
         COMMENT 'Evita duplicados de slots en misma fecha/hora/café',
 
     INDEX idx_time_slots_availability (cafe_id, slot_date, slot_time, available_spots, is_blocked)

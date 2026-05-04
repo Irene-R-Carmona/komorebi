@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS products (
     -- Visibilidad y metadatos
     image_url VARCHAR(255) DEFAULT NULL,
     is_active BOOLEAN DEFAULT TRUE,
+    stock_quantity INT UNSIGNED NULL DEFAULT NULL COMMENT 'Stock disponible. NULL = sin límite. 0 = agotado.',
     is_seasonal BOOLEAN DEFAULT FALSE COMMENT 'Producto de temporada/limited edition',
     sort_order INT UNSIGNED DEFAULT 0 COMMENT 'Orden personalizado en menú',
     deleted_at TIMESTAMP NULL COMMENT 'Soft delete RGPD',
@@ -69,7 +70,8 @@ CREATE TABLE IF NOT EXISTS products (
         created_at
     ) COMMENT 'KDS: filtro por estación activos',
     INDEX idx_products_seasonal (is_seasonal),
-    CONSTRAINT fk_prod_cat FOREIGN KEY (category_id) REFERENCES menu_categories (id) ON DELETE CASCADE
+    INDEX idx_products_active (is_active, deleted_at),
+    CONSTRAINT fk_products_menu_categories FOREIGN KEY (category_id) REFERENCES menu_categories (id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'Catálogo: ítems de menú y pases de entrada';
 -- ============================================
 -- 2. RESERVAS Y ÓRDENES
@@ -138,23 +140,16 @@ CREATE TABLE IF NOT EXISTS reservations (
     ) COMMENT 'Dashboard recepción',
     INDEX idx_res_completed (status, check_out_at DESC) COMMENT 'Reportes completadas',
     INDEX idx_res_time_slot (time_slot_id, status) COMMENT 'Gestión por slot',
-    CONSTRAINT fk_res_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-    CONSTRAINT fk_res_cafe FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE,
-    CONSTRAINT fk_res_pass FOREIGN KEY (pass_product_id) REFERENCES products (id) ON DELETE RESTRICT,
-    CONSTRAINT fk_res_tracker FOREIGN KEY (tracker_id) REFERENCES trackers (id) ON DELETE SET NULL,
-    CONSTRAINT fk_res_zone FOREIGN KEY (current_zone_id) REFERENCES cafe_zones (id) ON DELETE SET NULL
+    INDEX idx_cafe_date_status (cafe_id, reservation_date, status),
+    INDEX idx_reservations_user_status (user_id, status),
+    CONSTRAINT fk_reservations_users FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_reservations_cafes FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE,
+    CONSTRAINT fk_reservations_products FOREIGN KEY (pass_product_id) REFERENCES products (id) ON DELETE RESTRICT,
+    CONSTRAINT fk_reservations_trackers FOREIGN KEY (tracker_id) REFERENCES trackers (id) ON DELETE SET NULL,
+    CONSTRAINT fk_reservations_cafe_zones FOREIGN KEY (current_zone_id) REFERENCES cafe_zones (id) ON DELETE SET NULL
     -- FK time_slot_id se añade en 011_time_slots_waitlist.sql
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'Reservas de clientes y registro de visitas';
 
--- Agregar FK de reviews.reservation_id ahora que reservations existe (solo si no existe)
-SET @fk_exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
-    WHERE CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_NAME = 'fk_review_reservation');
-SET @sql := IF(@fk_exists = 0,
-    'ALTER TABLE reviews ADD CONSTRAINT fk_review_reservation FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE SET NULL',
-    'SELECT "FK fk_review_reservation ya existe"');
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
 CREATE TABLE IF NOT EXISTS reservation_items (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     reservation_id BIGINT UNSIGNED NOT NULL,
@@ -172,16 +167,17 @@ CREATE TABLE IF NOT EXISTS reservation_items (
     INDEX idx_items_res (reservation_id),
     INDEX idx_items_prod (product_id),
     INDEX idx_items_kds_active (status, created_at) COMMENT 'KDS: filtro activos pending+kitchen',
-    CONSTRAINT fk_items_res FOREIGN KEY (reservation_id) REFERENCES reservations (id) ON DELETE CASCADE,
-    CONSTRAINT fk_items_prod FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE RESTRICT
+    INDEX idx_reservation_items_timeline (reservation_id, created_at DESC),
+    CONSTRAINT fk_reservation_items_reservations FOREIGN KEY (reservation_id) REFERENCES reservations (id) ON DELETE CASCADE,
+    CONSTRAINT fk_reservation_items_products FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE RESTRICT
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'Líneas de pedido dentro de una reserva (KDS)';
 CREATE TABLE IF NOT EXISTS favorites (
     user_id BIGINT UNSIGNED NOT NULL,
     cafe_id BIGINT UNSIGNED NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, cafe_id),
-    CONSTRAINT fk_fav_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-    CONSTRAINT fk_fav_cafe FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE
+    CONSTRAINT fk_favorites_users FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_favorites_cafes FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'Cafés favoritos por usuario';
 -- ============================================
 -- 3. SISTEMA NORMALIZADO DE ALÉRGENOS
@@ -210,8 +206,8 @@ CREATE TABLE IF NOT EXISTS product_allergens (
     notes VARCHAR(255) DEFAULT NULL COMMENT 'Nota específica (ej: trazas, cruzado)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (product_id, allergen_id),
-    CONSTRAINT fk_pa_product FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
-    CONSTRAINT fk_pa_allergen FOREIGN KEY (allergen_id) REFERENCES allergens (id) ON DELETE CASCADE
+    CONSTRAINT fk_product_allergens_products FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
+    CONSTRAINT fk_product_allergens_allergens FOREIGN KEY (allergen_id) REFERENCES allergens (id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'Relación N:N entre productos y alérgenos (sistema principal)';
 -- ============================================
 -- 4. DATOS INICIALES
@@ -242,13 +238,31 @@ SET @constraint_exists = (
     SELECT COUNT(*)
     FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
     WHERE TABLE_NAME = 'reviews'
-      AND CONSTRAINT_NAME = 'fk_review_reservation'
+      AND CONSTRAINT_NAME = 'fk_reviews_reservations'
       AND TABLE_SCHEMA = DATABASE()
 );
 
 SET @sql = IF(@constraint_exists = 0,
-    'ALTER TABLE reviews ADD CONSTRAINT fk_review_reservation FOREIGN KEY (reservation_id) REFERENCES reservations (id) ON DELETE SET NULL',
-    'SELECT "Foreign key fk_review_reservation ya existe" AS info'
+    'ALTER TABLE reviews ADD CONSTRAINT fk_reviews_reservations FOREIGN KEY (reservation_id) REFERENCES reservations (id) ON DELETE SET NULL',
+    'SELECT "Foreign key fk_reviews_reservations ya existe" AS info'
+);
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Agregar FK: trackers.last_assigned_reservation_id → reservations(id)
+SET @constraint_exists = (
+    SELECT COUNT(*)
+    FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+    WHERE TABLE_NAME = 'trackers'
+      AND CONSTRAINT_NAME = 'fk_trackers_reservations'
+      AND TABLE_SCHEMA = DATABASE()
+);
+
+SET @sql = IF(@constraint_exists = 0,
+    'ALTER TABLE trackers ADD CONSTRAINT fk_trackers_reservations FOREIGN KEY (last_assigned_reservation_id) REFERENCES reservations (id) ON DELETE SET NULL',
+    'SELECT "Foreign key fk_trackers_reservations ya existe" AS info'
 );
 
 PREPARE stmt FROM @sql;

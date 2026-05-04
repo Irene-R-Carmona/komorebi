@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS email_verification_tokens (
     expires_at DATETIME NOT NULL,
     verified_at DATETIME DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_user (user_id),
-    INDEX idx_expires (expires_at),
-    CONSTRAINT fk_evt_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    INDEX idx_email_verification_tokens_user (user_id),
+    INDEX idx_email_verification_tokens_expires (expires_at),
+    CONSTRAINT fk_email_verification_tokens_users FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Tokens de recuperación de contraseña
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
@@ -28,10 +28,10 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
     ip_address VARCHAR(45),
     user_agent TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_user (user_id),
-    INDEX idx_expires (expires_at),
-    INDEX idx_unused (used_at),
-    CONSTRAINT fk_prt_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    INDEX idx_password_reset_tokens_user (user_id),
+    INDEX idx_password_reset_tokens_expires (expires_at),
+    INDEX idx_password_reset_tokens_unused (used_at),
+    CONSTRAINT fk_password_reset_tokens_users FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Sesiones activas (para listar y revocar)
 CREATE TABLE IF NOT EXISTS active_sessions (
@@ -47,12 +47,11 @@ CREATE TABLE IF NOT EXISTS active_sessions (
     revoked_at DATETIME DEFAULT NULL,
     revoke_reason VARCHAR(100),
     revoked_by BIGINT UNSIGNED,
-    INDEX idx_user (user_id),
-    INDEX idx_session (session_id),
-    INDEX idx_expires (expires_at),
-    INDEX idx_last_activity (last_activity DESC),
-    CONSTRAINT fk_as_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-    CONSTRAINT fk_as_revoked_by FOREIGN KEY (revoked_by) REFERENCES users (id) ON DELETE
+    INDEX idx_active_sessions_user (user_id),
+    INDEX idx_active_sessions_expires (expires_at),
+    INDEX idx_active_sessions_last_activity (last_activity DESC),
+    CONSTRAINT fk_active_sessions_users FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_active_sessions_revoked_by FOREIGN KEY (revoked_by) REFERENCES users (id) ON DELETE
     SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Rate limiting (para login, registro, etc)
@@ -66,8 +65,8 @@ CREATE TABLE IF NOT EXISTS rate_limits (
     ip_address VARCHAR(45),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_action_identifier (action, identifier),
-    INDEX idx_locked (locked_until),
-    INDEX idx_action (action)
+    UNIQUE KEY uk_rate_limits_action_identifier (action, identifier),
+    INDEX idx_rate_limits_locked (locked_until),
+    INDEX idx_rate_limits_action (action)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;

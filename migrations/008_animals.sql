@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS species_rules (
     min_rest_minutes INT UNSIGNED NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY species_key_unique (species_key)
+    UNIQUE KEY uk_species_rules_species_key (species_key)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Animales en los cafés
 CREATE TABLE IF NOT EXISTS animals (
@@ -31,7 +31,6 @@ CREATE TABLE IF NOT EXISTS animals (
     attributes JSON,
     image_url VARCHAR(255),
     current_status ENUM ('active', 'resting', 'sick', 'retired') DEFAULT 'active',
-    last_check_at TIMESTAMP NULL COMMENT 'Deprecated: usar last_health_check',
     last_health_check TIMESTAMP NULL COMMENT 'Última revisión veterinaria o checklist keeper',
     deleted_at TIMESTAMP NULL COMMENT 'Soft delete RGPD',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -43,7 +42,8 @@ CREATE TABLE IF NOT EXISTS animals (
     INDEX idx_animals_active (cafe_id, deleted_at) COMMENT 'Filtro activos',
     CONSTRAINT fk_animals_cafe FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE,
     CONSTRAINT fk_animals_zone FOREIGN KEY (current_zone_id) REFERENCES cafe_zones (id) ON DELETE
-    SET NULL
+    SET NULL,
+    CONSTRAINT fk_animals_species_rules FOREIGN KEY (species_type) REFERENCES species_rules (species_key) ON DELETE RESTRICT
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Log de cambios de estado de animales
 CREATE TABLE IF NOT EXISTS animal_status_log (
@@ -56,8 +56,8 @@ CREATE TABLE IF NOT EXISTS animal_status_log (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     INDEX idx_status_timeline (animal_id, created_at DESC) COMMENT 'Timeline historial salud',
-    CONSTRAINT fk_asl_animal FOREIGN KEY (animal_id) REFERENCES animals (id) ON DELETE CASCADE,
-    CONSTRAINT fk_asl_user FOREIGN KEY (logged_by) REFERENCES users (id) ON DELETE
+    CONSTRAINT fk_animal_status_log_animals FOREIGN KEY (animal_id) REFERENCES animals (id) ON DELETE CASCADE,
+    CONSTRAINT fk_animal_status_log_users FOREIGN KEY (logged_by) REFERENCES users (id) ON DELETE
     SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Incidentes con animales
@@ -67,17 +67,19 @@ CREATE TABLE IF NOT EXISTS animal_incidents (
     incident_type VARCHAR(50) NOT NULL,
     description TEXT NOT NULL,
     severity ENUM ('low', 'medium', 'high') DEFAULT 'medium',
-    reported_by BIGINT UNSIGNED,
+    status ENUM ('open', 'resolved', 'monitoring', 'archived') NOT NULL DEFAULT 'open',
     resolved_at TIMESTAMP NULL COMMENT 'Fecha resolución incidente',
+    reported_by BIGINT UNSIGNED,
     resolved_by BIGINT UNSIGNED NULL COMMENT 'Usuario que resolvió',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    INDEX idx_animal (animal_id),
+    INDEX idx_animal_incidents_animal (animal_id),
     INDEX idx_incidents_open (severity, created_at DESC, resolved_at) COMMENT 'Alertas pendientes',
-    CONSTRAINT fk_ai_animal FOREIGN KEY (animal_id) REFERENCES animals (id) ON DELETE CASCADE,
-    CONSTRAINT fk_ai_user FOREIGN KEY (reported_by) REFERENCES users (id) ON DELETE
+    INDEX idx_animal_incidents_status (animal_id, status),
+    CONSTRAINT fk_animal_incidents_animals FOREIGN KEY (animal_id) REFERENCES animals (id) ON DELETE CASCADE,
+    CONSTRAINT fk_animal_incidents_reporter FOREIGN KEY (reported_by) REFERENCES users (id) ON DELETE
     SET NULL,
-        CONSTRAINT fk_ai_resolver FOREIGN KEY (resolved_by) REFERENCES users (id) ON DELETE
+        CONSTRAINT fk_animal_incidents_resolver FOREIGN KEY (resolved_by) REFERENCES users (id) ON DELETE
     SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Relaciones entre animales (amistad, familia, enemistad)
@@ -86,8 +88,8 @@ CREATE TABLE IF NOT EXISTS animal_relationships (
     animal_b BIGINT UNSIGNED NOT NULL,
     type ENUM ('friendly', 'hostile', 'family') NOT NULL,
     PRIMARY KEY (animal_a, animal_b),
-    CONSTRAINT fk_rel_a FOREIGN KEY (animal_a) REFERENCES animals (id) ON DELETE CASCADE,
-    CONSTRAINT fk_rel_b FOREIGN KEY (animal_b) REFERENCES animals (id) ON DELETE CASCADE
+    CONSTRAINT fk_animal_relationships_a FOREIGN KEY (animal_a) REFERENCES animals (id) ON DELETE CASCADE,
+    CONSTRAINT fk_animal_relationships_b FOREIGN KEY (animal_b) REFERENCES animals (id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Sesiones de interacción usuario-animal
 CREATE TABLE IF NOT EXISTS interaction_sessions (
@@ -102,8 +104,8 @@ CREATE TABLE IF NOT EXISTS interaction_sessions (
     INDEX idx_sess_animal (animal_id),
     INDEX idx_sess_res (reservation_id),
     INDEX idx_sessions_daily_calc (animal_id, start_time, end_time) COMMENT 'Cálculo duración vs reglas',
-    CONSTRAINT fk_sess_animal FOREIGN KEY (animal_id) REFERENCES animals (id) ON DELETE CASCADE,
-    CONSTRAINT fk_sess_res FOREIGN KEY (reservation_id) REFERENCES reservations (id) ON DELETE
+    CONSTRAINT fk_interaction_sessions_animals FOREIGN KEY (animal_id) REFERENCES animals (id) ON DELETE CASCADE,
+    CONSTRAINT fk_interaction_sessions_reservations FOREIGN KEY (reservation_id) REFERENCES reservations (id) ON DELETE
     SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Evento MySQL 8.4: Purga automática animals eliminados (RGPD 30 días)

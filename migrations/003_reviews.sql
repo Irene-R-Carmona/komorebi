@@ -22,13 +22,13 @@ CREATE TABLE IF NOT EXISTS reviews (
     rejection_reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_user_cafe (user_id, cafe_id),
+    UNIQUE KEY uk_reviews_user_cafe (user_id, cafe_id),
     INDEX idx_reviews_moderation_queue (status, created_at DESC) COMMENT 'Cola moderación',
     INDEX idx_reviews_cafe_rating (cafe_id, status, rating) COMMENT 'Cálculo rating_avg',
-    INDEX idx_user (user_id),
-    INDEX idx_reservation (reservation_id),
-    CONSTRAINT fk_review_cafe FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE,
-    CONSTRAINT fk_review_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    INDEX idx_reviews_user (user_id),
+    INDEX idx_reviews_reservation (reservation_id),
+    CONSTRAINT fk_reviews_cafes FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE,
+    CONSTRAINT fk_reviews_users FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
     -- FK reservation_id se añade en 004_reservations.sql después de crear la tabla
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Tabla de auditoría general (cambios críticos)
@@ -44,12 +44,12 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     user_agent TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     retention_until TIMESTAMP AS (DATE_ADD(created_at, INTERVAL 1 YEAR)) STORED COMMENT 'RGPD: purga automática 1 año',
-    INDEX idx_user (user_id),
-    INDEX idx_action (action),
+    INDEX idx_audit_logs_user (user_id),
+    INDEX idx_audit_logs_action (action),
     INDEX idx_resource (resource_type, resource_id),
     INDEX idx_timestamp (created_at DESC),
     INDEX idx_retention (retention_until) COMMENT 'Job purga RGPD',
-    CONSTRAINT fk_audit_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE
+    CONSTRAINT fk_audit_logs_users FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE
     SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Tabla de logs de autenticación
@@ -72,11 +72,11 @@ CREATE TABLE IF NOT EXISTS auth_audit_logs (
     reason VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     retention_until TIMESTAMP AS (DATE_ADD(created_at, INTERVAL 1 YEAR)) STORED COMMENT 'RGPD: purga automática 1 año',
-    INDEX idx_user (user_id),
-    INDEX idx_event (event_type),
+    INDEX idx_auth_audit_logs_user (user_id),
+    INDEX idx_auth_audit_logs_event (event_type),
     INDEX idx_created (created_at DESC),
     INDEX idx_retention (retention_until) COMMENT 'Job purga RGPD',
-    CONSTRAINT fk_aal_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE
+    CONSTRAINT fk_auth_audit_logs_users FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE
     SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Eventos MySQL 8.4: Purga automática logs (RGPD 1 año retención)
