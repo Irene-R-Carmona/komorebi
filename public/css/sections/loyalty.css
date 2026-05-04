@@ -1,7 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LOYALTY & WAITLIST SYSTEM — Fase 2 PFC Komorebi
-   Estilo consistente con fusuma-layout y profile.css
-   Laws of UX aplicadas: Proximity, Fitts, Hick, Miller
+   LOYALTY & WAITLIST SYSTEM
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ────────────────────────────────────────────────────────────────
@@ -15,7 +13,11 @@
 }
 
 .loyalty-header {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
   margin-bottom: 3rem;
 }
 
@@ -38,11 +40,11 @@
 
 /* Tarjeta principal estilo "credit card" */
 .loyalty-card {
-  background: linear-gradient(135deg, #5C3D2E 0%, #2D1F14 100%);
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-900) 100%);
   border-radius: 20px;
   padding: 2.5rem;
   color: white;
-  box-shadow: 0 20px 60px rgba(92, 61, 46, 0.4);
+  box-shadow: 0 20px 60px color-mix(in srgb, var(--color-primario) 40%, transparent);
   margin-bottom: 3rem;
   position: relative;
   overflow: hidden;
@@ -230,11 +232,12 @@
 
 .reward-card {
   background: var(--color-superficie);
-  border: 2px solid var(--color-borde);
+  border: 2px solid var(--color-borde-card);
   border-radius: 16px;
   padding: 1.75rem;
   transition: all 0.3s ease;
   position: relative;
+  box-shadow: var(--sombra-card);
 }
 
 .reward-card:hover {
@@ -287,7 +290,7 @@
   gap: 0.5rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--color-acento, #C9A959);
+  color: var(--color-acento-text);
   margin-bottom: 1rem;
 }
 
@@ -314,22 +317,22 @@
 }
 
 .badge--bronze {
-  background: #f59e0b;
-  color: white;
+  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
+  color: var(--color-warning-dark);
 }
 
 .badge--silver {
-  background: #94a3b8;
-  color: white;
+  background: color-mix(in srgb, var(--color-neutral-400) 20%, transparent);
+  color: var(--color-neutral-700);
 }
 
 .badge--gold {
-  background: #eab308;
-  color: white;
+  background: color-mix(in srgb, var(--color-accent-400) 25%, transparent);
+  color: var(--color-accent-900);
 }
 
 .badge--platinum {
-  background: linear-gradient(135deg, #5C3D2E, #C9A959);
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-acento));
   color: white;
 }
 
@@ -337,7 +340,7 @@
   width: 100%;
   min-height: 44px;
   padding: 0.85rem;
-  background: linear-gradient(135deg, #5C3D2E, #C9A959);
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-acento));
   color: white;
   border: none;
   border-radius: 10px;
@@ -349,7 +352,7 @@
 
 .btn-reward:hover:not(:disabled) {
   transform: scale(1.02);
-  box-shadow: 0 6px 20px rgba(92, 61, 46, 0.4);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--color-primario) 40%, transparent);
 }
 
 .btn-reward:disabled {
@@ -369,13 +372,14 @@
 
 .history-card {
   background: var(--color-superficie);
-  border: 1px solid var(--color-borde);
+  border: 1px solid var(--color-borde-card);
   border-radius: 12px;
   padding: 1.5rem;
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 1.5rem;
   align-items: center;
+  box-shadow: var(--sombra-card);
 }
 
 .history-card__icon {
@@ -403,7 +407,6 @@
   border-radius: 8px;
   font-weight: 600;
   font-size: 0.9rem;
-  color: var(--color-texto);
   background: var(--color-warning-light);
   color: var(--color-warning-dark);
 }
@@ -443,14 +446,15 @@
 
 .waitlist-card {
   background: var(--color-superficie);
-  border: 2px solid var(--color-borde);
+  border: 2px solid var(--color-borde-card);
   border-radius: 16px;
   padding: 2rem;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr;
   gap: 2rem;
   align-items: center;
   transition: all 0.3s ease;
+  box-shadow: var(--sombra-card);
 }
 
 .waitlist-card:hover {
@@ -512,7 +516,7 @@
 }
 
 .waitlist-card__position {
-  background: linear-gradient(135deg, #5C3D2E 0%, #2D1F14 100%);
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-900) 100%);
   color: white;
   border-radius: 20px;
   width: 120px;
@@ -521,7 +525,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px rgba(92, 61, 46, 0.3);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primario) 30%, transparent);
 }
 
 .waitlist-card__position-number {
@@ -568,7 +572,7 @@
   display: inline-block;
   min-height: 44px;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #5C3D2E, #C9A959);
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-acento));
   color: white;
   text-decoration: none;
   border-radius: 12px;
@@ -579,7 +583,7 @@
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(92, 61, 46, 0.4);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primario) 40%, transparent);
   color: white;
 }
 
@@ -641,12 +645,12 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   DARK MODE — Overrides loyalty + waitlist (T9.1 / T11.2)
+   DARK MODE — Overrides loyalty + waitlist
    ═══════════════════════════════════════════════════════════════ */
 
 /* Tarjeta principal: gradient más claro para destacar del fondo #1A1410 */
 [data-tema="oscuro"] .loyalty-card {
-  background: linear-gradient(135deg, #7A5240 0%, #4A2E1E 100%);
+  background: linear-gradient(135deg, var(--color-primary-400) 0%, var(--color-primary-700) 100%);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
 }
 
@@ -680,9 +684,315 @@
 /* Badges de tier: amarillo puro → ambar más suave */
 [data-tema="oscuro"] .badge--gold {
   background: #a16207;
+  color: white;
 }
 
 [data-tema="oscuro"] .waitlist-card__position {
   background: linear-gradient(135deg, #7A5240 0%, #4A2E1E 100%);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.loyalty-header__actions {
+  flex-shrink: 0;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   WAITLIST PAGE — Clases adicionales usadas en waitlists.php
+   ──────────────────────────────────────────────────────────────── */
+
+.waitlist-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.waitlist-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.waitlist-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.waitlist-card__date,
+.waitlist-card__party {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-texto-suave);
+}
+
+.waitlist-card__warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, transparent);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--color-warning-dark);
+}
+
+.waitlist-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* Status badges — el PHP usa .status-badge--* */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge--waiting {
+  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
+  color: var(--color-warning-dark);
+}
+
+.status-badge--notified {
+  background: color-mix(in srgb, var(--color-info) 15%, transparent);
+  color: var(--color-info-dark);
+}
+
+.status-badge--confirmed {
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success-dark);
+}
+
+.status-badge--expired {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger-dark);
+}
+
+/* Info cards — empty state */
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.info-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde-card);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: var(--sombra-card);
+}
+
+.info-card__icon {
+  font-size: 2rem;
+  color: var(--color-primario);
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.info-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-texto);
+  margin: 0 0 0.5rem;
+}
+
+.info-card__description {
+  font-size: 0.9rem;
+  color: var(--color-texto-suave);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Promo card — cross-promo a loyalty */
+.promo-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-900) 100%);
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  margin-top: 2rem;
+  color: white;
+}
+
+.promo-card__icon {
+  font-size: 3rem;
+  flex-shrink: 0;
+}
+
+.promo-card__content {
+  flex: 1;
+}
+
+.promo-card__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+
+.promo-card__description {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+.promo-card__cta {
+  display: inline-block;
+  padding: 0.6rem 1.25rem;
+  background: white;
+  border-radius: 8px;
+  color: var(--color-primary-800);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background var(--transicion), color var(--transicion);
+}
+
+.promo-card__cta:hover {
+  background: var(--color-fondo);
+  color: var(--color-primary-900);
+}
+
+@media (max-width: 600px) {
+  .promo-card {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* Info box — cómo funciona */
+.info-box {
+  background: color-mix(in srgb, var(--color-info) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-info) 25%, transparent);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+}
+
+.info-box__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-info-dark);
+  margin: 0 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-box__list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--color-texto-suave);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+/* Botones secundarios y modificador sm */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 2px solid var(--color-borde);
+  border-radius: 10px;
+  color: var(--color-texto);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color var(--transicion), color var(--transicion);
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-primario);
+  color: var(--color-primario);
+}
+
+.btn-sm {
+  min-height: 36px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 8px;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   PRINT — Tarjeta de fidelización
+   ──────────────────────────────────────────────────────────────── */
+@media print {
+
+  /* Ocultar chrome de navegación */
+  header,
+  nav,
+  footer,
+  .site-header,
+  .site-footer,
+  .site-nav,
+  .loyalty-header__print-btn,
+  .loyalty-header__actions,
+  .rewards-grid,
+  .section-title+p,
+  .history-grid,
+  [class*="loyalty-section"]:not(:first-of-type),
+  .notification-toast,
+  [data-floating],
+  [data-modal] {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Preservar gradiente de la tarjeta al imprimir */
+  .loyalty-card {
+    background: linear-gradient(135deg, #5C3D2E 0%, #2D1F14 100%) !important;
+    color: white !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Stamps con color */
+  .stamp--filled {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Tier progress bar */
+  .tier-progress__fill {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Branding al pie */
+  .loyalty-section:first-of-type::after {
+    content: "Komorebi Café · komorebi.cafe";
+    display: block;
+    margin-top: 1.5rem;
+    font-size: 0.75rem;
+    color: #666;
+    text-align: center;
+    border-top: 1px solid #ccc;
+    padding-top: 0.75rem;
+  }
 }

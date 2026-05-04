@@ -28,6 +28,7 @@ final class LoggerTest extends TestCase
     {
         $logger = Logger::get();
 
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertInstanceOf(LoggerInterface::class, $logger);
     }
 
@@ -35,6 +36,7 @@ final class LoggerTest extends TestCase
     {
         $logger = Logger::channel('app');
 
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertInstanceOf(LoggerInterface::class, $logger);
     }
 
@@ -109,25 +111,26 @@ final class LoggerTest extends TestCase
     public function testCriticalDoesNotThrow(): void
     {
         $this->expectNotToPerformAssertions();
-        Logger::critical('test critical');
+        Logger::critical('test critical', []);
     }
 
     public function testAlertDoesNotThrow(): void
     {
         $this->expectNotToPerformAssertions();
-        Logger::alert('test alert');
+        Logger::alert('test alert', []);
     }
 
     public function testEmergencyDoesNotThrow(): void
     {
         $this->expectNotToPerformAssertions();
-        Logger::emergency('test emergency');
+        Logger::emergency('test emergency', []);
     }
 
     public function testChannelDbReturnsLoggerInterface(): void
     {
         $logger = Logger::channel('db');
 
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertInstanceOf(LoggerInterface::class, $logger);
     }
 
@@ -135,6 +138,7 @@ final class LoggerTest extends TestCase
     {
         $logger = Logger::channel('auth');
 
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertInstanceOf(LoggerInterface::class, $logger);
     }
 }

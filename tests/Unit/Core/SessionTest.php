@@ -66,7 +66,7 @@ final class SessionTest extends TestCase
         $_SESSION['todelete'] = 'value';
         Session::remove('todelete');
 
-        self::assertFalse(isset($_SESSION['todelete']));
+        self::assertNull(Session::get('todelete'));
     }
 
     public function testPullReturnsValueAndRemovesKey(): void
@@ -76,7 +76,7 @@ final class SessionTest extends TestCase
         $value = Session::pull('token');
 
         self::assertSame('abc123', $value);
-        self::assertFalse(isset($_SESSION['token']));
+        self::assertNull(Session::get('token'));
     }
 
     public function testPullReturnsDefaultWhenKeyMissing(): void
@@ -313,7 +313,7 @@ final class SessionTest extends TestCase
         Session::invalidatePermissionsCache();
 
         self::assertSame([], Session::getPermissionsCache());
-        self::assertFalse(isset($_SESSION['permissions_cached_at']));
+        self::assertNull(Session::get('permissions_cached_at'));
     }
 
     // ─── Start initializes superglobal ─────────────────────────────────────────

@@ -128,36 +128,43 @@ final class MiddlewareTest extends TestCase
 
     public function testRoleAdminConstantValue(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('admin', Middleware::ROLE_ADMIN);
     }
 
     public function testRoleManagerConstantValue(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('manager', Middleware::ROLE_MANAGER);
     }
 
     public function testRoleSupervisorConstantValue(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('supervisor', Middleware::ROLE_SUPERVISOR);
     }
 
     public function testRoleReceptionConstantValue(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('reception', Middleware::ROLE_RECEPTION);
     }
 
     public function testRoleKitchenConstantValue(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('kitchen', Middleware::ROLE_KITCHEN);
     }
 
     public function testRoleKeeperConstantValue(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('keeper', Middleware::ROLE_KEEPER);
     }
 
     public function testRoleUserConstantValue(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('user', Middleware::ROLE_USER);
     }
 

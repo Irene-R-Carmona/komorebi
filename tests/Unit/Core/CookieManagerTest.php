@@ -25,41 +25,49 @@ final class CookieManagerTest extends TestCase
 
     public function testCategoryEssentialConstant(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('essential', CookieManager::CATEGORY_ESSENTIAL);
     }
 
     public function testCategoryFunctionalConstant(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('functional', CookieManager::CATEGORY_FUNCTIONAL);
     }
 
     public function testCategoryAnalyticsConstant(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('analytics', CookieManager::CATEGORY_ANALYTICS);
     }
 
     public function testCookieConsentConstant(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('cookie_consent', CookieManager::COOKIE_CONSENT);
     }
 
     public function testFilterPreferencesConstant(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('filter_preferences', CookieManager::FILTER_PREFERENCES);
     }
 
     public function testRecentlyViewedConstant(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('recently_viewed', CookieManager::RECENTLY_VIEWED);
     }
 
     public function testNewsletterPromptedConstant(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('newsletter_prompted', CookieManager::NEWSLETTER_PROMPTED);
     }
 
     public function testDietaryPreferencesConstant(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('dietary_preferences', CookieManager::DIETARY_PREFERENCES);
     }
 

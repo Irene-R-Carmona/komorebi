@@ -2,17 +2,17 @@
   'use strict';
 
   const MODULE_NAMES = {
-    user:        'Usuarios',
-    cafe:        'Cafés',
-    product:     'Productos',
+    user: 'Usuarios',
+    cafe: 'Cafés',
+    product: 'Productos',
     reservation: 'Reservas',
-    review:      'Reseñas',
-    animal:      'Animales',
-    shift:       'Turnos',
-    report:      'Reportes',
-    setting:     'Configuración',
-    role:        'Roles y Permisos',
-    general:     'General',
+    review: 'Reseñas',
+    animal: 'Animales',
+    shift: 'Turnos',
+    report: 'Reportes',
+    setting: 'Configuración',
+    role: 'Roles y Permisos',
+    general: 'General',
   };
 
   function sortByName(arr) {
@@ -27,32 +27,33 @@
 
   function createRoleManagement(config = {}) {
     return {
-      permissions:     config.permissions     || [],
+      permissions: config.permissions || [],
       rolePermissions: config.rolePermissions || {},
-      csrfToken:       config.csrfToken       || '',
+      csrfToken: config.csrfToken || '',
 
-      saving:          false,
+      saving: false,
       savingPermission: false,
-      activeTab:       'roles',
+      activeTab: 'roles',
 
       // Form state (role modal)
-      editingRole:  null,
-      roleModal:    null,
-      formErrors:   [],
+      editingRole: null,
+      roleModal: null,
+      formErrors: [],
       form: { id: null, code: '', name: '', description: '' },
 
       // Permissions modal state
-      selectedRole:          null,
-      permissionsModal:      null,
-      permissionSearch:      '',
+      selectedRole: null,
+      permissionsModal: null,
+      permissionSearch: '',
       currentPermissionPage: 1,
-      permissionsPerPage:    3,
+      permissionsPerPage: 3,
 
       // Computed-cache properties (updated by watchers)
       totalFilteredPermissions: 0,
-      paginatedPermissions:     {},
-      totalPermissionPages:     1,
-      visiblePermissionPages:   [],
+      paginatedPermissions: {},
+      totalPermissionPages: 1,
+      visiblePermissionPages: [],
+      expandedModules: {},
 
       init() {
         if (globalThis.location.hash === '#permisos') {
@@ -107,12 +108,12 @@
       },
 
       updatePaginatedPermissions() {
-        const filtered  = this.filteredPermissionsByModule;
-        const modules   = Object.keys(filtered);
+        const filtered = this.filteredPermissionsByModule;
+        const modules = Object.keys(filtered);
 
         this.totalFilteredPermissions = Object.values(filtered).reduce((s, a) => s + a.length, 0);
 
-        const start  = (this.currentPermissionPage - 1) * this.permissionsPerPage;
+        const start = (this.currentPermissionPage - 1) * this.permissionsPerPage;
         const result = {};
         modules.slice(start, start + this.permissionsPerPage).forEach(mod => {
           result[mod] = filtered[mod];
@@ -121,14 +122,14 @@
 
         this.totalPermissionPages = Math.ceil(modules.length / this.permissionsPerPage) || 1;
 
-        const total   = this.totalPermissionPages;
+        const total = this.totalPermissionPages;
         const current = this.currentPermissionPage;
-        const delta   = 2;
-        const pages   = [];
+        const delta = 2;
+        const pages = [];
         for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
           pages.push(i);
         }
-        if (current - delta > 2)     { pages.unshift('...'); }
+        if (current - delta > 2) { pages.unshift('...'); }
         if (current + delta < total - 1) { pages.push('...'); }
         pages.unshift(1);
         if (total > 1) { pages.push(total); }
@@ -150,10 +151,10 @@
             ? `/api/v1/admin/roles/${roleId}/permissions/${permissionId}/grant`
             : `/api/v1/admin/roles/${roleId}/permissions/${permissionId}/revoke`;
 
-          const res  = await fetch(url, {
-            method:  'POST',
+          const res = await fetch(url, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
-            body:    new URLSearchParams({ csrf_token: this.csrfToken }),
+            body: new URLSearchParams({ csrf_token: this.csrfToken }),
           });
           const data = await res.json();
 
@@ -179,7 +180,7 @@
       },
 
       openPermissionsModal(role) {
-        this.selectedRole    = role;
+        this.selectedRole = role;
         this.permissionSearch = '';
         this.permissionsModal?.show();
       },
@@ -200,14 +201,14 @@
 
       openEditModal(role) {
         this.editingRole = role;
-        this.form        = { id: role.id, code: role.code, name: role.name, description: role.description || '' };
-        this.formErrors  = [];
+        this.form = { id: role.id, code: role.code, name: role.name, description: role.description || '' };
+        this.formErrors = [];
         this.roleModal?.show();
       },
 
       resetForm() {
-        this.form        = { id: null, code: '', name: '', description: '' };
-        this.formErrors  = [];
+        this.form = { id: null, code: '', name: '', description: '' };
+        this.formErrors = [];
         this.editingRole = null;
       },
 
@@ -223,8 +224,8 @@
 
         this.saving = true;
         try {
-          const url    = this.editingRole ? `/api/v1/admin/roles/${this.editingRole.id}` : '/api/v1/admin/roles';
-          const body   = this.editingRole
+          const url = this.editingRole ? `/api/v1/admin/roles/${this.editingRole.id}` : '/api/v1/admin/roles';
+          const body = this.editingRole
             ? { csrf_token: this.csrfToken, name: this.form.name, description: this.form.description }
             : { csrf_token: this.csrfToken, code: this.form.code, name: this.form.name, description: this.form.description };
           const result = await KomorebiForm.submit(url, body, { method: this.editingRole ? 'PUT' : 'POST' });
@@ -238,7 +239,7 @@
             KomorebiToast.error(this.formErrors[0]);
           }
         } catch { KomorebiToast.error('Error de conexión'); }
-        finally  { this.saving = false; }
+        finally { this.saving = false; }
       },
 
       async confirmDelete(roleId, roleName, isSystem) {

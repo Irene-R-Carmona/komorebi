@@ -90,6 +90,11 @@
   --easing-out: cubic-bezier(0, 0, 0.2, 1);
   --easing-in: cubic-bezier(0.4, 0, 1, 1);
   --easing-inout: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Tokens de tarjeta — mayor opacidad para visibilidad sobre fondo crema */
+  --sombra-card: 0 2px 8px rgba(45, 34, 24, 0.18), 0 6px 20px rgba(45, 34, 24, 0.12);
+  --color-acento-text: #7d6428;
+  --color-borde-card: color-mix(in srgb, var(--color-primario) 50%, var(--color-borde));
 }
 
 [data-tema="oscuro"] {
@@ -102,6 +107,8 @@
   --color-borde: #4A3828;
   --sombra-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --sombra-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --sombra-card: 0 2px 8px rgba(0, 0, 0, 0.35), 0 6px 20px rgba(0, 0, 0, 0.25);
+  --color-acento-text: #f0cd6c;
 }
 
 /* ----------------------------------------
@@ -1091,4 +1098,64 @@ body.keyboard-navigation *:focus {
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-primario);
+}
+
+/* ============================================================================
+   PRINT — Reglas globales (aplican a todas las páginas)
+   ============================================================================ */
+@media print {
+
+  /* 1. Detener todas las animaciones: evita que .seccion arranque en opacity:0
+        (Firefox resetea animaciones al abrir el diálogo de impresión) */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* 2. Asegurar visibilidad del contenedor principal */
+  .seccion {
+    min-height: 0 !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* 3. Ocultar chrome de navegación global */
+  header,
+  nav,
+  footer,
+  .header,
+  .footer,
+  .site-nav,
+  .cookie-banner,
+  .skip-link {
+    display: none !important;
+  }
+
+  /* 4. Ocultar overlays de posición fija que aparecerían en todas las páginas */
+  .toast,
+  .modal,
+  .modal-backdrop,
+  [data-floating],
+  [data-modal] {
+    display: none !important;
+  }
+
+  /* 5. Fondo blanco, texto negro */
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* 6. Evitar que Bootstrap añada URLs tras los enlaces */
+  a[href]::after {
+    content: none !important;
+  }
+
+  /* 7. Márgenes de página por defecto */
+  @page {
+    margin: 1.5cm;
+  }
 }

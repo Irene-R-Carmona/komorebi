@@ -32,11 +32,13 @@ final class AvatarOptionsTest extends TestCase
 
     public function testDefaultConstantIsInitials(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('initials', AvatarOptions::DEFAULT);
     }
 
     public function testOptionsConstantIsNonEmpty(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertNotEmpty(AvatarOptions::OPTIONS);
     }
 
@@ -122,7 +124,7 @@ final class AvatarOptionsTest extends TestCase
     public function testToListInitialsEntryHasNullUrl(): void
     {
         $list = AvatarOptions::toList();
-        $initials = \array_values(\array_filter($list, fn (array $e) => $e['id'] === 'initials'));
+        $initials = \array_values(\array_filter($list, fn(array $e) => $e['id'] === 'initials'));
         self::assertCount(1, $initials);
         self::assertNull($initials[0]['url']);
         self::assertSame('Iniciales', $initials[0]['label']);

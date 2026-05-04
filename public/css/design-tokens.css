@@ -113,10 +113,18 @@
   --color-error: var(--color-danger);
   --color-texto-suave: #5C4A3A;
   --color-borde: #D4C4A8;
+  --color-borde-card: color-mix(in srgb, var(--color-primario) 50%, var(--color-borde));
 
   /* Para backoffice.css */
   --brand-primary: var(--color-primary-800);
   --brand-accent: var(--color-accent-500);
+
+  --color-acento-hover: var(--color-accent-600);
+  --color-acento-text:  var(--color-accent-800);
+  --color-fondo-alt:    var(--color-primary-50);
+  --duration-fast:      var(--transition-fast);
+  --duration-normal:    var(--transition-base);
+  --easing-out:         cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Dark Mode Overrides */
@@ -126,6 +134,13 @@
   --color-texto: #E8DCC4;
   --color-texto-suave: #B8A890;
   --color-borde: #4A3828;
+  /* Primario claro para que sea legible sobre fondo oscuro */
+  --color-primario: var(--color-primary-200);
+  /* Acento dorado más luminoso en dark mode */
+  --color-acento: var(--color-accent-400);
+  --color-acento-hover: var(--color-accent-500);
+  --color-acento-text:  var(--color-accent-400);
+  --color-fondo-alt:    var(--color-primary-800);
 }
 
 /* ============================================================================
@@ -271,11 +286,13 @@
     0 8px 10px -6px rgba(45, 34, 24, 0.05);
   --shadow-2xl: 0 25px 50px -12px rgba(45, 34, 24, 0.18);
   --shadow-inner: inset 0 2px 4px 0 rgba(45, 34, 24, 0.06);
+  --shadow-card: 0 2px 8px rgba(45, 34, 24, 0.18), 0 6px 20px rgba(45, 34, 24, 0.12);
 
   /* Compatibility aliases */
   --sombra-sm: var(--shadow-sm);
   --sombra-md: var(--shadow-md);
   --sombra-lg: var(--shadow-lg);
+  --sombra-card: var(--shadow-card);
 }
 
 /* ============================================================================
@@ -379,4 +396,28 @@
   overflow: visible;
   clip: auto;
   white-space: normal;
+}
+
+/* ============================================================
+   Per-role accent colors (backoffice sidebar identity)
+   Usage: body[data-role="admin"] applies --role-accent
+   ============================================================ */
+[data-role="admin"] {
+  --role-accent: #C9A959;
+  --role-accent-light: rgba(201, 169, 89, 0.15);
+}
+
+[data-role="manager"] {
+  --role-accent: #cdb09a;
+  --role-accent-light: rgba(205, 176, 154, 0.15);
+}
+
+[data-role="supervisor"] {
+  --role-accent: #e74c5e;
+  --role-accent-light: rgba(231, 76, 94, 0.15);
+}
+
+[data-role="keeper"] {
+  --role-accent: #8BAF93;
+  --role-accent-light: rgba(139, 175, 147, 0.15);
 }

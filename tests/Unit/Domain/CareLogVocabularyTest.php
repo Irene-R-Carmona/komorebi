@@ -31,6 +31,7 @@ final class CareLogVocabularyTest extends TestCase
 
     public function testActivityTypesConstantIsNonEmpty(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertNotEmpty(CareLogVocabulary::ACTIVITY_TYPES);
     }
 
@@ -66,6 +67,7 @@ final class CareLogVocabularyTest extends TestCase
 
     public function testMoodValuesConstantIsNonEmpty(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertNotEmpty(CareLogVocabulary::MOOD_VALUES);
     }
 

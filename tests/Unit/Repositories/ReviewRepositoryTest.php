@@ -99,7 +99,7 @@ final class ReviewRepositoryTest extends RepositoryTestCase
 
         $result = $repo->findApprovedPaginated(1, 1, 10);
 
-        $this->assertCount(1, $result);
+        $this->assertCount(1, $result['data']);
     }
 
     public function testFindApprovedPaginatedReturnsEmptyArray(): void
@@ -107,7 +107,9 @@ final class ReviewRepositoryTest extends RepositoryTestCase
         $pdo = $this->makePdo(fetchAllReturn: []);
         $repo = new ReviewRepository($pdo);
 
-        $this->assertSame([], $repo->findApprovedPaginated(1, 2, 10));
+        $result = $repo->findApprovedPaginated(1, 2, 10);
+        $this->assertSame([], $result['data']);
+        $this->assertSame(0, $result['total']);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -246,10 +248,15 @@ final class ReviewRepositoryTest extends RepositoryTestCase
     public function testGetRatingStatsReturnsStatsRow(): void
     {
         $row = [
-            'total_reviews' => 10, 'avg_rating' => '4.3',
-            'min_rating' => 3, 'max_rating' => 5,
-            'five_stars' => 5, 'four_stars' => 3,
-            'three_stars' => 2, 'two_stars' => 0, 'one_star' => 0,
+            'total_reviews' => 10,
+            'avg_rating' => '4.3',
+            'min_rating' => 3,
+            'max_rating' => 5,
+            'five_stars' => 5,
+            'four_stars' => 3,
+            'three_stars' => 2,
+            'two_stars' => 0,
+            'one_star' => 0,
         ];
         $pdo = $this->makePdo(fetchReturn: $row);
         $repo = new ReviewRepository($pdo);

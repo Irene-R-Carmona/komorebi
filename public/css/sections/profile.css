@@ -27,13 +27,13 @@
 
 /* 1. TARJETA DE MEMBRESÍA (Gamificación) */
 .member-card {
-    background: linear-gradient(135deg, var(--color-primario) 0%, #3e2b24 100%);
+    background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-primary-700) 100%);
     border-radius: var(--radio-lg);
     padding: 2rem;
     color: white;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 15px 30px rgba(92, 61, 46, 0.3);
+    box-shadow: 0 15px 30px color-mix(in srgb, var(--color-primario) 30%, transparent);
     min-height: 220px;
     display: flex;
     flex-direction: column;
@@ -123,13 +123,14 @@
 /* 2. WIDGET PRÓXIMA AVENTURA (UX: Visibilidad de estado) */
 .next-adventure {
     background: var(--color-superficie);
-    border: 1px solid var(--color-borde);
+    border: 1px solid var(--color-borde-card);
     border-radius: var(--radio-lg);
     padding: 2rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
     position: relative;
+    box-shadow: var(--sombra-card);
 }
 
 .next-adventure--empty {
@@ -143,7 +144,7 @@
     text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 1px;
-    color: var(--color-acento);
+    color: var(--color-acento-text);
     margin-bottom: 1rem;
     font-weight: 700;
 }
@@ -194,8 +195,8 @@
     background: var(--color-superficie);
     padding: 2rem;
     border-radius: var(--radio-lg);
-    border: 1px solid var(--color-borde);
-    box-shadow: var(--sombra-sm);
+    border: 1px solid var(--color-borde-card);
+    box-shadow: var(--sombra-card);
 }
 
 .settings-header {
@@ -237,10 +238,30 @@
     background: white;
 }
 
+.settings-divider {
+    border: none;
+    border-top: 1px solid var(--color-borde);
+    margin: 1.5rem 0 1rem;
+}
+
+.settings-export {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.settings-export__hint {
+    font-size: 0.85rem;
+    color: var(--color-texto-suave);
+    margin: 0;
+}
+
 .btn-danger-outline {
     background: transparent;
     color: var(--color-error);
-    border: 1px solid rgba(155, 35, 53, 0.3);
+    border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
     width: 100%;
     margin-top: 1rem;
     padding: 0.8rem;
@@ -295,18 +316,21 @@
 }
 
 .status-pill--pending {
-    background: rgba(255, 193, 7, 0.15);
-    border-color: rgba(255, 193, 7, 0.35);
+    background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+    border-color: color-mix(in srgb, var(--color-warning) 35%, transparent);
+    color: var(--color-warning-dark);
 }
 
 .status-pill--confirmed {
-    background: rgba(46, 196, 182, 0.12);
-    border-color: rgba(46, 196, 182, 0.35);
+    background: color-mix(in srgb, var(--color-info) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-info) 35%, transparent);
+    color: var(--color-info-dark);
 }
 
 .status-pill--active {
-    background: rgba(76, 175, 80, 0.12);
-    border-color: rgba(76, 175, 80, 0.35);
+    background: color-mix(in srgb, var(--color-success) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-success) 35%, transparent);
+    color: var(--color-success-dark);
 }
 
 /* Acciones del widget */
@@ -323,10 +347,10 @@
 
 .my-reviews-section {
     background: var(--color-superficie);
-    border: 1px solid var(--color-borde);
+    border: 1px solid var(--color-borde-card);
     border-radius: var(--radio-md);
     padding: var(--espaciado-lg);
-    box-shadow: var(--sombra-sm);
+    box-shadow: var(--sombra-card);
 }
 
 .my-reviews-section .settings-header {
@@ -416,18 +440,18 @@
 }
 
 .my-review__status--status-pending {
-    background: rgba(255, 193, 7, 0.15);
-    color: #f57f17;
+    background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+    color: var(--color-warning-dark);
 }
 
 .my-review__status--status-approved {
-    background: rgba(94, 111, 100, 0.15);
-    color: var(--color-exito);
+    background: color-mix(in srgb, var(--color-success) 15%, transparent);
+    color: var(--color-success-dark);
 }
 
 .my-review__status--status-rejected {
-    background: rgba(155, 35, 53, 0.15);
-    color: var(--color-error);
+    background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+    color: var(--color-danger-dark);
 }
 
 .my-review__rating {
@@ -446,7 +470,7 @@
 
 .my-review__meta {
     font-size: 0.8rem;
-    color: #999;
+    color: var(--color-neutral-500);
     margin-bottom: var(--espaciado-sm);
 }
 
@@ -460,7 +484,7 @@
 .btn-icon-text {
     background: none;
     border: none;
-    color: var(--color-acento);
+    color: var(--color-acento-text);
     cursor: pointer;
     font-size: 0.9rem;
     font-weight: 500;
@@ -469,7 +493,7 @@
 }
 
 .btn-icon-text:hover {
-    color: var(--color-acento-hover);
+    color: var(--color-accent-900);
 }
 
 .btn-icon-text--danger {
@@ -509,4 +533,81 @@
         text-align: center;
         padding: 0.5rem;
     }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SECCIÓN: ACCESO RÁPIDO — Loyalty & Waitlist
+────────────────────────────────────────────────────────────────────────── */
+
+.dashboard-quick-access {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.quick-access-card {
+    background: linear-gradient(135deg, var(--color-superficie) 0%, var(--color-fondo) 100%);
+    border: 2px solid var(--color-borde-card);
+    border-radius: var(--radio-lg);
+    padding: 1.5rem;
+    transition: all var(--transicion);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    box-shadow: var(--sombra-card);
+}
+
+.quick-access-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(45, 34, 24, 0.22), 0 4px 10px rgba(45, 34, 24, 0.14);
+    border-color: var(--color-acento);
+}
+
+.quick-access-card__header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.quick-access-card__icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.quick-access-card__title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-texto);
+}
+
+.quick-access-card__description {
+    color: var(--color-texto-suave);
+    margin: 0 0 1rem 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.quick-access-card__cta {
+    color: var(--color-acento-text);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.quick-access-card:hover .quick-access-card__cta {
+    color: var(--color-accent-900);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   UTILIDADES: member-card progress hints
+────────────────────────────────────────────────────────────────────────── */
+
+.member-card__stats--progress {
+    margin-top: 0.35rem;
+}
+
+.member-card__level-hint {
+    opacity: 0.85;
 }

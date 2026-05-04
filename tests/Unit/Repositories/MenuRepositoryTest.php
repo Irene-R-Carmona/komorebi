@@ -103,7 +103,6 @@ final class MenuRepositoryTest extends TestCase
         $db->method('prepare')
             ->willReturnCallback(function (string $sql) use (&$capturedSql, $stmt) {
                 $capturedSql = $sql;
-
                 return $stmt;
             });
 

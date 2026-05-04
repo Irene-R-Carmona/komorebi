@@ -43,7 +43,7 @@
           const data = await resp.json();
           if (data.success && data.filters) {
             if (data.filters.tipo) {
-              const tiposValidos = ['todos', ...new Set(this.cafes.map(c => c.animal_type))];
+              const tiposValidos = ['todos', 'lounge', 'playroom', 'farm', 'zen'];
               this.filtroTipo = tiposValidos.includes(data.filters.tipo) ? data.filters.tipo : 'todos';
             }
             if (data.filters.busqueda) this.busqueda = data.filters.busqueda;
@@ -69,7 +69,7 @@
       },
 
       filtrar(cafe) {
-        if (this.filtroTipo !== 'todos' && cafe.animal_type !== this.filtroTipo) return false;
+        if (this.filtroTipo !== 'todos' && cafe.category !== this.filtroTipo) return false;
         if (this.busqueda) {
           const term = this.busqueda.toLowerCase();
           const nombre = (cafe.name || '').toLowerCase();

@@ -33,7 +33,7 @@
               data: {
                 labels: this.chartData.weekly_revenue.labels || [],
                 datasets: [{
-                  label: 'Ingresos (€)',
+                  label: 'Ingresos (¥)',
                   data: this.chartData.weekly_revenue.values || [],
                   borderColor: 'rgb(75, 192, 192)',
                   backgroundColor: 'rgba(75, 192, 192, 0.2)',

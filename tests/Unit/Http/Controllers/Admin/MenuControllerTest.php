@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\MenuController;
+use App\Repositories\Contracts\AllergenRepositoryInterface;
 use App\Repositories\Contracts\MenuCategoryRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -45,6 +46,7 @@ final class MenuControllerTest extends ControllerTestCase
         return new MenuController(
             productRepo: $this->createStub(ProductRepositoryInterface::class),
             categoryRepo: $this->createStub(MenuCategoryRepositoryInterface::class),
+            allergenRepo: $this->createStub(AllergenRepositoryInterface::class),
         );
     }
 

@@ -3290,7 +3290,7 @@ components:
                     properties:
                       label:
                         type: string
-                        example: "Ingresos (€)"
+                        example: "Ingresos (¥)"
                       data:
                         type: array
                         items:

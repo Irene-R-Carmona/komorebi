@@ -109,8 +109,8 @@ document.addEventListener('alpine:init', () => {
         return;
       }
 
-      // Backup para rollback
-      const oldCart = structuredClone(this.cart || { items: {}, total_qty: 0, totalPrice: 0 });
+      // Backup para rollback (JSON deep-copy evita problemas con Proxy de Alpine)
+      const oldCart = JSON.parse(JSON.stringify(this.cart || { items: {}, total_qty: 0, totalPrice: 0 }));
 
       // Optimistic UI
       if (!this.cart) this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
@@ -210,19 +210,21 @@ document.addEventListener('alpine:init', () => {
         // Obtener atributo data-cafe-types
         const cafeTypesAttr = el && el.dataset && el.dataset.cafeTypes;
 
-        // Si no tiene el atributo (undefined) o está vacío = disponible en TODOS los cafés
-        if (!cafeTypesAttr || cafeTypesAttr.trim() === '') {
-          return true;
+        // Si tiene el atributo y no está vacío, verificar si coincide
+        if (cafeTypesAttr && cafeTypesAttr.trim() !== '') {
+          const types = cafeTypesAttr.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+          const selectedType = this.selectedCafeType.toLowerCase();
+          if (!types.includes(selectedType)) {
+            return false; // NO mostrar si el tipo no coincide
+          }
         }
+        // Si no tiene atributo = disponible en TODOS los cafés → continuar filtros
+      }
 
-        // Dividir por comas y verificar si el tipo seleccionado está presente
-        // Valores esperados: 'lounge', 'playroom', 'farm', 'zen'
-        const types = cafeTypesAttr.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-        const selectedType = this.selectedCafeType.toLowerCase();
-
-        if (!types.includes(selectedType)) {
-          return false; // NO mostrar si el tipo no coincide
-        }
+      // Filtro de alérgenos (integrado en matchesNode para que Alpine reactive lo detecte)
+      if (this.excludedAllergens.length > 0) {
+        const excludedSet = new Set(this.excludedAllergens.map(String));
+        if (this.cardHasExcludedAllergen(el, excludedSet)) return false;
       }
 
       return true; // Mostrar si pasa todos los filtros
@@ -285,17 +287,8 @@ document.addEventListener('alpine:init', () => {
       try {
         // Actualizar la URL sin recargar
         this.updateAllergenUrl();
-
-        // Filtrado en cliente: ocultar los productos que contengan alguno de los alérgenos excluidos
-        const grids = document.querySelectorAll('.menu__grid');
-        const excludedSet = new Set(this.excludedAllergens.map(String));
-
-        for (const grid of grids) {
-          const cards = grid.querySelectorAll('article.producto-card');
-          for (const card of cards) {
-            card.hidden = this.cardHasExcludedAllergen(card, excludedSet);
-          }
-        }
+        // La visibilidad se gestiona reactivamente por Alpine x-show="matchesNode($el)"
+        // que ahora incluye el check de alérgenos
       } catch (e) {
         console.error('Error applying allergen filter:', e);
       }

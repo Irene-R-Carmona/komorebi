@@ -109,7 +109,7 @@ final class ExceptionHandlerTest extends TestCase
     public function testRegisterDoesNotThrow(): void
     {
         // register() setea handlers globales — en proceso separado para no contaminar suite
+        $this->expectNotToPerformAssertions();
         ExceptionHandler::register();
-        self::assertTrue(true);
     }
 }

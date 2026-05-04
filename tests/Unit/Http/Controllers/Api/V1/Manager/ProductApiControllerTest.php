@@ -80,7 +80,7 @@ final class ProductApiControllerTest extends ControllerTestCase
     public function test_create_strips_image_url(): void
     {
         $captured = null;
-        $service = $this->createMock(ProductServiceInterface::class);
+        $service = $this->createStub(ProductServiceInterface::class);
         $service->method('create')
             ->willReturnCallback(function (array $data) use (&$captured): int {
                 $captured = $data;

@@ -20,20 +20,20 @@
   // ========================================================================
 
   const CATEGORIES = {
-    lounge: { label: 'Lounge', icon: '🛋️', class: 'category-badge--lounge' },
-    playroom: { label: 'Playroom', icon: '🎮', class: 'category-badge--playroom' },
-    farm: { label: 'Farm', icon: '🌾', class: 'category-badge--farm' },
-    zen: { label: 'Zen', icon: '🧘', class: 'category-badge--zen' }
+    lounge: { label: 'Lounge', icon: 'bi-house-heart', class: 'category-badge--lounge' },
+    playroom: { label: 'Playroom', icon: 'bi-controller', class: 'category-badge--playroom' },
+    farm: { label: 'Farm', icon: 'bi-tree', class: 'category-badge--farm' },
+    zen: { label: 'Zen', icon: 'bi-flower1', class: 'category-badge--zen' }
   };
 
   const ANIMAL_TYPES = {
-    cat: { label: 'Gatos', icon: '🐱' },
-    dog: { label: 'Perros', icon: '🐶' },
-    rabbit: { label: 'Conejos', icon: '🐰' },
-    bird: { label: 'Aves', icon: '🦜' },
-    hedgehog: { label: 'Erizos', icon: '🦔' },
-    capybara: { label: 'Capibaras', icon: '🦫' },
-    mixed: { label: 'Mixto', icon: '🐾' }
+    cat: { label: 'Gatos', icon: 'bi-cat' },
+    dog: { label: 'Perros', icon: 'bi-heart-pulse' },
+    rabbit: { label: 'Conejos', icon: 'bi-flower2' },
+    bird: { label: 'Aves', icon: 'bi-feather' },
+    hedgehog: { label: 'Erizos', icon: 'bi-circle' },
+    capybara: { label: 'Capibaras', icon: 'bi-cursor' },
+    mixed: { label: 'Mixto', icon: 'bi-grid' }
   };
 
   // ========================================================================
@@ -461,7 +461,7 @@
       },
 
       getCategoryIcon(category) {
-        return CATEGORIES[category]?.icon || '📍';
+        return CATEGORIES[category]?.icon || 'bi-geo-alt-fill';
       },
 
       getCategoryClass(category) {
@@ -477,7 +477,7 @@
       },
 
       getAnimalIcon(animalType) {
-        return ANIMAL_TYPES[animalType]?.icon || '🐾';
+        return ANIMAL_TYPES[animalType]?.icon || 'bi-grid';
       },
 
       formatPrice(price) {

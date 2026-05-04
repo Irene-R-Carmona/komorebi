@@ -104,9 +104,9 @@ final class MenuServiceTest extends TestCase
             ->method('getProductsByCategory')
             ->with([])
             ->willReturn([
-                MenuDTO::fromArray(['id' => 1, 'category_id' => 1, 'name' => 'Café Latte', 'price' => 500, 'is_active' => true]),
-                MenuDTO::fromArray(['id' => 2, 'category_id' => 1, 'name' => 'Cappuccino', 'price' => 550, 'is_active' => true]),
-                MenuDTO::fromArray(['id' => 3, 'category_id' => 2, 'name' => 'Croissant', 'price' => 300, 'is_active' => true]),
+                ['id' => 1, 'category_id' => 1, 'name' => 'Café Latte', 'price' => 500, 'is_active' => true],
+                ['id' => 2, 'category_id' => 1, 'name' => 'Cappuccino', 'price' => 550, 'is_active' => true],
+                ['id' => 3, 'category_id' => 2, 'name' => 'Croissant', 'price' => 300, 'is_active' => true],
             ]);
 
         // ACT
@@ -127,7 +127,7 @@ final class MenuServiceTest extends TestCase
             ->method('getProductsByCategory')
             ->with([5])
             ->willReturn([
-                MenuDTO::fromArray(['id' => 1, 'category_id' => 1, 'name' => 'Producto sin leche', 'price' => 500, 'is_active' => true]),
+                ['id' => 1, 'category_id' => 1, 'name' => 'Producto sin leche', 'price' => 500, 'is_active' => true],
             ]);
 
         // ACT: Excluir alérgeno ID 5 (leche)
@@ -233,7 +233,7 @@ final class MenuServiceTest extends TestCase
             ->willReturn([['id' => 1, 'name' => 'Bebidas', 'slug' => 'bebidas', 'display_order' => 1]]);
 
         $this->mockMenuRepo->method('getProductsByCategory')
-            ->willReturn([MenuDTO::fromArray(['id' => 1, 'category_id' => 1, 'name' => 'Café', 'price' => 500, 'is_active' => true])]);
+            ->willReturn([['id' => 1, 'category_id' => 1, 'name' => 'Café', 'price' => 500, 'is_active' => true]]);
 
         $this->mockMenuRepo->method('getPasses')
             ->willReturn([['id' => 10, 'name' => 'Pase 1H', 'product_type' => 'pass']]);
@@ -304,21 +304,19 @@ final class MenuServiceTest extends TestCase
     #[AllowMockObjectsWithoutExpectations]
     public function testGetProductsByCategoryParsesAllergenFieldsIntoAllergensList(): void
     {
-        $dto = MenuDTO::fromArray([
-            'id' => 1,
-            'category_id' => 1,
-            'name' => 'Croissant',
-            'price' => 300,
-            'is_active' => true,
-            'allergen_ids' => '1,2',
-            'allergen_names' => 'Gluten,Leche',
-            'allergen_icons' => 'wheat,milk',
-            'allergen_colors' => '#D4A017,#ffffff',
-            'allergen_severities' => 'high,moderate',
-        ]);
-
         $this->mockMenuRepo->method('getProductsByCategory')
-            ->willReturn([$dto]);
+            ->willReturn([[
+                'id' => 1,
+                'category_id' => 1,
+                'name' => 'Croissant',
+                'price' => 300,
+                'is_active' => true,
+                'allergen_ids' => '1,2',
+                'allergen_names' => 'Gluten,Leche',
+                'allergen_icons' => 'wheat,milk',
+                'allergen_colors' => '#D4A017,#ffffff',
+                'allergen_severities' => 'high,moderate',
+            ]]);
 
         $result = $this->service->getProductsByCategory();
 

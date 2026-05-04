@@ -50,6 +50,7 @@ final class RawTest extends TestCase
     public function testJsonEncodesArrayToJsonString(): void
     {
         $raw = Raw::json(['key' => 'value']);
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertInstanceOf(Raw::class, $raw);
         $decoded = \json_decode((string) $raw, true);
         self::assertSame(['key' => 'value'], $decoded);
@@ -116,6 +117,7 @@ final class RawTest extends TestCase
     public function testHtmlWrapsStringAsIs(): void
     {
         $raw = Raw::html('<b>bold</b>');
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertInstanceOf(Raw::class, $raw);
         self::assertSame('<b>bold</b>', (string) $raw);
     }
@@ -133,6 +135,7 @@ final class RawTest extends TestCase
     public function testSafeWrapsStringAsIs(): void
     {
         $raw = Raw::safe('already &amp; safe');
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertInstanceOf(Raw::class, $raw);
         self::assertSame('already &amp; safe', (string) $raw);
     }

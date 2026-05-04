@@ -36,6 +36,7 @@ final class TimeTest extends TestCase
     public function testBusinessTzReturnsDateTimeZone(): void
     {
         $tz = Time::businessTz();
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertInstanceOf(DateTimeZone::class, $tz);
     }
 
@@ -61,6 +62,7 @@ final class TimeTest extends TestCase
     public function testNowBusinessReturnsDateTimeImmutable(): void
     {
         $now = Time::nowBusiness();
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertInstanceOf(DateTimeImmutable::class, $now);
     }
 
@@ -94,6 +96,7 @@ final class TimeTest extends TestCase
     public function testCombineBusinessReturnsDateTimeImmutable(): void
     {
         $dt = Time::combineBusiness('2025-06-15', '10:30');
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertInstanceOf(DateTimeImmutable::class, $dt);
     }
 

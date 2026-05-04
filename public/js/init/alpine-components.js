@@ -138,8 +138,10 @@
     registerWithAlpine(window.Alpine);
   } else {
     document.addEventListener('alpine:init', function () { registerWithAlpine(window.Alpine); });
-    // some builds may use alpine:initializing event
-    document.addEventListener('alpine:initializing', function () { registerWithAlpine(window.Alpine); });
+    // NOTE: alpine:initializing is NOT registered here intentionally.
+    // Alpine 3.x dispatches alpine:initializing AFTER alpine:init, so adding a second
+    // registerWithAlpine call here would overwrite page-specific components (e.g. receptionApp,
+    // kdsApp) that register themselves during alpine:init after this fallback registry runs.
   }
 
 })();

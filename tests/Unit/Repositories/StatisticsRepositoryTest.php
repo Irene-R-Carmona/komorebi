@@ -48,7 +48,13 @@ final class StatisticsRepositoryTest extends TestCase
 
     public function testGetSystemCountsReturnsAllKeys(): void
     {
-        $pdo = $this->makePdo([], false, '5');
+        $pdo = $this->makePdo([], [
+            'users'           => 5,
+            'cafes'           => 3,
+            'reservations'    => 10,
+            'reviews'         => 7,
+            'pending_reviews' => 2,
+        ]);
         $repo = new StatisticsRepository($pdo);
 
         $result = $repo->getSystemCounts();

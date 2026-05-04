@@ -193,11 +193,13 @@ final class ReservationServiceTest extends TestCase
 
     public function testEnrichCartItemsDelegatesToProductRepo(): void
     {
-        $this->productRepoStub->method('findItemsByIds')->willReturn([['id' => 1, 'name' => 'Pass']]);
+        $this->productRepoStub->method('findItemsByIds')->willReturn([['id' => 1, 'name' => 'Pass', 'price' => '5.00']]);
 
         $result = $this->service->enrichCartItems([1 => 2]);
 
         $this->assertCount(1, $result);
+        $this->assertSame(2, $result[0]['qty']);
+        $this->assertSame(10.0, $result[0]['subtotal']);
     }
 
     // ─────────────────────────────────────────────────────────────

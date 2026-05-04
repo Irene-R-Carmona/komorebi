@@ -30,6 +30,7 @@ final class AnimalVocabularyTest extends TestCase
 
     public function testSpeciesConstantIsNonEmpty(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertNotEmpty(AnimalVocabulary::SPECIES);
     }
 
@@ -65,6 +66,7 @@ final class AnimalVocabularyTest extends TestCase
 
     public function testIncidentTypesConstantIsNonEmpty(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertNotEmpty(AnimalVocabulary::INCIDENT_TYPES);
     }
 
@@ -94,6 +96,7 @@ final class AnimalVocabularyTest extends TestCase
 
     public function testIncidentStatusesConstantIsNonEmpty(): void
     {
+        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertNotEmpty(AnimalVocabulary::INCIDENT_STATUSES);
     }
 

@@ -186,6 +186,52 @@
 }
 
 /* ============================================================================
+   DARK MODE — [data-tema="oscuro"]
+   ============================================================================ */
+
+[data-tema="oscuro"] {
+  --bg-primary: #1A1108;
+  --bg-secondary: #2D1F13;
+  --bg-tertiary: #3D2E1F;
+  --bg-elevated: #2D1F13;
+
+  --text-primary: #F0E8D9;
+  --text-secondary: #C9A876;
+  --text-tertiary: #9A7D5A;
+  --text-inverse: #1A1108;
+
+  --border-primary: #4A3828;
+  --border-secondary: #6B5234;
+
+  --glass-bg: rgba(45, 30, 20, 0.88);
+  --glass-border: rgba(201, 168, 118, 0.15);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.35), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.35);
+}
+
+[data-tema="oscuro"] body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-tema="oscuro"] .navbar-main {
+  background: var(--bg-secondary) !important;
+  border-color: var(--border-primary) !important;
+  color: var(--text-primary);
+}
+
+[data-tema="oscuro"] .navbar-page-title {
+  color: var(--text-primary);
+}
+
+[data-tema="oscuro"] .main-content {
+  background: var(--bg-primary);
+}
+
+/* ============================================================================
    RESET & BASE
    ============================================================================ */
 
@@ -311,7 +357,7 @@ body {
 .sidebar-nav .nav-link:hover {
   background: var(--sidebar-hover);
   transform: translateX(2px);
-  color: #FFB347;
+  color: var(--role-accent, #FFB347);
 }
 
 .sidebar-nav .nav-link:focus {
@@ -319,14 +365,14 @@ body {
 }
 
 .sidebar-nav .nav-link:focus-visible {
-  outline: 2px solid #FFB347;
+  outline: 2px solid var(--role-accent, #FFB347);
   outline-offset: 2px;
-  box-shadow: 0 0 0 3px rgba(255, 179, 71, 0.2);
+  box-shadow: 0 0 0 3px var(--role-accent-light, rgba(255, 179, 71, 0.2));
 }
 
 .sidebar-nav .nav-link.active {
   background: var(--sidebar-active);
-  color: #FFB347;
+  color: var(--role-accent, #FFB347);
   font-weight: var(--font-weight-semibold);
 }
 
@@ -1003,27 +1049,6 @@ body {
 .filter-bar__search {
   flex: 1;
   min-width: 280px;
-}
-
-/* ============================================================================
-   DARK MODE — prefers-color-scheme
-   Mirrors [data-tema="oscuro"] from design-tokens.css for users who haven't
-   manually toggled the theme but have a system-level dark mode preference.
-   ============================================================================ */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-fondo: #1A1410;
-    --color-superficie: #3D2E1F;
-    --color-texto: #E8DCC4;
-    --color-texto-suave: #B8A890;
-    --color-borde: #4A3828;
-
-    /* Backoffice surface overrides */
-    --sidebar-bg: #2A1F15;
-    --sidebar-text: #E8DCC4;
-    --card-bg: #3D2E1F;
-    --table-header-bg: #2A1F15;
-  }
 }
 
 .filter-bar__filters {

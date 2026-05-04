@@ -142,13 +142,13 @@ final class CafeControllerTest extends ControllerTestCase
 
         $result = $this->makeController()->updateSettings(
             new ServerRequest('POST', '/manager/cafe/settings')
-                ->withParsedBody(['price_per_hour' => 150])
+                ->withParsedBody(['price_per_hour' => 15000])
         );
 
         $this->assertSame(400, $result->getStatusCode());
         $body = \json_decode((string) $result->getBody(), true);
         $this->assertFalse($body['ok']);
-        $this->assertStringContainsString('0 y 100', $body['error']);
+        $this->assertStringContainsString('10,000', $body['error']);
     }
 
     public function test_update_settings_returns_400_when_no_fields_provided(): void

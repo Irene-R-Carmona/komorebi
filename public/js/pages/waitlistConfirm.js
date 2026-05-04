@@ -4,7 +4,7 @@
     try {
       const meta = document.getElementById('waitlist-meta');
       const expiresAtRaw = meta ? meta.dataset.expiresAt : null;
-      const expiresAt = expiresAtRaw ? new Date(expiresAtRaw).getTime() : null;
+      const expiresAt = expiresAtRaw ? new Date(expiresAtRaw.replace(' ', 'T') + 'Z').getTime() : null;
       const countdownEl = document.getElementById('countdown');
       const confirmBtn = document.getElementById('confirmBtn');
       const confirmForm = document.getElementById('confirmForm');

@@ -143,15 +143,15 @@ document.addEventListener('alpine:init', () => {
       passBadges(p) {
         const attrs = this.parseJsonObject(p.attributes) || {};
         const out = [];
-        if (attrs.includes_drink) out.push({ icon: '🥤', label: 'Bebida' });
-        if (attrs.includes_dessert) out.push({ icon: '🍡', label: 'Postre' });
-        if (attrs.includes_feed) out.push({ icon: '🥕', label: 'Feed' });
-        if (attrs.private_room) out.push({ icon: '🪟', label: 'Privado' });
-        if (attrs.guided) out.push({ icon: '🧑‍🏫', label: 'Guiado' });
-        if (attrs.quiet) out.push({ icon: '🤫', label: 'Quiet' });
-        if (attrs.high_energy) out.push({ icon: '⚡', label: 'Energía' });
+        if (attrs.includes_drink) out.push({ icon: 'bi-cup-straw', label: 'Bebida' });
+        if (attrs.includes_dessert) out.push({ icon: 'bi-cake2', label: 'Postre' });
+        if (attrs.includes_feed) out.push({ icon: 'bi-basket2', label: 'Feed' });
+        if (attrs.private_room) out.push({ icon: 'bi-door-closed', label: 'Privado' });
+        if (attrs.guided) out.push({ icon: 'bi-person-video3', label: 'Guiado' });
+        if (attrs.quiet) out.push({ icon: 'bi-volume-mute', label: 'Quiet' });
+        if (attrs.high_energy) out.push({ icon: 'bi-lightning-charge', label: 'Energía' });
         if (attrs.allowed_start && attrs.allowed_end) out.push({
-          icon: '🌙',
+          icon: 'bi-moon-stars',
           label: `${attrs.allowed_start}-${attrs.allowed_end}`
         });
         return out;
@@ -255,8 +255,8 @@ document.addEventListener('alpine:init', () => {
         return {
           permitido: festivo.permite_reservas === true || festivo.permite_reservas === 1,
           mensaje: festivo.permite_reservas
-            ? `🎌 ${festivo.nombre_es} (${festivo.nombre_ja}) - Reserva con anticipación`
-            : `⛔ ${festivo.nombre_es} (${festivo.nombre_ja}) - No se aceptan reservas este día`,
+            ? `[Festivo] ${festivo.nombre_es} (${festivo.nombre_ja}) - Reserva con anticipación`
+            : `[No disponible] ${festivo.nombre_es} (${festivo.nombre_ja}) - No se aceptan reservas este día`,
           festivo: festivo
         };
       },
