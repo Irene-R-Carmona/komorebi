@@ -66,7 +66,7 @@ use App\Core\Csrf;
 
             <!-- Forgot Password -->
             <div class="text-center mt-3">
-                <a href="/auth/forgot-password" class="auth-link small">
+                <a href="/forgot-password" class="auth-link small">
                     ¿Olvidaste tu contraseña?
                 </a>
             </div>

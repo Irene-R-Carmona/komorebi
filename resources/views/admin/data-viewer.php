@@ -56,7 +56,7 @@ echo View::componentToString('components/admin/page-header', [
 
 <!-- Cafés -->
 <div class="dv-section">
-    <h2>🏪 Cafés (<?= $stats['cafes'] ?>)</h2>
+    <h2><i class="bi bi-shop" aria-hidden="true"></i> Cafés (<?= $stats['cafes'] ?>)</h2>
     <table class="table table-admin">
         <thead>
             <tr>
@@ -74,7 +74,7 @@ echo View::componentToString('components/admin/page-header', [
                     <td><?= htmlspecialchars($cafe['animal_type']) ?></td>
                     <td><?= $cafe['capacity_max'] ?> personas</td>
                     <td><?= substr($cafe['opening_time'], 0, 5) ?> - <?= substr($cafe['closing_time'], 0, 5) ?></td>
-                    <td class="dv-rating"><?= $cafe['rating_avg'] ? '⭐ ' . number_format($cafe['rating_avg'], 1) : 'Sin ratings' ?></td>
+                    <td class="dv-rating"><?= $cafe['rating_avg'] ? '<i class="bi bi-star-fill" aria-hidden="true"></i> ' . number_format($cafe['rating_avg'], 1) : 'Sin ratings' ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
@@ -83,7 +83,7 @@ echo View::componentToString('components/admin/page-header', [
 
 <!-- Pases/Productos -->
 <div class="dv-section">
-    <h2>🎫 Pases y Experiencias (<?= $stats['products'] ?>)</h2>
+    <h2><i class="bi bi-ticket" aria-hidden="true"></i> Pases y Experiencias (<?= $stats['products'] ?>)</h2>
     <table class="table table-admin">
         <thead>
             <tr>
@@ -99,7 +99,7 @@ echo View::componentToString('components/admin/page-header', [
                 <tr>
                     <td><strong><?= htmlspecialchars($product['name']) ?></strong></td>
                     <td><?= htmlspecialchars($product['japanese_name']) ?></td>
-                    <td class="dv-price">¥<?= number_format($product['price'], 0) ?></td>
+                    <td class="dv-price">¥<?= number_format($product['price']) ?></td>
                     <td><?= $product['duration'] ?> min</td>
                     <td><?= $product['min_pax'] ?>-<?= $product['max_pax'] ?> personas</td>
                 </tr>
@@ -110,7 +110,7 @@ echo View::componentToString('components/admin/page-header', [
 
 <!-- Staff -->
 <div class="dv-section">
-    <h2>👥 Personal/Staff (<?= $stats['staff'] ?>)</h2>
+    <h2><i class="bi bi-people" aria-hidden="true"></i> Personal/Staff (<?= $stats['staff'] ?>)</h2>
     <table class="table table-admin">
         <thead>
             <tr>
@@ -135,7 +135,7 @@ echo View::componentToString('components/admin/page-header', [
 
 <!-- Usuarios normales -->
 <div class="dv-section">
-    <h2>👤 Usuarios (Clientes)</h2>
+    <h2><i class="bi bi-person" aria-hidden="true"></i> Usuarios (Clientes)</h2>
     <table class="table table-admin">
         <thead>
             <tr>
@@ -158,7 +158,7 @@ echo View::componentToString('components/admin/page-header', [
 
 <!-- Reservaciones -->
 <div class="dv-section">
-    <h2>📅 Reservaciones (<?= $stats['reservations'] ?> total, <?= $stats['reservations_with_slot'] ?> con time_slot)</h2>
+    <h2><i class="bi bi-calendar3" aria-hidden="true"></i> Reservaciones (<?= $stats['reservations'] ?> total, <?= $stats['reservations_with_slot'] ?> con time_slot)</h2>
     <table class="table table-admin">
         <thead>
             <tr>
@@ -178,7 +178,7 @@ echo View::componentToString('components/admin/page-header', [
                     <td><?= htmlspecialchars($res['user']) ?></td>
                     <td><?= htmlspecialchars($res['cafe']) ?></td>
                     <td><?= htmlspecialchars($res['pass_name']) ?></td>
-                    <td class="dv-price">¥<?= number_format($res['pass_unit_price'], 0) ?></td>
+                    <td class="dv-price">¥<?= number_format($res['pass_unit_price']) ?></td>
                     <td><?= date('d/m/Y H:i', strtotime($res['reservation_date'] . ' ' . $res['reservation_time'])) ?></td>
                     <td><?= $res['guest_count'] ?></td>
                     <td>
@@ -189,10 +189,16 @@ echo View::componentToString('components/admin/page-header', [
                             'completed' => 'text-bg-info',
                             default => 'text-bg-danger'
                         };
-                ?>
-                        <span class="badge <?= $statusClass ?>"><?= $res['status'] ?></span>
+                        $statusLabelDv = [
+                            'confirmed' => 'Confirmada',
+                            'pending' => 'Pendiente',
+                            'completed' => 'Completada',
+                            'cancelled' => 'Cancelada',
+                        ][$res['status']] ?? ucfirst($res['status']);
+                        ?>
+                        <span class="badge <?= $statusClass ?>"><?= htmlspecialchars($statusLabelDv, ENT_QUOTES, 'UTF-8') ?></span>
                     </td>
-                    <td><?= $res['has_slot'] === 'Sí' ? '✅' : '❌' ?></td>
+                    <td><?= $res['has_slot'] === 'Sí' ? '<i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>' : '<i class="bi bi-x-circle-fill text-danger" aria-hidden="true"></i>' ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
@@ -201,7 +207,7 @@ echo View::componentToString('components/admin/page-header', [
 
 <!-- Time Slots -->
 <div class="dv-section">
-    <h2>⏰ Time Slots Futuros (<?= $stats['time_slots_available'] ?> disponibles de <?= $stats['time_slots'] ?> totales)</h2>
+    <h2><i class="bi bi-clock" aria-hidden="true"></i> Time Slots Futuros (<?= $stats['time_slots_available'] ?> disponibles de <?= $stats['time_slots'] ?> totales)</h2>
     <table class="table table-admin">
         <thead>
             <tr>
@@ -223,7 +229,7 @@ echo View::componentToString('components/admin/page-header', [
                     <td><?= $slot['total_capacity'] ?></td>
                     <td><?= $slot['reserved_spots'] ?></td>
                     <td><strong><?= $slot['available_spots'] ?></strong></td>
-                    <td><?= $slot['is_blocked'] ? '🔒 Sí' : '✅ No' ?></td>
+                    <td><?= $slot['is_blocked'] ? '<i class="bi bi-lock-fill" aria-hidden="true"></i> Sí' : '<i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i> No' ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
@@ -232,7 +238,7 @@ echo View::componentToString('components/admin/page-header', [
 
 <!-- Reviews -->
 <div class="dv-section">
-    <h2>⭐ Reviews (<?= $stats['reviews'] ?>)</h2>
+    <h2><i class="bi bi-star-fill" aria-hidden="true"></i> Reviews (<?= $stats['reviews'] ?>)</h2>
     <table class="table table-admin">
         <thead>
             <tr>
@@ -246,7 +252,7 @@ echo View::componentToString('components/admin/page-header', [
         <tbody>
             <?php foreach ($samples['reviews'] as $review): ?>
                 <tr>
-                    <td class="dv-rating"><?= str_repeat('⭐', (int) $review['rating']) ?></td>
+                    <td class="dv-rating"><?= str_repeat('<i class="bi bi-star-fill" aria-hidden="true"></i>', (int) $review['rating']) ?></td>
                     <td><strong><?= htmlspecialchars($review['title']) ?></strong></td>
                     <td><?= htmlspecialchars($review['cafe']) ?></td>
                     <td><?= htmlspecialchars($review['user']) ?></td>
@@ -259,7 +265,7 @@ echo View::componentToString('components/admin/page-header', [
 
 <!-- Incidentes -->
 <div class="dv-section">
-    <h2>🏥 Incidentes de Animales (<?= $stats['incidents'] ?>)</h2>
+    <h2><i class="bi bi-heart-pulse" aria-hidden="true"></i> Incidentes de Animales (<?= $stats['incidents'] ?>)</h2>
     <table class="table table-admin">
         <thead>
             <tr>

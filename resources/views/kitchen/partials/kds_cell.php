@@ -12,13 +12,18 @@
 
     <!-- HEADER -->
     <div class="kds-card__header">
-        <div class="kds-card__tracker">
-            <?php if (!empty($item['tracker_code'])): ?>
-                <span class="material-symbols-outlined">confirmation_number</span>
-                <strong><?= htmlspecialchars($item['tracker_code'], ENT_QUOTES, 'UTF-8') ?></strong>
-            <?php else: ?>
-                <span class="material-symbols-outlined">pending</span>
-                <strong>N/A</strong>
+        <div>
+            <div class="kds-card__tracker">
+                <?php if (!empty($item['tracker_code'])): ?>
+                    <span class="material-symbols-outlined">confirmation_number</span>
+                    <strong><?= htmlspecialchars($item['tracker_code'], ENT_QUOTES, 'UTF-8') ?></strong>
+                <?php else: ?>
+                    <span class="material-symbols-outlined">pending</span>
+                    <strong>N/A</strong>
+                <?php endif; ?>
+            </div>
+            <?php if (!empty($item['reservation_id'])): ?>
+                <div class="kds-card__reservation">RES #<?= (int) $item['reservation_id'] ?></div>
             <?php endif; ?>
         </div>
         <div class="kds-card__time"><?= htmlspecialchars($item['ui_time'] ?? '00:00', ENT_QUOTES, 'UTF-8') ?></div>

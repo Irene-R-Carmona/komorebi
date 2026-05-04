@@ -29,7 +29,7 @@ $extraJs ??= [];
 
 <head>
     <meta charset="UTF-8">
-    <!-- FOUC prevention: preload dark theme antes de que Alpine.js hidrate (T11.3) -->
+    <!-- FOUC prevention: preload dark theme antes de que Alpine.js hidrate -->
     <script nonce="<?= $cspNonce ?>">
         (function() {
             try {
@@ -53,9 +53,9 @@ $extraJs ??= [];
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Kaisei+Decol&family=Shippori+Mincho:wght@400;600&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" as="style" data-preload-style crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Kaisei+Decol&family=Shippori+Mincho:wght@300;400;600;700&family=Zen+Maru+Gothic:wght@400;500;600;700&display=swap" as="style" data-preload-style crossorigin>
     <noscript>
-        <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol&family=Shippori+Mincho:wght@400;600&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol&family=Shippori+Mincho:wght@300;400;600;700&family=Zen+Maru+Gothic:wght@400;500;600;700&display=swap" rel="stylesheet">
     </noscript>
 
     <script nonce="<?= $cspNonce ?? '' ?>">
@@ -88,6 +88,7 @@ $extraJs ??= [];
     <link href="/css/components/toast.css" rel="stylesheet">
     <link href="/css/components/skeleton.css" rel="stylesheet">
     <link href="/css/components/empty-state.css" rel="stylesheet">
+    <link href="/css/components/avatar-upload.css" rel="stylesheet">
     <link href="/css/sections/fusuma-layout.css" rel="stylesheet">
     <link href="/css/sections/cookie-banner.css" rel="stylesheet">
 
@@ -116,7 +117,7 @@ $extraJs ??= [];
         }
     }
 
-?>
+    ?>
 
     <!-- Event delegation helper: replace inline handlers with `data-action` -->
     <script defer src="/js/init/event-delegation.js"></script>
@@ -246,6 +247,7 @@ $extraJs ??= [];
                     <a class="header__mobile-link" href="/login">Iniciar sesión</a>
                 <?php else: ?>
                     <a class="header__mobile-link" href="/user/waitlists">Mis listas de espera</a>
+                    <a class="header__mobile-link" href="/mis-favoritos">Mis favoritos</a>
                     <a class="header__mobile-link" href="/perfil">Mi perfil</a>
                 <?php endif; ?>
             </nav>

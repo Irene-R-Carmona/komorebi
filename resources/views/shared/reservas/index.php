@@ -18,11 +18,11 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
     <script src="/js/dietary-preferences.js"></script>
 
     <div class="seccion__container rsv2"
-        x-data="reservaForm(<?= $cartTotal ?>, <?= json_encode($festivos ?? []) ?>)">
+        x-data="reservaForm(<?= $cartTotal ?>, <?= e((string) json_encode($festivos ?? [])) ?>)">
 
         <?php if (!empty($flash)): ?>
             <div class="toast <?= ($flash['type'] ?? '') === 'success' ? 'toast--exito' : 'toast--error' ?> mb-lg">
-                <span class="toast__icono"><?= ($flash['type'] ?? '') === 'success' ? '✅' : '⚠️' ?></span>
+                <span class="toast__icono"><?= ($flash['type'] ?? '') === 'success' ? '<i class="bi bi-check-circle-fill" aria-hidden="true"></i>' : '<i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>' ?></span>
                 <span class="toast__mensaje"><?= $flash['message'] ?? '' ?></span>
             </div>
         <?php endif; ?>
@@ -133,6 +133,7 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
 
                                     <img class="booking-pass__img"
                                         :src="p.image_url || '/images/ui/placeholder.jpg'"
+                                        @error="$event.target.src='/images/ui/placeholder.jpg'"
                                         alt="">
 
                                     <div class="booking-pass__body">
@@ -148,14 +149,14 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                                             x-text="p.description || ''"></div>
 
                                         <div class="booking-pass__meta">
-                                            <span class="badge-mini">⏱️ <span x-text="(p.duration_minutes || 0) + ' min'"></span></span>
+                                            <span class="badge-mini"><i class="bi bi-stopwatch" aria-hidden="true"></i> <span x-text="(p.duration_minutes || 0) + ' min'"></span></span>
 
                                             <span class="badge-mini">
-                                                👥 <span x-text="'Pax ' + (p.min_pax || 1) + (p.max_pax ? ('-' + p.max_pax) : '+')"></span>
+                                                <i class="bi bi-people" aria-hidden="true"></i> <span x-text="'Pax ' + (p.min_pax || 1) + (p.max_pax ? ('-' + p.max_pax) : '+')"></span>
                                             </span>
 
                                             <template x-if="passAnimalLabel(p) !== ''">
-                                                <span class="badge-mini">🐾 <span
+                                                <span class="badge-mini"><i class="bi bi-house-heart" aria-hidden="true"></i> <span
                                                         x-text="passAnimalLabel(p)"></span></span>
                                             </template>
                                         </div>
@@ -163,7 +164,7 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                                         <div class="booking-pass__badges">
                                             <template x-for="b in passBadges(p)" :key="b.label">
                                                 <span class="booking-mini-badge">
-                                                    <span x-text="b.icon"></span>
+                                                    <i :class="'bi ' + b.icon" aria-hidden="true"></i>
                                                     <span x-text="b.label"></span>
                                                 </span>
                                             </template>
@@ -196,14 +197,14 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                         <div class="booking-info-box" x-show="fecha && (weatherData || holidayData || loadingWeather || loadingHoliday)" x-cloak x-transition>
                             <!-- Clima -->
                             <div class="booking-info-item" x-show="loadingWeather" x-transition>
-                                <div class="booking-info-item__icon">⏳</div>
+                                <div class="booking-info-item__icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></div>
                                 <div class="booking-info-item__content">
                                     <div class="booking-info-item__title">Consultando clima...</div>
                                 </div>
                             </div>
 
                             <div class="booking-info-item" x-show="!loadingWeather && weatherData" x-transition>
-                                <div class="booking-info-item__icon">🌤️</div>
+                                <div class="booking-info-item__icon"><i class="bi bi-cloud-sun" aria-hidden="true"></i></div>
                                 <div class="booking-info-item__content">
                                     <div class="booking-info-item__title">Clima previsto</div>
                                     <div class="booking-weather">
@@ -215,14 +216,14 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
 
                             <!-- Festividad -->
                             <div class="booking-info-item" x-show="loadingHoliday" x-transition>
-                                <div class="booking-info-item__icon">⏳</div>
+                                <div class="booking-info-item__icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></div>
                                 <div class="booking-info-item__content">
                                     <div class="booking-info-item__title">Verificando festividades...</div>
                                 </div>
                             </div>
 
                             <div class="booking-info-item" x-show="!loadingHoliday && holidayData" x-transition>
-                                <div class="booking-info-item__icon">🎌</div>
+                                <div class="booking-info-item__icon"><i class="bi bi-flag" aria-hidden="true"></i></div>
                                 <div class="booking-info-item__content">
                                     <div class="booking-info-item__title" x-text="(holidayData && holidayData.name) || 'Festividad'"></div>
                                     <div class="booking-info-item__text" x-text="(holidayData && holidayData.description) || ''"></div>

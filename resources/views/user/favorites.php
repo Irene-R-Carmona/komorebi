@@ -56,7 +56,7 @@
     </div>
 </div>
 
-<script nonce="<?= htmlspecialchars($cspNonce ?? '', ENT_QUOTES, 'UTF-8') ?>">
+<script nonce="<?= $cspNonce ?? '' ?>">
     window.userFavorites = function(csrfToken) {
         return {
             favorites: [],
@@ -75,7 +75,7 @@
                         }
                     });
                     const json = await res.json();
-                    this.favorites = json.data ?? [];
+                    this.favorites = json.data?.items ?? [];
                 } catch {
                     this.showToast('Error al cargar favoritos', false);
                 } finally {

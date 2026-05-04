@@ -25,7 +25,7 @@ $alpineConfig = json_encode([
 ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
 ?>
 
-<div class="container-fluid" x-data='reservationActions(<?= $alpineConfig ?>)' x-cloak>
+<div class="container-fluid" x-data='reservationManagement(<?= $alpineConfig ?>)' x-cloak>
 
     <!-- Header -->
     <?= View::componentToString('components/admin/page-header', [

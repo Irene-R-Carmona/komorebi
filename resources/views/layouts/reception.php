@@ -3,11 +3,15 @@
 
 <head>
     <?php
+
+    use App\Core\Csrf;
+
     // CSP Nonce para scripts inline
     $cspNonce = $GLOBALS['cspNonce'] ?? '';
     ?>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= Csrf::token() ?>">
     <title>Komorebi Reception</title>
 
     <link rel="dns-prefetch" href="//fonts.googleapis.com">

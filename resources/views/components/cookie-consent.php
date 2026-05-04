@@ -9,7 +9,7 @@ declare(strict_types=1);
  */
 ?>
 <!-- Cookie Consent Banner (GDPR) -->
-<div x-data="cookieConsent()"
+<div x-data="cookieBanner()"
     x-show="shouldShow()"
     x-cloak
     class="cookie-banner"

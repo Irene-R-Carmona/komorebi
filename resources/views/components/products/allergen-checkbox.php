@@ -13,8 +13,8 @@
  * [
  *     'id' => int,
  *     'name' => string,
- *     'name_jp' => string|null,
- *     'icon' => string (clase FontAwesome),
+ *     'japanese_name' => string|null,
+ *     'icon_class' => string (clase FontAwesome),
  *     'icon_color' => string (color hex),
  *     'severity' => 'high'|'medium'|'low'
  * ]
@@ -26,8 +26,8 @@ $checked ??= false;
 // Datos del alérgeno con defaults
 $id = (int) ($allergen['id'] ?? 0);
 $name = $allergen['name'] ?? 'Desconocido';
-$nameJp = $allergen['name_jp'] ?? null;
-$icon = $allergen['icon'] ?? 'fa-question';
+$nameJp = $allergen['japanese_name'] ?? null;
+$icon = $allergen['icon_class'] ?? 'fa-question';
 $iconColor = $allergen['icon_color'] ?? '#666666';
 $severity = $allergen['severity'] ?? 'low';
 

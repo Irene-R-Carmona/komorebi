@@ -19,6 +19,7 @@ $rolePermissions ??= [];
 $stats ??= ['total_roles' => 0, 'total_permissions' => 0, 'total_modules' => 0, 'users_with_roles' => 0];
 
 $alpineConfig = json_encode([
+    'roles' => $roles,
     'permissions' => $permissions,
     'rolePermissions' => $rolePermissions,
     'csrfToken' => Csrf::token(),
@@ -79,12 +80,17 @@ $alpineConfig = json_encode([
 </div>
 
 <script nonce="<?= $cspNonce ?? '' ?>">
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         if (globalThis.location.hash === '#permisos') {
             const scope = Alpine.$data(document.querySelector('[x-data]'));
-            if (scope) { scope.activeTab = 'matrix'; }
+            if (scope) {
+                scope.activeTab = 'matrix';
+            }
             setTimeout(() => {
-                document.querySelector('.nav-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelector('.nav-tabs')?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
             }, 100);
         }
     });

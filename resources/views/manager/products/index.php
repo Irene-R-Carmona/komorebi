@@ -53,9 +53,9 @@ $alpineConfig = json_encode([
                 @input.debounce.500ms="$el.form.requestSubmit()">
         </div>
         <?php if ($search !== ''): ?>
-        <a href="/manager/products" class="btn btn-outline-secondary">
-            <i class="bi bi-x-lg" aria-hidden="true"></i> Limpiar
-        </a>
+            <a href="/manager/products" class="btn btn-outline-secondary">
+                <i class="bi bi-x-lg" aria-hidden="true"></i> Limpiar
+            </a>
         <?php endif; ?>
     </form>
 
@@ -78,57 +78,57 @@ $alpineConfig = json_encode([
                     </thead>
                     <tbody>
                         <?php if ($products === []): ?>
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">No hay productos.</td>
-                        </tr>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No hay productos.</td>
+                            </tr>
                         <?php else: ?>
-                        <?php foreach ($products as $p): ?>
-                        <?php
-                            $pid = (int) ($p['id'] ?? 0);
-                            $isAvail = !empty($p['is_available']);
-                            $pName = htmlspecialchars((string) ($p['name'] ?? ''), ENT_QUOTES, 'UTF-8');
-                            $editData = htmlspecialchars(json_encode([
-                                'id' => $pid,
-                                'name' => (string) ($p['name'] ?? ''),
-                                'price' => $p['price'] ?? 0,
-                                'category_id' => $p['category_id'] ?? '',
-                                'description' => (string) ($p['description'] ?? ''),
-                            ], \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_THROW_ON_ERROR), \ENT_QUOTES, 'UTF-8');
-                            ?>
-                        <tr>
-                            <td class="fw-semibold"><?= $pName ?></td>
-                            <td><?= htmlspecialchars((string) ($p['category_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
-                            <td>€<?= number_format((float) ($p['price'] ?? 0), 2) ?></td>
-                            <td>
-                                <span class="badge <?= $isAvail ? 'bg-success' : 'bg-secondary' ?>">
-                                    <?= $isAvail ? 'Disponible' : 'No disponible' ?>
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-primary me-1"
-                                    @click="openEdit(<?= $editData ?>)"
-                                    aria-label="Editar <?= $pName ?>">
-                                    <i class="bi bi-pencil" aria-hidden="true"></i>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn btn-sm <?= $isAvail ? 'btn-outline-warning' : 'btn-outline-success' ?> me-1"
-                                    @click="toggle(<?= $pid ?>)"
-                                    aria-label="<?= $isAvail ? 'Desactivar' : 'Activar' ?> <?= $pName ?>">
-                                    <i class="bi <?= $isAvail ? 'bi-eye-slash' : 'bi-eye' ?>" aria-hidden="true"></i>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-danger"
-                                    @click="confirmDelete(<?= $pid ?>, '<?= $pName ?>')"
-                                    aria-label="Eliminar <?= $pName ?>">
-                                    <i class="bi bi-trash" aria-hidden="true"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
+                            <?php foreach ($products as $p): ?>
+                                <?php
+                                $pid = (int) ($p['id'] ?? 0);
+                                $isAvail = !empty($p['is_active']);
+                                $pName = htmlspecialchars((string) ($p['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+                                $editData = htmlspecialchars(json_encode([
+                                    'id' => $pid,
+                                    'name' => (string) ($p['name'] ?? ''),
+                                    'price' => $p['price'] ?? 0,
+                                    'category_id' => $p['category_id'] ?? '',
+                                    'description' => (string) ($p['description'] ?? ''),
+                                ], \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_THROW_ON_ERROR), \ENT_QUOTES, 'UTF-8');
+                                ?>
+                                <tr>
+                                    <td class="fw-semibold"><?= $pName ?></td>
+                                    <td><?= htmlspecialchars((string) ($p['category_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td>¥<?= number_format((float) ($p['price'] ?? 0), 0) ?></td>
+                                    <td>
+                                        <span class="badge <?= $isAvail ? 'bg-success' : 'bg-secondary' ?>">
+                                            <?= $isAvail ? 'Disponible' : 'No disponible' ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-primary me-1"
+                                            @click="openEdit(<?= $editData ?>)"
+                                            aria-label="Editar <?= $pName ?>">
+                                            <i class="bi bi-pencil" aria-hidden="true"></i>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm <?= $isAvail ? 'btn-outline-warning' : 'btn-outline-success' ?> me-1"
+                                            @click="toggle(<?= $pid ?>)"
+                                            aria-label="<?= $isAvail ? 'Desactivar' : 'Activar' ?> <?= $pName ?>">
+                                            <i class="bi <?= $isAvail ? 'bi-eye-slash' : 'bi-eye' ?>" aria-hidden="true"></i>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-danger"
+                                            @click="confirmDelete(<?= $pid ?>, '<?= $pName ?>')"
+                                            aria-label="Eliminar <?= $pName ?>">
+                                            <i class="bi bi-trash" aria-hidden="true"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -160,7 +160,7 @@ $alpineConfig = json_encode([
                     </div>
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label for="pm-price" class="form-label">Precio (€) *</label>
+                            <label for="pm-price" class="form-label">Precio (¥) *</label>
                             <input type="number" id="pm-price" step="0.01" min="0" class="form-control" x-model="form.price" required>
                         </div>
                         <div class="col-md-6">
@@ -168,9 +168,9 @@ $alpineConfig = json_encode([
                             <select id="pm-category" class="form-select" x-model="form.category_id">
                                 <option value="">Sin categoría</option>
                                 <?php foreach ($categories as $cat): ?>
-                                <option value="<?= (int) $cat['id'] ?>">
-                                    <?= htmlspecialchars((string) ($cat['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
-                                </option>
+                                    <option value="<?= (int) $cat['id'] ?>">
+                                        <?= htmlspecialchars((string) ($cat['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>

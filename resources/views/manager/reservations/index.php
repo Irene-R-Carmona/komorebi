@@ -99,7 +99,7 @@ $total = count($reservations);
                             <th scope="col">ID</th>
                             <th scope="col">Fecha</th>
                             <th scope="col">Hora</th>
-                            <th scope="col" class="reservations-table th--center">Personas</th>
+                            <th scope="col" class="text-center">Personas</th>
                             <th scope="col">Estado</th>
                             <th scope="col">Creación</th>
                         </tr>

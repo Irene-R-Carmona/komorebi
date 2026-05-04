@@ -32,8 +32,8 @@ $alpineConfig = json_encode([
                 <i class="bi bi-calendar3" aria-hidden="true"></i>
                 <?php
                 $formatter = new IntlDateFormatter('es_ES', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
-echo $formatter->format(new DateTime());
-?>
+                echo $formatter->format(new DateTime());
+                ?>
             </time>
         </div>
     </div>
@@ -106,9 +106,9 @@ echo $formatter->format(new DateTime());
                 <div class="stat-card__value"><?= number_format($stats['reviews'] ?? 0) ?></div>
                 <div class="stat-card__subtitle">
                     <?php
-    $pending = $stats['pending_reviews'] ?? 0;
-echo $pending > 0 ? "$pending esperando revisión" : 'Todo al día';
-?>
+                    $pending = $stats['pending_reviews'] ?? 0;
+                    echo $pending > 0 ? "$pending esperando revisión" : 'Todo al día';
+                    ?>
                 </div>
             </div>
         </div>
@@ -169,7 +169,7 @@ echo $pending > 0 ? "$pending esperando revisión" : 'Todo al día';
                         Actividad de la Semana
                     </h3>
                     <div class="glass-card__meta">
-                        <span>📊 Reservas</span>
+                        <span><i class="bi bi-bar-chart-fill" aria-hidden="true"></i> Reservas</span>
                     </div>
                 </div>
                 <div class="glass-card__body">
@@ -279,18 +279,18 @@ echo $pending > 0 ? "$pending esperando revisión" : 'Todo al día';
                                         </td>
                                         <td>
                                             <?php
-                        $dateStr = 'N/A';
-                                    $timeStr = '';
-                                    if (!empty($res['date'])) {
-                                        $timestamp = strtotime($res['date']);
-                                        if ($timestamp !== false) {
-                                            $dateStr = date('d M Y', $timestamp);
-                                        }
-                                    }
-                                    if (!empty($res['time_slot'])) {
-                                        $timeStr = e($res['time_slot']);
-                                    }
-                                    ?>
+                                            $dateStr = 'N/A';
+                                            $timeStr = '';
+                                            if (!empty($res['date'])) {
+                                                $timestamp = strtotime($res['date']);
+                                                if ($timestamp !== false) {
+                                                    $dateStr = date('d M Y', $timestamp);
+                                                }
+                                            }
+                                            if (!empty($res['time_slot'])) {
+                                                $timeStr = e($res['time_slot']);
+                                            }
+                                            ?>
                                             <div class="table-cell-date__main"><?= $dateStr ?></div>
                                             <?php if ($timeStr): ?>
                                                 <div class="table-cell-date__time"><?= $timeStr ?></div>
@@ -298,14 +298,14 @@ echo $pending > 0 ? "$pending esperando revisión" : 'Todo al día';
                                         </td>
                                         <td>
                                             <?php
-                                    $statusConfig = match ($res['status'] ?? '') {
-                                        'confirmed' => ['class' => 'badge-modern--success', 'label' => 'Confirmada'],
-                                        'pending' => ['class' => 'badge-modern--warning', 'label' => 'Pendiente'],
-                                        'cancelled' => ['class' => 'badge-modern--danger', 'label' => 'Cancelada'],
-                                        'completed' => ['class' => 'badge-modern--info', 'label' => 'Completada'],
-                                        default => ['class' => 'badge-modern--info', 'label' => ucfirst(e($res['status']))]
-                                    };
-                                    ?>
+                                            $statusConfig = match ($res['status'] ?? '') {
+                                                'confirmed' => ['class' => 'badge-modern--success', 'label' => 'Confirmada'],
+                                                'pending' => ['class' => 'badge-modern--warning', 'label' => 'Pendiente'],
+                                                'cancelled' => ['class' => 'badge-modern--danger', 'label' => 'Cancelada'],
+                                                'completed' => ['class' => 'badge-modern--info', 'label' => 'Completada'],
+                                                default => ['class' => 'badge-modern--info', 'label' => ucfirst(e($res['status']))]
+                                            };
+                                            ?>
                                             <span class="badge-modern <?= $statusConfig['class'] ?>">
                                                 <?= $statusConfig['label'] ?>
                                             </span>
@@ -337,19 +337,19 @@ echo $pending > 0 ? "$pending esperando revisión" : 'Todo al día';
                             ['key' => 'email', 'icon' => 'envelope', 'label' => 'Email', 'desc' => 'SMTP'],
                         ];
 
-foreach ($services as $service):
-    $status = $system_status[$service['key']] ?? 'offline';
-    $statusClass = match ($status) {
-        'online' => 'status-item--online',
-        'warning' => 'status-item--warning',
-        default => 'status-item--offline'
-    };
-    $statusLabel = match ($status) {
-        'online' => 'Operativo',
-        'warning' => 'Limitado',
-        default => 'Inactivo'
-    };
-    ?>
+                        foreach ($services as $service):
+                            $status = $system_status[$service['key']] ?? 'offline';
+                            $statusClass = match ($status) {
+                                'online' => 'status-item--online',
+                                'warning' => 'status-item--warning',
+                                default => 'status-item--offline'
+                            };
+                            $statusLabel = match ($status) {
+                                'online' => 'Operativo',
+                                'warning' => 'Limitado',
+                                default => 'Inactivo'
+                            };
+                        ?>
                             <li class="status-item <?= $statusClass ?>">
                                 <div class="status-item__info">
                                     <div class="status-item__icon" aria-hidden="true">

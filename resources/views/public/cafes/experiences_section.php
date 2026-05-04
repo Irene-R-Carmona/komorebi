@@ -8,7 +8,7 @@
  */
 
 if (empty($experiences)):
-    ?>
+?>
     <section class="experiences-section">
         <header class="seccion__header">
             <h2 class="seccion__titulo">Experiencias Disponibles</h2>
@@ -19,7 +19,7 @@ if (empty($experiences)):
         </div>
     </section>
 <?php
-        return;
+    return;
 endif;
 ?>
 
@@ -64,7 +64,7 @@ endif;
                             alt="<?= e($exp['name']) ?>"
                             class="experience-card__img"
                             loading="lazy"
-                            onerror="this.onerror=null; this.src='/images/ui/placeholder.svg'">
+                            @error="$event.target.src='/images/ui/placeholder.svg'">
                     <?php else: ?>
                         <div class="experience-card__placeholder"><i class="bi bi-ticket-perforated" aria-hidden="true"></i></div>
                     <?php endif; ?>
@@ -147,7 +147,7 @@ endif;
 
                 <div class="experience-card__footer">
                     <div class="experience-card__price">
-                        <span class="experience-price__amount">¥<?= number_format($price) ?></span>
+                        <span class="experience-price__amount">¥<?= number_format($price, 0) ?></span>
                         <span class="experience-price__label">/persona</span>
                     </div>
                     <a href="/reservas?cafe=<?= (int) $cafe['id'] ?>&pass=<?= (int) $exp['id'] ?>"

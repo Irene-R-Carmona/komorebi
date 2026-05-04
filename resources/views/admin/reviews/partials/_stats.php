@@ -32,7 +32,7 @@ $pendingCount = count($pending ?? []);
             </div>
             <div class="stat-card__content">
                 <div class="stat-card__label">Atención</div>
-                <div class="stat-card__value">📝</div>
+                <div class="stat-card__value"><i class="bi bi-pencil-square" aria-hidden="true"></i></div>
                 <div class="stat-card__subtitle">Requiere moderación</div>
             </div>
         </div>

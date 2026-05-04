@@ -1,8 +1,17 @@
 <?php
 
+use App\Core\Csrf;
+use App\Support\ViewHelpers;
+
 /** @var array $waitlists Lista de waitlists activas */
 /** @var array $summary Resumen por estado */
 /** @var array $filters Filtros activos */
+/** @var int $total Total de resultados sin paginar */
+/** @var array $meta Metadatos de paginación */
+/** @var array $currentParams Parámetros activos para paginación */
+$meta ??= ['page' => 1, 'has_next_page' => false];
+$currentParams ??= [];
+$total ??= count($waitlists);
 ?>
 
 <!-- Page Header -->
@@ -172,7 +181,13 @@
     <?php endif; ?>
 </div>
 
-<!-- Total -->
+<!-- Total y Paginación -->
 <p class="small text-muted mt-3">
-    Total: <strong><?= count($waitlists) ?></strong> resultado(s)
+    Total: <strong><?= $total ?></strong> resultado(s)
 </p>
+<?php $paginationHtml = ViewHelpers::paginationLinks($meta, $currentParams); ?>
+<?php if ($paginationHtml !== ''): ?>
+    <div class="d-flex justify-content-center mt-2">
+        <?= $paginationHtml ?>
+    </div>
+<?php endif; ?>

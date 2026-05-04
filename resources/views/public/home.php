@@ -19,20 +19,20 @@
         <?php
 
         use App\Core\Container;
-use App\Services\ClimaContextoService;
-use App\Services\MicroestacionesService;
+        use App\Services\ClimaContextoService;
+        use App\Services\MicroestacionesService;
 
-$climaService = Container::make(ClimaContextoService::class);
-$sekkiService = new MicroestacionesService();
-$clima = $climaService->obtenerClimaActual();
-$estacion = $sekkiService->obtenerActual();
-?>
+        $climaService = Container::make(ClimaContextoService::class);
+        $sekkiService = new MicroestacionesService();
+        $clima = $climaService->obtenerClimaActual();
+        $estacion = $sekkiService->obtenerActual();
+        ?>
 
         <!-- Badges contextuales flotantes -->
         <div class="hero__badges">
             <!-- Badge Clima Tokyo -->
             <div class="badge badge--clima" title="<?= htmlspecialchars($clima['mensaje_poetico']) ?>" role="status" aria-label="Tokyo: <?= $clima['temperatura_celsius'] ?>°C, <?= htmlspecialchars($clima['descripcion']) ?>">
-                <span class="badge__icon" aria-hidden="true">🌤️</span>
+                <span class="badge__icon" aria-hidden="true"><i class="bi bi-cloud-sun" aria-hidden="true"></i></span>
                 <span class="badge__content">
                     <span class="badge__label" aria-hidden="true">Tokyo</span>
                     <span class="badge__value" aria-hidden="true"><?= $clima['temperatura_celsius'] ?>°C · <?= htmlspecialchars($clima['descripcion']) ?></span>
@@ -85,7 +85,7 @@ $estacion = $sekkiService->obtenerActual();
             <!-- Paso 1 -->
             <div class="paso-card">
                 <span class="paso-card__numero" aria-hidden="true">01</span>
-                <span class="paso-card__icono" aria-hidden="true">🔍</span>
+                <span class="paso-card__icono" aria-hidden="true"><i class="bi bi-search"></i></span>
                 <h3 class="paso-card__titulo">Explora</h3>
                 <p class="paso-card__texto">
                     Navega por nuestro catálogo de cafés temáticos. Desde gatos juguetones hasta búhos sabios.
@@ -95,7 +95,7 @@ $estacion = $sekkiService->obtenerActual();
             <!-- Paso 2 -->
             <div class="paso-card">
                 <span class="paso-card__numero" aria-hidden="true">02</span>
-                <span class="paso-card__icono" aria-hidden="true">📅</span>
+                <span class="paso-card__icono" aria-hidden="true"><i class="bi bi-calendar3"></i></span>
                 <h3 class="paso-card__titulo">Reserva</h3>
                 <p class="paso-card__texto">
                     Elige tu fecha y hora. Nuestro sistema te garantiza tu espacio para interactuar sin agobios.
@@ -105,7 +105,7 @@ $estacion = $sekkiService->obtenerActual();
             <!-- Paso 3 -->
             <div class="paso-card">
                 <span class="paso-card__numero" aria-hidden="true">03</span>
-                <span class="paso-card__icono" aria-hidden="true">☕</span>
+                <span class="paso-card__icono" aria-hidden="true"><i class="bi bi-cup-hot"></i></span>
                 <h3 class="paso-card__titulo">Disfruta</h3>
                 <p class="paso-card__texto">
                     Relájate, toma un café premium y deja que la compañía animal haga el resto.

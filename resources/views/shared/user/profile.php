@@ -13,13 +13,13 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
     $toastMsg = (string) $flash['message'];
     if ($flash['type'] === 'success') {
         $toastClass = 'toast--exito';
-        $toastIcon = '✨';
+        $toastIcon = 'bi bi-check-circle-fill';
     } elseif ($flash['type'] === 'error') {
         $toastClass = 'toast--error';
-        $toastIcon = '⚠️';
+        $toastIcon = 'bi bi-exclamation-triangle-fill';
     } else {
         $toastClass = 'toast--info';
-        $toastIcon = 'ℹ️';
+        $toastIcon = 'bi bi-info-circle';
     }
 }
 ?>
@@ -28,10 +28,12 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
     <div class="seccion__container">
 
         <?php if ($toastClass && $toastMsg): ?>
-            <div class="toast <?= $toastClass ?> toast-wrapper">
-                <span class="toast__icono"><?= $toastIcon ?></span>
-                <span class="toast__mensaje"><?= $toastMsg ?></span>
-            </div>
+            <output aria-live="polite" aria-atomic="true" style="display:block">
+                <div class="toast <?= $toastClass ?> toast-wrapper">
+                    <span class="toast__icono"><i class="<?= e($toastIcon) ?>" aria-hidden="true"></i></span>
+                    <span class="toast__mensaje"><?= $toastMsg ?></span>
+                </div>
+            </output>
         <?php endif; ?>
 
         <div class="profile-container">
@@ -65,7 +67,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                                     @click="openPicker()"
                                     class="avatar-btn avatar-btn--upload"
                                     title="Cambiar avatar">
-                                    🎨
+                                    <i class="bi bi-palette" aria-hidden="true"></i>
                                 </button>
 
                                 <button
@@ -74,7 +76,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                                     x-show="currentAvatar || profile.avatar_url"
                                     class="avatar-btn avatar-btn--delete"
                                     title="Eliminar avatar">
-                                    🗑️
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
                                 </button>
                             </div>
 
@@ -84,8 +86,13 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                             </div>
 
                             <!-- Picker modal -->
-                            <div class="avatar-picker" x-show="showPicker" x-cloak @click.outside="closePicker()">
-                                <p class="avatar-picker__title">Elige tu avatar</p>
+                            <dialog class="avatar-picker"
+                                aria-labelledby="avatar-picker-title"
+                                x-show="showPicker"
+                                x-cloak
+                                @click.outside="closePicker()"
+                                @keydown.escape.document="showPicker && closePicker()">
+                                <p class="avatar-picker__title" id="avatar-picker-title">Elige tu avatar</p>
                                 <div class="avatar-picker__grid">
                                     <template x-for="opt in options" :key="opt.id">
                                         <button
@@ -103,8 +110,8 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                                         </button>
                                     </template>
                                 </div>
-                                <button type="button" class="avatar-picker__close" @click="closePicker()">Cancelar</button>
-                            </div>
+                                <button type="button" class="avatar-picker__close" @click="closePicker()" aria-label="Cerrar selector de avatar">Cancelar</button>
+                            </dialog>
 
                             <!-- Mensajes -->
                             <div class="avatar-messages" x-cloak>
@@ -127,14 +134,20 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                             <div class="member-progress"
                                 :style="'--progress: ' + Math.min(100, Math.max(0, level.progreso || 0)) + '%'"
                                 x-show="level.siguiente > 0">
-                                <div class="member-progress__bar">
+                                <progress
+                                    class="sr-only"
+                                    :value="Math.min(100, Math.max(0, level.progreso || 0))"
+                                    max="100"
+                                    :aria-label="'Progreso al siguiente nivel: ' + (level.progreso || 0) + '%'">
+                                </progress>
+                                <div class="member-progress__bar" aria-hidden="true">
                                     <div class="member-progress__fill"></div>
                                 </div>
 
-                                <div class="member-card__stats" style="margin-top:.35rem;">
+                                <div class="member-card__stats member-card__stats--progress">
                                     Progreso <strong x-text="(level.progreso || 0) + '%'">0%</strong>
-                                    <span x-show="level.siguiente < 999999" style="opacity:.85;"> · siguiente nivel en <span x-text="level.siguiente"></span></span>
-                                    <span x-show="level.siguiente >= 999999" style="opacity:.85;"> · nivel máximo</span>
+                                    <span class="member-card__level-hint" x-show="level.siguiente < 999999"> · siguiente nivel en <span x-text="level.siguiente"></span></span>
+                                    <span class="member-card__level-hint" x-show="level.siguiente >= 999999"> · nivel máximo</span>
                                 </div>
                             </div>
                         </div>
@@ -152,9 +165,9 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                             src="data:image/svg+xml;utf8,<?=
                                                             rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'>
                                 <rect width='80' height='80' rx='12' fill='%23f3efe9'/>
-                                <text x='40' y='48' font-size='34' text-anchor='middle'>🍵</text>
+                                <text x='40' y='48' font-size='34' text-anchor='middle'>茶</text>
                                 </svg>")
-?>" />
+                                                            ?>" />
 
                         <div class="next-adventure__details">
                             <h3 x-text="nextReservation?.cafe_name ?? 'Café'"></h3>
@@ -170,11 +183,11 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                     <div class="next-adventure__actions">
                         <a class="btn btn--primario" href="/reservas">Ver mis reservas</a>
 
-                        <form method="POST" action="/reservas/cancelar"
+                        <form method="POST"
+                            :action="'/reservas/mis-reservas/' + (nextReservation?.id ?? '') + '/cancel'"
                             x-show="nextReservationIsCancelable"
-                            data-action="confirm" data-confirm="¿Cancelar esta reserva?">
+                            @submit.prevent="if(confirm('¿Cancelar esta reserva?')) $el.submit()">
                             <?= Csrf::field() ?>
-                            <input type="hidden" name="id" :value="nextReservation?.id">
                             <button type="submit" class="btn-danger-outline">
                                 Cancelar
                             </button>
@@ -197,74 +210,12 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
             </div>
 
             <!-- QUICK ACCESS: LOYALTY & WAITLIST -->
-            <style>
-                .dashboard-quick-access {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                    gap: 1.5rem;
-                    margin: 2rem 0;
-                }
-
-                .quick-access-card {
-                    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-                    border: 2px solid #e9ecef;
-                    border-radius: 15px;
-                    padding: 1.5rem;
-                    transition: all 0.3s ease;
-                    text-decoration: none;
-                    color: inherit;
-                    display: block;
-                }
-
-                .quick-access-card:hover {
-                    transform: translateY(-5px);
-                    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-                    border-color: #667eea;
-                }
-
-                .quick-access-card__header {
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    margin-bottom: 1rem;
-                }
-
-                .quick-access-card__icon {
-                    font-size: 2.5rem;
-                    flex-shrink: 0;
-                }
-
-                .quick-access-card__title {
-                    margin: 0;
-                    font-size: 1.25rem;
-                    font-weight: 600;
-                    color: #333;
-                }
-
-                .quick-access-card__description {
-                    color: #666;
-                    margin: 0 0 1rem 0;
-                    font-size: 0.95rem;
-                    line-height: 1.5;
-                }
-
-                .quick-access-card__cta {
-                    color: #667eea;
-                    font-weight: 600;
-                    font-size: 0.95rem;
-                }
-
-                .quick-access-card:hover .quick-access-card__cta {
-                    color: #764ba2;
-                }
-            </style>
-
             <div class="dashboard-quick-access">
 
                 <!-- Tarjeta de Fidelización -->
                 <a href="/loyalty/card" class="quick-access-card">
                     <div class="quick-access-card__header">
-                        <span class="quick-access-card__icon">🎴</span>
+                        <span class="quick-access-card__icon"><i class="bi bi-card-checklist" aria-hidden="true"></i></span>
                         <h3 class="quick-access-card__title">Mi Tarjeta de Fidelización</h3>
                     </div>
                     <p class="quick-access-card__description">
@@ -278,7 +229,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                 <!-- Listas de Espera -->
                 <a href="/user/waitlists" class="quick-access-card">
                     <div class="quick-access-card__header">
-                        <span class="quick-access-card__icon">⏳</span>
+                        <span class="quick-access-card__icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
                         <h3 class="quick-access-card__title">Mis Listas de Espera</h3>
                     </div>
                     <p class="quick-access-card__description">
@@ -296,7 +247,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
 
                 <div class="settings-box">
                     <div class="settings-header">
-                        <span class="settings-icon">👤</span>
+                        <span class="settings-icon"><i class="bi bi-person" aria-hidden="true"></i></span>
                         <h3 class="settings-title">Datos Personales</h3>
                     </div>
 
@@ -316,11 +267,21 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
 
                         <button type="submit" class="btn-update">Guardar cambios</button>
                     </form>
+
+                    <div class="settings-divider"></div>
+
+                    <div class="settings-export">
+                        <p class="settings-export__hint">Descarga todos tus datos personales (GDPR Art. 20)</p>
+                        <a href="/account/export-data" class="btn-icon-text" download>
+                            <i class="bi bi-download" aria-hidden="true"></i>
+                            Exportar mis datos
+                        </a>
+                    </div>
                 </div>
 
                 <div class="settings-box">
                     <div class="settings-header">
-                        <span class="settings-icon">🔒</span>
+                        <span class="settings-icon"><i class="bi bi-lock" aria-hidden="true"></i></span>
                         <h3 class="settings-title">Seguridad</h3>
                     </div>
 
@@ -354,7 +315,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
             <!-- MIS RESEÑAS -->
             <div class="my-reviews-section">
                 <div class="settings-header">
-                    <span class="settings-icon">✍️</span>
+                    <span class="settings-icon"><i class="bi bi-pen" aria-hidden="true"></i></span>
                     <h3 class="settings-title">Mis Reseñas</h3>
                 </div>
 
@@ -398,7 +359,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                                     <?= Csrf::field() ?>
                                     <input type="hidden" name="id" :value="rev.id">
                                     <button type="button" class="btn-icon-text" @click="editReview(rev.id)">
-                                        ✏️ Editar
+                                        <i class="bi bi-pencil" aria-hidden="true"></i> Editar
                                     </button>
                                 </form>
 
@@ -406,7 +367,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                                     <?= Csrf::field() ?>
                                     <input type="hidden" name="id" :value="rev.id">
                                     <button type="submit" class="btn-icon-text btn-icon-text--danger">
-                                        🗑️ Eliminar
+                                        <i class="bi bi-trash" aria-hidden="true"></i> Eliminar
                                     </button>
                                 </form>
                             </div>

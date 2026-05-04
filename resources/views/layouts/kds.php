@@ -3,12 +3,16 @@
 
 <head>
     <?php
+
+    use App\Core\Csrf;
+
     // CSP Nonce para scripts inline
     $cspNonce = $GLOBALS['cspNonce'] ?? '';
     ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="refresh" content="30">
+    <meta name="csrf-token" content="<?= Csrf::token() ?>">
     <title>KDS | <?= e($cafe_name ?? 'Cocina') ?></title>
 
     <!-- Fuentes Técnicas (Space Grotesk + Roboto Mono) -->

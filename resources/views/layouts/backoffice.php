@@ -18,12 +18,23 @@ $extraCss ??= [];
 $extraJs ??= [];
 ?>
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="light" data-tema="light">
+<html lang="es" data-bs-theme="light" data-tema="claro">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= Csrf::token() ?>">
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('komorebi_bo_tema');
+                if (t === 'oscuro') {
+                    document.documentElement.setAttribute('data-tema', 'oscuro');
+                    document.documentElement.setAttribute('data-bs-theme', 'dark');
+                }
+            } catch (e) { /* localStorage bloqueado */ }
+        })();
+    </script>
     <title>Komorebi OS | <?= $titulo ?? 'Panel' ?></title>
 
     <!-- Preconnect to CDNs for faster resource loading -->
@@ -41,7 +52,7 @@ $extraJs ??= [];
     <?php
     // Chart.js - Solo cargar en dashboards (tree-shaked bundle, -55% size)
     $needsCharts = str_contains($currentUri, '/dashboard');
-if ($needsCharts): ?>
+    if ($needsCharts): ?>
         <script defer src="/js/charts.min.js"></script>
     <?php endif; ?>
 
@@ -62,13 +73,13 @@ if ($needsCharts): ?>
     <link href="/css/components/stat-card.css" rel="stylesheet">
 
     <?php
-// Detectar dashboard actual y cargar CSS correspondiente
-if (str_contains($currentUri, '/manager/dashboard')) {
-    echo '<link href="/css/backoffice/manager-dashboard.css" rel="stylesheet">' . "\n    ";
-} elseif (str_contains($currentUri, '/supervisor/dashboard')) {
-    echo '<link href="/css/backoffice/supervisor-dashboard.css" rel="stylesheet">' . "\n    ";
-}
-?>
+    // Detectar dashboard actual y cargar CSS correspondiente
+    if (str_contains($currentUri, '/manager/dashboard')) {
+        echo '<link href="/css/backoffice/manager-dashboard.css" rel="stylesheet">' . "\n    ";
+    } elseif (str_contains($currentUri, '/supervisor/dashboard')) {
+        echo '<link href="/css/backoffice/supervisor-dashboard.css" rel="stylesheet">' . "\n    ";
+    }
+    ?>
 
     <!-- CSS específico por vista -->
     <?php foreach ($extraCss as $css): ?>
@@ -76,7 +87,7 @@ if (str_contains($currentUri, '/manager/dashboard')) {
     <?php endforeach; ?>
 </head>
 
-<body class="d-flex">
+<body class="d-flex" data-role="<?= htmlspecialchars($role, ENT_QUOTES, 'UTF-8') ?>">
 
     <!-- Skip Link (Accesibilidad) -->
     <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
@@ -86,7 +97,7 @@ if (str_contains($currentUri, '/manager/dashboard')) {
         <!-- Brand -->
         <div class="sidebar-brand">
             <h4>
-                <span class="sidebar-brand__icon">☕</span> Komorebi<span class="text-warning">OS</span>
+                <i class="bi bi-cup-hot sidebar-brand__icon" aria-hidden="true"></i> Komorebi<span class="text-warning">OS</span>
             </h4>
         </div>
 
@@ -99,7 +110,7 @@ if (str_contains($currentUri, '/manager/dashboard')) {
                 <ul class="nav flex-column">
                     <?php foreach ($items as $item):
                         $isActive = ($currentUri === $item['url']) ? 'active' : '';
-                        ?>
+                    ?>
                         <li class="nav-item">
                             <a href="<?= $item['url'] ?>" class="nav-link <?= $isActive ?>">
                                 <i class="bi bi-<?= $item['icon'] ?>"></i>
@@ -135,7 +146,7 @@ if (str_contains($currentUri, '/manager/dashboard')) {
     <!-- Main Content Area -->
     <div class="main-content flex-grow-1 d-flex flex-column">
         <!-- Header -->
-        <header class="navbar navbar-light bg-white border-bottom px-4 py-3 navbar-main">
+        <header class="navbar border-bottom px-4 py-3 navbar-main">
             <div class="d-flex align-items-center">
                 <!-- Mobile menu toggle -->
                 <button class="btn btn-link d-lg-none me-3 p-0 navbar-mobile-toggle" type="button" data-bs-toggle="offcanvas"
@@ -152,6 +163,16 @@ if (str_contains($currentUri, '/manager/dashboard')) {
                         <i class="bi bi-geo-alt-fill"></i> <?= e($cafeName) ?>
                     </span>
                 <?php endif; ?>
+
+                <!-- Tema claro/oscuro -->
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary navbar-theme-toggle"
+                    id="boThemeToggle"
+                    title="Cambiar tema"
+                    aria-label="Cambiar tema claro/oscuro">
+                    <i class="bi bi-moon-stars" id="boThemeIcon"></i>
+                </button>
 
                 <?php if (!empty($flash)): ?>
                     <div class="toast-container position-fixed top-0 end-0 p-3">
@@ -182,15 +203,15 @@ if (str_contains($currentUri, '/manager/dashboard')) {
 
     use App\Core\View;
 
-echo View::componentToString('components/admin/delete-confirmation-modal');
-?>
+    echo View::componentToString('components/admin/delete-confirmation-modal');
+    ?>
 
     <!-- Mobile Offcanvas Menu -->
     <div class="offcanvas offcanvas-start offcanvas-sidebar" tabindex="-1" id="mobileNav"
         aria-labelledby="mobileNavLabel">
         <div class="offcanvas-header">
             <h5 class="offcanvas-title" id="mobileNavLabel">
-                <span class="sidebar-brand__icon">☕</span> Komorebi<span class="text-warning">OS</span>
+                <i class="bi bi-cup-hot sidebar-brand__icon" aria-hidden="true"></i> Komorebi<span class="text-warning">OS</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
                 aria-label="Cerrar"></button>
@@ -204,7 +225,7 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
                     <ul class="nav flex-column">
                         <?php foreach ($items as $item):
                             $isActive = ($currentUri === $item['url']) ? 'active' : '';
-                            ?>
+                        ?>
                             <li class="nav-item">
                                 <a href="<?= $item['url'] ?>" class="nav-link <?= $isActive ?>">
                                     <i class="bi bi-<?= $item['icon'] ?>"></i>
@@ -242,15 +263,54 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
     } elseif (str_contains($currentUri, '/supervisor/dashboard')) {
         echo '<script src="/js/backoffice/supervisor-dashboard.js"></script>' . "\n";
     }
-?>
+    ?>
 
     <!-- JS específico por vista (ANTES de Alpine) -->
     <?php foreach ($extraJs as $js): ?>
         <script src="/js/sections/<?= e($js) ?>?v=<?= time() ?>"></script>
     <?php endforeach; ?>
 
+    <!-- Alpine.js plugins (deben cargarse ANTES de alpine.min.js) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+
     <!-- Alpine.js se carga AL FINAL (después de los componentes) -->
     <script defer src="/js/vendor/alpine.min.js"></script>
+
+    <script>
+        (function () {
+            var html = document.documentElement;
+            var btn = document.getElementById('boThemeToggle');
+            var icon = document.getElementById('boThemeIcon');
+
+            function applyTheme(tema) {
+                if (tema === 'oscuro') {
+                    html.setAttribute('data-tema', 'oscuro');
+                    html.setAttribute('data-bs-theme', 'dark');
+                    if (icon) { icon.className = 'bi bi-sun'; }
+                } else {
+                    html.setAttribute('data-tema', 'claro');
+                    html.setAttribute('data-bs-theme', 'light');
+                    if (icon) { icon.className = 'bi bi-moon-stars'; }
+                }
+            }
+
+            // Restore on load
+            try {
+                var saved = localStorage.getItem('komorebi_bo_tema');
+                if (saved) applyTheme(saved);
+            } catch (e) { /* noop */ }
+
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = html.getAttribute('data-tema');
+                    var next = current === 'oscuro' ? 'claro' : 'oscuro';
+                    applyTheme(next);
+                    try { localStorage.setItem('komorebi_bo_tema', next); } catch (e) { /* noop */ }
+                });
+            }
+        })();
+    </script>
 
 </body>
 

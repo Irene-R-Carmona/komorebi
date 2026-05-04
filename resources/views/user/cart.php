@@ -60,13 +60,13 @@
                                                 @click="updateQty(item, item.quantity + 1)">+</button>
                                         </div>
                                     </td>
-                                    <td class="text-end" x-text="'€' + parseFloat(item.price).toFixed(2)"></td>
+                                    <td class="text-end" x-text="'¥' + parseFloat(item.price).toFixed(0)"></td>
                                     <td class="text-end fw-bold"
-                                        x-text="'€' + (item.price * item.quantity).toFixed(2)">
+                                        x-text="'¥' + (item.price * item.quantity).toFixed(0)">
                                     </td>
                                     <td class="text-end">
                                         <button class="btn btn-sm btn-outline-danger"
-                                            @click="removeItem(item.id)">
+                                            @click="removeItem(item.product_id)">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
@@ -92,12 +92,12 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
                         <span>Productos (<span x-text="items.length"></span>)</span>
-                        <span x-text="'€' + total.toFixed(2)"></span>
+                        <span x-text="'¥' + total.toFixed(0)"></span>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between fw-bold fs-5">
                         <span>Total</span>
-                        <span x-text="'€' + total.toFixed(2)"></span>
+                        <span x-text="'¥' + total.toFixed(0)"></span>
                     </div>
                     <button class="btn btn-primary w-100 mt-3">
                         Proceder al pago
@@ -116,7 +116,7 @@
     </div>
 </div>
 
-<script nonce="<?= htmlspecialchars($cspNonce ?? '', ENT_QUOTES, 'UTF-8') ?>">
+<script nonce="<?= $cspNonce ?? '' ?>">
     window.userCart = function(csrfToken) {
         return {
             items: [],
@@ -139,7 +139,7 @@
                         }
                     });
                     const json = await res.json();
-                    this.items = json.data ?? [];
+                    this.items = json.data?.items ?? [];
                 } catch {
                     this.showToast('Error al cargar el carrito', false);
                 } finally {
@@ -151,7 +151,7 @@
                 if (newQty < 1) return;
                 const delta = newQty - item.quantity;
                 try {
-                    const res = await fetch(`/api/v1/cart/items/${item.id}`, {
+                    const res = await fetch(`/api/v1/cart/items/${item.product_id}`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
@@ -182,7 +182,7 @@
                     });
                     const json = await res.json();
                     if (json.ok) {
-                        this.items = this.items.filter(i => i.id !== itemId);
+                        this.items = this.items.filter(i => i.product_id !== itemId);
                         this.showToast('Artículo eliminado', true);
                     } else {
                         this.showToast(json.error ?? 'Error', false);

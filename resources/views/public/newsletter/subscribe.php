@@ -70,7 +70,7 @@ ob_start();
                             <a href="/" class="btn btn-outline-secondary me-2">
                                 Volver al inicio
                             </a>
-                            <a href="#" onclick="history.back(); return false;" class="btn-komorebi btn-komorebi-primary">
+                            <a href="#" x-data @click.prevent="history.back()" class="btn-komorebi btn-komorebi-primary">
                                 Reintentar
                             </a>
                         </div>

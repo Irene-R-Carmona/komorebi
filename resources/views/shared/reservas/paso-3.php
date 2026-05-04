@@ -59,10 +59,10 @@ $fechaFmt = !empty($wizard['fecha'])
                         <dd><?= (int) ($wizard['guests'] ?? 1) ?></dd>
                     </div>
                     <?php if (!empty($wizard['comments'])): ?>
-                    <div class="booking-summary-dl__row">
-                        <dt>Notas</dt>
-                        <dd><?= htmlspecialchars((string) $wizard['comments'], ENT_QUOTES, 'UTF-8') ?></dd>
-                    </div>
+                        <div class="booking-summary-dl__row">
+                            <dt>Notas</dt>
+                            <dd><?= htmlspecialchars((string) $wizard['comments'], ENT_QUOTES, 'UTF-8') ?></dd>
+                        </div>
                     <?php endif; ?>
                 </dl>
 
@@ -73,15 +73,15 @@ $fechaFmt = !empty($wizard['fecha'])
                     </div>
 
                     <?php if (!empty($cartDetails)): ?>
-                    <div class="booking-summary__extras">
-                        <div class="booking-summary__extras-title">Extras del carrito</div>
-                        <?php foreach ($cartDetails as $item): ?>
-                        <div class="booking-summary__line">
-                            <span><?= (int) ($item['qty'] ?? 1) ?>× <?= htmlspecialchars((string) ($item['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
-                            <span>¥<?= number_format((float) ($item['subtotal'] ?? 0)) ?></span>
+                        <div class="booking-summary__extras">
+                            <div class="booking-summary__extras-title">Extras del carrito</div>
+                            <?php foreach ($cartDetails as $item): ?>
+                                <div class="booking-summary__line">
+                                    <span><?= (int) ($item['qty'] ?? 1) ?>× <?= htmlspecialchars((string) ($item['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
+                                    <span>¥<?= number_format((float) ($item['subtotal'] ?? 0)) ?></span>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
-                        <?php endforeach; ?>
-                    </div>
                     <?php endif; ?>
 
                     <div class="booking-summary__line booking-summary__line--total">
@@ -107,11 +107,41 @@ $fechaFmt = !empty($wizard['fecha'])
 </section>
 
 <style>
-.booking-summary-dl { margin: 20px 0; border: 1px solid var(--color-border, #dee2e6); border-radius: 8px; overflow: hidden; }
-.booking-summary-dl__row { display: flex; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--color-border, #dee2e6); }
-.booking-summary-dl__row:last-child { border-bottom: none; }
-.booking-summary-dl__row dt { color: var(--color-text-muted, #6c757d); font-size: .9em; }
-.booking-summary-dl__row dd { font-weight: 500; }
-.booking-summary__line--total { padding-top: 12px; border-top: 2px solid var(--color-border, #dee2e6); margin-top: 8px; font-size: 1.1em; }
-.rsv2__layout--single { max-width: 600px; }
+    .booking-summary-dl {
+        margin: 20px 0;
+        border: 1px solid var(--color-border, #dee2e6);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .booking-summary-dl__row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--color-border, #dee2e6);
+    }
+
+    .booking-summary-dl__row:last-child {
+        border-bottom: none;
+    }
+
+    .booking-summary-dl__row dt {
+        color: var(--color-text-muted, #6c757d);
+        font-size: .9em;
+    }
+
+    .booking-summary-dl__row dd {
+        font-weight: 500;
+    }
+
+    .booking-summary__line--total {
+        padding-top: 12px;
+        border-top: 2px solid var(--color-border, #dee2e6);
+        margin-top: 8px;
+        font-size: 1.1em;
+    }
+
+    .rsv2__layout--single {
+        max-width: 600px;
+    }
 </style>

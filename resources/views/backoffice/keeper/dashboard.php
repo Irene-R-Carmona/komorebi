@@ -151,7 +151,7 @@ $getSeverityBadgeClass = static function (string $severity): string {
                         <?php
                         // Crear array de IDs de animales pendientes de chequeo (Semana 6)
                         $pendingAnimalIds = array_column($pending_animals ?? [], 'animal_id');
-?>
+                        ?>
                         <?php foreach ($animals as $animal): ?>
                             <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
                                 <div class="card animal-card h-100 <?= in_array($animal['id'], $pendingAnimalIds, true) ? 'border-warning' : '' ?>" style="overflow:hidden;">
@@ -162,12 +162,12 @@ $getSeverityBadgeClass = static function (string $severity): string {
                                                 alt="Foto de <?= htmlspecialchars($animal['name']) ?>"
                                                 class="card-img-top animal-photo"
                                                 style="width:100%; height:180px; object-fit:cover;"
-                                                onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                                             <div class="animal-photo-placeholder d-none align-items-center justify-content-center bg-light"
-                                                style="height:180px; font-size:2.5rem;">🐾</div>
+                                                style="height:180px; font-size:2.5rem;"><i class="bi bi-image" aria-hidden="true"></i></div>
                                         <?php else: ?>
                                             <div class="animal-photo-placeholder d-flex align-items-center justify-content-center bg-light"
-                                                style="height:180px; font-size:2.5rem;">🐾</div>
+                                                style="height:180px; font-size:2.5rem;"><i class="bi bi-image" aria-hidden="true"></i></div>
                                         <?php endif; ?>
 
                                         <!-- Botón de subir foto -->
@@ -291,54 +291,51 @@ $getSeverityBadgeClass = static function (string $severity): string {
                                         </div>
                                     </div>
                                 </div>
+                            <?php endforeach; ?>
                         </div>
+                    <?php endif; ?>
                 </div>
-            <?php endforeach; ?>
             </div>
-        <?php endif; ?>
+        </div>
+        <!-- Incidentes Activos -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 fw-bold text-warning">Incidentes Activos</h6>
+                </div>
+                <div class="card-body">
+                    <?php if (empty($active_incidents)): ?>
+                        <p class="text-muted mb-0">No hay incidentes activos.</p>
+                    <?php else: ?>
+                        <?php foreach ($active_incidents as $incident): ?>
+                            <div class="incident-item border-start border-warning border-4 ps-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h6 class="mb-0 small">
+                                        <?= htmlspecialchars($incident['animal_name']) ?>
+                                    </h6>
+                                    <span class="badge bg-<?= $getSeverityBadgeClass($incident['severity']) ?> small">
+                                        <?= ucfirst($incident['severity']) ?>
+                                    </span>
+                                </div>
+                                <p class="mb-1 small text-muted">
+                                    <?= htmlspecialchars(substr($incident['description'], 0, 100)) ?>...
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <?= date('d/m H:i', strtotime($incident['created_at'])) ?>
+                                    </small>
+                                    <button class="btn btn-sm btn-outline-success resolve-incident-btn"
+                                        data-incident-id="<?= $incident['id'] ?>">
+                                        Resolver
+                                    </button>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-
-<!-- Incidentes Activos -->
-<div class="col-lg-4 mb-4">
-    <div class="card shadow">
-        <div class="card-header py-3">
-            <h6 class="m-0 fw-bold text-warning">Incidentes Activos</h6>
-        </div>
-        <div class="card-body">
-            <?php if (empty($active_incidents)): ?>
-                <p class="text-muted mb-0">No hay incidentes activos.</p>
-            <?php else: ?>
-                <?php foreach ($active_incidents as $incident): ?>
-                    <div class="incident-item border-start border-warning border-4 ps-3 mb-3">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <h6 class="mb-0 small">
-                                <?= htmlspecialchars($incident['animal_name']) ?>
-                            </h6>
-                            <span class="badge bg-<?= $getSeverityBadgeClass($incident['severity']) ?> small">
-                                <?= ucfirst($incident['severity']) ?>
-                            </span>
-                        </div>
-                        <p class="mb-1 small text-muted">
-                            <?= htmlspecialchars(substr($incident['description'], 0, 100)) ?>...
-                        </p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">
-                                <?= date('d/m H:i', strtotime($incident['created_at'])) ?>
-                            </small>
-                            <button class="btn btn-sm btn-outline-success resolve-incident-btn"
-                                data-incident-id="<?= $incident['id'] ?>">
-                                Resolver
-                            </button>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
-</div>
 </div>
 
 <!-- Modal para subir foto -->

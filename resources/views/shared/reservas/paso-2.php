@@ -39,9 +39,9 @@ $wizard_json = json_encode([
 
                 <!-- Resumen del paso anterior -->
                 <div class="booking-summary-mini">
-                    <span class="badge-mini">☕ <?= htmlspecialchars((string) ($wizard['cafe_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
-                    <span class="badge-mini">🎟 <?= htmlspecialchars((string) ($wizard['pass_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
-                    <span class="badge-mini">👥 <?= (int) ($wizard['guests'] ?? 1) ?> pers.</span>
+                    <span class="badge-mini"><i class="bi bi-cup-hot" aria-hidden="true"></i> <?= htmlspecialchars((string) ($wizard['cafe_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
+                    <span class="badge-mini"><i class="bi bi-ticket" aria-hidden="true"></i> <?= htmlspecialchars((string) ($wizard['pass_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
+                    <span class="badge-mini"><i class="bi bi-people" aria-hidden="true"></i> <?= (int) ($wizard['guests'] ?? 1) ?> pers.</span>
                     <a href="/reservar" class="booking-edit-link">Cambiar</a>
                 </div>
 
@@ -65,13 +65,13 @@ $wizard_json = json_encode([
                     <!-- Clima y festivo (reactivo) -->
                     <div class="booking-info-box" x-show="fecha && (weatherData || holidayData || loadingWeather || loadingHoliday)" x-transition>
                         <div class="booking-info-item" x-show="loadingWeather" x-transition>
-                            <div class="booking-info-item__icon">⏳</div>
+                            <div class="booking-info-item__icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></div>
                             <div class="booking-info-item__content">
                                 <div class="booking-info-item__title">Consultando clima...</div>
                             </div>
                         </div>
                         <div class="booking-info-item" x-show="!loadingWeather && weatherData" x-transition>
-                            <div class="booking-info-item__icon">🌤️</div>
+                            <div class="booking-info-item__icon"><i class="bi bi-cloud-sun" aria-hidden="true"></i></div>
                             <div class="booking-info-item__content">
                                 <div class="booking-info-item__title">Clima previsto</div>
                                 <div class="booking-weather">
@@ -82,7 +82,7 @@ $wizard_json = json_encode([
                             </div>
                         </div>
                         <div class="booking-info-item" x-show="!loadingHoliday && holidayData" x-transition>
-                            <div class="booking-info-item__icon">🎌</div>
+                            <div class="booking-info-item__icon"><i class="bi bi-flag" aria-hidden="true"></i></div>
                             <div class="booking-info-item__content">
                                 <div class="booking-info-item__title" x-text="(holidayData && holidayData.name) || 'Festividad'"></div>
                             </div>
@@ -141,88 +141,97 @@ $wizard_json = json_encode([
     </div>
 </section>
 
-<script nonce="<?= $GLOBALS['cspNonce'] ?? '' ?>">
-(function () {
-  const reservaPaso2 = (config = {}) => ({
-    fecha: '',
-    hora: '',
-    minDate: new Date().toISOString().split('T')[0],
-    cafeId: config.cafeId || 0,
-    festivos: Array.isArray(config.festivos) ? config.festivos : [],
-    slots: [],
-    loadingSlots: false,
-    loadingWeather: false,
-    loadingHoliday: false,
-    weatherData: null,
-    holidayData: null,
-    festivoBlocked: false,
-    festivoMsg: '',
+<script nonce="<?= $cspNonce ?? '' ?>">
+    (function() {
+        const reservaPaso2 = (config = {}) => ({
+            fecha: '',
+            hora: '',
+            minDate: new Date().toISOString().split('T')[0],
+            cafeId: config.cafeId || 0,
+            festivos: Array.isArray(config.festivos) ? config.festivos : [],
+            slots: [],
+            loadingSlots: false,
+            loadingWeather: false,
+            loadingHoliday: false,
+            weatherData: null,
+            holidayData: null,
+            festivoBlocked: false,
+            festivoMsg: '',
 
-    async init() {
-      this.$watch('fecha', () => this.onFechaChange());
-    },
+            async init() {
+                this.$watch('fecha', () => this.onFechaChange());
+            },
 
-    onFechaChange() {
-      this.hora = '';
-      this.slots = [];
-      this.festivoBlocked = false;
-      this.festivoMsg = '';
+            onFechaChange() {
+                this.hora = '';
+                this.slots = [];
+                this.festivoBlocked = false;
+                this.festivoMsg = '';
 
-      if (!this.fecha) return;
+                if (!this.fecha) return;
 
-      const festivo = this.festivos.find(f => f.fecha === this.fecha);
-      if (festivo && !festivo.permite_reservas) {
-        this.festivoBlocked = true;
-        this.festivoMsg = `⛔ ${festivo.nombre_es} — No se aceptan reservas este día`;
-        this.fecha = '';
-        return;
-      }
+                const festivo = this.festivos.find(f => f.fecha === this.fecha);
+                if (festivo && !festivo.permite_reservas) {
+                    this.festivoBlocked = true;
+                    this.festivoMsg = `${festivo.nombre_es} — No se aceptan reservas este día`;
+                    this.fecha = '';
+                    return;
+                }
 
-      this.loadSlots();
-      this.loadWeatherAndHoliday();
-    },
+                this.loadSlots();
+                this.loadWeatherAndHoliday();
+            },
 
-    async loadSlots() {
-      if (!this.fecha || !this.cafeId) return;
-      this.loadingSlots = true;
-      try {
-        const res = await fetch(`/api/v1/time-slots/available?cafe_id=${this.cafeId}&start_date=${this.fecha}&end_date=${this.fecha}`);
-        if (res.ok) {
-          const json = await res.json();
-          this.slots = (json.data?.slots ?? []).filter(s => s.date === this.fecha);
-        }
-      } catch { /* silent — user sees empty slot grid */ } finally {
-        this.loadingSlots = false;
-      }
-    },
+            async loadSlots() {
+                if (!this.fecha || !this.cafeId) return;
+                this.loadingSlots = true;
+                try {
+                    const res = await fetch(`/api/v1/time-slots/available?cafe_id=${this.cafeId}&start_date=${this.fecha}&end_date=${this.fecha}`);
+                    if (res.ok) {
+                        const json = await res.json();
+                        this.slots = (json.data?.slots ?? []).filter(s => s.date === this.fecha);
+                    }
+                } catch {
+                    /* silent — user sees empty slot grid */
+                } finally {
+                    this.loadingSlots = false;
+                }
+            },
 
-    async loadWeatherAndHoliday() {
-      if (!this.fecha) return;
-      this.loadingWeather = true;
-      this.loadingHoliday = true;
-      try {
-        const [weatherRes, holidayRes] = await Promise.all([
-          fetch(`/api/v1/weather?timezone=Asia/Tokyo`),
-          fetch(`/api/v1/holidays/${this.fecha}`),
-        ]);
-        if (weatherRes.ok) {
-          const d = await weatherRes.json();
-          const cur = d.data?.current;
-          this.weatherData = cur ? { temp: Math.round(cur.temp), description: cur.description ?? '' } : null;
-        }
-        if (holidayRes.ok) {
-          const d = await holidayRes.json();
-          this.holidayData = d.data?.is_holiday ? { name: d.data.holiday_name } : null;
-        }
-      } catch { /* silent */ } finally {
-        this.loadingWeather = false;
-        this.loadingHoliday = false;
-      }
-    },
-  });
-  globalThis.reservaPaso2 = reservaPaso2;
-  document.addEventListener('alpine:init', () => {
-    Alpine.data('reservaPaso2', reservaPaso2);
-  });
-})();
+            async loadWeatherAndHoliday() {
+                if (!this.fecha) return;
+                this.loadingWeather = true;
+                this.loadingHoliday = true;
+                try {
+                    const [weatherRes, holidayRes] = await Promise.all([
+                        fetch(`/api/v1/weather?timezone=Asia/Tokyo`),
+                        fetch(`/api/v1/holidays/${this.fecha}`),
+                    ]);
+                    if (weatherRes.ok) {
+                        const d = await weatherRes.json();
+                        const cur = d.data?.current;
+                        this.weatherData = cur ? {
+                            temp: Math.round(cur.temp),
+                            description: cur.description ?? ''
+                        } : null;
+                    }
+                    if (holidayRes.ok) {
+                        const d = await holidayRes.json();
+                        this.holidayData = d.data?.is_holiday ? {
+                            name: d.data.holiday_name
+                        } : null;
+                    }
+                } catch {
+                    /* silent */
+                } finally {
+                    this.loadingWeather = false;
+                    this.loadingHoliday = false;
+                }
+            },
+        });
+        globalThis.reservaPaso2 = reservaPaso2;
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('reservaPaso2', reservaPaso2);
+        });
+    })();
 </script>

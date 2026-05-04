@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-echo '<!--VISTA CARD.PHP EJECUTADA-->';
-
 /**
  * Vista: Tarjeta de Fidelización
  *
@@ -42,16 +40,24 @@ $progressPercent = (int) ($tier_progress['progress_percent'] ?? 0);
 
 // Siguiente hito de recompensa (cada 5 sellos)
 $nextMilestone = (int) (ceil($stamps / 5) * 5);
-if ($nextMilestone === $stamps && $stamps > 0) {
+if ($nextMilestone === 0 || $nextMilestone === $stamps) {
     $nextMilestone += 5;
 }
 ?>
+
+<div class="loyalty-container">
 
 <!-- Encabezado de sección -->
 <div class="loyalty-header">
     <div class="loyalty-header__content">
         <h1 class="loyalty-header__title"><i class="bi bi-card-list" aria-hidden="true"></i> Mi Tarjeta de Fidelización</h1>
         <p class="loyalty-header__description">Acumula sellos con cada visita y canjea recompensas exclusivas</p>
+    </div>
+    <div class="loyalty-header__actions">
+        <button type="button" class="btn-komorebi btn-komorebi-ghost loyalty-header__print-btn" onclick="window.print()">
+            <i class="bi bi-printer" aria-hidden="true"></i>
+            Imprimir tarjeta
+        </button>
     </div>
 </div>
 
@@ -90,12 +96,13 @@ if ($nextMilestone === $stamps && $stamps > 0) {
         <!-- Stamps Grid -->
         <div class="stamps-section">
             <h3>Tus Sellos <span class="stamps-section__hint">(próxima recompensa a los <?= $nextMilestone ?> sellos)</span></h3>
+            <p class="sr-only">Tienes <?= $stamps ?> de 20 sellos obtenidos</p>
             <div class="stamps-grid">
                 <?php for ($i = 1; $i <= 20; $i++): ?>
-                    <div class="stamp <?= $i <= $stamps ? 'stamp--filled' : '' ?>">
+                    <div class="stamp <?= $i <= $stamps ? 'stamp--filled' : '' ?>" aria-hidden="true">
                         <span class="stamp__number"><?= $i ?></span>
                         <?php if ($i <= $stamps): ?>
-                            <span class="stamp__icon"><i class="bi bi-paw-fill" aria-hidden="true"></i></span>
+                            <span class="stamp__icon"><i class="bi bi-paw-fill"></i></span>
                         <?php endif; ?>
                     </div>
                 <?php endfor; ?>
@@ -109,7 +116,13 @@ if ($nextMilestone === $stamps && $stamps > 0) {
                 <i class="bi <?= $nextTierIcon ?>" aria-hidden="true"></i>
                 <?= htmlspecialchars($tierNames[$nextTier] ?? 'Plata', ENT_QUOTES, 'UTF-8') ?>
             </h4>
-            <div class="tier-progress__bar">
+            <progress
+                class="sr-only"
+                value="<?= $progressPercent ?>"
+                max="100"
+                aria-label="Progreso hacia <?= htmlspecialchars($tierNames[$nextTier] ?? 'Plata', ENT_QUOTES, 'UTF-8') ?>: <?= $progressPercent ?>%">
+            </progress>
+            <div class="tier-progress__bar" aria-hidden="true">
                 <div class="tier-progress__fill" style="width: <?= $progressPercent ?>%"></div>
             </div>
             <p class="tier-progress__text"><?= $visitsNeeded ?> visitas más para subir de nivel</p>
@@ -143,7 +156,7 @@ if ($nextMilestone === $stamps && $stamps > 0) {
                 ?>
                 <div class="reward-card <?= $isLocked ? 'reward-card--locked' : '' ?>">
                     <div class="reward-card__header">
-                        <?php $icon = $reward['icon'] ?? '🎁'; ?>
+                        <?php $icon = $reward['icon'] ?? 'bi-gift'; ?>
                         <span class="reward-card__icon">
                             <?php if (str_starts_with($icon, 'bi-')): ?>
                                 <i class="bi <?= e($icon) ?>" aria-hidden="true"></i>
@@ -186,7 +199,7 @@ if ($nextMilestone === $stamps && $stamps > 0) {
         <div class="history-grid">
             <?php foreach (array_slice($redeemed_rewards, 0, 6) as $item): ?>
                 <div class="history-card">
-                    <?php $historyIcon = $item['reward_icon'] ?? '🎁'; ?>
+                    <?php $historyIcon = $item['reward_icon'] ?? 'bi-gift'; ?>
                     <span class="history-card__icon">
                         <?php if (str_starts_with($historyIcon, 'bi-')): ?>
                             <i class="bi <?= e($historyIcon) ?>" aria-hidden="true"></i>
@@ -208,5 +221,7 @@ if ($nextMilestone === $stamps && $stamps > 0) {
         </div>
     </section>
 <?php endif; ?>
+
+</div><!-- /.loyalty-container -->
 
 <!-- Component JS cargado desde /js/init/alpine-components.js -->

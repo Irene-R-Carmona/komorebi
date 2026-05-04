@@ -14,6 +14,7 @@ use App\Core\Csrf;
  */
 
 $reservations ??= [];
+$flash ??= null;
 
 $statusLabels = [
     'confirmed' => 'Confirmada',
@@ -30,15 +31,28 @@ $statusBadge = [
 <section class="seccion seccion--activa">
     <div class="seccion__container rsv2-lista">
 
+        <?php if (!empty($flash)): ?>
+            <div class="toast <?= ($flash['type'] ?? '') === 'success' ? 'toast--exito' : 'toast--error' ?> mb-lg" role="alert">
+                <span class="toast__icono"><?= ($flash['type'] ?? '') === 'success' ? '<i class="bi bi-check-circle-fill" aria-hidden="true"></i>' : '<i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>' ?></span>
+                <span class="toast__mensaje"><?= e((string) ($flash['message'] ?? '')) ?></span>
+            </div>
+        <?php endif; ?>
+
         <!-- Cabecera -->
         <div class="rsv2-lista__header">
             <div>
                 <h1 class="rsv2-lista__title">Mis Reservas</h1>
                 <p class="rsv2-lista__subtitle">Historial y estado de tus visitas a Komorebi Café</p>
             </div>
-            <a href="/reservas" class="btn-komorebi btn-komorebi-primary">
-                Nueva reserva
-            </a>
+            <div class="rsv2-lista__header-actions">
+                <button type="button" class="btn-komorebi btn-komorebi-ghost rsv2-lista__print-btn" onclick="window.print()">
+                    <i class="bi bi-printer" aria-hidden="true"></i>
+                    Imprimir
+                </button>
+                <a href="/reservas" class="btn-komorebi btn-komorebi-primary">
+                    Nueva reserva
+                </a>
+            </div>
         </div>
 
         <?php if (empty($reservations)): ?>
@@ -51,7 +65,7 @@ $statusBadge = [
             </div>
         <?php else: ?>
             <!-- Lista de reservas -->
-            <div class="rsv2-lista__list">
+            <div class="rsv2-lista__list" aria-live="polite" aria-relevant="additions removals" aria-atomic="false">
                 <?php foreach ($reservations as $rsv): ?>
                     <?php
                     $status = $rsv['status'] ?? '';
@@ -98,8 +112,9 @@ $statusBadge = [
 
                             <?php if ($canCancel): ?>
                                 <div class="rsv2-card__actions">
-                                    <form method="POST" action="/mis-reservas/<?= (int) ($rsv['id'] ?? 0) ?>/cancel"
-                                        onsubmit="return confirm('¿Cancelar esta reserva?')">
+                                    <form method="POST" action="/reservas/mis-reservas/<?= (int) ($rsv['id'] ?? 0) ?>/cancel"
+                                        x-data
+                                        @submit.prevent="if(confirm('¿Cancelar esta reserva?')) $el.submit()">
                                         <?= Csrf::field() ?>
                                         <button type="submit" class="btn-komorebi btn-komorebi-secondary rsv2-card__cancel">
                                             Cancelar reserva

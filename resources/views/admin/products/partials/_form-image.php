@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Partial: Sección de imagen
  * Usado en create.php y edit.php
@@ -20,7 +21,7 @@ $product ??= [];
         </h2>
     </div>
     <div class="form-section__body">
-        <?= View::componentToString('products/image-preview', [
+        <?= View::componentToString('components/products/image-preview', [
             'name' => 'image_url',
             'label' => 'URL de imagen',
             'value' => $product['image_url'] ?? '',

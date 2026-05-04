@@ -47,8 +47,8 @@ $alpineConfig = json_encode([
                 <i class="bi bi-calendar3" aria-hidden="true"></i>
                 <?php
                 $formatter = new IntlDateFormatter('es_ES', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
-echo $formatter->format(new DateTime());
-?>
+                echo $formatter->format(new DateTime());
+                ?>
             </time>
         </div>
     </div>
@@ -103,11 +103,11 @@ echo $formatter->format(new DateTime());
                 <div class="d-flex align-items-start justify-content-between">
                     <div>
                         <div class="text-muted small mb-1">Ingresos Semana</div>
-                        <h2 class="mb-0 fw-bold">' . number_format($stats['week_revenue'] ?? 0, 2) . '€</h2>
+                        <h2 class="mb-0 fw-bold">¥' . number_format($stats['week_revenue'] ?? 0, 0) . '</h2>
                         <div class="text-muted small mt-1">Últimos 7 días</div>
                     </div>
                     <div class="stat-card__icon stat-card__icon--warning">
-                        <i class="bi bi-currency-euro"></i>
+                        <i class="bi bi-currency-yen"></i>
                     </div>
                 </div>',
         ]) ?>
@@ -223,7 +223,7 @@ echo $formatter->format(new DateTime());
                             <?php foreach ($chartData['top_animals'] as $animal): ?>
                                 <li class="activity-list__item">
                                     <div class="activity-list__avatar">
-                                        🐾
+                                        <i class="bi bi-activity" aria-hidden="true"></i>
                                     </div>
                                     <div class="activity-list__content">
                                         <h4 class="activity-list__title">

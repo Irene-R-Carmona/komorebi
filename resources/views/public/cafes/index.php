@@ -43,20 +43,21 @@
                 <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'todos' }"
                     @click="setFiltro('todos')">Todos
                 </button>
-                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'gato' }"
-                    @click="setFiltro('gato')">Gatos
+                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'lounge' }"
+                    @click="setFiltro('lounge')">
+                    <i class="bi bi-house-heart" aria-hidden="true"></i> Lounge
                 </button>
-                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'buho' }"
-                    @click="setFiltro('buho')">Búhos
+                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'playroom' }"
+                    @click="setFiltro('playroom')">
+                    <i class="bi bi-controller" aria-hidden="true"></i> Playroom
                 </button>
-                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'conejo' }"
-                    @click="setFiltro('conejo')">Conejos
+                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'farm' }"
+                    @click="setFiltro('farm')">
+                    <i class="bi bi-tree" aria-hidden="true"></i> Farm
                 </button>
-                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'erizo' }"
-                    @click="setFiltro('erizo')">Erizos
-                </button>
-                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'capybara' }"
-                    @click="setFiltro('capybara')">Capibaras
+                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'zen' }"
+                    @click="setFiltro('zen')">
+                    <i class="bi bi-flower1" aria-hidden="true"></i> Zen
                 </button>
             </div>
 

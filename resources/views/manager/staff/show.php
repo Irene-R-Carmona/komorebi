@@ -71,16 +71,16 @@ $metrics ??= [];
                     <span><?= htmlspecialchars(date('d/m/Y H:i', strtotime((string) ($staff['created_at'] ?? 'now'))), ENT_QUOTES, 'UTF-8') ?></span>
                 </div>
                 <?php if (!empty($staff['last_login'])): ?>
-                <div class="info-item">
-                    <strong>Último Login:</strong>
-                    <span><?= htmlspecialchars(date('d/m/Y H:i', strtotime((string) $staff['last_login'])), ENT_QUOTES, 'UTF-8') ?></span>
-                </div>
+                    <div class="info-item">
+                        <strong>Último Login:</strong>
+                        <span><?= htmlspecialchars(date('d/m/Y H:i', strtotime((string) $staff['last_login'])), ENT_QUOTES, 'UTF-8') ?></span>
+                    </div>
                 <?php endif; ?>
                 <?php if (!empty($staff['email_verified_at'])): ?>
-                <div class="info-item">
-                    <strong>Email Verificado:</strong>
-                    <span><?= htmlspecialchars(date('d/m/Y', strtotime((string) $staff['email_verified_at'])), ENT_QUOTES, 'UTF-8') ?></span>
-                </div>
+                    <div class="info-item">
+                        <strong>Email Verificado:</strong>
+                        <span><?= htmlspecialchars(date('d/m/Y', strtotime((string) $staff['email_verified_at'])), ENT_QUOTES, 'UTF-8') ?></span>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -101,25 +101,25 @@ $metrics ??= [];
                 </thead>
                 <tbody>
                     <?php if ($shift_history === []): ?>
-                    <tr>
-                        <td colspan="6" class="text-center">No hay turnos registrados en los últimos 30 días</td>
-                    </tr>
+                        <tr>
+                            <td colspan="6" class="text-center">No hay turnos registrados en los últimos 30 días</td>
+                        </tr>
                     <?php else: ?>
-                    <?php foreach ($shift_history as $shift): ?>
-                    <?php
-                        $start = new DateTime((string) ($shift['shift_start'] ?? 'now'));
-                        $end = new DateTime((string) ($shift['shift_end'] ?? 'now'));
-                        $duration = $start->diff($end);
-                        ?>
-                    <tr>
-                        <td><?= htmlspecialchars(date('d/m/Y', strtotime((string) ($shift['shift_date'] ?? 'now'))), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td><?= htmlspecialchars(substr((string) ($shift['shift_start'] ?? ''), 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td><?= htmlspecialchars(substr((string) ($shift['shift_end'] ?? ''), 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td><?= $duration->h ?>h <?= $duration->i ?>m</td>
-                        <td><?= htmlspecialchars((string) ($shift['notes'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td>Manager</td>
-                    </tr>
-                    <?php endforeach; ?>
+                        <?php foreach ($shift_history as $shift): ?>
+                            <?php
+                            $start = new DateTime((string) ($shift['shift_start'] ?? 'now'));
+                            $end = new DateTime((string) ($shift['shift_end'] ?? 'now'));
+                            $duration = $start->diff($end);
+                            ?>
+                            <tr>
+                                <td><?= htmlspecialchars(date('d/m/Y', strtotime((string) ($shift['shift_date'] ?? 'now'))), ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars(substr((string) ($shift['shift_start'] ?? ''), 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars(substr((string) ($shift['shift_end'] ?? ''), 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= $duration->h ?>h <?= $duration->i ?>m</td>
+                                <td><?= htmlspecialchars((string) ($shift['notes'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
+                                <td>Manager</td>
+                            </tr>
+                        <?php endforeach; ?>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -128,26 +128,26 @@ $metrics ??= [];
         <!-- Tab: Performance (PHP-injected — no AJAX) -->
         <div class="tab-pane fade" id="tab-performance" role="tabpanel" aria-labelledby="tab-performance-btn">
             <?php if ($metrics === []): ?>
-            <p class="text-muted">No hay métricas disponibles.</p>
+                <p class="text-muted">No hay métricas disponibles.</p>
             <?php else: ?>
-            <div class="performance-metrics">
-                <div class="metric-card">
-                    <h4>Total de Turnos (30 días)</h4>
-                    <p class="metric-value"><?= (int) ($metrics['total_shifts'] ?? 0) ?></p>
+                <div class="performance-metrics">
+                    <div class="metric-card">
+                        <h4>Total de Turnos (30 días)</h4>
+                        <p class="metric-value"><?= (int) ($metrics['total_shifts'] ?? 0) ?></p>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Total de Horas</h4>
+                        <p class="metric-value"><?= (int) ($metrics['total_hours'] ?? 0) ?></p>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Turnos Este Mes</h4>
+                        <p class="metric-value"><?= (int) ($metrics['shifts_this_month'] ?? 0) ?></p>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Duración Promedio</h4>
+                        <p class="metric-value"><?= number_format((float) ($metrics['avg_shift_duration'] ?? 0), 1) ?>h</p>
+                    </div>
                 </div>
-                <div class="metric-card">
-                    <h4>Total de Horas</h4>
-                    <p class="metric-value"><?= (int) ($metrics['total_hours'] ?? 0) ?></p>
-                </div>
-                <div class="metric-card">
-                    <h4>Turnos Este Mes</h4>
-                    <p class="metric-value"><?= (int) ($metrics['shifts_this_month'] ?? 0) ?></p>
-                </div>
-                <div class="metric-card">
-                    <h4>Duración Promedio</h4>
-                    <p class="metric-value"><?= number_format((float) ($metrics['avg_shift_duration'] ?? 0), 1) ?>h</p>
-                </div>
-            </div>
             <?php endif; ?>
         </div>
 
@@ -158,13 +158,3 @@ $metrics ??= [];
     </div>
 
 </div>
-
-<style>
-.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap: 15px; margin: 20px 0; }
-.info-item { background: var(--admin-bg-alt,#f8f9fa); padding: 15px; border-radius: 4px; display: flex; flex-direction: column; gap: 5px; }
-.info-item strong { color: var(--admin-text-muted,#6c757d); font-size: .9em; }
-.performance-metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 20px; margin: 20px 0; }
-.metric-card { background: var(--gradient-coffee,#6f4e37); color: white; padding: 20px; border-radius: 8px; text-align: center; }
-.metric-card h4 { margin: 0 0 10px 0; font-size: .9em; opacity: .9; }
-.metric-value { font-size: 2.5em; font-weight: bold; margin: 0; }
-</style>

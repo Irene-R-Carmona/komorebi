@@ -101,7 +101,7 @@ $severityBadge = static function (string $severity): string {
                                             </td>
                                             <td>
                                                 <span class="badge bg-warning text-dark">
-                                                    <?= e(ucfirst($inc['status'])) ?>
+                                                    <?= e(['open' => 'Abierto', 'monitoring' => 'En seguimiento', 'resolved' => 'Resuelto', 'archived' => 'Archivado'][$inc['status']] ?? ucfirst($inc['status'])) ?>
                                                 </span>
                                             </td>
                                             <td class="text-end">

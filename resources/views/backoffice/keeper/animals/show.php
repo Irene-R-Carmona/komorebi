@@ -81,7 +81,7 @@ $csrfToken = \App\Core\Csrf::token();
                         alt="Foto de <?= htmlspecialchars($animal['name'], ENT_QUOTES, 'UTF-8') ?>"
                         class="card-img-top img-fluid rounded-top"
                         style="max-height:300px; object-fit:cover; width:100%;"
-                        onerror="this.onerror=null; this.src='/images/ui/placeholder-animal.svg'">
+                        onerror="this.src='/images/ui/placeholder-animal.svg'">
                 <?php else: ?>
                     <img src="/images/ui/placeholder-animal.svg"
                         alt="Sin foto de <?= htmlspecialchars($animal['name'], ENT_QUOTES, 'UTF-8') ?>"

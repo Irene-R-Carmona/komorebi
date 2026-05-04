@@ -11,10 +11,10 @@ declare(strict_types=1);
  * - array{href:string,label:string} $suggestedLink
  */
 ?>
-<div class="error-card">
-    <div class="error-icon"><i class="bi bi-signpost-2-fill"></i></div>
-    <h1 class="error-code">404</h1>
-    <h2 class="error-title">Página no encontrada</h2>
+<div class="error-card" data-kanji="迷">
+    <i class="bi bi-signpost-2-fill error-icon" aria-hidden="true"></i>
+    <p class="error-code">404</p>
+    <h1 class="error-title">Página no encontrada</h1>
 
     <p class="error-desc">
         Parece que te has perdido en el bosque.<br>
@@ -23,13 +23,14 @@ declare(strict_types=1);
 
     <?php if (!empty($requestedPath)): ?>
         <p class="error-desc error-desc--detail">
-            Ruta solicitada: <strong><?= $requestedPath ?></strong>
+            Ruta solicitada: <strong><?= htmlspecialchars($requestedPath, ENT_QUOTES, 'UTF-8') ?></strong>
         </p>
     <?php endif; ?>
 
     <div class="error-actions">
-        <a href="<?= $suggestedLink['href'] ?? '/' ?>" class="error-btn">
-            <?= $suggestedLink['label'] ?? 'Regresar al café' ?>
+        <a href="<?= htmlspecialchars($suggestedLink['href'] ?? '/', ENT_QUOTES, 'UTF-8') ?>"
+            class="error-btn">
+            <?= htmlspecialchars($suggestedLink['label'] ?? 'Regresar al café', ENT_QUOTES, 'UTF-8') ?>
         </a>
     </div>
 

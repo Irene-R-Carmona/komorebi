@@ -83,7 +83,7 @@ if (!$canReview): ?>
                 required></textarea>
             <small class="form-help" :class="{ 'form-error': !bodyValid && body }">
                 <span x-text="bodyLength + '/5000'"></span> •
-                <span x-text="bodyValid ? '✓ Listo' : '⚠ Mínimo 10 caracteres'"></span>
+                <span x-text="bodyValid ? 'Listo' : 'Mínimo 10 caracteres'"></span>
             </small>
         </div>
 

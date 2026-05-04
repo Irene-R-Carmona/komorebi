@@ -50,7 +50,17 @@ declare(strict_types=1);
                     </p>
                     <p class="mb-0">
                         <strong>Estado:</strong>
-                        <span class="badge bg-secondary"><?= htmlspecialchars($check['current_status'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <?php
+                        $animalStatusLabels = [
+                            'active' => 'Activo',
+                            'monitoring' => 'En observación',
+                            'resting' => 'Descansando',
+                            'sick' => 'Enfermo',
+                            'retired' => 'Retirado',
+                        ];
+$animalStatusLabel = $animalStatusLabels[$check['current_status']] ?? ucfirst($check['current_status']);
+?>
+                        <span class="badge bg-secondary"><?= htmlspecialchars($animalStatusLabel, ENT_QUOTES, 'UTF-8') ?></span>
                     </p>
                 </div>
             </div>
@@ -125,7 +135,7 @@ declare(strict_types=1);
                                 <td>
                                     <?php if ($check['temperature_c']): ?>
                                         <?php
-                                        $temp = (float) $check['temperature_c'];
+                $temp = (float) $check['temperature_c'];
                                         $tempClass = $temp > 39.5 ? 'text-danger' : ($temp < 36 ? 'text-warning' : 'text-success');
                                         ?>
                                         <strong class="<?= $tempClass ?>">

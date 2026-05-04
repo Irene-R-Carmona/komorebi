@@ -17,7 +17,7 @@ $equipo = $datos['equipo'] ?? [];
 <div class="static-page">
     <!-- Hero -->
     <header class="static-hero">
-        <span class="static-hero__icon"><?= $hero['icono'] ?? '🍵' ?></span>
+        <i class="<?= e($hero['icono'] ?? 'bi bi-cup-hot') ?> static-hero__icon" aria-hidden="true"></i>
         <h1 class="static-hero__title"><?= htmlspecialchars($hero['titulo'] ?? 'Nuestra Historia', ENT_QUOTES, 'UTF-8') ?></h1>
         <p class="static-hero__subtitle"><?= htmlspecialchars($hero['subtitulo'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
     </header>
@@ -78,7 +78,7 @@ $equipo = $datos['equipo'] ?? [];
                                 alt="<?= htmlspecialchars($miembro['nombre'], ENT_QUOTES, 'UTF-8') ?>"
                                 class="static-team__photo"
                                 loading="lazy"
-                                onerror="this.onerror=null; this.src='/images/ui/placeholder.svg'">
+                                onerror="this.src='/images/ui/placeholder.svg'">
                         <?php else: ?>
                             <div class="static-team__photo static-team__photo--initial">
                                 <?= mb_substr($miembro['nombre'], 0, 1) ?>

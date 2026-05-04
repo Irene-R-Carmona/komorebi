@@ -77,18 +77,22 @@ $statusLabel = $statusLabels[$reservation['status'] ?? ''] ?? ucfirst($reservati
                     </span>
                 </dd>
 
-                <?php if (!empty($reservation['comments'])): ?>
-                    <dt class="col-5 text-muted fw-normal">Comentarios</dt>
-                    <dd class="col-7 mb-0"><?= e($reservation['comments']) ?></dd>
+                <?php if (!empty($reservation['notes'])): ?>
+                    <dt class="rsv2-confirmation__dt">Comentarios</dt>
+                    <dd class="rsv2-confirmation__dd"><?= e($reservation['notes']) ?></dd>
                 <?php endif; ?>
             </dl>
         </div>
 
         <!-- Acciones -->
         <div class="rsv2-confirmation__actions">
-            <a href="/mis-reservas" class="btn-komorebi btn-komorebi-primary">
+            <a href="/reservas/mis-reservas" class="btn-komorebi btn-komorebi-primary">
                 Ver mis reservas
             </a>
+            <button type="button" class="btn-komorebi btn-komorebi-accent rsv2-confirmation__print-btn" onclick="window.print()">
+                <i class="bi bi-printer" aria-hidden="true"></i>
+                Guardar confirmación
+            </button>
             <a href="/" class="btn-komorebi btn-komorebi-ghost">
                 Volver al inicio
             </a>

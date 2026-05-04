@@ -122,7 +122,8 @@ declare(strict_types=1);
                                         <?php if ($status !== 'approved'): ?>
                                             <form method="POST"
                                                 action="/manager/reviews/<?= (int) $review['id'] ?>/approve"
-                                                onsubmit="return confirm('¿Aprobar esta reseña?');"
+                                                x-data
+                                                @submit.prevent="if(confirm('¿Aprobar esta reseña?')) $el.submit()"
                                                 class="d-inline">
                                                 <input type="hidden" name="csrf_token" value="<?= e($csrf_token) ?>">
                                                 <input type="hidden" name="id" value="<?= (int) $review['id'] ?>">

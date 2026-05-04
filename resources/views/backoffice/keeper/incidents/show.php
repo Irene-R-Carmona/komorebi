@@ -76,7 +76,7 @@ $isResolved = !empty($incident['resolved_at']);
                         <dd class="col-sm-8"><?= e($incident['description']) ?></dd>
 
                         <dt class="col-sm-4">Estado</dt>
-                        <dd class="col-sm-8"><?= e(ucfirst($incident['status'])) ?></dd>
+                        <dd class="col-sm-8"><?= e(['open' => 'Abierto', 'monitoring' => 'En seguimiento', 'resolved' => 'Resuelto', 'archived' => 'Archivado'][$incident['status']] ?? ucfirst($incident['status'])) ?></dd>
 
                         <dt class="col-sm-4">Reportado</dt>
                         <dd class="col-sm-8">

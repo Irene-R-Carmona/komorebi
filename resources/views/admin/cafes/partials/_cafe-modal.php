@@ -148,10 +148,10 @@
                                             x-model="form.category"
                                             required>
                                             <option value="">Seleccionar...</option>
-                                            <option value="lounge">🛋️ Lounge</option>
-                                            <option value="playroom">🎮 Playroom</option>
-                                            <option value="farm">🌾 Farm</option>
-                                            <option value="zen">🧘 Zen</option>
+                                            <option value="lounge">Lounge</option>
+                                            <option value="playroom">Playroom</option>
+                                            <option value="farm">Farm</option>
+                                            <option value="zen">Zen</option>
                                         </select>
                                     </div>
 
@@ -166,13 +166,13 @@
                                             x-model="form.animal_type"
                                             required>
                                             <option value="">Seleccionar...</option>
-                                            <option value="cat">🐱 Gatos</option>
-                                            <option value="dog">🐶 Perros</option>
-                                            <option value="rabbit">🐰 Conejos</option>
-                                            <option value="bird">🦜 Aves</option>
-                                            <option value="hedgehog">🦔 Erizos</option>
-                                            <option value="capybara">🦫 Capibaras</option>
-                                            <option value="mixed">🐾 Mixto</option>
+                                            <option value="cat">Gatos</option>
+                                            <option value="dog">Perros</option>
+                                            <option value="rabbit">Conejos</option>
+                                            <option value="bird">Aves</option>
+                                            <option value="hedgehog">Erizos</option>
+                                            <option value="capybara">Capibaras</option>
+                                            <option value="mixed">Mixto</option>
                                         </select>
                                     </div>
                                 </div>

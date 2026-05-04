@@ -87,10 +87,10 @@ declare(strict_types=1);
             <div class="d-flex align-items-start justify-content-between">
                 <div>
                     <div class="text-muted small mb-1">Ingresos Hoy</div>
-                    <h2 class="mb-0 fw-bold">€<?= number_format((float) $revenueToday, 0) ?></h2>
+                    <h2 class="mb-0 fw-bold">¥<?= number_format((float) $revenueToday, 0) ?></h2>
                 </div>
                 <div class="stat-card__icon stat-card__icon--warning">
-                    <i class="bi bi-currency-euro" aria-hidden="true"></i>
+                    <i class="bi bi-currency-yen" aria-hidden="true"></i>
                 </div>
             </div>
         </div>
@@ -136,7 +136,7 @@ declare(strict_types=1);
                                 'cancelled' => 'Cancelada',
                                 'no_show' => 'No Show',
                             ];
-                    ?>
+                            ?>
                             <?php foreach ($statusDistribution as $row): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($statusLabels[$row['status']] ?? ucfirst($row['status']), ENT_QUOTES, 'UTF-8') ?></td>
@@ -185,7 +185,7 @@ declare(strict_types=1);
                                         <td><?= $row['fecha'] ?></td>
                                         <td><?= $row['estado'] ?></td>
                                         <td class="text-center"><?= (int) $row['personas'] ?></td>
-                                        <td class="text-end">€<?= number_format((float) $row['importe'], 0) ?></td>
+                                        <td class="text-end">¥<?= number_format((float) $row['importe'], 0) ?></td>
                                         <td><?= $row['pago'] ?></td>
                                     </tr>
                                 <?php endforeach; ?>
