@@ -45,7 +45,6 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
             'attributes',
             'image_url',
             'current_status',
-            'last_check_at',
             'last_health_check',
             'deleted_at',
             'created_at',
@@ -119,7 +118,7 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
             GROUP BY a.id, a.cafe_id, a.current_zone_id, a.name, a.species_type,
                      a.age, a.personality, a.description, a.interaction_level,
                      a.attributes, a.current_status, a.image_url,
-                     a.last_check_at, a.last_health_check, a.deleted_at,
+                     a.last_health_check, a.deleted_at,
                      a.created_at, a.updated_at, c.name
             ORDER BY a.name
         ');

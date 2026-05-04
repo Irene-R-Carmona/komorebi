@@ -55,7 +55,7 @@ interface UserRepositoryInterface extends RepositoryInterface
     /**
      * Obtener todos los permisos efectivos de un usuario (vía roles).
      *
-     * @return array<int, string>
+     * @return array<int, array<string, mixed>>
      */
     public function getPermissions(int $userId): array;
 

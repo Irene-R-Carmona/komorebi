@@ -97,7 +97,7 @@ Container::singleton(UserRepository::class, fn () => Container::make(UserReposit
 
 // AccountDeletionService: eliminación atómica de cuentas (GDPR)
 Container::singleton(AccountDeletionService::class, fn () => new AccountDeletionService(
-    Container::make(\PDO::class)
+    Container::make(UserRepositoryInterface::class)
 ));
 
 // RewardUnlockedJob: PDO inyectado (no Database::getConnection() estático)

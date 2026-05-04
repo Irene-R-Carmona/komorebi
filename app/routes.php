@@ -477,16 +477,16 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
     /** @var array<int, MiddlewareInterface> $opsReceptionApiMiddleware */
     $opsReceptionApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager', 'supervisor', 'reception'])];
     $router->group(['prefix' => '/api/v1/ops/reception', 'middleware' => $opsReceptionApiMiddleware], function (Router $r) use ($mw): void {
-        $r->get('/reservations', 'Reception\ReceptionController@todayReservations');
-        $r->post('/reservations/{id}/checkin', 'Reception\ReceptionController@checkIn', [$mw->csrf()]);
-        $r->post('/reservations/{id}/checkout', 'Reception\ReceptionController@checkOut', [$mw->csrf()]);
+        $r->get('/reservations', 'Api\V1\Ops\ReceptionApiController@todayReservations');
+        $r->post('/reservations/{id}/checkin', 'Api\V1\Ops\ReceptionApiController@checkIn', [$mw->csrf()]);
+        $r->post('/reservations/{id}/checkout', 'Api\V1\Ops\ReceptionApiController@checkOut', [$mw->csrf()]);
     });
 
     /** @var array<int, MiddlewareInterface> $opsKitchenApiMiddleware */
     $opsKitchenApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager', 'kitchen', 'supervisor'])];
     $router->group(['prefix' => '/api/v1/ops/kitchen', 'middleware' => $opsKitchenApiMiddleware], function (Router $r) use ($mw): void {
-        $r->get('/orders', 'Kitchen\KitchenController@activeOrders');
-        $r->post('/orders/{id}/complete', 'Kitchen\KitchenController@completeOrder', [$mw->csrf()]);
+        $r->get('/orders', 'Api\V1\Ops\KitchenApiController@activeOrders');
+        $r->post('/orders/{id}/complete', 'Api\V1\Ops\KitchenApiController@completeOrder', [$mw->csrf()]);
     });
 } // end FEATURE_OPS
 
@@ -516,10 +516,15 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
         $r->get('/health-checks/{checkId}', 'Keeper\HealthCheckController@show');
         $r->get('/health-checks/history/{animalId}', 'Keeper\HealthCheckController@history');
 
-        // Incidentes de animales - flujo web (GETs)
+        // Incidentes de animales - flujo web
         $r->get('/incidents', 'Keeper\AnimalIncidentController@index');
         $r->get('/incidents/create', 'Keeper\AnimalIncidentController@create');
+        $r->post('/incidents', 'Keeper\AnimalIncidentController@store', [$mw->csrf()]);
         $r->get('/incidents/{id}', 'Keeper\AnimalIncidentController@show');
+        $r->post('/incidents/{incidentId}/resolve', 'Keeper\AnimalIncidentController@resolve', [$mw->csrf()]);
+
+        // Turnos del keeper
+        $r->get('/schedule', 'Keeper\ScheduleController@index');
     });
 
     // API Keeper — mutaciones AJAX (FASE 4B)
@@ -540,9 +545,9 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
 // ============================================================================
 
 $corsOnly = [$mw->cors()];
-$router->options('/api/v1/{resource}', fn () => '', $corsOnly);
-$router->options('/api/v1/{resource}/{id}', fn () => '', $corsOnly);
-$router->options('/api/v1/{resource}/{sub}/{id}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}/{id}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}/{sub}/{id}', fn() => '', $corsOnly);
 
 // ============================================================================
 // HEALTH CHECK
@@ -613,9 +618,15 @@ $router->get('/health', function () use ($responseFactory) {
 // ERROR HANDLERS
 // ============================================================================
 
+$router->get('/error/400', 'Shared\ErrorController@badRequest');
+$router->get('/error/401', 'Shared\ErrorController@unauthorized');
 $router->get('/error/404', 'Shared\ErrorController@notFound');
 $router->get('/error/403', 'Shared\ErrorController@forbidden');
 $router->get('/error/500', 'Shared\ErrorController@serverError');
+$router->get('/error/419', 'Shared\ErrorController@pageExpired');
+$router->get('/error/429', 'Shared\ErrorController@rateLimited');
+$router->get('/error/503', 'Shared\ErrorController@serviceUnavailable');
+$router->get('/redirect', 'Shared\ErrorController@redirect');
 
 $router->setNotFoundHandler(function () use ($responseFactory): ResponseInterface {
     $requestedPath = strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/';

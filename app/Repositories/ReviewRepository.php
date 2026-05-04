@@ -34,7 +34,7 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
     #[Override]
     protected function getSelectFields(): array
     {
-        return ['id', 'user_id', 'cafe_id', 'rating', 'title', 'body', 'status', 'rejection_reason', 'created_at', 'updated_at'];
+        return ['id', 'user_id', 'cafe_id', 'reservation_id', 'rating', 'title', 'body', 'status', 'rejection_reason', 'created_at', 'updated_at'];
     }
 
     #[Override]
@@ -103,6 +103,16 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
     {
         $offset = ($page - 1) * $perPage;
 
+        $countSql = "
+            SELECT COUNT(*) as total
+            FROM reviews
+            WHERE cafe_id = :cafe_id
+              AND status = 'approved'
+        ";
+        $countStmt = $this->getDb()->prepare($countSql);
+        $countStmt->execute(['cafe_id' => $cafeId]);
+        $total = (int) ($countStmt->fetchColumn() ?: 0);
+
         $sql = "
             SELECT r.*, u.name as user_name
             FROM reviews r
@@ -119,7 +129,10 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $pages = $perPage > 0 ? (int) \ceil($total / $perPage) : 1;
+
+        return ['data' => $data, 'total' => $total, 'pages' => $pages];
     }
 
     /**

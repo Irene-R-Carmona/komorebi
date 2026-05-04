@@ -14,7 +14,6 @@ use App\Core\Seeders\ReservationSeeder;
 use App\Core\Seeders\ReviewSeeder;
 use App\Core\Seeders\StaffSeeder;
 use App\Core\Seeders\SystemSettingsSeeder;
-use App\Core\Seeders\TelegramSeeder;
 use App\Core\Seeders\TimeSlotSeeder;
 use App\Core\Seeders\UserSeeder;
 use App\Core\Seeders\WaitlistSeeder;
@@ -22,7 +21,6 @@ use Throwable;
 
 /**
  * Orquestador de seeders.
- * Ejecuta todos los seeders dentro de una transacción.
  */
 final class DatabaseSeeder
 {
@@ -30,37 +28,53 @@ final class DatabaseSeeder
      * Tablas a limpiar (en orden para respetar FKs).
      */
     private const array TABLES = [
-        'newsletter_subscriptions',
-        'telegram_message_log',
+        'api_tokens',
+        'active_sessions',
+        'email_verification_tokens',
+        'password_reset_tokens',
+        'rate_limits',
+        'telegram_message_logs',
         'telegram_users',
+        'api_audit_logs',
+        'audit_logs',
+        'auth_audit_logs',
         'favorites',
+        'waitlist',
+        'time_slots',
+        'user_animal_visits',
+        'loyalty_rewards',
+        'loyalty_cards',
+        'loyalty_reward_catalog',
+        'supervisor_assignments',
         'reservation_items',
         'reservations',
         'reviews',
+        'animal_health_checks',
         'animal_incidents',
         'animal_relationships',
         'animal_status_log',
+        'interaction_sessions',
         'animals',
         'species_rules',
+        'staff_shifts',
         'trackers',
         'cafe_zones',
         'user_roles',
         'users',
         'product_allergens',
         'products',
+        'allergens',
         'menu_categories',
+        'weather_cache',
+        'holiday_cache',
         'cafes',
         'role_permissions',
         'permissions',
         'roles',
         'settings',
+        'newsletter_subscriptions',
     ];
 
-    /**
-     * Seeders a ejecutar (en orden).
-     *
-     * @var array<class-string>
-     */
     private const array SEEDERS = [
         RbacSeeder::class,           // 1. Crear roles y permisos
         CafeSeeder::class,           // 2. Cafés
@@ -71,11 +85,10 @@ final class DatabaseSeeder
         MenuSeeder::class,           // 7. Menú y productos
         TimeSlotSeeder::class,       // 8. Ajustar time_slots a horarios reales
         ReservationSeeder::class,    // 9. Reservas sincronizadas con time_slots
-        WaitlistSeeder::class,       // 10. Lista de espera (FASE 2.3)
+        WaitlistSeeder::class,       // 10. Lista de espera
         AnimalIncidentSeeder::class, // 11. Incidentes de animales (necesita staff)
         ReviewSeeder::class,         // 12. Reseñas de demo
-        TelegramSeeder::class,       // 13. Configuración Telegram bot
-        NewsletterSeeder::class,     // 14. Suscripciones newsletter
+        NewsletterSeeder::class,     // 13. Suscripciones newsletter
     ];
 
     private bool $isCli;
@@ -85,19 +98,14 @@ final class DatabaseSeeder
         $this->isCli = PHP_SAPI === 'cli';
     }
 
-    /**
-     * Ejecuta el proceso de seeding completo.
-     */
     public function run(): void
     {
         $this->output('Iniciando siembra', 'header');
         $this->output(\str_repeat('─', 50));
 
         try {
-            // Limpiar tablas sin transacción
             $this->truncateTables();
 
-            // Ejecutar seeders secuencialmente
             foreach (self::SEEDERS as $seederClass) {
                 try {
                     $seeder = new $seederClass();
@@ -113,20 +121,13 @@ final class DatabaseSeeder
         } catch (Throwable $e) {
             $this->output('ERROR CRÍTICO: ' . $e->getMessage(), 'error');
 
-            if (!$this->isCli) {
-                Logger::error('Error crítico en DatabaseSeeder', [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-            }
+            Logger::error('Error crítico en DatabaseSeeder', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
     }
 
-    /**
-     * Limpia todas las tablas.
-     *
-     * @return void
-     */
     private function truncateTables(): void
     {
         $pdo = Database::getConnection();
@@ -134,8 +135,6 @@ final class DatabaseSeeder
         $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
 
         foreach (self::TABLES as $table) {
-            // Usamos prepared statement pattern seguro
-            // (aunque aquí los nombres vienen de constante, es buena práctica)
             $pdo->exec("TRUNCATE TABLE `$table`");
         }
 
@@ -145,12 +144,7 @@ final class DatabaseSeeder
     }
 
     /**
-     * Output adaptativo (CLI vs Web).
-     *
-     * @param string $message Mensaje a mostrar
-     * @param string $type    Tipo visual: header|success|error|info
-     *
-     * @return void
+     * @param string $type Tipo visual: header|success|error|info
      */
     private function output(string $message, string $type = 'info'): void
     {

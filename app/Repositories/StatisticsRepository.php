@@ -48,12 +48,21 @@ final class StatisticsRepository extends AbstractRepository implements Statistic
 
     public function getSystemCounts(): array
     {
+        $row = $this->getDb()->query("
+            SELECT
+                (SELECT COUNT(*) FROM users)                                  AS users,
+                (SELECT COUNT(*) FROM cafes)                                  AS cafes,
+                (SELECT COUNT(*) FROM reservations)                           AS reservations,
+                (SELECT COUNT(*) FROM reviews)                                AS reviews,
+                (SELECT COUNT(*) FROM reviews WHERE status = 'pending')       AS pending_reviews
+        ")->fetch(PDO::FETCH_ASSOC);
+
         return [
-            'users' => (int) $this->getDb()->query('SELECT COUNT(*) FROM users')->fetchColumn(),
-            'cafes' => (int) $this->getDb()->query('SELECT COUNT(*) FROM cafes')->fetchColumn(),
-            'reservations' => (int) $this->getDb()->query('SELECT COUNT(*) FROM reservations')->fetchColumn(),
-            'reviews' => (int) $this->getDb()->query('SELECT COUNT(*) FROM reviews')->fetchColumn(),
-            'pending_reviews' => (int) $this->getDb()->query('SELECT COUNT(*) FROM reviews WHERE status = "pending"')->fetchColumn(),
+            'users'           => (int) ($row['users'] ?? 0),
+            'cafes'           => (int) ($row['cafes'] ?? 0),
+            'reservations'    => (int) ($row['reservations'] ?? 0),
+            'reviews'         => (int) ($row['reviews'] ?? 0),
+            'pending_reviews' => (int) ($row['pending_reviews'] ?? 0),
         ];
     }
 
@@ -287,7 +296,7 @@ final class StatisticsRepository extends AbstractRepository implements Statistic
     {
         return [
             'users' => (int) $this->getDb()->query('SELECT COUNT(*) FROM users')->fetchColumn(),
-            'staff' => (int) $this->getDb()->query("SELECT COUNT(*) FROM users WHERE role != 'user'")->fetchColumn(),
+            'staff' => (int) $this->getDb()->query("SELECT COUNT(DISTINCT u.id) FROM users u JOIN user_roles ur ON u.id = ur.user_id JOIN roles r ON ur.role_id = r.id WHERE r.code != 'user'")->fetchColumn(),
             'cafes' => (int) $this->getDb()->query('SELECT COUNT(*) FROM cafes')->fetchColumn(),
             'animals' => (int) $this->getDb()->query('SELECT COUNT(*) FROM animals')->fetchColumn(),
             'products' => (int) $this->getDb()->query('SELECT COUNT(*) FROM products')->fetchColumn(),
@@ -397,7 +406,7 @@ final class StatisticsRepository extends AbstractRepository implements Statistic
             ];
         }
 
-        \usort($activities, static fn ($a, $b) => \strtotime($b['timestamp']) - \strtotime($a['timestamp']));
+        \usort($activities, static fn($a, $b) => \strtotime($b['timestamp']) - \strtotime($a['timestamp']));
 
         return \array_slice($activities, 0, $limit);
     }
@@ -422,14 +431,14 @@ final class StatisticsRepository extends AbstractRepository implements Statistic
     public function getDataViewerSamples(): array
     {
         return [
-            'cafes' => $this->getDb()->query('SELECT name, animal_type, capacity_max, opening_time, closing_time, NULL AS rating_avg FROM cafes LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
+            'cafes' => $this->getDb()->query('SELECT name, animal_type, capacity_max, opening_time, closing_time, (SELECT ROUND(AVG(r.rating),1) FROM reviews r WHERE r.cafe_id = cafes.id AND r.status = \'approved\') AS rating_avg FROM cafes LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
             'products' => $this->getDb()->query('SELECT name, japanese_name, price, duration_minutes AS duration, min_pax, max_pax FROM products LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
-            'staff' => $this->getDb()->query("SELECT u.name, u.email, u.role AS roles, NULL AS cafe FROM users u WHERE u.role != 'user' LIMIT 10")->fetchAll(PDO::FETCH_ASSOC),
-            'users' => $this->getDb()->query("SELECT name, email, role AS roles FROM users WHERE role = 'user' LIMIT 10")->fetchAll(PDO::FETCH_ASSOC),
-            'reservations' => $this->getDb()->query('SELECT u.name AS user, c.name AS cafe, p.name AS pass_name, p.price AS pass_unit_price, r.reservation_date, r.reservation_time, r.guest_count, r.status, r.time_slot_id FROM reservations r LEFT JOIN users u ON u.id = r.user_id LEFT JOIN cafes c ON c.id = r.cafe_id LEFT JOIN products p ON p.id = r.pass_product_id ORDER BY r.id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
-            'time_slots' => $this->getDb()->query('SELECT id, cafe_id, slot_date, start_time, end_time, capacity_max, booked_count, is_blocked FROM time_slots ORDER BY slot_date DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
-            'reviews' => $this->getDb()->query('SELECT id, user_id, cafe_id, rating, comment, is_approved FROM reviews ORDER BY id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
-            'incidents' => $this->getDb()->query('SELECT id, animal_id, check_date, appetite, energy_level, notes FROM animal_health_checks ORDER BY id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
+            'staff' => $this->getDb()->query("SELECT u.name, u.email, GROUP_CONCAT(r.code SEPARATOR ',') AS roles, c.name AS cafe FROM users u JOIN user_roles ur ON u.id = ur.user_id JOIN roles r ON ur.role_id = r.id LEFT JOIN cafes c ON u.cafe_id = c.id WHERE r.code != 'user' GROUP BY u.id, u.name, u.email, c.name LIMIT 10")->fetchAll(PDO::FETCH_ASSOC),
+            'users' => $this->getDb()->query("SELECT u.name, u.email, r.code AS roles FROM users u JOIN user_roles ur ON u.id = ur.user_id JOIN roles r ON ur.role_id = r.id WHERE r.code = 'user' LIMIT 10")->fetchAll(PDO::FETCH_ASSOC),
+            'reservations' => $this->getDb()->query("SELECT u.name AS user, c.name AS cafe, p.name AS pass_name, p.price AS pass_unit_price, r.reservation_date, r.reservation_time, r.guest_count, r.status, IF(r.time_slot_id IS NOT NULL, 'Sí', 'No') AS has_slot FROM reservations r LEFT JOIN users u ON u.id = r.user_id LEFT JOIN cafes c ON c.id = r.cafe_id LEFT JOIN products p ON p.id = r.pass_product_id ORDER BY r.id DESC LIMIT 10")->fetchAll(PDO::FETCH_ASSOC),
+            'time_slots' => $this->getDb()->query('SELECT ts.slot_date, ts.slot_time, c.name AS cafe, ts.total_capacity, ts.reserved_spots, ts.available_spots, ts.is_blocked FROM time_slots ts LEFT JOIN cafes c ON c.id = ts.cafe_id ORDER BY ts.slot_date DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC),
+            'reviews' => $this->getDb()->query("SELECT rv.rating, COALESCE(rv.title, '') AS title, c.name AS cafe, u.name AS user, rv.created_at FROM reviews rv LEFT JOIN cafes c ON c.id = rv.cafe_id LEFT JOIN users u ON u.id = rv.user_id ORDER BY rv.id DESC LIMIT 10")->fetchAll(PDO::FETCH_ASSOC),
+            'incidents' => $this->getDb()->query("SELECT 'health' AS type, a.name AS animal, c.name AS cafe, CONCAT('Apetito: ', hc.appetite, ', Energía: ', hc.energy_level, '. ', COALESCE(hc.notes, '')) AS description, CASE WHEN hc.appetite = 'none' OR hc.energy_level = 'low' THEN 'high' WHEN hc.appetite = 'reduced' THEN 'medium' ELSE 'low' END AS severity, u.name AS reported_by FROM animal_health_checks hc LEFT JOIN animals a ON a.id = hc.animal_id LEFT JOIN cafes c ON c.id = a.cafe_id LEFT JOIN users u ON u.id = hc.checked_by ORDER BY hc.id DESC LIMIT 10")->fetchAll(PDO::FETCH_ASSOC),
         ];
     }
 }

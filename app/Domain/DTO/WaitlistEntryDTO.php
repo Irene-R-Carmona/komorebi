@@ -22,7 +22,27 @@ final readonly class WaitlistEntryDTO implements DomainTransferObject
         public string $contact_email,
         public ?string $expires_at,
         public ?string $special_requests,
-    ) {
+        public ?string $created_at = null,
+    ) {}
+
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            token: (string) ($data['token'] ?? ''),
+            status: (string) ($data['status'] ?? 'waiting'),
+            position: isset($data['position']) ? (int) $data['position'] : null,
+            time_slot_id: (int) ($data['time_slot_id'] ?? 0),
+            user_id: (int) ($data['user_id'] ?? 0),
+            slot_date: (string) ($data['slot_date'] ?? ''),
+            slot_time: (string) ($data['slot_time'] ?? ''),
+            cafe_name: (string) ($data['cafe_name'] ?? ''),
+            guest_count: (int) ($data['guest_count'] ?? 1),
+            contact_email: (string) ($data['contact_email'] ?? ''),
+            expires_at: isset($data['expires_at']) ? (string) $data['expires_at'] : null,
+            special_requests: isset($data['special_requests']) ? (string) $data['special_requests'] : null,
+            created_at: isset($data['created_at']) ? (string) $data['created_at'] : null,
+        );
     }
 
     #[Override]

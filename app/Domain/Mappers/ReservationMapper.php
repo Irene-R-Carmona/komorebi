@@ -14,7 +14,7 @@ final readonly class ReservationMapper implements MapperInterface
     {
         return new ReservationDTO(
             id: (int) $row['id'],
-            uuid: (string) $row['uuid'],
+            uuid: (string) ($row['uuid'] ?? ''),
             cafe_id: (int) $row['cafe_id'],
             user_id: (int) $row['user_id'],
             date: (string) $row['reservation_date'],

@@ -35,8 +35,9 @@ final readonly class MenuDTO implements DomainTransferObject
         public ?int    $stock_quantity,
         public array   $allergens,
         public ?string $created_at,
-    ) {
-    }
+        public array   $target_cafe_types,
+        public array   $attrs,
+    ) {}
 
     /**
      * Construye el DTO desde una fila cruda de la base de datos.
@@ -84,6 +85,16 @@ final readonly class MenuDTO implements DomainTransferObject
             stock_quantity: isset($row['stock_quantity']) ? (int) $row['stock_quantity'] : null,
             allergens: $allergens,
             created_at: isset($row['created_at']) ? (string) $row['created_at'] : null,
+            target_cafe_types: \is_array($row['target_cafe_types'] ?? null)
+                ? $row['target_cafe_types']
+                : (\is_string($row['target_cafe_types'] ?? null) && $row['target_cafe_types'] !== ''
+                    ? (\json_decode((string) $row['target_cafe_types'], true) ?? [])
+                    : []),
+            attrs: \is_array($row['attributes'] ?? null)
+                ? $row['attributes']
+                : (\is_string($row['attributes'] ?? null) && $row['attributes'] !== ''
+                    ? (\json_decode((string) $row['attributes'], true) ?? [])
+                    : []),
         );
     }
 
@@ -109,6 +120,8 @@ final readonly class MenuDTO implements DomainTransferObject
             'stock_quantity' => $this->stock_quantity,
             'allergens_list' => $this->allergens,
             'created_at' => $this->created_at,
+            'target_cafe_types' => $this->target_cafe_types,
+            'attrs' => $this->attrs,
         ];
     }
 }

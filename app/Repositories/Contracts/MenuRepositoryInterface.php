@@ -26,7 +26,7 @@ interface MenuRepositoryInterface
      * Obtener productos agrupados por categoría
      *
      * @param array<int> $excludeAllergenIds IDs de alérgenos a excluir
-     * @return MenuDTO[]
+     * @return array<int, array<string, mixed>>
      */
     public function getProductsByCategory(array $excludeAllergenIds = []): array;
 

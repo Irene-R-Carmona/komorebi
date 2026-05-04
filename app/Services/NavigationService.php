@@ -53,6 +53,10 @@ final class NavigationService implements NavigationServiceInterface
                 self::item('shop', 'Sedes', '/admin/cafes'),
                 self::item('box-seam', 'Productos', '/admin/menu'),
                 self::item('calendar-check', 'Reservas', '/admin/reservations'),
+                self::item('list-check', 'Lista de espera', '/admin/waitlists'),
+                self::item('chat-left-text', 'Reseñas', '/admin/reviews'),
+                self::item('heart', 'Animales', '/admin/animals'),
+                self::item('bar-chart', 'Informes', '/admin/reports'),
             ],
             'Seguridad' => [
                 self::item('shield-check', 'Roles', '/admin/roles'),
@@ -60,6 +64,7 @@ final class NavigationService implements NavigationServiceInterface
             ],
             'Monitoreo' => [
                 self::item('clock-history', 'Logs', '/admin/logs'),
+                self::item('table', 'Visor de datos', '/admin/data-viewer'),
             ],
             'Configuración' => [
                 self::item('gear', 'Ajustes', '/admin/settings'),
@@ -72,6 +77,9 @@ final class NavigationService implements NavigationServiceInterface
         return [
             'Gestión' => [
                 self::item('dashboard', 'Dashboard', '/manager/dashboard'),
+                self::item('reservation', 'Reservas', '/manager/reservations'),
+                self::item('review', 'Reseñas', '/manager/reviews'),
+                self::item('cafe', 'Mi Café', '/manager/cafe'),
                 self::item('stock', 'Productos', '/manager/products'),
                 self::item('staff', 'Personal', '/manager/staff'),
                 self::item('reports', 'Reportes', '/manager/reports'),
@@ -92,6 +100,7 @@ final class NavigationService implements NavigationServiceInterface
                 self::item('animals', 'Animales', '/keeper/animals'),
                 self::item('health', 'Chequeos de Salud', '/keeper/health-checks'),
                 self::item('incidents', 'Incidentes', '/keeper/incidents'),
+                self::item('calendar-week', 'Mis Turnos', '/keeper/schedule'),
             ],
         ];
     }
@@ -101,6 +110,7 @@ final class NavigationService implements NavigationServiceInterface
         return [
             'Supervisión' => [
                 self::item('dashboard', 'Dashboard', '/supervisor/dashboard'),
+                self::item('assignment', 'Asignaciones', '/supervisor/assignments'),
                 self::item('reception', 'Recepción', self::URL_OPS_RECEPTION),
                 self::item('kitchen', 'Cocina', '/ops/kitchen'),
             ],

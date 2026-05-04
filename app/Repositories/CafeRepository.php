@@ -425,7 +425,7 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
 
         $stmt = $this->getDb()->prepare(
             "SELECT id, name, species_type, age, personality, description,
-                    interaction_level, image_url, current_status
+                    interaction_level, attributes, image_url, current_status
              FROM animals
              WHERE cafe_id = :cafe_id AND current_status IN ('active', 'resting')
              ORDER BY name"

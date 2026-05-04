@@ -26,6 +26,7 @@ final readonly class WaitlistMapper implements MapperInterface
             contact_email: (string) ($row['contact_email'] ?? ''),
             expires_at: isset($row['expires_at']) ? (string) $row['expires_at'] : null,
             special_requests: isset($row['special_requests']) ? (string) $row['special_requests'] : null,
+            created_at: isset($row['created_at']) ? (string) $row['created_at'] : null,
         );
     }
 }

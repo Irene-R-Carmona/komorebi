@@ -71,6 +71,9 @@ final class View
         // 2) Ahora escapar datos (previene XSS)
         $data = self::escapeData($data);
 
+        // 3a) Propagar CSP nonce para que los partials puedan usarlo sin acceder a $GLOBALS
+        $data['cspNonce'] ??= $GLOBALS['cspNonce'] ?? '';
+
         // 3) Renderizar contenido de la vista
         $content = self::capture($view, $data);
 
@@ -324,7 +327,7 @@ final class View
     {
         $viewFile = self::resolvePath($view);
 
-        $scope = new class () {
+        $scope = new class() {
             public array $sections = [];
             private ?string $current = null;
             public ?string $layout = null;

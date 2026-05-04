@@ -46,7 +46,7 @@ final class MenuRepository implements MenuRepositoryInterface
      */
     public function getProductsByCategory(array $excludeAllergenIds = []): array
     {
-        $excludeAllergenIds = \array_values(\array_filter(\array_map('intval', $excludeAllergenIds), static fn ($v) => $v > 0));
+        $excludeAllergenIds = \array_values(\array_filter(\array_map('intval', $excludeAllergenIds), static fn($v) => $v > 0));
 
         $sql = "
             SELECT
@@ -61,6 +61,7 @@ final class MenuRepository implements MenuRepositoryInterface
                 p.image_url,
                 p.target_cafe_types,
                 p.target_animal_types,
+                p.attributes,
                 mc.name AS category_name,
                 mc.slug AS category_slug,
                 GROUP_CONCAT(DISTINCT a.id) AS allergen_ids,
@@ -85,7 +86,7 @@ final class MenuRepository implements MenuRepositoryInterface
             )";
         }
 
-        $sql .= ' GROUP BY p.id, p.name, p.japanese_name, p.description, p.price, p.category_id, p.product_type, p.is_active, p.image_url, p.target_cafe_types, p.target_animal_types, mc.name, mc.slug
+        $sql .= ' GROUP BY p.id, p.name, p.japanese_name, p.description, p.price, p.category_id, p.product_type, p.is_active, p.image_url, p.target_cafe_types, p.target_animal_types, p.attributes, mc.name, mc.slug
                   ORDER BY mc.display_order, p.name';
 
         $stmt = $this->db->prepare($sql);

@@ -131,7 +131,7 @@ final class ReviewModerationService implements ReviewModerationServiceInterface
     public function listPendingReviews(int $page = 1): array
     {
         try {
-            return $this->reviewRepository->findPendingPaginated(10, $page);
+            return $this->reviewRepository->findPendingPaginated($page, 11);
         } catch (Exception $e) {
             Logger::error('Error al listar reseñas pendientes', [
                 'exception' => \get_class($e),

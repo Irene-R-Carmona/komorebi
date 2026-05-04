@@ -25,7 +25,28 @@ final readonly class ReservationDTO implements DomainTransferObject
         public ?string $payment_status,
         public ?string $payment_method,
         public ?string $notes,
-    ) {
+    ) {}
+
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            uuid: (string) ($data['uuid'] ?? ''),
+            cafe_id: (int) ($data['cafe_id'] ?? 0),
+            user_id: (int) ($data['user_id'] ?? 0),
+            date: (string) ($data['date'] ?? ''),
+            time: (string) ($data['time'] ?? ''),
+            guest_count: (int) ($data['guest_count'] ?? 1),
+            status: (string) ($data['status'] ?? 'pending'),
+            time_slot_id: isset($data['time_slot_id']) ? (int) $data['time_slot_id'] : null,
+            pass_name: isset($data['pass_name']) ? (string) $data['pass_name'] : null,
+            check_in_at: isset($data['check_in_at']) ? (string) $data['check_in_at'] : null,
+            check_out_at: isset($data['check_out_at']) ? (string) $data['check_out_at'] : null,
+            final_amount: isset($data['final_amount']) ? (float) $data['final_amount'] : null,
+            payment_status: isset($data['payment_status']) ? (string) $data['payment_status'] : null,
+            payment_method: isset($data['payment_method']) ? (string) $data['payment_method'] : null,
+            notes: isset($data['notes']) ? (string) $data['notes'] : null,
+        );
     }
 
     #[Override]

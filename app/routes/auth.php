@@ -39,8 +39,10 @@ $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw,
     $r->post('/logout', 'Auth\AuthController@logout', [$mw->csrf()]);
     $r->get('/profile', 'Shared\UserController@profile');
     $r->get('/perfil', 'Shared\UserController@profile');
-    $r->post('/profile/update', 'Shared\UserController@updateProfile', [$mw->csrf()]);
-    $r->post('/profile/avatar', 'Shared\UserController@updateAvatar', [$mw->csrf()]);
+    $r->post('/profile/update', 'Shared\UserController@update', [$mw->csrf()]);
+    $r->post('/perfil/update', 'Shared\UserController@update', [$mw->csrf()]);
+    $r->post('/perfil/password', 'Shared\UserController@changePassword', [$mw->csrf()]);
+    $r->post('/profile/avatar', 'Shared\UserController@uploadAvatar', [$mw->csrf()]);
     $r->get('/account/sessions', 'Auth\AccountController@sessions');
     $r->post('/account/sessions/revoke/{sessionId}', 'Auth\AccountController@revokeSession', [$mw->csrf()]);
     $r->post('/account/sessions/revoke-all', 'Auth\AccountController@revokeAllOther', [$mw->csrf()]);
@@ -52,9 +54,11 @@ $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw,
     // Avatar upload/delete
     $r->post('/account/avatar/upload', 'Shared\UserController@uploadAvatar', [$mw->csrf()]);
     $r->post('/account/avatar/delete', 'Shared\UserController@deleteAvatar', [$mw->csrf()]);
+    $r->get('/account/export-data', 'Shared\UserController@exportData');
 
     $r->get('/reservas/confirmacion/{id}', 'Shared\ReservationController@confirmation');
     $r->get('/reservas/mis-reservas', 'Shared\ReservationController@userReservations');
+    $r->post('/reservas/mis-reservas/{id}/cancel', 'Shared\ReservationController@cancelReservation', [$mw->csrf()]);
     $r->get('/user/waitlists', 'User\WaitlistController@index');
     $r->get('/mis-favoritos', 'User\FavoriteController@index');
     $r->get('/carrito', 'User\CartController@index');

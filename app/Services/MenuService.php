@@ -56,12 +56,13 @@ final class MenuService extends BaseService implements MenuServiceInterface
     #[Override]
     public function getProductsByCategory(array $excludeAllergens = []): array
     {
-        $products = $this->menuRepository->getProductsByCategory($excludeAllergens);
+        $rows = $this->menuRepository->getProductsByCategory($excludeAllergens);
 
-        // Agrupar DTOs por category_id; allergens ya parseados en MenuDTO::fromArray()
+        // Convertir filas crudas a DTOs y agrupar por category_id
         $grouped = [];
-        foreach ($products as $product) {
-            $grouped[$product->category_id][] = $product->toViewArray();
+        foreach ($rows as $row) {
+            $dto = MenuDTO::fromArray($row);
+            $grouped[$dto->category_id][] = $dto->toViewArray();
         }
 
         return $grouped;
@@ -77,7 +78,7 @@ final class MenuService extends BaseService implements MenuServiceInterface
     {
         $dtos = $this->menuRepository->getAllProducts();
 
-        return \array_map(static fn (MenuDTO $dto): array => $dto->toViewArray(), $dtos);
+        return \array_map(static fn(MenuDTO $dto): array => $dto->toViewArray(), $dtos);
     }
 
     /**
@@ -129,10 +130,10 @@ final class MenuService extends BaseService implements MenuServiceInterface
             'allergens' => $this->getAllergens(),
             // Añadir tipos de café para filtrado (coinciden con Cafe::CATEGORY_*)
             'cafeTypes' => [
-                ['value' => 'lounge', 'label' => 'Cat Lounge', 'icon' => '🐱'],
-                ['value' => 'playroom', 'label' => 'Cat Playroom', 'icon' => '🐾'],
-                ['value' => 'farm', 'label' => 'Mini Farm', 'icon' => '🐰'],
-                ['value' => 'zen', 'label' => 'Zen Garden', 'icon' => '🌿'],
+                ['value' => 'lounge', 'label' => 'Cat Lounge', 'icon' => 'bi bi-house-heart'],
+                ['value' => 'playroom', 'label' => 'Cat Playroom', 'icon' => 'bi bi-controller'],
+                ['value' => 'farm', 'label' => 'Mini Farm', 'icon' => 'bi bi-tree'],
+                ['value' => 'zen', 'label' => 'Zen Garden', 'icon' => 'bi bi-flower1'],
             ],
         ];
     }

@@ -12,6 +12,7 @@ use Exception;
 use finfo;
 use Override;
 use Random\RandomException;
+use Throwable;
 
 /**
  * Servicio de gestión de subida de archivos
@@ -36,17 +37,11 @@ final class FileUploadService implements FileUploadServiceInterface
     private string $avatarPath;
     private string $animalPhotoPath;
 
-    /**
-     * @throws ConfigurationException
-     */
     public function __construct(?string $basePath = null)
     {
         $this->uploadBasePath = $basePath ?? __DIR__ . '/../../storage/uploads';
         $this->avatarPath = $this->uploadBasePath . '/avatars';
         $this->animalPhotoPath = $this->uploadBasePath . '/animals';
-
-        // Crear directorios si no existen
-        $this->ensureDirectoriesExist();
     }
 
     /**
@@ -60,6 +55,13 @@ final class FileUploadService implements FileUploadServiceInterface
     #[Override]
     public function uploadAvatar(array $file, int $userId): Result
     {
+        // Crear directorios si no existen
+        try {
+            $this->ensureDirectoriesExist();
+        } catch (Throwable $e) {
+            return Result::fail('El almacenamiento no está disponible: ' . $e->getMessage());
+        }
+
         // Validar archivo
         $validation = $this->validateFile(
             $file,
@@ -129,6 +131,13 @@ final class FileUploadService implements FileUploadServiceInterface
     #[Override]
     public function uploadAnimalPhoto(array $file, int $animalId): Result
     {
+        // Crear directorios si no existen
+        try {
+            $this->ensureDirectoriesExist();
+        } catch (Throwable $e) {
+            return Result::fail('El almacenamiento no está disponible: ' . $e->getMessage());
+        }
+
         // Validar archivo
         $validation = $this->validateFile(
             $file,

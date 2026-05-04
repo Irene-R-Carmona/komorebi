@@ -34,11 +34,22 @@ final class RequestFactory
 
         $request = $creator->fromGlobals();
 
-        // Nyholm/psr7-server solo parsea automáticamente JSON.
         // Para formularios HTML (application/x-www-form-urlencoded y multipart/form-data),
-        // necesitamos parsear $_POST manualmente.
+        // parseamos $_POST manualmente ya que Nyholm no lo hace automáticamente.
         if (!empty($_POST)) {
             $request = $request->withParsedBody($_POST);
+        } elseif ($request->getParsedBody() === null) {
+            // Para peticiones JSON (application/json), parsear el body manualmente.
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+            if (\str_contains($contentType, 'application/json')) {
+                $rawBody = (string) $request->getBody();
+                if ($rawBody !== '') {
+                    $decoded = \json_decode($rawBody, true);
+                    if (\is_array($decoded)) {
+                        $request = $request->withParsedBody($decoded);
+                    }
+                }
+            }
         }
 
         return $request;

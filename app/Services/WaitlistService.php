@@ -534,6 +534,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
 
         return Result::ok([
             'id' => $entry->id,
+            'token' => $entry->token,
             'position' => $positionInt,
             'status' => $entry->status,
             'guest_count' => $entry->guest_count,
@@ -541,7 +542,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             'estimated_wait_minutes' => $estimatedWaitMinutes,
             'expires_at' => $entry->expires_at,
             'notified_at' => null,
-            'created_at' => null,
+            'created_at' => $entry->created_at,
             'user_name' => null,
             'time_slot' => [
                 'id' => $slot->id,

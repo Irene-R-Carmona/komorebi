@@ -82,7 +82,7 @@ final class AnimalIncidentSeeder
                 'type' => 'health',
                 'severity' => 'high',
                 'description' => 'Rechazo de comida durante dos comidas consecutivas. Aletargado. Vet contactado - revisando mañana 10:00.',
-                'status' => 'in_progress',
+                'status' => 'monitoring',
                 'resolved' => false,
             ],
             [
@@ -96,7 +96,7 @@ final class AnimalIncidentSeeder
                 'type' => 'injury',
                 'severity' => 'medium',
                 'description' => 'Pequeño arañazo en almohadilla trasera izquierda (2cm). Limpiado con antiseptico. Revisando evolución cada 4h.',
-                'status' => 'in_progress',
+                'status' => 'monitoring',
                 'resolved' => false,
             ],
             [

@@ -241,7 +241,7 @@ final class Setting
         }
 
         $instance = new self();
-        $stmt = $instance->db->query('SELECT `key`, `value`, `type`, `group_name` FROM settings');
+        $stmt = $instance->getDb()->query('SELECT `key`, `value`, `type`, `group_name` FROM settings');
         $settings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($settings as $setting) {

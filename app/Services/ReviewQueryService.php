@@ -15,8 +15,7 @@ final class ReviewQueryService implements ReviewQueryServiceInterface
 {
     public function __construct(
         private ReviewRepositoryInterface $reviewRepository,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function getReviewsByUserId(int $userId): array
@@ -40,7 +39,7 @@ final class ReviewQueryService implements ReviewQueryServiceInterface
     public function listApprovedReviews(int $cafeId, int $page = 1): array
     {
         try {
-            return $this->reviewRepository->findApprovedPaginated($cafeId, 10, $page);
+            return $this->reviewRepository->findApprovedPaginated($cafeId, $page, 10);
         } catch (Exception $e) {
             Logger::error('Error al listar reseñas aprobadas', [
                 'exception' => \get_class($e),

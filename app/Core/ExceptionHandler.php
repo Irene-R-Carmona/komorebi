@@ -146,7 +146,7 @@ final class ExceptionHandler
             View::render('errors/404', [
                 'message' => $exception->getMessage(),
                 'resource_type' => $exception->getResourceType(),
-            ]);
+            ], [], 'errors');
         }
     }
 
@@ -197,7 +197,7 @@ final class ExceptionHandler
             View::render('errors/403', [
                 'message' => $exception->getMessage(),
                 'permission' => $exception->getPermission(),
-            ]);
+            ], [], 'errors');
         }
     }
 
@@ -255,9 +255,10 @@ final class ExceptionHandler
                 @\http_response_code($exception->getHttpCode());
             }
             View::render('errors/429', [
+                'titulo' => '429 - Demasiadas solicitudes',
                 'message' => $exception->getMessage(),
-                'retry_after' => $exception->getRetryAfter(),
-            ]);
+                'retryAfter' => $exception->getRetryAfter(),
+            ], [], 'errors');
         }
     }
 
@@ -281,7 +282,7 @@ final class ExceptionHandler
             if (!\headers_sent()) {
                 @\http_response_code($exception->getHttpCode());
             }
-            View::render('errors/400', ['message' => $exception->getMessage()]);
+            View::render('errors/400', ['message' => $exception->getMessage()], [], 'errors');
         }
     }
 
@@ -298,7 +299,7 @@ final class ExceptionHandler
             if (!\headers_sent()) {
                 @\http_response_code(500);
             }
-            View::render('errors/500', ['message' => $exception->getMessage()]);
+            View::render('errors/500', ['message' => $exception->getMessage()], [], 'errors');
         }
     }
 
@@ -320,7 +321,7 @@ final class ExceptionHandler
             if (!\headers_sent()) {
                 @\http_response_code(500);
             }
-            View::render('errors/500', ['message' => $exception->getMessage()]);
+            View::render('errors/500', ['message' => $exception->getMessage()], [], 'errors');
         }
     }
 
@@ -346,7 +347,7 @@ final class ExceptionHandler
             View::render('errors/500', [
                 'message' => $message,
                 'show_details' => $isDebug,
-            ]);
+            ], [], 'errors');
         }
     }
 
@@ -372,7 +373,7 @@ final class ExceptionHandler
             View::render('errors/500', [
                 'message' => $message,
                 'show_details' => false, // Nunca mostrar config
-            ]);
+            ], [], 'errors');
         }
     }
 
@@ -395,9 +396,10 @@ final class ExceptionHandler
                 @\http_response_code(503);
             }
             View::render('errors/503', [
+                'titulo' => '503 - Servicio no disponible',
                 'message' => $exception->getMessage(),
                 'service' => $exception->getServiceName(),
-            ]);
+            ], [], 'errors');
         }
     }
 
@@ -436,7 +438,7 @@ final class ExceptionHandler
                 'error_id' => $errorId,
                 'show_details' => $isDebug,
                 'exception' => $isDebug ? (string) $exception : null,
-            ]);
+            ], [], 'errors');
         }
     }
 

@@ -90,9 +90,11 @@ if (Env::bool('FEATURE_KEEPER', true)) {
         // Incidentes de animales - flujo web
         $r->get('/incidents', 'Keeper\AnimalIncidentController@index');
         $r->get('/incidents/create', 'Keeper\AnimalIncidentController@create');
+        $r->post('/incidents', 'Keeper\AnimalIncidentController@store', [$mw->csrf()]);
         $r->get('/incidents/{id}', 'Keeper\AnimalIncidentController@show');
         $r->get('/incidents/{id}/edit', 'Keeper\AnimalIncidentController@edit');
         $r->post('/incidents/{id}', 'Keeper\AnimalIncidentController@update', [$mw->csrf()]);
+        $r->post('/incidents/{incidentId}/resolve', 'Keeper\AnimalIncidentController@resolve', [$mw->csrf()]);
     });
 
     // API Keeper — mutaciones AJAX (FASE 4B)

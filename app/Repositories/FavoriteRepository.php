@@ -76,11 +76,11 @@ final class FavoriteRepository extends AbstractRepository implements FavoriteRep
     {
         $stmt = $this->getDb()->prepare(
             'SELECT c.id, c.name, c.japanese_name, c.slug, c.location,
-                    c.category, c.animal_type, c.price_per_hour, c.rating,
+                    c.category, c.animal_type, c.price_per_hour, c.rating_avg,
                     c.image_url, f.created_at AS favorited_at
              FROM favorites f
              JOIN cafes c ON c.id = f.cafe_id
-             WHERE f.user_id = :user_id AND c.is_active = 1
+             WHERE f.user_id = :user_id AND c.is_active = 1 AND c.deleted_at IS NULL
              ORDER BY f.created_at DESC'
         );
         $stmt->execute(['user_id' => $userId]);
@@ -114,7 +114,7 @@ final class FavoriteRepository extends AbstractRepository implements FavoriteRep
     {
         $stmt = $this->getDb()->prepare(
             'SELECT c.id, c.name, c.slug, c.category, c.animal_type,
-                    c.rating, c.image_url,
+                    c.rating_avg, c.image_url,
                     COUNT(f.user_id) as favorites_count
              FROM cafes c
              JOIN favorites f ON f.cafe_id = c.id

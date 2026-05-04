@@ -43,7 +43,7 @@ interface ReviewRepositoryInterface
      * @param int $cafeId
      * @param int $page
      * @param int $perPage
-     * @return array<int, array<string, mixed>>
+     * @return array{data: array<int, array<string, mixed>>, total: int, pages: int}
      */
     public function findApprovedPaginated(int $cafeId, int $page = 1, int $perPage = 10): array;
 

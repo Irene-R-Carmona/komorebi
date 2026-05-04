@@ -24,7 +24,21 @@ final readonly class LoyaltyCardDTO implements DomainTransferObject
         public ?string $last_stamp_at,
         public string $created_at,
         public string $updated_at,
-    ) {
+    ) {}
+
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            user_id: (int) ($data['user_id'] ?? 0),
+            stamps: (int) ($data['stamps'] ?? 0),
+            current_tier: (string) ($data['current_tier'] ?? 'bronze'),
+            visits_count: (int) ($data['visits_count'] ?? 0),
+            total_rewards_redeemed: (int) ($data['total_rewards_redeemed'] ?? 0),
+            last_stamp_at: isset($data['last_stamp_at']) ? (string) $data['last_stamp_at'] : null,
+            created_at: (string) ($data['created_at'] ?? ''),
+            updated_at: (string) ($data['updated_at'] ?? ''),
+        );
     }
 
     #[Override]

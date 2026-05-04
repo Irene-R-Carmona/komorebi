@@ -47,8 +47,8 @@ final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepos
         }
 
         $this->getDb()->prepare(
-            "INSERT INTO loyalty_cards (user_id, stamps, current_tier, visits_count)
-             VALUES (?, 0, 'bronze', 0)"
+            'INSERT INTO loyalty_cards (user_id, stamps, visits_count)
+             VALUES (?, 0, 0)'
         )->execute([$userId]);
 
         $created = $this->findCardByUserId($userId);

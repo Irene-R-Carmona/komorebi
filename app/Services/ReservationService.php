@@ -316,7 +316,17 @@ final class ReservationService implements ReservationServiceInterface
 
         $ids = \array_map('intval', \array_keys($cartItems));
 
-        return $this->productRepo->findItemsByIds($ids);
+        $products = $this->productRepo->findItemsByIds($ids);
+
+        return \array_map(function (array $product) use ($cartItems): array {
+            $productId = (int) $product['id'];
+            $qty = (int) ($cartItems[$productId] ?? $cartItems[(string) $productId] ?? 1);
+
+            return \array_merge($product, [
+                'qty'      => $qty,
+                'subtotal' => (float) $product['price'] * $qty,
+            ]);
+        }, $products);
     }
 
     // ─────────────────────────────────────────────────────────────

@@ -179,6 +179,8 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
 
     /**
      * Obtener permisos de un usuario (a través de sus roles).
+     *
+     * @return array<int, array<string, mixed>>
      */
     public function getPermissions(int $userId): array
     {
@@ -593,7 +595,7 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         $params['offset'] = $pagination->offset;
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(static fn () => $stmt->execute($params), $sql, $params);
+        $this->execTimed(static fn() => $stmt->execute($params), $sql, $params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
