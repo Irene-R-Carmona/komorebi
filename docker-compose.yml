@@ -9,14 +9,14 @@ x-app-env: &app-env
   DB_PASSWORD: ${DB_PASSWORD}
   REDIS_HOST: cache
   REDIS_PORT: 6379
-  REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+  REDIS_PASSWORD: ${REDIS_PASSWORD}
   MAIL_HOST: mailpit
   MAIL_PORT: 1025
   CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-http://localhost:8080}"
   CORS_CREDENTIALS: "${CORS_CREDENTIALS:-false}"
   CORS_MAX_AGE: "${CORS_MAX_AGE:-7200}"
   MAX_REQUESTS: "${MAX_REQUESTS:-500}"
-  MERCURE_JWT_SECRET: "${MERCURE_JWT_SECRET:-dev-mercure-secret-change-in-prod}"
+  MERCURE_JWT_SECRET: "${MERCURE_JWT_SECRET}"
   SESSION_DRIVER: "${SESSION_DRIVER:-redis}"
   CACHE_DRIVER: "${CACHE_DRIVER:-redis}"
 
@@ -124,13 +124,13 @@ services:
     image: redis:8.6.2-alpine
     container_name: komorebi_cache
     restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_password} --maxmemory 192mb --maxmemory-policy allkeys-lru --save ""
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 192mb --maxmemory-policy allkeys-lru --save ""
     # ports:  # No exponer al host; accesible solo dentro de la red Docker
     #   - "6379:6379"
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a ${REDIS_PASSWORD:-redis_password} ping | grep -c PONG"]
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a ${REDIS_PASSWORD} ping | grep -c PONG"]
       interval: 5s
       timeout: 3s
       retries: 5

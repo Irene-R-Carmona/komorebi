@@ -1,5 +1,5 @@
 <!-- Contenedor Alpine -->
-<div class="kds-board" x-data="kdsApp()">
+<div class="kds-board" x-data="kdsApp">
 
     <!-- 1. COLUMNA CALIENTE -->
     <div class="station-col col-hot">

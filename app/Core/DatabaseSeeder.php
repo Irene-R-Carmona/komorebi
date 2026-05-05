@@ -6,6 +6,8 @@ namespace App\Core;
 
 use App\Core\Seeders\AnimalIncidentSeeder;
 use App\Core\Seeders\AnimalSeeder;
+use App\Core\Seeders\AuditLogSeeder;
+use App\Core\Seeders\AuthAuditLogSeeder;
 use App\Core\Seeders\CafeSeeder;
 use App\Core\Seeders\MenuSeeder;
 use App\Core\Seeders\NewsletterSeeder;
@@ -16,6 +18,12 @@ use App\Core\Seeders\StaffSeeder;
 use App\Core\Seeders\SystemSettingsSeeder;
 use App\Core\Seeders\TimeSlotSeeder;
 use App\Core\Seeders\UserSeeder;
+use App\Core\Seeders\AnimalHealthCheckSeeder;
+use App\Core\Seeders\AnimalRelationshipSeeder;
+use App\Core\Seeders\InteractionSessionSeeder;
+use App\Core\Seeders\LoyaltySeeder;
+use App\Core\Seeders\StaffShiftSeeder;
+use App\Core\Seeders\SupervisorAssignmentSeeder;
 use App\Core\Seeders\WaitlistSeeder;
 use Throwable;
 
@@ -32,7 +40,6 @@ final class DatabaseSeeder
         'active_sessions',
         'email_verification_tokens',
         'password_reset_tokens',
-        'rate_limits',
         'telegram_message_logs',
         'telegram_users',
         'api_audit_logs',
@@ -65,8 +72,6 @@ final class DatabaseSeeder
         'products',
         'allergens',
         'menu_categories',
-        'weather_cache',
-        'holiday_cache',
         'cafes',
         'role_permissions',
         'permissions',
@@ -89,6 +94,14 @@ final class DatabaseSeeder
         AnimalIncidentSeeder::class, // 11. Incidentes de animales (necesita staff)
         ReviewSeeder::class,         // 12. Reseñas de demo
         NewsletterSeeder::class,     // 13. Suscripciones newsletter
+        AuditLogSeeder::class,           // 14. Logs de auditoría de acciones
+        AuthAuditLogSeeder::class,       // 15. Logs de autenticación
+        LoyaltySeeder::class,            // 16. Loyalty cards, rewards y visitas a animales
+        StaffShiftSeeder::class,         // 17. Turnos de staff (5 semanas)
+        AnimalHealthCheckSeeder::class,  // 18. Chequeos de salud (14 días)
+        SupervisorAssignmentSeeder::class, // 19. Asignaciones de supervisores
+        AnimalRelationshipSeeder::class, // 20. Relaciones entre animales del mismo café
+        InteractionSessionSeeder::class, // 21. Sesiones de interacción (retroactivas)
     ];
 
     private bool $isCli;

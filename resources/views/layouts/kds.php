@@ -11,7 +11,6 @@
     ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="refresh" content="30">
     <meta name="csrf-token" content="<?= Csrf::token() ?>">
     <title>KDS | <?= e($cafe_name ?? 'Cocina') ?></title>
 
@@ -88,11 +87,11 @@
         <div class="kds-meta">
             <div class="meta-item">
                 <span class="meta-lbl">Open Tickets</span>
-                <span class="meta-val" style="color:var(--color-warn);"><?= $total_tickets ?? 0 ?></span>
+                <span class="meta-val" style="color:var(--color-warn);" id="kdsOpenTickets"><?= $total_tickets ?? 0 ?></span>
             </div>
             <div class="meta-item">
                 <span class="meta-lbl">Avg Time</span>
-                <span class="meta-val">04:12</span>
+                <span class="meta-val"><?= e($avg_prep_time_formatted ?? '--:--') ?></span>
             </div>
         </div>
 

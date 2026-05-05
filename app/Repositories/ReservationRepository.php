@@ -104,7 +104,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     public function findByIdWithCafeDetails(int $id): ?array
     {
         $reservationFields = \array_map(
-            fn ($field) => "r.$field",
+            fn($field) => "r.$field",
             $this->getSelectFields()
         );
         $fields = \implode(', ', $reservationFields);
@@ -133,7 +133,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findByCafeAndDate(int $cafeId, string $date): array
     {
-        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields},
@@ -166,27 +166,30 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findByCafeWithFilters(int $cafeId, ?string $status = null, ?string $date = null, int $limit = 50): array
     {
-        $fields = \implode(', ', $this->getSelectFields());
-        $where = ['cafe_id = :cafe_id', 'deleted_at IS NULL'];
+        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
+        $where = ['r.cafe_id = :cafe_id', 'r.deleted_at IS NULL'];
         $params = ['cafe_id' => $cafeId];
 
         if ($status !== null) {
-            $where[] = 'status = :status';
+            $where[] = 'r.status = :status';
             $params['status'] = $status;
         }
 
         if ($date !== null) {
-            $where[] = 'reservation_date = :date';
+            $where[] = 'r.reservation_date = :date';
             $params['date'] = $date;
         }
 
         $whereClause = \implode(' AND ', $where);
 
         $stmt = $this->getDb()->prepare(
-            "SELECT {$fields}
-             FROM reservations
+            "SELECT {$fields},
+                    COUNT(ri.id) AS items_count
+             FROM reservations r
+             LEFT JOIN reservation_items ri ON ri.reservation_id = r.id
              WHERE {$whereClause}
-             ORDER BY reservation_date DESC, reservation_time DESC
+             GROUP BY r.id
+             ORDER BY r.reservation_date DESC, r.reservation_time DESC
              LIMIT {$limit}"
         );
         $stmt->execute($params);
@@ -312,7 +315,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         $total = (int) $stmt->fetchColumn();
 
         // Obtener datos con detalles del café
-        $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(fn($f) => "r.$f", $this->getSelectFields()));
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
                 FROM reservations r
@@ -340,7 +343,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findUpcomingByUser(int $userId, int $limit = 5): array
     {
-        $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(fn($f) => "r.$f", $this->getSelectFields()));
 
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
@@ -446,19 +449,22 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
     public function findActiveByCafe(int $cafeId): array
     {
-        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields},
                     u.name AS user_name,
                     t.code AS tracker_code,
-                    cz.name AS zone_name
+                    cz.name AS zone_name,
+                    COUNT(ri.id) AS items_count
              FROM reservations r
              JOIN users u ON u.id = r.user_id
              LEFT JOIN trackers t ON t.id = r.tracker_id
              LEFT JOIN cafe_zones cz ON cz.id = r.current_zone_id
+             LEFT JOIN reservation_items ri ON ri.reservation_id = r.id
              WHERE r.cafe_id = :cafe_id
                AND r.status = 'active'
+             GROUP BY r.id, u.name, t.code, cz.name
              ORDER BY r.check_in_at"
         );
         $stmt->execute(['cafe_id' => $cafeId]);
@@ -488,7 +494,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
     public function findByIdAndUser(int $id, int $userId): ?array
     {
-        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
 
         $stmt = $this->getDb()->prepare(
             "SELECT $fields, c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image

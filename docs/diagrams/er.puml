@@ -482,18 +482,6 @@ entity "active_sessions" as ACTIVE_SESSIONS {
     # revoked_by : BIGINT
 }
 
-entity "rate_limits" as RATE_LIMITS {
-    * id : BIGINT
-    --
-    action : VARCHAR(50)
-    identifier : VARCHAR(255)
-    attempt_count : INT
-    last_attempt : DATETIME
-    locked_until : DATETIME
-    ip_address : VARCHAR(45)
-    created_at : TIMESTAMP
-    updated_at : DATETIME
-}
 
 ' =============================================================================
 ' --- Loyalty ---
@@ -601,27 +589,6 @@ entity "settings" as SETTINGS {
     is_public : TINYINT
     created_at : TIMESTAMP
     updated_at : TIMESTAMP
-}
-
-entity "weather_cache" as WEATHER_CACHE {
-    * id : BIGINT
-    --
-    latitude : DECIMAL(10,6)
-    longitude : DECIMAL(10,6)
-    timezone : VARCHAR(50)
-    data : JSON
-    cached_at : TIMESTAMP
-    expires_at : TIMESTAMP
-}
-
-entity "holiday_cache" as HOLIDAY_CACHE {
-    * id : BIGINT
-    --
-    year : INT
-    country : VARCHAR(2)
-    holidays : JSON
-    cached_at : TIMESTAMP
-    expires_at : TIMESTAMP
 }
 
 entity "api_audit_log" as API_AUDIT_LOG {

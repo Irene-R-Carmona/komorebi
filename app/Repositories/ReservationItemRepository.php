@@ -48,11 +48,16 @@ final class ReservationItemRepository extends AbstractRepository implements Rese
     }
 
     private const ITEM_SELECT = '
-        ri.id, ri.quantity, ri.status, ri.created_at, ri.reservation_id,
+        ri.id, ri.quantity, ri.status, ri.created_at,
+        UNIX_TIMESTAMP(ri.created_at) AS created_ts,
+        ri.reservation_id,
         p.id AS product_id, p.name AS product_name, p.station,
         p.prep_time, p.recipe_steps, p.ingredients_list, p.critical_check,
         t.code AS tracker_code,
-        r.guest_count AS guests
+        r.guest_count AS guests,
+        GROUP_CONCAT(DISTINCT CONCAT_WS(\'|\', al.code, al.name, al.icon_color, al.severity)
+            ORDER BY al.name SEPARATOR \';;\'
+        ) AS allergen_data
     ';
 
     public function findByReservation(int $reservationId): array
@@ -81,11 +86,14 @@ final class ReservationItemRepository extends AbstractRepository implements Rese
             JOIN products p ON ri.product_id = p.id
             JOIN reservations r ON ri.reservation_id = r.id
             LEFT JOIN trackers t ON r.tracker_id = t.id
+            LEFT JOIN product_allergens pa ON pa.product_id = p.id
+            LEFT JOIN allergens al ON al.id = pa.allergen_id
             WHERE r.cafe_id = :cafe_id
               AND p.station = :station
               AND r.reservation_date = CURDATE()
               AND ri.status IN (\'pending\', \'kitchen\')
               AND r.status IN (\'confirmed\', \'active\')
+            GROUP BY ri.id
             ORDER BY ri.created_at
         ';
 
@@ -103,10 +111,13 @@ final class ReservationItemRepository extends AbstractRepository implements Rese
             JOIN products p ON ri.product_id = p.id
             JOIN reservations r ON ri.reservation_id = r.id
             LEFT JOIN trackers t ON r.tracker_id = t.id
+            LEFT JOIN product_allergens pa ON pa.product_id = p.id
+            LEFT JOIN allergens al ON al.id = pa.allergen_id
             WHERE r.cafe_id = :cafe_id
               AND r.reservation_date = CURDATE()
               AND ri.status IN (\'pending\', \'kitchen\')
               AND r.status IN (\'confirmed\', \'active\')
+            GROUP BY ri.id
             ORDER BY ri.created_at
         ';
 

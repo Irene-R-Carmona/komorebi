@@ -1,8 +1,23 @@
 document.addEventListener('alpine:init', () => {
   Alpine.data('receptionApp', () => ({
+    // ── check-in ──────────────────────────────────────────────
     checkinOpen: false,
     selectedResId: null,
     loading: false,
+
+    // ── POS (añadir pedido) ───────────────────────────────────
+    posOpen: false,
+    posResId: null,
+    posLines: [],     // [{ productId: null, qty: 1 }]
+    posProducts: [],  // [{ id, name, price }]
+    posError: '',
+
+    // ── cobro ─────────────────────────────────────────────────
+    cobroOpen: false,
+    cobroResId: null,
+    cobroMethod: 'cash',
+    cobroNotes: '',
+    cobroError: '',
 
     init() {
       document.addEventListener('reception:refresh', () => this.refresh());
@@ -12,10 +27,11 @@ document.addEventListener('alpine:init', () => {
       window.location.reload();
     },
 
+    // ── check-in ──────────────────────────────────────────────
+
     openCheckin(reservationId) {
       this.selectedResId = reservationId;
       this.checkinOpen = true;
-
       this.$nextTick(() => {
         const select = document.querySelector('select[name="tracker_id"]');
         if (select) select.focus();
@@ -55,24 +71,109 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
-    async submitCheckout(reservationId) {
-      if (!reservationId || this.loading) return;
+    // ── POS (añadir pedido) ───────────────────────────────────
+
+    openPos(reservationId) {
+      this.posResId = reservationId;
+      this.posLines = [{ productId: null, qty: 1 }];
+      this.posProducts = JSON.parse(
+        document.querySelector('[data-orderable-items]')?.dataset?.orderableItems || '[]'
+      );
+      this.posError = '';
+      this.posOpen = true;
+    },
+
+    closePos() {
+      this.posOpen = false;
+      this.posResId = null;
+    },
+
+    addPosLine() {
+      this.posLines.push({ productId: null, qty: 1 });
+    },
+
+    removePosLine(idx) {
+      this.posLines.splice(idx, 1);
+    },
+
+    posLineSubtotal(line) {
+      const product = this.posProducts.find(p => p.id === line.productId);
+      return product ? parseFloat(product.price) * (line.qty || 0) : 0;
+    },
+
+    posTotal() {
+      return this.posLines.reduce((sum, line) => sum + this.posLineSubtotal(line), 0);
+    },
+
+    posValid() {
+      return this.posLines.length > 0
+        && this.posLines.every(l => l.productId && l.qty >= 1);
+    },
+
+    async submitPos() {
+      if (!this.posResId || this.loading || !this.posValid()) return;
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      this.posError = '';
       this.loading = true;
       try {
-        const res = await fetch(`/api/v1/ops/reception/reservations/${reservationId}/checkout`, {
+        for (const line of this.posLines) {
+          const res = await fetch(`/api/v1/ops/reception/reservations/${this.posResId}/items`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+            body: JSON.stringify({ product_id: line.productId, quantity: line.qty }),
+          });
+          const data = await res.json();
+          if (!data.ok) {
+            this.posError = data.detail || 'No se pudo añadir el pedido.';
+            return;
+          }
+        }
+        this.closePos();
+        this.refresh();
+      } catch (e) {
+        this.posError = 'Error de conexión.';
+        console.error('POS fetch failed:', e);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // ── cobro ─────────────────────────────────────────────────
+
+    openCobro(reservationId) {
+      this.cobroResId = reservationId;
+      this.cobroMethod = 'cash';
+      this.cobroNotes = '';
+      this.cobroError = '';
+      this.cobroOpen = true;
+    },
+
+    closeCobro() {
+      this.cobroOpen = false;
+      this.cobroResId = null;
+    },
+
+    async submitCobro() {
+      if (!this.cobroResId || this.loading) return;
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      this.cobroError = '';
+      this.loading = true;
+      try {
+        const res = await fetch(`/api/v1/ops/reception/reservations/${this.cobroResId}/payments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
-          body: JSON.stringify({}),
+          body: JSON.stringify({ payment_method: this.cobroMethod, notes: this.cobroNotes }),
         });
         const data = await res.json();
         if (data.ok) {
+          this.closeCobro();
           this.refresh();
         } else {
-          console.error('Check-out error:', data.error || data.detail);
+          this.cobroError = data.detail || 'No se pudo procesar el cobro.';
         }
       } catch (e) {
-        console.error('Check-out fetch failed:', e);
+        this.cobroError = 'Error de conexión.';
+        console.error('Cobro fetch failed:', e);
       } finally {
         this.loading = false;
       }

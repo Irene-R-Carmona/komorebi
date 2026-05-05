@@ -658,6 +658,37 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     }
 
     /**
+     * Productos ordenables en sala (excluye pases), filtrados por café.
+     */
+    #[Override]
+    public function findOrderableItems(int $cafeId): array
+    {
+        $stmt = $this->getDb()->prepare(
+            "SELECT p.id, p.name, p.japanese_name, p.slug, p.price,
+                    p.image_url, p.product_type, p.prep_time,
+                    mc.name AS category_name
+             FROM products p
+             LEFT JOIN menu_categories mc ON p.category_id = mc.id
+             INNER JOIN cafes c ON c.id = :cafe_id
+             WHERE p.is_active = 1
+               AND p.deleted_at IS NULL
+               AND p.product_type != 'pass'
+               AND (
+                   p.target_cafe_types IS NULL
+                   OR JSON_CONTAINS(p.target_cafe_types, JSON_QUOTE(c.category))
+               )
+               AND (
+                   p.target_animal_types IS NULL
+                   OR JSON_CONTAINS(p.target_animal_types, JSON_QUOTE(c.animal_type))
+               )
+             ORDER BY mc.display_order, p.sort_order, p.name"
+        );
+        $stmt->execute(['cafe_id' => $cafeId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Buscar productos con filtros y paginación compleja.
      *
      * @param array $filters Filtros: category_id, product_type, is_active, search
@@ -825,7 +856,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
                 $severities = \explode(',', $row['allergen_severities']);
 
                 $row['allergens_list'] = \array_map(
-                    static fn (string $id, string $name, string $code, string $severity): array => [
+                    static fn(string $id, string $name, string $code, string $severity): array => [
                         'id' => (int) $id,
                         'name' => $name,
                         'code' => $code,

@@ -6,9 +6,11 @@ namespace App\Http\Controllers\Reception;
 
 use App\Core\Container;
 use App\Core\Http\ResponseFactory;
+use App\Core\Raw;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\AuthorizationException;
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\ContextServiceInstance;
 use App\Services\Contracts\ReceptionServiceInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -27,14 +29,18 @@ final class ReceptionController
 
     private ResponseFactory $response;
 
+    private ProductRepositoryInterface $productRepo;
+
     public function __construct(
         ?ReceptionServiceInterface $service = null,
         ?ContextServiceInstance $context = null,
         ?ResponseFactory $response = null,
+        ?ProductRepositoryInterface $productRepo = null,
     ) {
         $this->service = $service ?? Container::make(ReceptionServiceInterface::class);
         $this->context = $context;
         $this->response = $response ?? Container::make(ResponseFactory::class);
+        $this->productRepo = $productRepo ?? Container::make(ProductRepositoryInterface::class);
     }
 
     private function context(): ContextServiceInstance
@@ -61,6 +67,7 @@ final class ReceptionController
         $activeGroups = $this->service->getActiveGroups($cafeId);
         $freeTrackers = $this->service->getAvailableTrackers($cafeId);
         $capInfo = $this->service->getCapacityInfo($cafeId);
+        $orderableItems = $this->productRepo->findOrderableItems($cafeId);
 
         // Procesar reservas para presentación
         $reservasUI = $this->processReservationsForDisplay($reservasRaw);
@@ -81,6 +88,7 @@ final class ReceptionController
             'free_trackers' => $freeTrackers,
             'ocupacion' => $ocupacion,
             'cap_max' => $capInfo['max'] ?? 0,
+            'orderable_items_json' => Raw::json($orderableItems),
         ], ['workspaces/reception.css'], 'reception');
 
         return null;

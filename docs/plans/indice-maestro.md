@@ -26,6 +26,8 @@ Todos los planes activos e históricos del proyecto.
 | 2026-05-01 | — | Auditoría inmersiva de funcionalidades rotas en producción: carrito, alérgenos, reseñas, cookie consent, /reservas (7 bugs corregidos, 0 desactivados) | ✅ Completado y eliminado (2026-05-01) |
 | 2026-05-04 | — | Auditoría completa de vistas SSR + CRUD + API mutations (7 GAPs: Fases 1-7 completadas — newsletter admin, loyalty admin, keeper cleanup, quality gate PHPStan+tests+cs-fix) | ✅ Completado y eliminado (2026-05-04) |
 | 2026-05-05 | — | Corrección bugs auditoría completa: Flash::set(), XSS vistas, rate limiting rutas API, #[Override], DI interface, 23 DTOs fromArray(), slug UNIQUE, índice payment_status | ✅ Completado y eliminado (2026-05-05) |
+| 2026-05-05 | — | Imágenes pases, POS recepción + KDS, checkout con pago + ingresos semanales, badges comanda | ✅ Completado y eliminado (2026-05-05) |
+| 2026-05-05 | — | Seeders y tablas vacías: eliminar 3 tablas legacy, poblar 22 tablas con datos de prueba, implementar interaction_sessions en check-in/out | ✅ Completado y eliminado (2026-05-05) |
 
 ---
 

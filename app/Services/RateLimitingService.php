@@ -23,6 +23,7 @@ final class RateLimitingService implements RateLimitingServiceInterface
         'password_reset' => ['max_attempts' => 3, 'lockout_minutes' => 30],
         'email_verification' => ['max_attempts' => 5, 'lockout_minutes' => 10],
         'registration' => ['max_attempts' => 3, 'lockout_minutes' => 60],
+        'api_public' => ['max_attempts' => 120, 'lockout_minutes' => 1],
     ];
 
     public function __construct(CacheItemPoolInterface $cache)

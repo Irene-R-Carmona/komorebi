@@ -20,6 +20,8 @@ namespace Tests\Unit\Http\Controllers\Reception;
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Reception\ReceptionController;
 use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\TrackerRepositoryInterface;
 use App\Services\ReceptionService;
@@ -55,8 +57,11 @@ final class ReceptionControllerTest extends ControllerTestCase
                 reservationRepo: $this->createStub(ReservationRepositoryInterface::class),
                 trackerRepo: $this->createStub(TrackerRepositoryInterface::class),
                 cafeRepo: $this->createStub(CafeRepositoryInterface::class),
+                itemRepo: $this->createStub(ReservationItemRepositoryInterface::class),
+                productRepo: $this->createStub(ProductRepositoryInterface::class),
             ),
             response: new ResponseFactory(),
+            productRepo: $this->createStub(ProductRepositoryInterface::class),
         );
     }
 

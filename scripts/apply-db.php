@@ -305,7 +305,6 @@ if ($shouldSeed) {
         'active_sessions',
         'email_verification_tokens',
         'password_reset_tokens',
-        'rate_limits',
         'telegram_message_logs',
         'telegram_users',
         'api_audit_logs',
@@ -338,8 +337,6 @@ if ($shouldSeed) {
         'products',
         'allergens',
         'menu_categories',
-        'weather_cache',
-        'holiday_cache',
         'cafes',
         'role_permissions',
         'permissions',
@@ -488,7 +485,7 @@ try {
         'evt_expire_loyalty_rewards',
     ];
 
-    $foundEvents = array_map(static fn ($e) => $e['Name'], $events);
+    $foundEvents = array_map(static fn($e) => $e['Name'], $events);
 
     logMsg('Eventos encontrados:');
     $totalFound = 0;

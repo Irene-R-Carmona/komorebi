@@ -8,6 +8,8 @@
 ?>
 <div class="kds-card <?= htmlspecialchars($item['ui_class'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
     data-item-id="<?= (int) ($item['id'] ?? 0) ?>"
+    data-created-ts="<?= (int) ($item['created_ts'] ?? \strtotime($item['created_at'] ?? '')) ?>"
+    data-prep-time="<?= (int) ($item['prep_time'] ?? 5) ?>"
     x-data="{ expanded: false }">
 
     <!-- HEADER -->
@@ -59,7 +61,7 @@
 
         <?php if (!empty($item['json_sop'])): ?>
             <button class="kds-btn kds-btn--secondary"
-                @click="$dispatch('show-sop', { sop: <?= $item['json_sop'] ?> })"
+                @click="$dispatch('show-sop', <?= $item['json_sop'] ?>)"
                 type="button">
                 <span class="material-symbols-outlined">menu_book</span>
                 SOP

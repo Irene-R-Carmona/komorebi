@@ -100,6 +100,7 @@ $total = count($reservations);
                             <th scope="col">Fecha</th>
                             <th scope="col">Hora</th>
                             <th scope="col" class="text-center">Personas</th>
+                            <th scope="col" class="text-center">Pedidos</th>
                             <th scope="col">Estado</th>
                             <th scope="col">Creación</th>
                         </tr>
@@ -123,6 +124,14 @@ $total = count($reservations);
                                 </td>
                                 <td class="reservations-table__count">
                                     <?= (int) ($r['guest_count'] ?? 0) ?>
+                                </td>
+                                <td class="text-center">
+                                    <?php $ic = (int) ($r['items_count'] ?? 0); ?>
+                                    <?php if ($ic > 0): ?>
+                                        <span style="font-size:0.78rem; color:var(--muted-fg,#888);"><?= $ic ?></span>
+                                    <?php else: ?>
+                                        <span style="color:var(--muted-fg,#ccc);">—</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <span class="reservation-badge <?= e($badge['class']) ?>">

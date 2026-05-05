@@ -1,34 +1,13 @@
 -- ============================================================================
--- MIGRACIÓN 007: CACHÉ EXTERNAS (Open-Meteo, Nager.Date)
+-- MIGRACIÓN 007: AUDITORÍA DE APIS EXTERNAS
 -- ============================================================================
--- Módulo: Cache de APIs externas, auditoría de llamadas
+-- Módulo: Auditoría de llamadas a APIs externas
 -- Dependencias: 002_users_rbac.sql
 -- MySQL 8.4+: Compatible ✓
+-- Nota: weather_cache y holiday_cache eliminados — usan Redis PSR-6 Cache
+--       y constantes PHP in-memory respectivamente.
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
--- Caché de datos meteorológicos (Open-Meteo)
-CREATE TABLE IF NOT EXISTS weather_cache (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    latitude DECIMAL(10, 6) NOT NULL,
-    longitude DECIMAL(10, 6) NOT NULL,
-    timezone VARCHAR(50),
-    data JSON NOT NULL,
-    cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP NOT NULL,
-    INDEX idx_coords (latitude, longitude),
-    INDEX idx_expires (expires_at)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
--- Caché de festivos por país (Nager.Date)
-CREATE TABLE IF NOT EXISTS holiday_cache (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    year INT UNSIGNED NOT NULL,
-    country VARCHAR(2) NOT NULL DEFAULT 'JP',
-    holidays JSON NOT NULL,
-    cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP NOT NULL,
-    UNIQUE KEY uk_year_country (year, country),
-    INDEX idx_expires (expires_at)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Auditoría de llamadas a APIs externas
 CREATE TABLE IF NOT EXISTS api_audit_logs (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

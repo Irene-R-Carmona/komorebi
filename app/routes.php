@@ -185,14 +185,14 @@ $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw,
     $r->post('/logout', 'Auth\AuthController@logout', [$mw->csrf()]);
     $r->get('/profile', static fn(): ResponseInterface => $responseFactory->redirect('/perfil', 301));
     $r->get('/perfil', 'Shared\UserController@profile');
-    $r->post('/profile/update', 'Shared\UserController@updateProfile', [$mw->csrf()]);
+    $r->post('/profile/update', 'Shared\UserController@update', [$mw->csrf()]);
     $r->post('/profile/avatar', 'Shared\UserController@updateAvatar', [$mw->csrf()]);
     $r->get('/account/sessions', 'Auth\AccountController@sessions');
     $r->post('/account/sessions/revoke/{sessionId}', 'Auth\AccountController@revokeSession', [$mw->csrf()]);
     $r->post('/account/sessions/revoke-all', 'Auth\AccountController@revokeAllOther', [$mw->csrf()]);
     $r->get('/account/security', 'Auth\AccountController@security');
     $r->get('/account/change-password', 'Auth\AccountController@changePasswordForm');
-    $r->post('/account/change-password', 'Auth\AccountController@processChangePassword', [$mw->csrf()]);
+    $r->post('/account/change-password', 'Auth\AccountController@changePassword', [$mw->csrf()]);
     $r->post('/account/delete', 'Auth\AccountController@deleteAccount', [$mw->csrf()]);
 
     // Avatar upload/delete
@@ -373,7 +373,7 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->delete('/products/{id}', 'Manager\ProductController@delete', [$mw->csrf(), $mw->ownsCafe()]);
         // Staff mutations
         $r->post('/staff/assign-shift', 'Manager\StaffController@assignShift', [$mw->csrf(), $mw->ownsCafe()]);
-        $r->post('/staff/edit-permissions', 'Manager\StaffController@editPermissions', [$mw->csrf(), $mw->ownsCafe()]);
+        $r->post('/staff/edit-permissions', 'Api\V1\Manager\StaffApiController@editPermissions', [$mw->csrf(), $mw->ownsCafe()]);
         $r->get('/staff/performance/{id}', 'Manager\StaffController@viewPerformance', [$mw->ownsCafe()]);
         // Reviews
         $r->post('/reviews/{id}/approve', 'Api\V1\Admin\ReviewApiController@approve', [$mw->csrf()]);
@@ -495,6 +495,8 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
         $r->get('/reservations', 'Api\V1\Ops\ReceptionApiController@todayReservations');
         $r->post('/reservations/{id}/checkin', 'Api\V1\Ops\ReceptionApiController@checkIn', [$mw->csrf()]);
         $r->post('/reservations/{id}/checkout', 'Api\V1\Ops\ReceptionApiController@checkOut', [$mw->csrf()]);
+        $r->post('/reservations/{id}/items', 'Api\V1\Ops\ReceptionApiController@addItem', [$mw->csrf()]);
+        $r->post('/reservations/{id}/payments', 'Api\V1\Ops\ReceptionApiController@processPayment', [$mw->csrf()]);
     });
 
     /** @var array<int, MiddlewareInterface> $opsKitchenApiMiddleware */
@@ -548,7 +550,7 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
     /** @var array<int, MiddlewareInterface> $keeperApiMiddleware */
     $keeperApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'keeper'])];
     $router->group(['prefix' => '/api/v1/keeper', 'middleware' => $keeperApiMiddleware], function (Router $r) use ($mw): void {
-        $r->post('/animals/{id}/photo', 'Api\V1\KeeperApiController@uploadPhoto');
+        $r->post('/animals/{id}/photo', 'Api\V1\KeeperApiController@uploadPhoto', [$mw->csrf()]);
         $r->post('/animals/{id}/care-log', 'Api\V1\KeeperApiController@createCareLog', [$mw->csrf()]);
         $r->patch('/animals/{id}/health', 'Api\V1\KeeperApiController@updateHealth', [$mw->csrf()]);
         $r->patch('/animals/{id}/toggle', 'Api\V1\KeeperApiController@toggleActive', [$mw->csrf()]);
@@ -562,9 +564,9 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
 // ============================================================================
 
 $corsOnly = [$mw->cors()];
-$router->options('/api/v1/{resource}', fn () => '', $corsOnly);
-$router->options('/api/v1/{resource}/{id}', fn () => '', $corsOnly);
-$router->options('/api/v1/{resource}/{sub}/{id}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}/{id}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}/{sub}/{id}', fn() => '', $corsOnly);
 
 // ============================================================================
 // HEALTH CHECK

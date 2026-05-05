@@ -54,19 +54,4 @@ CREATE TABLE IF NOT EXISTS active_sessions (
     CONSTRAINT fk_active_sessions_revoked_by FOREIGN KEY (revoked_by) REFERENCES users (id) ON DELETE
     SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
--- Rate limiting (para login, registro, etc)
-CREATE TABLE IF NOT EXISTS rate_limits (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    action VARCHAR(50) NOT NULL,
-    identifier VARCHAR(255) NOT NULL,
-    attempt_count INT UNSIGNED DEFAULT 1,
-    last_attempt DATETIME NOT NULL,
-    locked_until DATETIME DEFAULT NULL,
-    ip_address VARCHAR(45),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_rate_limits_action_identifier (action, identifier),
-    INDEX idx_rate_limits_locked (locked_until),
-    INDEX idx_rate_limits_action (action)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;

@@ -168,4 +168,13 @@ interface ProductRepositoryInterface extends RepositoryInterface
      * @return array{data: array, total: int, page: int, perPage: int, totalPages: int}
      */
     public function findAllAdmin(array $filters = [], int $limit = 100): array;
+
+    /**
+     * Productos ordenables en sala (excluye pases), filtrados por café.
+     * Usado por el POS de recepción para añadir pedidos a una reserva activa.
+     *
+     * @param int $cafeId ID del café
+     * @return array<int, array<string, mixed>>
+     */
+    public function findOrderableItems(int $cafeId): array;
 }

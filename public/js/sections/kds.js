@@ -8,6 +8,7 @@ document.addEventListener('alpine:init', () => {
     init() {
       document.addEventListener('kds:refresh', () => this.refresh());
       document.addEventListener('mark-ready', (e) => this.completeOrder(e.detail.id));
+      document.addEventListener('show-sop', (e) => this.openSop(e.detail));
     },
 
     refresh() {
@@ -69,12 +70,14 @@ document.addEventListener('alpine:init', () => {
         ingred: this.parseList(data.ingred),
         steps: this.parseSteps(data.steps),
         check: data.check,
-        allergens: this.parseList(data.allergens)
-          .map(s => s.trim())
-          .filter(s => s.length > 0),
+        allergens: Array.isArray(data.allergens) ? data.allergens : [],
       };
 
       this.sopOpen = true;
+    },
+
+    closeSop() {
+      this.sopOpen = false;
     },
   }))
 })

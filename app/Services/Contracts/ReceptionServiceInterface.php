@@ -29,4 +29,8 @@ interface ReceptionServiceInterface
     public function getCapacityInfo(int $cafeId): array;
 
     public function getDailyStats(int $cafeId, string $date): array;
+
+    public function addItem(int $reservationId, int $productId, int $qty, int $cafeId): Result;
+
+    public function processPayment(int $reservationId, string $paymentMethod, int $cafeId, ?string $notes = null): Result;
 }

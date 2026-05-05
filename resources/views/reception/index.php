@@ -1,7 +1,7 @@
 <?php
 
 ?>
-<div style="display: contents;" x-data="receptionApp()">
+<div style="display: contents;" x-data="receptionApp" data-orderable-items='<?= $orderable_items_json ?>'>
 
     <!-- SIDEBAR: LLEGADAS -->
     <aside class="zen-sidebar">
@@ -100,7 +100,7 @@
                         if ($elapsed > 60) {
                             $color = '#ef4444';
                         } // Rojo
-                        ?>
+                    ?>
                         <div class="zen-table">
                             <!-- ANILLO CONIC-GRADIENT (Fix Visual) -->
                             <div class="table-ring"
@@ -120,12 +120,26 @@
 
                             <p class="table-label"><?= e($g['user_name']) ?></p>
 
-                            <button type="button" class="btn-edit"
-                                @click="submitCheckout(<?= $g['id'] ?>)"
-                                :disabled="loading"
-                                style="font-size:0.75rem; padding:4px 8px; margin-top:5px;">
-                                Checkout
-                            </button>
+                            <?php if (($g['items_count'] ?? 0) > 0): ?>
+                                <p style="font-size:0.7rem; color:var(--rec-muted,#888); margin:2px 0 0;">
+                                    <?= (int) $g['items_count'] ?> artículo<?= (int) $g['items_count'] !== 1 ? 's' : '' ?>
+                                </p>
+                            <?php endif; ?>
+
+                            <div style="display:flex; gap:4px; margin-top:5px;">
+                                <button type="button" class="btn-edit"
+                                    @click="openPos(<?= $g['id'] ?>)"
+                                    :disabled="loading"
+                                    style="font-size:0.72rem; padding:4px 8px;">
+                                    Añadir pedido
+                                </button>
+                                <button type="button" class="btn-confirm"
+                                    @click="openCobro(<?= $g['id'] ?>)"
+                                    :disabled="loading"
+                                    style="font-size:0.72rem; padding:4px 8px;">
+                                    Cobrar
+                                </button>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -164,6 +178,108 @@
                 <div class="welcome-actions">
                     <button type="submit" class="btn-confirm" :disabled="loading">Confirmar Entrada</button>
                     <button type="button" class="btn-edit" @click="closeCheckin()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POS (Añadir pedido) -->
+    <div class="welcome-modal" x-show="posOpen" x-transition style="display:none;">
+        <div class="modal-backdrop" @click="closePos()"></div>
+
+        <div class="welcome-card">
+            <div class="welcome-header">
+                <p class="welcome-subtitle">Sala</p>
+                <h2 class="welcome-title">Añadir pedido</h2>
+                <p class="welcome-desc">Selecciona los artículos y cantidades.</p>
+            </div>
+
+            <form @submit.prevent="submitPos()">
+
+                <!-- Líneas de pedido -->
+                <template x-for="(line, idx) in posLines" :key="idx">
+                    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+                        <select class="minimal-input" x-model.number="line.productId" required style="flex:1; min-width:0;">
+                            <option value="">Seleccionar...</option>
+                            <?php foreach (json_decode($orderable_items_json ?? '[]', true) as $item): ?>
+                                <option value="<?= (int) $item['id'] ?>">
+                                    <?= e($item['name']) ?>
+                                    &nbsp;·&nbsp;¥<?= number_format((float) ($item['price'] ?? 0), 0, '.', ',') ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <input type="number" class="minimal-input" x-model.number="line.qty"
+                            min="1" max="20" required style="width:60px; text-align:center; flex-shrink:0;">
+                        <span style="min-width:72px; text-align:right; font-size:0.82rem; color:var(--rec-text-secondary,#6b7280); flex-shrink:0;"
+                            x-text="'¥' + posLineSubtotal(line).toLocaleString('ja-JP')"></span>
+                        <button type="button" @click="removePosLine(idx)"
+                            x-show="posLines.length > 1"
+                            style="background:none; border:none; cursor:pointer; color:var(--rec-danger,#ef4444); font-size:1.2rem; line-height:1; padding:0 2px; flex-shrink:0;"
+                            title="Eliminar">×</button>
+                    </div>
+                </template>
+
+                <!-- Añadir línea -->
+                <button type="button" @click="addPosLine()"
+                    style="background:none; border:1px dashed var(--rec-border,#d1d5db); border-radius:6px; width:100%; padding:7px; cursor:pointer; font-size:0.82rem; color:var(--rec-text-secondary,#6b7280); margin-bottom:12px;">
+                    + Añadir artículo
+                </button>
+
+                <!-- Total -->
+                <div style="display:flex; justify-content:space-between; align-items:baseline; padding:8px 0; border-top:1px solid var(--rec-border,#e5e7eb); margin-bottom:4px;">
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--rec-text,#374151);">Total</span>
+                    <span style="font-size:1.05rem; font-weight:700; color:var(--rec-text,#111827);"
+                        x-text="'¥' + posTotal().toLocaleString('ja-JP')"></span>
+                </div>
+
+                <p x-show="posError" x-text="posError"
+                    style="color:var(--rec-danger,#ef4444); font-size:0.8rem; margin:8px 0 0;"></p>
+
+                <div class="welcome-actions">
+                    <button type="submit" class="btn-confirm" :disabled="loading || !posValid()">
+                        Confirmar pedido
+                    </button>
+                    <button type="button" class="btn-edit" @click="closePos()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL COBRO -->
+    <div class="welcome-modal" x-show="cobroOpen" x-transition style="display:none;">
+        <div class="modal-backdrop" @click="closeCobro()"></div>
+
+        <div class="welcome-card">
+            <div class="welcome-header">
+                <p class="welcome-subtitle">Cierre de visita</p>
+                <h2 class="welcome-title">Confirmar cobro</h2>
+                <p class="welcome-desc">Selecciona el método de pago para cerrar la visita.</p>
+            </div>
+
+            <form @submit.prevent="submitCobro()">
+                <div class="minimal-field">
+                    <label class="minimal-label">Método de pago</label>
+                    <select class="minimal-input" x-model="cobroMethod" required>
+                        <option value="cash">Efectivo</option>
+                        <option value="card">Tarjeta</option>
+                        <option value="transfer">Transferencia</option>
+                    </select>
+                </div>
+
+                <div class="minimal-field">
+                    <label class="minimal-label">Notas (opcional)</label>
+                    <input type="text" class="minimal-input" x-model="cobroNotes"
+                        placeholder="p. ej. descuento aplicado" maxlength="200">
+                </div>
+
+                <p x-show="cobroError" x-text="cobroError"
+                    style="color:var(--rec-danger,#ef4444); font-size:0.8rem; margin:8px 0 0;"></p>
+
+                <div class="welcome-actions">
+                    <button type="submit" class="btn-confirm" :disabled="loading">
+                        Confirmar cobro
+                    </button>
+                    <button type="button" class="btn-edit" @click="closeCobro()">Cancelar</button>
                 </div>
             </form>
         </div>

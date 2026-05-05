@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Kitchen;
 
 use App\Core\Container;
 use App\Core\Http\ResponseFactory;
+use App\Core\Raw;
 use App\Core\Result;
 use App\Core\ServiceErrorCode;
 use App\Core\Session;
@@ -71,6 +72,13 @@ final class KitchenController
         // Procesar y agrupar por estación
         $stations = $this->processOrdersForDisplay($itemsRaw);
 
+        // Estadísticas para el header KDS
+        $stats = $this->service->getDailyStats($cafeId);
+        $avgMin = (float) ($stats['avg_prep_time'] ?? 0);
+        $avgPrepFormatted = $avgMin > 0
+            ? \sprintf('%02d:%02d', (int) $avgMin, (int) (($avgMin - (int) $avgMin) * 60))
+            : '--:--';
+
         // Renderizar vista de KDS
         View::render('kitchen/index', [
             'titulo' => "KDS - $cafeName",
@@ -78,6 +86,8 @@ final class KitchenController
             'stations' => $stations,
             'cafe_name' => $cafeName,
             'backlog_alert' => \count($itemsRaw) > 10,
+            'total_tickets' => \count($itemsRaw),
+            'avg_prep_time_formatted' => $avgPrepFormatted,
             'counts' => [
                 'hot' => \count($stations['hot']),
                 'bar' => \count($stations['bar']),
@@ -181,30 +191,35 @@ final class KitchenController
         $now = \time();
 
         foreach ($itemsRaw as $item) {
-            // Calcular tiempo de espera
-            $createdTime = \strtotime($item['created_at']);
-            $seconds = $now - $createdTime;
-            $mins = (int) \round($seconds / 60);
+            // Calcular tiempo de espera (created_ts viene como UNIX_TIMESTAMP desde MySQL — sin desfase de timezone)
+            $seconds = $now - (int) ($item['created_ts'] ?? \strtotime($item['created_at']));
 
             // Formatear tiempo para UI
             $item['ui_time'] = \gmdate(($seconds > 3600 ? 'H:i:s' : 'i:s'), $seconds);
 
-            // Asignar clase CSS según urgencia
+            // Asignar clase CSS según urgencia (basada en prep_time restante)
+            $remaining = (($item['prep_time'] ?? 5) * 60) - $seconds;
             $item['ui_class'] = '';
 
-            if ($mins > 15) {
+            if ($remaining <= 0) {
                 $item['ui_class'] = 'kds-card--late';
-            } elseif ($mins > 10) {
+            } elseif ($remaining <= 120) {
                 $item['ui_class'] = 'kds-card--warn';
             }
 
             // Codificar SOP (Standard Operating Procedure) para embeber en HTML
-            $item['json_sop'] = \htmlspecialchars(\json_encode([
-                'title' => $item['product_name'] ?? '',
-                'steps' => $item['recipe_steps'] ?? '',
-                'ingred' => $item['ingredients_list'] ?? [],
-                'check' => $item['critical_check'] ?? '',
-            ], JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8');
+            // Raw() evita que View::render::escapeData() doble-escape el JSON ya codificado
+            $item['json_sop'] = new Raw(\htmlspecialchars(
+                \json_encode([
+                    'title'     => $item['product_name'] ?? '',
+                    'steps'     => $item['recipe_steps'] ?? '',
+                    'ingred'    => $item['ingredients_list'] ?? [],
+                    'check'     => $item['critical_check'] ?? '',
+                    'allergens' => $item['allergens'] ?? [],
+                ], JSON_UNESCAPED_UNICODE) ?: '{}',
+                ENT_QUOTES,
+                'UTF-8'
+            ));
 
             // Agrupar por estación
             $station = $item['station'] ?? 'kitchen_hot';

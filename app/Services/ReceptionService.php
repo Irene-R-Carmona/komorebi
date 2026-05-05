@@ -12,8 +12,11 @@ use App\Exceptions\BusinessRuleException;
 use App\Exceptions\NotFoundException;
 use App\Models\Reservation;
 use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\TrackerRepositoryInterface;
+use App\Repositories\InteractionSessionRepository;
 use App\Services\Contracts\LoyaltyServiceInterface;
 use App\Services\Contracts\ReceptionServiceInterface;
 use Override;
@@ -30,15 +33,24 @@ final class ReceptionService implements ReceptionServiceInterface
     private ReservationRepositoryInterface $reservationRepo;
     private TrackerRepositoryInterface $trackerRepo;
     private CafeRepositoryInterface $cafeRepo;
+    private InteractionSessionRepository $interactionRepo;
+    private ReservationItemRepositoryInterface $itemRepo;
+    private ProductRepositoryInterface $productRepo;
 
     public function __construct(
         ?ReservationRepositoryInterface $reservationRepo = null,
         ?TrackerRepositoryInterface $trackerRepo = null,
-        ?CafeRepositoryInterface $cafeRepo = null
+        ?CafeRepositoryInterface $cafeRepo = null,
+        ?InteractionSessionRepository $interactionRepo = null,
+        ?ReservationItemRepositoryInterface $itemRepo = null,
+        ?ProductRepositoryInterface $productRepo = null
     ) {
-        $this->reservationRepo = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
-        $this->trackerRepo = $trackerRepo ?? Container::make(TrackerRepositoryInterface::class);
-        $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
+        $this->reservationRepo  = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
+        $this->trackerRepo      = $trackerRepo ?? Container::make(TrackerRepositoryInterface::class);
+        $this->cafeRepo         = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
+        $this->interactionRepo  = $interactionRepo ?? new InteractionSessionRepository();
+        $this->itemRepo         = $itemRepo ?? Container::make(ReservationItemRepositoryInterface::class);
+        $this->productRepo      = $productRepo ?? Container::make(ProductRepositoryInterface::class);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -64,7 +76,7 @@ final class ReceptionService implements ReceptionServiceInterface
     {
         $reservations = $this->reservationRepo->findByCafeAndDate($cafeId, \date('Y-m-d'));
 
-        return \array_filter($reservations, static fn ($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
+        return \array_filter($reservations, static fn($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
     }
 
     #[Override]
@@ -120,6 +132,7 @@ final class ReceptionService implements ReceptionServiceInterface
                 }
 
                 $this->reservationRepo->checkIn($reservationId, ['tracker_id' => $trackerId]);
+                $this->interactionRepo->createForReservation($reservationId, $reservation->cafe_id);
 
                 return true;
             });
@@ -155,6 +168,7 @@ final class ReceptionService implements ReceptionServiceInterface
                 }
 
                 $this->reservationRepo->checkOut($reservationId);
+                $this->interactionRepo->closeForReservation($reservationId);
                 $updated = $this->reservationRepo->findById($reservationId);
 
                 if ($updated !== null && $updated->status === Reservation::STATUS_COMPLETED && $updated->user_id) {
@@ -264,6 +278,152 @@ final class ReceptionService implements ReceptionServiceInterface
     public function getDailyStats(int $cafeId, string $date): array
     {
         return $this->reservationRepo->getDailyStats($cafeId, $date);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // POS — Pedidos en sala
+    // ─────────────────────────────────────────────────────────────
+
+    #[Override]
+    public function addItem(int $reservationId, int $productId, int $qty, int $cafeId): Result
+    {
+        if ($reservationId <= 0 || $productId <= 0 || $qty <= 0) {
+            return Result::fail('Parámetros inválidos', 'invalid_params');
+        }
+
+        $reservation = $this->reservationRepo->findById($reservationId);
+
+        if ($reservation === null) {
+            return Result::fail('Reserva no encontrada', 'not_found');
+        }
+
+        if ($reservation->status !== Reservation::STATUS_ACTIVE) {
+            return Result::fail('La reserva no está activa', 'invalid_state');
+        }
+
+        if ($reservation->cafe_id !== $cafeId) {
+            return Result::fail('La reserva no pertenece a esta sede', 'cafe_mismatch');
+        }
+
+        $product = $this->productRepo->findById($productId);
+
+        if ($product === null || !$product->is_active) {
+            return Result::fail('Producto no disponible', 'product_unavailable');
+        }
+
+        if ($product->product_type === 'pass') {
+            return Result::fail('No se pueden añadir pases como pedido de sala', 'invalid_product_type');
+        }
+
+        try {
+            $itemId = $this->itemRepo->add($reservationId, $productId, $qty, $product->price);
+
+            Logger::info('[ReceptionService] Item añadido a reserva', [
+                'reservation_id' => $reservationId,
+                'product_id'     => $productId,
+                'quantity'       => $qty,
+                'item_id'        => $itemId,
+            ]);
+
+            return Result::ok(['item_id' => $itemId]);
+        } catch (PDOException $e) {
+            Logger::error('[ReceptionService] DB error en addItem()', ['exception' => $e->getMessage()]);
+
+            return Result::fail('Error de base de datos', 'db_error');
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Cobro — Cierre de visita con pago
+    // ─────────────────────────────────────────────────────────────
+
+    #[Override]
+    public function processPayment(int $reservationId, string $paymentMethod, int $cafeId, ?string $notes = null): Result
+    {
+        try {
+            // Validations before opening the DB transaction (unit-testable)
+            if ($reservationId <= 0 || $cafeId <= 0 || $paymentMethod === '') {
+                return Result::fail('Parámetros inválidos', 'invalid_params');
+            }
+
+            $rawReservation = $this->reservationRepo->findByIdWithCafeDetails($reservationId);
+
+            if ($rawReservation === null) {
+                return Result::fail("Reserva {$reservationId} no encontrada", 'not_found');
+            }
+
+            if ($rawReservation['status'] !== Reservation::STATUS_ACTIVE) {
+                return Result::fail(
+                    "Operación pago no permitida en estado {$rawReservation['status']}",
+                    'invalid_state'
+                );
+            }
+
+            if ((int) $rawReservation['cafe_id'] !== $cafeId) {
+                return Result::fail('La reserva no pertenece a esta sede', 'cafe_mismatch');
+            }
+
+            $checkoutData = Database::transaction(function () use ($reservationId, $paymentMethod, $cafeId, $notes, $rawReservation) {
+
+                // Calcular importe del pase
+                $passAmount = (float) ($rawReservation['pass_unit_price'] ?? 0)
+                    * (int) ($rawReservation['guest_count'] ?? 1);
+
+                // Sumar pedidos de sala
+                $items = $this->itemRepo->findByReservation($reservationId);
+                $itemsAmount = 0.0;
+                foreach ($items as $item) {
+                    $itemsAmount += (float) ($item['unit_price'] ?? 0) * (int) ($item['quantity'] ?? 1);
+                }
+
+                $finalAmount = $passAmount + $itemsAmount;
+
+                $this->reservationRepo->checkOut($reservationId, [
+                    'final_amount'   => $finalAmount,
+                    'payment_status' => 'paid',
+                    'payment_method' => $paymentMethod,
+                    'payment_notes'  => $notes,
+                ]);
+
+                $this->interactionRepo->closeForReservation($reservationId);
+
+                $updated = $this->reservationRepo->findById($reservationId);
+
+                if ($updated !== null && $updated->status === Reservation::STATUS_COMPLETED && $updated->user_id) {
+                    try {
+                        $loyaltyService = Container::make(LoyaltyServiceInterface::class);
+                        $loyaltyService->addStamp($updated->user_id, 1, $reservationId);
+                    } catch (Throwable $e) {
+                        Logger::warning('[ReceptionService] Error al añadir sello de fidelización', [
+                            'reservation_id' => $reservationId,
+                            'user_id'        => $updated->user_id,
+                            'error'          => $e->getMessage(),
+                        ]);
+                    }
+                }
+
+                Logger::info('[ReceptionService] Cobro completado', [
+                    'reservation_id' => $reservationId,
+                    'final_amount'   => $finalAmount,
+                    'payment_method' => $paymentMethod,
+                ]);
+
+                return [
+                    'success'        => true,
+                    'final_amount'   => $finalAmount,
+                    'pass_amount'    => $passAmount,
+                    'items_amount'   => $itemsAmount,
+                    'payment_method' => $paymentMethod,
+                    'duration'       => $this->calculateDuration($updated),
+                ];
+            });
+
+            return Result::ok($checkoutData);
+        } catch (PDOException $e) {
+            Logger::error('[ReceptionService] DB error en processPayment()', ['exception' => $e->getMessage()]);
+
+            return Result::fail('Error de base de datos', 'db_error');
+        }
     }
 
     // ─────────────────────────────────────────────────────────────
