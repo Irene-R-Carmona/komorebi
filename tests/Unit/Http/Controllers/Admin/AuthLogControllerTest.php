@@ -15,7 +15,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Http\Controllers\Admin;
 
-use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\AuthLogController;
 use App\Repositories\Contracts\AuthLogRepositoryInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -42,7 +41,6 @@ final class AuthLogControllerTest extends ControllerTestCase
     private function makeController(): AuthLogController
     {
         return new AuthLogController(
-            new ResponseFactory(),
             $this->createStub(AuthLogRepositoryInterface::class)
         );
     }
@@ -50,8 +48,6 @@ final class AuthLogControllerTest extends ControllerTestCase
     public function test_class_has_expected_methods(): void
     {
         $this->assertTrue(\method_exists(AuthLogController::class, 'index'));
-        $this->assertTrue(\method_exists(AuthLogController::class, 'suspiciousCount'));
-        $this->assertTrue(\method_exists(AuthLogController::class, 'export'));
     }
 
     public function test_instance_can_be_created_with_stub(): void

@@ -54,4 +54,28 @@ interface LoyaltyRepositoryInterface
      * @return array<int, array<string, mixed>>
      */
     public function getLeaderboard(int $limit = 10): array;
+
+    // ── Admin ─────────────────────────────────────────────────────
+
+    /** @return array<string, int> Claves: bronze, silver, gold, platinum */
+    public function getTierDistribution(): array;
+
+    /**
+     * @return array{ items: array<int, array<string, mixed>>, total: int, page: int, per_page: int, has_next: bool }
+     */
+    public function getAllCardsPaginated(int $page, int $perPage, string $search = ''): array;
+
+    /** @return array<int, array<string, mixed>> */
+    public function getAllCatalog(): array;
+
+    public function toggleCatalogItem(int $id, bool $isActive): bool;
+
+    /**
+     * @param array<string, mixed> $filters
+     * @return array<int, array<string, mixed>>
+     */
+    public function getRecentRedemptions(int $limit = 20, array $filters = []): array;
+
+    /** @return array<string, mixed> */
+    public function getRedemptionStats(): array;
 }

@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Core\Csrf;
-
 /**
  * Vista: Mis Reservas (usuario autenticado)
- * Ruta: GET /mis-reservas
+ * Ruta: GET /reservas/mis-reservas
  *
  * Variables esperadas:
  * @var string $titulo
@@ -45,7 +43,7 @@ $statusBadge = [
                 <p class="rsv2-lista__subtitle">Historial y estado de tus visitas a Komorebi Café</p>
             </div>
             <div class="rsv2-lista__header-actions">
-                <button type="button" class="btn-komorebi btn-komorebi-ghost rsv2-lista__print-btn" onclick="window.print()">
+                <button type="button" class="btn-komorebi btn-komorebi-ghost rsv2-lista__print-btn" @click="window.print()">
                     <i class="bi bi-printer" aria-hidden="true"></i>
                     Imprimir
                 </button>
@@ -112,14 +110,10 @@ $statusBadge = [
 
                             <?php if ($canCancel): ?>
                                 <div class="rsv2-card__actions">
-                                    <form method="POST" action="/reservas/mis-reservas/<?= (int) ($rsv['id'] ?? 0) ?>/cancel"
-                                        x-data
-                                        @submit.prevent="if(confirm('¿Cancelar esta reserva?')) $el.submit()">
-                                        <?= Csrf::field() ?>
-                                        <button type="submit" class="btn-komorebi btn-komorebi-secondary rsv2-card__cancel">
-                                            Cancelar reserva
-                                        </button>
-                                    </form>
+                                    <a href="/reservas/mis-reservas/<?= (int) ($rsv['id'] ?? 0) ?>/cancelar"
+                                        class="btn-komorebi btn-komorebi-secondary rsv2-card__cancel">
+                                        Cancelar reserva
+                                    </a>
                                 </div>
                             <?php endif; ?>
                         </div>

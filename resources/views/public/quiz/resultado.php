@@ -205,7 +205,8 @@ $temaCss = $animalColorMap[$animalIcon] ?? 'tema-default';
                     <img src="<?= htmlspecialchars($cafeData['image_url']) ?>"
                         alt="<?= htmlspecialchars($cafeData['name']) ?>"
                         class="cafe-destino__imagen"
-                        onerror="this.src='/images/ui/placeholder.svg'">
+                        x-data
+                        x-on:error="$el.src='/images/ui/placeholder.svg'">
                 <?php endif; ?>
 
                 <div class="cafe-destino__info">
@@ -251,7 +252,7 @@ $temaCss = $animalColorMap[$animalIcon] ?? 'tema-default';
             <i class="bi bi-search" aria-hidden="true"></i>
             Otros refugios
         </a>
-        <button class="btn-komorebi btn-komorebi-acento" onclick="window.print()">
+        <button class="btn-komorebi btn-komorebi-acento" @click="window.print()">
             <i class="bi bi-printer" aria-hidden="true"></i>
             Guardar PDF
         </button>
@@ -265,11 +266,11 @@ $temaCss = $animalColorMap[$animalIcon] ?? 'tema-default';
         </p>
         <div class="compartir-botones">
             <button class="compartir-btn compartir-btn--twitter"
-                onclick="window.open('<?= 'https://twitter.com/intent/tweet?text=' . urlencode('Mi café del alma es ' . $cafe['nombre'] . ' en Komorebi Café') ?>', '_blank', 'width=550,height=420')">
+                @click="window.open('<?= 'https://twitter.com/intent/tweet?text=' . urlencode('Mi café del alma es ' . $cafe['nombre'] . ' en Komorebi Café') ?>', '_blank', 'width=550,height=420')">
                 <i class="bi bi-twitter-x" aria-hidden="true"></i> Twitter
             </button>
             <button class="compartir-btn compartir-btn--facebook"
-                onclick="window.open('<?= 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode('https://' . ($_SERVER['HTTP_HOST'] ?? 'komorebi.cafe') . '/quiz') ?>', '_blank', 'width=550,height=420')">
+                @click="window.open('<?= 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode('https://' . ($_SERVER['HTTP_HOST'] ?? 'komorebi.cafe') . '/quiz') ?>', '_blank', 'width=550,height=420')">
                 <i class="bi bi-facebook" aria-hidden="true"></i> Facebook
             </button>
             <button class="compartir-btn compartir-btn--copiar"

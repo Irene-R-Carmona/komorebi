@@ -3,342 +3,343 @@
    ============================================================================ */
 
 .profile-container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding-bottom: 4rem;
-    display: grid;
-    gap: 3rem;
-    /* Animación de entrada suave */
-    animation: fadeIn 0.6s ease-out;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 4rem;
+  display: grid;
+  gap: 3rem;
+  /* Animación de entrada suave */
+  animation: fadeIn 0.6s ease-out;
 }
 
 /* --- BLOQUE SUPERIOR: DASHBOARD --- */
 .dashboard-header {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
 }
 
 @media (min-width: 850px) {
-    .dashboard-header {
-        grid-template-columns: 1.2fr 1fr; /* Tarjeta Membresía | Próxima Aventura */
-    }
+  .dashboard-header {
+    grid-template-columns: 1.2fr 1fr;
+    /* Tarjeta Membresía | Próxima Aventura */
+  }
 }
 
 /* 1. TARJETA DE MEMBRESÍA (Gamificación) */
 .member-card {
-    background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-primary-700) 100%);
-    border-radius: var(--radio-lg);
-    padding: 2rem;
-    color: white;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 15px 30px color-mix(in srgb, var(--color-primario) 30%, transparent);
-    min-height: 220px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+  background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-primary-700) 100%);
+  border-radius: var(--radio-lg);
+  padding: 2rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 15px 30px color-mix(in srgb, var(--color-primario) 30%, transparent);
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 /* Patrón de fondo decorativo */
 .member-card::before {
-    content: "";
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
-    opacity: 0.3;
-    transform: rotate(30deg);
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.3;
+  transform: rotate(30deg);
 }
 
 .member-card__top {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    position: relative;
-    z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  position: relative;
+  z-index: 2;
 }
 
 .member-card__logo {
-    font-family: var(--fuente-titulo);
-    font-size: 1.2rem;
-    opacity: 0.8;
+  font-family: var(--fuente-titulo);
+  font-size: 1.2rem;
+  opacity: 0.8;
 }
 
 .member-card__tier {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(4px);
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(4px);
 }
 
 .member-card__user {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    position: relative;
-    z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 2;
 }
 
 .member-card__avatar {
-    width: 70px;
-    height: 70px;
-    background: white;
-    color: var(--color-primario);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    font-weight: 700;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 70px;
+  height: 70px;
+  background: white;
+  color: var(--color-primario);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .member-card__info h2 {
-    font-size: 1.5rem;
-    margin: 0;
-    line-height: 1.2;
+  font-size: 1.5rem;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .member-card__info p {
-    font-size: 0.9rem;
-    opacity: 0.7;
-    margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin: 0;
 }
 
 .member-card__stats {
-    margin-top: 0.5rem;
-    font-size: 0.85rem;
-    opacity: 0.9;
-    font-family: var(--fuente-acento);
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.9;
+  font-family: var(--fuente-acento);
 }
 
 /* 2. WIDGET PRÓXIMA AVENTURA (UX: Visibilidad de estado) */
 .next-adventure {
-    background: var(--color-superficie);
-    border: 1px solid var(--color-borde-card);
-    border-radius: var(--radio-lg);
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    position: relative;
-    box-shadow: var(--sombra-card);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde-card);
+  border-radius: var(--radio-lg);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  box-shadow: var(--sombra-card);
 }
 
 .next-adventure--empty {
-    text-align: center;
-    color: var(--color-texto-suave);
-    background-color: rgba(0, 0, 0, 0.02);
-    border-style: dashed;
+  text-align: center;
+  color: var(--color-texto-suave);
+  background-color: rgba(0, 0, 0, 0.02);
+  border-style: dashed;
 }
 
 .next-adventure__label {
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-    color: var(--color-acento-text);
-    margin-bottom: 1rem;
-    font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  color: var(--color-acento-text);
+  margin-bottom: 1rem;
+  font-weight: 700;
 }
 
 .next-adventure__card {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
 }
 
 .next-adventure__img {
-    width: 80px;
-    height: 80px;
-    border-radius: var(--radio-md);
-    object-fit: cover;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radio-md);
+  object-fit: cover;
 }
 
 .next-adventure__details h3 {
-    margin: 0 0 0.3rem 0;
-    font-size: 1.2rem;
-    color: var(--color-primario);
+  margin: 0 0 0.3rem 0;
+  font-size: 1.2rem;
+  color: var(--color-primario);
 }
 
 .next-adventure__details p {
-    margin: 0;
-    font-size: 0.95rem;
-    color: var(--color-texto);
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-texto);
 }
 
 .next-adventure__cta {
-    margin-top: 1.5rem;
-    align-self: flex-start;
+  margin-top: 1.5rem;
+  align-self: flex-start;
 }
 
 /* --- BLOQUE INFERIOR: CONFIGURACIÓN (Grid) --- */
 .settings-grid {
-    display: grid;
-    gap: 2rem;
+  display: grid;
+  gap: 2rem;
 }
 
 @media (min-width: 768px) {
-    .settings-grid {
-        grid-template-columns: 1fr 1fr;
-    }
+  .settings-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .settings-box {
-    background: var(--color-superficie);
-    padding: 2rem;
-    border-radius: var(--radio-lg);
-    border: 1px solid var(--color-borde-card);
-    box-shadow: var(--sombra-card);
+  background: var(--color-superficie);
+  padding: 2rem;
+  border-radius: var(--radio-lg);
+  border: 1px solid var(--color-borde-card);
+  box-shadow: var(--sombra-card);
 }
 
 .settings-header {
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid var(--color-borde);
-    padding-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-borde);
+  padding-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 
 .settings-icon {
-    font-size: 1.5rem;
+  font-size: 1.5rem;
 }
 
 .settings-title {
-    font-size: 1.1rem;
-    margin: 0;
-    color: var(--color-primario);
+  font-size: 1.1rem;
+  margin: 0;
+  color: var(--color-primario);
 }
 
 /* Botones de acción específicos */
 .btn-update {
-    background: var(--color-fondo);
-    color: var(--color-texto);
-    border: 1px solid var(--color-borde);
-    width: 100%;
-    margin-top: 1rem;
-    padding: 0.8rem;
-    border-radius: var(--radio-md);
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.2s;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  border: 1px solid var(--color-borde);
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border-radius: var(--radio-md);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 
 .btn-update:hover {
-    border-color: var(--color-primario);
-    color: var(--color-primario);
-    background: white;
+  border-color: var(--color-primario);
+  color: var(--color-primario);
+  background: white;
 }
 
 .settings-divider {
-    border: none;
-    border-top: 1px solid var(--color-borde);
-    margin: 1.5rem 0 1rem;
+  border: none;
+  border-top: 1px solid var(--color-borde);
+  margin: 1.5rem 0 1rem;
 }
 
 .settings-export {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .settings-export__hint {
-    font-size: 0.85rem;
-    color: var(--color-texto-suave);
-    margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-texto-suave);
+  margin: 0;
 }
 
 .btn-danger-outline {
-    background: transparent;
-    color: var(--color-error);
-    border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
-    width: 100%;
-    margin-top: 1rem;
-    padding: 0.8rem;
-    border-radius: var(--radio-md);
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.2s;
+  background: transparent;
+  color: var(--color-error);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border-radius: var(--radio-md);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 
 .btn-danger-outline:hover {
-    background: var(--color-error);
-    color: white;
+  background: var(--color-error);
+  color: white;
 }
 
 /* Barra de progreso dentro de member-card */
 .member-progress {
-    margin-top: 0.75rem;
-    position: relative;
-    z-index: 2;
+  margin-top: 0.75rem;
+  position: relative;
+  z-index: 2;
 }
 
 .member-progress__bar {
-    width: 100%;
-    height: 10px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.25);
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .member-progress__fill {
-    height: 100%;
-    width: var(--progress, 0%);
-    border-radius: 999px;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.55));
+  height: 100%;
+  width: var(--progress, 0%);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.55));
 }
 
 /* Badge/estado dentro del widget "Próxima aventura" */
 .status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    border: 1px solid var(--color-borde);
-    background: rgba(0, 0, 0, 0.03);
-    color: var(--color-texto);
-    margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border: 1px solid var(--color-borde);
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--color-texto);
+  margin-top: 0.5rem;
 }
 
 .status-pill--pending {
-    background: color-mix(in srgb, var(--color-warning) 15%, transparent);
-    border-color: color-mix(in srgb, var(--color-warning) 35%, transparent);
-    color: var(--color-warning-dark);
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning) 35%, transparent);
+  color: var(--color-warning-dark);
 }
 
 .status-pill--confirmed {
-    background: color-mix(in srgb, var(--color-info) 12%, transparent);
-    border-color: color-mix(in srgb, var(--color-info) 35%, transparent);
-    color: var(--color-info-dark);
+  background: color-mix(in srgb, var(--color-info) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-info) 35%, transparent);
+  color: var(--color-info-dark);
 }
 
 .status-pill--active {
-    background: color-mix(in srgb, var(--color-success) 12%, transparent);
-    border-color: color-mix(in srgb, var(--color-success) 35%, transparent);
-    color: var(--color-success-dark);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 35%, transparent);
+  color: var(--color-success-dark);
 }
 
 /* Acciones del widget */
 .next-adventure__actions {
-    margin-top: 1.5rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -346,193 +347,193 @@
 ────────────────────────────────────────────────────────────────────────── */
 
 .my-reviews-section {
-    background: var(--color-superficie);
-    border: 1px solid var(--color-borde-card);
-    border-radius: var(--radio-md);
-    padding: var(--espaciado-lg);
-    box-shadow: var(--sombra-card);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde-card);
+  border-radius: var(--radio-md);
+  padding: var(--espaciado-lg);
+  box-shadow: var(--sombra-card);
 }
 
 .my-reviews-section .settings-header {
-    display: flex;
-    align-items: center;
-    gap: var(--espaciado-sm);
-    margin-bottom: var(--espaciado-md);
-    padding-bottom: var(--espaciado-md);
-    border-bottom: 2px solid var(--color-borde);
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-sm);
+  margin-bottom: var(--espaciado-md);
+  padding-bottom: var(--espaciado-md);
+  border-bottom: 2px solid var(--color-borde);
 }
 
 .my-reviews-section .settings-title {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--color-texto);
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-texto);
 }
 
 /* Empty state */
 .reviews-empty {
-    text-align: center;
-    padding: var(--espaciado-lg);
-    background: var(--color-fondo-alt);
-    border-radius: var(--radio-md);
-    color: var(--color-texto-suave);
+  text-align: center;
+  padding: var(--espaciado-lg);
+  background: var(--color-fondo-alt);
+  border-radius: var(--radio-md);
+  color: var(--color-texto-suave);
 }
 
 .reviews-empty p {
-    margin: 0 0 var(--espaciado-md) 0;
-    line-height: 1.6;
+  margin: 0 0 var(--espaciado-md) 0;
+  line-height: 1.6;
 }
 
 /* Listado de mis reseñas */
 .my-reviews-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espaciado-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaciado-md);
 }
 
 .my-review-card {
-    padding: var(--espaciado-md);
-    background: var(--color-fondo-alt);
-    border-left: 4px solid var(--color-acento);
-    border-radius: var(--radio-sm);
-    transition: all var(--transicion);
+  padding: var(--espaciado-md);
+  background: var(--color-fondo-alt);
+  border-left: 4px solid var(--color-acento);
+  border-radius: var(--radio-sm);
+  transition: all var(--transicion);
 }
 
 .my-review-card:hover {
-    background: linear-gradient(135deg, var(--color-fondo-alt) 0%, rgba(201, 169, 89, 0.05) 100%);
-    transform: translateX(4px);
+  background: linear-gradient(135deg, var(--color-fondo-alt) 0%, rgba(201, 169, 89, 0.05) 100%);
+  transform: translateX(4px);
 }
 
 .my-review__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: var(--espaciado-sm);
-    margin-bottom: var(--espaciado-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--espaciado-sm);
+  margin-bottom: var(--espaciado-sm);
 }
 
 .my-review__top {
-    flex: 1;
+  flex: 1;
 }
 
 .my-review__title {
-    margin: 0 0 0.25rem 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-texto);
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-texto);
 }
 
 .my-review__cafe {
-    display: block;
-    font-size: 0.85rem;
-    color: var(--color-texto-suave);
+  display: block;
+  font-size: 0.85rem;
+  color: var(--color-texto-suave);
 }
 
 .my-review__status {
-    display: inline-block;
-    padding: 0.35rem 0.75rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    white-space: nowrap;
-    background: var(--color-fondo);
-    color: var(--color-texto-suave);
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--color-fondo);
+  color: var(--color-texto-suave);
 }
 
 .my-review__status--status-pending {
-    background: color-mix(in srgb, var(--color-warning) 15%, transparent);
-    color: var(--color-warning-dark);
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning-dark);
 }
 
 .my-review__status--status-approved {
-    background: color-mix(in srgb, var(--color-success) 15%, transparent);
-    color: var(--color-success-dark);
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success-dark);
 }
 
 .my-review__status--status-rejected {
-    background: color-mix(in srgb, var(--color-danger) 15%, transparent);
-    color: var(--color-danger-dark);
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger-dark);
 }
 
 .my-review__rating {
-    display: flex;
-    gap: 0.25rem;
-    margin-bottom: var(--espaciado-sm);
-    font-size: 1rem;
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: var(--espaciado-sm);
+  font-size: 1rem;
 }
 
 .my-review__body {
-    margin: 0 0 var(--espaciado-sm) 0;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    color: var(--color-texto-suave);
+  margin: 0 0 var(--espaciado-sm) 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-texto-suave);
 }
 
 .my-review__meta {
-    font-size: 0.8rem;
-    color: var(--color-neutral-500);
-    margin-bottom: var(--espaciado-sm);
+  font-size: 0.8rem;
+  color: var(--color-neutral-500);
+  margin-bottom: var(--espaciado-sm);
 }
 
 .my-review__actions {
-    display: flex;
-    gap: var(--espaciado-sm);
-    padding-top: var(--espaciado-sm);
-    border-top: 1px solid rgba(212, 196, 168, 0.3);
+  display: flex;
+  gap: var(--espaciado-sm);
+  padding-top: var(--espaciado-sm);
+  border-top: 1px solid rgba(212, 196, 168, 0.3);
 }
 
 .btn-icon-text {
-    background: none;
-    border: none;
-    color: var(--color-acento-text);
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: color var(--transicion);
-    padding: 0.25rem 0.5rem;
+  background: none;
+  border: none;
+  color: var(--color-acento-text);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color var(--transicion);
+  padding: 0.25rem 0.5rem;
 }
 
 .btn-icon-text:hover {
-    color: var(--color-accent-900);
+  color: var(--color-accent-900);
 }
 
 .btn-icon-text--danger {
-    color: var(--color-error);
+  color: var(--color-error);
 }
 
 .btn-icon-text--danger:hover {
-    color: #c73b52;
+  color: #c73b52;
 }
 
 .my-review__rejection-reason {
-    margin-top: var(--espaciado-sm);
-    padding: var(--espaciado-sm);
-    background: rgba(155, 35, 53, 0.08);
-    border-left: 3px solid var(--color-error);
-    border-radius: var(--radio-sm);
-    font-size: 0.85rem;
-    color: var(--color-error);
-    line-height: 1.5;
+  margin-top: var(--espaciado-sm);
+  padding: var(--espaciado-sm);
+  background: rgba(155, 35, 53, 0.08);
+  border-left: 3px solid var(--color-error);
+  border-radius: var(--radio-sm);
+  font-size: 0.85rem;
+  color: var(--color-error);
+  line-height: 1.5;
 }
 
 @media (max-width: 640px) {
-    .my-review-card {
-        padding: var(--espaciado-sm);
-    }
+  .my-review-card {
+    padding: var(--espaciado-sm);
+  }
 
-    .my-review__header {
-        flex-direction: column;
-    }
+  .my-review__header {
+    flex-direction: column;
+  }
 
-    .my-review__actions {
-        flex-wrap: wrap;
-    }
+  .my-review__actions {
+    flex-wrap: wrap;
+  }
 
-    .btn-icon-text {
-        flex: 1;
-        text-align: center;
-        padding: 0.5rem;
-    }
+  .btn-icon-text {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -540,64 +541,64 @@
 ────────────────────────────────────────────────────────────────────────── */
 
 .dashboard-quick-access {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin: 2rem 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
 }
 
 .quick-access-card {
-    background: linear-gradient(135deg, var(--color-superficie) 0%, var(--color-fondo) 100%);
-    border: 2px solid var(--color-borde-card);
-    border-radius: var(--radio-lg);
-    padding: 1.5rem;
-    transition: all var(--transicion);
-    text-decoration: none;
-    color: inherit;
-    display: block;
-    box-shadow: var(--sombra-card);
+  background: linear-gradient(135deg, var(--color-superficie) 0%, var(--color-fondo) 100%);
+  border: 2px solid var(--color-borde-card);
+  border-radius: var(--radio-lg);
+  padding: 1.5rem;
+  transition: all var(--transicion);
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  box-shadow: var(--sombra-card);
 }
 
 .quick-access-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(45, 34, 24, 0.22), 0 4px 10px rgba(45, 34, 24, 0.14);
-    border-color: var(--color-acento);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(45, 34, 24, 0.22), 0 4px 10px rgba(45, 34, 24, 0.14);
+  border-color: var(--color-acento);
 }
 
 .quick-access-card__header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .quick-access-card__icon {
-    font-size: 2.5rem;
-    flex-shrink: 0;
+  font-size: 2.5rem;
+  flex-shrink: 0;
 }
 
 .quick-access-card__title {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--color-texto);
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-texto);
 }
 
 .quick-access-card__description {
-    color: var(--color-texto-suave);
-    margin: 0 0 1rem 0;
-    font-size: 0.95rem;
-    line-height: 1.5;
+  color: var(--color-texto-suave);
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .quick-access-card__cta {
-    color: var(--color-acento-text);
-    font-weight: 600;
-    font-size: 0.95rem;
+  color: var(--color-acento-text);
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .quick-access-card:hover .quick-access-card__cta {
-    color: var(--color-accent-900);
+  color: var(--color-accent-900);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -605,9 +606,86 @@
 ────────────────────────────────────────────────────────────────────────── */
 
 .member-card__stats--progress {
-    margin-top: 0.35rem;
+  margin-top: 0.35rem;
 }
 
 .member-card__level-hint {
-    opacity: 0.85;
+  opacity: 0.85;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SECCIÓN: VISTAS DE SUBCUENTA (/account/*)
+   Clases reutilizadas en security, sessions, change-password, delete-confirm
+────────────────────────────────────────────────────────────────────────── */
+
+/* Enlace de regreso */
+.account-back-link {
+  color: var(--color-primario);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.15s ease;
+}
+
+.account-back-link:hover {
+  color: var(--color-acento);
+  text-decoration: underline;
+}
+
+/* Título principal de página de cuenta */
+.account-page-title {
+  font-family: var(--fuente-titulo);
+  color: var(--color-primario);
+}
+
+/* Modificador: settings-box con tono de peligro */
+.settings-box--danger {
+  border-color: color-mix(in srgb, var(--color-error) 35%, transparent);
+  background: color-mix(in srgb, var(--color-error) 4%, var(--color-superficie));
+}
+
+.settings-box--danger .settings-header {
+  border-bottom-color: color-mix(in srgb, var(--color-error) 20%, transparent);
+}
+
+.settings-box--danger .settings-icon {
+  color: var(--color-error);
+}
+
+.settings-box--danger .settings-title {
+  color: var(--color-error);
+}
+
+/* Variante inline de btn-danger-outline (no ocupa el 100% del ancho) */
+.btn-danger-outline--inline {
+  width: auto;
+  margin-top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Icono circular de acción destructiva */
+.account-danger-icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  font-size: 1.75rem;
+  color: var(--color-error);
+}
+
+/* ── Utilidades de layout para el perfil ──────────────────────── */
+
+/* Región live del toast del perfil (output[aria-live]) */
+.toast-live-region {
+  display: block;
+}
+
+/* Formularios inline dentro de tarjetas de reseña */
+.form-inline {
+  display: contents;
 }

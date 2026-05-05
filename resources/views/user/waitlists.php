@@ -136,10 +136,28 @@ function getStatusBadge(string $status): array
                         <?php if ($item['status'] === 'notified'): ?>
                             <div class="waitlist-card__actions">
                                 <p class="waitlist-card__warning">
-                                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Tienes hasta el <?= date('d/m/Y H:i', strtotime((string) ($item['notified_at'] ?? '') . ' +24 hours')) ?> para confirmar
+                                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                                    <?php if (!empty($item['notified_at'])): ?>
+                                        Tienes hasta el <?= \date('d/m/Y H:i', \strtotime((string) $item['notified_at'] . ' +24 hours')) ?> para confirmar
+                                    <?php else: ?>
+                                        Tienes 24 horas desde la notificación para confirmar
+                                    <?php endif; ?>
                                 </p>
-                                <button class="btn-primary btn-sm">Confirmar Plaza</button>
-                                <button class="btn-secondary btn-sm">Rechazar</button>
+                                <a
+                                    href="/waitlist/confirm/<?= \htmlspecialchars((string) ($item['token'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+                                    class="btn-komorebi btn-komorebi-primary btn-komorebi--sm"
+                                    aria-label="Confirmar plaza para <?= \htmlspecialchars(\trim(($item['slot_date'] ?? '') . ' ' . ($item['slot_time'] ?? '')), ENT_QUOTES, 'UTF-8') ?>">
+                                    Confirmar Plaza
+                                </a>
+                                <form method="POST" action="/user/waitlists/<?= (int) ($item['id'] ?? 0) ?>/cancel" style="display:inline">
+                                    <?= \App\Core\Csrf::field() ?>
+                                    <button
+                                        type="submit"
+                                        class="btn-komorebi btn-komorebi-ghost btn-komorebi--sm"
+                                        aria-label="Rechazar plaza para <?= \htmlspecialchars(\trim(($item['slot_date'] ?? '') . ' ' . ($item['slot_time'] ?? '')), ENT_QUOTES, 'UTF-8') ?>">
+                                        Rechazar
+                                    </button>
+                                </form>
                             </div>
                         <?php endif; ?>
                     </div>

@@ -15,7 +15,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Http\Controllers\Admin;
 
-use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -27,14 +26,12 @@ final class AuditLogControllerTest extends ControllerTestCase
     public function test_class_has_expected_methods(): void
     {
         $this->assertTrue(\method_exists(AuditLogController::class, 'index'));
-        $this->assertTrue(\method_exists(AuditLogController::class, 'export'));
     }
 
     public function test_instance_can_be_created_with_response_factory(): void
     {
         $controller = new AuditLogController(
             auditLogRepo: $this->createStub(AuditLogRepositoryInterface::class),
-            response: new ResponseFactory(),
         );
         $this->assertInstanceOf(AuditLogController::class, $controller);
     }

@@ -183,7 +183,7 @@ $router->group(['prefix' => '', 'middleware' => $guestMiddleware], function (Rou
 $authMiddleware = [$mw->auth()];
 $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw, $responseFactory) {
     $r->post('/logout', 'Auth\AuthController@logout', [$mw->csrf()]);
-    $r->get('/profile', 'Shared\UserController@profile');
+    $r->get('/profile', static fn(): ResponseInterface => $responseFactory->redirect('/perfil', 301));
     $r->get('/perfil', 'Shared\UserController@profile');
     $r->post('/profile/update', 'Shared\UserController@updateProfile', [$mw->csrf()]);
     $r->post('/profile/avatar', 'Shared\UserController@updateAvatar', [$mw->csrf()]);
@@ -201,7 +201,11 @@ $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw,
 
     $r->get('/reservas/confirmacion/{id}', 'Shared\ReservationController@confirmation');
     $r->get('/reservas/mis-reservas', 'Shared\ReservationController@userReservations');
+    $r->get('/reservas/mis-reservas/{id}/cancelar', 'Shared\ReservationController@cancelConfirm');
+    $r->post('/reservas/mis-reservas/{id}/cancel', 'Shared\ReservationController@cancelReservation', [$mw->csrf()]);
+    $r->get('/account/delete', 'Auth\AccountController@showDeleteForm');
     $r->get('/user/waitlists', 'User\WaitlistController@index');
+    $r->post('/user/waitlists/{id}/cancel', 'User\WaitlistController@cancel', [$mw->csrf()]);
     $r->get('/mis-favoritos', 'User\FavoriteController@index');
     $r->get('/carrito', 'User\CartController@index');
     $r->get('/loyalty/card', 'Public\LoyaltyController@card');
@@ -302,10 +306,10 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->get('/data-viewer', 'Admin\DataViewerController@index');
 
         $r->get('/logs/audit', 'Admin\AuditLogController@index');
-        $r->get('/logs/audit/export', 'Admin\AuditLogController@export');
         $r->get('/logs/auth', 'Admin\AuthLogController@index');
-        $r->get('/logs/auth/suspicious-count', 'Admin\AuthLogController@suspiciousCount');
-        $r->get('/logs/auth/export', 'Admin\AuthLogController@export');
+
+        $r->get('/newsletter', 'Admin\NewsletterController@index');
+        $r->get('/loyalty', 'Admin\LoyaltyController@index');
 
         $r->get('/reports', 'Admin\ReportController@index');
         $r->get('/reports/export', 'Admin\ReportController@exportReportes');
@@ -372,8 +376,8 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->post('/staff/edit-permissions', 'Manager\StaffController@editPermissions', [$mw->csrf(), $mw->ownsCafe()]);
         $r->get('/staff/performance/{id}', 'Manager\StaffController@viewPerformance', [$mw->ownsCafe()]);
         // Reviews
-        $r->post('/reviews/{id}/approve', 'Admin\ReviewController@approve', [$mw->csrf()]);
-        $r->post('/reviews/{id}/reject', 'Admin\ReviewController@reject', [$mw->csrf()]);
+        $r->post('/reviews/{id}/approve', 'Api\V1\Admin\ReviewApiController@approve', [$mw->csrf()]);
+        $r->post('/reviews/{id}/reject', 'Api\V1\Admin\ReviewApiController@reject', [$mw->csrf()]);
     });
 
     // API Supervisor
@@ -391,56 +395,67 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
     );
 
     // ============================================================================
-    // API ADMIN — mutaciones AJAX (FASE 4A)
+    // API ADMIN — mutaciones AJAX
     // ============================================================================
 
     /** @var array<int, MiddlewareInterface> $adminApiMiddleware */
     $adminApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin'])];
     $router->group(['prefix' => '/api/v1/admin', 'middleware' => $adminApiMiddleware], function (Router $r) use ($mw): void {
         // Users
-        $r->post('/users', 'Admin\UserController@create', [$mw->csrf()]);
-        $r->put('/users/{id}', 'Admin\UserController@update', [$mw->csrf()]);
-        $r->delete('/users/{id}', 'Admin\UserController@delete', [$mw->csrf()]);
-        $r->patch('/users/{id}/status', 'Admin\UserController@toggleActive', [$mw->csrf()]);
+        $r->post('/users', 'Api\V1\Admin\UserApiController@create', [$mw->csrf()]);
+        $r->put('/users/{id}', 'Api\V1\Admin\UserApiController@update', [$mw->csrf()]);
+        $r->delete('/users/{id}', 'Api\V1\Admin\UserApiController@delete', [$mw->csrf()]);
+        $r->patch('/users/{id}/status', 'Api\V1\Admin\UserApiController@toggleActive', [$mw->csrf()]);
 
         // Cafes
-        $r->post('/cafes', 'Admin\CafeController@create', [$mw->csrf()]);
-        $r->put('/cafes/{id}', 'Admin\CafeController@update', [$mw->csrf()]);
-        $r->delete('/cafes/{id}', 'Admin\CafeController@delete', [$mw->csrf()]);
-        $r->patch('/cafes/{id}/status', 'Admin\CafeController@toggleStatus', [$mw->csrf()]);
+        $r->post('/cafes', 'Api\V1\Admin\CafeApiController@create', [$mw->csrf()]);
+        $r->put('/cafes/{id}', 'Api\V1\Admin\CafeApiController@update', [$mw->csrf()]);
+        $r->delete('/cafes/{id}', 'Api\V1\Admin\CafeApiController@delete', [$mw->csrf()]);
+        $r->patch('/cafes/{id}/status', 'Api\V1\Admin\CafeApiController@toggleStatus', [$mw->csrf()]);
 
         // Menu / Products
-        $r->post('/menu', 'Admin\MenuController@create', [$mw->csrf()]);
-        $r->put('/menu/{id}', 'Admin\MenuController@update', [$mw->csrf()]);
-        $r->delete('/menu/{id}', 'Admin\MenuController@delete', [$mw->csrf()]);
-        $r->patch('/menu/{id}/toggle', 'Admin\MenuController@toggleAvailability', [$mw->csrf()]);
+        $r->post('/menu', 'Api\V1\Admin\MenuApiController@create', [$mw->csrf()]);
+        $r->put('/menu/{id}', 'Api\V1\Admin\MenuApiController@update', [$mw->csrf()]);
+        $r->delete('/menu/{id}', 'Api\V1\Admin\MenuApiController@delete', [$mw->csrf()]);
+        $r->patch('/menu/{id}/toggle', 'Api\V1\Admin\MenuApiController@toggleAvailability', [$mw->csrf()]);
 
         // Reviews
-        $r->post('/reviews/{id}/approve', 'Admin\ReviewController@approve', [$mw->csrf()]);
-        $r->post('/reviews/{id}/reject', 'Admin\ReviewController@reject', [$mw->csrf()]);
-        $r->delete('/reviews/{id}', 'Admin\ReviewController@delete', [$mw->csrf()]);
+        $r->post('/reviews/{id}/approve', 'Api\V1\Admin\ReviewApiController@approve', [$mw->csrf()]);
+        $r->post('/reviews/{id}/reject', 'Api\V1\Admin\ReviewApiController@reject', [$mw->csrf()]);
+        $r->delete('/reviews/{id}', 'Api\V1\Admin\ReviewApiController@delete', [$mw->csrf()]);
 
         // Reservations
-        $r->post('/reservations/{id}/confirm', 'Admin\ReservationController@confirm', [$mw->csrf()]);
-        $r->post('/reservations/{id}/cancel', 'Admin\ReservationController@cancel', [$mw->csrf()]);
+        $r->post('/reservations/{id}/confirm', 'Api\V1\Admin\ReservationApiController@confirm', [$mw->csrf()]);
+        $r->post('/reservations/{id}/cancel', 'Api\V1\Admin\ReservationApiController@cancel', [$mw->csrf()]);
 
         // Settings
-        $r->get('/settings', 'Admin\SystemController@getSettingsData');
-        $r->put('/settings/{group}', 'Admin\SystemController@updateSettingsGroup', [$mw->csrf()]);
-        $r->post('/settings/test-email', 'Admin\SystemController@testEmail', [$mw->csrf()]);
+        $r->get('/settings', 'Api\V1\Admin\SystemApiController@getSettingsData');
+        $r->put('/settings/{group}', 'Api\V1\Admin\SystemApiController@updateSettingsGroup', [$mw->csrf()]);
+        $r->post('/settings/test-email', 'Api\V1\Admin\SystemApiController@testEmail', [$mw->csrf()]);
 
         // Logs — Audit (GET, sin CSRF)
-        $r->get('/logs/audit', 'Admin\AuditLogController@index');
-        $r->get('/logs/audit/export', 'Admin\AuditLogController@export');
+        $r->get('/logs/audit', 'Api\V1\Admin\LogApiController@auditLogs');
+        $r->get('/logs/audit/export', 'Api\V1\Admin\LogApiController@auditExport');
 
         // Logs — Auth (GET, sin CSRF)
-        $r->get('/logs/auth', 'Admin\AuthLogController@index');
-        $r->get('/logs/auth/suspicious-count', 'Admin\AuthLogController@suspiciousCount');
-        $r->get('/logs/auth/export', 'Admin\AuthLogController@export');
+        $r->get('/logs/auth', 'Api\V1\Admin\LogApiController@authLogs');
+        $r->get('/logs/auth/suspicious-count', 'Api\V1\Admin\LogApiController@authSuspiciousCount');
+        $r->get('/logs/auth/export', 'Api\V1\Admin\LogApiController@authExport');
 
         // Cache & Security
-        $r->post('/cache/clear', 'Admin\SystemController@clearCache', [$mw->csrf()]);
-        $r->post('/security/block-ip', 'Admin\AuthLogController@blockIpStub', [$mw->csrf()]);
+        $r->post('/cache/clear', 'Api\V1\Admin\SystemApiController@clearCache', [$mw->csrf()]);
+        $r->post('/security/block-ip', 'Api\V1\Admin\LogApiController@blockIp', [$mw->csrf()]);
+
+        // Newsletter
+        $r->delete('/newsletter/subscribers/{email}', 'Api\V1\Admin\NewsletterApiController@delete', [$mw->csrf()]);
+        $r->get('/newsletter/export', 'Api\V1\Admin\NewsletterApiController@export');
+
+        // Loyalty
+        $r->get('/loyalty/stats', 'Api\V1\Admin\LoyaltyApiController@stats');
+        $r->get('/loyalty/cards', 'Api\V1\Admin\LoyaltyApiController@cards');
+        $r->get('/loyalty/catalog', 'Api\V1\Admin\LoyaltyApiController@catalog');
+        $r->patch('/loyalty/catalog/{id}/toggle', 'Api\V1\Admin\LoyaltyApiController@toggleCatalogItem', [$mw->csrf()]);
+        $r->get('/loyalty/redemptions', 'Api\V1\Admin\LoyaltyApiController@redemptions');
     });
 } // end FEATURE_BACKOFFICE
 
@@ -521,6 +536,8 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
         $r->get('/incidents/create', 'Keeper\AnimalIncidentController@create');
         $r->post('/incidents', 'Keeper\AnimalIncidentController@store', [$mw->csrf()]);
         $r->get('/incidents/{id}', 'Keeper\AnimalIncidentController@show');
+        $r->get('/incidents/{id}/edit', 'Keeper\AnimalIncidentController@edit');
+        $r->post('/incidents/{id}', 'Keeper\AnimalIncidentController@update', [$mw->csrf()]);
         $r->post('/incidents/{incidentId}/resolve', 'Keeper\AnimalIncidentController@resolve', [$mw->csrf()]);
 
         // Turnos del keeper

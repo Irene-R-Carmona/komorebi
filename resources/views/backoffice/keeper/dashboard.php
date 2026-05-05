@@ -162,7 +162,8 @@ $getSeverityBadgeClass = static function (string $severity): string {
                                                 alt="Foto de <?= htmlspecialchars($animal['name']) ?>"
                                                 class="card-img-top animal-photo"
                                                 style="width:100%; height:180px; object-fit:cover;"
-                                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                                                x-data
+                                                x-on:error="$el.style.display='none'; $el.nextElementSibling.style.display='flex'">
                                             <div class="animal-photo-placeholder d-none align-items-center justify-content-center bg-light"
                                                 style="height:180px; font-size:2.5rem;"><i class="bi bi-image" aria-hidden="true"></i></div>
                                         <?php else: ?>

@@ -151,6 +151,12 @@
   color: var(--color-acento);
 }
 
+/* Logout form: se comporta como elemento inline dentro del flex del header */
+.header__logout-form {
+  display: inline;
+  margin: 0;
+}
+
 .header__cta {
   padding: 0.75rem 1.5rem;
   background: var(--color-primario);

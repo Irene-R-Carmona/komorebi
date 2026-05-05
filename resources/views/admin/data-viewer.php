@@ -74,7 +74,7 @@ echo View::componentToString('components/admin/page-header', [
                     <td><?= htmlspecialchars($cafe['animal_type']) ?></td>
                     <td><?= $cafe['capacity_max'] ?> personas</td>
                     <td><?= substr($cafe['opening_time'], 0, 5) ?> - <?= substr($cafe['closing_time'], 0, 5) ?></td>
-                    <td class="dv-rating"><?= $cafe['rating_avg'] ? '<i class="bi bi-star-fill" aria-hidden="true"></i> ' . number_format($cafe['rating_avg'], 1) : 'Sin ratings' ?></td>
+                    <td class="dv-rating"><?= $cafe['rating_avg'] ? '<i class="bi bi-star-fill" aria-hidden="true"></i> ' . number_format((float) $cafe['rating_avg'], 1) : 'Sin ratings' ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
@@ -99,7 +99,7 @@ echo View::componentToString('components/admin/page-header', [
                 <tr>
                     <td><strong><?= htmlspecialchars($product['name']) ?></strong></td>
                     <td><?= htmlspecialchars($product['japanese_name']) ?></td>
-                    <td class="dv-price">¥<?= number_format($product['price']) ?></td>
+                    <td class="dv-price">¥<?= number_format((float) $product['price']) ?></td>
                     <td><?= $product['duration'] ?> min</td>
                     <td><?= $product['min_pax'] ?>-<?= $product['max_pax'] ?> personas</td>
                 </tr>
@@ -178,7 +178,7 @@ echo View::componentToString('components/admin/page-header', [
                     <td><?= htmlspecialchars($res['user']) ?></td>
                     <td><?= htmlspecialchars($res['cafe']) ?></td>
                     <td><?= htmlspecialchars($res['pass_name']) ?></td>
-                    <td class="dv-price">¥<?= number_format($res['pass_unit_price']) ?></td>
+                    <td class="dv-price">¥<?= number_format((float) $res['pass_unit_price']) ?></td>
                     <td><?= date('d/m/Y H:i', strtotime($res['reservation_date'] . ' ' . $res['reservation_time'])) ?></td>
                     <td><?= $res['guest_count'] ?></td>
                     <td>

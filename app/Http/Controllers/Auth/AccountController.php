@@ -13,7 +13,6 @@ use App\Core\Session;
 use App\Core\View;
 use App\Domain\AvatarOptions;
 use App\Exceptions\ValidationException;
-use App\Services\AuthService;
 use App\Services\Contracts\AccountDeletionServiceInterface;
 use App\Services\Contracts\AuthServiceInterface;
 use App\Services\Contracts\FileUploadServiceInterface;
@@ -51,7 +50,7 @@ final class AccountController
     ) {
         $this->accountDeletionService = $accountDeletionService ?? Container::make(AccountDeletionServiceInterface::class);
         $this->accountService = $accountService ?? Container::make(UserAccountServiceInterface::class);
-        $this->authService = $authService ?? Container::make(AuthService::class);
+        $this->authService = $authService ?? Container::make(AuthServiceInterface::class);
         $this->fileUploadService = $fileUploadService ?? Container::make(FileUploadServiceInterface::class);
         $this->profileService = $profileService ?? Container::make(UserProfileServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
@@ -76,7 +75,7 @@ final class AccountController
         View::render('shared/account/sessions', [
             'sessions' => $sessions,
             'csrf_token' => Csrf::token(),
-        ]);
+        ], ['profile.css']);
 
         return null;
     }
@@ -141,7 +140,7 @@ final class AccountController
 
         View::render('shared/account/security', [
             'auth_history' => $authHistory,
-        ]);
+        ], ['profile.css']);
 
         return null;
     }
@@ -158,7 +157,7 @@ final class AccountController
 
         View::render('shared/account/change-password', [
             'csrf_token' => Csrf::token(),
-        ]);
+        ], ['profile.css']);
 
         return null;
     }
@@ -212,6 +211,27 @@ final class AccountController
 
             return $this->response->redirect('/login');
         }
+
+        return null;
+    }
+
+    /**
+     * GET /account/delete
+     * Formulario de confirmación de eliminación de cuenta
+     */
+    public function showDeleteForm(ServerRequestInterface $request): ?ResponseInterface
+    {
+        if ($r = $this->requireAuth()) {
+            return $r;
+        }
+
+        $user = Session::user();
+
+        View::render('shared/account/delete-confirm', [
+            'titulo' => 'Eliminar cuenta',
+            'email' => $user['email'],
+            'nombre' => $user['name'],
+        ], ['profile.css']);
 
         return null;
     }

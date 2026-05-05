@@ -24,15 +24,16 @@ $extraJs ??= [];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= Csrf::token() ?>">
-    <script>
-        (function () {
+    <script nonce="<?= $cspNonce ?>">
+        (function() {
             try {
                 var t = localStorage.getItem('komorebi_bo_tema');
                 if (t === 'oscuro') {
                     document.documentElement.setAttribute('data-tema', 'oscuro');
                     document.documentElement.setAttribute('data-bs-theme', 'dark');
                 }
-            } catch (e) { /* localStorage bloqueado */ }
+            } catch (e) {
+                /* localStorage bloqueado */ }
         })();
     </script>
     <title>Komorebi OS | <?= $titulo ?? 'Panel' ?></title>
@@ -277,8 +278,8 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
     <!-- Alpine.js se carga AL FINAL (después de los componentes) -->
     <script defer src="/js/vendor/alpine.min.js"></script>
 
-    <script>
-        (function () {
+    <script nonce="<?= $cspNonce ?>">
+        (function() {
             var html = document.documentElement;
             var btn = document.getElementById('boThemeToggle');
             var icon = document.getElementById('boThemeIcon');
@@ -287,11 +288,15 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
                 if (tema === 'oscuro') {
                     html.setAttribute('data-tema', 'oscuro');
                     html.setAttribute('data-bs-theme', 'dark');
-                    if (icon) { icon.className = 'bi bi-sun'; }
+                    if (icon) {
+                        icon.className = 'bi bi-sun';
+                    }
                 } else {
                     html.setAttribute('data-tema', 'claro');
                     html.setAttribute('data-bs-theme', 'light');
-                    if (icon) { icon.className = 'bi bi-moon-stars'; }
+                    if (icon) {
+                        icon.className = 'bi bi-moon-stars';
+                    }
                 }
             }
 
@@ -299,14 +304,18 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
             try {
                 var saved = localStorage.getItem('komorebi_bo_tema');
                 if (saved) applyTheme(saved);
-            } catch (e) { /* noop */ }
+            } catch (e) {
+                /* noop */ }
 
             if (btn) {
-                btn.addEventListener('click', function () {
+                btn.addEventListener('click', function() {
                     var current = html.getAttribute('data-tema');
                     var next = current === 'oscuro' ? 'claro' : 'oscuro';
                     applyTheme(next);
-                    try { localStorage.setItem('komorebi_bo_tema', next); } catch (e) { /* noop */ }
+                    try {
+                        localStorage.setItem('komorebi_bo_tema', next);
+                    } catch (e) {
+                        /* noop */ }
                 });
             }
         })();

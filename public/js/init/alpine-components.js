@@ -50,8 +50,11 @@
 
   function loyaltyRewards() {
     return {
+      redemption: null,
+      loading: false,
       async redeemReward(rewardType) {
         if (!confirm('¿Confirmas que deseas canjear esta recompensa?')) return;
+        this.loading = true;
         try {
           const csrfMeta = document.querySelector('meta[name="csrf-token"]');
           const response = await fetch('/api/v1/loyalty/redeem', {
@@ -61,14 +64,20 @@
           });
           const result = await response.json();
           if (result && result.ok && result.data) {
-            alert(`✨ ¡Recompensa canjeada!\n\nTu código: ${result.data.code}\n\nExpira: ${result.data.expires_at}`);
-            window.location.reload();
+            const redemptionData = result.data.result ?? result.data;
+            this.redemption = {
+              code: redemptionData.redemption_code ?? '—',
+              expires: redemptionData.expires_at ?? '—'
+            };
+            setTimeout(() => { this.redemption = null; }, 10000);
           } else {
             alert('Error: ' + ((result && result.error) || 'No se pudo canjear'));
           }
         } catch (error) {
           console.error('redeemReward error:', error);
           alert('Error de conexión. Por favor, intenta de nuevo.');
+        } finally {
+          this.loading = false;
         }
       }
     };

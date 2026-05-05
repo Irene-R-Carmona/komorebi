@@ -28,7 +28,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
     <div class="seccion__container">
 
         <?php if ($toastClass && $toastMsg): ?>
-            <output aria-live="polite" aria-atomic="true" style="display:block">
+            <output aria-live="polite" aria-atomic="true" class="toast-live-region">
                 <div class="toast <?= $toastClass ?> toast-wrapper">
                     <span class="toast__icono"><i class="<?= e($toastIcon) ?>" aria-hidden="true"></i></span>
                     <span class="toast__mensaje"><?= $toastMsg ?></span>
@@ -181,17 +181,13 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                     </div>
 
                     <div class="next-adventure__actions">
-                        <a class="btn btn--primario" href="/reservas">Ver mis reservas</a>
+                        <a class="btn-komorebi btn-komorebi-primary" href="/reservas/mis-reservas">Ver mis reservas</a>
 
-                        <form method="POST"
-                            :action="'/reservas/mis-reservas/' + (nextReservation?.id ?? '') + '/cancel'"
+                        <a :href="'/reservas/mis-reservas/' + (nextReservation?.id ?? '') + '/cancelar'"
                             x-show="nextReservationIsCancelable"
-                            @submit.prevent="if(confirm('¿Cancelar esta reserva?')) $el.submit()">
-                            <?= Csrf::field() ?>
-                            <button type="submit" class="btn-danger-outline">
-                                Cancelar
-                            </button>
-                        </form>
+                            class="btn-komorebi btn-komorebi-secondary">
+                            Cancelar
+                        </a>
                     </div>
                 </section>
 
@@ -203,7 +199,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                     </p>
 
                     <div class="next-adventure__actions">
-                        <a class="btn btn--primario" href="/reservas">Reservar</a>
+                        <a class="btn-komorebi btn-komorebi-primary" href="/reservas">Reservar</a>
                     </div>
                 </section>
 
@@ -251,21 +247,21 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                         <h3 class="settings-title">Datos Personales</h3>
                     </div>
 
-                    <form action="/perfil/update" method="POST" autocomplete="on">
+                    <form action="/profile/update" method="POST" autocomplete="on">
                         <?= Csrf::field() ?>
 
-                        <div class="form-group">
-                            <label class="form-label" for="name">Nombre visible</label>
-                            <input id="name" type="text" name="name" class="form-input" :value="profile.name" required>
+                        <div class="form-komorebi__group">
+                            <label class="form-komorebi__label" for="name">Nombre visible</label>
+                            <input id="name" type="text" name="name" class="form-komorebi__input" :value="profile.name" required>
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label" for="email">Correo electrónico</label>
-                            <input id="email" type="email" name="email" class="form-input" :value="profile.email"
+                        <div class="form-komorebi__group">
+                            <label class="form-komorebi__label" for="email">Correo electrónico</label>
+                            <input id="email" type="email" name="email" class="form-komorebi__input" :value="profile.email"
                                 required>
                         </div>
 
-                        <button type="submit" class="btn-update">Guardar cambios</button>
+                        <button type="submit" class="btn-komorebi btn-komorebi-primary">Guardar cambios</button>
                     </form>
 
                     <div class="settings-divider"></div>
@@ -285,29 +281,36 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                         <h3 class="settings-title">Seguridad</h3>
                     </div>
 
-                    <form action="/perfil/password" method="POST" data-validate="password" autocomplete="on">
+                    <form action="/account/change-password" method="POST" data-validate="password" autocomplete="on">
                         <?= Csrf::field() ?>
 
-                        <div class="form-group">
-                            <label class="form-label" for="current_password">Contraseña actual</label>
-                            <input id="current_password" type="password" name="current_password" class="form-input"
+                        <div class="form-komorebi__group">
+                            <label class="form-komorebi__label" for="current_password">Contraseña actual</label>
+                            <input id="current_password" type="password" name="current_password" class="form-komorebi__input"
                                 required>
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label" for="new_password">Nueva contraseña</label>
-                            <input id="new_password" type="password" name="new_password" class="form-input" required
+                        <div class="form-komorebi__group">
+                            <label class="form-komorebi__label" for="new_password">Nueva contraseña</label>
+                            <input id="new_password" type="password" name="new_password" class="form-komorebi__input" required
                                 minlength="8">
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label" for="new_password_confirm">Repetir nueva</label>
+                        <div class="form-komorebi__group">
+                            <label class="form-komorebi__label" for="new_password_confirm">Repetir nueva</label>
                             <input id="new_password_confirm" type="password" name="new_password_confirm"
-                                class="form-input" required>
+                                class="form-komorebi__input" required>
                         </div>
 
-                        <button type="submit" class="btn-danger-outline">Actualizar clave</button>
+                        <button type="submit" class="btn-komorebi btn-komorebi-primary">Actualizar clave</button>
                     </form>
+
+                    <div class="settings-divider"></div>
+
+                    <a href="/account/security" class="btn-icon-text">
+                        <i class="bi bi-shield-check" aria-hidden="true"></i>
+                        Historial de seguridad y zona peligrosa
+                    </a>
                 </div>
 
             </div>
@@ -321,7 +324,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
 
                 <div class="reviews-empty" x-show="!loading && reviews.length === 0" x-cloak>
                     <p>Aún no has dejado reseñas. Cuando visites un café que ya hayas visitado, podrás compartir tu opinión.</p>
-                    <a href="/cafes" class="btn btn--primario btn--pequeno">Explorar cafés</a>
+                    <a href="/cafes" class="btn-komorebi btn-komorebi-primary btn-komorebi--sm">Explorar cafés</a>
                 </div>
 
                 <div class="my-reviews-list" x-show="reviews.length > 0" x-cloak>
@@ -355,7 +358,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
 
                             <!-- Actions -->
                             <div class="my-review__actions">
-                                <form method="POST" action="/reviews/update" class="form-inline" style="display: contents;">
+                                <form method="POST" action="/reviews/update" class="form-inline">
                                     <?= Csrf::field() ?>
                                     <input type="hidden" name="id" :value="rev.id">
                                     <button type="button" class="btn-icon-text" @click="editReview(rev.id)">
@@ -363,7 +366,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                                     </button>
                                 </form>
 
-                                <form method="POST" action="/reviews/delete" class="form-inline" style="display: contents;" data-action="confirm" data-confirm="¿Eliminar esta reseña?">
+                                <form method="POST" action="/reviews/delete" class="form-inline" data-action="confirm" data-confirm="¿Eliminar esta reseña?">
                                     <?= Csrf::field() ?>
                                     <input type="hidden" name="id" :value="rev.id">
                                     <button type="submit" class="btn-icon-text btn-icon-text--danger">

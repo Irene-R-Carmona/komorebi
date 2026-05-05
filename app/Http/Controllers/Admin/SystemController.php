@@ -4,46 +4,25 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Core\Container;
 use App\Core\Csrf;
-use App\Core\Http\ResponseFactory;
 use App\Core\View;
-use App\Services\Contracts\SettingsServiceInterface;
-use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
- * Controlador de Configuración del Sistema
- *
- * Responsabilidad única: Gestión de configuraciones del sistema
+ * Controlador del Sistema (Admin) — SSR únicamente.
+ * Las consultas JSON de settings y mutaciones (updateSettingsGroup, testEmail, clearCache)
+ * están en Api\V1\Admin\SystemApiController.
  */
 final class SystemController
 {
-    private SettingsServiceInterface $settingsService;
-    private ResponseFactory $response;
-
-    public function __construct(
-        ?SettingsServiceInterface $settingsService = null,
-        ?ResponseFactory $response = null
-    ) {
-        $this->settingsService = $settingsService ?? Container::make(SettingsServiceInterface::class);
-        $this->response = $response ?? new ResponseFactory();
-    }
-
     /**
      * GET /admin/settings
-     * Vista principal de configuración
-     * @throws JsonException
      * @throws RandomException
      */
     public function settings(): ?ResponseInterface
     {
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && \strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-            return $this->getSettingsData();
-        }
-
         View::render('admin/settings/index', [
             'titulo' => 'Configuración del Sistema',
             'csrf_token' => Csrf::token(),
@@ -55,8 +34,6 @@ final class SystemController
 
     /**
      * GET /admin/logs
-     * Vista de logs del sistema
-     * @throws JsonException
      * @throws RandomException
      */
     public function logs(ServerRequestInterface $request): ?ResponseInterface
@@ -67,17 +44,5 @@ final class SystemController
         ], [], 'backoffice');
 
         return null;
-    }
-
-    /**
-     * GET /admin/settings/data (AJAX)
-     * Obtiene los datos de configuración
-     * @throws JsonException
-     */
-    public function getSettingsData(): ResponseInterface
-    {
-        $settings = $this->settingsService->getAll();
-
-        return $this->response->json(['ok' => true, 'data' => ['settings' => $settings]]);
     }
 }

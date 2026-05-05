@@ -10,6 +10,7 @@ use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\AvailabilityServiceInterface;
 use App\Services\Contracts\CartServiceInterface;
@@ -43,6 +44,7 @@ final class ReservationController
     private FestivosJaponesesServiceInterface $festivosService;
     private AvailabilityServiceInterface $availability;
     private ResponseFactory $response;
+    private ReservationItemRepositoryInterface $itemRepo;
 
     public function __construct(
         ?CartServiceInterface $cartService = null,
@@ -51,7 +53,8 @@ final class ReservationController
         ?ClimaContextoServiceInterface $climaService = null,
         ?FestivosJaponesesServiceInterface $festivosService = null,
         ?AvailabilityServiceInterface $availability = null,
-        ?ResponseFactory $response = null
+        ?ResponseFactory $response = null,
+        ?ReservationItemRepositoryInterface $itemRepo = null
     ) {
         $this->cartService = $cartService ?? Container::make(CartServiceInterface::class);
         $this->reservationService = $reservationService ?? Container::make(ReservationServiceInterface::class);
@@ -60,6 +63,7 @@ final class ReservationController
         $this->festivosService = $festivosService ?? Container::make(FestivosJaponesesServiceInterface::class);
         $this->availability = $availability ?? Container::make(AvailabilityServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
+        $this->itemRepo = $itemRepo ?? Container::make(ReservationItemRepositoryInterface::class);
     }
 
     /**
@@ -114,9 +118,17 @@ final class ReservationController
             return $this->response->redirect('/reservas');
         }
 
+        $cartItems = $this->itemRepo->findByReservation($id);
+        $cartTotal = \array_sum(\array_map(
+            fn(array $item): float => (float) $item['quantity'] * (float) $item['unit_price'],
+            $cartItems
+        ));
+
         View::render('shared/reservas/confirmation', [
             'titulo' => 'Confirmación de Reserva',
             'reservation' => $reservation,
+            'cart_items' => $cartItems,
+            'cart_total' => $cartTotal,
         ], ['reservas.css']);
 
         return null;
@@ -145,6 +157,42 @@ final class ReservationController
         }
 
         return $this->response->redirect('/reservas/mis-reservas');
+    }
+
+    /**
+     * GET /reservas/mis-reservas/{id}/cancelar
+     */
+    public function cancelConfirm(ServerRequestInterface $request): ?ResponseInterface
+    {
+        $id = (int) $request->getAttribute('id');
+        $userId = Session::userId();
+
+        if (!$userId || $id <= 0) {
+            Flash::error(self::MSG_NOT_FOUND);
+
+            return $this->response->redirect('/reservas/mis-reservas');
+        }
+
+        $reservation = $this->reservationRepo->findByIdAndUser($id, $userId);
+
+        if ($reservation === null) {
+            Flash::error(self::MSG_NOT_FOUND);
+
+            return $this->response->redirect('/reservas/mis-reservas');
+        }
+
+        if (\in_array($reservation['status'] ?? '', ['cancelled', 'completed', 'no_show'], true)) {
+            Flash::error('Esta reserva no puede cancelarse.');
+
+            return $this->response->redirect('/reservas/mis-reservas');
+        }
+
+        View::render('shared/reservas/cancelar', [
+            'titulo' => 'Cancelar Reserva',
+            'reservation' => $reservation,
+        ], ['reservas.css']);
+
+        return null;
     }
 
     /**

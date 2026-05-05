@@ -6,11 +6,8 @@ namespace App\Http\Controllers\Manager;
 
 use App\Core\Container;
 use App\Core\Csrf;
-use App\Core\Flash;
-use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
-use App\Services\Contracts\ReviewModerationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -23,16 +20,11 @@ use Psr\Http\Message\ResponseInterface;
 final class ReviewController
 {
     private ReviewQueryServiceInterface $queryService;
-    private ReviewModerationServiceInterface $moderationService;
-    private ResponseFactory $response;
 
     public function __construct(
-        ?ReviewQueryServiceInterface $queryService = null,
-        ?ReviewModerationServiceInterface $moderationService = null
+        ?ReviewQueryServiceInterface $queryService = null
     ) {
         $this->queryService = $queryService ?? Container::make(ReviewQueryServiceInterface::class);
-        $this->moderationService = $moderationService ?? Container::make(ReviewModerationServiceInterface::class);
-        $this->response = new ResponseFactory();
     }
 
     /**
@@ -63,54 +55,5 @@ final class ReviewController
         ], [], 'backoffice');
 
         return null;
-    }
-
-    /**
-     * POST /manager/reviews/{id}/approve
-     * Aprobar una reseña del café
-     */
-    public function approve(): ResponseInterface
-    {
-        if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-
-            return $this->response->redirect('/manager/reviews');
-        }
-
-        $id = (int) ($_POST['id'] ?? 0);
-        $result = $this->moderationService->approveReview($id);
-
-        if ($result->ok) {
-            Flash::success('Reseña aprobada correctamente');
-        } else {
-            Flash::error($result->error ?? 'Error al aprobar reseña');
-        }
-
-        return $this->response->redirect('/manager/reviews');
-    }
-
-    /**
-     * POST /manager/reviews/{id}/reject
-     * Rechazar una reseña del café
-     */
-    public function reject(): ResponseInterface
-    {
-        if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-
-            return $this->response->redirect('/manager/reviews');
-        }
-
-        $id = (int) ($_POST['id'] ?? 0);
-        $reason = $_POST['reason'] ?? 'Contenido inapropiado';
-        $result = $this->moderationService->rejectReview($id, $reason);
-
-        if ($result->ok) {
-            Flash::success('Reseña rechazada');
-        } else {
-            Flash::error($result->error ?? 'Error al rechazar reseña');
-        }
-
-        return $this->response->redirect('/manager/reviews');
     }
 }

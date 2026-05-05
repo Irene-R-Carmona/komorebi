@@ -22,8 +22,8 @@ $statusLabels = [
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex align-items-center gap-2">
-                <a href="/admin/waitlists" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i>
+                <a href="/admin/waitlists" class="btn btn-komorebi btn-komorebi-ghost btn-komorebi--sm">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i>
                 </a>
                 <h1 class="h3 mb-0">Lista de espera #<?= (int) ($waitlist['id'] ?? 0) ?></h1>
             </div>
@@ -105,7 +105,8 @@ $statusLabels = [
                     </div>
                     <div class="card-body">
                         <form method="POST" action="/admin/waitlists/<?= (int) ($waitlist['id'] ?? 0) ?>/cancel"
-                            onsubmit="return confirm('¿Cancelar esta entrada de lista de espera?')">
+                            x-data
+                            x-on:submit.prevent="if(confirm('¿Cancelar esta entrada de lista de espera?')) $el.submit()">
                             <?= \App\Core\Csrf::field() ?>
                             <button type="submit" class="btn btn-danger">
                                 <i class="bi bi-x-circle"></i> Cancelar entrada

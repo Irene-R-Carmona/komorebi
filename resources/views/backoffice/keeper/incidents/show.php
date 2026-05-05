@@ -35,6 +35,9 @@ $isResolved = !empty($incident['resolved_at']);
                 <?php else: ?>
                     <span class="badge bg-warning text-dark ms-2">Abierto</span>
                 <?php endif; ?>
+                <a href="/keeper/incidents/<?= (int) $incident['id'] ?>/edit" class="btn btn-sm btn-outline-secondary ms-auto">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
             </div>
         </div>
     </div>

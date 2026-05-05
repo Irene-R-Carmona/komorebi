@@ -78,7 +78,8 @@ $equipo = $datos['equipo'] ?? [];
                                 alt="<?= htmlspecialchars($miembro['nombre'], ENT_QUOTES, 'UTF-8') ?>"
                                 class="static-team__photo"
                                 loading="lazy"
-                                onerror="this.src='/images/ui/placeholder.svg'">
+                                x-data
+                                x-on:error="$el.src='/images/ui/placeholder.svg'">
                         <?php else: ?>
                             <div class="static-team__photo static-team__photo--initial">
                                 <?= mb_substr($miembro['nombre'], 0, 1) ?>

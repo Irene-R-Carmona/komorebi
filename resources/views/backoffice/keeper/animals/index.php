@@ -115,7 +115,8 @@ $getStatusLabel = function (string $status): string {
                                                 class="rounded-circle me-2"
                                                 width="32" height="32"
                                                 style="object-fit:cover;"
-                                                onerror="this.style.display='none'">
+                                                x-data
+                                                x-on:error="$el.style.display='none'">
                                         <?php else: ?>
                                             <span class="me-2 text-muted"><i class="bi bi-image"></i></span>
                                         <?php endif; ?>

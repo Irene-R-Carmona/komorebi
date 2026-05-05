@@ -56,6 +56,8 @@ final class NavigationService implements NavigationServiceInterface
                 self::item('list-check', 'Lista de espera', '/admin/waitlists'),
                 self::item('chat-left-text', 'Reseñas', '/admin/reviews'),
                 self::item('heart', 'Animales', '/admin/animals'),
+                self::item('trophy', 'Fidelización', '/admin/loyalty'),
+                self::item('envelope', 'Newsletter', '/admin/newsletter'),
                 self::item('bar-chart', 'Informes', '/admin/reports'),
             ],
             'Seguridad' => [
@@ -227,7 +229,7 @@ final class NavigationService implements NavigationServiceInterface
     {
         $prefixes = ['/admin', '/manager', '/ops', '/keeper'];
 
-        return \array_any($prefixes, static fn ($prefix) => \str_starts_with($path, $prefix));
+        return \array_any($prefixes, static fn($prefix) => \str_starts_with($path, $prefix));
     }
 
     /**

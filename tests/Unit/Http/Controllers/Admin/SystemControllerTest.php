@@ -16,7 +16,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\SystemController;
-use App\Services\Contracts\SettingsServiceInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Support\ControllerTestCase;
 
@@ -25,9 +24,7 @@ final class SystemControllerTest extends ControllerTestCase
 {
     private function makeController(): SystemController
     {
-        return new SystemController(
-            settingsService: $this->createStub(SettingsServiceInterface::class),
-        );
+        return new SystemController();
     }
 
     public function test_class_has_expected_methods(): void

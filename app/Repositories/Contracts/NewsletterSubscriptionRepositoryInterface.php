@@ -25,4 +25,18 @@ interface NewsletterSubscriptionRepositoryInterface
 
     /** @return array<int, string> Lista de emails confirmados y activos */
     public function getConfirmedEmails(int $limit = 500): array;
+
+    /**
+     * Paginación para el panel admin.
+     * @param array<string, mixed> $filters
+     * @return array{items: array<int, array<string, mixed>>, total: int, page: int, per_page: int, has_next: bool}
+     */
+    public function getAllPaginated(int $page, int $perPage, array $filters = []): array;
+
+    /**
+     * @return array{total: int, confirmed: int, pending: int, unsubscribed: int, this_month: int}
+     */
+    public function getAdminStats(): array;
+
+    public function deleteByEmail(string $email): bool;
 }

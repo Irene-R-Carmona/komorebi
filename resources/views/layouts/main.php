@@ -173,15 +173,15 @@ $extraJs ??= [];
                 </button>
 
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="/profile" class="header__icon-btn" title="Mi perfil" aria-label="Mi perfil">
+                    <a href="/perfil" class="header__icon-btn" title="Mi perfil" aria-label="Mi perfil">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                     </a>
-                    <form method="POST" action="/logout" style="display:inline;margin:0;">
+                    <form method="POST" action="/logout" class="header__logout-form">
                         <?= \App\Core\Csrf::field() ?>
-                        <button type="submit" class="header__icon-btn" title="Cerrar sesion" style="background:none;border:none;cursor:pointer;color:inherit;">
+                        <button type="submit" class="header__icon-btn" title="Cerrar sesion">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                                 <polyline points="16 17 21 12 16 7"></polyline>
@@ -247,6 +247,7 @@ $extraJs ??= [];
                     <a class="header__mobile-link" href="/login">Iniciar sesión</a>
                 <?php else: ?>
                     <a class="header__mobile-link" href="/user/waitlists">Mis listas de espera</a>
+                    <a class="header__mobile-link" href="/reservas/mis-reservas">Mis reservas</a>
                     <a class="header__mobile-link" href="/mis-favoritos">Mis favoritos</a>
                     <a class="header__mobile-link" href="/perfil">Mi perfil</a>
                 <?php endif; ?>

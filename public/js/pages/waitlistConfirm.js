@@ -2,6 +2,9 @@
 (function () {
   function init() {
     try {
+      const rootStyle = getComputedStyle(document.documentElement);
+      const colorError = rootStyle.getPropertyValue('--color-error').trim() || '#9B2335';
+      const colorWarning = rootStyle.getPropertyValue('--color-warning').trim() || '#C9A959';
       const meta = document.getElementById('waitlist-meta');
       const expiresAtRaw = meta ? meta.dataset.expiresAt : null;
       const expiresAt = expiresAtRaw ? new Date(expiresAtRaw.replace(' ', 'T') + 'Z').getTime() : null;
@@ -16,7 +19,7 @@
         const distance = expiresAt - now;
         if (distance < 0) {
           countdownEl.textContent = '⏰ Tiempo Expirado';
-          countdownEl.style.color = '#dc2626';
+          countdownEl.style.color = colorError;
           confirmBtn.disabled = true;
           confirmBtn.textContent = '❌ Promoción Expirada';
           return;
@@ -24,8 +27,8 @@
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
         countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        if (distance < 60000) countdownEl.style.color = '#dc2626';
-        else if (distance < 300000) countdownEl.style.color = '#f59e0b';
+        if (distance < 60000) countdownEl.style.color = colorError;
+        else if (distance < 300000) countdownEl.style.color = colorWarning;
       }
 
       updateCountdown();

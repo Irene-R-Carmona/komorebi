@@ -108,6 +108,9 @@ $severityBadge = static function (string $severity): string {
                                                 <a href="/keeper/incidents/<?= (int) $inc['id'] ?>" class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-eye"></i> Ver
                                                 </a>
+                                                <a href="/keeper/incidents/<?= (int) $inc['id'] ?>/edit" class="btn btn-sm btn-outline-secondary ms-1">
+                                                    <i class="bi bi-pencil"></i> Editar
+                                                </a>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>

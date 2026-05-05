@@ -231,4 +231,131 @@ final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepos
              WHERE id = ? AND status = 'pending'"
         )->execute([$id]);
     }
+
+    // ── Admin ─────────────────────────────────────────────────────
+
+    /** @return array<string, int> Claves: bronze, silver, gold, platinum */
+    public function getTierDistribution(): array
+    {
+        $stmt = $this->getDb()->query(
+            'SELECT current_tier, COUNT(*) AS total
+             FROM loyalty_cards
+             GROUP BY current_tier'
+        );
+        $rows = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+        $result = ['bronze' => 0, 'silver' => 0, 'gold' => 0, 'platinum' => 0];
+        foreach ($rows as $row) {
+            $result[$row['current_tier']] = (int) $row['total'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return array{ items: array<int, array<string, mixed>>, total: int, page: int, per_page: int, has_next: bool }
+     */
+    public function getAllCardsPaginated(int $page, int $perPage, string $search = ''): array
+    {
+        $offset = ($page - 1) * $perPage;
+        $where = '';
+        $params = [];
+        if ($search !== '') {
+            $where = 'WHERE u.email LIKE ? OR u.name LIKE ?';
+            $like = '%' . $search . '%';
+            $params = [$like, $like];
+        }
+        $total = (int) $this->getDb()->query(
+            "SELECT COUNT(*) FROM loyalty_cards lc JOIN users u ON u.id = lc.user_id $where",
+        )->fetchColumn();
+
+        $stmt = $this->getDb()->prepare(
+            "SELECT lc.id, lc.stamps, lc.visits_count, lc.current_tier,
+                    lc.total_rewards_redeemed, lc.last_stamp_at, lc.created_at,
+                    u.name AS user_name, u.email AS user_email
+             FROM loyalty_cards lc
+             JOIN users u ON u.id = lc.user_id
+             $where
+             ORDER BY lc.stamps DESC
+             LIMIT ? OFFSET ?"
+        );
+        $stmt->execute(\array_merge($params, [$perPage, $offset]));
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        return [
+            'items' => $items,
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+            'has_next' => ($offset + \count($items)) < $total,
+        ];
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public function getAllCatalog(): array
+    {
+        $stmt = $this->getDb()->query(
+            'SELECT id, reward_type, name_es, stamps_required, tier_required,
+                    validity_days, is_active, display_order, icon
+             FROM loyalty_reward_catalog
+             ORDER BY display_order, id'
+        );
+
+        return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    }
+
+    public function toggleCatalogItem(int $id, bool $isActive): bool
+    {
+        return $this->getDb()->prepare(
+            'UPDATE loyalty_reward_catalog SET is_active = ? WHERE id = ?'
+        )->execute([(int) $isActive, $id]);
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @return array<int, array<string, mixed>>
+     */
+    public function getRecentRedemptions(int $limit = 20, array $filters = []): array
+    {
+        $conditions = [];
+        $params = [];
+        if (!empty($filters['status'])) {
+            $conditions[] = 'lr.status = ?';
+            $params[] = $filters['status'];
+        }
+        if (!empty($filters['reward_type'])) {
+            $conditions[] = 'lr.reward_type = ?';
+            $params[] = $filters['reward_type'];
+        }
+        $where = $conditions ? 'WHERE ' . \implode(' AND ', $conditions) : '';
+        $params[] = $limit;
+        $stmt = $this->getDb()->prepare(
+            "SELECT lr.id, lr.reward_type, lr.stamps_cost, lr.status,
+                    lr.redeemed_at, lr.used_at, lr.expires_at, lr.redemption_code,
+                    u.name AS user_name, u.email AS user_email
+             FROM loyalty_rewards lr
+             JOIN users u ON u.id = lr.user_id
+             $where
+             ORDER BY lr.redeemed_at DESC
+             LIMIT ?"
+        );
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /** @return array<string, mixed> */
+    public function getRedemptionStats(): array
+    {
+        $row = $this->getDb()->query(
+            "SELECT
+               COUNT(*) AS total,
+               SUM(CASE WHEN status = 'used' THEN 1 ELSE 0 END) AS used,
+               SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending,
+               SUM(CASE WHEN status = 'expired' THEN 1 ELSE 0 END) AS expired,
+               SUM(CASE WHEN redeemed_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS last_30_days
+             FROM loyalty_rewards"
+        )->fetch(PDO::FETCH_ASSOC);
+
+        return $row ?: ['total' => 0, 'used' => 0, 'pending' => 0, 'expired' => 0, 'last_30_days' => 0];
+    }
 }

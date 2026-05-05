@@ -12,6 +12,8 @@ declare(strict_types=1);
  */
 
 $reservation ??= [];
+$cart_items ??= [];
+$cart_total ??= 0.0;
 
 $formattedDate = isset($reservation['reservation_date'])
     ? date('d/m/Y', strtotime($reservation['reservation_date']))
@@ -84,12 +86,36 @@ $statusLabel = $statusLabels[$reservation['status'] ?? ''] ?? ucfirst($reservati
             </dl>
         </div>
 
+        <!-- Extras del carrito -->
+        <?php if (!empty($cart_items)): ?>
+            <div class="rsv2-confirmation__extras-card">
+                <h2 class="rsv2-confirmation__detail-heading">Extras pedidos</h2>
+                <ul class="rsv2-confirmation__extras-list">
+                    <?php foreach ($cart_items as $item): ?>
+                        <li class="rsv2-confirmation__extras-line">
+                            <span class="rsv2-confirmation__extras-name">
+                                <?= (int) ($item['quantity'] ?? 1) ?>×
+                                <?= e((string) ($item['product_name'] ?? '')) ?>
+                            </span>
+                            <span class="rsv2-confirmation__extras-price">
+                                ¥<?= \number_format((float) ($item['quantity'] ?? 1) * (float) ($item['unit_price'] ?? 0)) ?>
+                            </span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+                <div class="rsv2-confirmation__extras-total">
+                    <span>Total extras</span>
+                    <strong>¥<?= \number_format((float) $cart_total) ?></strong>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <!-- Acciones -->
         <div class="rsv2-confirmation__actions">
             <a href="/reservas/mis-reservas" class="btn-komorebi btn-komorebi-primary">
                 Ver mis reservas
             </a>
-            <button type="button" class="btn-komorebi btn-komorebi-accent rsv2-confirmation__print-btn" onclick="window.print()">
+            <button type="button" class="btn-komorebi btn-komorebi-accent rsv2-confirmation__print-btn" @click="window.print()">
                 <i class="bi bi-printer" aria-hidden="true"></i>
                 Guardar confirmación
             </button>
