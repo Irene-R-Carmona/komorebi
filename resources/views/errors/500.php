@@ -29,7 +29,7 @@ $errorId ??= null;
     <?php endif; ?>
 
     <!-- Mostrar detalles sólo en entornos de desarrollo/debug -->
-    <?php if (!empty($show_details) && isset($exception) && \is_string($exception) && $exception !== ''): ?>
+    <?php if (!empty($show_details) && isset($exception) && is_string($exception) && $exception !== ''): ?>
         <div class="error-debug">
             <strong>Detalle (debug):</strong>
             <pre><?= htmlspecialchars($exception, ENT_QUOTES, 'UTF-8') ?></pre>
