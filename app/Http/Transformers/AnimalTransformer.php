@@ -32,8 +32,10 @@ final class AnimalTransformer extends AbstractTransformer
                 }
                 if (\is_string($raw) && $raw !== '') {
                     $decoded = \json_decode($raw, true);
+
                     return \is_array($decoded) ? $decoded : null;
                 }
+
                 return null;
             })($data['attributes'] ?? null),
             'image_url' => isset($data['image_url']) ? (string) $data['image_url'] : null,

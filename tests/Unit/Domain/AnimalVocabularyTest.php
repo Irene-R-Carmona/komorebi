@@ -112,7 +112,7 @@ final class AnimalVocabularyTest extends TestCase
 
     public function testIsValidIncidentStatusRejectsUnknownValue(): void
     {
-        self::assertFalse(AnimalVocabulary::isValidIncidentStatus('archived'));
+        self::assertFalse(AnimalVocabulary::isValidIncidentStatus('unknown_status'));
     }
 
     public function testIncidentStatusesContainsOpenAndResolved(): void

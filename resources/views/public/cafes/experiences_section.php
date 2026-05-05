@@ -8,7 +8,7 @@
  */
 
 if (empty($experiences)):
-?>
+    ?>
     <section class="experiences-section">
         <header class="seccion__header">
             <h2 class="seccion__titulo">Experiencias Disponibles</h2>
@@ -19,7 +19,7 @@ if (empty($experiences)):
         </div>
     </section>
 <?php
-    return;
+        return;
 endif;
 ?>
 

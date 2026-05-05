@@ -24,6 +24,24 @@ final readonly class TimeSlotDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            cafe_id: (int) ($data['cafe_id'] ?? 0),
+            slot_date: (string) ($data['slot_date'] ?? ''),
+            slot_time: (string) ($data['slot_time'] ?? ''),
+            total_capacity: (int) ($data['total_capacity'] ?? 0),
+            available_spots: (int) ($data['available_spots'] ?? 0),
+            reserved_spots: (int) ($data['reserved_spots'] ?? 0),
+            is_blocked: (bool) ($data['is_blocked'] ?? false),
+            blocked_reason: isset($data['blocked_reason']) ? (string) $data['blocked_reason'] : null,
+            duration_minutes: (int) ($data['duration_minutes'] ?? 0),
+            created_at: (string) ($data['created_at'] ?? ''),
+            updated_at: (string) ($data['updated_at'] ?? ''),
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

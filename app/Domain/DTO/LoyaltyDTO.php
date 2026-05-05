@@ -18,6 +18,18 @@ final readonly class LoyaltyDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            user_id: (int) ($data['user_id'] ?? 0),
+            points_balance: (int) ($data['points_balance'] ?? 0),
+            tier_name: (string) ($data['tier_name'] ?? ''),
+            tier_level: (int) ($data['tier_level'] ?? 0),
+            stamps_count: (int) ($data['stamps_count'] ?? 0),
+            next_reward_at: isset($data['next_reward_at']) ? (int) $data['next_reward_at'] : null,
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

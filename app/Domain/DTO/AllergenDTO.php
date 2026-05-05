@@ -20,6 +20,20 @@ final readonly class AllergenDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            code: (string) ($data['code'] ?? ''),
+            name: (string) ($data['name'] ?? ''),
+            japanese_name: isset($data['japanese_name']) ? (string) $data['japanese_name'] : null,
+            icon_class: isset($data['icon_class']) ? (string) $data['icon_class'] : null,
+            icon_color: isset($data['icon_color']) ? (string) $data['icon_color'] : null,
+            severity: (string) ($data['severity'] ?? ''),
+            description: isset($data['description']) ? (string) $data['description'] : null,
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

@@ -58,7 +58,7 @@ final class WaitlistController
             'cafe_id' => $filters['cafe_id'] ?? '',
             'status' => ($filters['status'] !== 'waiting') ? $filters['status'] : '',
             'date' => $filters['date'] ?? '',
-        ], static fn($v) => $v !== '');
+        ], static fn ($v) => $v !== '');
 
         View::render('admin/waitlist/index', [
             'waitlists' => $waitlists,

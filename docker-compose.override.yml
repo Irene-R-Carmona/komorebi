@@ -16,6 +16,10 @@ services:
     environment:
       CORS_ALLOWED_ORIGINS: "*"
       XDEBUG_MODE: "debug,develop"  # activar IDE debugging en dev local; ignorado en CI
+    deploy:
+      resources:
+        limits:
+          memory: 1.5g
 
   # ==========================================================================
   # MAILPIT - SMTP capturador + Web UI (solo desarrollo)

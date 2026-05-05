@@ -11,11 +11,11 @@ declare(strict_types=1);
  */
 
 $alpineConfig = json_encode([
-    'csrfToken'    => $csrf_token,
-    'openingTime'  => substr($cafe['opening_time'] ?? '', 0, 5),
-    'closingTime'  => substr($cafe['closing_time'] ?? '', 0, 5),
-    'capacityMax'  => (int) ($cafe['capacity_max'] ?? 1),
-    'description'  => $cafe['description'] ?? '',
+    'csrfToken' => $csrf_token,
+    'openingTime' => substr($cafe['opening_time'] ?? '', 0, 5),
+    'closingTime' => substr($cafe['closing_time'] ?? '', 0, 5),
+    'capacityMax' => (int) ($cafe['capacity_max'] ?? 1),
+    'description' => $cafe['description'] ?? '',
     'pricePerHour' => (int) ($cafe['price_per_hour'] ?? 0),
 ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
 ?>

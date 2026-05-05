@@ -69,7 +69,7 @@ $router->get('/reservar', 'Shared\ReservationController@index');
 $router->get('/reservas', 'Shared\ReservationController@index');
 
 // API pública — todas bajo /api/v1/
-$router->group(['prefix' => '/api/v1', 'middleware' => [$mw->requestLog(), $mw->cors()]], function (Router $r): void {
+$router->group(['prefix' => '/api/v1', 'middleware' => [$mw->requestLog(), $mw->cors(), $mw->rateLimit('api_public')]], function (Router $r): void {
     $r->get('/menu/alergenos', 'Api\V1\MenuController@allergens');
     $r->get('/menu/productos', 'Api\V1\MenuController@products');
     $r->get('/menu/products/{id}', 'Api\V1\MenuController@getProduct');
@@ -545,9 +545,9 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
 // ============================================================================
 
 $corsOnly = [$mw->cors()];
-$router->options('/api/v1/{resource}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{id}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{sub}/{id}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{id}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{sub}/{id}', fn () => '', $corsOnly);
 
 // ============================================================================
 // HEALTH CHECK

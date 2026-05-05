@@ -10,11 +10,11 @@ declare(strict_types=1);
 
 $waitlist ??= [];
 $statusLabels = [
-    'waiting'   => 'En espera',
-    'notified'  => 'Notificado',
+    'waiting' => 'En espera',
+    'notified' => 'Notificado',
     'confirmed' => 'Confirmado',
     'cancelled' => 'Cancelado',
-    'expired'   => 'Expirado',
+    'expired' => 'Expirado',
 ];
 ?>
 

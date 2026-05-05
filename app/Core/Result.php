@@ -88,9 +88,20 @@ final class Result
     {
         if ($this->ok) {
             $message = $successMessage ?? (\is_string($this->data) ? $this->data : 'Operación completada exitosamente');
-            Flash::set($successType, $message);
+            match ($successType) {
+                'success' => Flash::success($message),
+                'info' => Flash::info($message),
+                'warning' => Flash::warning($message),
+                default => Flash::success($message),
+            };
         } else {
-            Flash::set($errorType, $this->error ?? 'Error');
+            $errMsg = $this->error ?? 'Error';
+            match ($errorType) {
+                'error' => Flash::error($errMsg),
+                'warning' => Flash::warning($errMsg),
+                'info' => Flash::info($errMsg),
+                default => Flash::error($errMsg),
+            };
         }
     }
 

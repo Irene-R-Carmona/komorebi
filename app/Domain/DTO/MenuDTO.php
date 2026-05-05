@@ -37,7 +37,8 @@ final readonly class MenuDTO implements DomainTransferObject
         public ?string $created_at,
         public array   $target_cafe_types,
         public array   $attrs,
-    ) {}
+    ) {
+    }
 
     /**
      * Construye el DTO desde una fila cruda de la base de datos.

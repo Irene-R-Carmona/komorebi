@@ -29,10 +29,10 @@ function formatDate(string $date): string
 function getStatusBadge(string $status): array
 {
     $badges = [
-        'waiting'   => ['text' => 'Esperando',  'class' => 'status-badge--waiting'],
-        'notified'  => ['text' => 'Notificado',  'class' => 'status-badge--notified'],
+        'waiting' => ['text' => 'Esperando',  'class' => 'status-badge--waiting'],
+        'notified' => ['text' => 'Notificado',  'class' => 'status-badge--notified'],
         'confirmed' => ['text' => 'Confirmado',  'class' => 'status-badge--confirmed'],
-        'expired'   => ['text' => 'Expirado',    'class' => 'status-badge--expired'],
+        'expired' => ['text' => 'Expirado',    'class' => 'status-badge--expired'],
     ];
 
     return $badges[$status] ?? ['text' => $status, 'class' => ''];
@@ -104,7 +104,7 @@ function getStatusBadge(string $status): array
             <?php
             foreach ($waitlists as $item):
                 $statusBadge = getStatusBadge((string) ($item['status'] ?? 'waiting'));
-            ?>
+                ?>
                 <div class="waitlist-card">
                     <!-- Badge de posición -->
                     <div class="waitlist-card__position">
@@ -124,7 +124,7 @@ function getStatusBadge(string $status): array
 
                         <div class="waitlist-card__details">
                             <p class="waitlist-card__date">
-                                <i class="bi bi-calendar3" aria-hidden="true"></i> <?= formatDate(\trim(($item['slot_date'] ?? '') . ' ' . ($item['slot_time'] ?? ''))) ?>
+                                <i class="bi bi-calendar3" aria-hidden="true"></i> <?= formatDate(trim(($item['slot_date'] ?? '') . ' ' . ($item['slot_time'] ?? ''))) ?>
                             </p>
                             <?php if (!empty($item['guest_count'])): ?>
                                 <p class="waitlist-card__party">
@@ -146,7 +146,7 @@ function getStatusBadge(string $status): array
                 </div>
             <?php
             endforeach;
-            ?>
+?>
         </div>
     </section>
 

@@ -24,6 +24,7 @@ Todos los planes activos e históricos del proyecto.
 | 2026-04-30 | — | Fix bugs visuales acumulados (23+21), alineación brand book, identidad cromática por rol en backoffice | ✅ Completado y eliminado (2026-05-01) |
 | 2026-05-01 | — | Rediseño páginas de error (400–503) e intersticial de redirección con brand tokens, kanjis decorativos y accesibilidad WCAG 2.1 | ✅ Completado y eliminado (2026-05-01) |
 | 2026-05-01 | — | Auditoría inmersiva de funcionalidades rotas en producción: carrito, alérgenos, reseñas, cookie consent, /reservas (7 bugs corregidos, 0 desactivados) | ✅ Completado y eliminado (2026-05-01) |
+| 2026-05-05 | — | Corrección bugs auditoría completa: Flash::set(), XSS vistas, rate limiting rutas API, #[Override], DI interface, 23 DTOs fromArray(), slug UNIQUE, índice payment_status | ✅ Completado y eliminado (2026-05-05) |
 
 ---
 

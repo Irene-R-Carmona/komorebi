@@ -167,7 +167,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                                 <rect width='80' height='80' rx='12' fill='%23f3efe9'/>
                                 <text x='40' y='48' font-size='34' text-anchor='middle'>茶</text>
                                 </svg>")
-                                                            ?>" />
+?>" />
 
                         <div class="next-adventure__details">
                             <h3 x-text="nextReservation?.cafe_name ?? 'Café'"></h3>

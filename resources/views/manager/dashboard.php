@@ -47,8 +47,8 @@ $alpineConfig = json_encode([
                 <i class="bi bi-calendar3" aria-hidden="true"></i>
                 <?php
                 $formatter = new IntlDateFormatter('es_ES', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
-                echo $formatter->format(new DateTime());
-                ?>
+echo $formatter->format(new DateTime());
+?>
             </time>
         </div>
     </div>

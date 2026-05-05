@@ -153,7 +153,7 @@ final class MenuController
         $productDto = $id > 0 ? $this->productRepo->findById($id) : null;
 
         if ($productDto === null) {
-            return (new \App\Core\Http\ResponseFactory())->redirect('/admin/menu');
+            return new \App\Core\Http\ResponseFactory()->redirect('/admin/menu');
         }
 
         $product = $productDto->toViewArray();

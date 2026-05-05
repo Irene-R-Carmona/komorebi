@@ -28,10 +28,10 @@ if ($total === 0): ?>
                 <div class="review-card__header">
                     <?php
                     $name = e($review['user_name'] ?? $review['name'] ?? 'Anónimo');
-                    $firstLetter = mb_strtoupper(mb_substr($name, 0, 1));
-                    $colorIndex = \ord($firstLetter) % 6;
-                    $avatarClass = $colorIndex > 0 ? ' review-card__avatar--c' . $colorIndex : '';
-                    ?>
+            $firstLetter = mb_strtoupper(mb_substr($name, 0, 1));
+            $colorIndex = ord($firstLetter) % 6;
+            $avatarClass = $colorIndex > 0 ? ' review-card__avatar--c' . $colorIndex : '';
+            ?>
                     <div class="review-card__avatar<?= $avatarClass ?>">
                         <span><?= $firstLetter ?></span>
                     </div>
@@ -46,10 +46,10 @@ if ($total === 0): ?>
                 <!-- Rating -->
                 <div class="review-card__rating">
                     <?php
-                    $rating = (int) ($review['rating'] ?? 0);
-                    for ($i = 1; $i <= 5; $i++):
-                        $filled = $i <= $rating ? 'review-star--filled' : '';
-                    ?>
+            $rating = (int) ($review['rating'] ?? 0);
+            for ($i = 1; $i <= 5; $i++):
+                $filled = $i <= $rating ? 'review-star--filled' : '';
+                ?>
                         <span class="review-star <?= $filled ?>">★</span>
                     <?php endfor; ?>
                     <span class="review-card__rating-value"><?= $rating ?>/5</span>

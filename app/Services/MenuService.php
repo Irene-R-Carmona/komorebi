@@ -78,7 +78,7 @@ final class MenuService extends BaseService implements MenuServiceInterface
     {
         $dtos = $this->menuRepository->getAllProducts();
 
-        return \array_map(static fn(MenuDTO $dto): array => $dto->toViewArray(), $dtos);
+        return \array_map(static fn (MenuDTO $dto): array => $dto->toViewArray(), $dtos);
     }
 
     /**

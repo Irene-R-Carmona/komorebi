@@ -117,7 +117,7 @@ $extraJs ??= [];
         }
     }
 
-    ?>
+?>
 
     <!-- Event delegation helper: replace inline handlers with `data-action` -->
     <script defer src="/js/init/event-delegation.js"></script>

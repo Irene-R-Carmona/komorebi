@@ -30,6 +30,30 @@ final readonly class ProductDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            name: (string) ($data['name'] ?? ''),
+            slug: (string) ($data['slug'] ?? ''),
+            description: isset($data['description']) ? (string) $data['description'] : null,
+            price: (float) ($data['price'] ?? 0.0),
+            category_id: (int) ($data['category_id'] ?? 0),
+            category_name: (string) ($data['category_name'] ?? ''),
+            allergens: (array) ($data['allergens'] ?? []),
+            is_active: (bool) ($data['is_active'] ?? false),
+            image_url: isset($data['image_url']) ? (string) $data['image_url'] : null,
+            product_type: (string) ($data['product_type'] ?? ''),
+            min_pax: isset($data['min_pax']) ? (int) $data['min_pax'] : null,
+            max_pax: isset($data['max_pax']) ? (int) $data['max_pax'] : null,
+            duration_minutes: isset($data['duration_minutes']) ? (int) $data['duration_minutes'] : null,
+            attributes: isset($data['attributes']) ? (string) $data['attributes'] : null,
+            target_cafe_types: isset($data['target_cafe_types']) ? (string) $data['target_cafe_types'] : null,
+            target_animal_types: isset($data['target_animal_types']) ? (string) $data['target_animal_types'] : null,
+            stock_quantity: isset($data['stock_quantity']) ? (int) $data['stock_quantity'] : null,
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

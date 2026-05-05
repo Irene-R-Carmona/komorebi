@@ -70,11 +70,11 @@ final class AnimalIncidentRepository extends AbstractRepository implements Anima
             VALUES (:animal_id, :incident_type, :severity, :description, :reported_by, \'open\')
         ');
         $stmt->execute([
-            'animal_id'     => $data['animal_id'],
+            'animal_id' => $data['animal_id'],
             'incident_type' => $data['incident_type'] ?? 'general',
-            'severity'      => $data['severity'],
-            'description'   => $data['description'],
-            'reported_by'   => $data['reported_by_user_id'] ?? null,
+            'severity' => $data['severity'],
+            'description' => $data['description'],
+            'reported_by' => $data['reported_by_user_id'] ?? null,
         ]);
 
         return (int) $this->getDb()->lastInsertId();

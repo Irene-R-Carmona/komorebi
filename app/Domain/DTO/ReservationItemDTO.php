@@ -19,6 +19,19 @@ final readonly class ReservationItemDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            reservation_id: (int) ($data['reservation_id'] ?? 0),
+            product_id: (int) ($data['product_id'] ?? 0),
+            quantity: (int) ($data['quantity'] ?? 0),
+            unit_price: (float) ($data['unit_price'] ?? 0.0),
+            status: (string) ($data['status'] ?? ''),
+            created_at: (string) ($data['created_at'] ?? ''),
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

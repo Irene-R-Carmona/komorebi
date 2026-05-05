@@ -19,6 +19,19 @@ final readonly class TrackerDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            cafe_id: (int) ($data['cafe_id'] ?? 0),
+            code: (string) ($data['code'] ?? ''),
+            type: (string) ($data['type'] ?? ''),
+            status: (string) ($data['status'] ?? ''),
+            last_assigned_at: isset($data['last_assigned_at']) ? (string) $data['last_assigned_at'] : null,
+            cafe_name: isset($data['cafe_name']) ? (string) $data['cafe_name'] : null,
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

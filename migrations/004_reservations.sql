@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS products (
     -- Índices optimizados
     INDEX idx_products_category (category_id),
     INDEX idx_products_type (product_type),
-    INDEX idx_products_slug (slug),
+    UNIQUE KEY uk_products_slug (slug),
     INDEX idx_products_kds (
         station,
         is_active,
@@ -142,6 +142,7 @@ CREATE TABLE IF NOT EXISTS reservations (
     INDEX idx_res_time_slot (time_slot_id, status) COMMENT 'Gestión por slot',
     INDEX idx_cafe_date_status (cafe_id, reservation_date, status),
     INDEX idx_reservations_user_status (user_id, status),
+    INDEX idx_res_payment_status (payment_status, updated_at DESC) COMMENT 'Consultas por estado de pago',
     CONSTRAINT fk_reservations_users FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     CONSTRAINT fk_reservations_cafes FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE,
     CONSTRAINT fk_reservations_products FOREIGN KEY (pass_product_id) REFERENCES products (id) ON DELETE RESTRICT,

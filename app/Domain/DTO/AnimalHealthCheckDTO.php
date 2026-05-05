@@ -31,6 +31,31 @@ final readonly class AnimalHealthCheckDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            animal_id: (int) ($data['animal_id'] ?? 0),
+            checked_by: (int) ($data['checked_by'] ?? 0),
+            check_date: (string) ($data['check_date'] ?? ''),
+            created_at: (string) ($data['created_at'] ?? ''),
+            weight_kg: isset($data['weight_kg']) ? (float) $data['weight_kg'] : null,
+            temperature_c: isset($data['temperature_c']) ? (float) $data['temperature_c'] : null,
+            appetite: (string) ($data['appetite'] ?? ''),
+            energy_level: (string) ($data['energy_level'] ?? ''),
+            coat_condition: (string) ($data['coat_condition'] ?? ''),
+            eyes_clear: (bool) ($data['eyes_clear'] ?? false),
+            breathing_normal: (bool) ($data['breathing_normal'] ?? false),
+            mobility_normal: (bool) ($data['mobility_normal'] ?? false),
+            notes: isset($data['notes']) ? (string) $data['notes'] : null,
+            alerts: isset($data['alerts']) ? (string) $data['alerts'] : null,
+            animal_name: isset($data['animal_name']) ? (string) $data['animal_name'] : null,
+            species_type: isset($data['species_type']) ? (string) $data['species_type'] : null,
+            current_status: isset($data['current_status']) ? (string) $data['current_status'] : null,
+            keeper_name: isset($data['keeper_name']) ? (string) $data['keeper_name'] : null,
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

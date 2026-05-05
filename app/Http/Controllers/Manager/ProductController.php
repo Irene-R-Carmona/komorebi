@@ -68,7 +68,7 @@ final class ProductController
 
         $productsData = $this->productRepo->findFiltered($filters, 1, 200);
         $categories = \array_map(
-            static fn($dto) => $dto->toViewArray(),
+            static fn ($dto) => $dto->toViewArray(),
             $this->categoryRepo->findAll()
         );
 

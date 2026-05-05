@@ -22,6 +22,22 @@ final readonly class AuditLogDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            user_id: isset($data['user_id']) ? (int) $data['user_id'] : null,
+            action: (string) ($data['action'] ?? ''),
+            resource_type: isset($data['resource_type']) ? (string) $data['resource_type'] : null,
+            resource_id: isset($data['resource_id']) ? (int) $data['resource_id'] : null,
+            old_values: isset($data['old_values']) ? (string) $data['old_values'] : null,
+            new_values: isset($data['new_values']) ? (string) $data['new_values'] : null,
+            ip_address: isset($data['ip_address']) ? (string) $data['ip_address'] : null,
+            user_agent: isset($data['user_agent']) ? (string) $data['user_agent'] : null,
+            created_at: (string) ($data['created_at'] ?? ''),
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

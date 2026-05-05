@@ -38,7 +38,7 @@ final class DataViewerController
                     'time_slots',
                     'time_slots_available',
                     'reviews',
-                    'incidents'
+                    'incidents',
                 ],
                 0
             );

@@ -9,7 +9,7 @@ declare(strict_types=1);
  * - string|null $titulo
  * - string|null $errorId      Identificador de referencia del error (log ID)
  * - bool        $show_details Mostrar detalles de excepción (solo en dev/debug)
- * - Throwable   $exception    Objeto de excepción (solo si $show_details es true)
+ * - string|null $exception    Representación string de la excepción (solo si $show_details es true)
  */
 
 $errorId ??= null;
@@ -29,17 +29,10 @@ $errorId ??= null;
     <?php endif; ?>
 
     <!-- Mostrar detalles sólo en entornos de desarrollo/debug -->
-    <?php if (!empty($show_details) && isset($exception)): ?>
+    <?php if (!empty($show_details) && isset($exception) && \is_string($exception) && $exception !== ''): ?>
         <div class="error-debug">
             <strong>Detalle (debug):</strong>
-            <pre>
-<?= htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8') ?>
-
-Archivo: <?= htmlspecialchars($exception->getFile() . ':' . $exception->getLine(), ENT_QUOTES, 'UTF-8') ?>
-
-Traza:
-<?= htmlspecialchars($exception->getTraceAsString(), ENT_QUOTES, 'UTF-8') ?>
-            </pre>
+            <pre><?= htmlspecialchars($exception, ENT_QUOTES, 'UTF-8') ?></pre>
         </div>
     <?php endif; ?>
 

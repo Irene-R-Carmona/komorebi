@@ -17,6 +17,8 @@ x-app-env: &app-env
   CORS_MAX_AGE: "${CORS_MAX_AGE:-7200}"
   MAX_REQUESTS: "${MAX_REQUESTS:-500}"
   MERCURE_JWT_SECRET: "${MERCURE_JWT_SECRET:-dev-mercure-secret-change-in-prod}"
+  SESSION_DRIVER: "${SESSION_DRIVER:-redis}"
+  CACHE_DRIVER: "${CACHE_DRIVER:-redis}"
 
 services:
 

@@ -18,6 +18,18 @@ final readonly class SettingDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            key: (string) ($data['key'] ?? ''),
+            value: (string) ($data['value'] ?? ''),
+            type: (string) ($data['type'] ?? ''),
+            group_name: (string) ($data['group_name'] ?? ''),
+            description: isset($data['description']) ? (string) $data['description'] : null,
+            is_public: (bool) ($data['is_public'] ?? false),
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

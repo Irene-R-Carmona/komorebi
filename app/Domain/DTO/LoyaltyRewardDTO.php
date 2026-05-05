@@ -24,6 +24,24 @@ final readonly class LoyaltyRewardDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            user_id: (int) ($data['user_id'] ?? 0),
+            loyalty_card_id: (int) ($data['loyalty_card_id'] ?? 0),
+            reward_type: (string) ($data['reward_type'] ?? ''),
+            stamps_cost: (int) ($data['stamps_cost'] ?? 0),
+            status: (string) ($data['status'] ?? ''),
+            redemption_code: (string) ($data['redemption_code'] ?? ''),
+            redeemed_at: (string) ($data['redeemed_at'] ?? ''),
+            used_at: isset($data['used_at']) ? (string) $data['used_at'] : null,
+            expires_at: isset($data['expires_at']) ? (string) $data['expires_at'] : null,
+            notes: isset($data['notes']) ? (string) $data['notes'] : null,
+            created_at: (string) ($data['created_at'] ?? ''),
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

@@ -9,9 +9,9 @@ declare(strict_types=1);
  */
 
 $severityLabels = [
-    'low'      => 'Baja — Situación menor, sin urgencia',
-    'medium'   => 'Media — Requiere seguimiento',
-    'high'     => 'Alta — Necesita atención pronto',
+    'low' => 'Baja — Situación menor, sin urgencia',
+    'medium' => 'Media — Requiere seguimiento',
+    'high' => 'Alta — Necesita atención pronto',
     'critical' => 'Crítica — Atención inmediata',
 ];
 ?>

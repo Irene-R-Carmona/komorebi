@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 use App\Core\Queue;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -19,6 +20,7 @@ use PHPUnit\Framework\TestCase;
  * mockear Cache::getRedis() en setUp().
  */
 #[CoversClass(Queue::class)]
+#[RunTestsInSeparateProcesses]
 final class QueueTest extends TestCase
 {
     private const string TEST_QUEUE = 'test_queue_phpunit';

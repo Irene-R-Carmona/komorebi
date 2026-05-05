@@ -47,7 +47,7 @@ unset($queryParams['page']); // Remover page para construir desde cero
 $buildUrl = function ($page) use ($queryParams) {
     $params = array_merge($queryParams, ['page' => $page]);
 
-    return '?' . http_build_query($params);
+    return e('?' . http_build_query($params));
 };
 ?>
 

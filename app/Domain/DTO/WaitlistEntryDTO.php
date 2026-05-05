@@ -23,7 +23,8 @@ final readonly class WaitlistEntryDTO implements DomainTransferObject
         public ?string $expires_at,
         public ?string $special_requests,
         public ?string $created_at = null,
-    ) {}
+    ) {
+    }
 
     public static function fromArray(array $data): self
     {

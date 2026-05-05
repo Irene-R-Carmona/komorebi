@@ -22,6 +22,22 @@ final readonly class ReviewDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            user_id: (int) ($data['user_id'] ?? 0),
+            cafe_id: (int) ($data['cafe_id'] ?? 0),
+            cafe_name: (string) ($data['cafe_name'] ?? ''),
+            user_name: (string) ($data['user_name'] ?? ''),
+            rating: (int) ($data['rating'] ?? 0),
+            title: (string) ($data['title'] ?? ''),
+            body: (string) ($data['body'] ?? ''),
+            status: (string) ($data['status'] ?? ''),
+            created_at: (string) ($data['created_at'] ?? ''),
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

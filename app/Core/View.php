@@ -213,7 +213,12 @@ final class View
      */
     public static function redirectWith(string $url, string $type, string $message): never
     {
-        Flash::set($type, $message);
+        match ($type) {
+            'success' => Flash::success($message),
+            'info' => Flash::info($message),
+            'warning' => Flash::warning($message),
+            default => Flash::error($message),
+        };
         self::redirect($url);
     }
 
@@ -327,7 +332,7 @@ final class View
     {
         $viewFile = self::resolvePath($view);
 
-        $scope = new class() {
+        $scope = new class () {
             public array $sections = [];
             private ?string $current = null;
             public ?string $layout = null;

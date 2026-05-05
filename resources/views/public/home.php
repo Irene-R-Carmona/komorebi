@@ -19,14 +19,14 @@
         <?php
 
         use App\Core\Container;
-        use App\Services\ClimaContextoService;
-        use App\Services\MicroestacionesService;
+use App\Services\ClimaContextoService;
+use App\Services\MicroestacionesService;
 
-        $climaService = Container::make(ClimaContextoService::class);
-        $sekkiService = new MicroestacionesService();
-        $clima = $climaService->obtenerClimaActual();
-        $estacion = $sekkiService->obtenerActual();
-        ?>
+$climaService = Container::make(ClimaContextoService::class);
+$sekkiService = new MicroestacionesService();
+$clima = $climaService->obtenerClimaActual();
+$estacion = $sekkiService->obtenerActual();
+?>
 
         <!-- Badges contextuales flotantes -->
         <div class="hero__badges">

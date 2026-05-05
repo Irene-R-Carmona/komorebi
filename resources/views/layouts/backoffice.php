@@ -52,7 +52,7 @@ $extraJs ??= [];
     <?php
     // Chart.js - Solo cargar en dashboards (tree-shaked bundle, -55% size)
     $needsCharts = str_contains($currentUri, '/dashboard');
-    if ($needsCharts): ?>
+if ($needsCharts): ?>
         <script defer src="/js/charts.min.js"></script>
     <?php endif; ?>
 
@@ -73,13 +73,13 @@ $extraJs ??= [];
     <link href="/css/components/stat-card.css" rel="stylesheet">
 
     <?php
-    // Detectar dashboard actual y cargar CSS correspondiente
-    if (str_contains($currentUri, '/manager/dashboard')) {
-        echo '<link href="/css/backoffice/manager-dashboard.css" rel="stylesheet">' . "\n    ";
-    } elseif (str_contains($currentUri, '/supervisor/dashboard')) {
-        echo '<link href="/css/backoffice/supervisor-dashboard.css" rel="stylesheet">' . "\n    ";
-    }
-    ?>
+// Detectar dashboard actual y cargar CSS correspondiente
+if (str_contains($currentUri, '/manager/dashboard')) {
+    echo '<link href="/css/backoffice/manager-dashboard.css" rel="stylesheet">' . "\n    ";
+} elseif (str_contains($currentUri, '/supervisor/dashboard')) {
+    echo '<link href="/css/backoffice/supervisor-dashboard.css" rel="stylesheet">' . "\n    ";
+}
+?>
 
     <!-- CSS específico por vista -->
     <?php foreach ($extraCss as $css): ?>
@@ -110,7 +110,7 @@ $extraJs ??= [];
                 <ul class="nav flex-column">
                     <?php foreach ($items as $item):
                         $isActive = ($currentUri === $item['url']) ? 'active' : '';
-                    ?>
+                        ?>
                         <li class="nav-item">
                             <a href="<?= $item['url'] ?>" class="nav-link <?= $isActive ?>">
                                 <i class="bi bi-<?= $item['icon'] ?>"></i>
@@ -203,8 +203,8 @@ $extraJs ??= [];
 
     use App\Core\View;
 
-    echo View::componentToString('components/admin/delete-confirmation-modal');
-    ?>
+echo View::componentToString('components/admin/delete-confirmation-modal');
+?>
 
     <!-- Mobile Offcanvas Menu -->
     <div class="offcanvas offcanvas-start offcanvas-sidebar" tabindex="-1" id="mobileNav"
@@ -225,7 +225,7 @@ $extraJs ??= [];
                     <ul class="nav flex-column">
                         <?php foreach ($items as $item):
                             $isActive = ($currentUri === $item['url']) ? 'active' : '';
-                        ?>
+                            ?>
                             <li class="nav-item">
                                 <a href="<?= $item['url'] ?>" class="nav-link <?= $isActive ?>">
                                     <i class="bi bi-<?= $item['icon'] ?>"></i>
@@ -263,7 +263,7 @@ $extraJs ??= [];
     } elseif (str_contains($currentUri, '/supervisor/dashboard')) {
         echo '<script src="/js/backoffice/supervisor-dashboard.js"></script>' . "\n";
     }
-    ?>
+?>
 
     <!-- JS específico por vista (ANTES de Alpine) -->
     <?php foreach ($extraJs as $js): ?>

@@ -124,7 +124,7 @@ final class AvatarOptionsTest extends TestCase
     public function testToListInitialsEntryHasNullUrl(): void
     {
         $list = AvatarOptions::toList();
-        $initials = \array_values(\array_filter($list, fn(array $e) => $e['id'] === 'initials'));
+        $initials = \array_values(\array_filter($list, fn (array $e) => $e['id'] === 'initials'));
         self::assertCount(1, $initials);
         self::assertNull($initials[0]['url']);
         self::assertSame('Iniciales', $initials[0]['label']);

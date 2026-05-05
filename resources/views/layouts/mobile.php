@@ -37,7 +37,7 @@
     <header class="mobile-top">
         <h1 class="page-title"><?= $titulo ?></h1>
         <div class="user-avatar-xs">
-            <?= strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)) ?>
+            <?= e(strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1))) ?>
         </div>
     </header>
 

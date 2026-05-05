@@ -5,93 +5,93 @@
 // IMPORTANTE: orden descendente de especificidad para que str_contains no haga falsos positivos
 $animalIconMap = [
     // BÚHO / OWL / フクロウ (antes que pájaro: búho es un pájaro pero específico)
-    'búho'           => 'bi-moon-stars',
-    'buho'           => 'bi-moon-stars',
-    'owl'            => 'bi-moon-stars',
-    'fukurou'        => 'bi-moon-stars',
-    'nocturno'       => 'bi-moon-stars',
+    'búho' => 'bi-moon-stars',
+    'buho' => 'bi-moon-stars',
+    'owl' => 'bi-moon-stars',
+    'fukurou' => 'bi-moon-stars',
+    'nocturno' => 'bi-moon-stars',
     // LORO / PARROT (antes que pájaro: loro es un pájaro pero específico)
-    'loro'           => 'bi-megaphone',
-    'parrot'         => 'bi-megaphone',
-    'guacamayo'      => 'bi-megaphone',
-    'agapornis'      => 'bi-megaphone',
+    'loro' => 'bi-megaphone',
+    'parrot' => 'bi-megaphone',
+    'guacamayo' => 'bi-megaphone',
+    'agapornis' => 'bi-megaphone',
     // PÁJARO / BIRD / 小鳥 (genérico, después de búho y loro)
-    'pájaro'         => 'bi-feather',
-    'pajaro'         => 'bi-feather',
-    'bird'           => 'bi-feather',
-    'tori'           => 'bi-feather',
-    'kotori'         => 'bi-feather',
-    'cantor'         => 'bi-feather',
+    'pájaro' => 'bi-feather',
+    'pajaro' => 'bi-feather',
+    'bird' => 'bi-feather',
+    'tori' => 'bi-feather',
+    'kotori' => 'bi-feather',
+    'cantor' => 'bi-feather',
     // PERRITO DE LA PRADERA (antes que perro: "perrito de la pradera" contiene "perro")
-    'pradera'        => 'bi-binoculars',
-    'prairie'        => 'bi-binoculars',
+    'pradera' => 'bi-binoculars',
+    'prairie' => 'bi-binoculars',
     // PERRO / DOG / 犬
-    'perro'          => 'bi-heart-pulse',
-    'dog'            => 'bi-heart-pulse',
-    'inu'            => 'bi-heart-pulse',
-    'shiba'          => 'bi-heart-pulse',
+    'perro' => 'bi-heart-pulse',
+    'dog' => 'bi-heart-pulse',
+    'inu' => 'bi-heart-pulse',
+    'shiba' => 'bi-heart-pulse',
     // GATO / CAT / ネコ
-    'gato'           => 'bi-cat',
-    'cat'            => 'bi-cat',
-    'neko'           => 'bi-cat',
+    'gato' => 'bi-cat',
+    'cat' => 'bi-cat',
+    'neko' => 'bi-cat',
     // CONEJO / RABBIT / ウサギ
-    'conejo'         => 'bi-flower2',
-    'rabbit'         => 'bi-flower2',
-    'usagi'          => 'bi-flower2',
+    'conejo' => 'bi-flower2',
+    'rabbit' => 'bi-flower2',
+    'usagi' => 'bi-flower2',
     // CHINCHILLA / チンチラ (antes que ardilla: ambas son roedores)
-    'chinchilla'     => 'bi-cloud-fog2',
+    'chinchilla' => 'bi-cloud-fog2',
     // ARDILLA / SQUIRREL / リス
-    'ardilla'        => 'bi-tree',
-    'squirrel'       => 'bi-tree',
-    'chipmunk'       => 'bi-tree',
+    'ardilla' => 'bi-tree',
+    'squirrel' => 'bi-tree',
+    'chipmunk' => 'bi-tree',
     // CERDITO / PIG / 豚
-    'cerdito'        => 'bi-piggy-bank',
-    'cerdo'          => 'bi-piggy-bank',
-    'pig'            => 'bi-piggy-bank',
+    'cerdito' => 'bi-piggy-bank',
+    'cerdo' => 'bi-piggy-bank',
+    'pig' => 'bi-piggy-bank',
     // CAPIBARA / CAPYBARA / カピバラ
-    'capibara'       => 'bi-emoji-smile',
-    'capybara'       => 'bi-emoji-smile',
+    'capibara' => 'bi-emoji-smile',
+    'capybara' => 'bi-emoji-smile',
     // ALPACA / アルパカ
-    'alpaca'         => 'bi-layers',
+    'alpaca' => 'bi-layers',
     // CABALLO / HORSE / 馬
-    'caballo'        => 'bi-wind',
-    'horse'          => 'bi-wind',
-    'pony'           => 'bi-wind',
-    'falabella'      => 'bi-wind',
+    'caballo' => 'bi-wind',
+    'horse' => 'bi-wind',
+    'pony' => 'bi-wind',
+    'falabella' => 'bi-wind',
     // PATO / DUCK / アヒル
-    'pato'           => 'bi-water',
-    'duck'           => 'bi-water',
+    'pato' => 'bi-water',
+    'duck' => 'bi-water',
     // COBAYA / GUINEA PIG / モルモット
-    'cobaya'         => 'bi-heart',
-    'guinea'         => 'bi-heart',
-    'conejillo'      => 'bi-heart',
+    'cobaya' => 'bi-heart',
+    'guinea' => 'bi-heart',
+    'conejillo' => 'bi-heart',
     // TORTUGA / TURTLE / カメ (antes que reptil)
-    'tortuga'        => 'bi-shield',
-    'turtle'         => 'bi-shield',
+    'tortuga' => 'bi-shield',
+    'turtle' => 'bi-shield',
     // REPTIL / REPTILE / 爬虫類
-    'reptil'         => 'bi-sun',
-    'reptile'        => 'bi-sun',
-    'iguana'         => 'bi-sun',
-    'lagarto'        => 'bi-sun',
+    'reptil' => 'bi-sun',
+    'reptile' => 'bi-sun',
+    'iguana' => 'bi-sun',
+    'lagarto' => 'bi-sun',
     // ERIZO / HEDGEHOG
-    'erizo'          => 'bi-shield-shaded',
-    'hedgehog'       => 'bi-shield-shaded',
+    'erizo' => 'bi-shield-shaded',
+    'hedgehog' => 'bi-shield-shaded',
     // HAMSTER / ハムスター
-    'hamster'        => 'bi-circle-square',
+    'hamster' => 'bi-circle-square',
     // ZORRO / FOX / キツネ
-    'zorro'          => 'bi-lightning',
-    'fox'            => 'bi-lightning',
-    'kitsune'        => 'bi-lightning',
+    'zorro' => 'bi-lightning',
+    'fox' => 'bi-lightning',
+    'kitsune' => 'bi-lightning',
     // TANUKI / MAPACHE / RACCOON
-    'tanuki'         => 'bi-cloud',
-    'raccoon'        => 'bi-cloud',
-    'mapache'        => 'bi-cloud',
+    'tanuki' => 'bi-cloud',
+    'raccoon' => 'bi-cloud',
+    'mapache' => 'bi-cloud',
 ];
 
-$animalGuiaLower = \mb_strtolower($cafe['animal_guia'] ?? '');
+$animalGuiaLower = mb_strtolower($cafe['animal_guia'] ?? '');
 $animalIcon = 'bi-stars';
 foreach ($animalIconMap as $keyword => $icon) {
-    if (\str_contains($animalGuiaLower, $keyword)) {
+    if (str_contains($animalGuiaLower, $keyword)) {
         $animalIcon = $icon;
         break;
     }
@@ -100,28 +100,28 @@ foreach ($animalIconMap as $keyword => $icon) {
 // Clase de color temática basada en animal
 $animalColorMap = [
     // 4 perfiles activos del quiz
-    'bi-cat'              => 'tema-neko',
-    'bi-heart-pulse'      => 'tema-inu',
-    'bi-flower2'          => 'tema-usagi',
-    'bi-feather'          => 'tema-tori',
+    'bi-cat' => 'tema-neko',
+    'bi-heart-pulse' => 'tema-inu',
+    'bi-flower2' => 'tema-usagi',
+    'bi-feather' => 'tema-tori',
     // Especies adicionales del proyecto
-    'bi-moon-stars'       => 'tema-fukuro',
-    'bi-megaphone'        => 'tema-tori',       // loro → tori (ave)
-    'bi-shield-shaded'    => 'tema-hari',        // erizo
-    'bi-emoji-smile'      => 'tema-kapiwa',      // capibara
-    'bi-lightning'        => 'tema-kitsune',     // zorro
-    'bi-cloud'            => 'tema-fukuro',      // tanuki
-    'bi-circle-square'    => 'tema-neko',        // hamster
-    'bi-cloud-fog2'       => 'tema-usagi',       // chinchilla (suave/nocturna)
-    'bi-tree'             => 'tema-tori',        // ardilla (naturaleza)
-    'bi-piggy-bank'       => 'tema-kapiwa',      // cerdito (alegre)
-    'bi-layers'           => 'tema-usagi',       // alpaca (suave)
-    'bi-wind'             => 'tema-kitsune',     // caballo (veloz)
-    'bi-water'            => 'tema-fukuro',      // pato (sereno)
-    'bi-heart'            => 'tema-usagi',       // cobaya (adorable)
-    'bi-binoculars'       => 'tema-inu',         // perrito de la pradera (activo)
-    'bi-shield'           => 'tema-hari',        // tortuga (protectora)
-    'bi-sun'              => 'tema-kitsune',     // reptil (astuto, amante del sol)
+    'bi-moon-stars' => 'tema-fukuro',
+    'bi-megaphone' => 'tema-tori',       // loro → tori (ave)
+    'bi-shield-shaded' => 'tema-hari',        // erizo
+    'bi-emoji-smile' => 'tema-kapiwa',      // capibara
+    'bi-lightning' => 'tema-kitsune',     // zorro
+    'bi-cloud' => 'tema-fukuro',      // tanuki
+    'bi-circle-square' => 'tema-neko',        // hamster
+    'bi-cloud-fog2' => 'tema-usagi',       // chinchilla (suave/nocturna)
+    'bi-tree' => 'tema-tori',        // ardilla (naturaleza)
+    'bi-piggy-bank' => 'tema-kapiwa',      // cerdito (alegre)
+    'bi-layers' => 'tema-usagi',       // alpaca (suave)
+    'bi-wind' => 'tema-kitsune',     // caballo (veloz)
+    'bi-water' => 'tema-fukuro',      // pato (sereno)
+    'bi-heart' => 'tema-usagi',       // cobaya (adorable)
+    'bi-binoculars' => 'tema-inu',         // perrito de la pradera (activo)
+    'bi-shield' => 'tema-hari',        // tortuga (protectora)
+    'bi-sun' => 'tema-kitsune',     // reptil (astuto, amante del sol)
 ];
 $temaCss = $animalColorMap[$animalIcon] ?? 'tema-default';
 ?>
@@ -172,7 +172,7 @@ $temaCss = $animalColorMap[$animalIcon] ?? 'tema-default';
         <div class="caracteristicas-grid">
             <?php foreach ($puntuaciones as $caracteristica => $valor): ?>
                 <?php if ($valor > 0): ?>
-                    <?php $porcentaje = \min(($valor / 15) * 100, 100); ?>
+                    <?php $porcentaje = min(($valor / 15) * 100, 100); ?>
                     <div class="caracteristica-item">
                         <span class="caracteristica-item__nombre"><?= ucfirst($caracteristica) ?></span>
                         <div class="caracteristica-item__barra">

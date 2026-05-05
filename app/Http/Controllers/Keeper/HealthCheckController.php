@@ -5,18 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Keeper;
 
 use App\Core\Csrf;
-use App\Core\Database;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
-use App\Domain\Mappers\AnimalMapper;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
-use App\Repositories\AnimalRepository;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
-use App\Repositories\HealthCheckRepository;
-use App\Services\HealthCheckService;
+use App\Services\Contracts\HealthCheckServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -31,24 +27,11 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class HealthCheckController
 {
-    private HealthCheckService $healthCheckService;
-    private AnimalRepositoryInterface $animalRepo;
-    private ResponseFactory $response;
-
     public function __construct(
-        ?HealthCheckService $healthCheckService = null,
-        ?AnimalRepositoryInterface $animalRepo = null,
-        ?ResponseFactory $response = null,
+        private readonly HealthCheckServiceInterface $healthCheckService,
+        private readonly AnimalRepositoryInterface $animalRepo,
+        private readonly ResponseFactory $response,
     ) {
-        if ($healthCheckService === null || $animalRepo === null) {
-            $db = Database::getConnection();
-            $this->healthCheckService = $healthCheckService ?? new HealthCheckService(new HealthCheckRepository($db));
-            $this->animalRepo = $animalRepo ?? new AnimalRepository(new AnimalMapper(), $db);
-        } else {
-            $this->healthCheckService = $healthCheckService;
-            $this->animalRepo = $animalRepo;
-        }
-        $this->response = $response ?? new ResponseFactory();
     }
 
     /**

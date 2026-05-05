@@ -136,7 +136,7 @@ declare(strict_types=1);
                                 'cancelled' => 'Cancelada',
                                 'no_show' => 'No Show',
                             ];
-                            ?>
+                    ?>
                             <?php foreach ($statusDistribution as $row): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($statusLabels[$row['status']] ?? ucfirst($row['status']), ENT_QUOTES, 'UTF-8') ?></td>

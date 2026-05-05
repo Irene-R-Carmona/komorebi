@@ -59,7 +59,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
 
         /** @var PDOStatement $stmt */
         $stmt = $this->execTimed(
-            fn() => $this->getDb()->query("SELECT $fields FROM allergens $order"),
+            fn () => $this->getDb()->query("SELECT $fields FROM allergens $order"),
             "SELECT $fields FROM allergens $order"
         );
 
@@ -74,7 +74,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
         $params = ['id' => $id];
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $row ? $this->mapper->toDTO($row) : null;
@@ -88,7 +88,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
         $params = ['name' => $name];
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $row ? $this->normalizeRow($row) : null;
@@ -106,7 +106,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
         $params = ['severity' => $severity];
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
 
         return \array_map([$this, 'normalizeRow'], $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
@@ -114,7 +114,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
     #[Override]
     public function findByProduct(int $productId): array
     {
-        $fields = \implode(', ', \array_map(static fn(string $f) => "a.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn (string $f) => "a.$f", $this->getSelectFields()));
         $sql = "SELECT {$fields}, pa.notes AS allergen_notes
                 FROM allergens a
                 JOIN product_allergens pa ON a.id = pa.allergen_id
@@ -123,7 +123,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
         $params = ['product_id' => $productId];
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
 
         return \array_map([$this, 'normalizeRow'], $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
@@ -135,7 +135,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
         $params = ['allergen_id' => $allergenId];
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
 
         return \array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'product_id');
     }
@@ -150,7 +150,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
                 ORDER BY product_count DESC, a.name';
 
         /** @var PDOStatement $stmt */
-        $stmt = $this->execTimed(fn() => $this->getDb()->query($sql), $sql);
+        $stmt = $this->execTimed(fn () => $this->getDb()->query($sql), $sql);
 
         return \array_map([$this, 'normalizeRow'], $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
@@ -196,7 +196,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
             ];
 
             $stmt = $this->getDb()->prepare($sql);
-            $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+            $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
             $id = (int) $this->getDb()->lastInsertId();
             $this->getDb()->commit();
 
@@ -244,7 +244,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
 
         $stmt = $this->getDb()->prepare($sql);
 
-        return (bool) $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+        return (bool) $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
     }
 
     #[Override]
@@ -255,7 +255,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
 
         $stmt = $this->getDb()->prepare($sql);
 
-        return (bool) $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+        return (bool) $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
     }
 
     #[Override]
@@ -266,7 +266,7 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
 
         $stmt = $this->getDb()->prepare($sql);
 
-        return (bool) $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
+        return (bool) $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
     }
 
     // ─────────────────────────────────────────────────────────────

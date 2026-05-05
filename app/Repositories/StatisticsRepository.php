@@ -58,10 +58,10 @@ final class StatisticsRepository extends AbstractRepository implements Statistic
         ")->fetch(PDO::FETCH_ASSOC);
 
         return [
-            'users'           => (int) ($row['users'] ?? 0),
-            'cafes'           => (int) ($row['cafes'] ?? 0),
-            'reservations'    => (int) ($row['reservations'] ?? 0),
-            'reviews'         => (int) ($row['reviews'] ?? 0),
+            'users' => (int) ($row['users'] ?? 0),
+            'cafes' => (int) ($row['cafes'] ?? 0),
+            'reservations' => (int) ($row['reservations'] ?? 0),
+            'reviews' => (int) ($row['reviews'] ?? 0),
             'pending_reviews' => (int) ($row['pending_reviews'] ?? 0),
         ];
     }
@@ -406,7 +406,7 @@ final class StatisticsRepository extends AbstractRepository implements Statistic
             ];
         }
 
-        \usort($activities, static fn($a, $b) => \strtotime($b['timestamp']) - \strtotime($a['timestamp']));
+        \usort($activities, static fn ($a, $b) => \strtotime($b['timestamp']) - \strtotime($a['timestamp']));
 
         return \array_slice($activities, 0, $limit);
     }

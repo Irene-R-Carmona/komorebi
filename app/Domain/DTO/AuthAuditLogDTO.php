@@ -21,6 +21,21 @@ final readonly class AuthAuditLogDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            user_id: isset($data['user_id']) ? (int) $data['user_id'] : null,
+            event_type: (string) ($data['event_type'] ?? ''),
+            success: (bool) ($data['success'] ?? false),
+            reason: isset($data['reason']) ? (string) $data['reason'] : null,
+            ip_address: isset($data['ip_address']) ? (string) $data['ip_address'] : null,
+            user_agent: isset($data['user_agent']) ? (string) $data['user_agent'] : null,
+            device_name: isset($data['device_name']) ? (string) $data['device_name'] : null,
+            created_at: (string) ($data['created_at'] ?? ''),
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

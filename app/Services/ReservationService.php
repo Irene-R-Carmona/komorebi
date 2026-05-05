@@ -323,7 +323,7 @@ final class ReservationService implements ReservationServiceInterface
             $qty = (int) ($cartItems[$productId] ?? $cartItems[(string) $productId] ?? 1);
 
             return \array_merge($product, [
-                'qty'      => $qty,
+                'qty' => $qty,
                 'subtotal' => (float) $product['price'] * $qty,
             ]);
         }, $products);

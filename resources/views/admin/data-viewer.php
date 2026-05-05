@@ -189,13 +189,13 @@ echo View::componentToString('components/admin/page-header', [
                             'completed' => 'text-bg-info',
                             default => 'text-bg-danger'
                         };
-                        $statusLabelDv = [
-                            'confirmed' => 'Confirmada',
-                            'pending' => 'Pendiente',
-                            'completed' => 'Completada',
-                            'cancelled' => 'Cancelada',
-                        ][$res['status']] ?? ucfirst($res['status']);
-                        ?>
+                $statusLabelDv = [
+                    'confirmed' => 'Confirmada',
+                    'pending' => 'Pendiente',
+                    'completed' => 'Completada',
+                    'cancelled' => 'Cancelada',
+                ][$res['status']] ?? ucfirst($res['status']);
+                ?>
                         <span class="badge <?= $statusClass ?>"><?= htmlspecialchars($statusLabelDv, ENT_QUOTES, 'UTF-8') ?></span>
                     </td>
                     <td><?= $res['has_slot'] === 'Sí' ? '<i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>' : '<i class="bi bi-x-circle-fill text-danger" aria-hidden="true"></i>' ?></td>

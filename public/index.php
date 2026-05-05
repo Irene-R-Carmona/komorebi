@@ -91,8 +91,15 @@ if ($sessionDriver === 'redis') {
         Logger::warning('Usando session.files en producción (no recomendado para 12-Factor)');
     }
     ini_set('session.save_path', '/tmp/sessions');
-    if (!is_dir('/tmp/sessions') && !mkdir('/tmp/sessions', 0o777, true) && !is_dir('/tmp/sessions')) {
-        throw new RuntimeException('No se pudo crear /tmp/sessions');
+    if (!\is_dir('/tmp/sessions')) {
+        try {
+            \mkdir('/tmp/sessions', 0o777, true);
+        } catch (ErrorException) {
+            // Race condition: otro worker ya creó el directorio — ignorar
+        }
+        if (!\is_dir('/tmp/sessions')) {
+            throw new RuntimeException('No se pudo crear /tmp/sessions');
+        }
     }
 }
 

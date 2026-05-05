@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -29,6 +30,7 @@ final class CafeScopeMiddleware implements MiddlewareInterface
         $this->response = $response;
     }
 
+    #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $user = Session::user();

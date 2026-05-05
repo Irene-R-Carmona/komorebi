@@ -20,6 +20,20 @@ final readonly class SupervisorAssignmentDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            supervisor_id: (int) ($data['supervisor_id'] ?? 0),
+            reservation_id: (int) ($data['reservation_id'] ?? 0),
+            table_code: (string) ($data['table_code'] ?? ''),
+            cafe_id: (int) ($data['cafe_id'] ?? 0),
+            is_active: (bool) ($data['is_active'] ?? false),
+            assigned_at: (string) ($data['assigned_at'] ?? ''),
+            created_at: (string) ($data['created_at'] ?? ''),
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

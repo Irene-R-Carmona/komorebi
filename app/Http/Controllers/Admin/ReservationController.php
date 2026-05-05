@@ -87,7 +87,7 @@ final class ReservationController
      */
     public function show(): ResponseInterface
     {
-        return (new \App\Core\Http\ResponseFactory())->redirect('/admin/reservations');
+        return new \App\Core\Http\ResponseFactory()->redirect('/admin/reservations');
     }
 
     private function matchesFilters(array $r, string $search, string $status, string $cafe, string $dateFrom, string $dateTo): bool

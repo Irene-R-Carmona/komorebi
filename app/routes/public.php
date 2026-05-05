@@ -87,7 +87,7 @@ $router->get('/waitlist/confirm/{token}', 'Public\WaitlistViewController@confirm
 $router->post('/waitlist/confirm/{token}', 'Public\WaitlistViewController@confirmSubmit', [$mw->csrf()]);
 
 // Cookies API, cart guest y newsletter — todos bajo /api/v1/
-$router->group(['prefix' => '/api/v1', 'middleware' => [$mw->requestLog()]], function (Router $r): void {
+$router->group(['prefix' => '/api/v1', 'middleware' => [$mw->requestLog(), $mw->rateLimit('public-api')]], function (Router $r) use ($mw): void {
     $r->patch('/cookies', 'Api\V1\CookieController@consent');
     $r->get('/cookies/filters', 'Api\V1\CookieController@getFilters');
     $r->put('/cookies/filters', 'Api\V1\CookieController@saveFilters');
@@ -99,7 +99,7 @@ $router->group(['prefix' => '/api/v1', 'middleware' => [$mw->requestLog()]], fun
     $r->get('/cookies/newsletter-prompted', 'Api\V1\CookieController@newsletterPrompted');
     $r->post('/cookies/newsletter-prompted', 'Api\V1\CookieController@markNewsletterPrompted');
     $r->get('/cart/guest', 'Api\V1\CartController@guest');
-    $r->post('/newsletter/subscriptions', 'Api\V1\NewsletterApiController@subscribe');
+    $r->post('/newsletter/subscriptions', 'Api\V1\NewsletterApiController@subscribe', [$mw->rateLimit('newsletter')]);
 });
 
 // Fotos de animales — servicio público de ficheros (sin auth)

@@ -19,13 +19,13 @@ $categoryMap = [
 ];
 
 $animalMap = [
-    'cat'      => ['label' => 'Gatos',     'icon' => 'bi bi-cat'],
-    'dog'      => ['label' => 'Perros',    'icon' => 'bi bi-heart-pulse'],
-    'rabbit'   => ['label' => 'Conejos',   'icon' => 'bi bi-flower2'],
-    'bird'     => ['label' => 'Aves',      'icon' => 'bi bi-feather'],
+    'cat' => ['label' => 'Gatos',     'icon' => 'bi bi-cat'],
+    'dog' => ['label' => 'Perros',    'icon' => 'bi bi-heart-pulse'],
+    'rabbit' => ['label' => 'Conejos',   'icon' => 'bi bi-flower2'],
+    'bird' => ['label' => 'Aves',      'icon' => 'bi bi-feather'],
     'hedgehog' => ['label' => 'Erizos',    'icon' => 'bi bi-circle'],
     'capybara' => ['label' => 'Capibaras', 'icon' => 'bi bi-cursor'],
-    'mixed'    => ['label' => 'Mixto',     'icon' => 'bi bi-grid'],
+    'mixed' => ['label' => 'Mixto',     'icon' => 'bi bi-grid'],
 ];
 ?>
 

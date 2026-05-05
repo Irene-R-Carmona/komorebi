@@ -22,6 +22,22 @@ final readonly class UserDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            uuid: (string) ($data['uuid'] ?? ''),
+            name: (string) ($data['name'] ?? ''),
+            email: (string) ($data['email'] ?? ''),
+            avatar: isset($data['avatar']) ? (string) $data['avatar'] : null,
+            roles: (array) ($data['roles'] ?? []),
+            is_active: (bool) ($data['is_active'] ?? false),
+            cafe_id: isset($data['cafe_id']) ? (int) $data['cafe_id'] : null,
+            created_at: (string) ($data['created_at'] ?? ''),
+            preferences: isset($data['preferences']) ? (string) $data['preferences'] : null,
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

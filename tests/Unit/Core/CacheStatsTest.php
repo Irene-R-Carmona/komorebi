@@ -20,9 +20,11 @@ namespace Tests\Unit\Core;
 
 use App\Core\Cache;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Cache::class)]
+#[RunTestsInSeparateProcesses]
 final class CacheStatsTest extends TestCase
 {
     protected function setUp(): void

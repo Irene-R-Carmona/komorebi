@@ -16,6 +16,16 @@ final readonly class MenuCategoryDTO implements DomainTransferObject
     ) {
     }
 
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) ($data['id'] ?? 0),
+            name: (string) ($data['name'] ?? ''),
+            slug: (string) ($data['slug'] ?? ''),
+            display_order: (int) ($data['display_order'] ?? 0),
+        );
+    }
+
     #[Override]
     public function toViewArray(): array
     {

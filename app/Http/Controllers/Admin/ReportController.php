@@ -18,10 +18,10 @@ use App\Services\Contracts\AdminStatisticsServiceInterface;
 use Error;
 use Exception;
 use JsonException;
-use tFPDF;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
+use tFPDF;
 
 /**
  * Controlador de Reportes y Estadísticas
@@ -181,7 +181,7 @@ final class ReportController
                 $pdf->SetFont('DejaVu', '', 10);
                 foreach (
                     [
-                        'Total Reservas'  => (string) ($summary['total_reservations'] ?? 0),
+                        'Total Reservas' => (string) ($summary['total_reservations'] ?? 0),
                         'Total Invitados' => (string) ($summary['total_guests'] ?? 0),
                         'Rating Promedio' => (string) ($summary['avg_rating'] ?? 0),
                         'Usuarios Activos' => (string) ($summary['active_users'] ?? 0),
@@ -260,6 +260,7 @@ final class ReportController
                     ->withHeader('Pragma', 'no-cache')
                     ->withHeader('Expires', '0');
                 $pdfResponse->getBody()->write($pdfContent);
+
                 return $pdfResponse;
             }
 
