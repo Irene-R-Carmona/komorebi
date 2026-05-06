@@ -58,7 +58,7 @@ interface ReservationRepositoryInterface
      *
      * @return array<int, array<string, mixed>>
      */
-    public function findByCafeWithFilters(int $cafeId, ?string $status = null, ?string $date = null, int $limit = 50): array;
+    public function findByCafeWithFilters(int $cafeId, ?string $status = null, ?string $date = null, int $page = 1): array;
 
     /**
      * Cancelar una reserva verificando pertenencia al usuario

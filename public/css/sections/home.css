@@ -20,9 +20,9 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.35);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 50px;
   padding: 0.5rem 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -32,7 +32,7 @@
 }
 
 .badge:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.45);
   transform: translateX(-4px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }

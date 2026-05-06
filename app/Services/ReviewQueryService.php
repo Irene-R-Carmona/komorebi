@@ -15,8 +15,7 @@ final class ReviewQueryService implements ReviewQueryServiceInterface
 {
     public function __construct(
         private ReviewRepositoryInterface $reviewRepository,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function getReviewsByUserId(int $userId): array
@@ -28,6 +27,12 @@ final class ReviewQueryService implements ReviewQueryServiceInterface
     public function getReviewsByCafeId(int $cafeId): array
     {
         return $this->reviewRepository->findByCafeId($cafeId, 'approved');
+    }
+
+    #[Override]
+    public function getManagerReviews(int $cafeId, ?string $status, int $page): array
+    {
+        return $this->reviewRepository->findAllStatusesPaginated($cafeId, $status, $page);
     }
 
     #[Override]

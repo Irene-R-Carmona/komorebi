@@ -130,3 +130,8 @@
   color: var(--admin-error, #9B2335);
   border: 1px solid color-mix(in srgb, var(--admin-error, #9B2335) 30%, transparent);
 }
+
+/* Bootstrap override — previene color azul de enlace en listas de definición */
+dd {
+  color: var(--admin-text, #2D1F13);
+}

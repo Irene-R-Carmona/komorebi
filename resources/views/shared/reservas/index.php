@@ -23,7 +23,7 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
         <?php if (!empty($flash)): ?>
             <div class="toast <?= ($flash['type'] ?? '') === 'success' ? 'toast--exito' : 'toast--error' ?> mb-lg">
                 <span class="toast__icono"><?= ($flash['type'] ?? '') === 'success' ? '<i class="bi bi-check-circle-fill" aria-hidden="true"></i>' : '<i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>' ?></span>
-                <span class="toast__mensaje"><?= $flash['message'] ?? '' ?></span>
+                <span class="toast__mensaje"><?= e((string) ($flash['message'] ?? '')) ?></span>
             </div>
         <?php endif; ?>
 

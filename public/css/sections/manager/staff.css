@@ -134,6 +134,46 @@
 
 /* ── Weekly calendar grid ─────────────────────────────────── */
 
+/* Week navigation */
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.week-nav__label {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-primary-700, #3d2014);
+}
+
+.week-nav__today {
+  color: var(--color-accent-600, #a8873a);
+  font-size: 0.85rem;
+}
+
+/* Today highlight */
+.calendar-day--today {
+  border-color: var(--color-accent-500, #c9a959);
+  border-width: 2px;
+}
+
+.calendar-day--today .day-header {
+  background-color: var(--color-accent-100, #f7efd2);
+  color: var(--color-primary-700, #3d2014);
+}
+
+.today-badge {
+  color: var(--color-accent-500, #c9a959);
+  font-size: 1.2rem;
+  line-height: 1;
+  margin-left: 4px;
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);

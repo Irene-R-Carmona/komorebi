@@ -7,6 +7,7 @@ namespace App\Core\Seeders;
 use App\Core\Database;
 use App\Core\Logger;
 use PDO;
+use PDOStatement;
 
 /**
  * AnimalHealthCheckSeeder
@@ -35,11 +36,13 @@ final class AnimalHealthCheckSeeder
 
         if (empty($animals)) {
             Logger::warning('[AnimalHealthCheckSeeder] no active animals — skipping');
+
             return;
         }
 
         if (empty($keepers)) {
             Logger::warning('[AnimalHealthCheckSeeder] no keepers found — skipping');
+
             return;
         }
 
@@ -60,12 +63,12 @@ final class AnimalHealthCheckSeeder
         );
 
         $today = \strtotime('today');
-        $days  = 14;
+        $days = 14;
         $total = 0;
 
         for ($d = $days - 1; $d >= 0; $d--) {
-            $dayTs    = $today - ($d * 86400);
-            $dayStr   = \date('Y-m-d', $dayTs);
+            $dayTs = $today - ($d * 86400);
+            $dayStr = \date('Y-m-d', $dayTs);
             $keeperId = $keepers[\array_rand($keepers)]['id'];
 
             foreach ($animals as $animal) {
@@ -80,29 +83,29 @@ final class AnimalHealthCheckSeeder
     /**
      * @param array{id: string, species_type: string} $animal
      */
-    private function insertCheck(\PDOStatement $stmt, array $animal, string $dayStr, int $keeperId): void
+    private function insertCheck(PDOStatement $stmt, array $animal, string $dayStr, int $keeperId): void
     {
         $weightBase = $this->getWeightBase($animal['species_type']);
-        $weight     = \round($weightBase + (\random_int(-20, 20) / 100), 2);
+        $weight = \round($weightBase + (\random_int(-20, 20) / 100), 2);
 
         [$temp, $alerts] = $this->buildTempAndAlerts();
 
         $hasIssue = \random_int(1, 10) === 1;
 
         $stmt->execute([
-            'animal_id'        => (int) $animal['id'],
-            'checked_by'       => $keeperId,
-            'check_date'       => $dayStr,
-            'weight_kg'        => $weight,
-            'temperature_c'    => $temp,
-            'appetite'         => $hasIssue ? 'reduced' : 'normal',
-            'energy_level'     => $hasIssue ? 'low' : 'normal',
-            'coat_condition'   => $hasIssue ? 'fair' : 'good',
-            'eyes_clear'       => $hasIssue ? 0 : 1,
+            'animal_id' => (int) $animal['id'],
+            'checked_by' => $keeperId,
+            'check_date' => $dayStr,
+            'weight_kg' => $weight,
+            'temperature_c' => $temp,
+            'appetite' => $hasIssue ? 'reduced' : 'normal',
+            'energy_level' => $hasIssue ? 'low' : 'normal',
+            'coat_condition' => $hasIssue ? 'fair' : 'good',
+            'eyes_clear' => $hasIssue ? 0 : 1,
             'breathing_normal' => 1,
-            'mobility_normal'  => 1,
-            'notes'            => $hasIssue ? 'Leve decaimiento, en observación.' : null,
-            'alerts'           => $alerts,
+            'mobility_normal' => 1,
+            'notes' => $hasIssue ? 'Leve decaimiento, en observación.' : null,
+            'alerts' => $alerts,
         ]);
     }
 
@@ -116,6 +119,7 @@ final class AnimalHealthCheckSeeder
         if ($rand <= 95) {
             return [\round(39.0 + (\random_int(0, 50) / 100), 2), \json_encode(['temperature_high'])];
         }
+
         return [\round(40.0 + (\random_int(0, 100) / 100), 2), \json_encode(['temperature_critical', 'veterinary_required'])];
     }
 
@@ -125,6 +129,7 @@ final class AnimalHealthCheckSeeder
         $stmt = $this->db->query(
             "SELECT id, species_type FROM animals WHERE current_status = 'active' ORDER BY id"
         );
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -159,16 +164,16 @@ final class AnimalHealthCheckSeeder
     private function getWeightBase(string $speciesType): float
     {
         return match ($speciesType) {
-            'cat'          => 4.2,
-            'dog'          => 8.5,
-            'rabbit'       => 2.1,
-            'hamster'      => 0.12,
-            'guinea_pig'   => 0.9,
-            'bird'         => 0.4,
-            'reptile'      => 0.8,
-            'hedgehog'     => 0.45,
-            'ferret'       => 0.9,
-            default        => 1.5,
+            'cat' => 4.2,
+            'dog' => 8.5,
+            'rabbit' => 2.1,
+            'hamster' => 0.12,
+            'guinea_pig' => 0.9,
+            'bird' => 0.4,
+            'reptile' => 0.8,
+            'hedgehog' => 0.45,
+            'ferret' => 0.9,
+            default => 1.5,
         };
     }
 }

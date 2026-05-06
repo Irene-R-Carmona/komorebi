@@ -44,7 +44,8 @@ final class HealthCheckControllerTest extends TestCase
         }
         $_SESSION['_csrf_token'] = self::CSRF_TOKEN;
         $_SESSION['user_id'] = 1;
-        $_SESSION['user'] = ['id' => 1, 'name' => 'Keeper Test', 'roles' => ['keeper']];
+        $_SESSION['user_cafe_id'] = 1;
+        $_SESSION['user'] = ['id' => 1, 'name' => 'Keeper Test', 'roles' => ['keeper'], 'cafe_id' => 1];
         $_SERVER['REQUEST_URI'] = '/keeper/health-checks';
     }
 

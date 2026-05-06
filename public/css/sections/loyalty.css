@@ -101,7 +101,7 @@
 }
 
 .stat-card {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(10px);
   border-radius: 12px;
   padding: 1.25rem;
@@ -762,22 +762,22 @@
 }
 
 .status-badge--waiting {
-  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
+  background: var(--color-warning-light);
   color: var(--color-warning-dark);
 }
 
 .status-badge--notified {
-  background: color-mix(in srgb, var(--color-info) 15%, transparent);
+  background: var(--color-info-light);
   color: var(--color-info-dark);
 }
 
 .status-badge--confirmed {
-  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  background: var(--color-success-light);
   color: var(--color-success-dark);
 }
 
 .status-badge--expired {
-  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  background: var(--color-danger-light);
   color: var(--color-danger-dark);
 }
 

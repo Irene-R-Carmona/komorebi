@@ -213,6 +213,6 @@ final class MenuPassSeeder
             ]);
         }
 
-        echo "    " . \count($passes) . " pases insertados/actualizados\n";
+        echo '    ' . \count($passes) . " pases insertados/actualizados\n";
     }
 }

@@ -64,7 +64,7 @@ final class LoyaltyApiController extends AbstractApiController
         $filters = \array_filter([
             'status' => $q['status'] ?? null,
             'reward_type' => $q['reward_type'] ?? null,
-        ], static fn($v) => $v !== null && $v !== '');
+        ], static fn ($v) => $v !== null && $v !== '');
         $limit = \min(100, \max(1, (int) ($q['limit'] ?? 20)));
 
         return $this->success($this->loyaltyRepo->getRecentRedemptions($limit, $filters));

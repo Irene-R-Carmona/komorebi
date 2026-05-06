@@ -6,11 +6,24 @@ declare(strict_types=1);
  * Vista: Gestión de Reseñas del Manager
  * Ruta: GET /manager/reviews
  *
- * @var string $titulo
- * @var array  $reviews    Lista de reseñas del café (id, user_id, cafe_id, rating, title, body, status, created_at)
- * @var array  $stats      ['average' => float, 'count' => int, 'distribution' => [1=>int,...,5=>int]]
- * @var string $csrf_token Token CSRF para formularios POST
+ * @var string      $titulo
+ * @var array       $reviews       Lista de reseñas del café
+ * @var array       $stats         ['average' => float, 'count' => int, 'distribution' => [...]]
+ * @var string      $csrf_token    Token CSRF para formularios POST
+ * @var string|null $activeStatus  Filtro de estado activo
+ * @var array       $meta          Metadatos de paginación {page, has_next_page}
+ * @var array       $currentParams Query params para paginationLinks
  */
+
+use App\Support\DateFormatting;
+use App\Support\StatusLabeling;
+use App\Support\ViewHelpers;
+
+$meta ??= ['page' => 1, 'has_next_page' => false];
+$currentParams ??= [];
+$activeStatus ??= null;
+
+$statusOptions = ['pending', 'approved', 'rejected'];
 ?>
 
 <div class="container-fluid">
@@ -52,10 +65,33 @@ declare(strict_types=1);
                 </div>
                 <div class="stat-card__content">
                     <div class="stat-card__label">Reseñas visibles</div>
-                    <div class="stat-card__value"><?= count($reviews) ?></div>
+                    <div class="stat-card__value"><?= (int) ($stats['count'] ?? 0) ?></div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Filtro de estado -->
+    <div class="glass-card mt-3 p-3 mb-3">
+        <form method="GET" action="/manager/reviews" role="search"
+            aria-label="Filtrar reseñas por estado" class="d-flex flex-wrap align-items-end gap-2">
+            <div>
+                <label for="filter-status" class="form-label small fw-semibold mb-1">Estado</label>
+                <select id="filter-status" name="status" class="form-select form-select-sm">
+                    <option value="">Todos los estados</option>
+                    <?php foreach ($statusOptions as $optValue): ?>
+                        <option value="<?= e($optValue) ?>"
+                            <?= $activeStatus === $optValue ? 'selected' : '' ?>>
+                            <?= e(StatusLabeling::reviewLabel($optValue)) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-sm btn-komorebi-primary">Filtrar</button>
+            <?php if ($activeStatus !== null): ?>
+                <a href="/manager/reviews" class="btn btn-sm btn-outline-secondary">Limpiar</a>
+            <?php endif; ?>
+        </form>
     </div>
 
     <!-- Tabla de reseñas -->
@@ -82,16 +118,10 @@ declare(strict_types=1);
                     </thead>
                     <tbody>
                         <?php foreach ($reviews as $review):
-                            $statusLabels = [
-                                'pending' => 'Pendiente',
-                                'approved' => 'Aprobada',
-                                'rejected' => 'Rechazada',
-                            ];
-                            $status = $review['status'] ?? 'pending';
+                            $rstatus = (string) ($review['status'] ?? 'pending');
                             $rating = (int) ($review['rating'] ?? 0);
                             $stars = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
-                            $statusLabel = $statusLabels[$status] ?? $status;
-                            ?>
+                        ?>
                             <tr>
                                 <td>
                                     <span class="star-rating" title="<?= $rating ?>/5">
@@ -109,17 +139,17 @@ declare(strict_types=1);
                                     </p>
                                 </td>
                                 <td>
-                                    <span class="badge-status badge-status--<?= e($status) ?>">
-                                        <?= e($statusLabel) ?>
+                                    <span class="badge-status <?= e(StatusLabeling::reviewBadge($rstatus)) ?>">
+                                        <?= e(StatusLabeling::reviewLabel($rstatus)) ?>
                                     </span>
                                 </td>
                                 <td class="text-muted small text-nowrap">
-                                    <?= e($review['created_at'] ?? '') ?>
+                                    <?= e(DateFormatting::toSpanishDate(substr((string) ($review['created_at'] ?? ''), 0, 10))) ?>
                                 </td>
                                 <td>
                                     <div class="d-flex gap-2 justify-content-center flex-wrap">
                                         <!-- Aprobar -->
-                                        <?php if ($status !== 'approved'): ?>
+                                        <?php if ($rstatus !== 'approved'): ?>
                                             <form method="POST"
                                                 action="/manager/reviews/<?= (int) $review['id'] ?>/approve"
                                                 x-data
@@ -134,7 +164,7 @@ declare(strict_types=1);
                                         <?php endif; ?>
 
                                         <!-- Rechazar -->
-                                        <?php if ($status !== 'rejected'): ?>
+                                        <?php if ($rstatus !== 'rejected'): ?>
                                             <details class="reject-details">
                                                 <summary class="btn btn-sm btn-komorebi-danger">
                                                     <i class="bi bi-x-lg" aria-hidden="true"></i> Rechazar
@@ -168,4 +198,7 @@ declare(strict_types=1);
             </div>
         <?php endif; ?>
     </div>
+
+    <?= ViewHelpers::paginationLinks($meta, $currentParams) ?>
+
 </div>

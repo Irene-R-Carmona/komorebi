@@ -3,18 +3,26 @@
 /**
  * Gestión de Productos — Vista Manager (HDA)
  *
- * @var array  $products   - Lista de productos (PHP-rendered)
- * @var array  $categories - Categorías (PHP-rendered en modal select)
+ * @var array  $products      - Lista de productos (PHP-rendered)
+ * @var array  $categories    - Categorías (PHP-rendered en modal select)
  * @var int    $cafeId
- * @var string $search     - Búsqueda activa
+ * @var string $search        - Búsqueda activa
+ * @var int    $total         - Total de productos
+ * @var array  $meta          - Metadatos de paginación {page, has_next_page}
+ * @var array  $currentParams - Query params actuales para paginationLinks
  */
 
 use App\Core\Csrf;
+use App\Support\CurrencyFormatting;
+use App\Support\ViewHelpers;
 
 $products ??= [];
 $categories ??= [];
 $cafeId ??= 0;
 $search ??= '';
+$total ??= 0;
+$meta ??= ['page' => 1, 'has_next_page' => false];
+$currentParams ??= [];
 
 $alpineConfig = json_encode([
     'csrfToken' => Csrf::token(),
@@ -62,7 +70,7 @@ $alpineConfig = json_encode([
     <!-- Tabla de productos -->
     <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-            <h5 class="mb-0">Productos (<?= count($products) ?>)</h5>
+            <h5 class="mb-0">Productos (<?= (int) $total ?>)</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -98,7 +106,7 @@ $alpineConfig = json_encode([
                                 <tr>
                                     <td class="fw-semibold"><?= $pName ?></td>
                                     <td><?= htmlspecialchars((string) ($p['category_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td>¥<?= number_format((float) ($p['price'] ?? 0), 0) ?></td>
+                                    <td><?= CurrencyFormatting::yen((float) ($p['price'] ?? 0)) ?></td>
                                     <td>
                                         <span class="badge <?= $isAvail ? 'bg-success' : 'bg-secondary' ?>">
                                             <?= $isAvail ? 'Disponible' : 'No disponible' ?>
@@ -135,6 +143,8 @@ $alpineConfig = json_encode([
             </div>
         </div>
     </div>
+
+    <?= ViewHelpers::paginationLinks($meta, $currentParams) ?>
 
     <!-- Modal crear/editar -->
     <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">

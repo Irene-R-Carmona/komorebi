@@ -78,4 +78,13 @@ interface LoyaltyRepositoryInterface
 
     /** @return array<string, mixed> */
     public function getRedemptionStats(): array;
+
+    /**
+     * Ejecuta un callback dentro de una transacción.
+     *
+     * @template T
+     * @param callable(): T $callback
+     * @return T
+     */
+    public function withTransaction(callable $callback): mixed;
 }

@@ -148,46 +148,49 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
     #[Override]
     public function create(array $data): int
     {
-        // Calcular posición automáticamente
-        $stmtPosition = $this->getDb()->prepare('
-            SELECT COALESCE(MAX(position), 0) + 1 as next_position
-            FROM waitlist
-            WHERE time_slot_id = :time_slot_id
-        ');
-        $stmtPosition->execute(['time_slot_id' => $data['time_slot_id']]);
-        $positionResult = $stmtPosition->fetch(PDO::FETCH_ASSOC);
-        $position = $positionResult['next_position'] ?? 1;
+        return (int) $this->transact(function () use ($data) {
+            // FOR UPDATE bloquea el rango para evitar race condition en cálculo de posición
+            $stmtPosition = $this->getDb()->prepare('
+                SELECT COALESCE(MAX(position), 0) + 1 as next_position
+                FROM waitlist
+                WHERE time_slot_id = :time_slot_id
+                FOR UPDATE
+            ');
+            $stmtPosition->execute(['time_slot_id' => $data['time_slot_id']]);
+            $positionResult = $stmtPosition->fetch(PDO::FETCH_ASSOC);
+            $position = $positionResult['next_position'] ?? 1;
 
-        $sql = '
-            INSERT INTO waitlist (
-                user_id, time_slot_id, position, guest_count,
-                special_requests, status, token,
-                expires_at, contact_email, contact_phone,
-                created_at
-            )
-            VALUES (
-                :user_id, :time_slot_id, :position, :guest_count,
-                :special_requests, :status, :token,
-                :expires_at, :contact_email, :contact_phone,
-                NOW()
-            )
-        ';
+            $sql = '
+                INSERT INTO waitlist (
+                    user_id, time_slot_id, position, guest_count,
+                    special_requests, status, token,
+                    expires_at, contact_email, contact_phone,
+                    created_at
+                )
+                VALUES (
+                    :user_id, :time_slot_id, :position, :guest_count,
+                    :special_requests, :status, :token,
+                    :expires_at, :contact_email, :contact_phone,
+                    NOW()
+                )
+            ';
 
-        $stmt = $this->getDb()->prepare($sql);
-        $stmt->execute([
-            'user_id' => $data['user_id'],
-            'time_slot_id' => $data['time_slot_id'],
-            'position' => $position,
-            'guest_count' => $data['guest_count'] ?? 1,
-            'special_requests' => $data['special_requests'] ?? null,
-            'status' => $data['status'] ?? 'waiting',
-            'token' => $data['confirmation_token'] ?? ($data['token'] ?? \bin2hex(\random_bytes(16))),
-            'expires_at' => $data['token_expires_at'] ?? ($data['expires_at'] ?? null),
-            'contact_email' => $data['contact_email'] ?? '',
-            'contact_phone' => $data['contact_phone'] ?? null,
-        ]);
+            $stmt = $this->getDb()->prepare($sql);
+            $stmt->execute([
+                'user_id' => $data['user_id'],
+                'time_slot_id' => $data['time_slot_id'],
+                'position' => $position,
+                'guest_count' => $data['guest_count'] ?? 1,
+                'special_requests' => $data['special_requests'] ?? null,
+                'status' => $data['status'] ?? 'waiting',
+                'token' => $data['confirmation_token'] ?? ($data['token'] ?? \bin2hex(\random_bytes(16))),
+                'expires_at' => $data['token_expires_at'] ?? ($data['expires_at'] ?? null),
+                'contact_email' => $data['contact_email'] ?? '',
+                'contact_phone' => $data['contact_phone'] ?? null,
+            ]);
 
-        return (int) $this->getDb()->lastInsertId();
+            return (int) $this->getDb()->lastInsertId();
+        });
     }
 
     /**

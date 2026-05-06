@@ -31,7 +31,7 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
             <output aria-live="polite" aria-atomic="true" class="toast-live-region">
                 <div class="toast <?= $toastClass ?> toast-wrapper">
                     <span class="toast__icono"><i class="<?= e($toastIcon) ?>" aria-hidden="true"></i></span>
-                    <span class="toast__mensaje"><?= $toastMsg ?></span>
+                    <span class="toast__mensaje"><?= e($toastMsg) ?></span>
                 </div>
             </output>
         <?php endif; ?>

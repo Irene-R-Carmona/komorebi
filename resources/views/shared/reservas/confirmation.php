@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Support\DateFormatting;
+use App\Support\StatusLabeling;
+
 /**
  * Vista: Confirmación de Reserva
  * Ruta: GET /reservas/confirmacion
@@ -16,19 +19,14 @@ $cart_items ??= [];
 $cart_total ??= 0.0;
 
 $formattedDate = isset($reservation['reservation_date'])
-    ? date('d/m/Y', strtotime($reservation['reservation_date']))
+    ? DateFormatting::toSpanishDate($reservation['reservation_date'])
     : '—';
 
 $formattedTime = isset($reservation['reservation_time'])
     ? substr($reservation['reservation_time'], 0, 5)
     : '—';
 
-$statusLabels = [
-    'confirmed' => 'Confirmada',
-    'pending' => 'Pendiente',
-    'cancelled' => 'Cancelada',
-];
-$statusLabel = $statusLabels[$reservation['status'] ?? ''] ?? ucfirst($reservation['status'] ?? '—');
+$statusLabel = StatusLabeling::reservationLabel($reservation['status'] ?? '');
 ?>
 
 <section class="seccion seccion--activa">
@@ -98,14 +96,14 @@ $statusLabel = $statusLabels[$reservation['status'] ?? ''] ?? ucfirst($reservati
                                 <?= e((string) ($item['product_name'] ?? '')) ?>
                             </span>
                             <span class="rsv2-confirmation__extras-price">
-                                ¥<?= \number_format((float) ($item['quantity'] ?? 1) * (float) ($item['unit_price'] ?? 0)) ?>
+                                ¥<?= number_format((float) ($item['quantity'] ?? 1) * (float) ($item['unit_price'] ?? 0)) ?>
                             </span>
                         </li>
                     <?php endforeach; ?>
                 </ul>
                 <div class="rsv2-confirmation__extras-total">
                     <span>Total extras</span>
-                    <strong>¥<?= \number_format((float) $cart_total) ?></strong>
+                    <strong>¥<?= number_format((float) $cart_total) ?></strong>
                 </div>
             </div>
         <?php endif; ?>

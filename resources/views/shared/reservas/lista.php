@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Support\DateFormatting;
+use App\Support\StatusLabeling;
+
 /**
  * Vista: Mis Reservas (usuario autenticado)
  * Ruta: GET /reservas/mis-reservas
@@ -14,11 +17,6 @@ declare(strict_types=1);
 $reservations ??= [];
 $flash ??= null;
 
-$statusLabels = [
-    'confirmed' => 'Confirmada',
-    'pending' => 'Pendiente',
-    'cancelled' => 'Cancelada',
-];
 $statusBadge = [
     'confirmed' => 'rsv2-pill--confirmed',
     'pending' => 'rsv2-pill--pending',
@@ -67,11 +65,11 @@ $statusBadge = [
                 <?php foreach ($reservations as $rsv): ?>
                     <?php
                     $status = $rsv['status'] ?? '';
-                    $label = $statusLabels[$status] ?? ucfirst($status);
+                    $label = StatusLabeling::reservationLabel($status);
                     $badge = $statusBadge[$status] ?? 'rsv2-pill--cancelled';
                     $canCancel = in_array($status, ['pending', 'confirmed'], true);
                     $formattedDate = isset($rsv['reservation_date'])
-                        ? date('d/m/Y', strtotime($rsv['reservation_date']))
+                        ? DateFormatting::toSpanishDate($rsv['reservation_date'])
                         : '—';
                     $formattedTime = isset($rsv['reservation_time'])
                         ? substr($rsv['reservation_time'], 0, 5)

@@ -55,9 +55,9 @@ final class InteractionSessionRepository extends AbstractRepository
 
         foreach ($animals as $animal) {
             $insert->execute([
-                'animal_id'      => (int) $animal['id'],
+                'animal_id' => (int) $animal['id'],
                 'reservation_id' => $reservationId,
-                'intensity'      => $intensities[\array_rand($intensities)],
+                'intensity' => $intensities[\array_rand($intensities)],
             ]);
         }
     }

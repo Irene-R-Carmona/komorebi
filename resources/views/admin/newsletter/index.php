@@ -122,8 +122,8 @@ $alpineData = json_encode([
                     <label for="status" class="form-label mb-1">Estado</label>
                     <select name="status" id="status" class="form-select form-select-sm">
                         <option value="">Todos</option>
-                        <option value="confirmed" <?= ($filters['status'] ?? '') === 'confirmed'    ? 'selected' : '' ?>>Confirmado</option>
-                        <option value="pending" <?= ($filters['status'] ?? '') === 'pending'      ? 'selected' : '' ?>>Pendiente</option>
+                        <option value="confirmed" <?= ($filters['status'] ?? '') === 'confirmed' ? 'selected' : '' ?>>Confirmado</option>
+                        <option value="pending" <?= ($filters['status'] ?? '') === 'pending' ? 'selected' : '' ?>>Pendiente</option>
                         <option value="unsubscribed" <?= ($filters['status'] ?? '') === 'unsubscribed' ? 'selected' : '' ?>>Desuscrito</option>
                     </select>
                 </div>

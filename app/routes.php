@@ -40,6 +40,7 @@ $router->get('/cafes', 'Public\CafeController@index');
 $router->get('/cafes/{slug}', 'Public\CafeController@show');
 $router->get('/menu', 'Public\MenuController@index');
 $router->get('/quiz', 'Public\QuizController@index');
+$router->get('/quiz/resultado', 'Public\QuizController@resultadoGet');
 $router->post('/quiz/resultado', 'Public\QuizController@resultado', [$mw->csrf()]);
 
 // Páginas estáticas
@@ -373,6 +374,8 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->delete('/products/{id}', 'Manager\ProductController@delete', [$mw->csrf(), $mw->ownsCafe()]);
         // Staff mutations
         $r->post('/staff/assign-shift', 'Manager\StaffController@assignShift', [$mw->csrf(), $mw->ownsCafe()]);
+        $r->put('/staff/shifts/{id}', 'Manager\StaffController@updateShift', [$mw->csrf(), $mw->ownsCafe()]);
+        $r->delete('/staff/shifts/{id}', 'Manager\StaffController@deleteShift', [$mw->csrf(), $mw->ownsCafe()]);
         $r->post('/staff/edit-permissions', 'Api\V1\Manager\StaffApiController@editPermissions', [$mw->csrf(), $mw->ownsCafe()]);
         $r->get('/staff/performance/{id}', 'Manager\StaffController@viewPerformance', [$mw->ownsCafe()]);
         // Reviews

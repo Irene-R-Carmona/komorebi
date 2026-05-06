@@ -83,7 +83,7 @@ final class ReportController
                 'total_users' => $systemStats['users'] ?? 0,
                 'monthly_reservations' => $monthlyStats['reservations'] ?? 0,
                 'total_reviews' => $systemStats['reviews'] ?? 0,
-                'monthly_revenue' => 0,
+                'monthly_revenue' => $monthlyStats['revenue'] ?? 0,
             ],
             'chartData' => Raw::json(['trend' => $trendData]),
             'cafeData' => Raw::json($cafeData),

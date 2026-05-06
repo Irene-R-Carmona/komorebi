@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\DateFormatting;
+
 /**
  * Vista: Historial de Seguridad
  *
@@ -69,7 +71,7 @@
                                         <?= htmlspecialchars($event['device_name'] ?? 'Desconocido') ?>
                                     </td>
                                     <td class="small text-secondary">
-                                        <?= date('d/m/Y H:i', strtotime($event['created_at'])) ?>
+                                        <?= DateFormatting::toSpanishDateTime($event['created_at']) ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

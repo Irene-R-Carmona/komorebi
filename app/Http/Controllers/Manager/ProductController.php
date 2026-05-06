@@ -10,6 +10,7 @@ use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
+use App\Domain\DTO\PaginationParams;
 use App\Exceptions\ValidationException;
 use App\Repositories\Contracts\MenuCategoryRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
@@ -58,27 +59,34 @@ final class ProductController
             return null;
         }
 
-        $query = $request->getQueryParams();
-        $search = \trim((string) ($query['search'] ?? ''));
+        $params = PaginationParams::fromRequest($request);
 
         $filters = [];
-        if ($search !== '') {
-            $filters['search'] = $search;
+        if ($params->search !== '') {
+            $filters['search'] = $params->search;
         }
 
-        $productsData = $this->productRepo->findFiltered($filters, 1, 200);
+        $productsData = $this->productRepo->findFiltered($filters, $params->page, 20);
         $categories = \array_map(
-            static fn ($dto) => $dto->toViewArray(),
+            static fn($dto) => $dto->toViewArray(),
             $this->categoryRepo->findAll()
         );
+
+        $meta = [
+            'page' => $productsData['page'],
+            'has_next_page' => $productsData['page'] < $productsData['totalPages'],
+        ];
+        $currentParams = $params->toQueryArray();
 
         View::render('manager/products/index', [
             'titulo' => 'Gestión de Productos',
             'products' => $productsData['data'] ?? [],
             'categories' => $categories,
             'cafeId' => (int) $cafeId,
-            'search' => $search,
+            'search' => $params->search,
             'total' => $productsData['total'] ?? 0,
+            'meta' => $meta,
+            'currentParams' => $currentParams,
             'extraJs' => ['manager/manager-products.js'],
         ], ['admin/admin-products.css'], 'backoffice');
 

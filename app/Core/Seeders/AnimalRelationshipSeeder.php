@@ -7,6 +7,7 @@ namespace App\Core\Seeders;
 use App\Core\Database;
 use App\Core\Logger;
 use PDO;
+use PDOStatement;
 
 /**
  * AnimalRelationshipSeeder
@@ -34,6 +35,7 @@ final class AnimalRelationshipSeeder
 
         if (empty($animalsByCafe)) {
             Logger::warning('[AnimalRelationshipSeeder] no animals found — skipping');
+
             return;
         }
 
@@ -66,6 +68,7 @@ final class AnimalRelationshipSeeder
         foreach ($rows as $row) {
             $byCafe[(int) $row['cafe_id']][] = $row;
         }
+
         return $byCafe;
     }
 
@@ -73,17 +76,17 @@ final class AnimalRelationshipSeeder
      * @param array<int, array{id: string}> $animals
      * @param array<int, string> $relationTypes
      */
-    private function insertCafeRelationships(\PDOStatement $stmt, array $animals, array $relationTypes): int
+    private function insertCafeRelationships(PDOStatement $stmt, array $animals, array $relationTypes): int
     {
         $count = \count($animals);
         if ($count < 2) {
             return 0;
         }
 
-        $maxPairs    = (int) \floor($count * ($count - 1) / 2);
+        $maxPairs = (int) \floor($count * ($count - 1) / 2);
         $targetPairs = $count <= 5 ? $maxPairs : (int) \ceil($maxPairs * 0.6);
         $createdPairs = [];
-        $total       = 0;
+        $total = 0;
 
         for ($attempt = 0; $attempt < $targetPairs * 3 && \count($createdPairs) < $targetPairs; $attempt++) {
             $idxA = \random_int(0, $count - 1);
@@ -108,7 +111,7 @@ final class AnimalRelationshipSeeder
             $stmt->execute([
                 'animal_a' => $aId,
                 'animal_b' => $bId,
-                'type'     => $relationTypes[\array_rand($relationTypes)],
+                'type' => $relationTypes[\array_rand($relationTypes)],
             ]);
             $createdPairs[$pairKey] = true;
             $total++;

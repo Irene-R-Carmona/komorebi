@@ -10,7 +10,7 @@ namespace App\Core;
  * Representa el resultado de una operación que puede tener éxito o fallar.
  * Inmutable (readonly) para garantizar consistencia.
  *
- * @template T Tipo del dato en caso de éxito (PHPDoc genérico, sin impacto en runtime)
+ * @template-covariant T Tipo del dato en caso de éxito (PHPDoc genérico, sin impacto en runtime)
  */
 final class Result
 {

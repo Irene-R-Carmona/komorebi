@@ -37,6 +37,8 @@ interface ReviewRepositoryInterface
      */
     public function findByCafeId(int $cafeId, string $status = 'approved'): array;
 
+    public function findAllStatusesPaginated(int $cafeId, ?string $status = null, int $page = 1): array;
+
     /**
      * Obtener reseñas aprobadas con paginación
      *

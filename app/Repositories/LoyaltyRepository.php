@@ -118,13 +118,16 @@ final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepos
 
     public function consumeStamps(int $cardId, int $stamps): bool
     {
-        return $this->getDb()->prepare(
+        $stmt = $this->getDb()->prepare(
             'UPDATE loyalty_cards
              SET stamps = stamps - ?,
                  total_rewards_redeemed = total_rewards_redeemed + 1,
                  updated_at = CURRENT_TIMESTAMP
              WHERE id = ? AND stamps >= ?'
-        )->execute([$stamps, $cardId, $stamps]);
+        );
+        $stmt->execute([$stamps, $cardId, $stamps]);
+
+        return $stmt->rowCount() > 0;
     }
 
     public function lockCardForUpdate(int $userId): void
@@ -357,5 +360,11 @@ final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepos
         )->fetch(PDO::FETCH_ASSOC);
 
         return $row ?: ['total' => 0, 'used' => 0, 'pending' => 0, 'expired' => 0, 'last_30_days' => 0];
+    }
+
+    #[Override]
+    public function withTransaction(callable $callback): mixed
+    {
+        return $this->transact($callback);
     }
 }

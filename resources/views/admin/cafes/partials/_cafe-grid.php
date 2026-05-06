@@ -5,6 +5,7 @@
  */
 
 use App\Core\View;
+use App\Support\CurrencyFormatting;
 use App\Support\ViewHelpers;
 
 $cafes ??= [];
@@ -127,7 +128,7 @@ $animalMap = [
                         <?php for ($i = 1; $i <= 5; $i++): ?>
                             <i class="bi <?= $i <= $fullStars ? 'bi-star-fill rating-display__star--filled' : 'bi-star' ?> rating-display__star"></i>
                         <?php endfor; ?>
-                        <span class="rating-display__value">(<?= number_format($rating, 1) ?>)</span>
+                        <span class="rating-display__value">(<?= CurrencyFormatting::rating($rating) ?>)</span>
                     </div>
 
                     <!-- Reservas -->

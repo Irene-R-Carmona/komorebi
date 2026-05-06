@@ -34,14 +34,29 @@ final class RequestFactory
 
         $request = $creator->fromGlobals();
 
-        // Para formularios HTML (application/x-www-form-urlencoded y multipart/form-data),
+        // Para formularios HTML POST (application/x-www-form-urlencoded y multipart/form-data),
         // parseamos $_POST manualmente ya que Nyholm no lo hace automáticamente.
         if (!empty($_POST)) {
             $request = $request->withParsedBody($_POST);
         } elseif ($request->getParsedBody() === null) {
-            // Para peticiones JSON (application/json), parsear el body manualmente.
             $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
-            if (\str_contains($contentType, 'application/json')) {
+            $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+            if (
+                \str_contains($contentType, 'application/x-www-form-urlencoded')
+                && \in_array($method, ['PUT', 'PATCH', 'DELETE'], true)
+            ) {
+                // PHP no popula $_POST para PUT/PATCH/DELETE — parsear raw body.
+                $rawBody = (string) $request->getBody();
+                if ($rawBody !== '') {
+                    $parsed = [];
+                    \parse_str($rawBody, $parsed);
+                    if ($parsed !== []) {
+                        $request = $request->withParsedBody($parsed);
+                    }
+                }
+            } elseif (\str_contains($contentType, 'application/json')) {
+                // Para peticiones JSON (application/json), parsear el body manualmente.
                 $rawBody = (string) $request->getBody();
                 if ($rawBody !== '') {
                     $decoded = \json_decode($rawBody, true);

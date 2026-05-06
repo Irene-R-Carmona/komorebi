@@ -81,7 +81,7 @@ body.reception-mode {
 .brand-icon {
   width: 40px;
   height: 40px;
-  background-color: rgba(135, 167, 123, 0.2);
+  background-color: rgba(135, 167, 123, 0.35);
   color: var(--zen-primary);
   border-radius: 50%;
   display: flex;

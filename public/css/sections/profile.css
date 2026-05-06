@@ -311,26 +311,26 @@
   font-weight: 700;
   letter-spacing: 0.3px;
   border: 1px solid var(--color-borde);
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--color-primary-100);
   color: var(--color-texto);
   margin-top: 0.5rem;
 }
 
 .status-pill--pending {
-  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
-  border-color: color-mix(in srgb, var(--color-warning) 35%, transparent);
+  background: var(--color-warning-light);
+  border-color: var(--color-warning);
   color: var(--color-warning-dark);
 }
 
 .status-pill--confirmed {
-  background: color-mix(in srgb, var(--color-info) 12%, transparent);
-  border-color: color-mix(in srgb, var(--color-info) 35%, transparent);
+  background: var(--color-info-light);
+  border-color: var(--color-info);
   color: var(--color-info-dark);
 }
 
 .status-pill--active {
-  background: color-mix(in srgb, var(--color-success) 12%, transparent);
-  border-color: color-mix(in srgb, var(--color-success) 35%, transparent);
+  background: var(--color-success-light);
+  border-color: var(--color-success);
   color: var(--color-success-dark);
 }
 

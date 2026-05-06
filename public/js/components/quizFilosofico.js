@@ -8,7 +8,7 @@
     return {
       preguntas,
       step: 0,
-      totalPreguntas: preguntas.length || 5,
+      totalPreguntas: preguntas.length || 6,
       respuestas: [],
       enviando: false,
       animando: true,
@@ -49,10 +49,11 @@
             body: JSON.stringify({ respuestas }),
           });
           if (!response.ok) throw new Error('Error del servidor: ' + response.status);
-          const html = await response.text();
-          document.open();
-          document.write(html);
-          document.close();
+          if (response.redirected) {
+            window.location.href = response.url;
+          } else {
+            window.location.href = '/quiz/resultado';
+          }
         } catch (e) {
           console.error('quiz enviar error:', e);
           window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Error al procesar el quiz. Inténtalo más tarde.', type: 'error' } }));

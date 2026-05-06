@@ -15,11 +15,11 @@ use App\Core\Csrf;
 $reservation ??= [];
 
 $formattedDate = isset($reservation['reservation_date'])
-    ? \date('d \d\e F \d\e Y', \strtotime((string) $reservation['reservation_date']))
+    ? date('d \d\e F \d\e Y', strtotime((string) $reservation['reservation_date']))
     : '—';
 
 $formattedTime = isset($reservation['reservation_time'])
-    ? \substr((string) $reservation['reservation_time'], 0, 5)
+    ? substr((string) $reservation['reservation_time'], 0, 5)
     : '—';
 
 ?>

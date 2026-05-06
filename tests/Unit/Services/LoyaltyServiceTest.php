@@ -27,6 +27,9 @@ final class LoyaltyServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repoStub = $this->createStub(LoyaltyRepositoryInterface::class);
+        $this->repoStub->method('withTransaction')->willReturnCallback(
+            fn (callable $cb) => $cb()
+        );
         $this->service = new LoyaltyService($this->repoStub);
     }
 

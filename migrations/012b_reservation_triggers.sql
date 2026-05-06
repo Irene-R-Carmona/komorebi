@@ -4,17 +4,12 @@
 -- Módulo: Triggers de sincronización reservations ↔ time_slots
 -- Dependencias: 012_integrate_time_slots_reservations.sql
 -- MySQL 8.0+ / 8.4+ Compatible
--- NOTA: Triggers deshabilitados - requieren log_bin_trust_function_creators=1
---       La lógica de capacidad se gestiona desde ReservationService (más robusto)
+-- NOTA: Requieren log_bin_trust_function_creators=1 en MySQL
+--       (variable de entorno MYSQL_LOG_BIN_TRUST_FUNCTION_CREATORS=1 en Railway)
 -- ============================================================================
 
 SET NAMES utf8mb4;
 
--- Los triggers están comentados. Para habilitarlos:
--- 1. Configurar en docker/mysql/my.cnf: log_bin_trust_function_creators=1
--- 2. Descomentar el siguiente código:
-
-/*
 DROP TRIGGER IF EXISTS trg_reservation_confirmed;
 DROP TRIGGER IF EXISTS trg_reservation_cancelled;
 
@@ -76,8 +71,3 @@ BEGIN
         LIMIT 1;
     END IF;
 END;
-*/
-
--- ============================================================================
--- FIN MIGRACIÓN 012b
--- ============================================================================

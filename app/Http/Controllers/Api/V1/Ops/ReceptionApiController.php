@@ -141,7 +141,7 @@ final class ReceptionApiController extends AbstractApiController
             $result = $this->service->addItem($id, $productId, $qty, $cafeId);
 
             if (!$result->ok) {
-                return $this->unprocessable($result->getMessage(), 'add_item_failed');
+                return $this->unprocessable($result->error ?? 'Error al añadir ítem', 'add_item_failed');
             }
 
             return $this->success($result->data, 201);
@@ -179,7 +179,7 @@ final class ReceptionApiController extends AbstractApiController
             $result = $this->service->processPayment($id, $paymentMethod, $cafeId, $notes);
 
             if (!$result->ok) {
-                return $this->unprocessable($result->getMessage(), 'payment_failed');
+                return $this->unprocessable($result->error ?? 'Error al procesar pago', 'payment_failed');
             }
 
             return $this->success($result->data);

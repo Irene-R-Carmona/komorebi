@@ -21,6 +21,7 @@ use App\Http\Controllers\Manager\ReviewController;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ServerRequestInterface;
 
 #[CoversClass(ReviewController::class)]
 final class ReviewControllerTest extends TestCase
@@ -60,7 +61,7 @@ final class ReviewControllerTest extends TestCase
         $controller = new ReviewController($this->queryService);
 
         \ob_start();
-        $result = $controller->index();
+        $result = $controller->index($this->createMock(ServerRequestInterface::class));
         \ob_end_clean();
 
         $this->assertNull($result);
@@ -86,7 +87,7 @@ final class ReviewControllerTest extends TestCase
         $controller = new ReviewController($this->queryService);
 
         \ob_start();
-        $result = $controller->index();
+        $result = $controller->index($this->createMock(ServerRequestInterface::class));
         \ob_end_clean();
 
         $this->assertNull($result);

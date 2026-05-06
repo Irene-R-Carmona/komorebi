@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Core\Csrf;
+use App\Support\CurrencyFormatting;
+use App\Support\DateFormatting;
 
 /**
  * Vista: Reserva Paso 3 — Confirmar (sin JavaScript)
@@ -18,7 +20,7 @@ $passTotal ??= 0.0;
 $grandTotal ??= 0.0;
 
 $fechaFmt = !empty($wizard['fecha'])
-    ? date('d/m/Y', strtotime($wizard['fecha']))
+    ? DateFormatting::toSpanishDate($wizard['fecha'])
     : '—';
 ?>
 
@@ -69,7 +71,7 @@ $fechaFmt = !empty($wizard['fecha'])
                 <div class="booking-summary">
                     <div class="booking-summary__line">
                         <span>Pase</span>
-                        <span>¥<?= number_format($passTotal) ?></span>
+                        <span><?= CurrencyFormatting::yen($passTotal) ?></span>
                     </div>
 
                     <?php if (!empty($cartDetails)): ?>
@@ -78,7 +80,7 @@ $fechaFmt = !empty($wizard['fecha'])
                             <?php foreach ($cartDetails as $item): ?>
                                 <div class="booking-summary__line">
                                     <span><?= (int) ($item['qty'] ?? 1) ?>× <?= htmlspecialchars((string) ($item['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
-                                    <span>¥<?= number_format((float) ($item['subtotal'] ?? 0)) ?></span>
+                                    <span><?= CurrencyFormatting::yen((float) ($item['subtotal'] ?? 0)) ?></span>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -86,7 +88,7 @@ $fechaFmt = !empty($wizard['fecha'])
 
                     <div class="booking-summary__line booking-summary__line--total">
                         <strong>Total estimado</strong>
-                        <strong>¥<?= number_format($grandTotal) ?></strong>
+                        <strong><?= CurrencyFormatting::yen($grandTotal) ?></strong>
                     </div>
 
                     <p class="booking-note">Pago en el local · Experiencia obligatoria.</p>

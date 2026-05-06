@@ -5,6 +5,7 @@
  */
 
 use App\Core\Csrf;
+
 ?>
 
 <?php $this->extend('layouts/main.php'); ?>

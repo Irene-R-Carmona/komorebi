@@ -30,11 +30,12 @@ final class InteractionSessionSeeder
     {
         Logger::info('[InteractionSessionSeeder] starting');
 
-        $reservations  = $this->getCompletedReservations();
+        $reservations = $this->getCompletedReservations();
         $animalsByCafe = $this->getAnimalsByCafe();
 
         if (\count($reservations) === 0) {
             Logger::warning('[InteractionSessionSeeder] no completed reservations — skipping');
+
             return;
         }
 
@@ -53,23 +54,23 @@ final class InteractionSessionSeeder
         $total = 0;
 
         foreach ($reservations as $reservation) {
-            $cafeId     = (int) $reservation['cafe_id'];
-            $animals    = $animalsByCafe[$cafeId] ?? [];
+            $cafeId = (int) $reservation['cafe_id'];
+            $animals = $animalsByCafe[$cafeId] ?? [];
 
             if (\count($animals) === 0) {
                 continue;
             }
 
             $startTime = $reservation['check_in_at'];
-            $endTime   = $reservation['checked_out_at'];
+            $endTime = $reservation['check_out_at'];
 
             foreach ($animals as $animal) {
                 $stmt->execute([
-                    'animal_id'      => (int) $animal['id'],
+                    'animal_id' => (int) $animal['id'],
                     'reservation_id' => (int) $reservation['id'],
-                    'start_time'     => $startTime,
-                    'end_time'       => $endTime,
-                    'intensity'      => $intensities[\array_rand($intensities)],
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                    'intensity' => $intensities[\array_rand($intensities)],
                 ]);
                 $total++;
             }
@@ -90,6 +91,7 @@ final class InteractionSessionSeeder
                AND check_in_at IS NOT NULL
              ORDER BY id"
         );
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -107,6 +109,7 @@ final class InteractionSessionSeeder
         foreach ($rows as $row) {
             $byCafe[(int) $row['cafe_id']][] = $row;
         }
+
         return $byCafe;
     }
 }

@@ -115,6 +115,12 @@ CREATE TABLE IF NOT EXISTS waitlist (
         'cancelled'     -- Canceló voluntariamente
     ) NOT NULL DEFAULT 'waiting',
 
+    -- Centinela para UNIQUE activo: 1 si estado activo (waiting/notified), NULL si terminal.
+    -- MySQL no aplica unicidad sobre NULLs → permite histórico ilimitado pero solo un activo.
+    active_slot_sentinel TINYINT UNSIGNED GENERATED ALWAYS AS (
+        CASE WHEN status IN ('waiting', 'notified') THEN 1 ELSE NULL END
+    ) VIRTUAL,
+
     -- Datos de contacto (redundantes para notificaciones rápidas)
     contact_email VARCHAR(255) NOT NULL COMMENT 'Email para notificaciones',
     contact_phone VARCHAR(20) DEFAULT NULL COMMENT 'Teléfono opcional (SMS)',
@@ -158,8 +164,8 @@ CREATE TABLE IF NOT EXISTS waitlist (
     UNIQUE KEY uk_waitlist_token (token)
         COMMENT 'Búsqueda rápida por token en URLs de confirmación',
 
-    UNIQUE KEY uk_waitlist_user_slot (user_id, time_slot_id, status)
-        COMMENT 'Evita duplicados: un usuario no puede estar 2 veces en waiting/notified',
+    UNIQUE KEY uk_waitlist_user_slot_active (user_id, time_slot_id, active_slot_sentinel)
+        COMMENT 'Un usuario solo puede tener UN registro activo (waiting/notified) por slot; NULLs permiten histórico ilimitado',
 
     INDEX idx_waitlist_slot_position (time_slot_id, position, status)
         COMMENT 'Obtener siguiente en cola: ORDER BY position ASC LIMIT 1',

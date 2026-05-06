@@ -34,7 +34,7 @@
                 labels: this.chartData.weekly_revenue.labels || [],
                 datasets: [{
                   label: 'Ingresos (¥)',
-                  data: this.chartData.weekly_revenue.values || [],
+                  data: this.chartData.weekly_revenue.data || [],
                   borderColor: 'rgb(75, 192, 192)',
                   backgroundColor: 'rgba(75, 192, 192, 0.2)',
                   tension: 0.4

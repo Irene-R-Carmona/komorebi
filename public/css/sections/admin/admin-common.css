@@ -92,6 +92,50 @@
 }
 
 /* ============================================================================
+   DARK MODE OVERRIDES
+   ============================================================================ */
+
+[data-tema="oscuro"] {
+  /* Superficies */
+  --admin-surface: #2D1F13;
+  --admin-bg: #1A1108;
+  --admin-bg-alt: #3D2E1F;
+
+  /* Texto */
+  --admin-text: #F0E8D9;
+  --admin-text-muted: #C9A876;
+  --admin-text-light: #F0E8D9;
+
+  /* Bordes */
+  --admin-border: #4A3828;
+  --admin-border-hover: #6B5234;
+
+  /* Primarios */
+  --admin-primary: #C9A876;
+  --admin-primary-hover: #E3D4BA;
+  --admin-primary-light: rgba(201, 168, 118, 0.15);
+
+  --admin-accent: #E3D4BA;
+  --admin-accent-hover: #F0E8D9;
+  --admin-accent-light: rgba(227, 212, 186, 0.15);
+
+  /* Estados semánticos */
+  --admin-success: #73C69A;
+  --admin-success-light: rgba(74, 168, 118, 0.2);
+  --admin-warning: #FFCB80;
+  --admin-warning-light: rgba(255, 179, 71, 0.2);
+  --admin-error: #F08080;
+  --admin-error-light: rgba(220, 53, 69, 0.2);
+  --admin-info: #5A9FD4;
+  --admin-info-light: rgba(90, 159, 212, 0.2);
+
+  /* Sombras adaptadas */
+  --admin-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --admin-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --admin-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================================
    STATS GRID & CARDS
    ============================================================================ */
 

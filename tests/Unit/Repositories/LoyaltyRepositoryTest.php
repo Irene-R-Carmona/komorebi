@@ -51,8 +51,14 @@ final class LoyaltyRepositoryTest extends TestCase
 
     public function testFindCardByUserIdReturnsArrayWhenFound(): void
     {
-        $row = ['id' => 5, 'user_id' => 1, 'stamps' => 10, 'current_tier' => 'bronze',
-                'created_at' => '2024-01-01', 'updated_at' => '2024-01-01'];
+        $row = [
+            'id' => 5,
+            'user_id' => 1,
+            'stamps' => 10,
+            'current_tier' => 'bronze',
+            'created_at' => '2024-01-01',
+            'updated_at' => '2024-01-01',
+        ];
 
         $this->stmtMock->method('execute')->willReturn(true);
         $this->stmtMock->expects($this->once())
@@ -85,8 +91,13 @@ final class LoyaltyRepositoryTest extends TestCase
 
     public function testFindCardByIdReturnsArrayWhenFound(): void
     {
-        $row = ['id' => 5, 'user_id' => 1, 'stamps' => 10,
-                'created_at' => '2024-01-01', 'updated_at' => '2024-01-01'];
+        $row = [
+            'id' => 5,
+            'user_id' => 1,
+            'stamps' => 10,
+            'created_at' => '2024-01-01',
+            'updated_at' => '2024-01-01',
+        ];
 
         $this->stmtMock->method('execute')->willReturn(true);
         $this->stmtMock->method('fetch')->willReturn($row);
@@ -146,6 +157,7 @@ final class LoyaltyRepositoryTest extends TestCase
             ->method('execute')
             ->with([2, 5, 2])
             ->willReturn(true);
+        $this->stmtMock->method('rowCount')->willReturn(1);
 
         $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
 

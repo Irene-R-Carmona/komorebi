@@ -116,17 +116,21 @@ final class StaffShiftRepository extends AbstractRepository implements StaffShif
                AND shift_date = :date
                AND deleted_at IS NULL
                AND (
-                   (shift_start <= :start AND shift_end > :start)
-                   OR (shift_start < :end AND shift_end >= :end)
-                   OR (shift_start >= :start AND shift_end <= :end)
+                   (shift_start <= :start1 AND shift_end > :start2)
+                   OR (shift_start < :end1 AND shift_end >= :end2)
+                   OR (shift_start >= :start3 AND shift_end <= :end3)
                )
              LIMIT 1'
         );
         $stmt->execute([
             'user_id' => $userId,
             'date' => $date,
-            'start' => $start,
-            'end' => $end,
+            'start1' => $start,
+            'start2' => $start,
+            'start3' => $start,
+            'end1' => $end,
+            'end2' => $end,
+            'end3' => $end,
         ]);
 
         return (bool) $stmt->fetch();
@@ -168,5 +172,45 @@ final class StaffShiftRepository extends AbstractRepository implements StaffShif
             'shifts_this_month' => (int) ($row2['shifts_this_month'] ?? 0),
             'avg_shift_duration' => $totalShifts > 0 ? \round($totalHours / $totalShifts, 2) : 0.0,
         ];
+    }
+
+    #[Override]
+    public function update(int $id, array $data): bool
+    {
+        $allowed = ['shift_date', 'shift_start', 'shift_end', 'notes'];
+        $sets = [];
+        $params = ['id' => $id];
+
+        foreach ($allowed as $field) {
+            if (\array_key_exists($field, $data)) {
+                $sets[] = "{$field} = :{$field}";
+                $params[$field] = $data[$field];
+            }
+        }
+
+        if ($sets === []) {
+            return false;
+        }
+
+        $sets[] = 'updated_at = :updated_at';
+        $params['updated_at'] = \date('Y-m-d H:i:s');
+
+        $stmt = $this->getDb()->prepare(
+            'UPDATE staff_shifts SET ' . \implode(', ', $sets) . ' WHERE id = :id AND deleted_at IS NULL'
+        );
+        $stmt->execute($params);
+
+        return $stmt->rowCount() > 0;
+    }
+
+    #[Override]
+    public function delete(int $id): bool
+    {
+        $stmt = $this->getDb()->prepare(
+            'UPDATE staff_shifts SET deleted_at = :now WHERE id = :id AND deleted_at IS NULL'
+        );
+        $stmt->execute(['now' => \date('Y-m-d H:i:s'), 'id' => $id]);
+
+        return $stmt->rowCount() > 0;
     }
 }

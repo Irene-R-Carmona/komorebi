@@ -34,16 +34,18 @@ final class SupervisorAssignmentSeeder
 
         if (empty($supervisors)) {
             Logger::warning('[SupervisorAssignmentSeeder] no supervisors found — skipping');
+
             return;
         }
 
         if (\count($reservations) === 0) {
             Logger::warning('[SupervisorAssignmentSeeder] no completed reservations — skipping');
+
             return;
         }
 
         Logger::info('[SupervisorAssignmentSeeder] data loaded', [
-            'supervisors'  => \count($supervisors),
+            'supervisors' => \count($supervisors),
             'reservations' => \count($reservations),
         ]);
 
@@ -62,18 +64,18 @@ final class SupervisorAssignmentSeeder
                 continue;
             }
 
-            $supervisor   = $supervisors[\array_rand($supervisors)];
-            $cafeId       = (int) $reservation['cafe_id'];
-            $tableCode    = \sprintf('TABLE-%d-%03d', $cafeId, \random_int(1, 20));
-            $assignedAt   = $reservation['check_in_at'] ?? $reservation['created_at'];
+            $supervisor = $supervisors[\array_rand($supervisors)];
+            $cafeId = (int) $reservation['cafe_id'];
+            $tableCode = \sprintf('TABLE-%d-%03d', $cafeId, \random_int(1, 20));
+            $assignedAt = $reservation['check_in_at'] ?? $reservation['created_at'];
 
             $stmt->execute([
-                'supervisor_id'  => (int) $supervisor['id'],
+                'supervisor_id' => (int) $supervisor['id'],
                 'reservation_id' => (int) $reservation['id'],
-                'table_code'     => $tableCode,
-                'cafe_id'        => $cafeId,
-                'is_active'      => 0, // completadas → ya no activas
-                'assigned_at'    => $assignedAt,
+                'table_code' => $tableCode,
+                'cafe_id' => $cafeId,
+                'is_active' => 0, // completadas → ya no activas
+                'assigned_at' => $assignedAt,
             ]);
             $total++;
         }
@@ -91,6 +93,7 @@ final class SupervisorAssignmentSeeder
              INNER JOIN roles r ON r.id = ur.role_id
              WHERE r.code = 'supervisor' AND u.is_active = 1"
         );
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -105,6 +108,7 @@ final class SupervisorAssignmentSeeder
              WHERE status = 'completed'
              ORDER BY id"
         );
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

@@ -101,6 +101,8 @@
         } catch (error) {
           console.error('[Settings] Error loading:', error);
           KomorebiToast.error('Error al cargar configuración');
+        } finally {
+          this.loading = false;
         }
       },
 

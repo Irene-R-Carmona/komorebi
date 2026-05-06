@@ -8,7 +8,7 @@
 ?>
 <div class="kds-card <?= htmlspecialchars($item['ui_class'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
     data-item-id="<?= (int) ($item['id'] ?? 0) ?>"
-    data-created-ts="<?= (int) ($item['created_ts'] ?? \strtotime($item['created_at'] ?? '')) ?>"
+    data-created-ts="<?= (int) ($item['created_ts'] ?? strtotime($item['created_at'] ?? '')) ?>"
     data-prep-time="<?= (int) ($item['prep_time'] ?? 5) ?>"
     x-data="{ expanded: false }">
 

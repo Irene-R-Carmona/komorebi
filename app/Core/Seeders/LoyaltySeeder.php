@@ -32,21 +32,22 @@ final class LoyaltySeeder
         $users = $this->getRegularUsers();
         if (\count($users) === 0) {
             Logger::warning('[LoyaltySeeder] no regular users found — skipping');
+
             return;
         }
 
         $completedReservations = $this->getCompletedReservations();
-        $animalsByCafe         = $this->getAnimalsByCafe();
-        $catalogIds            = $this->getCatalogIds();
+        $animalsByCafe = $this->getAnimalsByCafe();
+        $catalogIds = $this->getCatalogIds();
 
         if (\count($catalogIds) === 0) {
             Logger::warning('[LoyaltySeeder] no loyalty_reward_catalog entries — skipping loyalty_rewards');
         }
 
         Logger::info('[LoyaltySeeder] data loaded', [
-            'users'       => \count($users),
+            'users' => \count($users),
             'reservations' => \count($completedReservations),
-            'catalog'     => \count($catalogIds),
+            'catalog' => \count($catalogIds),
         ]);
 
         // Agrupar reservas completadas por user_id para contar visitas
@@ -79,31 +80,31 @@ final class LoyaltySeeder
         );
 
         $rewardTypes = ['drink_free', 'entry_free', 'discount_10', 'discount_20', 'merch_discount'];
-        $stampCosts  = [
-            'drink_free'     => 5,
-            'entry_free'     => 10,
-            'discount_10'    => 3,
-            'discount_20'    => 7,
+        $stampCosts = [
+            'drink_free' => 5,
+            'entry_free' => 10,
+            'discount_10' => 3,
+            'discount_20' => 7,
             'merch_discount' => 4,
         ];
 
-        $totalCards   = 0;
+        $totalCards = 0;
         $totalRewards = 0;
-        $totalVisits  = 0;
+        $totalVisits = 0;
 
         foreach ($users as $user) {
-            $userId      = (int) $user['id'];
+            $userId = (int) $user['id'];
             $userReservations = $reservationsByUser[$userId] ?? [];
             $visitsCount = \count($userReservations);
 
             if ($visitsCount === 0) {
                 // Aun sin reservas, crear tarjeta vacía
                 $visitsCount = 0;
-                $stamps      = 0;
+                $stamps = 0;
                 $lastStampAt = null;
             } else {
                 // stamps = visitas recientes no canjeadas (al menos 1, máximo 9)
-                $stamps      = $visitsCount % 10 ?: \random_int(1, 9);
+                $stamps = $visitsCount % 10 ?: \random_int(1, 9);
                 $lastStampAt = \date('Y-m-d H:i:s', \strtotime('-' . \random_int(1, 14) . ' days'));
             }
 
@@ -111,11 +112,11 @@ final class LoyaltySeeder
             $totalRedeemedCount = (int) \floor($visitsCount / 10);
 
             $cardInsert->execute([
-                'user_id'                => $userId,
-                'stamps'                 => $stamps,
-                'visits_count'           => $visitsCount,
+                'user_id' => $userId,
+                'stamps' => $stamps,
+                'visits_count' => $visitsCount,
                 'total_rewards_redeemed' => $totalRedeemedCount,
-                'last_stamp_at'          => $lastStampAt,
+                'last_stamp_at' => $lastStampAt,
             ]);
             $cardId = (int) $this->db->lastInsertId();
             $totalCards++;
@@ -125,8 +126,8 @@ final class LoyaltySeeder
                 $rewardsToInsert = \min($totalRedeemedCount, 3); // máximo 3 por usuario para no inflar
                 for ($i = 0; $i < $rewardsToInsert; $i++) {
                     $rewardType = $rewardTypes[\array_rand($rewardTypes)];
-                    $cost       = $stampCosts[$rewardType];
-                    $daysAgo    = \random_int(7, 90);
+                    $cost = $stampCosts[$rewardType];
+                    $daysAgo = \random_int(7, 90);
                     $redeemedAt = \date('Y-m-d H:i:s', \strtotime('-' . $daysAgo . ' days'));
 
                     // 70% de recompensas ya usadas, 20% pendientes, 10% expiradas
@@ -136,28 +137,28 @@ final class LoyaltySeeder
                         $usedAt = \date('Y-m-d H:i:s', \strtotime($redeemedAt . ' +' . \random_int(1, 7) . ' days'));
                         $expiresAt = \date('Y-m-d H:i:s', \strtotime($redeemedAt . ' +30 days'));
                     } elseif ($rand <= 9) {
-                        $status    = 'pending';
-                        $usedAt    = null;
+                        $status = 'pending';
+                        $usedAt = null;
                         $expiresAt = \date('Y-m-d H:i:s', \strtotime('+' . \random_int(5, 25) . ' days'));
                     } else {
-                        $status    = 'expired';
-                        $usedAt    = null;
+                        $status = 'expired';
+                        $usedAt = null;
                         $expiresAt = \date('Y-m-d H:i:s', \strtotime('-' . \random_int(1, 30) . ' days'));
                     }
 
                     $catalogId = $catalogIds[\array_rand($catalogIds)];
 
                     $rewardInsert->execute([
-                        'user_id'          => $userId,
-                        'loyalty_card_id'  => $cardId,
-                        'reward_type'      => $rewardType,
-                        'stamps_cost'      => $cost,
-                        'redeemed_at'      => $redeemedAt,
-                        'used_at'          => $usedAt,
-                        'expires_at'       => $expiresAt,
-                        'status'           => $status,
-                        'redemption_code'  => $this->generateRedemptionCode(),
-                        'catalog_id'       => $catalogId,
+                        'user_id' => $userId,
+                        'loyalty_card_id' => $cardId,
+                        'reward_type' => $rewardType,
+                        'stamps_cost' => $cost,
+                        'redeemed_at' => $redeemedAt,
+                        'used_at' => $usedAt,
+                        'expires_at' => $expiresAt,
+                        'status' => $status,
+                        'redemption_code' => $this->generateRedemptionCode(),
+                        'catalog_id' => $catalogId,
                     ]);
                     $totalRewards++;
                 }
@@ -165,7 +166,7 @@ final class LoyaltySeeder
 
             // Crear user_animal_visits para reservas completadas de este usuario
             foreach ($userReservations as $reservation) {
-                $cafeId  = (int) $reservation['cafe_id'];
+                $cafeId = (int) $reservation['cafe_id'];
                 $animals = $animalsByCafe[$cafeId] ?? [];
 
                 if (\count($animals) === 0) {
@@ -173,19 +174,19 @@ final class LoyaltySeeder
                 }
 
                 // 2–3 animales vistos por reserva (sin duplicados)
-                $visitCount  = \min(\random_int(2, 3), \count($animals));
-                $animalKeys  = (array) \array_rand($animals, $visitCount);
-                $visitedAt   = $reservation['check_in_at'] ?? $reservation['created_at'];
+                $visitCount = \min(\random_int(2, 3), \count($animals));
+                $animalKeys = (array) \array_rand($animals, $visitCount);
+                $visitedAt = $reservation['check_in_at'] ?? $reservation['created_at'];
 
                 foreach ($animalKeys as $key) {
                     $animalId = (int) $animals[$key]['id'];
-                    $rating   = \random_int(1, 10) > 3 ? \random_int(3, 5) : \random_int(1, 2); // sesgado positivo
+                    $rating = \random_int(1, 10) > 3 ? \random_int(3, 5) : \random_int(1, 2); // sesgado positivo
 
                     $visitInsert->execute([
-                        'user_id'           => $userId,
-                        'animal_id'         => $animalId,
-                        'reservation_id'    => (int) $reservation['id'],
-                        'visited_at'        => $visitedAt,
+                        'user_id' => $userId,
+                        'animal_id' => $animalId,
+                        'reservation_id' => (int) $reservation['id'],
+                        'visited_at' => $visitedAt,
                         'interaction_rating' => $rating,
                     ]);
                     $totalVisits++;
@@ -194,9 +195,9 @@ final class LoyaltySeeder
         }
 
         Logger::info('[LoyaltySeeder] done', [
-            'loyalty_cards'       => $totalCards,
-            'loyalty_rewards'     => $totalRewards,
-            'user_animal_visits'  => $totalVisits,
+            'loyalty_cards' => $totalCards,
+            'loyalty_rewards' => $totalRewards,
+            'user_animal_visits' => $totalVisits,
         ]);
     }
 
@@ -211,6 +212,7 @@ final class LoyaltySeeder
              WHERE r.code = 'user' AND u.is_active = 1
              ORDER BY u.id"
         );
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -225,6 +227,7 @@ final class LoyaltySeeder
              WHERE status = 'completed'
              ORDER BY user_id, created_at"
         );
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -242,6 +245,7 @@ final class LoyaltySeeder
         foreach ($rows as $row) {
             $byCafe[(int) $row['cafe_id']][] = $row;
         }
+
         return $byCafe;
     }
 
@@ -249,19 +253,21 @@ final class LoyaltySeeder
     private function getCatalogIds(): array
     {
         $stmt = $this->db->query(
-            "SELECT id FROM loyalty_reward_catalog WHERE is_active = 1 ORDER BY id"
+            'SELECT id FROM loyalty_reward_catalog WHERE is_active = 1 ORDER BY id'
         );
+
         return \array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'id');
     }
 
     private function generateRedemptionCode(): string
     {
-        $chars  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        $code   = '';
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $code = '';
         $length = \strlen($chars) - 1;
         for ($i = 0; $i < 8; $i++) {
             $code .= $chars[\random_int(0, $length)];
         }
+
         return $code;
     }
 }

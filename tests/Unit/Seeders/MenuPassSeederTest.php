@@ -34,6 +34,7 @@ final class MenuPassSeederTest extends TestCase
         $pdoStub->method('prepare')->willReturnCallback(
             static function (string $sql) use ($stmtStub, &$capturedSql): PDOStatement {
                 $capturedSql = $sql;
+
                 return $stmtStub;
             }
         );
@@ -60,6 +61,7 @@ final class MenuPassSeederTest extends TestCase
         $pdoStub->method('prepare')->willReturnCallback(
             static function (string $sql) use ($stmtStub, &$capturedSql): PDOStatement {
                 $capturedSql = $sql;
+
                 return $stmtStub;
             }
         );
@@ -79,6 +81,7 @@ final class MenuPassSeederTest extends TestCase
         $stmtStub->method('execute')->willReturnCallback(
             static function (array $params) use (&$capturedParams): bool {
                 $capturedParams[] = $params;
+
                 return true;
             }
         );
@@ -107,6 +110,7 @@ final class MenuPassSeederTest extends TestCase
         $stmtStub->method('execute')->willReturnCallback(
             static function (array $params) use (&$capturedParams): bool {
                 $capturedParams[] = $params;
+
                 return true;
             }
         );

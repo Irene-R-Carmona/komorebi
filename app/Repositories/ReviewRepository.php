@@ -160,6 +160,39 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
+    /**
+     * Obtener reseñas de un café (todos los estados) con paginación sentinel
+     */
+    public function findAllStatusesPaginated(int $cafeId, ?string $status = null, int $page = 1): array
+    {
+        $page = \max(1, $page);
+        $perPage = 20;
+        $fetchLimit = $perPage + 1;
+        $offset = ($page - 1) * $perPage;
+
+        $where = ['r.cafe_id = :cafe_id'];
+        $params = ['cafe_id' => $cafeId];
+
+        if ($status !== null && $status !== '') {
+            $where[] = 'r.status = :status';
+            $params['status'] = $status;
+        }
+
+        $whereClause = \implode(' AND ', $where);
+
+        $stmt = $this->getDb()->prepare("
+            SELECT r.*, u.name AS user_name
+            FROM reviews r
+            INNER JOIN users u ON r.user_id = u.id
+            WHERE {$whereClause}
+            ORDER BY r.created_at DESC
+            LIMIT {$fetchLimit} OFFSET {$offset}
+        ");
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
     #[Override]
     public function create(array $data): int
     {

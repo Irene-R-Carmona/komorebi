@@ -211,10 +211,10 @@ final class KitchenController
             // Raw() evita que View::render::escapeData() doble-escape el JSON ya codificado
             $item['json_sop'] = new Raw(\htmlspecialchars(
                 \json_encode([
-                    'title'     => $item['product_name'] ?? '',
-                    'steps'     => $item['recipe_steps'] ?? '',
-                    'ingred'    => $item['ingredients_list'] ?? [],
-                    'check'     => $item['critical_check'] ?? '',
+                    'title' => $item['product_name'] ?? '',
+                    'steps' => $item['recipe_steps'] ?? '',
+                    'ingred' => $item['ingredients_list'] ?? [],
+                    'check' => $item['critical_check'] ?? '',
                     'allergens' => $item['allergens'] ?? [],
                 ], JSON_UNESCAPED_UNICODE) ?: '{}',
                 ENT_QUOTES,

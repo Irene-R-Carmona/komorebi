@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Core\Container;
 use App\Core\Http\ResponseFactory;
+use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\ValidationException;
 use App\Repositories\Contracts\CafeRepositoryInterface;
@@ -84,39 +85,55 @@ final class QuizController
                 ['texto' => 'Mesas individuales y enchufes para concentrarme', 'pesos' => ['intimo' => 3, 'tranquilo' => 2, 'acogedor' => 1]],
             ],
         ],
+        [
+            'id' => 6,
+            'pregunta' => '¿Qué tipo de interacción con los animales imaginas?',
+            'opciones' => [
+                ['texto' => 'Acurrucarme con animales pequeños y suaves en un ambiente íntimo', 'pesos' => ['acogedor' => 3, 'intimo' => 2, 'tranquilo' => 1]],
+                ['texto' => 'Jugar activamente con animales que se mueven y hacen piruetas', 'pesos' => ['energico' => 3, 'divertido' => 2, 'social' => 1]],
+                ['texto' => 'Alimentar y acariciar animales grandes en espacio abierto', 'pesos' => ['natural' => 3, 'social' => 2, 'energico' => 1]],
+                ['texto' => 'Observar animales tranquilos sin interacción obligatoria', 'pesos' => ['zen' => 3, 'tranquilo' => 2, 'natural' => 1]],
+            ],
+        ],
     ];
 
     /**
-     * Perfiles de cafés con características
+     * Perfiles de cafés mapeados a las cuatro categorías reales de la franquicia.
+     * El slug referencia el café representativo de cada categoría (mayor rating).
+     * Categorías: lounge · playroom · farm · zen
      */
     private const PERFILES_CAFES = [
-        'neko' => [
-            'nombre' => 'Neko no Niwa',
-            'animal_guia' => 'Gato Guardián',
-            'personalidad_guia' => 'Observador y sereno: te ofrece espacio y compañía cuando lo necesitas',
-            'caracteristicas' => ['acogedor' => 3, 'tranquilo' => 2, 'intimo' => 3, 'zen' => 1],
-            'descripcion' => 'Un lugar donde la calma es bienvenida. Ideal si buscas una pausa tranquila con detalles acogedores.',
-        ],
-        'usagi' => [
-            'nombre' => 'Usagi Yume',
+        'usagi-paradise' => [
+            'nombre' => 'Lounge Íntimo',
+            'categoria' => 'lounge',
             'animal_guia' => 'Conejo de Luna',
-            'personalidad_guia' => 'Juguetón y amable: celebra los pequeños placeres',
-            'caracteristicas' => ['acogedor' => 2, 'divertido' => 3, 'social' => 2, 'energico' => 2],
-            'descripcion' => 'Perfecto para quienes disfrutan de la alegría sencilla: colores suaves, risas y momentos ligeros.',
+            'personalidad_guia' => 'Suave y cercano: te invita a quedarte un poco más',
+            'caracteristicas' => ['acogedor' => 3, 'intimo' => 3, 'tranquilo' => 2, 'zen' => 1],
+            'descripcion' => 'Tu lugar ideal es un lounge tranquilo: ambiente íntimo, animales pequeños y suaves, sin prisa. Perfectos para leer, trabajar o simplemente descansar.',
         ],
-        'fukurou' => [
-            'nombre' => 'Fukurō Sanctuary',
-            'animal_guia' => 'Búho Nocturno',
-            'personalidad_guia' => 'Profundo y contemplativo: invita a la reflexión en calma',
-            'caracteristicas' => ['zen' => 3, 'tranquilo' => 3, 'intimo' => 2, 'natural' => 1],
-            'descripcion' => 'Un refugio silencioso para quienes buscan silencio, lectura y un ambiente para pensar.',
+        'mame-shiba-cafe' => [
+            'nombre' => 'Playroom Animado',
+            'categoria' => 'playroom',
+            'animal_guia' => 'Shiba Saltarín',
+            'personalidad_guia' => 'Desbordante de energía: te contagia las ganas de jugar',
+            'caracteristicas' => ['energico' => 3, 'social' => 3, 'divertido' => 3, 'acogedor' => 1],
+            'descripcion' => 'Tu café ideal es un playroom lleno de vida: animales juguetones, risas y un ambiente donde la diversión manda. Ideal para ir con amigos o familia.',
         ],
-        'kotori' => [
-            'nombre' => 'Kotori Garden',
-            'animal_guia' => 'Pájaro Cantor',
-            'personalidad_guia' => 'Melódico y libre: hecho para celebrar la ligereza',
-            'caracteristicas' => ['energico' => 2, 'divertido' => 3, 'natural' => 3, 'social' => 2],
-            'descripcion' => 'Espacios con vegetación y armonía sonora; ideal para quienes buscan inspiración y movimiento suave.',
+        'capyba-land' => [
+            'nombre' => 'Urban Farm',
+            'categoria' => 'farm',
+            'animal_guia' => 'Capybara Sereno',
+            'personalidad_guia' => 'Pausado y generoso: enseña que ir despacio también es avanzar',
+            'caracteristicas' => ['natural' => 3, 'social' => 2, 'tranquilo' => 2, 'energico' => 1],
+            'descripcion' => 'Tu espacio es una urban farm: animales grandes, espacio abierto y conexión con la naturaleza. Para quienes buscan autenticidad y calma activa.',
+        ],
+        'slow-life' => [
+            'nombre' => 'Zen Sanctuary',
+            'categoria' => 'zen',
+            'animal_guia' => 'Tortuga Sabia',
+            'personalidad_guia' => 'Contemplativa y profunda: no tiene prisa, el tiempo es suyo',
+            'caracteristicas' => ['zen' => 3, 'tranquilo' => 3, 'natural' => 2, 'intimo' => 1],
+            'descripcion' => 'Tu refugio es un santuario zen: animales que invitan a la calma, observación sin presión y un ambiente diseñado para desconectar y respirar.',
         ],
     ];
 
@@ -183,11 +200,35 @@ final class QuizController
         // Obtener datos reales del café
         $cafeData = $this->cafeRepo->findBySlug($mejorCafe['slug']);
 
-        View::render('public/quiz/resultado', [
-            'titulo' => 'Tu Café del Alma | Resultado',
+        // Almacenar resultado en sesión y redirigir (evita document.write en cliente)
+        Session::set('quiz_result', [
             'cafe' => $mejorCafe,
             'cafeData' => $cafeData,
             'puntuaciones' => $puntuaciones,
+        ]);
+
+        return $this->response->redirect('/quiz/resultado');
+    }
+
+    /**
+     * GET /quiz/resultado
+     * Muestra el resultado del quiz almacenado en sesión tras el POST
+     */
+    public function resultadoGet(ServerRequestInterface $request): ?ResponseInterface
+    {
+        $result = Session::get('quiz_result');
+
+        if ($result === null) {
+            return $this->response->redirect('/quiz');
+        }
+
+        Session::set('quiz_result', null);
+
+        View::render('public/quiz/resultado', [
+            'titulo' => 'Tu Café del Alma | Resultado',
+            'cafe' => $result['cafe'],
+            'cafeData' => $result['cafeData'],
+            'puntuaciones' => $result['puntuaciones'],
         ], ['quiz.css']);
 
         return null;

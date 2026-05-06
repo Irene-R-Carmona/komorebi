@@ -10,7 +10,7 @@ use App\Core\Csrf;
  * @var string $nombre
  */
 
-$email  ??= '';
+$email ??= '';
 $nombre ??= '';
 
 ?>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Core\Csrf;
+use App\Support\DateFormatting;
 
 /**
  * Vista: Gestión de Sesiones Activas
@@ -75,7 +76,7 @@ use App\Core\Csrf;
                                         <code class="text-body"><?= htmlspecialchars($session['ip_address']) ?></code>
                                     </td>
                                     <td class="small text-secondary">
-                                        <?= date('d/m/Y H:i', strtotime($session['last_activity'])) ?>
+                                        <?= DateFormatting::toSpanishDateTime($session['last_activity']) ?>
                                     </td>
                                     <td>
                                         <form method="POST" action="/account/sessions/revoke/<?= (int) $session['id'] ?>">

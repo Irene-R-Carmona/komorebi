@@ -38,7 +38,7 @@ final class NewsletterController
         $filters = \array_filter([
             'email' => $queryParams['email'] ?? null,
             'status' => $queryParams['status'] ?? null,
-        ], static fn($v) => $v !== null && $v !== '');
+        ], static fn ($v) => $v !== null && $v !== '');
 
         $stats = $this->repo->getAdminStats();
         $paginated = $this->repo->getAllPaginated($page, $perPage, $filters);

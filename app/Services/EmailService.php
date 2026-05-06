@@ -240,9 +240,9 @@ final class EmailService extends BaseService implements EmailServiceInterface
 
     private function getReservationConfirmationTemplate(string $userName, array $data): string
     {
-        $cafeName = \htmlspecialchars($data['cafe_name'] ?? 'Komorebi');
-        $date = \htmlspecialchars($data['reservation_date'] ?? '');
-        $time = \htmlspecialchars($data['reservation_time'] ?? '');
+        $cafeName = \e($data['cafe_name'] ?? 'Komorebi');
+        $date = \e($data['reservation_date'] ?? '');
+        $time = \e($data['reservation_time'] ?? '');
         $guests = (int) ($data['guest_count'] ?? 1);
 
         return <<<HTML
@@ -262,9 +262,9 @@ final class EmailService extends BaseService implements EmailServiceInterface
 
     private function getReservationCancellationTemplate(string $userName, array $data, string $reason): string
     {
-        $cafeName = \htmlspecialchars($data['cafe_name'] ?? 'Komorebi');
-        $date = \htmlspecialchars($data['reservation_date'] ?? '');
-        $reasonText = $reason ? '<p><strong>Motivo:</strong> ' . \htmlspecialchars($reason) . '</p>' : '';
+        $cafeName = \e($data['cafe_name'] ?? 'Komorebi');
+        $date = \e($data['reservation_date'] ?? '');
+        $reasonText = $reason ? '<p><strong>Motivo:</strong> ' . \e($reason) . '</p>' : '';
 
         return <<<HTML
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

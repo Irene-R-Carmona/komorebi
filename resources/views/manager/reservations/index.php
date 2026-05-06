@@ -7,25 +7,26 @@ declare(strict_types=1);
  * Ruta: GET /manager/reservations
  *
  * @var string $titulo
- * @var array  $reservations Lista de reservas (id, reservation_date, reservation_time, guest_count, status, user_id, ...)
- * @var array  $filters      ['status' => string|null, 'date' => string|null]
- * @var string $csrf_token   Token CSRF (disponible para acciones futuras)
+ * @var array  $reservations  Lista de reservas
+ * @var array  $filters       ['status' => string|null, 'date' => string|null]
+ * @var string $csrf_token
+ * @var int    $total
+ * @var array  $meta          Metadatos de paginación {page, has_next_page}
+ * @var array  $currentParams Query params para paginationLinks
  */
 
-/** @var array<string, array{class: string, label: string}> $statusLabels */
-$statusLabels = [
-    'pending' => ['class' => 'reservation-badge--pending',   'label' => 'Pendiente'],
-    'confirmed' => ['class' => 'reservation-badge--confirmed', 'label' => 'Confirmada'],
-    'active' => ['class' => 'reservation-badge--active',    'label' => 'Activa'],
-    'completed' => ['class' => 'reservation-badge--completed', 'label' => 'Completada'],
-    'cancelled' => ['class' => 'reservation-badge--cancelled', 'label' => 'Cancelada'],
-    'no_show' => ['class' => 'reservation-badge--no-show',   'label' => 'No Show'],
-];
+use App\Support\DateFormatting;
+use App\Support\StatusLabeling;
+use App\Support\ViewHelpers;
+
+$total ??= 0;
+$meta ??= ['page' => 1, 'has_next_page' => false];
+$currentParams ??= [];
 
 $hasActiveFilters = ($filters['status'] !== null || $filters['date'] !== null);
-$total = count($reservations);
-?>
 
+$statusOptions = ['pending', 'confirmed', 'active', 'completed', 'cancelled', 'no_show'];
+?>
 <div class="container-fluid">
     <div class="dashboard-header">
         <div>
@@ -52,10 +53,10 @@ $total = count($reservations);
                     <label class="filter-label" for="filter-status">Estado</label>
                     <select id="filter-status" class="filter-select" name="status">
                         <option value="">Todos</option>
-                        <?php foreach ($statusLabels as $value => $meta): ?>
-                            <option value="<?= e($value) ?>"
-                                <?= ($filters['status'] ?? '') === $value ? 'selected' : '' ?>>
-                                <?= e($meta['label']) ?>
+                        <?php foreach ($statusOptions as $optValue): ?>
+                            <option value="<?= e($optValue) ?>"
+                                <?= ($filters['status'] ?? '') === $optValue ? 'selected' : '' ?>>
+                                <?= e(StatusLabeling::reservationLabel($optValue)) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -108,16 +109,14 @@ $total = count($reservations);
                     <tbody>
                         <?php foreach ($reservations as $r): ?>
                             <?php
-                            $rstatus = $r['status'] ?? 'pending';
-                            $badge = $statusLabels[$rstatus]
-                                ?? ['class' => 'reservation-badge--completed', 'label' => e($rstatus)];
+                            $rstatus = (string) ($r['status'] ?? 'pending');
                             ?>
                             <tr>
                                 <td class="reservations-table__id">
                                     #<?= (int) $r['id'] ?>
                                 </td>
                                 <td class="reservations-table__date">
-                                    <?= e($r['reservation_date'] ?? '') ?>
+                                    <?= e(DateFormatting::toSpanishDate((string) ($r['reservation_date'] ?? ''))) ?>
                                 </td>
                                 <td class="reservations-table__time">
                                     <?= e(substr((string) ($r['reservation_time'] ?? ''), 0, 5)) ?>
@@ -134,12 +133,12 @@ $total = count($reservations);
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <span class="reservation-badge <?= e($badge['class']) ?>">
-                                        <?= e($badge['label']) ?>
+                                    <span class="reservation-badge <?= e(StatusLabeling::reservationBadge($rstatus)) ?>">
+                                        <?= e(StatusLabeling::reservationLabel($rstatus)) ?>
                                     </span>
                                 </td>
                                 <td class="reservations-table__meta">
-                                    <?= e(substr((string) ($r['created_at'] ?? ''), 0, 10)) ?>
+                                    <?= e(DateFormatting::toSpanishDate(substr((string) ($r['created_at'] ?? ''), 0, 10))) ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -151,4 +150,7 @@ $total = count($reservations);
             </p>
         <?php endif; ?>
     </div>
+
+    <?= ViewHelpers::paginationLinks($meta, $currentParams) ?>
+
 </div>

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Container;
-use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Queue;
 use App\Core\Result;
@@ -15,6 +14,7 @@ use App\Repositories\Contracts\LoyaltyRepositoryInterface;
 use App\Services\Contracts\LoyaltyServiceInterface;
 use Exception;
 use Override;
+use RuntimeException;
 
 /**
  * Servicio de Fidelización - Sistema de sellos y recompensas
@@ -58,55 +58,60 @@ final class LoyaltyService implements LoyaltyServiceInterface
         }
 
         try {
-            // Obtener o crear tarjeta
-            $card = $this->loyaltyRepo->findOrCreateCardByUserId($userId);
+            return $this->loyaltyRepo->withTransaction(function () use ($userId, $stamps) {
+                // SELECT ... FOR UPDATE previene race condition en sellos concurrentes
+                $this->loyaltyRepo->lockCardForUpdate($userId);
 
-            // Añadir sellos
-            $added = $this->loyaltyRepo->addStamps($card->id, $stamps);
-            if (!$added) {
-                return Result::fail('Error al añadir sellos');
-            }
+                // Obtener o crear tarjeta
+                $card = $this->loyaltyRepo->findOrCreateCardByUserId($userId);
 
-            // Actualizar tier si es necesario
-            $newVisitsCount = $card->visits_count + $stamps;
-            $newTier = $this->calculateTier($newVisitsCount);
-            if ($newTier !== $card->current_tier) {
-                $this->loyaltyRepo->updateTier($card->id, $newTier);
-            }
+                // Añadir sellos
+                $added = $this->loyaltyRepo->addStamps($card->id, $stamps);
+                if (!$added) {
+                    throw new RuntimeException('Error al añadir sellos');
+                }
 
-            // Obtener tarjeta actualizada
-            $updatedCard = $this->loyaltyRepo->findCardById($card->id);
+                // Actualizar tier si es necesario
+                $newVisitsCount = $card->visits_count + $stamps;
+                $newTier = $this->calculateTier($newVisitsCount);
+                if ($newTier !== $card->current_tier) {
+                    $this->loyaltyRepo->updateTier($card->id, $newTier);
+                }
 
-            // Verificar si desbloquó nueva recompensa (cada 5 sellos)
-            $prevStamps = $card->stamps;
-            $newStamps = $updatedCard !== null ? $updatedCard->stamps : 0;
+                // Obtener tarjeta actualizada
+                $updatedCard = $this->loyaltyRepo->findCardById($card->id);
 
-            $prevMilestone = (int) \floor($prevStamps / 5) * 5;
-            $newMilestone = (int) \floor($newStamps / 5) * 5;
+                // Verificar si desbloquó nueva recompensa (cada 5 sellos)
+                $prevStamps = $card->stamps;
+                $newStamps = $updatedCard !== null ? $updatedCard->stamps : 0;
 
-            if ($newMilestone > $prevMilestone && $newMilestone > 0) {
-                // Encolar notificación de recompensa desbloqueada
-                Queue::push(RewardUnlockedJob::class, [
+                $prevMilestone = (int) \floor($prevStamps / 5) * 5;
+                $newMilestone = (int) \floor($newStamps / 5) * 5;
+
+                if ($newMilestone > $prevMilestone && $newMilestone > 0) {
+                    // Encolar notificación de recompensa desbloqueada
+                    Queue::push(RewardUnlockedJob::class, [
+                        'user_id' => $userId,
+                        'stamps' => $newStamps,
+                        'tier' => $newTier,
+                        'milestone' => $newMilestone,
+                        '_correlation_id' => WideEvent::get('request_id') ?? '',
+                    ]);
+                }
+
+                WideEvent::setSection('loyalty', [
                     'user_id' => $userId,
                     'stamps' => $newStamps,
                     'tier' => $newTier,
-                    'milestone' => $newMilestone,
-                    '_correlation_id' => WideEvent::get('request_id') ?? '',
                 ]);
-            }
 
-            WideEvent::setSection('loyalty', [
-                'user_id' => $userId,
-                'stamps' => $newStamps,
-                'tier' => $newTier,
-            ]);
-
-            return Result::ok([
-                'card' => $updatedCard,
-                'stamps_added' => $stamps,
-                'new_tier' => $newTier,
-                'tier_changed' => $newTier !== $card->current_tier,
-            ]);
+                return Result::ok([
+                    'card' => $updatedCard,
+                    'stamps_added' => $stamps,
+                    'new_tier' => $newTier,
+                    'tier_changed' => $newTier !== $card->current_tier,
+                ]);
+            });
         } catch (Exception $e) {
             Logger::warning('[LoyaltyService::addStamp] unexpected failure', ['exception' => $e->getMessage(), 'user_id' => $userId]);
 
@@ -147,7 +152,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
     public function redeemReward(int $userId, string $rewardType): Result
     {
         try {
-            return Database::transaction(function () use ($userId, $rewardType) {
+            return $this->loyaltyRepo->withTransaction(function () use ($userId, $rewardType) {
                 // SELECT ... FOR UPDATE previene race conditions en recanjes concurrentes
                 $this->loyaltyRepo->lockCardForUpdate($userId);
 
@@ -274,7 +279,9 @@ final class LoyaltyService implements LoyaltyServiceInterface
     #[Override]
     public function getAvailableRewards(string $tier, int $currentStamps): array
     {
-        $allRewards = $this->loyaltyRepo->getCatalogRewardsForTier($tier);
+        // Defensive: coerce empty/unknown tier to 'bronze' before repo call
+        $safeTier = ($tier !== '') ? $tier : 'bronze';
+        $allRewards = $this->loyaltyRepo->getCatalogRewardsForTier($safeTier);
 
         // Añadir información de disponibilidad
         return \array_map(function ($reward) use ($currentStamps) {

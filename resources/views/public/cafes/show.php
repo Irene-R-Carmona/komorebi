@@ -37,7 +37,7 @@
                     <div class="cafe-hero__meta-item">
                         <i class="bi bi-star-fill" aria-hidden="true" style="color:var(--color-acento)"></i>
                         <span class="visually-hidden">Valoración:</span>
-                        <?= number_format($ratingAvg, 1) ?> / 5.0
+                        <?= \App\Support\CurrencyFormatting::rating($ratingAvg) ?> / 5.0
                         <?php if ($ratingCount > 0): ?>
                             <span class="rating-count">(<?= $ratingCount ?> reseña<?= $ratingCount !== 1 ? 's' : '' ?>)</span>
                         <?php endif; ?>
@@ -127,7 +127,7 @@
                         <div class="detail-card__content">
                             <h4 class="detail-card__title">Valoración</h4>
                             <p class="detail-card__text">
-                                <?= number_format($ratingAvg, 1) ?>/5.0
+                                <?= \App\Support\CurrencyFormatting::rating($ratingAvg) ?>/5.0
                                 <?php if ($ratingCount > 0): ?>
                                     <span class="detail-card__meta">(<?= $ratingCount ?> reseñas)</span>
                                 <?php endif; ?>
@@ -139,21 +139,21 @@
                 <!-- Características adicionales si están disponibles -->
                 <?php
                 $amenities = [];
-    if (!empty($cafe['has_wifi'])) {
-        $amenities[] = ['icon' => 'wifi', 'text' => 'WiFi gratuito'];
-    }
-    if (!empty($cafe['has_food'])) {
-        $amenities[] = ['icon' => 'food', 'text' => 'Servicio de comida'];
-    }
-    if (!empty($cafe['has_drinks'])) {
-        $amenities[] = ['icon' => 'drink', 'text' => 'Bebidas incluidas'];
-    }
-    if (!empty($cafe['wheelchair_accessible'])) {
-        $amenities[] = ['icon' => 'accessible', 'text' => 'Accesible'];
-    }
+                if (!empty($cafe['has_wifi'])) {
+                    $amenities[] = ['icon' => 'wifi', 'text' => 'WiFi gratuito'];
+                }
+                if (!empty($cafe['has_food'])) {
+                    $amenities[] = ['icon' => 'food', 'text' => 'Servicio de comida'];
+                }
+                if (!empty($cafe['has_drinks'])) {
+                    $amenities[] = ['icon' => 'drink', 'text' => 'Bebidas incluidas'];
+                }
+                if (!empty($cafe['wheelchair_accessible'])) {
+                    $amenities[] = ['icon' => 'accessible', 'text' => 'Accesible'];
+                }
 
-    if (count($amenities) > 0):
-        ?>
+                if (count($amenities) > 0):
+                ?>
                     <div class="cafe-amenities">
                         <h4 class="cafe-amenities__title">Servicios y comodidades</h4>
                         <ul class="cafe-amenities__list">
@@ -222,8 +222,8 @@
         <?php
         // Variable necesaria para experiences_section.php
         $cafeId = (int) $cafe['id'];
-    include 'experiences_section.php';
-    ?>
+        include 'experiences_section.php';
+        ?>
 
         <!-- RESEÑAS Y VALORACIONES -->
         <section id="reviews-section" class="reviews-section">
@@ -235,13 +235,13 @@
             <!-- Stats de Rating -->
             <div class="rating-stats">
                 <div class="rating-stats__average">
-                    <div class="rating-stats__number"><?= number_format($ratingAvg, 1) ?></div>
+                    <div class="rating-stats__number"><?= \App\Support\CurrencyFormatting::rating($ratingAvg) ?></div>
                     <div class="rating-stats__stars">
                         <?php
-                    $wholePart = floor($ratingAvg);
-    for ($i = 1; $i <= 5; $i++):
-        $filled = $i <= $wholePart ? 'review-star--filled' : '';
-        ?>
+                        $wholePart = floor($ratingAvg);
+                        for ($i = 1; $i <= 5; $i++):
+                            $filled = $i <= $wholePart ? 'review-star--filled' : '';
+                        ?>
                             <span class="review-star <?= $filled ?>">★</span>
                         <?php endfor; ?>
                     </div>
@@ -253,12 +253,12 @@
                 <!-- Distribución de ratings (si hay reseñas) -->
                 <?php if ($ratingCount > 0):
                     $distribution = $ratingStats['distribution'] ?? [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
-                    ?>
+                ?>
                     <div class="rating-distribution">
                         <?php for ($rating = 5; $rating >= 1; $rating--):
                             $count = (int) ($distribution[$rating] ?? 0);
                             $percentage = $ratingCount > 0 ? round(($count / $ratingCount) * 100) : 0;
-                            ?>
+                        ?>
                             <div class="rating-bar">
                                 <span class="rating-bar__label"><?= $rating ?> <i class="bi bi-star-fill" aria-hidden="true"></i></span>
                                 <div class="rating-bar__container">
@@ -276,17 +276,17 @@
                 <h3 class="reviews-container__title">Reseñas recientes</h3>
                 <?php
                 $page = max(1, (int) ($_GET['page'] ?? 1));
-    include 'reviews_section.php';
-    ?>
+                include 'reviews_section.php';
+                ?>
             </div>
 
             <!-- Formulario para dejar reseña -->
             <div class="review-form-container">
                 <h3 class="review-form-container__title">Comparte tu experiencia</h3>
                 <?php
-    // Variables locales para review_form.php
-    include 'review_form.php';
-    ?>
+                // Variables locales para review_form.php
+                include 'review_form.php';
+                ?>
             </div>
         </section>
 

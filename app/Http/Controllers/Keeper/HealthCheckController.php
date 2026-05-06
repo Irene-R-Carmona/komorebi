@@ -78,6 +78,11 @@ final class HealthCheckController
             throw new NotFoundException('Animal no encontrado');
         }
 
+        $user = Session::user();
+        if ($animal->cafe_id !== (int) ($user['cafe_id'] ?? 0)) {
+            throw new NotFoundException('Animal no encontrado');
+        }
+
         View::render('backoffice/keeper/health-checks/create', [
             'titulo' => 'Nuevo Chequeo de Salud',
             'animal' => $animal->toViewArray(),
@@ -123,6 +128,11 @@ final class HealthCheckController
 
         if ($animalId <= 0) {
             throw ValidationException::withMessage('ID de animal inválido', 400);
+        }
+
+        $animal = $this->animalRepo->findById($animalId);
+        if ($animal === null || $animal->cafe_id !== (int) ($user['cafe_id'] ?? 0)) {
+            throw ValidationException::withMessage('Animal no válido', 403);
         }
 
         $result = $this->healthCheckService->createHealthCheck($animalId, $keeperId, $checkData);

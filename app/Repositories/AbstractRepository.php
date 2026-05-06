@@ -10,6 +10,7 @@ use App\Core\Pagination;
 use Override;
 use PDO;
 use PDOStatement;
+use Throwable;
 
 /**
  * Repositorio base abstracto con operaciones CRUD comunes.
@@ -33,6 +34,33 @@ abstract class AbstractRepository implements RepositoryInterface
     protected function getDb(): PDO
     {
         return $this->db ??= Database::getConnection();
+    }
+
+    /**
+     * Ejecuta un callback dentro de una transacción usando $this->getDb().
+     * Si ya hay una transacción activa, ejecuta el callback directamente.
+     *
+     * @template T
+     * @param callable(): T $callback
+     * @return T
+     */
+    protected function transact(callable $callback): mixed
+    {
+        $pdo = $this->getDb();
+        if ($pdo->inTransaction()) {
+            return $callback();
+        }
+        $pdo->beginTransaction();
+
+        try {
+            $result = $callback();
+            $pdo->commit();
+
+            return $result;
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
     }
 
     /**

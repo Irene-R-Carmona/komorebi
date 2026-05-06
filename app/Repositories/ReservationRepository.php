@@ -161,11 +161,16 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      * @param int         $cafeId
      * @param string|null $status Filtrar por estado (null = todos)
      * @param string|null $date   Filtrar por fecha Y-m-d (null = todas)
-     * @param int         $limit  Máximo de resultados
+     * @param int         $page   Número de página
      * @return array<int, array<string, mixed>>
      */
-    public function findByCafeWithFilters(int $cafeId, ?string $status = null, ?string $date = null, int $limit = 50): array
+    public function findByCafeWithFilters(int $cafeId, ?string $status = null, ?string $date = null, int $page = 1): array
     {
+        $page = \max(1, $page);
+        $perPage = 20;
+        $fetchLimit = $perPage + 1;
+        $offset = ($page - 1) * $perPage;
+
         $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
         $where = ['r.cafe_id = :cafe_id', 'r.deleted_at IS NULL'];
         $params = ['cafe_id' => $cafeId];
@@ -190,7 +195,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
              WHERE {$whereClause}
              GROUP BY r.id
              ORDER BY r.reservation_date DESC, r.reservation_time DESC
-             LIMIT {$limit}"
+             LIMIT {$fetchLimit} OFFSET {$offset}"
         );
         $stmt->execute($params);
 

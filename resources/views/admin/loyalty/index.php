@@ -12,29 +12,29 @@
  * @var array  $recent_redemptions  Canjes recientes (máx. 10)
  */
 
-$tier_distribution  ??= ['bronze' => 0, 'silver' => 0, 'gold' => 0, 'platinum' => 0];
-$catalog            ??= [];
-$redemption_stats   ??= ['total' => 0, 'used' => 0, 'pending' => 0, 'expired' => 0, 'last_30_days' => 0];
+$tier_distribution ??= ['bronze' => 0, 'silver' => 0, 'gold' => 0, 'platinum' => 0];
+$catalog ??= [];
+$redemption_stats ??= ['total' => 0, 'used' => 0, 'pending' => 0, 'expired' => 0, 'last_30_days' => 0];
 $recent_redemptions ??= [];
-$csrf_token         ??= '';
+$csrf_token ??= '';
 
 $alpineData = json_encode([
-    'csrf'       => $csrf_token,
-    'activeTab'  => 'dashboard',
-    'toast'      => null,
-    'loading'    => false,
+    'csrf' => $csrf_token,
+    'activeTab' => 'dashboard',
+    'toast' => null,
+    'loading' => false,
 ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
 
 $tierColors = [
-    'bronze'   => '#CD7F32',
-    'silver'   => '#C0C0C0',
-    'gold'     => '#C9A959',
+    'bronze' => '#CD7F32',
+    'silver' => '#C0C0C0',
+    'gold' => '#C9A959',
     'platinum' => '#B5D4E7',
 ];
 $tierLabels = [
-    'bronze'   => 'Bronce',
-    'silver'   => 'Plata',
-    'gold'     => 'Oro',
+    'bronze' => 'Bronce',
+    'silver' => 'Plata',
+    'gold' => 'Oro',
     'platinum' => 'Platino',
 ];
 ?>

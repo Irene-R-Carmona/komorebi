@@ -7,6 +7,7 @@ namespace App\Core\Seeders;
 use App\Core\Database;
 use App\Core\Logger;
 use PDO;
+use PDOStatement;
 
 /**
  * StaffShiftSeeder
@@ -36,10 +37,11 @@ final class StaffShiftSeeder
         Logger::info('[StaffShiftSeeder] starting');
 
         $staffByCafe = $this->getStaffByCafe();
-        $managers    = $this->getManagers();
+        $managers = $this->getManagers();
 
         if (empty($staffByCafe)) {
             Logger::warning('[StaffShiftSeeder] no staff found — skipping');
+
             return;
         }
 
@@ -64,8 +66,8 @@ final class StaffShiftSeeder
 
         for ($week = 0; $week < 5; $week++) {
             for ($day = 0; $day < 7; $day++) {
-                $dayTs    = $startMonday + ($week * 7 * 86400) + ($day * 86400);
-                $dayStr   = \date('Y-m-d', $dayTs);
+                $dayTs = $startMonday + ($week * 7 * 86400) + ($day * 86400);
+                $dayStr = \date('Y-m-d', $dayTs);
                 $isWeekend = $day >= 5;
 
                 foreach ($staffByCafe as $cafeId => $staffList) {
@@ -82,7 +84,7 @@ final class StaffShiftSeeder
      * @param array<array{id: string}> $managers
      */
     private function insertDayShifts(
-        \PDOStatement $stmt,
+        PDOStatement $stmt,
         int $cafeId,
         array $staffList,
         array $managers,
@@ -99,16 +101,16 @@ final class StaffShiftSeeder
             }
 
             $shiftIndex = ($week + (int) $member['id']) % 2;
-            $shift      = self::SHIFTS[$shiftIndex];
+            $shift = self::SHIFTS[$shiftIndex];
 
             $stmt->execute([
-                'user_id'     => (int) $member['id'],
-                'cafe_id'     => $cafeId,
-                'shift_date'  => $dayStr,
+                'user_id' => (int) $member['id'],
+                'cafe_id' => $cafeId,
+                'shift_date' => $dayStr,
                 'shift_start' => $shift['start'],
-                'shift_end'   => $shift['end'],
-                'notes'       => null,
-                'created_by'  => $managerId !== null ? (int) $managerId : null,
+                'shift_end' => $shift['end'],
+                'notes' => null,
+                'created_by' => $managerId !== null ? (int) $managerId : null,
             ]);
             $count++;
         }
@@ -139,6 +141,7 @@ final class StaffShiftSeeder
         foreach ($rows as $row) {
             $byCafe[(int) $row['cafe_id']][] = $row;
         }
+
         return $byCafe;
     }
 
@@ -154,6 +157,7 @@ final class StaffShiftSeeder
              INNER JOIN roles r ON r.id = ur.role_id
              WHERE r.code = 'manager' AND u.is_active = 1"
         );
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

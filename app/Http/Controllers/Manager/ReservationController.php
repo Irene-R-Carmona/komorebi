@@ -8,6 +8,7 @@ use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Session;
 use App\Core\View;
+use App\Domain\DTO\PaginationParams;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -44,17 +45,26 @@ final class ReservationController
             return null;
         }
 
-        $params = $request->getQueryParams();
-        $status = (isset($params['status']) && $params['status'] !== '') ? (string) $params['status'] : null;
-        $date = (isset($params['date']) && $params['date'] !== '') ? (string) $params['date'] : null;
+        $params = PaginationParams::fromRequest($request);
+        $query = $request->getQueryParams();
+        $status = (isset($query['status']) && $query['status'] !== '') ? (string) $query['status'] : null;
+        $date = (isset($query['date']) && $query['date'] !== '') ? (string) $query['date'] : null;
 
-        $reservations = $this->reservationRepo->findByCafeWithFilters($cafeId, $status, $date);
+        $rawRows = $this->reservationRepo->findByCafeWithFilters($cafeId, $status, $date, $params->page);
+        $hasNext = \count($rawRows) > 20;
+        $reservations = $hasNext ? \array_slice($rawRows, 0, 20) : $rawRows;
+
+        $meta = ['page' => $params->page, 'has_next_page' => $hasNext];
+        $currentParams = $params->toQueryArray(['status' => $status ?? '', 'date' => $date ?? '']);
 
         View::render('manager/reservations/index', [
             'titulo' => 'Gestión de Reservas',
             'reservations' => $reservations,
             'filters' => ['status' => $status, 'date' => $date],
             'csrf_token' => Csrf::token(),
+            'total' => \count($reservations),
+            'meta' => $meta,
+            'currentParams' => $currentParams,
         ], ['manager/manager-reservations.css'], 'backoffice');
 
         return null;

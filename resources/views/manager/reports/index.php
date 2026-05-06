@@ -136,7 +136,7 @@ declare(strict_types=1);
                                 'cancelled' => 'Cancelada',
                                 'no_show' => 'No Show',
                             ];
-                    ?>
+                            ?>
                             <?php foreach ($statusDistribution as $row): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($statusLabels[$row['status']] ?? ucfirst($row['status']), ENT_QUOTES, 'UTF-8') ?></td>
@@ -183,7 +183,7 @@ declare(strict_types=1);
                                     <tr>
                                         <td class="text-muted small"><?= (int) $row['id'] ?></td>
                                         <td><?= $row['fecha'] ?></td>
-                                        <td><?= $row['estado'] ?></td>
+                                        <td><?= $statusLabels[$row['estado']] ?? ucfirst($row['estado']) ?></td>
                                         <td class="text-center"><?= (int) $row['personas'] ?></td>
                                         <td class="text-end">¥<?= number_format((float) $row['importe'], 0) ?></td>
                                         <td><?= $row['pago'] ?></td>

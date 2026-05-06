@@ -19,7 +19,8 @@ final class KitchenService implements KitchenServiceInterface
 {
     public function __construct(
         private readonly ReservationItemRepositoryInterface $itemRepo
-    ) {}
+    ) {
+    }
 
     // ─────────────────────────────────────────────────────────────
     // Comandas Pendientes
@@ -131,10 +132,11 @@ final class KitchenService implements KitchenServiceInterface
             if (isset($item['allergen_data']) && \is_string($item['allergen_data']) && $item['allergen_data'] !== '') {
                 $item['allergens'] = \array_map(static function (string $entry): array {
                     $parts = \explode('|', $entry) + ['', '', '#ccc', 'medium'];
+
                     return [
-                        'code'     => $parts[0],
-                        'name'     => $parts[1],
-                        'color'    => $parts[2],
+                        'code' => $parts[0],
+                        'name' => $parts[1],
+                        'color' => $parts[2],
                         'severity' => $parts[3],
                     ];
                 }, \explode(';;', $item['allergen_data']));

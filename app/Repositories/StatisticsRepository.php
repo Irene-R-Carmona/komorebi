@@ -103,7 +103,8 @@ final class StatisticsRepository extends AbstractRepository implements Statistic
                 COUNT(DISTINCT r.user_id)                                                  AS unique_users,
                 COUNT(DISTINCT CASE WHEN r.status = 'completed' THEN r.id END)             AS completed_reservations,
                 COUNT(DISTINCT CASE WHEN r.status = 'cancelled' THEN r.id END)             AS cancelled_reservations,
-                COUNT(DISTINCT CASE WHEN r.status = 'no_show'   THEN r.id END)             AS no_shows
+                COUNT(DISTINCT CASE WHEN r.status = 'no_show'   THEN r.id END)             AS no_shows,
+                COALESCE(SUM(CASE WHEN r.status = 'completed' AND r.payment_status = 'paid' THEN r.final_amount ELSE 0 END), 0) AS monthly_revenue
             FROM reservations r
             WHERE MONTH(r.reservation_date) = :month
               AND YEAR(r.reservation_date)  = :year
@@ -406,7 +407,7 @@ final class StatisticsRepository extends AbstractRepository implements Statistic
             ];
         }
 
-        \usort($activities, static fn ($a, $b) => \strtotime($b['timestamp']) - \strtotime($a['timestamp']));
+        \usort($activities, static fn($a, $b) => \strtotime($b['timestamp']) - \strtotime($a['timestamp']));
 
         return \array_slice($activities, 0, $limit);
     }

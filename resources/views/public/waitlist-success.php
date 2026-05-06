@@ -23,7 +23,7 @@ declare(strict_types=1);
             <h1 class="h2 mb-3">¡Plaza confirmada!</h1>
 
             <p class="lead mb-4">
-                <?= \htmlspecialchars($message ?? 'Tu reserva ha sido confirmada exitosamente.', ENT_QUOTES, 'UTF-8') ?>
+                <?= htmlspecialchars($message ?? 'Tu reserva ha sido confirmada exitosamente.', ENT_QUOTES, 'UTF-8') ?>
             </p>
 
             <?php if (!empty($reservationId)): ?>

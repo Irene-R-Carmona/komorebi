@@ -10,8 +10,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
-use App\Domain\DTO\ProductDTO;
-use App\Domain\DTO\ReservationDTO;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationItemRepositoryInterface;

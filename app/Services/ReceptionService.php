@@ -45,12 +45,12 @@ final class ReceptionService implements ReceptionServiceInterface
         ?ReservationItemRepositoryInterface $itemRepo = null,
         ?ProductRepositoryInterface $productRepo = null
     ) {
-        $this->reservationRepo  = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
-        $this->trackerRepo      = $trackerRepo ?? Container::make(TrackerRepositoryInterface::class);
-        $this->cafeRepo         = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
-        $this->interactionRepo  = $interactionRepo ?? new InteractionSessionRepository();
-        $this->itemRepo         = $itemRepo ?? Container::make(ReservationItemRepositoryInterface::class);
-        $this->productRepo      = $productRepo ?? Container::make(ProductRepositoryInterface::class);
+        $this->reservationRepo = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
+        $this->trackerRepo = $trackerRepo ?? Container::make(TrackerRepositoryInterface::class);
+        $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
+        $this->interactionRepo = $interactionRepo ?? new InteractionSessionRepository();
+        $this->itemRepo = $itemRepo ?? Container::make(ReservationItemRepositoryInterface::class);
+        $this->productRepo = $productRepo ?? Container::make(ProductRepositoryInterface::class);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -76,7 +76,7 @@ final class ReceptionService implements ReceptionServiceInterface
     {
         $reservations = $this->reservationRepo->findByCafeAndDate($cafeId, \date('Y-m-d'));
 
-        return \array_filter($reservations, static fn($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
+        return \array_filter($reservations, static fn ($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
     }
 
     #[Override]
@@ -320,9 +320,9 @@ final class ReceptionService implements ReceptionServiceInterface
 
             Logger::info('[ReceptionService] Item añadido a reserva', [
                 'reservation_id' => $reservationId,
-                'product_id'     => $productId,
-                'quantity'       => $qty,
-                'item_id'        => $itemId,
+                'product_id' => $productId,
+                'quantity' => $qty,
+                'item_id' => $itemId,
             ]);
 
             return Result::ok(['item_id' => $itemId]);
@@ -363,7 +363,7 @@ final class ReceptionService implements ReceptionServiceInterface
                 return Result::fail('La reserva no pertenece a esta sede', 'cafe_mismatch');
             }
 
-            $checkoutData = Database::transaction(function () use ($reservationId, $paymentMethod, $cafeId, $notes, $rawReservation) {
+            $checkoutData = Database::transaction(function () use ($reservationId, $paymentMethod, $notes, $rawReservation) {
 
                 // Calcular importe del pase
                 $passAmount = (float) ($rawReservation['pass_unit_price'] ?? 0)
@@ -379,10 +379,10 @@ final class ReceptionService implements ReceptionServiceInterface
                 $finalAmount = $passAmount + $itemsAmount;
 
                 $this->reservationRepo->checkOut($reservationId, [
-                    'final_amount'   => $finalAmount,
+                    'final_amount' => $finalAmount,
                     'payment_status' => 'paid',
                     'payment_method' => $paymentMethod,
-                    'payment_notes'  => $notes,
+                    'payment_notes' => $notes,
                 ]);
 
                 $this->interactionRepo->closeForReservation($reservationId);
@@ -396,25 +396,25 @@ final class ReceptionService implements ReceptionServiceInterface
                     } catch (Throwable $e) {
                         Logger::warning('[ReceptionService] Error al añadir sello de fidelización', [
                             'reservation_id' => $reservationId,
-                            'user_id'        => $updated->user_id,
-                            'error'          => $e->getMessage(),
+                            'user_id' => $updated->user_id,
+                            'error' => $e->getMessage(),
                         ]);
                     }
                 }
 
                 Logger::info('[ReceptionService] Cobro completado', [
                     'reservation_id' => $reservationId,
-                    'final_amount'   => $finalAmount,
+                    'final_amount' => $finalAmount,
                     'payment_method' => $paymentMethod,
                 ]);
 
                 return [
-                    'success'        => true,
-                    'final_amount'   => $finalAmount,
-                    'pass_amount'    => $passAmount,
-                    'items_amount'   => $itemsAmount,
+                    'success' => true,
+                    'final_amount' => $finalAmount,
+                    'pass_amount' => $passAmount,
+                    'items_amount' => $itemsAmount,
                     'payment_method' => $paymentMethod,
-                    'duration'       => $this->calculateDuration($updated),
+                    'duration' => $this->calculateDuration($updated),
                 ];
             });
 

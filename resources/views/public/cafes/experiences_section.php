@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\CurrencyFormatting;
+
 /**
  * experiences_section.php - Sección de Experiencias/Pases
  *
@@ -8,7 +10,7 @@
  */
 
 if (empty($experiences)):
-    ?>
+?>
     <section class="experiences-section">
         <header class="seccion__header">
             <h2 class="seccion__titulo">Experiencias Disponibles</h2>
@@ -19,7 +21,7 @@ if (empty($experiences)):
         </div>
     </section>
 <?php
-        return;
+    return;
 endif;
 ?>
 
@@ -147,7 +149,7 @@ endif;
 
                 <div class="experience-card__footer">
                     <div class="experience-card__price">
-                        <span class="experience-price__amount">¥<?= number_format($price, 0) ?></span>
+                        <span class="experience-price__amount"><?= CurrencyFormatting::yen($price) ?></span>
                         <span class="experience-price__label">/persona</span>
                     </div>
                     <a href="/reservas?cafe=<?= (int) $cafe['id'] ?>&pass=<?= (int) $exp['id'] ?>"

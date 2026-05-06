@@ -100,7 +100,7 @@
                         if ($elapsed > 60) {
                             $color = '#ef4444';
                         } // Rojo
-                    ?>
+                        ?>
                         <div class="zen-table">
                             <!-- ANILLO CONIC-GRADIENT (Fix Visual) -->
                             <div class="table-ring"

@@ -94,8 +94,8 @@
   /* Sidebar */
   --sidebar-bg: linear-gradient(180deg, #2D1F13 0%, #1A1108 100%);
   --sidebar-text: #F0E8D9;
-  --sidebar-hover: rgba(201, 168, 118, 0.15);
-  --sidebar-active: rgba(255, 179, 71, 0.25);
+  --sidebar-hover: rgba(201, 168, 118, 0.35);
+  --sidebar-active: rgba(255, 179, 71, 0.45);
   --sidebar-border: rgba(201, 168, 118, 0.1);
   --sidebar-width: 280px;
 

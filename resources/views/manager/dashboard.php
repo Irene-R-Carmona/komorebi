@@ -14,6 +14,7 @@ declare(strict_types=1);
  */
 
 use App\Core\Session;
+use App\Support\CurrencyFormatting;
 
 // Cargar componentes
 require_once __DIR__ . '/../components/card.php';
@@ -47,8 +48,8 @@ $alpineConfig = json_encode([
                 <i class="bi bi-calendar3" aria-hidden="true"></i>
                 <?php
                 $formatter = new IntlDateFormatter('es_ES', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
-echo $formatter->format(new DateTime());
-?>
+                echo $formatter->format(new DateTime());
+                ?>
             </time>
         </div>
     </div>
@@ -103,7 +104,7 @@ echo $formatter->format(new DateTime());
                 <div class="d-flex align-items-start justify-content-between">
                     <div>
                         <div class="text-muted small mb-1">Ingresos Semana</div>
-                        <h2 class="mb-0 fw-bold">¥' . number_format($stats['week_revenue'] ?? 0, 0) . '</h2>
+                        <h2 class="mb-0 fw-bold">¥' . number_format(array_sum(array_column($stats['weekly_revenue'] ?? [], 'revenue')), 0) . '</h2>
                         <div class="text-muted small mt-1">Últimos 7 días</div>
                     </div>
                     <div class="stat-card__icon stat-card__icon--warning">
@@ -122,7 +123,7 @@ echo $formatter->format(new DateTime());
                 <div class="d-flex align-items-start justify-content-between">
                     <div>
                         <div class="text-muted small mb-1">Rating Promedio</div>
-                        <h2 class="mb-0 fw-bold">' . number_format($stats['avg_rating'] ?? 0, 1) . '/5</h2>
+                        <h2 class="mb-0 fw-bold">' . CurrencyFormatting::rating((float) ($stats['avg_rating'] ?? 0)) . '/5</h2>
                         <div class="text-muted small mt-1">Valoración clientes</div>
                     </div>
                     <div class="stat-card__icon stat-card__icon--info">

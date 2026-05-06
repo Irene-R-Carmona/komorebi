@@ -19,6 +19,7 @@ namespace Tests\Unit\Http\Controllers\Keeper;
 
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
+use App\Domain\DTO\AnimalDTO;
 use App\Http\Controllers\Keeper\AnimalIncidentController;
 use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
@@ -42,7 +43,8 @@ final class AnimalIncidentControllerTest extends TestCase
         }
         $_SESSION['_csrf_token'] = self::CSRF_TOKEN;
         $_SESSION['user_id'] = 1;
-        $_SESSION['user'] = ['id' => 1, 'name' => 'Keeper Test', 'roles' => ['keeper']];
+        $_SESSION['user_cafe_id'] = 1;
+        $_SESSION['user'] = ['id' => 1, 'name' => 'Keeper Test', 'roles' => ['keeper'], 'cafe_id' => 1];
     }
 
     protected function tearDown(): void
@@ -53,6 +55,15 @@ final class AnimalIncidentControllerTest extends TestCase
     private function makeController(?AnimalCareServiceInterface $service = null): AnimalIncidentController
     {
         $animalRepo = $this->createStub(AnimalRepositoryInterface::class);
+        $animalRepo->method('findById')->willReturn(new AnimalDTO(
+            id: 3,
+            cafe_id: 1,
+            name: 'Neko',
+            species: 'Gato',
+            description: null,
+            image_url: null,
+            is_active: true,
+        ));
         $service ??= new AnimalCareService(
             animalRepo: $animalRepo,
             incidentRepo: $this->createStub(AnimalIncidentRepositoryInterface::class),

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Support\DateFormatting;
+
 /**
  * Detalle de entrada en lista de espera
  *
@@ -52,7 +54,7 @@ $statusLabels = [
                         <dt class="col-sm-4">Fecha/Hora slot</dt>
                         <dd class="col-sm-8">
                             <?php if (!empty($waitlist['slot_date'])): ?>
-                                <?= e(date('d/m/Y', strtotime($waitlist['slot_date']))) ?>
+                                <?= e(DateFormatting::toSpanishDate($waitlist['slot_date'])) ?>
                                 <?= !empty($waitlist['slot_time']) ? e(substr($waitlist['slot_time'], 0, 5)) : '' ?>
                             <?php else: ?>
                                 —
@@ -80,17 +82,17 @@ $statusLabels = [
 
                         <dt class="col-sm-4">Creado</dt>
                         <dd class="col-sm-8">
-                            <?= !empty($waitlist['created_at']) ? e(date('d/m/Y H:i', strtotime($waitlist['created_at']))) : '—' ?>
+                            <?= !empty($waitlist['created_at']) ? e(DateFormatting::toSpanishDateTime($waitlist['created_at'])) : '—' ?>
                         </dd>
 
                         <?php if (!empty($waitlist['notified_at'])): ?>
                             <dt class="col-sm-4">Notificado</dt>
-                            <dd class="col-sm-8"><?= e(date('d/m/Y H:i', strtotime($waitlist['notified_at']))) ?></dd>
+                            <dd class="col-sm-8"><?= e(DateFormatting::toSpanishDateTime($waitlist['notified_at'])) ?></dd>
                         <?php endif; ?>
 
                         <?php if (!empty($waitlist['expires_at'])): ?>
                             <dt class="col-sm-4">Expira</dt>
-                            <dd class="col-sm-8"><?= e(date('d/m/Y H:i', strtotime($waitlist['expires_at']))) ?></dd>
+                            <dd class="col-sm-8"><?= e(DateFormatting::toSpanishDateTime($waitlist['expires_at'])) ?></dd>
                         <?php endif; ?>
                     </dl>
                 </div>

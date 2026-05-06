@@ -100,6 +100,12 @@ final class AnimalIncidentController
             'reported_by_user_id' => $user ? (int) $user['id'] : null,
         ];
 
+        $cafeId = (int) ($user['cafe_id'] ?? 0);
+        $animal = $data['animal_id'] > 0 ? $this->animalRepository->findById($data['animal_id']) : null;
+        if ($animal === null || $animal->cafe_id !== $cafeId) {
+            throw ValidationException::withMessage('Animal no válido', 403);
+        }
+
         $result = $this->service->createIncident($data);
 
         if ($result->ok) {

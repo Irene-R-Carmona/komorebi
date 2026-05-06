@@ -15,8 +15,7 @@ final class AdminStatisticsService implements AdminStatisticsServiceInterface
 {
     public function __construct(
         private readonly StatisticsRepositoryInterface $statsRepo
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function getSystemStatistics(): Result
@@ -66,6 +65,7 @@ final class AdminStatisticsService implements AdminStatisticsServiceInterface
                 'completed' => (int) $r['completed_reservations'],
                 'cancelled' => (int) $r['cancelled_reservations'],
                 'no_shows' => (int) $r['no_shows'],
+                'revenue' => (int) ($r['monthly_revenue'] ?? 0),
                 'new_users' => (int) $u['new_users'],
                 'reviews' => (int) $v['total_reviews'],
                 'avg_rating' => \round((float) $v['avg_rating'], 2),
