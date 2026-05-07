@@ -39,7 +39,6 @@ use Throwable;
  */
 final class ProcessImageJob implements JobInterface
 {
-    /** @var int Calidad por defecto para JPEG */
     private const int DEFAULT_QUALITY = 85;
 
     /** @var array<string> Tipos MIME soportados */
@@ -52,10 +51,7 @@ final class ProcessImageJob implements JobInterface
     ];
 
     /**
-     * Ejecuta el procesamiento de la imagen
-     *
      * @param array<string, mixed> $payload Datos del procesamiento
-     * @return void
      * @throws FilesystemException Si falla el procesamiento
      */
     #[Override]
@@ -77,12 +73,10 @@ final class ProcessImageJob implements JobInterface
         $quality = isset($payload['quality']) ? (int) $payload['quality'] : self::DEFAULT_QUALITY;
 
         try {
-            // Verificar que el archivo existe
             if (!\file_exists($sourcePath)) {
                 throw new FilesystemException("Archivo de origen no encontrado: {$sourcePath}");
             }
 
-            // Verificar tipo de imagen
             $imageInfo = \getimagesize($sourcePath);
             if ($imageInfo === false) {
                 throw new FilesystemException("No se pudo leer la información de la imagen: {$sourcePath}");
@@ -97,7 +91,6 @@ final class ProcessImageJob implements JobInterface
                 );
             }
 
-            // Procesar cada tamaño solicitado
             foreach ($sizes as $size) {
                 $w = isset($size['width']) ? (int) $size['width'] : 0;
                 $h = isset($size['height']) ? (int) $size['height'] : 0;
@@ -126,16 +119,6 @@ final class ProcessImageJob implements JobInterface
         }
     }
 
-    /**
-     * Genera un thumbnail usando ImageProcessor centralizado
-     *
-     * @param string  $sourcePath   Ruta del archivo original
-     * @param integer $targetWidth  Ancho deseado
-     * @param integer $targetHeight Alto deseado
-     * @param string  $suffix       Sufijo para el nombre del archivo
-     * @param integer $quality      Calidad
-     * @return void
-     */
     private function generateThumbnail(
         string $sourcePath,
         int $targetWidth,
@@ -165,10 +148,7 @@ final class ProcessImageJob implements JobInterface
     }
 
     /**
-     * Valida que el payload tenga los campos requeridos
-     *
      * @param array<string, mixed> $payload
-     * @return void
      * @throws FilesystemException Si falta algún campo requerido
      */
     private function validatePayload(array $payload): void

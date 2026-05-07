@@ -8,9 +8,6 @@ use App\Core\Logger;
 use App\Events\UserRegisteredEvent;
 use Throwable;
 
-/**
- * Listener que registra cuando un usuario se registra.
- */
 final class LogUserRegisteredListener
 {
     public function __invoke(UserRegisteredEvent $event): void

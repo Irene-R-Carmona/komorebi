@@ -36,7 +36,8 @@ RUN install-php-extensions \
     bcmath \
     exif \
     redis \
-    pcntl
+    pcntl \
+    excimer
 
 # Copy PHP configuration files
 COPY docker/php/ini/php.ini /usr/local/etc/php/conf.d/00-php.ini

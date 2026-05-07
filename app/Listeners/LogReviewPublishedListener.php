@@ -7,9 +7,6 @@ namespace App\Listeners;
 use App\Core\Logger;
 use App\Events\ReviewPublishedEvent;
 
-/**
- * Listener que registra cuando se publica una review.
- */
 final class LogReviewPublishedListener
 {
     public function __invoke(ReviewPublishedEvent $event): void
