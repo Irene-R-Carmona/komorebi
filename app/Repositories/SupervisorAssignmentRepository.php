@@ -10,11 +10,6 @@ use App\Repositories\Contracts\SupervisorAssignmentRepositoryInterface;
 use Override;
 use PDO;
 
-/**
- * Repositorio para la tabla supervisor_assignments.
- *
- * Gestiona las asignaciones de mesas a reservas realizadas por supervisores.
- */
 final class SupervisorAssignmentRepository extends AbstractRepository implements SupervisorAssignmentRepositoryInterface
 {
     private SupervisorAssignmentMapper $mapper;
@@ -60,11 +55,7 @@ final class SupervisorAssignmentRepository extends AbstractRepository implements
         ];
     }
 
-    /**
-     * Busca todas las asignaciones de un supervisor (activas e inactivas).
-     *
-     * @return array<int, array<string, mixed>>
-     */
+    /** @return array<int, array<string, mixed>> */
     public function findBySupervisor(int $supervisorId): array
     {
         $fields = \implode(', ', $this->getSelectFields());
@@ -78,11 +69,7 @@ final class SupervisorAssignmentRepository extends AbstractRepository implements
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Busca las asignaciones activas de un café.
-     *
-     * @return array<int, array<string, mixed>>
-     */
+    /** @return array<int, array<string, mixed>> */
     public function findActiveByCafe(int $cafeId): array
     {
         $fields = \implode(', ', $this->getSelectFields());
@@ -96,19 +83,12 @@ final class SupervisorAssignmentRepository extends AbstractRepository implements
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Persiste una nueva asignación y retorna el ID generado.
-     *
-     * @param array<string, mixed> $data
-     */
+    /** @param array<string, mixed> $data */
     public function createAssignment(array $data): int
     {
         return $this->create($data);
     }
 
-    /**
-     * Desactiva lógicamente una asignación (is_active = 0).
-     */
     public function deactivate(int $id): bool
     {
         $stmt = $this->getDb()->prepare(

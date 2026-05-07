@@ -61,7 +61,7 @@ final class ReviewControllerTest extends TestCase
         $controller = new ReviewController($this->queryService);
 
         \ob_start();
-        $result = $controller->index($this->createMock(ServerRequestInterface::class));
+        $result = $controller->index($this->createStub(ServerRequestInterface::class));
         \ob_end_clean();
 
         $this->assertNull($result);
@@ -87,7 +87,7 @@ final class ReviewControllerTest extends TestCase
         $controller = new ReviewController($this->queryService);
 
         \ob_start();
-        $result = $controller->index($this->createMock(ServerRequestInterface::class));
+        $result = $controller->index($this->createStub(ServerRequestInterface::class));
         \ob_end_clean();
 
         $this->assertNull($result);

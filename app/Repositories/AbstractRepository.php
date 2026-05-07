@@ -12,12 +12,6 @@ use PDO;
 use PDOStatement;
 use Throwable;
 
-/**
- * Repositorio base abstracto con operaciones CRUD comunes.
- *
- * Los repositorios concretos extienden esta clase e implementan
- * lógica específica de cada entidad.
- */
 abstract class AbstractRepository implements RepositoryInterface
 {
     private const string SQL_WHERE = ' WHERE ';
@@ -63,9 +57,6 @@ abstract class AbstractRepository implements RepositoryInterface
         }
     }
 
-    /**
-     * Obtener el nombre de la tabla.
-     */
     abstract protected function getTable(): string;
 
     /**
@@ -208,17 +199,11 @@ abstract class AbstractRepository implements RepositoryInterface
         return $result;
     }
 
-    /**
-     * Soft delete (marca como eliminado sin borrar físicamente).
-     */
     public function softDelete(int $id): bool
     {
         return $this->update($id, ['deleted_at' => \date('Y-m-d H:i:s')]);
     }
 
-    /**
-     * Contar registros con condiciones opcionales.
-     */
     protected function count(array $conditions = []): int
     {
         $table = $this->getTable();

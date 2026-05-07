@@ -11,12 +11,6 @@ use Override;
 use PDO;
 use Throwable;
 
-/**
- * Repositorio de Productos.
- *
- * Encapsula la lógica de acceso a datos de productos del menú,
- * incluyendo pases, bebidas, comidas y merchandising.
- */
 final class ProductRepository extends AbstractRepository implements ProductRepositoryInterface
 {
     private ProductMapper $mapper;
@@ -105,13 +99,6 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         return $result ?: null;
     }
 
-    /**
-     * Buscar productos disponibles para un café específico.
-     * Filtra por target_cafe_types y target_animal_types usando JSON.
-     *
-     * @param int $cafeId ID del café
-     * @return array Productos disponibles para ese café
-     */
     public function findByCafeId(int $cafeId): array
     {
         $fields = 'p.' . \implode(', p.', $this->getSelectFields());
@@ -144,14 +131,6 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Buscar productos por categoría de menú (ID de menu_categories).
-     * Opcionalmente filtrados por café específico.
-     *
-     * @param int $categoryId ID de menu_categories
-     * @param int|null $cafeId ID del café (opcional)
-     * @return array
-     */
     #[Override]
     public function findByCategoryId(int $categoryId, ?int $cafeId = null): array
     {
@@ -200,14 +179,6 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Buscar productos por tipo (pass o item).
-     * Opcionalmente filtrados por café específico.
-     *
-     * @param string $productType 'pass' o 'item'
-     * @param int|null $cafeId ID del café (opcional)
-     * @return array
-     */
     public function findByProductType(string $productType, ?int $cafeId = null): array
     {
         $fields = 'p.' . \implode(', p.', $this->getSelectFields());
@@ -254,25 +225,16 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Buscar pases (passes) disponibles.
-     */
     public function findPasses(?int $cafeId = null): array
     {
         return $this->findByProductType('pass', $cafeId);
     }
 
-    /**
-     * Buscar items (productos vendibles).
-     */
     public function findItems(?int $cafeId = null): array
     {
         return $this->findByProductType('item', $cafeId);
     }
 
-    /**
-     * Buscar pases disponibles para reserva (sin filtro de café).
-     */
     public function findAvailablePasses(): array
     {
         $stmt = $this->getDb()->query(
@@ -313,9 +275,6 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         return $passes;
     }
 
-    /**
-     * Verificar que un pase existe y está activo.
-     */
     public function existsAndActivePass(int $productId): bool
     {
         $stmt = $this->getDb()->prepare(

@@ -42,10 +42,6 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
         return ['id', 'code', 'name', 'japanese_name', 'icon_class', 'icon_color', 'severity', 'description'];
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Consultas de lectura
-    // ─────────────────────────────────────────────────────────────
-
     /**
      * @return array<int, AllergenDTO>
      */
@@ -154,10 +150,6 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
 
         return \array_map([$this, 'normalizeRow'], $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
-
-    // ─────────────────────────────────────────────────────────────
-    // Operaciones de escritura
-    // ─────────────────────────────────────────────────────────────
 
     #[Override]
     public function create(array $data): int
@@ -268,10 +260,6 @@ final class AllergenRepository extends AbstractRepository implements AllergenRep
 
         return (bool) $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
     }
-
-    // ─────────────────────────────────────────────────────────────
-    // Helpers privados
-    // ─────────────────────────────────────────────────────────────
 
     /**
      * Normaliza alias legacy para compatibilidad con vistas existentes:

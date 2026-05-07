@@ -10,11 +10,6 @@ use App\Repositories\Contracts\StaffShiftRepositoryInterface;
 use Override;
 use PDO;
 
-/**
- * Repositorio de turnos de staff.
- *
- * Encapsula todas las queries sobre la tabla staff_shifts.
- */
 final class StaffShiftRepository extends AbstractRepository implements StaffShiftRepositoryInterface
 {
     private StaffShiftMapper $mapper;

@@ -10,11 +10,6 @@ use App\Repositories\Contracts\AuthLogRepositoryInterface;
 use Override;
 use PDO;
 
-/**
- * Repositorio para logs de autenticación.
- *
- * Encapsula las queries de análisis sobre auth_audit_logs.
- */
 final class AuthLogRepository extends AbstractRepository implements AuthLogRepositoryInterface
 {
     private AuthAuditLogMapper $mapper;
@@ -53,8 +48,6 @@ final class AuthLogRepository extends AbstractRepository implements AuthLogRepos
     }
 
     /**
-     * Buscar IPs con actividad sospechosa (múltiples fallos de login recientes).
-     *
      * @return array<int, array{ip_address: string, failed_attempts: int, last_attempt: string}>
      */
     public function findSuspiciousActivity(int $minutesBack = 15, int $threshold = 5): array

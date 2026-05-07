@@ -36,14 +36,6 @@ final class Session
             return;
         }
 
-        // En entornos CLI (tests) evitamos manipular parámetros de cookie
-        // ya que pueden generar warnings si los "headers" ya fueron
-        // considerados como enviados por la harness; arrancar la sesión
-        // sin tocar las cookies es suficiente para los tests.
-        // Si los headers ya fueron enviados (por la harness de tests), no
-        // intentar arrancar la sesión ni tocar parámetros de cookie (evita
-        // warnings/excepciones); en ese caso nos quedamos con la superglobal
-        // inicializada y seguimos.
         if (\headers_sent()) {
             // La superglobal ya fue inicializada al inicio de start()
         } else {

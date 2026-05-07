@@ -10,11 +10,6 @@ use App\Repositories\Contracts\ReviewRepositoryInterface;
 use Override;
 use PDO;
 
-/**
- * Repositorio de Reseñas
- *
- * Encapsula el acceso a datos de reseñas de cafés.
- */
 final class ReviewRepository extends AbstractRepository implements ReviewRepositoryInterface
 {
     private ReviewMapper $mapper;
@@ -57,9 +52,6 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
         return $result !== false ? $this->mapper->toDTO($result) : null;
     }
 
-    /**
-     * Obtener reseñas de un usuario
-     */
     public function findByUserId(int $userId): array
     {
         $sql = '
@@ -76,9 +68,6 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /**
-     * Obtener reseñas de un café
-     */
     public function findByCafeId(int $cafeId, string $status = 'approved'): array
     {
         $sql = '
@@ -96,9 +85,6 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /**
-     * Obtener reseñas aprobadas con paginación
-     */
     public function findApprovedPaginated(int $cafeId, int $page = 1, int $perPage = 10): array
     {
         $offset = ($page - 1) * $perPage;
@@ -135,9 +121,6 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
         return ['data' => $data, 'total' => $total, 'pages' => $pages];
     }
 
-    /**
-     * Obtener reseñas pendientes de moderación
-     */
     public function findPendingPaginated(int $page = 1, int $perPage = 20): array
     {
         $offset = ($page - 1) * $perPage;
@@ -160,9 +143,6 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /**
-     * Obtener reseñas de un café (todos los estados) con paginación sentinel
-     */
     public function findAllStatusesPaginated(int $cafeId, ?string $status = null, int $page = 1): array
     {
         $page = \max(1, $page);
@@ -240,9 +220,6 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
         return $stmt->execute($params);
     }
 
-    /**
-     * Actualizar estado de reseña
-     */
     public function updateStatus(int $id, string $status): bool
     {
         $sql = 'UPDATE reviews SET status = :status, updated_at = NOW() WHERE id = :id';
@@ -252,9 +229,6 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
         return $stmt->execute(['id' => $id, 'status' => $status]);
     }
 
-    /**
-     * Calcular rating promedio de un café
-     */
     public function calculateAverageRating(int $cafeId): float
     {
         $sql = "
@@ -272,9 +246,6 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
         return $result && $result['avg_rating'] !== null ? (float) $result['avg_rating'] : 0.0;
     }
 
-    /**
-     * Verificar si usuario ya tiene reseña en un café
-     */
     public function userHasReview(int $userId, int $cafeId): bool
     {
         $sql = '
@@ -291,9 +262,6 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
         return (bool) $stmt->fetch();
     }
 
-    /**
-     * Obtener estadísticas de rating de un café
-     */
     public function getRatingStats(int $cafeId): array
     {
         $sql = "

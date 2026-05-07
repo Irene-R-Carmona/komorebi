@@ -11,12 +11,6 @@ use Override;
 use PDO;
 use RuntimeException;
 
-/**
- * Repositorio de Trackers.
- *
- * Encapsula el acceso a datos de dispositivos de seguimiento de clientes.
- * Status lifecycle: available → in_use → available | lost.
- */
 final class TrackerRepository extends AbstractRepository implements TrackerRepositoryInterface
 {
     private const string STATUS_AVAILABLE = 'available';

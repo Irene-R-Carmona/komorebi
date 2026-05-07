@@ -8,12 +8,6 @@ use App\Repositories\Contracts\AuthTokenRepositoryInterface;
 use Override;
 use PDO;
 
-/**
- * Repositorio para tokens de autenticación.
- *
- * Gestiona la persistencia de tokens de verificación de email
- * y tokens de restablecimiento de contraseña.
- */
 final class AuthTokenRepository extends AbstractRepository implements AuthTokenRepositoryInterface
 {
     public function __construct(?PDO $db = null)
@@ -32,10 +26,6 @@ final class AuthTokenRepository extends AbstractRepository implements AuthTokenR
     {
         return ['id', 'user_id', 'token_hash', 'expires_at', 'verified_at', 'created_at'];
     }
-
-    // -------------------------------------------------------------------------
-    // Email verification tokens
-    // -------------------------------------------------------------------------
 
     #[Override]
     public function deletePendingEmailVerificationTokensByUser(int $userId): void
@@ -109,10 +99,6 @@ final class AuthTokenRepository extends AbstractRepository implements AuthTokenR
 
         return $stmt->rowCount();
     }
-
-    // -------------------------------------------------------------------------
-    // Password reset tokens
-    // -------------------------------------------------------------------------
 
     #[Override]
     public function deleteExpiredPasswordResetTokensByUser(int $userId): void

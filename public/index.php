@@ -21,7 +21,6 @@ declare(strict_types=1);
 // SECCIÓN A — ARRANQUE DEL PROCESO (se ejecuta una sola vez en Worker Mode)
 // ============================================================================
 
-// --- Errores ----------------------------------------------------------------
 $env = $_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? getenv('APP_ENV') ?: 'production';
 $isProduction = $env === 'production';
 
@@ -31,7 +30,6 @@ ini_set('display_startup_errors', $isProduction ? '0' : '1');
 ini_set('log_errors', '1');
 ini_set('error_log', 'php://stderr');
 
-// --- Autoload ---------------------------------------------------------------
 require_once __DIR__ . '/../vendor/autoload.php';
 
 // --- Error tracking (Sentry — opcional) ------------------------------------
@@ -62,7 +60,6 @@ use App\Core\Logger;
 use App\Core\MiddlewareFactory;
 use App\Core\MiddlewarePipeline;
 
-// --- Configuración 12-Factor ------------------------------------------------
 try {
     Config::init();
 } catch (RuntimeException $e) {

@@ -10,11 +10,6 @@ use App\Repositories\Contracts\WaitlistRepositoryInterface;
 use Override;
 use PDO;
 
-/**
- * Repositorio de Waitlist
- *
- * Encapsula el acceso a datos de listas de espera.
- */
 final class WaitlistRepository extends AbstractRepository implements WaitlistRepositoryInterface
 {
     private WaitlistMapper $mapper;
@@ -57,9 +52,6 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
         return $result ? $this->mapper->toDTO($result) : null;
     }
 
-    /**
-     * Buscar entrada por token de confirmación
-     */
     public function findByToken(string $token): ?WaitlistEntryDTO
     {
         $sql = '
@@ -79,9 +71,6 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
         return $result ? $this->mapper->toDTO($result) : null;
     }
 
-    /**
-     * Obtener waitlists activas de un usuario
-     */
     public function findActiveByUserId(int $userId): array
     {
         $sql = "
@@ -100,9 +89,6 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /**
-     * Obtener posición en la lista de espera
-     */
     public function getPosition(int $timeSlotId, int $userId): ?int
     {
         $sql = "
@@ -122,9 +108,6 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
         return $result ? (int) $result['position'] : null;
     }
 
-    /**
-     * Obtener siguiente persona en la lista de espera
-     */
     public function getNextInLine(int $timeSlotId): ?array
     {
         $sql = "
@@ -193,9 +176,6 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
         });
     }
 
-    /**
-     * Actualizar estado de waitlist con datos adicionales
-     */
     public function updateStatusWithData(int $id, string $status, array $additionalData = []): bool
     {
         $fields = ['status = :status', 'updated_at = NOW()'];
@@ -218,9 +198,6 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
         return $stmt->execute($params);
     }
 
-    /**
-     * Reordenar posiciones después de promoción/cancelación
-     */
     public function reorderPositions(int $timeSlotId, int $fromPosition): bool
     {
         $sql = "
@@ -240,9 +217,6 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
         ]);
     }
 
-    /**
-     * Verificar si usuario ya está en waitlist de un time slot
-     */
     public function userInWaitlist(int $userId, int $timeSlotId): bool
     {
         $sql = "
@@ -260,9 +234,6 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
         return (bool) $stmt->fetch();
     }
 
-    /**
-     * Actualizar estado de waitlist
-     */
     public function updateStatus(int $id, string $status): bool
     {
         $sql = 'UPDATE waitlist SET status = :status, updated_at = NOW() WHERE id = :id';
@@ -272,9 +243,6 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
         return $stmt->execute(['id' => $id, 'status' => $status]);
     }
 
-    /**
-     * Actualizar token y expiración
-     */
     public function updateToken(int $id, string $token, string $expiresAt): bool
     {
         $sql = '
@@ -294,9 +262,6 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
         ]);
     }
 
-    /**
-     * Cancelar waitlist
-     */
     public function cancel(int $id, int $userId): bool
     {
         $sql = "
@@ -310,9 +275,6 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
         return $stmt->execute(['id' => $id, 'user_id' => $userId]);
     }
 
-    /**
-     * Expirar tokens vencidos
-     */
     public function expireTokens(): int
     {
         $sql = "
@@ -329,9 +291,6 @@ final class WaitlistRepository extends AbstractRepository implements WaitlistRep
         return $stmt->rowCount();
     }
 
-    /**
-     * Obtener historial de waitlists de un usuario
-     */
     public function getUserHistory(int $userId, int $limit = 10): array
     {
         $sql = '

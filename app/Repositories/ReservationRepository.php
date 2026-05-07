@@ -14,12 +14,6 @@ use InvalidArgumentException;
 use Override;
 use PDO;
 
-/**
- * Repositorio de Reservas.
- *
- * Encapsula toda la lógica de acceso a datos de reservas,
- * separándola del modelo y de la lógica de negocio.
- */
 final class ReservationRepository extends AbstractRepository implements ReservationRepositoryInterface
 {
     private ReservationMapper $mapper;
@@ -78,9 +72,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         return $row !== null ? $this->mapper->toDTO($row) : null;
     }
 
-    /**
-     * Buscar reservas activas de un usuario.
-     */
     public function findActiveByUser(int $userId): array
     {
         $fields = \implode(', ', $this->getSelectFields());
@@ -98,9 +89,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Buscar reserva por ID con detalles del café (para PDFs/emails)
-     */
     public function findByIdWithCafeDetails(int $id): ?array
     {
         $reservationFields = \array_map(
@@ -128,9 +116,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         return $result ?: null;
     }
 
-    /**
-     * Buscar reservas de un café en una fecha específica.
-     */
     public function findByCafeAndDate(int $cafeId, string $date): array
     {
         $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
@@ -155,13 +140,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     }
 
     /**
-     * Buscar reservas de un café con filtros opcionales de estado y fecha.
-     * Uso exclusivo del panel de manager.
-     *
-     * @param int         $cafeId
-     * @param string|null $status Filtrar por estado (null = todos)
-     * @param string|null $date   Filtrar por fecha Y-m-d (null = todas)
-     * @param int         $page   Número de página
      * @return array<int, array<string, mixed>>
      */
     public function findByCafeWithFilters(int $cafeId, ?string $status = null, ?string $date = null, int $page = 1): array
@@ -202,9 +180,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Actualizar estado de una reserva.
-     */
     public function updateStatus(int $id, string $status): bool
     {
         return $this->update($id, [
@@ -213,9 +188,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         ]);
     }
 
-    /**
-     * Guardar la URL pública del PDF de factura en Cloudinary.
-     */
     public function updateInvoicePdfUrl(int $id, string $url): bool
     {
         return $this->update($id, [
@@ -224,9 +196,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         ]);
     }
 
-    /**
-     * Registrar check-in.
-     */
     public function checkIn(int $id, array $protocolData = []): bool
     {
         $data = [
@@ -254,9 +223,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         return $this->update($id, $data);
     }
 
-    /**
-     * Registrar check-out.
-     */
     public function checkOut(int $id, array $paymentData = []): bool
     {
         $data = [
@@ -285,19 +251,14 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         return $this->update($id, $data);
     }
 
-    /**
-     * Cancelar reserva (soft delete + cambio de estado).
-     */
     public function cancel(int $id, int $userId): bool
     {
-        // Verificar que la reserva pertenezca al usuario
         $reservation = $this->findById($id);
 
         if (!$reservation || (int) $reservation->user_id !== $userId) {
             return false;
         }
 
-        // Verificar que sea cancelable
         if (!ReservationStateMachine::isValidTransition($reservation->status, 'cancelled')) {
             return false;
         }
@@ -309,9 +270,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         ]);
     }
 
-    /**
-     * Buscar reservas de un usuario con paginación y filtro de estado.
-     */
     public function findByUser(int $userId, ?string $status = null, int $limit = 20, int $offset = 0): array
     {
         $where = ['r.user_id = :user_id'];
@@ -324,13 +282,11 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
         $whereClause = \implode(' AND ', $where);
 
-        // Contar total
         $countSql = "SELECT COUNT(*) FROM reservations r WHERE $whereClause";
         $stmt = $this->getDb()->prepare($countSql);
         $stmt->execute($params);
         $total = (int) $stmt->fetchColumn();
 
-        // Obtener datos con detalles del café
         $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
@@ -354,9 +310,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         ];
     }
 
-    /**
-     * Buscar próximas reservas de un usuario.
-     */
     public function findUpcomingByUser(int $userId, int $limit = 5): array
     {
         $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
@@ -380,12 +333,8 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Obtener slots de tiempo disponibles para un café en una fecha.
-     */
     public function getAvailableSlots(int $cafeId, string $date): array
     {
-        // Obtener info del café
         $stmt = $this->getDb()->prepare(
             'SELECT capacity_max, opening_time, closing_time
              FROM cafes WHERE id = :id AND is_active = 1 AND has_reservations = 1'
@@ -397,7 +346,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
             return [];
         }
 
-        // Obtener ocupación por hora
         $sql = "SELECT reservation_time, SUM(guest_count) as booked
                 FROM reservations
                 WHERE cafe_id = :cafe_id
@@ -413,7 +361,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
             $bookings[$row['reservation_time']] = (int) $row['booked'];
         }
 
-        // Generar slots
         $slots = [];
         $opening = new DateTimeImmutable($cafe['opening_time']);
         $closing = new DateTimeImmutable($cafe['closing_time']);
@@ -436,9 +383,6 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         return $slots;
     }
 
-    /**
-     * Check if reservation exists for user and datetime
-     */
     public function existsForUserAndDateTime(int $userId, int $cafeId, string $date, string $time): bool
     {
         $stmt = $this->getDb()->prepare(

@@ -52,8 +52,6 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
         ];
     }
 
-    // ─── Read ───────────────────────────────────────────────────────────────
-
     #[Override]
     public function findById(int $id): ?AnimalDTO
     {
@@ -170,8 +168,6 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
 
         return $stmt->execute(['url' => $imageUrl, 'id' => $animalId]);
     }
-
-    // ─── Write ──────────────────────────────────────────────────────────────
 
     #[Override]
     public function createAnimal(array $data): int

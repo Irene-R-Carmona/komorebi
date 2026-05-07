@@ -8,12 +8,6 @@ use App\Core\Database;
 use App\Repositories\Contracts\MenuRepositoryInterface;
 use PDO;
 
-/**
- * Repositorio de Menú
- *
- * Encapsula el acceso a datos relacionados con categorías de menú,
- * productos, pases y alérgenos.
- */
 final class MenuRepository implements MenuRepositoryInterface
 {
     private PDO $db;
@@ -23,9 +17,6 @@ final class MenuRepository implements MenuRepositoryInterface
         $this->db = $db ?? Database::getConnection();
     }
 
-    /**
-     * Obtener todas las categorías de menú ordenadas
-     */
     public function getCategories(bool $includeExperiences = false): array
     {
         $sql = 'SELECT id, name, slug, display_order FROM menu_categories';
@@ -41,9 +32,6 @@ final class MenuRepository implements MenuRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /**
-     * Obtener productos agrupados por categoría con alérgenos
-     */
     public function getProductsByCategory(array $excludeAllergenIds = []): array
     {
         $excludeAllergenIds = \array_values(\array_filter(\array_map('intval', $excludeAllergenIds), static fn ($v) => $v > 0));
@@ -95,9 +83,6 @@ final class MenuRepository implements MenuRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /**
-     * Obtener todos los productos activos
-     */
     public function getAllProducts(): array
     {
         $sql = "
@@ -124,9 +109,6 @@ final class MenuRepository implements MenuRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /**
-     * Obtener todos los pases disponibles
-     */
     public function getPasses(): array
     {
         $sql = "
@@ -152,9 +134,6 @@ final class MenuRepository implements MenuRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /**
-     * Obtener pases filtrados por tipo de café y animal
-     */
     public function getPassesForCafe(?string $cafeCategory = null, ?string $animalType = null): array
     {
         $sql = "
@@ -205,9 +184,6 @@ final class MenuRepository implements MenuRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /**
-     * Obtener todos los alérgenos
-     */
     public function getAllergens(): array
     {
         $sql = 'SELECT id, name, code, japanese_name AS name_jp, icon_class AS icon, icon_color, severity FROM allergens ORDER BY name';
@@ -217,9 +193,6 @@ final class MenuRepository implements MenuRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /**
-     * Obtener alérgenos de un producto específico
-     */
     public function getAllergensByProduct(int $productId): array
     {
         $sql = '

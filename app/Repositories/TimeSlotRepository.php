@@ -10,12 +10,6 @@ use App\Repositories\Contracts\TimeSlotRepositoryInterface;
 use Override;
 use PDO;
 
-/**
- * Repositorio de Time Slots
- *
- * Implementa acceso a datos de slots de tiempo con prepared statements
- * y operaciones atómicas para manejo de concurrencia.
- */
 final class TimeSlotRepository extends AbstractRepository implements TimeSlotRepositoryInterface
 {
     private TimeSlotMapper $mapper;
@@ -38,9 +32,6 @@ final class TimeSlotRepository extends AbstractRepository implements TimeSlotRep
         return ['id', 'cafe_id', 'slot_date', 'slot_time', 'total_capacity', 'available_spots', 'reserved_spots', 'is_blocked', 'blocked_reason', 'duration_minutes', 'created_at', 'updated_at'];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     #[Override]
     public function findById(int $id): ?TimeSlotDTO
     {
@@ -59,9 +50,6 @@ final class TimeSlotRepository extends AbstractRepository implements TimeSlotRep
         return $result ? $this->mapper->toDTO($result) : null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getAvailableCapacity(int $timeSlotId): int
     {
         $stmt = $this->getDb()->prepare('
@@ -76,17 +64,11 @@ final class TimeSlotRepository extends AbstractRepository implements TimeSlotRep
         return $result ? (int) $result['available_spots'] : 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function isFull(int $timeSlotId): bool
     {
         return $this->getAvailableCapacity($timeSlotId) <= 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function isBlocked(int $timeSlotId): bool
     {
         $stmt = $this->getDb()->prepare('
@@ -101,9 +83,6 @@ final class TimeSlotRepository extends AbstractRepository implements TimeSlotRep
         return $result ? (bool) $result['is_blocked'] : false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function reserveSpots(int $timeSlotId, int $spots): bool
     {
         // Operación atómica: decrementar available_spots e incrementar reserved_spots
@@ -128,9 +107,6 @@ final class TimeSlotRepository extends AbstractRepository implements TimeSlotRep
         return $stmt->rowCount() > 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function releaseSpots(int $timeSlotId, int $spots): bool
     {
         // Operación atómica: incrementar available_spots y decrementar reserved_spots
@@ -152,9 +128,6 @@ final class TimeSlotRepository extends AbstractRepository implements TimeSlotRep
         return $stmt->rowCount() > 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function findAvailableSlots(int $cafeId, string $date): array
     {
         $stmt = $this->getDb()->prepare('
@@ -217,9 +190,6 @@ final class TimeSlotRepository extends AbstractRepository implements TimeSlotRep
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     #[Override]
     public function findAvailableByDateFiltered(string $date, ?int $cafeId = null, ?int $guests = null): array
     {

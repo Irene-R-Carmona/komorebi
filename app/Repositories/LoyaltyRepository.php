@@ -37,8 +37,6 @@ final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepos
         return ['id', 'user_id', 'stamps', 'current_tier', 'visits_count', 'last_stamp_at', 'total_rewards_redeemed', 'created_at', 'updated_at'];
     }
 
-    // ── LoyaltyCard ──────────────────────────────────────────────
-
     public function findOrCreateCardByUserId(int $userId): LoyaltyCardDTO
     {
         $card = $this->findCardByUserId($userId);
@@ -96,10 +94,7 @@ final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepos
         return true;
     }
 
-    /**
-     * Ranking de usuarios por sellos acumulados.
-     * @return array<int, array<string, mixed>>
-     */
+    /** @return array<int, array<string, mixed>> */
     public function getLeaderboard(int $limit = 10): array
     {
         $stmt = $this->getDb()->prepare(
@@ -136,8 +131,6 @@ final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepos
             ->execute([$userId]);
     }
 
-    // ── LoyaltyRewardCatalog ─────────────────────────────────────
-
     public function findCatalogByType(string $type): ?array
     {
         $stmt = $this->getDb()->prepare(
@@ -162,8 +155,6 @@ final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepos
             return $userTierLevel >= ($tierOrder[$reward['tier_required']] ?? 1);
         }));
     }
-
-    // ── LoyaltyReward ────────────────────────────────────────────
 
     public function createReward(array $data): int
     {
@@ -234,8 +225,6 @@ final class LoyaltyRepository extends AbstractRepository implements LoyaltyRepos
              WHERE id = ? AND status = 'pending'"
         )->execute([$id]);
     }
-
-    // ── Admin ─────────────────────────────────────────────────────
 
     /** @return array<string, int> Claves: bronze, silver, gold, platinum */
     public function getTierDistribution(): array

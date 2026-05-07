@@ -68,9 +68,6 @@ final class ApiTokenRepository extends AbstractRepository implements ApiTokenRep
         return $row ?: null;
     }
 
-    /**
-     * Crea un nuevo token y retorna el ID insertado.
-     */
     public function createToken(int $userId, string $name, string $tokenHash, ?DateTimeImmutable $expiresAt = null): int
     {
         $stmt = $this->getDb()->prepare(

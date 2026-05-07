@@ -11,12 +11,6 @@ use App\Repositories\Contracts\CafeCatalogRepositoryInterface;
 use Override;
 use PDO;
 
-/**
- * Repositorio de Cafés.
- *
- * Encapsula la lógica de acceso a datos de cafés,
- * incluyendo búsquedas por categoría, ubicación y disponibilidad.
- */
 final class CafeRepository extends AbstractRepository implements CafeCatalogRepositoryInterface
 {
     private const string SQL_NOT_DELETED = 'deleted_at IS NULL';
@@ -64,9 +58,6 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         ];
     }
 
-    /**
-     * Buscar café por slug.
-     */
     #[Override]
     public function findById(int $id): ?CafeDTO
     {
@@ -75,9 +66,6 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         return $row ? $this->mapper->toDTO($row) : null;
     }
 
-    /**
-     * Buscar café por slug.
-     */
     public function findBySlug(string $slug): ?array
     {
         $fields = \implode(', ', $this->getSelectFields());
@@ -92,9 +80,6 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         return $result ?: null;
     }
 
-    /**
-     * Buscar cafés activos.
-     */
     public function findActive(): array
     {
         $fields = \implode(', ', $this->getSelectFields());
@@ -110,9 +95,6 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Buscar cafés disponibles para reserva.
-     */
     public function findAvailableForReservation(): array
     {
         $stmt = $this->getDb()->query(
@@ -126,8 +108,6 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
     }
 
     /**
-     * Buscar cafés disponibles para reserva, indexados por ID.
-     *
      * @return array<int, array<string, mixed>>
      */
     public function findAvailableForReservationById(): array
@@ -142,9 +122,6 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         return $byId;
     }
 
-    /**
-     * Verificar que un café existe y está activo.
-     */
     public function existsAndActive(int $cafeId): bool
     {
         $stmt = $this->getDb()->prepare('SELECT id FROM cafes WHERE id = :id AND is_active = 1');
@@ -153,9 +130,6 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         return $stmt->fetch() !== false;
     }
 
-    /**
-     * Buscar por categoría.
-     */
     public function findByCategory(string $category): array
     {
         $fields = \implode(', ', $this->getSelectFields());
@@ -173,9 +147,6 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Buscar por tipo de animal.
-     */
     public function findByAnimalType(string $animalType): array
     {
         $fields = \implode(', ', $this->getSelectFields());
@@ -193,9 +164,6 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Actualizar rating promedio (llamado desde triggers o manualmente).
-     */
     public function updateRating(int $id): bool
     {
         $stmt = $this->getDb()->prepare(
@@ -219,14 +187,6 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         return $stmt->execute(['id' => $id]);
     }
 
-    /**
-     * Buscar cafés con filtros múltiples y paginación.
-     *
-     * @param array $filters Filtros: category, animal_type, is_active
-     * @param int $limit Límite de resultados
-     * @param int $offset Offset para paginación
-     * @return array Lista de cafés
-     */
     public function findFiltered(array $filters = [], int $limit = 100, int $offset = 0): array
     {
         $where = [self::SQL_NOT_DELETED];
@@ -269,12 +229,8 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Comprueba si un café tiene capacidad disponible
-     */
     public function hasAvailableCapacity(int $cafeId, string $date, string $time): bool
     {
-        // Obtener capacidad del café
         $cafeStmt = $this->getDb()->prepare('SELECT capacity_max FROM cafes WHERE id = :id LIMIT 1');
         $cafeStmt->execute(['id' => $cafeId]);
         $cafe = $cafeStmt->fetch(PDO::FETCH_ASSOC);
@@ -285,7 +241,6 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
 
         $capacity = (int) $cafe['capacity_max'];
 
-        // Count current bookings
         $bookingStmt = $this->getDb()->prepare(
             "SELECT COALESCE(SUM(guest_count), 0) as booked
              FROM reservations
@@ -309,11 +264,7 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
     }
 
     /**
-     * Update cafe fields
-     *
-     * @param int $id
      * @param array<string, mixed> $data
-     * @return bool
      */
     public function update(int $id, array $data): bool
     {

@@ -9,6 +9,7 @@ use App\Exceptions\CircuitOpenException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use RuntimeException;
 
 /**
@@ -37,7 +38,17 @@ final class CircuitBreakerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->circuit = 'test-service-' . \getmypid() . '-' . \uniqid('', true);
+        // Prevent Redis initialization so CircuitBreaker uses the in-memory
+        // backend — eliminates flakiness caused by concurrent Redis access
+        // across paratest workers when running the full test suite.
+        // With #[RunTestsInSeparateProcesses] each test gets a fresh PHP
+        // process where Cache::$initialized = false and Cache::$redis = null.
+        // Marking $initialized = true here short-circuits Cache::init() so
+        // getRedis() always returns null for the lifetime of this subprocess.
+        $cacheRef = new ReflectionClass(\App\Core\Cache::class);
+        $cacheRef->getProperty('initialized')->setValue(null, true);
+
+        $this->circuit = 'test-' . \bin2hex(\random_bytes(8));
         CircuitBreaker::reset($this->circuit);
     }
 

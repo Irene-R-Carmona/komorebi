@@ -11,12 +11,6 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use Override;
 use PDO;
 
-/**
- * Repositorio de Usuarios.
- *
- * Encapsula toda la lógica de acceso a datos de usuarios,
- * incluyendo búsquedas por email, roles y gestión de perfil.
- */
 final class UserRepository extends AbstractRepository implements UserRepositoryInterface, UserManagementRepositoryInterface
 {
     private UserMapper $mapper;
@@ -59,12 +53,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         ];
     }
 
-    /**
-     * Sobrescribir create() para generar UUID automáticamente.
-     *
-     * @param array<string, mixed> $data
-     * @return int User ID insertado
-     */
     #[Override]
     public function create(array $data): int
     {
@@ -77,9 +65,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         return parent::create($data);
     }
 
-    /**
-     * Generar UUID v4 compatible con MySQL CHAR(36).
-     */
     private function generateUuid(): string
     {
         // Formato: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
@@ -91,9 +76,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         return \vsprintf('%s%s-%s-%s-%s-%s%s%s', \str_split(\bin2hex($data), 4));
     }
 
-    /**
-     * Buscar usuario por email.
-     */
     public function findByEmail(string $email): ?array
     {
         $fields = \implode(', ', $this->getSelectFields());
@@ -148,9 +130,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         return $result ?: null;
     }
 
-    /**
-     * Verificar si un email ya existe.
-     */
     public function emailExists(string $email): bool
     {
         $stmt = $this->getDb()->prepare(
@@ -161,9 +140,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         return (bool) $stmt->fetch();
     }
 
-    /**
-     * Obtener roles de un usuario.
-     */
     public function getRoles(int $userId): array
     {
         $stmt = $this->getDb()->prepare(
@@ -178,8 +154,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
     }
 
     /**
-     * Obtener permisos de un usuario (a través de sus roles).
-     *
      * @return array<int, array<string, mixed>>
      */
     public function getPermissions(int $userId): array
@@ -196,9 +170,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Comprueba si un usuario tiene un permiso específico.
-     */
     public function hasPermission(int $userId, string $permission): bool
     {
         $stmt = $this->getDb()->prepare(
@@ -216,9 +187,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         return (bool) $stmt->fetch();
     }
 
-    /**
-     * Establece el estado activo/inactivo de una cuenta.
-     */
     public function setActive(int $id, bool $active): bool
     {
         return $this->update($id, [
@@ -227,9 +195,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         ]);
     }
 
-    /**
-     * Asignar rol a un usuario.
-     */
     public function assignRole(int $userId, int $roleId): bool
     {
         $stmt = $this->getDb()->prepare(
@@ -243,9 +208,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         ]);
     }
 
-    /**
-     * Remover rol de un usuario.
-     */
     public function removeRole(int $userId, int $roleId): bool
     {
         $stmt = $this->getDb()->prepare(
@@ -258,9 +220,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         ]);
     }
 
-    /**
-     * Actualizar último login.
-     */
     public function updateLastLogin(int $id, string $ipAddress): bool
     {
         return $this->update($id, [
@@ -271,9 +230,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         ]);
     }
 
-    /**
-     * Incrementar intentos fallidos de login.
-     */
     public function incrementFailedAttempts(int $id): bool
     {
         $stmt = $this->getDb()->prepare(
@@ -286,9 +242,6 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         return $stmt->execute(['id' => $id]);
     }
 
-    /**
-     * Bloquear usuario temporalmente.
-     */
     public function lockAccount(int $id, int $minutes = 15): bool
     {
         $lockedUntil = \date('Y-m-d H:i:s', \time() + ($minutes * 60));
