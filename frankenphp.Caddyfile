@@ -55,7 +55,7 @@
 		publisher_jwt {$MERCURE_JWT_SECRET} HS256
 		subscriber_jwt {$MERCURE_JWT_SECRET} HS256
 		anonymous
-		cors_origins {$CORS_ALLOWED_ORIGINS}
+		cors_origins *
 	}
 
 	root * /app/public
