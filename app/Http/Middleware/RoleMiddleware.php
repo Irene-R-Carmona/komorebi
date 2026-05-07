@@ -50,7 +50,6 @@ final class RoleMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        // Verificar si usuario tiene alguno de los roles permitidos
         $hasRole = \count(\array_intersect($userRoles, $this->allowedRoles)) > 0;
 
         if (!$hasRole) {

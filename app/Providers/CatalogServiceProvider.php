@@ -71,6 +71,5 @@ final class CatalogServiceProvider extends ServiceProvider
     #[Override]
     public function boot(): void
     {
-        // Sin bootstrap específico
     }
 }

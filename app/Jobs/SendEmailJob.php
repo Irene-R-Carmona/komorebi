@@ -27,16 +27,12 @@ use Throwable;
  * - cc: array<string> (opcional)
  * - bcc: array<string> (opcional)
  * - attachments: array<string> (opcional, rutas de archivos)
- *
- * @package App\Jobs
+
  */
 final class SendEmailJob implements JobInterface
 {
     /**
-     * Ejecuta el envío del email
-     *
      * @param array<string, mixed> $payload Datos del email
-     * @return void
      * @throws ExternalServiceException Si falla el envío del email
      */
     #[Override]
@@ -68,9 +64,6 @@ final class SendEmailJob implements JobInterface
         }
     }
 
-    /**
-     * Configura destinatarios (to, cc, bcc, from)
-     */
     private function configureEmailRecipients(PHPMailer $mail, array $payload): void
     {
         $to = isset($payload['to']) ? (string) $payload['to'] : '';
@@ -105,9 +98,6 @@ final class SendEmailJob implements JobInterface
         }
     }
 
-    /**
-     * Configura contenido del email (asunto, cuerpo)
-     */
     private function configureEmailContent(PHPMailer $mail, array $payload): void
     {
         $mail->Subject = $payload['subject'];
@@ -115,9 +105,6 @@ final class SendEmailJob implements JobInterface
         $mail->isHTML(true);
     }
 
-    /**
-     * Configura archivos adjuntos
-     */
     private function configureEmailAttachments(PHPMailer $mail, array $payload): void
     {
         // Soporte para adjunto único (attachment_path + attachment_name)
@@ -142,9 +129,6 @@ final class SendEmailJob implements JobInterface
         }
     }
 
-    /**
-     * Envía el email y registra el resultado
-     */
     private function sendEmail(PHPMailer $mail, array $payload): void
     {
         if (!$mail->send()) {
@@ -157,9 +141,6 @@ final class SendEmailJob implements JobInterface
         ]);
     }
 
-    /**
-     * Maneja excepciones de PHPMailer
-     */
     private function handleMailerException(PHPMailerException $e, array $payload): void
     {
         Logger::error('[SendEmailJob] Error de PHPMailer', [
@@ -173,9 +154,6 @@ final class SendEmailJob implements JobInterface
         );
     }
 
-    /**
-     * Maneja excepciones inesperadas
-     */
     private function handleUnexpectedException(Throwable $e, array $payload): void
     {
         Logger::error('[SendEmailJob] Error inesperado al enviar email', [
@@ -188,8 +166,6 @@ final class SendEmailJob implements JobInterface
     }
 
     /**
-     * Crea y configura una instancia de PHPMailer
-     *
      * @return PHPMailer
      * @throws PHPMailerException
      */
@@ -223,10 +199,7 @@ final class SendEmailJob implements JobInterface
     }
 
     /**
-     * Valida que el payload tenga los campos requeridos
-     *
      * @param array<string, mixed> $payload
-     * @return void
      * @throws ExternalServiceException Si falta algún campo requerido
      */
     private function validatePayload(array $payload): void

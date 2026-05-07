@@ -30,8 +30,7 @@ use Throwable;
  * - time: string (formato: H:i)
  * - token: string (UUID para confirmación)
  * - expires_at: int (timestamp de expiración)
- *
- * @package App\Jobs
+
  */
 final class WaitlistPromotionJob implements JobInterface
 {
@@ -43,10 +42,7 @@ final class WaitlistPromotionJob implements JobInterface
     }
 
     /**
-     * Ejecuta la notificación de promoción
-     *
      * @param array<string, mixed> $payload Datos de la promoción
-     * @return void
      * @throws BusinessRuleException Si el token ya expiró
      */
     #[Override]
@@ -88,11 +84,9 @@ final class WaitlistPromotionJob implements JobInterface
                 return;
             }
 
-            // Generar enlace de confirmación
             $confirmUrl = $this->generateConfirmUrl($token);
-            $expiresIn = (int) \ceil(($expiresAt - \time()) / 60); // minutos
+            $expiresIn = (int) \ceil(($expiresAt - \time()) / 60);
 
-            // Preparar contenido del email
             $emailBody = $this->buildEmailBody($payload, $confirmUrl, $expiresIn);
 
             // Encolar email (evitar bloquear este job si falla el email)

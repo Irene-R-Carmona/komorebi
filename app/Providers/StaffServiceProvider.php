@@ -23,9 +23,6 @@ use App\Services\StaffShiftService;
 use App\Services\SupervisorAssignmentService;
 use Override;
 
-/**
- * Service Provider para el módulo de gestión de staff.
- */
 final class StaffServiceProvider extends ServiceProvider
 {
     #[Override]

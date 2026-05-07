@@ -31,9 +31,6 @@ $renderView = static function (string $template, array $data = [], array $styles
     return $responseFactory->html($content);
 };
 
-// ============================================================================
-// RUTAS PÚBLICAS
-// ============================================================================
 
 $router->get('/', 'Public\HomeController@index');
 $router->get('/cafes', 'Public\CafeController@index');
@@ -157,10 +154,6 @@ $router->get('/uploads/animals/{filename}', function (ServerRequestInterface $re
     return $response;
 });
 
-// ============================================================================
-// AUTENTICACIÓN (Middleware Guest)
-// ============================================================================
-
 /** @var array<int, MiddlewareInterface> $guestMiddleware */
 $guestMiddleware = [$mw->guest()];
 $router->group(['prefix' => '', 'middleware' => $guestMiddleware], function (Router $r) use ($mw) {
@@ -176,15 +169,11 @@ $router->group(['prefix' => '', 'middleware' => $guestMiddleware], function (Rou
     $r->get('/verify-email', 'Auth\PasswordResetController@verifyEmail');
 });
 
-// ============================================================================
-// USUARIOS AUTENTICADOS (Middleware Auth)
-// ============================================================================
-
 /** @var array<int, MiddlewareInterface> $authMiddleware */
 $authMiddleware = [$mw->auth()];
 $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw, $responseFactory) {
     $r->post('/logout', 'Auth\AuthController@logout', [$mw->csrf()]);
-    $r->get('/profile', static fn(): ResponseInterface => $responseFactory->redirect('/perfil', 301));
+    $r->get('/profile', static fn (): ResponseInterface => $responseFactory->redirect('/perfil', 301));
     $r->get('/perfil', 'Shared\UserController@profile');
     $r->post('/profile/update', 'Shared\UserController@update', [$mw->csrf()]);
     $r->post('/profile/avatar', 'Shared\UserController@updateAvatar', [$mw->csrf()]);
@@ -217,10 +206,6 @@ $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw,
     $r->post('/reviews/update', 'Shared\ReviewController@update', [$mw->csrf()]);
     $r->post('/reviews/delete', 'Shared\ReviewController@delete', [$mw->csrf()]);
 });
-
-// ============================================================================
-// API AUTENTICADA - rutas JSON (apiAuth = JSON 401, nunca redirige)
-// ============================================================================
 
 /** @var array<int, MiddlewareInterface> $apiAuthMiddleware */
 $apiAuthMiddleware = [$mw->requestLog(), $mw->apiAuth()];
@@ -256,15 +241,7 @@ $router->group(['prefix' => '/api/v1', 'middleware' => $apiAuthMiddleware], func
     $r->delete('/reviews/{id}', 'Api\V1\ReviewController@delete', [$mw->csrf()]);
 });
 
-// ============================================================================
-// BACKOFFICE (FEATURE_BACKOFFICE) — admin / manager / supervisor
-// ============================================================================
-
 if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
-
-    // ============================================================================
-    // BACKOFFICE - ADMIN
-    // ============================================================================
 
     $router->get('/admin', function () use ($responseFactory) {
         return $responseFactory->redirect('/admin/dashboard', 302);
@@ -316,10 +293,6 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->get('/reports/export', 'Admin\ReportController@exportReportes');
     });
 
-    // ============================================================================
-    // BACKOFFICE - MANAGER
-    // ============================================================================
-
     /** @var array<int, MiddlewareInterface> $managerMiddleware */
     $managerMiddleware = [$mw->auth(), $mw->role(['admin', 'manager'])];
     $router->group(['prefix' => '/manager', 'middleware' => $managerMiddleware], function (Router $r) use ($mw) {
@@ -340,10 +313,6 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         // Gestión de productos del café — vista web (GET)
         $r->get('/products', 'Manager\ProductController@index', [$mw->ownsCafe()]);
     });
-
-    // ============================================================================
-    // BACKOFFICE - SUPERVISOR
-    // ============================================================================
 
     /** @var array<int, MiddlewareInterface> $supervisorMiddleware */
     $supervisorMiddleware = [$mw->auth(), $mw->role(['admin', 'manager', 'supervisor'])];
@@ -396,10 +365,6 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
             $r->delete('/{id}', 'Api\V1\TokenController@revoke', [$mw->csrf()]);
         }
     );
-
-    // ============================================================================
-    // API ADMIN — mutaciones AJAX
-    // ============================================================================
 
     /** @var array<int, MiddlewareInterface> $adminApiMiddleware */
     $adminApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin'])];
@@ -462,15 +427,7 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
     });
 } // end FEATURE_BACKOFFICE
 
-// ============================================================================
-// BACKOFFICE - OPS (FEATURE_OPS) — reception / kitchen
-// ============================================================================
-
 if (Env::get('FEATURE_OPS', '1') === '1') {
-
-    // ============================================================================
-    // BACKOFFICE - RECEPTION
-    // ============================================================================
 
     /** @var array<int, MiddlewareInterface> $receptionMiddleware */
     $receptionMiddleware = [$mw->auth(), $mw->role(['admin', 'manager', 'supervisor', 'reception'])];
@@ -478,10 +435,6 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
         $r->get('', 'Reception\ReceptionController@index');
         $r->get('/reservations', 'Reception\ReceptionController@todayReservations');
     });
-
-    // ============================================================================
-    // BACKOFFICE - KITCHEN
-    // ============================================================================
 
     /** @var array<int, MiddlewareInterface> $kitchenMiddleware */
     $kitchenMiddleware = [$mw->auth(), $mw->role(['admin', 'manager', 'kitchen', 'supervisor'])];
@@ -509,10 +462,6 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
         $r->post('/orders/{id}/complete', 'Api\V1\Ops\KitchenApiController@completeOrder', [$mw->csrf()]);
     });
 } // end FEATURE_OPS
-
-// ============================================================================
-// BACKOFFICE - KEEPER (FEATURE_KEEPER)
-// ============================================================================
 
 if (Env::get('FEATURE_KEEPER', '1') === '1') {
 
@@ -562,18 +511,10 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
     });
 } // end FEATURE_KEEPER
 
-// ============================================================================
-// CORS Preflight — OPTIONS catch-all para /api/v1/
-// ============================================================================
-
 $corsOnly = [$mw->cors()];
-$router->options('/api/v1/{resource}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{id}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{sub}/{id}', fn() => '', $corsOnly);
-
-// ============================================================================
-// HEALTH CHECK
-// ============================================================================
+$router->options('/api/v1/{resource}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{id}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{sub}/{id}', fn () => '', $corsOnly);
 
 $router->get('/health', function () use ($responseFactory) {
     $status = 'healthy';
@@ -635,10 +576,6 @@ $router->get('/health', function () use ($responseFactory) {
         'checks' => $checks,
     ], $httpCode);
 });
-
-// ============================================================================
-// ERROR HANDLERS
-// ============================================================================
 
 $router->get('/error/400', 'Shared\ErrorController@badRequest');
 $router->get('/error/401', 'Shared\ErrorController@unauthorized');

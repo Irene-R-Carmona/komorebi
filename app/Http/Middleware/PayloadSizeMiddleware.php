@@ -37,7 +37,6 @@ final class PayloadSizeMiddleware implements MiddlewareInterface
     {
         $contentLength = (int) $request->getHeaderLine('Content-Length');
 
-        // Content-Length presente: verificar directamente
         if ($contentLength > 0) {
             if ($contentLength > $this->maxKilobytes * 1024) {
                 return $this->tooLarge();

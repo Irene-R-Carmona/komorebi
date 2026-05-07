@@ -13,5 +13,6 @@ final readonly class UserRegisteredEvent
         public string $email,
         public string $name,
         public DateTimeImmutable $registeredAt
-    ) {}
+    ) {
+    }
 }

@@ -37,9 +37,7 @@ final class RewardUnlockedJob implements JobInterface
             throw new Exception('user_id requerido en payload');
         }
 
-        // Obtener info del usuario
-        $db = $this->db;
-        $stmt = $db->prepare('SELECT name, email FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1');
+        $stmt = $this->db->prepare('SELECT name, email FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1');
         $stmt->execute([$userId]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -47,16 +45,11 @@ final class RewardUnlockedJob implements JobInterface
             throw new Exception("Usuario no encontrado: $userId");
         }
 
-        // Determinar recompensa desbloqueada según milestone
         $rewardInfo = $this->getRewardInfo($milestone);
 
-        // Enviar email
         $this->sendEmail($user, $stamps, $tier, $rewardInfo);
     }
 
-    /**
-     * Obtener información de la recompensa según milestone
-     */
     private function getRewardInfo(int $milestone): array
     {
         $rewards = [
@@ -73,28 +66,20 @@ final class RewardUnlockedJob implements JobInterface
         ];
     }
 
-    /**
-     * Enviar email de notificación
-     */
     private function sendEmail(array $user, int $stamps, string $tier, array $rewardInfo): void
     {
         $mail = new PHPMailer(true);
 
         try {
-            // Configuración SMTP
             $this->configureMailer($mail);
 
-            // Destinatario
             $mail->addAddress($user['email'], $user['name']);
 
-            // Asunto
             $mail->Subject = \sprintf('🎉 ¡Nueva recompensa desbloqueada! - Komorebi Café');
 
-            // Contenido HTML
             $mail->isHTML(true);
             $mail->Body = $this->getEmailBody($user, $stamps, $tier, $rewardInfo);
 
-            // Alternativa texto plano
             $mail->AltBody = $this->getEmailPlainText($user, $stamps, $tier, $rewardInfo);
 
             $mail->send();
@@ -103,9 +88,6 @@ final class RewardUnlockedJob implements JobInterface
         }
     }
 
-    /**
-     * Configurar PHPMailer
-     */
     private function configureMailer(PHPMailer $mail): void
     {
         $appEnv = Env::get('APP_ENV', 'production');
@@ -135,9 +117,6 @@ final class RewardUnlockedJob implements JobInterface
         $mail->CharSet = 'UTF-8';
     }
 
-    /**
-     * Generar cuerpo HTML del email
-     */
     private function getEmailBody(array $user, int $stamps, string $tier, array $rewardInfo): string
     {
         $tierLabels = [

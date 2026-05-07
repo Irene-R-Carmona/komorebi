@@ -32,7 +32,6 @@ final class AuthorizationMiddleware implements MiddlewareInterface
     private string $permission;
 
     /**
-     * @param ResponseFactory $response
      * @param string          $permission Permiso requerido (ej: 'cafe.edit', 'review.moderate')
      */
     public function __construct(ResponseFactory $response, string $permission)
@@ -83,7 +82,6 @@ final class AuthorizationMiddleware implements MiddlewareInterface
         $cacheKey = "user_permissions:$userId";
 
         try {
-            // Intentar obtener del caché
             $cachedPermissions = Cache::get($cacheKey);
 
             if (\is_array($cachedPermissions)) {
@@ -93,7 +91,6 @@ final class AuthorizationMiddleware implements MiddlewareInterface
             // No está en caché, consultar BD
             $permissions = $this->fetchUserPermissionsFromDb($userId);
 
-            // Guardar en caché
             Cache::set($cacheKey, $permissions, self::CACHE_TTL);
 
             return \in_array($permission, $permissions, true);

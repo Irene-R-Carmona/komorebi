@@ -23,8 +23,6 @@ final class Session
     /**
      * Inicia la sesión si no está activa.
      * Configura cookies seguras automáticamente.
-     *
-     * @return void
      */
     public static function start(): void
     {
@@ -34,7 +32,6 @@ final class Session
             $GLOBALS['_SESSION'] = [];
         }
 
-        // Si la sesión ya está activa en este proceso, nada que hacer
         if (\session_status() === PHP_SESSION_ACTIVE) {
             return;
         }
@@ -63,7 +60,6 @@ final class Session
                 \ini_set('session.save_handler', 'redis');
                 \ini_set('session.save_path', $savePath);
             }
-            // En entornos normales (web/server) configuramos cookies y arrancamos
             \session_set_cookie_params([
                 'lifetime' => 0,                              // Hasta cerrar navegador
                 'path' => '/',
@@ -78,10 +74,7 @@ final class Session
     }
 
     /**
-     * Regenera el ID de sesión.
      * SIEMPRE llamar después de login (previene session fixation).
-     *
-     * @return void
      */
     public static function regenerate(): void
     {
@@ -89,19 +82,12 @@ final class Session
         \session_regenerate_id(true);
     }
 
-    /**
-     * Destruye la sesión completamente (logout).
-     *
-     * @return void
-     */
     public static function destroy(): void
     {
         self::start();
 
-        // Limpiar datos
         $_SESSION = [];
 
-        // Destruir cookie de sesión
         if (\ini_get('session.use_cookies')) {
             $params = \session_get_cookie_params();
             $samesite = (string) $params['samesite'];
@@ -128,11 +114,6 @@ final class Session
     // Autenticación - Métodos específicos de usuario
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Verifica si hay un usuario autenticado.
-     *
-     * @return boolean
-     */
     public static function isAuthenticated(): bool
     {
         self::start();
@@ -140,11 +121,6 @@ final class Session
         return !empty($_SESSION['user_id']);
     }
 
-    /**
-     * Obtiene el ID del usuario actual (null si no autenticado).
-     *
-     * @return integer|null
-     */
     public static function userId(): ?int
     {
         self::start();
@@ -152,11 +128,6 @@ final class Session
         return isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
     }
 
-    /**
-     * Obtiene el rol del usuario actual.
-     *
-     * @return string
-     */
     public static function role(): string
     {
         self::start();
@@ -175,11 +146,6 @@ final class Session
         return 'guest';
     }
 
-    /**
-     * Obtiene el nombre del usuario actual.
-     *
-     * @return string
-     */
     public static function userName(): string
     {
         self::start();
@@ -187,11 +153,6 @@ final class Session
         return (string) ($_SESSION['user_name'] ?? '');
     }
 
-    /**
-     * Obtiene el email del usuario actual.
-     *
-     * @return string
-     */
     public static function userEmail(): string
     {
         self::start();
@@ -199,11 +160,6 @@ final class Session
         return (string) ($_SESSION['user_email'] ?? '');
     }
 
-    /**
-     * Obtiene el café asignado al usuario (para staff).
-     *
-     * @return integer|null
-     */
     public static function userCafeId(): ?int
     {
         self::start();
@@ -235,7 +191,6 @@ final class Session
      * Regenera el ID de sesión automáticamente (seguridad).
      *
      * @param array{id: int, name?: string, email?: string, role?: string|array<string>, cafe_id?: int|null} $user
-     * @return void
      */
     public static function setUser(array $user): void
     {
@@ -284,7 +239,6 @@ final class Session
      * IMPORTANTE: Llamar después de setUser() en login.
      *
      * @param integer $userId ID del usuario a cargar permisos
-     * @return void
      */
     public static function cacheUserPermissions(int $userId): void
     {
@@ -314,11 +268,6 @@ final class Session
         }
     }
 
-    /**
-     * Invalida el caché de permisos actual.
-     *
-     * @return void
-     */
     public static function invalidatePermissionsCache(): void
     {
         self::start();
@@ -338,10 +287,8 @@ final class Session
     }
 
     /**
-     * Verifica si un permiso está en el caché.
-     *
      * @param string $permission Código del permiso (ej: 'cafe.kitchen.view')
-     * @return boolean|null true si tiene, false si no tiene, null si no está en caché
+     * @return bool|null true si tiene, false si no tiene, null si no está en caché
      */
     public static function hasPermissionCached(string $permission): ?bool
     {
@@ -360,13 +307,6 @@ final class Session
     // Helpers genéricos (para cualquier dato en sesión)
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Obtiene un valor de sesión.
-     *
-     * @param string $key     Clave de sesión
-     * @param mixed  $default Valor por defecto si no existe
-     * @return mixed Valor almacenado en sesión o `$default`
-     */
     public static function get(string $key, mixed $default = null): mixed
     {
         self::start();
@@ -374,25 +314,12 @@ final class Session
         return $_SESSION[$key] ?? $default;
     }
 
-    /**
-     * Establece un valor en sesión.
-     *
-     * @param string $key   Clave a establecer
-     * @param mixed  $value Valor a guardar
-     * @return void
-     */
     public static function set(string $key, mixed $value): void
     {
         self::start();
         $_SESSION[$key] = $value;
     }
 
-    /**
-     * Verifica si existe una clave en sesión.
-     *
-     * @param string $key Clave a comprobar
-     * @return boolean True si la clave existe
-     */
     public static function has(string $key): bool
     {
         self::start();
@@ -400,12 +327,6 @@ final class Session
         return isset($_SESSION[$key]);
     }
 
-    /**
-     * Elimina una clave de sesión.
-     *
-     * @param string $key Clave a eliminar
-     * @return void
-     */
     public static function remove(string $key): void
     {
         self::start();

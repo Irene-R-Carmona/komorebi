@@ -36,6 +36,5 @@ final class NewsletterServiceProvider extends ServiceProvider
     #[Override]
     public function boot(): void
     {
-        // Sin bootstrap específico
     }
 }

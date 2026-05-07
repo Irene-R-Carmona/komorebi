@@ -61,8 +61,8 @@ use App\Support\DateFormatting;
                             'sick' => 'Enfermo',
                             'retired' => 'Retirado',
                         ];
-                        $animalStatusLabel = $animalStatusLabels[$check['current_status']] ?? ucfirst($check['current_status']);
-                        ?>
+$animalStatusLabel = $animalStatusLabels[$check['current_status']] ?? ucfirst($check['current_status']);
+?>
                         <span class="badge bg-secondary"><?= htmlspecialchars($animalStatusLabel, ENT_QUOTES, 'UTF-8') ?></span>
                     </p>
                 </div>
@@ -138,7 +138,7 @@ use App\Support\DateFormatting;
                                 <td>
                                     <?php if ($check['temperature_c']): ?>
                                         <?php
-                                        $temp = (float) $check['temperature_c'];
+                $temp = (float) $check['temperature_c'];
                                         $tempClass = $temp > 39.5 ? 'text-danger' : ($temp < 36 ? 'text-warning' : 'text-success');
                                         ?>
                                         <strong class="<?= $tempClass ?>">
@@ -159,8 +159,8 @@ use App\Support\DateFormatting;
                                         'fair' => 'warning',
                                         'poor' => 'danger',
                                     ];
-                                    $coatColor = $coatColors[$check['coat_condition']] ?? 'secondary';
-                                    ?>
+$coatColor = $coatColors[$check['coat_condition']] ?? 'secondary';
+?>
                                     <span class="badge bg-<?= $coatColor ?>">
                                         <?= ucfirst(htmlspecialchars($check['coat_condition'], ENT_QUOTES, 'UTF-8')) ?>
                                     </span>
@@ -185,9 +185,9 @@ use App\Support\DateFormatting;
                                 <th class="w-50">Apetito:</th>
                                 <td>
                                     <?php
-                                    $appetiteColors = ['normal' => 'success', 'reduced' => 'warning', 'none' => 'danger'];
-                                    $appetiteColor = $appetiteColors[$check['appetite']] ?? 'secondary';
-                                    ?>
+$appetiteColors = ['normal' => 'success', 'reduced' => 'warning', 'none' => 'danger'];
+$appetiteColor = $appetiteColors[$check['appetite']] ?? 'secondary';
+?>
                                     <span class="badge bg-<?= $appetiteColor ?>">
                                         <?= ucfirst(htmlspecialchars($check['appetite'], ENT_QUOTES, 'UTF-8')) ?>
                                     </span>
@@ -197,9 +197,9 @@ use App\Support\DateFormatting;
                                 <th>Nivel de Energía:</th>
                                 <td>
                                     <?php
-                                    $energyColors = ['high' => 'primary', 'normal' => 'success', 'low' => 'warning'];
-                                    $energyColor = $energyColors[$check['energy_level']] ?? 'secondary';
-                                    ?>
+$energyColors = ['high' => 'primary', 'normal' => 'success', 'low' => 'warning'];
+$energyColor = $energyColors[$check['energy_level']] ?? 'secondary';
+?>
                                     <span class="badge bg-<?= $energyColor ?>">
                                         <?= ucfirst(htmlspecialchars($check['energy_level'], ENT_QUOTES, 'UTF-8')) ?>
                                     </span>

@@ -59,6 +59,5 @@ final class KeeperServiceProvider extends ServiceProvider
     #[Override]
     public function boot(): void
     {
-        // Sin bootstrap específico
     }
 }

@@ -30,11 +30,10 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
 
     steps:
-      - name: Checkout (commit exacto que pasó CI)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Download coverage and test results from CI run
         uses: actions/download-artifact@v4

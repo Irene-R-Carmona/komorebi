@@ -198,12 +198,12 @@ $alpineConfig = json_encode([
         <div class="calendar-grid">
             <?php
             $mondayTs = strtotime($weekFrom);
-            for ($i = 0; $i < 7; $i++):
-                $dayTs = $mondayTs + $i * 86400;
-                $dateStr = date('Y-m-d', $dayTs);
-                $dayShifts = array_filter($shifts, static fn($s) => ($s['shift_date'] ?? '') === $dateStr);
-                $isToday = $dateStr === date('Y-m-d');
-            ?>
+for ($i = 0; $i < 7; $i++):
+    $dayTs = $mondayTs + $i * 86400;
+    $dateStr = date('Y-m-d', $dayTs);
+    $dayShifts = array_filter($shifts, static fn ($s) => ($s['shift_date'] ?? '') === $dateStr);
+    $isToday = $dateStr === date('Y-m-d');
+    ?>
                 <div class="calendar-day <?= $isToday ? 'calendar-day--today' : '' ?>">
                     <div class="day-header">
                         <strong><?= date('D d/m', $dayTs) ?></strong>

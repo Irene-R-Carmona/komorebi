@@ -36,7 +36,6 @@ final class CafeScopeMiddleware implements MiddlewareInterface
         $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
 
-        // Validar que el usuario tenga un café asignado
         if (!$cafeId) {
             if ($this->isApiRequest($request)) {
                 return $this->response->json([
@@ -45,7 +44,6 @@ final class CafeScopeMiddleware implements MiddlewareInterface
                 ], 403);
             }
 
-            // Redirección web
             Flash::warning('No tienes una sede asignada. Contacta con administración.');
 
             return $this->response->redirect('/manager/dashboard');
@@ -66,13 +64,9 @@ final class CafeScopeMiddleware implements MiddlewareInterface
             return $this->response->redirect('/manager/dashboard');
         }
 
-        // Café asignado válido y scope verificado, continuar con el request
         return $handler->handle($request);
     }
 
-    /**
-     * Detecta si es una petición API
-     */
     private function isApiRequest(ServerRequestInterface $request): bool
     {
         $acceptHeader = $request->getHeaderLine('Accept');

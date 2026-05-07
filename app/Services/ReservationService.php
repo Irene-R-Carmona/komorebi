@@ -91,7 +91,6 @@ final class ReservationService implements ReservationServiceInterface
     public function create(array $data, CartServiceInterface|null $cart = null): Result
     {
         try {
-            // Validar datos requeridos
             $this->validateRequired($data);
 
             $userId = (int) $data['user_id'];
@@ -102,29 +101,14 @@ final class ReservationService implements ReservationServiceInterface
             $guests = (int) $data['guests'];
             $comments = (string) ($data['comments'] ?? '');
 
-            // Validar formatos
             $this->validateFormats($date, $time, $guests);
 
-            // Obtener y validar café
             $cafe = $this->getCafeOrFail($cafeId);
 
-            // Obtener y validar pase
             $pass = $this->getPassOrFail($passId);
 
-            // DEBUG: Log de validación
-            Logger::debug('Pass obtenido para validación', [
-                'pass_id' => $passId,
-                'pass_name' => $pass->name,
-                'target_cafe_types' => $pass->target_cafe_types,
-                'target_cafe_types_type' => \gettype($pass->target_cafe_types),
-                'target_animal_types' => $pass->target_animal_types,
-                'is_active' => $pass->is_active,
-            ]);
-
-            // Validar compatibilidad pase-café-guests
             $this->validatePassCompatibility($pass, $cafe, $guests);
 
-            // Validar horario
             $this->validateTimeSlot($cafe, $pass, $time);
 
             // Validar capacidad disponible del café
@@ -149,30 +133,26 @@ final class ReservationService implements ReservationServiceInterface
                 $comments,
                 $cart
             ) {
-                // Preparar datos para inserción
                 $reservationData = [
-                    'user_id' => $userId,
-                    'cafe_id' => $cafeId,
-                    'pass_product_id' => $passId,
-                    'pass_name' => $pass->name,
-                    'pass_unit_price' => (int) $pass->price,
-                    'pass_duration_minutes' => $pass->duration_minutes ?? 0,
-                    'reservation_date' => $date,
-                    'reservation_time' => $time . ':00',
-                    'guest_count' => $guests,
-                    'notes' => $comments !== '' ? $comments : null,
-                    'status' => 'confirmed',
-                ];
+                        'user_id' => $userId,
+                        'cafe_id' => $cafeId,
+                        'pass_product_id' => $passId,
+                        'pass_name' => $pass->name,
+                        'pass_unit_price' => (int) $pass->price,
+                        'pass_duration_minutes' => $pass->duration_minutes ?? 0,
+                        'reservation_date' => $date,
+                        'reservation_time' => $time . ':00',
+                        'guest_count' => $guests,
+                        'notes' => $comments !== '' ? $comments : null,
+                        'status' => 'confirmed',
+                    ];
 
-                // Usar repositorio para insertar (todas las validaciones ya se hicieron)
                 $reservationId = $this->reservationRepo->create($reservationData);
 
-                // Transferir items del carrito si existe
                 if ($cart !== null && !$cart->isEmpty()) {
                     $cart->transferToReservation($reservationId);
                 }
 
-                // Generar factura PDF y enviar email de confirmación
                 $this->sendReservationConfirmationWithInvoice($reservationId, $userId);
 
                 return $reservationId;
@@ -219,7 +199,6 @@ final class ReservationService implements ReservationServiceInterface
     #[Override]
     public function cancel(int $reservationId, int $userId): Result
     {
-        // Usando el nuevo repositorio
         $success = $this->reservationRepo->cancel($reservationId, $userId);
 
         if (!$success) {
@@ -292,7 +271,6 @@ final class ReservationService implements ReservationServiceInterface
     #[Override]
     public function getByUser(int $userId, ?string $status = null): array
     {
-        // Usar siempre el repositorio (ya no hay lógica especial por status)
         return $this->reservationRepo->findByUser($userId, $status);
     }
 
@@ -435,7 +413,6 @@ final class ReservationService implements ReservationServiceInterface
      */
     private function validatePassCompatibility(ProductDTO $pass, CafeDTO $cafe, int $guests): void
     {
-        // Validar número de personas
         $minPax = $pass->min_pax ?? 1;
         $maxPax = $pass->max_pax;
 
@@ -447,7 +424,6 @@ final class ReservationService implements ReservationServiceInterface
             throw BusinessRuleException::maximumGuestsExceeded($maxPax);
         }
 
-        // Validar tipo de café
         $targetCafeTypes = $this->parseJsonArray($pass->target_cafe_types);
         if (!empty($targetCafeTypes) && !\in_array($cafe->category, $targetCafeTypes, true)) {
             throw new BusinessRuleException(
@@ -457,7 +433,6 @@ final class ReservationService implements ReservationServiceInterface
             );
         }
 
-        // Validar tipo de animal
         $targetAnimalTypes = $this->parseJsonArray($pass->target_animal_types);
         if (!empty($targetAnimalTypes) && !\in_array($cafe->animal_type, $targetAnimalTypes, true)) {
             throw new BusinessRuleException(
@@ -478,7 +453,6 @@ final class ReservationService implements ReservationServiceInterface
         $startMinutes = $this->timeToMinutes($time);
         $duration = $pass->duration_minutes ?? 0;
 
-        // El pase debe empezar dentro del horario
         if ($startMinutes < $openMinutes) {
             throw new BusinessRuleException(
                 'El café aún no está abierto a esa hora',
@@ -487,7 +461,6 @@ final class ReservationService implements ReservationServiceInterface
             );
         }
 
-        // El pase debe terminar antes del cierre
         $latestStart = $closeMinutes - $duration;
         if ($startMinutes > $latestStart) {
             throw new BusinessRuleException(
@@ -497,7 +470,6 @@ final class ReservationService implements ReservationServiceInterface
             );
         }
 
-        // Validar atributos especiales del pase (horarios restringidos)
         $this->validatePassTimeRestrictions($pass, $startMinutes, $duration);
     }
 
@@ -512,7 +484,6 @@ final class ReservationService implements ReservationServiceInterface
             return;
         }
 
-        // Hora mínima permitida
         if (isset($attributes['allowed_start'])) {
             $allowedStart = $this->timeToMinutes($attributes['allowed_start']);
             if ($startMinutes < $allowedStart) {
@@ -524,7 +495,6 @@ final class ReservationService implements ReservationServiceInterface
             }
         }
 
-        // Hora máxima permitida
         if (isset($attributes['allowed_end'])) {
             $allowedEnd = $this->timeToMinutes($attributes['allowed_end']);
             $latestByWindow = $allowedEnd - $duration;
@@ -572,17 +542,9 @@ final class ReservationService implements ReservationServiceInterface
     // Email y PDF
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Genera factura PDF y envía email de confirmación de reserva
-     *
-     * @param int $reservationId
-     * @param int $userId
-     * @return void
-     */
     private function sendReservationConfirmationWithInvoice(int $reservationId, int $userId): void
     {
         try {
-            // Obtener detalles completos de la reserva con información del café
             $reservation = $this->reservationRepo->findByIdWithCafeDetails($reservationId);
             if (!$reservation) {
                 Logger::warning('Reserva no encontrada para envío de email', ['reservation_id' => $reservationId]);
@@ -590,11 +552,9 @@ final class ReservationService implements ReservationServiceInterface
                 return;
             }
 
-            // Obtener usuario
             $profileService = $this->userProfileService ?? \App\Core\Container::make(UserProfileServiceInterface::class);
             $user = $profileService->getProfile($userId);
 
-            // Generar PDF
             $pdfPath = $this->invoiceService->generateReservationInvoice($reservation, $user);
             $reservationId = (int) ($reservation['id'] ?? 0);
 

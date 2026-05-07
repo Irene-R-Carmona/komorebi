@@ -10,11 +10,6 @@ use App\Services\CacheService;
 use Override;
 use Psr\Cache\CacheItemPoolInterface;
 
-/**
- * Cache Service Provider.
- *
- * Registra CacheService (PSR-6) en el Container como singleton.
- */
 final class CacheServiceProvider extends ServiceProvider
 {
     #[Override]
@@ -35,6 +30,5 @@ final class CacheServiceProvider extends ServiceProvider
     #[Override]
     public function boot(): void
     {
-        // No hay nada que hacer aquí
     }
 }

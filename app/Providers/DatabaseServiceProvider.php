@@ -15,11 +15,6 @@ use PDOException;
 use RuntimeException;
 use Throwable;
 
-/**
- * Database Service Provider.
- *
- * Registra la conexión PDO en el Container como singleton.
- */
 final class DatabaseServiceProvider extends ServiceProvider
 {
     #[Override]
@@ -50,9 +45,6 @@ final class DatabaseServiceProvider extends ServiceProvider
         }
     }
 
-    /**
-     * Crear conexión PDO.
-     */
     private function createConnection(): PDO
     {
         $driver = Env::get('DB_CONNECTION', 'mysql');

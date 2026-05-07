@@ -12,11 +12,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-/**
- * Middleware PSR-15 para rutas API.
- *
- * Verifica que la petición sea JSON/AJAX.
- */
 final class ApiMiddleware implements MiddlewareInterface
 {
     private ResponseFactory $response;

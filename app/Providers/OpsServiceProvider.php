@@ -49,6 +49,5 @@ final class OpsServiceProvider extends ServiceProvider
     #[Override]
     public function boot(): void
     {
-        // Arranque del módulo Ops aquí
     }
 }

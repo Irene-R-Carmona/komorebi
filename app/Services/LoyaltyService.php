@@ -41,14 +41,6 @@ final class LoyaltyService implements LoyaltyServiceInterface
         $this->loyaltyRepo = $loyaltyRepo ?? Container::make(LoyaltyRepositoryInterface::class);
     }
 
-    /**
-     * Añadir sello(s) a la tarjeta del usuario
-     *
-     * @param int $userId ID del usuario
-     * @param int $stamps Cantidad de sellos a añadir (default: 1)
-     * @param int|null $reservationId ID de la reserva que genera el sello
-     * @return Result
-     */
     #[Override]
     public function addStamp(int $userId, int $stamps = 1, ?int $reservationId = null): Result
     {
@@ -62,23 +54,19 @@ final class LoyaltyService implements LoyaltyServiceInterface
                 // SELECT ... FOR UPDATE previene race condition en sellos concurrentes
                 $this->loyaltyRepo->lockCardForUpdate($userId);
 
-                // Obtener o crear tarjeta
                 $card = $this->loyaltyRepo->findOrCreateCardByUserId($userId);
 
-                // Añadir sellos
                 $added = $this->loyaltyRepo->addStamps($card->id, $stamps);
                 if (!$added) {
                     throw new RuntimeException('Error al añadir sellos');
                 }
 
-                // Actualizar tier si es necesario
                 $newVisitsCount = $card->visits_count + $stamps;
                 $newTier = $this->calculateTier($newVisitsCount);
                 if ($newTier !== $card->current_tier) {
                     $this->loyaltyRepo->updateTier($card->id, $newTier);
                 }
 
-                // Obtener tarjeta actualizada
                 $updatedCard = $this->loyaltyRepo->findCardById($card->id);
 
                 // Verificar si desbloquó nueva recompensa (cada 5 sellos)
@@ -89,7 +77,6 @@ final class LoyaltyService implements LoyaltyServiceInterface
                 $newMilestone = (int) \floor($newStamps / 5) * 5;
 
                 if ($newMilestone > $prevMilestone && $newMilestone > 0) {
-                    // Encolar notificación de recompensa desbloqueada
                     Queue::push(RewardUnlockedJob::class, [
                         'user_id' => $userId,
                         'stamps' => $newStamps,
@@ -120,8 +107,6 @@ final class LoyaltyService implements LoyaltyServiceInterface
     }
 
     /**
-     * Calcular tier según cantidad de visitas
-     *
      * @param int $visitsCount Total de visitas completadas
      * @return string 'bronze', 'silver', 'gold', 'platinum'
      */
@@ -141,13 +126,6 @@ final class LoyaltyService implements LoyaltyServiceInterface
         return 'bronze';
     }
 
-    /**
-     * Canjear recompensa
-     *
-     * @param int $userId ID del usuario
-     * @param string $rewardType Tipo de recompensa (ej: 'drink_free')
-     * @return Result
-     */
     #[Override]
     public function redeemReward(int $userId, string $rewardType): Result
     {
@@ -156,19 +134,16 @@ final class LoyaltyService implements LoyaltyServiceInterface
                 // SELECT ... FOR UPDATE previene race conditions en recanjes concurrentes
                 $this->loyaltyRepo->lockCardForUpdate($userId);
 
-                // Obtener tarjeta
                 $card = $this->loyaltyRepo->findCardByUserId($userId);
                 if (!$card) {
                     return Result::fail('No tienes tarjeta de fidelización');
                 }
 
-                // Obtener información de la recompensa del catálogo
                 $rewardInfo = $this->loyaltyRepo->findCatalogByType($rewardType);
                 if (!$rewardInfo) {
                     return Result::fail('Recompensa no encontrada');
                 }
 
-                // Verificar sellos suficientes
                 if ($card->stamps < (int) $rewardInfo['stamps_required']) {
                     return Result::fail(
                         \sprintf(
@@ -179,7 +154,6 @@ final class LoyaltyService implements LoyaltyServiceInterface
                     );
                 }
 
-                // Verificar tier requerido
                 $userTierLevel = self::TIER_ORDER[$card->current_tier] ?? 1;
                 $requiredTierLevel = self::TIER_ORDER[$rewardInfo['tier_required']] ?? 1;
 
@@ -193,7 +167,6 @@ final class LoyaltyService implements LoyaltyServiceInterface
                     );
                 }
 
-                // Consumir sellos
                 $consumed = $this->loyaltyRepo->consumeStamps(
                     $card->id,
                     (int) $rewardInfo['stamps_required']
@@ -203,17 +176,14 @@ final class LoyaltyService implements LoyaltyServiceInterface
                     return Result::fail('Error al consumir sellos');
                 }
 
-                // Generar código de canje único
                 $redemptionCode = $this->generateRedemptionCode();
 
-                // Calcular fecha de expiración
                 $validityDays = (int) $rewardInfo['validity_days'];
                 if ($validityDays <= 0) {
                     $validityDays = self::DEFAULT_VALIDITY_DAYS;
                 }
                 $expiresAt = \date('Y-m-d H:i:s', \strtotime("+{$validityDays} days"));
 
-                // Crear registro de recompensa canjeada
                 $rewardId = $this->loyaltyRepo->createReward([
                     'user_id' => $userId,
                     'loyalty_card_id' => $card->id,
@@ -237,25 +207,16 @@ final class LoyaltyService implements LoyaltyServiceInterface
         }
     }
 
-    /**
-     * Obtener estado completo de la tarjeta del usuario
-     *
-     * @param int $userId ID del usuario
-     * @return Result
-     */
     #[Override]
     public function getCardStatus(int $userId): Result
     {
         try {
             $card = $this->loyaltyRepo->findOrCreateCardByUserId($userId);
 
-            // Obtener recompensas disponibles para el tier del usuario
             $availableRewards = $this->getAvailableRewards($card->current_tier, $card->stamps);
 
-            // Obtener historial de recompensas canjeadas
             $redeemedRewards = $this->loyaltyRepo->findRewardsByUserId($userId);
 
-            // Calcular progreso al siguiente tier
             $tierProgress = $this->getTierProgress($card->visits_count);
 
             return Result::ok([
@@ -269,13 +230,6 @@ final class LoyaltyService implements LoyaltyServiceInterface
         }
     }
 
-    /**
-     * Obtener recompensas disponibles para canjear
-     *
-     * @param string $tier Tier actual del usuario
-     * @param int $currentStamps Sellos actuales
-     * @return array
-     */
     #[Override]
     public function getAvailableRewards(string $tier, int $currentStamps): array
     {
@@ -283,7 +237,6 @@ final class LoyaltyService implements LoyaltyServiceInterface
         $safeTier = ($tier !== '') ? $tier : 'bronze';
         $allRewards = $this->loyaltyRepo->getCatalogRewardsForTier($safeTier);
 
-        // Añadir información de disponibilidad
         return \array_map(function ($reward) use ($currentStamps) {
             $reward['can_redeem'] = $currentStamps >= (int) $reward['stamps_required'];
             $reward['stamps_needed'] = \max(0, (int) $reward['stamps_required'] - $currentStamps);
@@ -292,12 +245,6 @@ final class LoyaltyService implements LoyaltyServiceInterface
         }, $allRewards);
     }
 
-    /**
-     * Calcular progreso al siguiente tier
-     *
-     * @param int $visitsCount Visitas completadas
-     * @return array
-     */
     private function getTierProgress(int $visitsCount): array
     {
         $tiers = [

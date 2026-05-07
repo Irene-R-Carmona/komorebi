@@ -47,7 +47,6 @@ final class AuthMiddleware implements MiddlewareInterface
             return $this->response->redirect('/login', 302);
         }
 
-        // Verificar que el usuario existe y está activo.
         // Evitar consulta a BD si el usuario ya está en sesión (cache ligero).
         $sessionUser = Session::get('user');
         if (!empty($sessionUser) && isset($sessionUser['id']) && (int) $sessionUser['id'] === (int) $userId) {

@@ -57,44 +57,35 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
     /**
      * Añadir un usuario a la waitlist
      *
-     * @param integer $timeSlotId ID del time slot deseado
-     * @param integer $userId ID del usuario
      * @param array $data Datos adicionales (email, phone, guest_count, special_requests)
-     * @return Result
      * @throws RandomException
      */
     #[Override]
     public function joinWaitlist(int $timeSlotId, int $userId, array $data): Result
     {
-        // Validar que el slot existe
         $slot = $this->timeSlotRepo->findById($timeSlotId);
         if ($slot === null) {
             return Result::fail('Time slot no encontrado');
         }
 
-        // Verificar que el slot esté completo (no tiene sentido waitlist si hay espacio)
         $availableSpots = $slot->available_spots;
         if ($availableSpots > 0) {
             return Result::fail('El time slot todavía tiene plazas disponibles. No es necesario entrar en lista de espera.');
         }
 
-        // Verificar si el usuario ya está en la waitlist
         if ($this->waitlistRepository->userInWaitlist($userId, $timeSlotId)) {
             return Result::fail('Ya estás en la lista de espera para este horario');
         }
 
-        // Validar guest_count: rango 1–10
         $guestCount = (int) ($data['guest_count'] ?? 1);
         if ($guestCount < 1 || $guestCount > 10) {
             return Result::fail('El número de comensales debe estar entre 1 y 10', 'invalid_guest_count');
         }
 
-        // Generar token único
         $token = \bin2hex(\random_bytes(16));
         $responseTimeout = (int) ($data['response_timeout_minutes'] ?? Waitlist::DEFAULT_RESPONSE_TIMEOUT);
         $expiresAt = \date('Y-m-d H:i:s', \time() + ($responseTimeout * 60));
 
-        // Crear entrada en waitlist usando repositorio
         $waitlistData = [
             'user_id' => $userId,
             'time_slot_id' => $timeSlotId,
@@ -115,10 +106,8 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             return Result::fail('Error al añadir a la lista de espera');
         }
 
-        // Obtener la posición del usuario
         $position = $this->waitlistRepository->getPosition($timeSlotId, $userId) ?? 0;
 
-        // Enviar email de confirmación con el token
         try {
             $userName = (string) ($data['user_name'] ?? 'Usuario');
             $userEmail = (string) ($data['email'] ?? '');
@@ -152,9 +141,6 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
      * Promocionar al siguiente usuario en la waitlist de un slot
      *
      * Se llama cuando se libera un espacio (cancelación, no-show, etc.)
-     *
-     * @param integer $timeSlotId ID del time slot que se ha liberado
-     * @return Result
      */
     #[Override]
     public function promoteNext(int $timeSlotId): Result
@@ -167,7 +153,6 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 $startedTransaction = true;
             }
 
-            // Obtener el siguiente en la cola
             $next = $this->waitlistRepository->getNextInLine($timeSlotId);
 
             if (!\is_array($next) || empty($next)) {
@@ -178,7 +163,6 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::ok(['promoted' => false, 'message' => 'No hay nadie en la waitlist']);
             }
 
-            // Normalizar y validar campos esenciales
             /** @var array<string,mixed> $next */
             $rawNextId = $next['id'] ?? null;
             $nextId = \is_scalar($rawNextId) ? (int) $rawNextId : 0;
@@ -207,10 +191,8 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::ok(['promoted' => false, 'message' => 'Siguiente en cola inválido']);
             }
 
-            // Actualizar estado a 'notified'
             $this->waitlistRepository->updateStatusWithData($nextId, Waitlist::STATUS_NOTIFIED, ['expires_at' => $expiresAt]);
 
-            // Enviar notificación asíncrona vía cola
             Queue::push(WaitlistPromotionJob::class, [
                 'waitlist_id' => $nextId,
                 'user_id' => $userId,
@@ -246,10 +228,6 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
 
     /**
      * Confirmar la promoción de waitlist y crear la reserva
-     *
-     * @param string $token           Token único de confirmación
-     * @param array  $reservationData Datos adicionales para la reserva
-     * @return Result
      */
     #[Override]
     public function confirmPromotion(string $token, array $reservationData = []): Result
@@ -262,7 +240,6 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 $startedTransaction = true;
             }
 
-            // Buscar entrada de waitlist por token
             $waitlistEntry = $this->waitlistRepository->findByToken($token);
 
             if ($waitlistEntry === null) {
@@ -273,7 +250,6 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::fail('Token de waitlist no válido');
             }
 
-            // Verificar que esté en estado 'notified'
             if ($waitlistEntry->status !== Waitlist::STATUS_NOTIFIED) {
                 if ($startedTransaction) {
                     $this->db->rollBack();
@@ -282,13 +258,11 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::fail('Esta promoción ya fue procesada o expiró');
             }
 
-            // Extraer campos del DTO
             $waitlistId = $waitlistEntry->id;
             $timeSlotIdInt = $waitlistEntry->time_slot_id;
             $position = $waitlistEntry->position ?? 0;
             $guestCount = $waitlistEntry->guest_count;
 
-            // Verificar que no haya expirado
             $expiresAtStr = $waitlistEntry->expires_at ?? '';
             $expiresTimestamp = $expiresAtStr === '' ? false : \strtotime($expiresAtStr);
 
@@ -326,7 +300,6 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::fail('El time slot ya no tiene plazas disponibles');
             }
 
-            // Construir payload tipado para reserva
             $userIdInt = $waitlistEntry->user_id;
             $specialReq = $waitlistEntry->special_requests ?? '';
 
@@ -366,13 +339,10 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::fail('Error al crear reserva desde lista de espera');
             }
 
-            // Decrementar spots disponibles del slot
             $this->timeSlotRepo->reserveSpots($timeSlotIdInt, $guestCount);
 
-            // Actualizar waitlist a 'confirmed'
             $this->waitlistRepository->updateStatusWithData($waitlistId, Waitlist::STATUS_CONFIRMED, ['reservation_id' => $newReservationId]);
 
-            // Reordenar posiciones
             $this->waitlistRepository->reorderPositions($timeSlotIdInt, $position);
 
             if ($startedTransaction) {
@@ -399,14 +369,11 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
      * Expirar tokens de waitlist que no han sido confirmados
      *
      * Método pensado para ejecutarse periódicamente (cron/scheduler)
-     *
-     * @return Result
      */
     #[Override]
     public function expireTokens(): Result
     {
         try {
-            // Usar método del repositorio que expira y devuelve cantidad
             $expiredCount = $this->waitlistRepository->expireTokens();
 
             return Result::ok([
@@ -418,13 +385,6 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
         }
     }
 
-    /**
-     * Obtener la posición de un usuario en la waitlist de un slot
-     *
-     * @param integer $userId
-     * @param integer $timeSlotId
-     * @return Result
-     */
     #[Override]
     public function getPosition(int $userId, int $timeSlotId): Result
     {
@@ -462,10 +422,8 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::fail('No se puede cancelar una entrada en estado: ' . $entry['status']);
             }
 
-            // Actualizar a 'cancelled'
             $this->waitlistRepository->updateStatus($waitlistId, Waitlist::STATUS_CANCELLED);
 
-            // Reordenar posiciones (usar valores tipados)
             $rawTimeSlot = $entry['time_slot_id'] ?? null;
             $timeSlotIdInt = \is_scalar($rawTimeSlot) ? (int) $rawTimeSlot : 0;
             $rawPos = $entry['position'] ?? null;
@@ -479,13 +437,6 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
         });
     }
 
-    /**
-     * Obtener historial de waitlist de un usuario
-     *
-     * @param integer $userId
-     * @param integer $limit
-     * @return Result
-     */
     #[Override]
     public function getUserHistory(int $userId, int $limit = 10): Result
     {
@@ -498,12 +449,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
     }
 
     /**
-     * Obtener estado completo de una entrada de waitlist por token
-     *
      * Usado para la vista pública /waitlist/status/{token}
-     *
-     * @param string $token
-     * @return Result
      */
     #[Override]
     public function getWaitlistStatus(string $token): Result
@@ -514,7 +460,6 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             return Result::fail('Token de waitlist no válido o expirado');
         }
 
-        // Obtener información del time slot (usar id tipado)
         $timeSlotId = $entry->time_slot_id;
         if ($timeSlotId <= 0) {
             return Result::fail('Time slot inválido');

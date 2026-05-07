@@ -74,7 +74,7 @@ jobs:
         run: composer install --prefer-dist --no-scripts --no-interaction
 
       - name: Run unit tests in parallel
-        run: vendor/bin/paratest --runner=WrapperRunner --processes=4 --testsuite "Unit Tests" --testdox
+        run: vendor/bin/paratest --runner=WrapperRunner --processes=4 --testsuite "Unit Tests" --testdox --no-coverage
 
   # --------------------------------------------------------------------------
   # Job 3: Tests integración + cobertura completa

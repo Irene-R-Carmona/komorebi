@@ -67,7 +67,6 @@ final class CorsMiddleware implements MiddlewareInterface
             return $this->buildPreflightResponse($origin);
         }
 
-        // Petición real
         $response = $handler->handle($request);
 
         if (!$isAllowed) {

@@ -104,7 +104,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     public function findByIdWithCafeDetails(int $id): ?array
     {
         $reservationFields = \array_map(
-            fn($field) => "r.$field",
+            fn ($field) => "r.$field",
             $this->getSelectFields()
         );
         $fields = \implode(', ', $reservationFields);
@@ -133,7 +133,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findByCafeAndDate(int $cafeId, string $date): array
     {
-        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields},
@@ -171,7 +171,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         $fetchLimit = $perPage + 1;
         $offset = ($page - 1) * $perPage;
 
-        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
         $where = ['r.cafe_id = :cafe_id', 'r.deleted_at IS NULL'];
         $params = ['cafe_id' => $cafeId];
 
@@ -331,7 +331,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         $total = (int) $stmt->fetchColumn();
 
         // Obtener datos con detalles del café
-        $fields = \implode(', ', \array_map(fn($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
                 FROM reservations r
@@ -359,7 +359,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
      */
     public function findUpcomingByUser(int $userId, int $limit = 5): array
     {
-        $fields = \implode(', ', \array_map(fn($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
 
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
@@ -465,7 +465,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
     public function findActiveByCafe(int $cafeId): array
     {
-        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields},
@@ -510,7 +510,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
     public function findByIdAndUser(int $id, int $userId): ?array
     {
-        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
 
         $stmt = $this->getDb()->prepare(
             "SELECT $fields, c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image

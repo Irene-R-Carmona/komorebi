@@ -27,12 +27,12 @@ final class HttpRateLimitMiddleware implements MiddlewareInterface
         private readonly ResponseFactory $response,
         private readonly RateLimitingServiceInterface $rateLimitingService,
         private readonly string $action,
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        // Determinar identificador para rate limiting
         $userId = $request->getAttribute('user_id');
 
         if ($userId !== null) {
