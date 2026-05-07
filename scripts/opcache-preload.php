@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 $autoload = '/app/vendor/autoload.php';
 
-if (!\file_exists($autoload)) {
+if (!file_exists($autoload)) {
     return;
 }
 
@@ -35,7 +35,7 @@ $coreFiles = [
 ];
 
 foreach ($coreFiles as $file) {
-    if (\file_exists($file)) {
-        \opcache_compile_file($file);
+    if (file_exists($file)) {
+        opcache_compile_file($file);
     }
 }
