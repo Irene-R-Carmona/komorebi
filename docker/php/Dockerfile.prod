@@ -6,7 +6,7 @@ FROM composer:2 AS vendor-build
 WORKDIR /app
 
 COPY composer.json composer.lock ./
-RUN --mount=type=cache,target=/root/.composer/cache \
+RUN --mount=type=cache,id=composer-cache,target=/root/.composer/cache \
     composer install \
     --no-dev \
     --no-interaction \
@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/root/.composer/cache \
 
 # Copy application code and generate optimized autoloader
 COPY . /app
-RUN --mount=type=cache,target=/root/.composer/cache \
+RUN --mount=type=cache,id=composer-cache,target=/root/.composer/cache \
     composer dump-autoload --optimize --no-scripts --ignore-platform-reqs
 
 # Stage 2: Final production image

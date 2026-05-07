@@ -110,12 +110,6 @@ parameters:
             paths:
                 - tests/**
 
-        # Sentry es una dependencia opcional (puede no estar instalada).
-        # La llamada está protegida por class_exists() pero PHPStan no lo infiere.
-        -
-            message: '#Function Sentry\\captureException not found#'
-            path: app/Core/ExceptionHandler.php
-
 services:
     -
         class: App\Tools\PHPStan\LoggerContextRule

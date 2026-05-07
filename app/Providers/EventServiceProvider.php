@@ -12,9 +12,6 @@ use App\Events\UserRegisteredEvent;
 use App\Listeners\LogReservationConfirmedListener;
 use App\Listeners\LogReviewPublishedListener;
 use App\Listeners\LogUserRegisteredListener;
-use App\Listeners\TelegramNewUserListener;
-use App\Listeners\TelegramReservationListener;
-use App\Listeners\TelegramReviewListener;
 use Override;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -51,20 +48,6 @@ final class EventServiceProvider extends ServiceProvider
         $dispatcher->addListener(
             ReviewPublishedEvent::class,
             new LogReviewPublishedListener()
-        );
-
-        // Notificaciones Telegram (asíncronas vía Queue)
-        $dispatcher->addListener(
-            UserRegisteredEvent::class,
-            new TelegramNewUserListener()
-        );
-        $dispatcher->addListener(
-            ReservationConfirmedEvent::class,
-            new TelegramReservationListener()
-        );
-        $dispatcher->addListener(
-            ReviewPublishedEvent::class,
-            new TelegramReviewListener()
         );
     }
 }
