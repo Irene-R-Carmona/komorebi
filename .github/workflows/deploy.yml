@@ -4,11 +4,12 @@ name: Deploy
 #
 # Pasos:
 #   1. Build imagen de producción y push a GHCR
-#   2. Deploy automático a Railway (app + workers)
+#
+# Railway escucha el push a main directamente y despliega de forma automática.
+# No se necesita un job de "railway up" — eso causaría doble deploy.
 #
 # Secrets necesarios (Settings → Secrets and variables → Actions):
 #   GITHUB_TOKEN      ya disponible (packages: write)
-#   RAILWAY_TOKEN     Railway Dashboard → Project Settings → Tokens
 
 on:
   workflow_dispatch:
@@ -62,33 +63,3 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-  # --------------------------------------------------------------------------
-  # Deploy a Railway (activo)
-  # --------------------------------------------------------------------------
-  deploy-railway:
-    name: Deploy to Railway
-    needs: deploy
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli@latest
-
-      - name: Deploy app service to Railway
-        run: railway up --service app --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-      - name: Deploy worker-email service to Railway
-        run: railway up --service worker-email --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-      - name: Deploy worker-default service to Railway
-        run: railway up --service worker-default --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

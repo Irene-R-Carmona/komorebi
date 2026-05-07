@@ -73,6 +73,16 @@ final class Logger
         }
 
         $log->pushHandler($handler);
+
+        // BetterStack Logs: handler adicional si está configurado el token
+        if ($isProd && ($token = Env::get('BETTER_STACK_SOURCE_TOKEN', '')) !== '') {
+            $endpoint = Env::get('BETTER_STACK_SOURCE_ENDPOINT', 'https://in.logs.betterstack.com');
+            $bsHandler = \Logtail\Monolog\LogtailHandlerBuilder::withSourceToken($token)
+                ->withEndpoint($endpoint)
+                ->build();
+            $log->pushHandler($bsHandler);
+        }
+
         $log->pushProcessor(new LogContextProcessor());
 
         self::$channels[$name] = $log;

@@ -17,7 +17,6 @@ use App\Core\Config;
 use App\Core\Container;
 use App\Core\Env;
 use App\Jobs\RewardUnlockedJob;
-use App\Jobs\SendTelegramNotificationJob;
 use App\Providers\AuthServiceProvider;
 use App\Providers\CacheServiceProvider;
 use App\Providers\CatalogServiceProvider;
@@ -42,13 +41,11 @@ use App\Services\Contracts\DashboardServiceInterface;
 use App\Services\Contracts\NavigationServiceInterface;
 use App\Services\Contracts\RateLimitingServiceInterface;
 use App\Services\Contracts\RecentlyViewedServiceInterface;
-use App\Services\Contracts\TelegramServiceInterface;
 use App\Services\Contracts\WeatherServiceInterface;
 use App\Services\Manager\DashboardService;
 use App\Services\NavigationService;
 use App\Services\RateLimitingService;
 use App\Services\RecentlyViewedService;
-use App\Services\TelegramService;
 use App\Services\WeatherService;
 
 // Asegurar que Config está inicializado
@@ -104,15 +101,6 @@ Container::singleton(AccountDeletionService::class, fn () => new AccountDeletion
 Container::singleton(RewardUnlockedJob::class, fn () => new RewardUnlockedJob(
     Container::make(\PDO::class)
 ));
-
-// SendTelegramNotificationJob: notificaciones Telegram asíncronas
-Container::singleton(SendTelegramNotificationJob::class, fn () => new SendTelegramNotificationJob(
-    Container::make(TelegramServiceInterface::class)
-));
-
-// TelegramService: notificaciones internas vía bot
-Container::singleton(TelegramService::class, static fn (): TelegramService => new TelegramService());
-Container::singleton(TelegramServiceInterface::class, static fn (): TelegramServiceInterface => Container::make(TelegramService::class));
 
 // Servicios de clima: WeatherService (HTTP + caché) y ClimaContextoService (contexto poético)
 Container::singleton(WeatherService::class, static function (): WeatherService {
