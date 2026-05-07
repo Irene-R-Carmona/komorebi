@@ -20,9 +20,7 @@ final class DatabaseServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
-        Container::singleton(PDO::class, function () {
-            return $this->createConnection();
-        });
+        Container::singleton(PDO::class, static fn () => self::createConnection());
 
         // Alias corto
         Container::alias('db', PDO::class);
@@ -45,7 +43,7 @@ final class DatabaseServiceProvider extends ServiceProvider
         }
     }
 
-    private function createConnection(): PDO
+    private static function createConnection(): PDO
     {
         $driver = Env::get('DB_CONNECTION', 'mysql');
         $host = Env::get('DB_HOST', 'localhost');
