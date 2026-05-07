@@ -20,8 +20,8 @@ Todos los planes activos e históricos del proyecto.
 | Fecha | Archivo | Descripción | Estado |
 |-------|---------|-------------|--------|
 | 2026-04-29 | — | Auditoría completa de todas las páginas web pre-entrega TFG y pre-despliegue Railway | ✅ Completado y eliminado (2026-04-30) |
-| 2026-04-30 | [2026-04-30-infraestructura-config.md](2026-04-30-infraestructura-config.md) | Auditoría y mejora de infraestructura Docker, CI y archivos de configuración (umbral cobertura → 60 %) | 🔵 Plan creado — pendiente inicio |
-| 2026-05-07 | [2026-05-07-railway-deploy.md](2026-05-07-railway-deploy.md) | Railway deploy: Redis sessions, Cloudinary, Sentry, cache busting, S5 utilities, Railway config | 🟡 En implementación |
+| 2026-04-30 | — | Auditoría y mejora de infraestructura Docker, CI y archivos de configuración (umbral cobertura → 60 %) | ✅ Completado y eliminado (2026-05-07) |
+| 2026-05-07 | — | Railway deploy: Redis sessions, Cloudinary, Sentry, cache busting, S5 utilities, Railway config | ✅ Completado y eliminado (2026-05-07) |
 | 2026-04-30 | — | Fix bugs visuales acumulados (23+21), alineación brand book, identidad cromática por rol en backoffice | ✅ Completado y eliminado (2026-05-01) |
 | 2026-05-01 | — | Rediseño páginas de error (400–503) e intersticial de redirección con brand tokens, kanjis decorativos y accesibilidad WCAG 2.1 | ✅ Completado y eliminado (2026-05-01) |
 | 2026-05-01 | — | Auditoría inmersiva de funcionalidades rotas en producción: carrito, alérgenos, reseñas, cookie consent, /reservas (7 bugs corregidos, 0 desactivados) | ✅ Completado y eliminado (2026-05-01) |
