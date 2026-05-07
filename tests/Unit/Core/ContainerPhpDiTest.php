@@ -18,9 +18,11 @@ declare(strict_types=1);
 namespace Tests\Unit\Core;
 
 use App\Core\Container;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 // Fixtures locales para los tests
+#[CoversClass(Container::class)]
 final class DummyServiceA
 {
     public int $value = 42;
@@ -28,7 +30,9 @@ final class DummyServiceA
 
 final class DummyServiceB
 {
-    public function __construct(public readonly DummyServiceA $a) {}
+    public function __construct(public readonly DummyServiceA $a)
+    {
+    }
 }
 
 final class ContainerPhpDiTest extends TestCase
@@ -45,9 +49,9 @@ final class ContainerPhpDiTest extends TestCase
 
     public function testSingletonReturnsAlwaysSameInstance(): void
     {
-        Container::singleton(DummyServiceA::class, fn() => new DummyServiceA());
+        Container::singleton(DummyServiceA::class, fn () => new DummyServiceA());
 
-        $first  = Container::make(DummyServiceA::class);
+        $first = Container::make(DummyServiceA::class);
         $second = Container::make(DummyServiceA::class);
 
         $this->assertInstanceOf(DummyServiceA::class, $first);
@@ -56,7 +60,7 @@ final class ContainerPhpDiTest extends TestCase
 
     public function testMakeResolvesConcreteClassWithAutowiring(): void
     {
-        Container::singleton(DummyServiceA::class, fn() => new DummyServiceA());
+        Container::singleton(DummyServiceA::class, fn () => new DummyServiceA());
 
         /** @var DummyServiceB $b */
         $b = Container::make(DummyServiceB::class);
@@ -81,12 +85,12 @@ final class ContainerPhpDiTest extends TestCase
 
     public function testResetAllowsRebuildWithFreshDefinitions(): void
     {
-        Container::singleton(DummyServiceA::class, fn() => new DummyServiceA());
+        Container::singleton(DummyServiceA::class, fn () => new DummyServiceA());
         $first = Container::make(DummyServiceA::class);
 
         Container::reset();
 
-        Container::singleton(DummyServiceA::class, fn() => new DummyServiceA());
+        Container::singleton(DummyServiceA::class, fn () => new DummyServiceA());
         $second = Container::make(DummyServiceA::class);
 
         $this->assertNotSame($first, $second, 'Tras reset() debe construir instancias nuevas');
@@ -94,7 +98,7 @@ final class ContainerPhpDiTest extends TestCase
 
     public function testHasReturnsTrueForRegisteredClass(): void
     {
-        Container::singleton(DummyServiceA::class, fn() => new DummyServiceA());
+        Container::singleton(DummyServiceA::class, fn () => new DummyServiceA());
 
         $this->assertTrue(Container::getInstance()->has(DummyServiceA::class));
     }
@@ -107,9 +111,9 @@ final class ContainerPhpDiTest extends TestCase
 
     public function testCallInvokesMethodWithAutowiredDependencies(): void
     {
-        Container::singleton(DummyServiceA::class, fn() => new DummyServiceA());
+        Container::singleton(DummyServiceA::class, fn () => new DummyServiceA());
 
-        $obj = new class {
+        $obj = new class () {
             public function compute(DummyServiceA $a, int $multiplier = 1): int
             {
                 return $a->value * $multiplier;

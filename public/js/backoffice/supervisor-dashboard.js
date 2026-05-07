@@ -18,8 +18,7 @@
         console.log('Supervisor Dashboard loaded');
         this.lastUpdate = new Date();
 
-        // TODO: Implementar polling para actualizar mesas/órdenes en tiempo real
-        // this.startPolling();
+        this.startPolling();
       },
 
       /**
@@ -37,7 +36,7 @@
        */
       async refreshData() {
         try {
-          const response = await fetch('/api/supervisor/dashboard-data');
+          const response = await fetch('/api/v1/supervisor/assignments');
           if (!response.ok) throw new Error('Network error');
 
           const data = await response.json();

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Manager;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
-use App\Repositories\StaffShiftRepository;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\UserRepository;
 use App\Services\Contracts\StaffShiftServiceInterface;
 use App\Services\StaffShiftService;
@@ -23,20 +24,20 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class StaffController
 {
-    private UserRepository $userRepo;
+    private UserRepositoryInterface $userRepo;
 
     private ResponseFactory $response;
 
     private StaffShiftServiceInterface $shiftService;
 
     public function __construct(
-        ?UserRepository $userRepo = null,
+        ?UserRepositoryInterface $userRepo = null,
         ?ResponseFactory $response = null,
         ?StaffShiftServiceInterface $shiftService = null,
     ) {
-        $this->userRepo = $userRepo ?? new UserRepository();
-        $this->response = $response ?? new ResponseFactory();
-        $this->shiftService = $shiftService ?? new StaffShiftService(new StaffShiftRepository());
+        $this->userRepo = $userRepo ?? Container::make(UserRepository::class);
+        $this->response = $response ?? Container::make(ResponseFactory::class);
+        $this->shiftService = $shiftService ?? Container::make(StaffShiftService::class);
     }
 
     /**
@@ -45,7 +46,7 @@ final class StaffController
      * Listado de staff del café con filtros
      * Vista con tabs: Staff Activo, Turnos, Historial
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
@@ -55,15 +56,27 @@ final class StaffController
                 'message' => 'No tienes un café asignado.',
             ]);
 
-            return;
+            return null;
         }
 
         // Obtener staff del café (users con cafe_id y role staff)
         $staff = $this->userRepo->getStaffByCafe($cafeId);
 
-        // Obtener turnos de la semana actual
-        $weekResult = $this->shiftService->getWeekShifts($cafeId);
-        $shifts = $weekResult->ok ? $weekResult->data : [];
+        // Semana solicitada (offset en semanas desde la actual)
+        $queryParams = $request->getQueryParams();
+        $weekOffset = \max(-52, \min(52, (int) ($queryParams['week'] ?? 0)));
+
+        // Obtener turnos de la semana
+        $weekResult = $this->shiftService->getWeekShifts($cafeId, $weekOffset);
+        $weekData = $weekResult->ok ? ($weekResult->data ?? []) : [];
+        $shifts = $weekData['shifts'] ?? [];
+        $weekFrom = (string) ($weekData['from'] ?? \date('Y-m-d'));
+        $weekTo = (string) ($weekData['to'] ?? \date('Y-m-d'));
+
+        // Etiqueta legible de la semana
+        $fromTs = \strtotime($weekFrom);
+        $toTs = \strtotime($weekTo);
+        $weekLabel = \date('j', $fromTs) . ' – ' . \date('j M Y', $toTs);
 
         View::render('manager/staff/index', [
             'titulo' => 'Gestión de Staff',
@@ -71,7 +84,14 @@ final class StaffController
             'shifts' => $shifts,
             'cafe_id' => $cafeId,
             'csrf_token' => Csrf::token(),
+            'weekOffset' => $weekOffset,
+            'weekFrom' => $weekFrom,
+            'weekTo' => $weekTo,
+            'weekLabel' => $weekLabel,
+            'extraJs' => ['manager/manager-staff.js'],
         ], ['manager/staff.css'], 'backoffice');
+
+        return null;
     }
 
     /**
@@ -79,7 +99,7 @@ final class StaffController
      *
      * Detalle de un staff member + historial de turnos
      */
-    public function show(int $userId): void
+    public function show(ServerRequestInterface $request, int $userId): ?ResponseInterface
     {
         $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
@@ -89,7 +109,7 @@ final class StaffController
                 'message' => 'No tienes un café asignado.',
             ]);
 
-            return;
+            return null;
         }
 
         // Obtener datos del staff member
@@ -100,25 +120,32 @@ final class StaffController
                 'message' => 'Staff member no encontrado o no pertenece a tu café.',
             ]);
 
-            return;
+            return null;
         }
 
         // Historial de turnos (últimos 30 días)
         $historyResult = $this->shiftService->getStaffHistory($userId, $cafeId);
         $shiftHistory = $historyResult->ok ? $historyResult->data : [];
 
+        // Métricas de performance (PHP-injected — no AJAX)
+        $metricsResult = $this->shiftService->getPerformanceMetrics($userId, $cafeId);
+        $metrics = $metricsResult->ok ? ($metricsResult->data ?? []) : [];
+
         View::render('manager/staff/show', [
             'titulo' => 'Detalle de Staff',
             'staff' => $staffMember,
             'shift_history' => $shiftHistory,
+            'metrics' => $metrics,
             'csrf_token' => Csrf::token(),
         ], ['manager/staff.css'], 'backoffice');
+
+        return null;
     }
 
     /**
-     * POST /manager/staff/assign-shift
+     * POST /manager/staff/shifts
      *
-     * Asignar turno a un staff member
+     * Asignar turno a un staff member del café
      */
     public function assignShift(ServerRequestInterface $request): ResponseInterface
     {
@@ -126,116 +153,49 @@ final class StaffController
         $cafeId = $user['cafe_id'] ?? null;
 
         if (!$cafeId) {
-            return $this->response->json([
-                'success' => false,
-                'error' => 'No tienes un café asignado',
-            ], 403);
+            return $this->response->json(['ok' => false, 'error' => 'No tienes un café asignado.'], 403);
         }
 
-        $body = $request->getParsedBody();
-        $userId = (int) ($body['user_id'] ?? 0);
-        $shiftDate = $body['shift_date'] ?? '';
-        $shiftStart = $body['shift_start'] ?? '';
-        $shiftEnd = $body['shift_end'] ?? '';
-        $notes = $body['notes'] ?? null;
+        $body = (array) ($request->getParsedBody() ?? []);
+        $userId = isset($body['user_id']) ? (int) $body['user_id'] : 0;
+        $date = \trim((string) ($body['shift_date'] ?? ''));
+        $start = \trim((string) ($body['shift_start'] ?? ''));
+        $end = \trim((string) ($body['shift_end'] ?? ''));
+        $notes = isset($body['notes']) ? (string) $body['notes'] : null;
 
-        // Validaciones
         if ($userId <= 0) {
-            return $this->response->json([
-                'success' => false,
-                'error' => 'Staff member no válido',
-            ], 400);
+            return $this->response->json(['ok' => false, 'error' => 'ID de usuario no válido.'], 400);
         }
 
-        if (empty($shiftDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $shiftDate)) {
-            return $this->response->json([
-                'success' => false,
-                'error' => 'Fecha de turno inválida (formato: YYYY-MM-DD)',
-            ], 400);
+        if (!\preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return $this->response->json(['ok' => false, 'error' => 'Fecha inválida. Formato esperado: YYYY-MM-DD.'], 400);
         }
 
-        if (empty($shiftStart) || !$this->isValidTime($shiftStart)) {
-            return $this->response->json([
-                'success' => false,
-                'error' => 'Hora de inicio inválida (formato: HH:MM)',
-            ], 400);
+        if (!\preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $start)) {
+            return $this->response->json(['ok' => false, 'error' => 'Hora de inicio inválida. Formato esperado: HH:MM.'], 400);
         }
 
-        if (empty($shiftEnd) || !$this->isValidTime($shiftEnd)) {
-            return $this->response->json([
-                'success' => false,
-                'error' => 'Hora de fin inválida (formato: HH:MM)',
-            ], 400);
+        if (!\preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $end)) {
+            return $this->response->json(['ok' => false, 'error' => 'Hora de fin inválida. Formato esperado: HH:MM.'], 400);
         }
 
-        if ($this->compareTime($shiftStart, $shiftEnd) >= 0) {
-            return $this->response->json([
-                'success' => false,
-                'error' => 'La hora de inicio debe ser menor que la hora de fin',
-            ], 400);
+        if ($start >= $end) {
+            return $this->response->json(['ok' => false, 'error' => 'La hora de inicio debe ser menor que la hora de fin.'], 400);
         }
 
-        if (!$this->userRepo->existsInCafe($userId, $cafeId)) {
-            return $this->response->json([
-                'success' => false,
-                'error' => 'El staff member no pertenece a tu café',
-            ], 403);
-        }
-
-        // Asignar turno via service (incluye verificación de solapamiento)
-        $result = $this->shiftService->assignShift(
-            $userId,
-            $cafeId,
-            $shiftDate,
-            $this->normalizeTime($shiftStart),
-            $this->normalizeTime($shiftEnd),
-            $notes,
-            (int) $user['id'],
-        );
+        $result = $this->shiftService->assignShift($userId, (int) $cafeId, $date, $start, $end, $notes, (int) ($user['id'] ?? 0));
 
         if (!$result->ok) {
-            $status = $result->code === 'shift_overlap' ? 400 : 500;
-            return $this->response->json([
-                'success' => false,
-                'error'   => $result->getMessage(),
-            ], $status);
+            return $this->response->json(['ok' => false, 'error' => $result->error], 400);
         }
 
-        return $this->response->json([
-            'success'  => true,
-            'message'  => 'Turno asignado correctamente',
-            'shift_id' => $result->data['shift_id'],
-        ]);
+        return $this->response->json(['ok' => true]);
     }
 
     /**
-     * POST /manager/staff/edit-permissions
+     * GET /manager/staff/{id}/performance
      *
-     * Modificar permisos específicos de un staff member (placeholder - RBAC avanzado)
-     */
-    public function editPermissions(ServerRequestInterface $request): ResponseInterface
-    {
-        $user = Session::user();
-        $cafeId = $user['cafe_id'] ?? null;
-
-        if (!$cafeId) {
-            return $this->response->json([
-                'success' => false,
-                'error' => 'No tienes un café asignado',
-            ], 403);
-        }
-
-        // Placeholder: en implementación completa se modificarían permisos en user_permissions
-        return $this->response->json([
-            'success' => false,
-            'error' => 'Funcionalidad en desarrollo (RBAC avanzado)',
-        ], 501);
-    }
-
-    /**
-     * GET /manager/staff/performance/{id}
-     *
-     * Métricas de performance de un staff member
+     * Métricas de rendimiento de un staff member
      */
     public function viewPerformance(int $userId): ResponseInterface
     {
@@ -243,66 +203,115 @@ final class StaffController
         $cafeId = $user['cafe_id'] ?? null;
 
         if (!$cafeId) {
-            return $this->response->json([
-                'success' => false,
-                'error' => 'No tienes un café asignado',
-            ], 403);
+            return $this->response->json(['ok' => false, 'error' => 'No tienes un café asignado.'], 403);
         }
 
-        $staffMember = $this->userRepo->getStaffBasicById($userId, $cafeId);
-
-        if ($staffMember === null) {
-            return $this->response->json([
-                'success' => false,
-                'error' => 'Staff member no encontrado o no pertenece a tu café',
-            ], 404);
-        }
-
-        // Obtener métricas via service
-        $metricsResult = $this->shiftService->getPerformanceMetrics($userId, $cafeId);
+        $metricsResult = $this->shiftService->getPerformanceMetrics($userId, (int) $cafeId);
 
         if (!$metricsResult->ok) {
-            return $this->response->json([
-                'success' => false,
-                'error'   => $metricsResult->getMessage(),
-            ], 500);
+            return $this->response->json(['ok' => false, 'error' => $metricsResult->error], 422);
         }
 
-        return $this->response->json([
-            'success' => true,
-            'staff'   => $staffMember,
-            'metrics' => $metricsResult->data,
-        ]);
+        return $this->response->json(['ok' => true, 'data' => $metricsResult->data ?? []]);
     }
 
     /**
-     * Valida formato de hora HH:MM o HH:MM:SS
+     * PUT /manager/staff/shifts/{id}
+     *
+     * Actualizar un turno del café
      */
-    private function isValidTime(string $time): bool
+    public function updateShift(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        return (bool) preg_match('/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/', $time);
-    }
+        $user = Session::user();
+        $cafeId = $user['cafe_id'] ?? null;
 
-    /**
-     * Compara dos horas (retorna -1, 0, 1)
-     */
-    private function compareTime(string $time1, string $time2): int
-    {
-        $normalized1 = $this->normalizeTime($time1);
-        $normalized2 = $this->normalizeTime($time2);
-
-        return strcmp($normalized1, $normalized2) <=> 0;
-    }
-
-    /**
-     * Normaliza hora a formato HH:MM:SS
-     */
-    private function normalizeTime(string $time): string
-    {
-        if (preg_match('/^(\d{2}):(\d{2})$/', $time)) {
-            return $time . ':00';
+        if (!$cafeId) {
+            return $this->response->json(['ok' => false, 'error' => 'No tienes un café asignado.'], 403);
         }
 
-        return $time;
+        if ($id <= 0) {
+            return $this->response->json(['ok' => false, 'error' => 'ID de turno no válido.'], 400);
+        }
+
+        $body = (array) ($request->getParsedBody() ?? []);
+
+        $data = [];
+
+        if (isset($body['shift_date'])) {
+            $date = \trim((string) $body['shift_date']);
+
+            if (!\preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                return $this->response->json(['ok' => false, 'error' => 'Fecha inválida. Formato esperado: YYYY-MM-DD.'], 400);
+            }
+
+            $data['shift_date'] = $date;
+        }
+
+        if (isset($body['shift_start'])) {
+            $start = \trim((string) $body['shift_start']);
+
+            if (!\preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $start)) {
+                return $this->response->json(['ok' => false, 'error' => 'Hora de inicio inválida. Formato esperado: HH:MM.'], 400);
+            }
+
+            $data['shift_start'] = $start;
+        }
+
+        if (isset($body['shift_end'])) {
+            $end = \trim((string) $body['shift_end']);
+
+            if (!\preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $end)) {
+                return $this->response->json(['ok' => false, 'error' => 'Hora de fin inválida. Formato esperado: HH:MM.'], 400);
+            }
+
+            $data['shift_end'] = $end;
+        }
+
+        if (\array_key_exists('notes', $body)) {
+            $data['notes'] = $body['notes'] !== '' ? (string) $body['notes'] : null;
+        }
+
+        if ($data === []) {
+            return $this->response->json(['ok' => false, 'error' => 'No se proporcionaron campos para actualizar.'], 400);
+        }
+
+        $result = $this->shiftService->updateShift($id, (int) $cafeId, $data);
+
+        if (!$result->ok) {
+            $status = $result->error === 'shift_not_found' ? 404 : 422;
+
+            return $this->response->json(['ok' => false, 'error' => $result->error ?? 'Error desconocido.'], $status);
+        }
+
+        return $this->response->json(['ok' => true]);
+    }
+
+    /**
+     * DELETE /manager/staff/shifts/{id}
+     *
+     * Eliminar un turno del café (soft-delete)
+     */
+    public function deleteShift(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        $user = Session::user();
+        $cafeId = $user['cafe_id'] ?? null;
+
+        if (!$cafeId) {
+            return $this->response->json(['ok' => false, 'error' => 'No tienes un café asignado.'], 403);
+        }
+
+        if ($id <= 0) {
+            return $this->response->json(['ok' => false, 'error' => 'ID de turno no válido.'], 400);
+        }
+
+        $result = $this->shiftService->deleteShift($id, (int) $cafeId);
+
+        if (!$result->ok) {
+            $status = $result->error === 'shift_not_found' ? 404 : 422;
+
+            return $this->response->json(['ok' => false, 'error' => $result->error ?? 'Error desconocido.'], $status);
+        }
+
+        return $this->response->json(['ok' => true]);
     }
 }

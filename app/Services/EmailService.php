@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\BaseService;
-use App\Services\Contracts\EmailServiceInterface;
-use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Queue;
+use App\Core\WideEvent;
 use App\Jobs\SendEmailJob;
+use App\Services\Contracts\EmailServiceInterface;
 
 /**
  * Servicio de Email ASÍNCRONO
@@ -19,16 +19,6 @@ use App\Jobs\SendEmailJob;
  */
 final class EmailService extends BaseService implements EmailServiceInterface
 {
-    private string $fromEmail;
-
-    private string $fromName;
-
-    public function __construct()
-    {
-        $this->fromEmail = Env::get('MAIL_FROM_ADDRESS', 'noreply@komorebi.local');
-        $this->fromName = Env::get('MAIL_FROM_NAME', 'Komorebi');
-    }
-
     /**
      * Enviar email de verificación
      *
@@ -47,6 +37,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $userEmail,
             'subject' => 'Verifica tu email en Komorebi',
             'body' => $this->getVerificationEmailTemplate($userName, $verificationUrl),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
 
         if ($enqueued) {
@@ -73,6 +64,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $userEmail,
             'subject' => 'Recupera tu contraseña en Komorebi',
             'body' => $this->getPasswordResetTemplate($userName, $resetUrl),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
 
         if ($enqueued) {
@@ -88,8 +80,8 @@ final class EmailService extends BaseService implements EmailServiceInterface
      * Enviar confirmación de reserva
      *
      * @param string $userEmail
-     * @param string $userName
-     * @param array  $reservationData
+     * @param string|array $userNameOrReservationData
+     * @param array|null  $reservationData
      * @param string|null $pdfPath Ruta al PDF adjunto (opcional)
      *
      * @return boolean
@@ -101,23 +93,24 @@ final class EmailService extends BaseService implements EmailServiceInterface
         ?string $pdfPath = null
     ): bool {
         // Backwards-compatible handling: callers may pass (email, reservationData)
-        if (is_array($userNameOrReservationData)) {
+        if (\is_array($userNameOrReservationData)) {
             $reservationData = $userNameOrReservationData;
             $userName = $reservationData['user_name'] ?? 'Usuario';
         } else {
             $userName = (string) $userNameOrReservationData;
-            $reservationData = $reservationData ?? [];
+            $reservationData ??= [];
         }
-        $pdfPath = $pdfPath ?? ($reservationData['pdf_path'] ?? null);
+        $pdfPath ??= ($reservationData['pdf_path'] ?? null);
 
         $jobData = [
             'to' => $userEmail,
             'subject' => '✅ Reserva confirmada en Komorebi',
             'body' => $this->getReservationConfirmationTemplate($userName, $reservationData),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ];
 
         // Añadir PDF si existe
-        if ($pdfPath && file_exists($pdfPath)) {
+        if ($pdfPath && \file_exists($pdfPath)) {
             $jobData['attachment_path'] = $pdfPath;
             $jobData['attachment_name'] = 'factura_reserva.pdf';
         }
@@ -160,6 +153,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $userEmail,
             'subject' => 'Reserva cancelada en Komorebi',
             'body' => $this->getReservationCancellationTemplate($userName, $reservationData, $reason),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
 
         if ($enqueued) {
@@ -191,6 +185,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $recipientEmail,
             'subject' => 'Email de prueba - Komorebi Café',
             'body' => $this->getTestEmailTemplate($recipientName),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
 
         if ($enqueued) {
@@ -245,9 +240,9 @@ final class EmailService extends BaseService implements EmailServiceInterface
 
     private function getReservationConfirmationTemplate(string $userName, array $data): string
     {
-        $cafeName = \htmlspecialchars($data['cafe_name'] ?? 'Komorebi');
-        $date = \htmlspecialchars($data['reservation_date'] ?? '');
-        $time = \htmlspecialchars($data['reservation_time'] ?? '');
+        $cafeName = \e($data['cafe_name'] ?? 'Komorebi');
+        $date = \e($data['reservation_date'] ?? '');
+        $time = \e($data['reservation_time'] ?? '');
         $guests = (int) ($data['guest_count'] ?? 1);
 
         return <<<HTML
@@ -267,9 +262,9 @@ final class EmailService extends BaseService implements EmailServiceInterface
 
     private function getReservationCancellationTemplate(string $userName, array $data, string $reason): string
     {
-        $cafeName = \htmlspecialchars($data['cafe_name'] ?? 'Komorebi');
-        $date = \htmlspecialchars($data['reservation_date'] ?? '');
-        $reasonText = $reason ? '<p><strong>Motivo:</strong> ' . \htmlspecialchars($reason) . '</p>' : '';
+        $cafeName = \e($data['cafe_name'] ?? 'Komorebi');
+        $date = \e($data['reservation_date'] ?? '');
+        $reasonText = $reason ? '<p><strong>Motivo:</strong> ' . \e($reason) . '</p>' : '';
 
         return <<<HTML
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -347,6 +342,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $userEmail,
             'subject' => '🐾 Confirmación de Lista de Espera - Komorebi Café',
             'body' => $this->getWaitlistConfirmationTemplate($userName, $token, $waitlistData),
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
 
         if ($enqueued) {
@@ -433,6 +429,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'to' => $to,
             'subject' => $subject,
             'body' => $body,
+            '_correlation_id' => WideEvent::get('request_id') ?? '',
         ]);
 
         if ($enqueued) {

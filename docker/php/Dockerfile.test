@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1
 # =============================================================================
 # Imagen PHP-CLI para tests aislados
 #
@@ -30,7 +30,7 @@ RUN install-php-extensions \
     pcov
 
 # Composer desde imagen oficial (sin curl ni script de instalación)
-COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # INI de configuración para el entorno de test
 COPY docker/php/ini/php.ini     /usr/local/etc/php/conf.d/00-php.ini

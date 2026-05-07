@@ -1,212 +1,111 @@
-/**
- * Gestión de Reseñas del Admin
- * ============================================================================
- * Sistema de moderación de reseñas con Alpine.js.
- *
- * @version 1.0.0
- * @requires Alpine.js
- * @requires admin-common.js
- */
-
 (function () {
   'use strict';
 
-  document.addEventListener('alpine:init', () => {
-
-    Alpine.data('reviewsModeration', (config = {}) => ({
-      // ─────────────────────────────────────────────────────────────
-      // ESTADO
-      // ─────────────────────────────────────────────────────────────
-
-      reviews: config.reviews || [],
-      csrfToken: config.csrfToken || '',
-      processing: [], // IDs de reseñas en proceso
-
-      // Modal de rechazo
+  function createReviewsMod(config = {}) {
+    return {
+      csrfToken:      config.csrfToken || '',
+      processing:     [],
       selectedReview: null,
-      rejectReason: '',
-      rejectModal: null,
-
-      // ─────────────────────────────────────────────────────────────
-      // INICIALIZACIÓN
-      // ─────────────────────────────────────────────────────────────
+      rejectReason:   '',
+      rejectModal:    null,
 
       init() {
-        // Inicializar modal de rechazo
         const modalEl = document.getElementById('rejectModal');
         if (modalEl) {
           this.rejectModal = new bootstrap.Modal(modalEl);
-
-          // Limpiar al cerrar
           modalEl.addEventListener('hidden.bs.modal', () => {
             this.selectedReview = null;
-            this.rejectReason = '';
+            this.rejectReason   = '';
           });
         }
-
-        console.log('[ReviewsModeration] Initialized with', this.reviews.length, 'reviews');
       },
-
-      // ─────────────────────────────────────────────────────────────
-      // COMPUTED
-      // ─────────────────────────────────────────────────────────────
-
-      get pendingCount() {
-        return this.reviews.filter(r => r.status === 'pending').length;
-      },
-
-      get filteredReviews() {
-        // Por defecto mostrar solo pendientes, pero podría filtrar por estado
-        return this.reviews.filter(r => r.status === 'pending');
-      },
-
-      // ─────────────────────────────────────────────────────────────
-      // MÉTODOS: ACCIONES
-      // ─────────────────────────────────────────────────────────────
 
       async approve(reviewId) {
         if (this.processing.includes(reviewId)) return;
-
         this.processing.push(reviewId);
-
         try {
-          const formData = new URLSearchParams({
-            csrf_token: this.csrfToken,
-            id: reviewId
+          const res  = await fetch(`/api/v1/admin/reviews/${reviewId}/approve`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body:    JSON.stringify({ csrf_token: this.csrfToken }),
           });
-
-          const response = await fetch('/admin/reviews/approve', {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest'
-            }
-          });
-
-          const data = await response.json();
-
-          if (response.ok && data.success) {
-            // Animar y remover
-            this.animateAndRemove(reviewId, 'approved');
-            KomorebiToast.success('Reseña aprobada correctamente');
+          const data = await res.json();
+          if (res.ok && data.ok) {
+            KomorebiToast.success(data.data?.message || 'Reseña aprobada correctamente');
+            globalThis.location.reload();
           } else {
-            KomorebiToast.error(data.message || 'Error al aprobar');
+            KomorebiToast.error(data.detail || 'Error al aprobar');
           }
-        } catch (error) {
-          console.error('[Reviews] Approve error:', error);
-          KomorebiToast.error('Error de conexión');
-        } finally {
-          this.processing = this.processing.filter(id => id !== reviewId);
-        }
+        } catch { KomorebiToast.error('Error de conexión'); }
+        finally  { this.processing = this.processing.filter(id => id !== reviewId); }
       },
 
       openRejectModal(review) {
         this.selectedReview = review;
-        this.rejectReason = '';
+        this.rejectReason   = '';
         this.rejectModal?.show();
       },
 
       async reject() {
         if (!this.selectedReview) return;
-
         const reviewId = this.selectedReview.id;
 
-        // Validar motivo
-        if (!this.rejectReason.trim() || this.rejectReason.length < 5) {
+        if (this.rejectReason.trim().length < 5) {
           KomorebiToast.error('El motivo debe tener al menos 5 caracteres');
           return;
         }
-
         if (this.rejectReason.length > 500) {
           KomorebiToast.error('El motivo no puede exceder 500 caracteres');
           return;
         }
-
         if (this.processing.includes(reviewId)) return;
         this.processing.push(reviewId);
 
         try {
-          const formData = new URLSearchParams({
-            csrf_token: this.csrfToken,
-            id: reviewId,
-            reason: this.rejectReason
+          const res  = await fetch(`/api/v1/admin/reviews/${reviewId}/reject`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body:    JSON.stringify({ csrf_token: this.csrfToken, reason: this.rejectReason }),
           });
-
-          const response = await fetch('/admin/reviews/reject', {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest'
-            }
-          });
-
-          const data = await response.json();
-
-          if (response.ok && data.success) {
+          const data = await res.json();
+          if (res.ok && data.ok) {
             this.rejectModal?.hide();
-            this.animateAndRemove(reviewId, 'rejected');
-            KomorebiToast.success('Reseña rechazada correctamente');
+            KomorebiToast.success(data.data?.message || 'Reseña rechazada correctamente');
+            globalThis.location.reload();
           } else {
-            KomorebiToast.error(data.message || 'Error al rechazar');
+            KomorebiToast.error(data.detail || 'Error al rechazar');
           }
-        } catch (error) {
-          console.error('[Reviews] Reject error:', error);
-          KomorebiToast.error('Error de conexión');
-        } finally {
-          this.processing = this.processing.filter(id => id !== reviewId);
-        }
+        } catch { KomorebiToast.error('Error de conexión'); }
+        finally  { this.processing = this.processing.filter(id => id !== reviewId); }
       },
 
-      animateAndRemove(reviewId, newStatus) {
-        // Actualizar estado para animación
-        const review = this.reviews.find(r => r.id === reviewId);
-        if (review) {
-          review.status = newStatus;
-
-          // Esperar animación y remover
-          setTimeout(() => {
-            const index = this.reviews.findIndex(r => r.id === reviewId);
-            if (index > -1) {
-              this.reviews.splice(index, 1);
-            }
-          }, 300);
-        }
+      async deleteReview(reviewId) {
+        if (!await KomorebiConfirm.delete('esta reseña')) return;
+        if (this.processing.includes(reviewId)) return;
+        this.processing.push(reviewId);
+        try {
+          const res = await fetch(`/api/v1/admin/reviews/${reviewId}`, {
+            method:  'DELETE',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body:    JSON.stringify({ csrf_token: this.csrfToken }),
+          });
+          if (res.ok && res.status === 204) {
+            KomorebiToast.success('Reseña eliminada');
+            globalThis.location.reload();
+          } else {
+            const data = await res.json().catch(() => ({}));
+            KomorebiToast.error(data.detail || 'Error al eliminar');
+          }
+        } catch { KomorebiToast.error('Error de conexión'); }
+        finally  { this.processing = this.processing.filter(id => id !== reviewId); }
       },
 
-      // ─────────────────────────────────────────────────────────────
-      // MÉTODOS: UTILIDADES
-      // ─────────────────────────────────────────────────────────────
+      getReasonLength() { return this.rejectReason.length; },
+    };
+  }
 
-      getInitials(name) {
-        return (name || 'U').charAt(0).toUpperCase();
-      },
-
-      getStarArray(rating) {
-        const stars = [];
-        for (let i = 1; i <= 5; i++) {
-          stars.push(i <= rating);
-        }
-        return stars;
-      },
-
-      formatDate(dateString) {
-        return KomorebiUI.formatDate(dateString, {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      },
-
-      getReasonLength() {
-        return this.rejectReason.length;
-      }
-    }));
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('[AdminReviews] Module loaded');
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('reviewsMod', createReviewsMod);
   });
 
 })();

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Vista parcial: Matriz de permisos
+ * Vista parcial: Matriz de permisos (Bootstrap Accordion)
  */
 
 use App\Core\View;
@@ -16,7 +16,7 @@ use App\Core\View;
     </span>
 </div>
 
-<!-- Búsqueda y paginación -->
+<!-- Búsqueda y contador -->
 <div class="d-flex justify-content-between align-items-center mb-3" x-show="paginatedPermissions !== undefined">
     <div class="flex-grow-1 me-3">
         <input
@@ -40,73 +40,78 @@ use App\Core\View;
     <p class="text-muted mt-3">Cargando permisos...</p>
 </div>
 
-<div class="permission-matrix__container" x-show="paginatedPermissions !== undefined">
-    <div class="permission-matrix">
-        <table class="table permission-matrix__table">
-            <thead>
-                <tr>
-                    <th style="min-width: 250px;">Módulo / Permiso</th>
-                    <template x-for="role in roles" :key="role.id">
-                        <th>
-                            <div x-text="role.name"></div>
-                            <small class="text-muted d-block" x-text="role.code"></small>
-                        </th>
-                    </template>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Módulos y permisos -->
-                <template x-for="(permissions, module) in paginatedPermissions" :key="module">
-            <tbody>
-                <!-- Cabecera del módulo -->
-                <tr class="permission-matrix__module">
-                    <td :colspan="roles.length + 1">
-                        <strong x-text="formatModuleName(module)"></strong>
-                    </td>
-                </tr>
+<!-- Accordion de módulos -->
+<div class="accordion" id="permissionsAccordion" x-show="paginatedPermissions !== undefined">
+    <template x-for="(permissions, module) in paginatedPermissions" :key="module">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button
+                    class="accordion-button"
+                    :class="{ 'collapsed': !expandedModules[module] }"
+                    type="button"
+                    @click="expandedModules[module] = !expandedModules[module]"
+                    :aria-expanded="expandedModules[module] ? 'true' : 'false'">
+                    <strong x-text="formatModuleName(module)"></strong>
+                    <span class="badge bg-secondary ms-2" x-text="permissions.length"></span>
+                </button>
+            </h2>
+            <div
+                class="accordion-collapse"
+                :class="{ 'show': expandedModules[module] }"
+                x-show="expandedModules[module]"
+                x-collapse>
+                <div class="accordion-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="min-width:220px;">Permiso</th>
+                                    <template x-for="role in roles" :key="role.id">
+                                        <th class="text-center">
+                                            <div x-text="role.name"></div>
+                                            <small class="text-muted" x-text="role.code"></small>
+                                        </th>
+                                    </template>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="permission in permissions" :key="permission.id">
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold" x-text="permission.name"></div>
+                                            <code class="text-muted small" x-text="permission.code"></code>
+                                        </td>
+                                        <template x-for="role in roles" :key="role.id">
+                                            <td class="text-center align-middle">
+                                                <input
+                                                    type="checkbox"
+                                                    class="form-check-input"
+                                                    :checked="hasPermission(role.id, permission.id)"
+                                                    @change="togglePermission(role.id, permission.id, $event.target.checked, $event.target)"
+                                                    :disabled="role.isSystem || savingPermission">
+                                            </td>
+                                        </template>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
 
-                <!-- Permissions del módulo -->
-                <template x-for="permission in permissions" :key="permission.id">
-                    <tr>
-                        <td>
-                            <div class="permission-matrix__permission">
-                                <span class="permission-matrix__permission-name" x-text="permission.name"></span>
-                                <code class="permission-matrix__permission-code" x-text="permission.code"></code>
-                            </div>
-                        </td>
-                        <template x-for="role in roles" :key="role.id">
-                            <td class="permission-matrix__checkbox">
-                                <input
-                                    type="checkbox"
-                                    class="form-check-input"
-                                    :checked="hasPermission(role.id, permission.id)"
-                                    @change="togglePermission(role.id, permission.id, $event.target.checked)"
-                                    :disabled="role.isSystem || savingPermission">
-                            </td>
-                        </template>
-                    </tr>
-                </template>
-            </tbody>
-            </template>
-            </tbody>
-
-            <!-- Estado vacío -->
-            <tbody>
-                <template x-if="Object.keys(permissionsByModule).length === 0">
-                    <tr>
-                        <td :colspan="roles.length + 1" class="text-center py-5">
-                            <?= View::componentToString('components/admin/empty-state', [
-                                'icon' => 'shield-exclamation',
-                                'title' => 'Sin permisos',
-                                'message' => 'No hay permisos registrados en el sistema',
-                                'compact' => true,
-                            ]) ?>
-                        </td>
-                    </tr>
-                </template>
-            </tbody>
-        </table>
-    </div>
+    <!-- Estado vacío -->
+    <template x-if="Object.keys(paginatedPermissions ?? {}).length === 0 && paginatedPermissions !== undefined">
+        <div class="text-center py-5">
+            <?= View::componentToString('components/admin/empty-state', [
+                'icon' => 'shield-exclamation',
+                'title' => 'Sin permisos',
+                'message' => 'No hay permisos registrados en el sistema',
+                'compact' => true,
+            ]) ?>
+        </div>
+    </template>
 </div>
 
 <!-- Paginación -->

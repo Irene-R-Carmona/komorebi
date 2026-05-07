@@ -2,6 +2,10 @@
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
+.env.development
+.env.test
 
 # Dependencies
 vendor/
@@ -19,12 +23,29 @@ storage/invoices/*
 bootstrap/cache/*
 !bootstrap/cache/.gitkeep
 
-# IDE
+# Logs genéricos (fuera de storage/)
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporales
+*.tmp
+*.temp
+
+# IDE — VS Code
 .vscode/*
 !.vscode/settings.json
 !.vscode/launch.json
 !.vscode/extensions.json
+!.vscode/mcp.json
+
+# IDE — JetBrains (PhpStorm)
 .idea/
+# Ignorar todo .idea/ excepto configuraciones de proyecto reutilizables
+# Si quieres compartir run configs: git add -f .idea/runConfigurations/
+
+# Editores varios
 *.swp
 *.swo
 *~
@@ -39,6 +60,23 @@ desktop.ini
 .phpunit.cache/
 tests/reports/
 coverage/
+playwright-report/
+test-results/
+# screenshots/ de test automation (Playwright, etc.)
+# NOTA: screenshots/ de documentación ya comprometidas se trackean con git add -f
+screenshots/
+.lighthouseci/
+.playwright/
+.playwright-mcp/
+
+# Tool output artefacts (no deben commitearse)
+/coverage.xml
+/coverage_*.txt
+/phpstan_out.txt
+/phpunit_full.txt
+/test_output.txt
+/debug-snippet.txt
+/analyze_coverage.php
 
 # Build artifacts
 public/build/
@@ -48,3 +86,37 @@ public/hot
 .php-cs-fixer.cache
 .psalm/cache/
 .sonarqube/
+.quality/baselines/
+
+# Security — Keys & Certs
+secrets/
+*.pem
+*.key
+*.crt
+*.cert
+*.cer
+*.p12
+*.pfx
+*.jks
+auth.json
+*.token
+*.secret
+*.secrets
+
+# Database dumps
+backups/
+*.sql.gz
+*.dump
+*.bak
+docker/mysql/data/
+docker/redis/data/
+
+# Docker — archivos de datos locales (volúmenes)
+docker/mysql/init-local/
+docker/redis/dump.rdb
+
+# Claude Code — configuración local del agente (no compartir)
+.claude/
+
+# Logs de desarrollo sueltos en raíz
+logs.txt

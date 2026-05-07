@@ -4,124 +4,52 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Core\Csrf;
-use App\Core\Flash;
+use App\Core\Container;
 use App\Core\View;
-use App\Core\Http\ResponseFactory;
-use App\Services\ReviewService;
-use JsonException;
+use App\Http\Transformers\ReviewTransformer;
+use App\Services\Contracts\ReviewModerationServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Random\RandomException;
 
 /**
- * Controlador de Gestión de Reseñas (Admin)
+ * Controlador de Gestión de Reseñas (Admin) — SSR únicamente.
+ * Las mutaciones (approve/reject/delete) están en Api\V1\Admin\ReviewApiController.
  */
 final class ReviewController
 {
-    private ReviewService $reviewService;
-    private ResponseFactory $response;
+    private ReviewModerationServiceInterface $moderationService;
+    private ReviewTransformer $reviewTransformer;
 
-    public function __construct(?ReviewService $reviewService = null)
+    public function __construct(?ReviewModerationServiceInterface $moderationService = null, ?ReviewTransformer $reviewTransformer = null)
     {
-        $this->reviewService = $reviewService ?? new ReviewService();
-        $this->response = new ResponseFactory();
+        $this->moderationService = $moderationService ?? Container::make(ReviewModerationServiceInterface::class);
+        $this->reviewTransformer = $reviewTransformer ?? new ReviewTransformer();
     }
 
     /**
      * GET /admin/reviews
-     * Lista de reseñas con filtros
-     * @throws JsonException
-     * @throws RandomException
      */
-    public function index(): ?ResponseInterface
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $reviews = $this->reviewService->listPendingReviews();
+        $page = \max(1, (int) ($request->getQueryParams()['page'] ?? 1));
+        $perPage = 10;
 
-        View::render('backoffice/admin/reviews/index', [
-            'titulo' => 'Gestión de Reseñas',
-            'reviews' => $reviews,
-            'csrf_token' => Csrf::token(),
+        $rawReviews = $this->moderationService->listPendingReviews($page);
+        $hasNextPage = \count($rawReviews) > $perPage;
+        if ($hasNextPage) {
+            \array_pop($rawReviews);
+        }
+
+        $reviews = $this->reviewTransformer->collection($rawReviews);
+        $meta = ['page' => $page, 'has_next_page' => $hasNextPage];
+
+        View::render('admin/reviews/pending', [
+            'titulo' => 'Gestión de Reseñas | Komorebi Admin',
+            'pending' => $reviews,
+            'meta' => $meta,
+            'extraJs' => ['admin/admin-reviews.js'],
         ], [], 'backoffice');
+
         return null;
-    }
-
-    /**
-     * POST /admin/reviews/{id}/approve
-     * Aprobar reseña
-     * @throws JsonException
-     * @throws RandomException
-     */
-    public function approve(): ResponseInterface
-    {
-        if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/admin/reviews');
-        }
-
-        $id = (int) ($_POST['id'] ?? 0);
-
-        $result = $this->reviewService->approveReview($id);
-
-        if ($result->isOk()) {
-            Flash::success('Reseña aprobada correctamente');
-        } else {
-            Flash::error($result->getMessage('Error al aprobar reseña'));
-        }
-
-        return $this->response->redirect('/admin/reviews');
-    }
-
-    /**
-     * POST /admin/reviews/{id}/reject
-     * Rechazar reseña
-     * @throws JsonException
-     * @throws RandomException
-     */
-    public function reject(): ResponseInterface
-    {
-        if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/admin/reviews');
-        }
-
-        $id = (int) ($_POST['id'] ?? 0);
-        $reason = $_POST['reason'] ?? 'Contenido inapropiado';
-
-        $result = $this->reviewService->rejectReview($id, $reason);
-
-        if ($result->isOk()) {
-            Flash::success('Reseña rechazada');
-        } else {
-            Flash::error($result->getMessage('Error al rechazar reseña'));
-        }
-
-        return $this->response->redirect('/admin/reviews');
-    }
-
-    /**
-     * POST /admin/reviews/{id}/delete
-     * Eliminar reseña
-     * @throws JsonException
-     * @throws RandomException
-     */
-    public function delete(): ResponseInterface
-    {
-        if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/admin/reviews');
-        }
-
-        $id = (int) ($_POST['id'] ?? 0);
-
-        $result = $this->reviewService->deleteReview($id);
-
-        if ($result->isOk()) {
-            Flash::success('Reseña eliminada');
-        } else {
-            Flash::error($result->getMessage('Error al eliminar reseña'));
-        }
-
-        return $this->response->redirect('/admin/reviews');
     }
 }

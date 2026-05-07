@@ -69,7 +69,7 @@
 
 /* DEFAULT - Subtle shadow, clean background */
 .card--default {
-  background-color: white;
+  background-color: var(--bg-secondary);
   border: 1px solid var(--color-neutral-200, #e7e5e4);
   box-shadow: var(--shadow-sm);
 }
@@ -92,14 +92,14 @@
 
 /* OUTLINED - Border emphasis, no shadow */
 .card--outlined {
-  background-color: white;
+  background-color: var(--bg-secondary);
   border: 2px solid var(--color-neutral-300, #d6d3d1);
   box-shadow: none;
 }
 
 /* ELEVATED - Prominent shadow, lifted appearance */
 .card--elevated {
-  background-color: white;
+  background-color: var(--bg-elevated);
   border: none;
   box-shadow: var(--shadow-lg);
 }
@@ -198,37 +198,35 @@
    DARK MODE SUPPORT
    ============================================================================ */
 
-@media (prefers-color-scheme: dark) {
-  .card--default {
-    background-color: var(--color-neutral-800, #292524);
-    border-color: var(--color-neutral-700, #44403c);
-  }
+[data-tema="oscuro"] .card--default {
+  background-color: var(--bg-elevated);
+  border-color: var(--border-primary);
+}
 
-  .card--glass {
-    background: rgba(41, 37, 36, 0.7);
-    border-color: rgba(68, 64, 60, 0.3);
-  }
+[data-tema="oscuro"] .card--glass {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+}
 
-  .card--outlined {
-    background-color: var(--color-neutral-800, #292524);
-    border-color: var(--color-neutral-600, #57534e);
-  }
+[data-tema="oscuro"] .card--outlined {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-secondary);
+}
 
-  .card--elevated {
-    background-color: var(--color-neutral-800, #292524);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3),
-      0 4px 6px -4px rgba(0, 0, 0, 0.3);
-  }
+[data-tema="oscuro"] .card--elevated {
+  background-color: var(--bg-elevated);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4),
+    0 4px 6px -4px rgba(0, 0, 0, 0.3);
+}
 
-  .card__header,
-  .card__footer {
-    border-color: var(--color-neutral-700, #44403c);
-  }
+[data-tema="oscuro"] .card__header,
+[data-tema="oscuro"] .card__footer {
+  border-color: var(--border-primary);
+}
 
-  .card--glass .card__header,
-  .card--glass .card__footer {
-    border-color: rgba(68, 64, 60, 0.3);
-  }
+[data-tema="oscuro"] .card--glass .card__header,
+[data-tema="oscuro"] .card--glass .card__footer {
+  border-color: var(--glass-border);
 }
 
 /* ============================================================================

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\MenuDTO;
+
 /**
  * Contrato para MenuRepository
  *
@@ -31,7 +33,7 @@ interface MenuRepositoryInterface
     /**
      * Obtener todos los productos activos
      *
-     * @return array<int, array<string, mixed>>
+     * @return MenuDTO[]
      */
     public function getAllProducts(): array;
 

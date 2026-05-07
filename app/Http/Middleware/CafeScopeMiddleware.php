@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -28,12 +30,12 @@ final class CafeScopeMiddleware implements MiddlewareInterface
         $this->response = $response;
     }
 
+    #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
 
-        // Validar que el usuario tenga un café asignado
         if (!$cafeId) {
             if ($this->isApiRequest($request)) {
                 return $this->response->json([
@@ -42,7 +44,8 @@ final class CafeScopeMiddleware implements MiddlewareInterface
                 ], 403);
             }
 
-            // Redirección web
+            Flash::warning('No tienes una sede asignada. Contacta con administración.');
+
             return $this->response->redirect('/manager/dashboard');
         }
 
@@ -52,19 +55,18 @@ final class CafeScopeMiddleware implements MiddlewareInterface
             if ($this->isApiRequest($request)) {
                 return $this->response->json([
                     'success' => false,
-                    'error'   => 'Acceso denegado a este recurso.',
+                    'error' => 'Acceso denegado a este recurso.',
                 ], 403);
             }
+
+            Flash::warning('Acceso denegado a este recurso.');
+
             return $this->response->redirect('/manager/dashboard');
         }
 
-        // Café asignado válido y scope verificado, continuar con el request
         return $handler->handle($request);
     }
 
-    /**
-     * Detecta si es una petición API
-     */
     private function isApiRequest(ServerRequestInterface $request): bool
     {
         $acceptHeader = $request->getHeaderLine('Accept');

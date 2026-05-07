@@ -2,18 +2,23 @@
 x-app-env: &app-env
   APP_ENV: "${APP_ENV:-development}"
   APP_KEY: ${APP_KEY}
+  APP_URL: "${APP_URL:-http://localhost:8080}"
   DB_HOST: db
   DB_DATABASE: ${DB_DATABASE}
   DB_USERNAME: ${DB_USERNAME}
   DB_PASSWORD: ${DB_PASSWORD}
   REDIS_HOST: cache
   REDIS_PORT: 6379
-  REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+  REDIS_PASSWORD: ${REDIS_PASSWORD}
   MAIL_HOST: mailpit
   MAIL_PORT: 1025
   CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-http://localhost:8080}"
   CORS_CREDENTIALS: "${CORS_CREDENTIALS:-false}"
   CORS_MAX_AGE: "${CORS_MAX_AGE:-7200}"
+  MAX_REQUESTS: "${MAX_REQUESTS:-500}"
+  MERCURE_JWT_SECRET: "${MERCURE_JWT_SECRET}"
+  SESSION_DRIVER: "${SESSION_DRIVER:-redis}"
+  CACHE_DRIVER: "${CACHE_DRIVER:-redis}"
 
 services:
 
@@ -31,11 +36,14 @@ services:
     volumes:
       - ./:/app
       - komorebi_storage:/app/storage
+      - komorebi_vendor:/app/vendor
     environment:
       <<: *app-env
-      XDEBUG_MODE: debug
+      XDEBUG_MODE: "off"
       SKIP_MIGRATIONS: 0
       SKIP_SEEDERS: 0
+      GOMEMLIMIT: "400MiB"
+      GOMAXPROCS: "1"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -48,6 +56,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 180s
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -59,6 +68,11 @@ services:
           cpus: "1.0"
         reservations:
           memory: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - komorebi-net
 
@@ -66,7 +80,7 @@ services:
   # DATABASE - MySQL 8.4 LTS
   # ==========================================================================
   db:
-    image: mysql:8.4
+    image: mysql:8.4.8
     container_name: komorebi_db
     restart: unless-stopped
     environment:
@@ -85,6 +99,21 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.5"
+        reservations:
+          memory: 512m
+          cpus: "0.5"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - komorebi-net
 
@@ -92,21 +121,34 @@ services:
   # REDIS 8 (cache + futuro sistema de colas)
   # ==========================================================================
   cache:
-    image: redis:8-alpine
+    image: redis:8.6.2-alpine
     container_name: komorebi_cache
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password}
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 192mb --maxmemory-policy allkeys-lru --save ""
     # ports:  # No exponer al host; accesible solo dentro de la red Docker
     #   - "6379:6379"
-    volumes:
-      - redis_data:/data
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD:-redis_password} ping | grep -c PONG"]
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a ${REDIS_PASSWORD} ping | grep -c PONG"]
       interval: 5s
       timeout: 3s
       retries: 5
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+        reservations:
+          memory: 64m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - komorebi-net
 
@@ -118,7 +160,8 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile.worker
     container_name: komorebi_queue
-    restart: unless-stopped
+    profiles: ["workers"]
+    restart: on-failure:3
     command: php /app/bin/worker.php default
     volumes:
       - ./:/app
@@ -146,6 +189,11 @@ services:
           cpus: "0.5"
         reservations:
           memory: 64m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - komorebi-net
 
@@ -157,7 +205,8 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile.worker
     container_name: komorebi_email_worker
-    restart: unless-stopped
+    profiles: ["workers"]
+    restart: on-failure:3
     command: php /app/bin/email-worker.php
     volumes:
       - ./:/app
@@ -170,7 +219,7 @@ services:
       cache:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "pgrep -f email-worker.php > /dev/null"]
+      test: ["CMD-SHELL", "test -f /tmp/worker-email-heartbeat && [ $(($(date +%s) - $(cat /tmp/worker-email-heartbeat))) -lt 120 ]"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -185,6 +234,11 @@ services:
           cpus: "0.5"
         reservations:
           memory: 64m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - komorebi-net
 
@@ -196,7 +250,8 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile.worker
     container_name: komorebi_notification_worker
-    restart: unless-stopped
+    profiles: ["workers"]
+    restart: on-failure:3
     command: php /app/bin/notification-worker.php
     volumes:
       - ./:/app
@@ -209,7 +264,7 @@ services:
       cache:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "pgrep -f notification-worker.php > /dev/null"]
+      test: ["CMD-SHELL", "test -f /tmp/worker-notification-heartbeat && [ $(($(date +%s) - $(cat /tmp/worker-notification-heartbeat))) -lt 120 ]"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -224,6 +279,11 @@ services:
           cpus: "0.5"
         reservations:
           memory: 64m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - komorebi-net
 
@@ -232,8 +292,8 @@ services:
 # ============================================================================
 volumes:
   db_data:
-  redis_data:
   komorebi_storage:
+  komorebi_vendor:
 
 # ============================================================================
 # NETWORKS

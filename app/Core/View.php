@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use JsonException;
+use RuntimeException;
+
 // Cargar helpers globales
 require_once __DIR__ . '/Helpers.php';
-
-use RuntimeException;
 
 /**
  * Sistema de renderizado de vistas.
@@ -25,12 +26,31 @@ final class View
     // ─────────────────────────────────────────────────────────────
 
     /**
+     * Retorna el array de security headers (testeable sin side-effects).
+     * @return array<string, string>
+     */
+    public static function getSecurityHeaders(): array
+    {
+        return [
+            'Content-Security-Policy' => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
+            'X-Frame-Options' => 'DENY',
+            'X-Content-Type-Options' => 'nosniff',
+            'Referrer-Policy' => 'strict-origin-when-cross-origin',
+            'Permissions-Policy' => 'geolocation=(), microphone=(), camera=()',
+        ];
+    }
+
+    /**
      * Renderiza una vista con layout opcional.
      *
-     * @param string      $view     Ej: "auth/login", "errors/404"
-     * @param array       $data     Variables para la vista (se escapan automáticamente)
-     * @param array       $extraCss CSS extra a incluir (lo consume el layout)
-     * @param string|null $layout   Nombre de layout (null = sin layout)
+     * Todos los valores de $data se escapan automáticamente (XSS). Para pasar HTML o JSON
+     * sin escapar usa {@see Raw::html()} o {@see Raw::json()}. No se admiten objetos —
+     * los DTOs deben llamar a toViewArray() antes de pasarlos.
+     *
+     * @param string                                                            $view     Ruta de la plantilla relativa a views/ (p. ej. 'public/cafes/show')
+     * @param array<string, array<mixed>|string|integer|float|boolean|null|Raw> $data     Variables de vista. Sin objetos — los DTOs deben llamar a toViewArray() antes.
+     * @param array<string>                                                     $extraCss Archivos CSS adicionales a incluir
+     * @param string|null                                                       $layout   Nombre del layout (null = sin layout, default: 'main')
      */
     public static function render(
         string $view,
@@ -41,7 +61,7 @@ final class View
         // 1) Extraer extraCss y extraJs del array de datos ANTES de escapar
         // El extraCss puede venir como parámetro o dentro de $data
         if (!empty($data['extraCss'])) {
-            $extraCss = array_merge($extraCss, (array)$data['extraCss']);
+            $extraCss = \array_merge($extraCss, (array) $data['extraCss']);
             unset($data['extraCss']);
         }
 
@@ -50,6 +70,9 @@ final class View
 
         // 2) Ahora escapar datos (previene XSS)
         $data = self::escapeData($data);
+
+        // 3a) Propagar CSP nonce para que los partials puedan usarlo sin acceder a $GLOBALS
+        $data['cspNonce'] ??= $GLOBALS['cspNonce'] ?? '';
 
         // 3) Renderizar contenido de la vista
         $content = self::capture($view, $data);
@@ -113,10 +136,10 @@ final class View
     /**
      * Respuesta JSON.
      *
-     * @param mixed $data Datos a serializar
+     * @param mixed   $data   Datos a serializar
      * @param integer $status Código HTTP
      * @return never
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function json(mixed $data, int $status = 200): never
     {
@@ -124,7 +147,7 @@ final class View
             @\http_response_code($status);
             \header('Content-Type: application/json; charset=UTF-8');
         } else {
-            Logger::error('[View::json] headers already sent; skipping \header() and http_response_code()');
+            Logger::error('[View::json] headers already sent; skipping \header() and http_response_code()', []);
         }
         echo \json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
         exit;
@@ -132,7 +155,7 @@ final class View
 
     /**
      * Respuesta JSON de éxito.
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function jsonSuccess(mixed $data = null, string $message = 'OK'): never
     {
@@ -145,7 +168,7 @@ final class View
 
     /**
      * Respuesta JSON de error.
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function jsonError(string $message, int $status = 400, array $errors = []): never
     {
@@ -172,7 +195,7 @@ final class View
             @\http_response_code($status);
             \header("Location: $url");
         } else {
-            Logger::error('[View::redirect] headers already sent; cannot redirect to ' . $url);
+            Logger::error('[View::redirect] headers already sent; cannot redirect to ' . $url, []);
         }
         exit;
     }
@@ -190,7 +213,12 @@ final class View
      */
     public static function redirectWith(string $url, string $type, string $message): never
     {
-        Flash::set($type, $message);
+        match ($type) {
+            'success' => Flash::success($message),
+            'info' => Flash::info($message),
+            'warning' => Flash::warning($message),
+            default => Flash::error($message),
+        };
         self::redirect($url);
     }
 
@@ -204,8 +232,28 @@ final class View
      */
     public static function back(): never
     {
-        $referer = $_SERVER['HTTP_REFERER'] ?? '/';
+        $referer = self::safeReferer();
         self::redirect($referer);
+    }
+
+    /**
+     * Obtiene el HTTP_REFERER solo si es una URL interna segura.
+     * Previene open-redirect usando referers externos.
+     */
+    public static function safeReferer(string $fallback = '/'): string
+    {
+        $referer = $_SERVER['HTTP_REFERER'] ?? $fallback;
+        $parsed = \parse_url($referer);
+
+        // Solo aceptar URLs relativas o del mismo host
+        if (isset($parsed['host'])) {
+            $appHost = \parse_url(Env::get('APP_URL', 'http://localhost'), PHP_URL_HOST);
+            if ($parsed['host'] !== $appHost) {
+                return $fallback;
+            }
+        }
+
+        return $referer;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -218,9 +266,9 @@ final class View
      * Por defecto usa loading="lazy" para mejorar performance (LCP/TTI).
      * Para imágenes críticas above-the-fold, pasar 'loading' => 'eager'.
      *
-     * @param string $src    URL de la imagen (sin escapar)
-     * @param string $alt    Texto alternativo (sin escapar, se escapará aquí)
-     * @param array  $attrs  Atributos adicionales: width, height, class, loading, etc.
+     * @param string $src   URL de la imagen (sin escapar)
+     * @param string $alt   Texto alternativo (sin escapar, se escapará aquí)
+     * @param array  $attrs Atributos adicionales: width, height, class, loading, etc.
      * @return string HTML de la etiqueta <img>
      *
      * @example
@@ -238,8 +286,8 @@ final class View
     public static function img(string $src, string $alt, array $attrs = []): string
     {
         // Escapar src y alt para seguridad
-        $escapedSrc = htmlspecialchars($src, ENT_QUOTES, 'UTF-8');
-        $escapedAlt = htmlspecialchars($alt, ENT_QUOTES, 'UTF-8');
+        $escapedSrc = \htmlspecialchars($src, ENT_QUOTES, 'UTF-8');
+        $escapedAlt = \htmlspecialchars($alt, ENT_QUOTES, 'UTF-8');
 
         // Default loading strategy: lazy (performance)
         $loading = $attrs['loading'] ?? 'lazy';
@@ -252,8 +300,8 @@ final class View
                 continue; // Skip null/false attributes
             }
 
-            $escapedKey = htmlspecialchars($key, ENT_QUOTES, 'UTF-8');
-            $escapedValue = htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+            $escapedKey = \htmlspecialchars($key, ENT_QUOTES, 'UTF-8');
+            $escapedValue = \htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
             $attrsString .= " {$escapedKey}=\"{$escapedValue}\"";
         }
 
@@ -284,7 +332,7 @@ final class View
     {
         $viewFile = self::resolvePath($view);
 
-        $scope = new class {
+        $scope = new class () {
             public array $sections = [];
             private ?string $current = null;
             public ?string $layout = null;
@@ -317,9 +365,7 @@ final class View
         };
 
         $renderer = function () use ($viewFile, $data) {
-            if (\is_array($data)) {
-                \extract($data, EXTR_SKIP);
-            }
+            \extract($data, EXTR_SKIP);
             require $viewFile;
         };
 

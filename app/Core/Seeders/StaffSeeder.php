@@ -26,16 +26,14 @@ final class StaffSeeder
 
     public function run(): void
     {
-        echo "Contratando plantilla...\n";
-        Logger::info('StaffSeeder: starting');
+        Logger::info('[StaffSeeder] starting');
 
         $defaultPass = \password_hash('komorebi2024', PASSWORD_ARGON2ID);
 
         // Obtener IDs de roles primero
         $roles = $this->getRoleIds();
         if (empty($roles)) {
-            echo "No se encontraron roles en la BD. Abortando StaffSeeder.\n";
-            Logger::warning('StaffSeeder: no roles found');
+            Logger::warning('[StaffSeeder] no roles found');
 
             return;
         }
@@ -114,8 +112,7 @@ final class StaffSeeder
                 // Validar que el rol exista
                 $roleCode = $staff['role_code'];
                 if (!isset($roles[$roleCode])) {
-                    echo "AVISO: Rol '$roleCode' no encontrado, saltando {$staff['email']}\n";
-                    Logger::warning('StaffSeeder: role missing', ['role' => $roleCode, 'email' => $staff['email']]);
+                    Logger::warning('[StaffSeeder] role missing', ['role' => $roleCode, 'email' => $staff['email']]);
                     continue;
                 }
 
@@ -139,13 +136,11 @@ final class StaffSeeder
                 );
                 $count++;
             } catch (Exception $e) {
-                echo "Error creando {$staff['email']}: " . $e->getMessage() . "\n";
-                Logger::error('StaffSeeder: error creating staff', ['email' => $staff['email'], 'exception' => $e->getMessage()]);
+                Logger::error('[StaffSeeder] error creating staff', ['email' => $staff['email'], 'exception' => $e->getMessage()]);
             }
         }
 
-        echo "Plantilla generada (~$count usuarios).\n";
-        Logger::info('StaffSeeder: completed', ['created' => $count]);
+        Logger::info('[StaffSeeder] completed', ['created' => $count]);
     }
 
     /**
@@ -163,8 +158,7 @@ final class StaffSeeder
 
             return $roles;
         } catch (Exception $e) {
-            echo 'Error obteniendo roles: ' . $e->getMessage() . "\n";
-            Logger::error('StaffSeeder: error getting roles', ['exception' => $e->getMessage()]);
+            Logger::error('[StaffSeeder] error getting roles', ['exception' => $e->getMessage()]);
 
             return [];
         }

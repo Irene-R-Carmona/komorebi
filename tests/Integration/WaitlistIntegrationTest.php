@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -17,10 +16,15 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use Tests\Support\BaseIntegrationTest;
-use App\Services\WaitlistService;
 use App\Models\Waitlist;
+use App\Repositories\ReservationRepository;
+use App\Repositories\TimeSlotRepository;
+use App\Repositories\WaitlistRepository;
+use App\Services\EmailService;
+use App\Services\WaitlistService;
+use Override;
 use PDO;
+use Tests\Support\BaseIntegrationTest;
 
 final class WaitlistIntegrationTest extends BaseIntegrationTest
 {
@@ -33,12 +37,18 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
     private const TEST_CAFE_ID = 88885;
     private const TEST_SLOT_ID = 88884;
 
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
         $this->seedTestData();
-        $this->service = new WaitlistService(self::$db, null); // null para EmailService en tests
+        $this->service = new WaitlistService(
+            self::$db,
+            new EmailService(),
+            new WaitlistRepository(self::$db),
+            new TimeSlotRepository(self::$db),
+            new ReservationRepository(self::$db)
+        );
     }
 
     /**
@@ -47,16 +57,16 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
     private function seedTestData(): void
     {
         // Limpiar datos previos si existen
-        self::$db->exec("DELETE FROM waitlist WHERE time_slot_id = " . self::TEST_SLOT_ID);
-        self::$db->exec("DELETE FROM time_slots WHERE id = " . self::TEST_SLOT_ID);
-        self::$db->exec("DELETE FROM cafes WHERE id = " . self::TEST_CAFE_ID);
-        self::$db->exec("DELETE FROM users WHERE id IN (" . self::TEST_USER_ID . ", " . self::TEST_USER_ID_2 . ", " . self::TEST_USER_ID_3 . ")");
+        self::$db->exec('DELETE FROM waitlist WHERE time_slot_id = ' . self::TEST_SLOT_ID);
+        self::$db->exec('DELETE FROM time_slots WHERE id = ' . self::TEST_SLOT_ID);
+        self::$db->exec('DELETE FROM cafes WHERE id = ' . self::TEST_CAFE_ID);
+        self::$db->exec('DELETE FROM users WHERE id IN (' . self::TEST_USER_ID . ', ' . self::TEST_USER_ID_2 . ', ' . self::TEST_USER_ID_3 . ')');
 
         // Usuario de prueba 1
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO users (id, uuid, email, password, name, email_verified_at, is_active)
             VALUES (
-                " . self::TEST_USER_ID . ",
+                ' . self::TEST_USER_ID . ",
                 UUID(),
                 'waitlist-test-1@komorebi.test',
                 '\$argon2id\$v=19\$m=65536,t=4,p=1\$test\$hash',
@@ -67,10 +77,10 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
         ");
 
         // Usuario de prueba 2
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO users (id, uuid, email, password, name, email_verified_at, is_active)
             VALUES (
-                " . self::TEST_USER_ID_2 . ",
+                ' . self::TEST_USER_ID_2 . ",
                 UUID(),
                 'waitlist-test-2@komorebi.test',
                 '\$argon2id\$v=19\$m=65536,t=4,p=1\$test\$hash',
@@ -81,10 +91,10 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
         ");
 
         // Usuario de prueba 3
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO users (id, uuid, email, password, name, email_verified_at, is_active)
             VALUES (
-                " . self::TEST_USER_ID_3 . ",
+                ' . self::TEST_USER_ID_3 . ",
                 UUID(),
                 'waitlist-test-3@komorebi.test',
                 '\$argon2id\$v=19\$m=65536,t=4,p=1\$test\$hash',
@@ -95,14 +105,14 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
         ");
 
         // Café de prueba
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO cafes (
                 id, name, slug, location, category, animal_type,
                 description, price_per_hour, opening_time, closing_time,
                 capacity_max, is_active, has_reservations
             )
             VALUES (
-                " . self::TEST_CAFE_ID . ",
+                ' . self::TEST_CAFE_ID . ",
                 'Waitlist Test Café',
                 'waitlist-test-cafe',
                 'Tokyo Test District',
@@ -119,7 +129,7 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
         ");
 
         // Time slot de prueba (SIN disponibilidad para permitir waitlist)
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO time_slots (
                 id, cafe_id, slot_date, slot_time,
                 total_capacity, available_spots, reserved_spots,
@@ -127,8 +137,8 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
                 created_at, updated_at
             )
             VALUES (
-                " . self::TEST_SLOT_ID . ",
-                " . self::TEST_CAFE_ID . ",
+                ' . self::TEST_SLOT_ID . ',
+                ' . self::TEST_CAFE_ID . ",
                 '2026-12-25',
                 '14:00',
                 5,
@@ -152,7 +162,7 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
         $result1 = $this->service->joinWaitlist(self::TEST_SLOT_ID, self::TEST_USER_ID, [
             'email' => 'waitlist-test-1@komorebi.test',
             'user_name' => 'User 1',
-            'guest_count' => 2
+            'guest_count' => 2,
         ]);
 
         // ASSERT: Éxito y posición 1
@@ -163,19 +173,19 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
         $result2 = $this->service->joinWaitlist(self::TEST_SLOT_ID, self::TEST_USER_ID_2, [
             'email' => 'waitlist-test-2@komorebi.test',
             'user_name' => 'User 2',
-            'guest_count' => 1
+            'guest_count' => 1,
         ]);
 
         // ASSERT: Posición 2
         $this->assertSame(2, $result2->data['position'] ?? null);
 
         // Verificar estado en BD
-        $stmt = self::$db->query("
+        $stmt = self::$db->query('
             SELECT COUNT(*) FROM waitlist
-            WHERE time_slot_id = " . self::TEST_SLOT_ID . "
-        ");
+            WHERE time_slot_id = ' . self::TEST_SLOT_ID . '
+        ');
         $count = $stmt->fetchColumn();
-        $this->assertSame(2, (int)$count);
+        $this->assertSame(2, (int) $count);
     }
 
     public function testPromoteNextUpdatesStatusInDatabase(): void
@@ -184,7 +194,7 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
         $result = $this->service->joinWaitlist(self::TEST_SLOT_ID, self::TEST_USER_ID, [
             'email' => 'waitlist-test-1@komorebi.test',
             'user_name' => 'User 1',
-            'guest_count' => 2
+            'guest_count' => 2,
         ]);
         $token = $result->data['token'] ?? null;
 
@@ -196,9 +206,9 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
         $this->assertTrue($promoteResult->data['promoted'] ?? false);
 
         // Verificar estado 'notified' en BD
-        $stmt = self::$db->prepare("
+        $stmt = self::$db->prepare('
             SELECT status FROM waitlist WHERE token = ?
-        ");
+        ');
         $stmt->execute([$token]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         $this->assertSame(Waitlist::STATUS_NOTIFIED, $row['status'] ?? null);
@@ -210,7 +220,7 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
         $result = $this->service->joinWaitlist(self::TEST_SLOT_ID, self::TEST_USER_ID, [
             'email' => 'waitlist-test-1@komorebi.test',
             'user_name' => 'User 1',
-            'guest_count' => 2
+            'guest_count' => 2,
         ]);
         $token = $result->data['token'] ?? '';
 
@@ -231,19 +241,19 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
         $result1 = $this->service->joinWaitlist(self::TEST_SLOT_ID, self::TEST_USER_ID, [
             'email' => 'waitlist-test-1@komorebi.test',
             'user_name' => 'User 1',
-            'guest_count' => 2
+            'guest_count' => 2,
         ]);
 
         $result2 = $this->service->joinWaitlist(self::TEST_SLOT_ID, self::TEST_USER_ID_2, [
             'email' => 'waitlist-test-2@komorebi.test',
             'user_name' => 'User 2',
-            'guest_count' => 1
+            'guest_count' => 1,
         ]);
 
         $result3 = $this->service->joinWaitlist(self::TEST_SLOT_ID, self::TEST_USER_ID_3, [
             'email' => 'waitlist-test-3@komorebi.test',
             'user_name' => 'User 3',
-            'guest_count' => 3
+            'guest_count' => 3,
         ]);
 
         // ASSERT: Posiciones correctas
@@ -252,33 +262,33 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
         $this->assertSame(3, $result3->data['position'] ?? null);
 
         // Verificar orden en BD
-        $stmt = self::$db->query("
+        $stmt = self::$db->query('
             SELECT user_id, position FROM waitlist
-            WHERE time_slot_id = " . self::TEST_SLOT_ID . "
+            WHERE time_slot_id = ' . self::TEST_SLOT_ID . '
             ORDER BY position ASC
-        ");
+        ');
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $this->assertCount(3, $rows);
-        $this->assertSame(self::TEST_USER_ID, (int)$rows[0]['user_id']);
-        $this->assertSame(self::TEST_USER_ID_2, (int)$rows[1]['user_id']);
-        $this->assertSame(self::TEST_USER_ID_3, (int)$rows[2]['user_id']);
+        $this->assertSame(self::TEST_USER_ID, (int) $rows[0]['user_id']);
+        $this->assertSame(self::TEST_USER_ID_2, (int) $rows[1]['user_id']);
+        $this->assertSame(self::TEST_USER_ID_3, (int) $rows[2]['user_id']);
     }
 
     public function testConfirmPromotionFailsWhenTokenExpired(): void
     {
         // ARRANGE: Crear entrada waitlist con token expirado directamente en BD
-        $token = bin2hex(random_bytes(16));
-        $expiredTime = date('Y-m-d H:i:s', time() - 3600); // 1 hora atrás
+        $token = \bin2hex(\random_bytes(16));
+        $expiredTime = \date('Y-m-d H:i:s', \time() - 3600); // 1 hora atrás
 
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO waitlist (
                 time_slot_id, user_id, position, token, status,
                 contact_email, guest_count, expires_at, response_timeout_minutes
             )
             VALUES (
-                " . self::TEST_SLOT_ID . ",
-                " . self::TEST_USER_ID . ",
+                ' . self::TEST_SLOT_ID . ',
+                ' . self::TEST_USER_ID . ",
                 1,
                 '{$token}',
                 '" . Waitlist::STATUS_NOTIFIED . "',
@@ -294,11 +304,11 @@ final class WaitlistIntegrationTest extends BaseIntegrationTest
             'pass_product_id' => 1,
             'pass_name' => 'Pase 1H',
             'pass_unit_price' => 1500,
-            'pass_duration_minutes' => 60
+            'pass_duration_minutes' => 60,
         ]);
 
         // ASSERT: Debe fallar por expiración
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('expirado', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('expirado', \strtolower($result->error ?? ''));
     }
 }

@@ -1,0 +1,58 @@
+/* ============================================================================
+   DATA VIEWER — Vista interna de verificación de datos
+   Usa tokens de admin-common.css como fuente autoritativa
+   ============================================================================ */
+
+/* Grid de stats resumen */
+.dv-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--admin-space-md);
+  margin-bottom: var(--admin-space-lg);
+}
+
+/* Número grande en stat card */
+.dv-stat__number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--admin-primary);
+  line-height: 1.1;
+}
+
+/* Etiqueta descriptiva del stat */
+.dv-stat__label {
+  color: var(--admin-text-muted);
+  font-size: 0.8125rem;
+  margin-top: var(--admin-space-xs);
+}
+
+/* Sección con tabla — usa .card-admin pero con margen inferior */
+.dv-section {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  padding: var(--admin-space-lg);
+  margin-bottom: var(--admin-space-lg);
+  overflow-x: auto;
+}
+
+.dv-section h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-primary);
+  margin: 0 0 var(--admin-space-md) 0;
+  padding-bottom: var(--admin-space-sm);
+  border-bottom: 2px solid var(--admin-border);
+}
+
+/* Precio en tabla */
+.dv-price {
+  font-weight: 700;
+  color: var(--admin-success);
+}
+
+/* Rating en tabla */
+.dv-rating {
+  color: var(--admin-warning);
+  font-size: 1.1em;
+}

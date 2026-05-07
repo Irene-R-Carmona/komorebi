@@ -11,6 +11,7 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../app/Core/Helpers.php';
 
 use App\Core\Config;
 use App\Workers\EmailWorker;
@@ -19,7 +20,7 @@ use App\Workers\EmailWorker;
 try {
     Config::init();
 } catch (Throwable $e) {
-    fwrite(STDERR, "[EmailWorker] [FATAL] Error de configuración: " . $e->getMessage() . "\n");
+    fwrite(STDERR, '[EmailWorker] [FATAL] Error de configuración: ' . $e->getMessage() . "\n");
     exit(1);
 }
 
@@ -28,6 +29,6 @@ try {
     $worker = new EmailWorker();
     $worker->run();
 } catch (Throwable $e) {
-    fwrite(STDERR, "[EmailWorker] [FATAL] " . $e->getMessage() . "\n");
+    fwrite(STDERR, '[EmailWorker] [FATAL] ' . $e->getMessage() . "\n");
     exit(1);
 }

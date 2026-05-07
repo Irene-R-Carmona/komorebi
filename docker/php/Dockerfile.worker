@@ -1,21 +1,25 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1
 # =============================================================================
 # Worker image — PHP CLI for queue/email/notification workers
 # Derived from Dockerfile.prod: no Xdebug, no Node, no Composer, minimal.
 # =============================================================================
 
 # Stage 1: build vendor
-FROM composer:2.8 AS vendor-build
+FROM composer:2 AS vendor-build
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+RUN --mount=type=cache,target=/root/.composer/cache \
+    composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
 COPY . /app
-RUN composer dump-autoload --optimize
+RUN --mount=type=cache,target=/root/.composer/cache \
+    composer dump-autoload --optimize
 
 # Stage 2: runtime
-FROM dunglas/frankenphp:1.11.1-php8.4-alpine
+FROM php:8.4-cli-alpine
 
 WORKDIR /app
+
+COPY --from=mlocati/php-extension-installer:2 /usr/bin/install-php-extensions /usr/bin/install-php-extensions
 
 RUN install-php-extensions \
     pdo_mysql \
@@ -31,7 +35,7 @@ RUN install-php-extensions \
 COPY docker/php/ini/php.ini          /usr/local/etc/php/conf.d/00-php.ini
 COPY docker/php/ini/error-prod.ini   /usr/local/etc/php/conf.d/01-error.ini
 COPY docker/php/ini/memory.ini       /usr/local/etc/php/conf.d/03-memory.ini
-COPY docker/php/ini/opcache.ini      /usr/local/etc/php/conf.d/04-opcache.ini
+COPY docker/php/ini/opcache-worker.ini /usr/local/etc/php/conf.d/04-opcache.ini
 
 COPY --from=vendor-build /app /app
 

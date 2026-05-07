@@ -30,12 +30,13 @@ CREATE TABLE IF NOT EXISTS animal_health_checks (
     notes TEXT NULL COMMENT 'Notas adicionales del keeper',
     alerts JSON NULL COMMENT 'Array JSON de alertas detectadas automáticamente',
     -- Claves foráneas (Cascada: eliminar checks si se elimina animal; Restrict: no permitir eliminar keeper con checks registrados)
-    FOREIGN KEY (animal_id) REFERENCES animals(id) ON DELETE CASCADE,
-    FOREIGN KEY (checked_by) REFERENCES users(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_animal_health_checks_animals FOREIGN KEY (animal_id) REFERENCES animals(id) ON DELETE CASCADE,
+    CONSTRAINT fk_animal_health_checks_users FOREIGN KEY (checked_by) REFERENCES users(id) ON DELETE RESTRICT,
     -- Índices para performance
     INDEX idx_animal_date (animal_id, check_date),
     INDEX idx_check_date (check_date),
     INDEX idx_checked_by (checked_by, check_date),
+    INDEX idx_health_check_date (check_date DESC, animal_id),
     -- Constraint: Un solo chequeo por animal por día
     UNIQUE KEY uk_animal_check_date (animal_id, check_date)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'Chequeos diarios de salud animal realizados por keepers';
@@ -88,8 +89,8 @@ WHERE a.deleted_at IS NULL
     AND a.current_status IN ('active', 'monitoring')
     AND hc.id IS NULL
 ORDER BY a.last_health_check IS NULL DESC,
-    a.last_health_check ASC,
-    a.name ASC;
+    a.last_health_check,
+    a.name;
 SET FOREIGN_KEY_CHECKS = 1;
 -- ============================================================================
 -- FIN MIGRACIÓN 015

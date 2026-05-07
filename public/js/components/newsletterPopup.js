@@ -9,13 +9,15 @@
       messageType: 'success',
 
       init: function () {
+        if (window.location.pathname !== '/') return;
         let self = this;
-        setTimeout(function () { self.checkShouldShow(); }, 5000);
+        setTimeout(function () { self.checkShouldShow(); }, 15000);
       },
 
       checkShouldShow: async function () {
+        if (sessionStorage.getItem('newsletter_prompted') === '1') return;
         try {
-          let res = await fetch('/api/cookies/newsletter-prompted');
+          let res = await fetch('/api/v1/cookies/newsletter-prompted');
           let data = await res.json();
           if (!data.prompted) this.showPopup = true;
         } catch (err) {
@@ -26,9 +28,10 @@
       closePopup: async function (permanent) {
         if (permanent === undefined) permanent = false;
         this.showPopup = false;
+        sessionStorage.setItem('newsletter_prompted', '1');
         if (permanent) {
           try {
-            await fetch('/api/cookies/newsletter-prompted', {
+            await fetch('/api/v1/cookies/newsletter-prompted', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ permanent: true })
@@ -42,7 +45,7 @@
         this.loading = true;
         this.message = '';
         try {
-          let res = await fetch('/api/newsletter/subscribe', {
+          let res = await fetch('/api/v1/newsletter/subscriptions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: this.email })

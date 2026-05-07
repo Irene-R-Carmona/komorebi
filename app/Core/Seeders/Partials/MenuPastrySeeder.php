@@ -44,6 +44,14 @@ final class MenuPastrySeeder
         return (int) $stmt->fetchColumn() > 0;
     }
 
+    private function getExistingProductId(string $name, int $categoryId): int
+    {
+        $stmt = $this->db->prepare('SELECT id FROM products WHERE name = ? AND category_id = ?');
+        $stmt->execute([$name, $categoryId]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
     /**
      * Asigna alérgenos a un producto
      */
@@ -258,8 +266,9 @@ final class MenuPastrySeeder
         foreach ($products as $item) {
             // Verificar si el producto ya existe
             if ($this->productExists($item['name'], $catId)) {
-                echo "   -> '{$item['name']}' ya existe, saltando...
-";
+                echo "   -> '{$item['name']}' ya existe, asignando al\u00e9rgenos...\n";
+                $existId = $this->getExistingProductId($item['name'], $catId);
+                $this->assignAllergens($existId, $item['allergens']);
                 continue;
             }
 
@@ -274,7 +283,7 @@ final class MenuPastrySeeder
                 ':steps' => $item['steps'],
                 ':ingred' => \json_encode($item['ingred'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
                 ':check' => $item['check'],
-                ':targets' => !empty($item['target']) ? \json_encode($item['target'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) : null,
+                ':targets' => \json_encode($item['target'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
                 ':img' => $item['img'],
             ]);
 

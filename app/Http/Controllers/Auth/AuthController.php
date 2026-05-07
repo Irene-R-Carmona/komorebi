@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
@@ -14,6 +15,7 @@ use App\Exceptions\ValidationException;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\AuthService;
+use App\Services\Contracts\AuthServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -33,12 +35,12 @@ use Throwable;
  */
 final class AuthController
 {
-    private AuthService $authService;
+    private AuthServiceInterface $authService;
     private ResponseFactory $response;
 
-    public function __construct(?AuthService $authService = null, ?ResponseFactory $response = null)
+    public function __construct(?AuthServiceInterface $authService = null, ?ResponseFactory $response = null)
     {
-        $this->authService = $authService ?? new AuthService();
+        $this->authService = $authService ?? Container::make(AuthService::class);
         $this->response = $response ?? new ResponseFactory();
     }
 
@@ -66,7 +68,7 @@ final class AuthController
 
             return null;
         } catch (Throwable $e) {
-            Logger::error('AuthController::showLogin ERROR: ' . $e->getMessage());
+            Logger::error('[AuthController::showLogin] Error', ['exception' => $e->getMessage()]);
             throw $e;
         }
     }
@@ -112,6 +114,7 @@ final class AuthController
                 'errors' => $e->getErrors(),
                 'old' => ['email' => $body['email'] ?? ''],
             ], ['auth.css']);
+
             return null;
         }
 
@@ -127,7 +130,7 @@ final class AuthController
         // Error de credenciales: volver a mostrar el formulario
         View::render('auth/login', [
             'titulo' => 'Iniciar Sesión',
-            'error' => $result->getMessage(),
+            'error' => $result->error,
             'old' => ['email' => $data['email']],
         ], ['auth.css']);
 
@@ -155,6 +158,7 @@ final class AuthController
                 'errors' => $e->getErrors(),
                 'old' => ['name' => $body['name'] ?? '', 'email' => $body['email'] ?? ''],
             ], ['auth.css']);
+
             return null;
         }
 
@@ -174,7 +178,7 @@ final class AuthController
         // Error de negocio: volver a mostrar el formulario
         View::render('auth/register', [
             'titulo' => 'Crear Cuenta',
-            'error' => $result->getMessage(),
+            'error' => $result->error,
             'old' => ['name' => $data['name'], 'email' => $data['email']],
         ], ['auth.css']);
 

@@ -2,29 +2,25 @@
 
 declare(strict_types=1);
 
-/**
- * Script de aplicación de base de datos
- *
- * Aplica migraciones SQL y ejecuta seeders en orden correcto.
- */
-
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Core\Database;
 use App\Core\Logger;
-use App\Core\Seeders\RbacSeeder;
-use App\Core\Seeders\MenuSeeder;
-use App\Core\Seeders\AnimalSeeder;
+use App\Core\Seeders\AllergenSeeder;
 use App\Core\Seeders\AnimalIncidentSeeder;
+use App\Core\Seeders\AnimalSeeder;
+use App\Core\Seeders\AuditLogSeeder;
+use App\Core\Seeders\AuthAuditLogSeeder;
 use App\Core\Seeders\CafeSeeder;
-use App\Core\Seeders\SystemSettingsSeeder;
-use App\Core\Seeders\StaffSeeder;
-use App\Core\Seeders\UserSeeder;
+use App\Core\Seeders\MenuSeeder;
+use App\Core\Seeders\NewsletterSeeder;
+use App\Core\Seeders\RbacSeeder;
 use App\Core\Seeders\ReservationSeeder;
 use App\Core\Seeders\ReviewSeeder;
-use App\Core\Seeders\TelegramSeeder;
-use App\Core\Seeders\NewsletterSeeder;
+use App\Core\Seeders\StaffSeeder;
+use App\Core\Seeders\SystemSettingsSeeder;
 use App\Core\Seeders\TimeSlotSeeder;
+use App\Core\Seeders\UserSeeder;
 use App\Core\Seeders\WaitlistSeeder;
 
 const SEPARATOR = "\n===============================================================\n";
@@ -35,33 +31,20 @@ $force = isset($options['force']);
 $seedersOnly = isset($options['seeders-only']);
 
 $logDir = __DIR__ . '/../storage/logs';
-$logFile = $logDir . '/init-migrations.log';
+if (!is_dir($logDir)) {
+    mkdir($logDir, 0o755, true);
+}
 $seedLock = __DIR__ . '/../storage/.seeded';
-
-if (!is_dir($logDir) && !mkdir($logDir, 0755, true) && !is_dir($logDir)) {
-    // Intento de creación fallido; usar stdout como fallback
-    $logFile = 'php://stdout';
-}
-
-// Si no se puede escribir en storage, usar stdout como fallback
-$canWriteLog = is_writable($logDir) || (!file_exists($logFile) && is_writable(dirname($logFile)));
-if (!$canWriteLog) {
-    $logFile = 'php://stdout';
-}
 
 function logMsg(string $msg, string $level = 'info'): void
 {
-    // Mostrar en consola para visibilidad en entrypoint
-    $dt = new \DateTime();
-    $time = $dt->format('Y-m-d H:i:s');
-    $line = "[$time] " . $msg . PHP_EOL;
-    echo $line;
+    $dt = new DateTime();
+    echo '[' . $dt->format('Y-m-d H:i:s') . '] ' . $msg . PHP_EOL;
 
-    // Enviar a Monolog (wrapper)
     try {
         switch (strtolower($level)) {
             case 'error':
-                Logger::error($msg);
+                Logger::error($msg, []);
                 break;
             case 'warning':
                 Logger::warning($msg);
@@ -71,39 +54,38 @@ function logMsg(string $msg, string $level = 'info'): void
                 break;
             default:
                 Logger::info($msg);
-                break;
         }
     } catch (Throwable $e) {
-        // No bloquear la ejecución si el logger falla
-        echo "[logger-fallback] " . $e->getMessage() . PHP_EOL;
+        echo '[logger-fallback] ' . $e->getMessage() . PHP_EOL;
     }
 }
 
 if (isset($options['help'])) {
     echo <<<HELP
 
-APLICADOR DE REDISEÑO BD KOMOREBI v2.0
+        APLICADOR DE MIGRACIONES Y SEEDERS - KOMOREBI
 
-Uso: php scripts/apply-db.php [opciones]
+        Uso: php scripts/apply-db.php [opciones]
 
-Opciones:
-  --force         Aplicar sin confirmación (modo CI/CD)
-  --seeders-only  Solo ejecutar seeders (skip migraciones)
-  --help          Mostrar esta ayuda
+        Opciones:
+          --force         Aplicar sin confirmación (modo CI/CD)
+          --seeders-only  Solo ejecutar seeders (skip migraciones)
+          --help          Mostrar esta ayuda
 
-Orden de ejecución:
-  1. Migraciones SQL (001-012, secuencialmente)
-  2. Seeders: RBAC → Menu → Animal → Cafe → Settings → Staff → User
+        Orden de ejecución:
+          1. Migraciones SQL (001-018, idempotente, secuencialmente)
+          2. Seeders: RBAC → Cafes → Animals → Menu → Staff → Users → Reservations → Reviews → Newsletter → TimeSlots → Waitlist
+          3. Verificación de eventos RGPD
 
-ADVERTENCIA: Este script modifica la estructura de la base de datos.
-            Asegúrate de tener un backup antes de continuar.
+        ADVERTENCIA: Este script modifica la estructura de la base de datos.
+                    Asegúrate de tener un backup antes de continuar.
 
-HELP;
+        HELP;
     exit(0);
 }
 
 logMsg(SEPARATOR);
-logMsg('  APLICADOR DE REDISEÑO BD - KOMOREBI v2.0');
+logMsg('  APLICADOR DE MIGRACIONES Y SEEDERS - KOMOREBI');
 logMsg(SEPARATOR);
 
 try {
@@ -116,18 +98,20 @@ try {
 
 // Confirmación (solo si no --force y no --seeders-only)
 if (!$force && !$seedersOnly) {
-    echo "\nWARNING: ADVERTENCIA: Este script aplicará cambios estructurales a la BD.\n";
-    echo "   - Eliminará campo 'rating' de tabla 'cafes'\n";
-    echo "   - Añadirá campos RGPD (deleted_at, anonymized_at, retention_until)\n";
-    echo "   - Creará eventos MySQL de purga automática\n";
-    echo "   - Aplicará 9 migraciones SQL\n\n";
-    echo "¿Continuar? (yes/no): ";
-    $handle = fopen("php://stdin", 'rb');
-    $line = trim(fgets($handle));
-    fclose($handle);
+    echo "\nADVERTENCIA: Este script aplicará cambios a la base de datos.\n";
+    echo "   - Aplicará 18 archivos de migración SQL (idempotente)\n";
+    echo "   - Ejecutará seeders si la BD está vacía\n";
+    echo "   - Verificará eventos RGPD de purga automática\n\n";
+    echo '¿Continuar? (yes/no): ';
+    $handle = fopen('php://stdin', 'rb');
+    $rawLine = $handle !== false ? fgets($handle) : false;
+    $line = $rawLine !== false ? trim($rawLine) : '';
+    if ($handle !== false) {
+        fclose($handle);
+    }
 
     if ($line !== 'yes') {
-        logMsg('\n❌ Operación cancelada por el usuario.');
+        logMsg('Operación cancelada por el usuario.', 'warning');
         exit(0);
     }
 }
@@ -159,6 +143,8 @@ if (!$seedersOnly) {
         '013_loyalty_system.sql',
         '014_staff_shifts.sql',
         '015_animal_health_checks.sql',
+        '016_supervisor_assignments.sql',
+        '018_api_tokens.sql',
     ];
 
     foreach ($migrations as $migration) {
@@ -174,82 +160,109 @@ if (!$seedersOnly) {
         try {
             $sql = file_get_contents($path);
 
-            // Ejecutar migration completa
             $db->exec($sql);
 
             logMsg('OK');
         } catch (PDOException $e) {
-            // Si falla por tabla existente, es OK (migraciones idempotentes)
-            if (str_contains($e->getMessage(), 'already exists')) {
-                logMsg('(tabla ya existe, skip)');
+            // Si falla por objeto ya existente, es OK (migraciones idempotentes)
+            // - MySQL CREATE TABLE: "already exists"
+            // - MySQL ADD COLUMN:   "Duplicate column name"
+            // - MySQL CREATE INDEX: "Duplicate key name"
+            $msg = $e->getMessage();
+            if (
+                str_contains($msg, 'already exists')
+                || str_contains($msg, 'Duplicate column name')
+                || str_contains($msg, 'Duplicate key name')
+            ) {
+                logMsg('(objeto ya existe, skip)');
             } else {
-                logMsg('ERROR: ' . $e->getMessage());
+                logMsg('ERROR: ' . $msg);
 
                 if (!$force) {
-                    logMsg('\nERROR: Migración fallida. Detener ejecución.');
+                    logMsg('ERROR: Migración fallida. Detener ejecución.', 'error');
                     exit(1);
                 }
             }
         }
     }
 
-    logMsg('\n✅ Migraciones SQL aplicadas');
+    logMsg('OK: Migraciones SQL aplicadas');
 }
 
 // ════════════════════════════════════════════════════════════════
-// PASO 2: EJECUTAR SEEDERS (mejorado, con prereqs y múltiples pasadas)
+// PASO 2: EJECUTAR SEEDERS
 // ════════════════════════════════════════════════════════════════
 
 logMsg(SEPARATOR);
 logMsg('  PASO 2: EJECUTANDO SEEDERS');
 logMsg(SEPARATOR);
 
-// Definir seeders en el orden de ejecución y prerequisitos SQL por seeder
+// Definir seeders con prerequisitos de ejecución
 $seeders = [
     'RBAC' => ['class' => RbacSeeder::class, 'prereq' => null],
     'Cafes' => ['class' => CafeSeeder::class, 'prereq' => null],
     'Animals' => ['class' => AnimalSeeder::class, 'prereq' => null],
     'AnimalIncidents' => ['class' => AnimalIncidentSeeder::class, 'prereq' => static function (PDO $db) {
-        $cnt = (int)$db->query('SELECT COUNT(*) FROM animals')->fetchColumn();
+        $cnt = (int) $db->query('SELECT COUNT(*) FROM animals')->fetchColumn();
+
         return $cnt > 0;
     }],
     'Settings' => ['class' => SystemSettingsSeeder::class, 'prereq' => null],
+    'Allergens' => ['class' => AllergenSeeder::class, 'prereq' => null],
     'Menu' => ['class' => MenuSeeder::class, 'prereq' => null],
     'Staff' => ['class' => StaffSeeder::class, 'prereq' => static function (PDO $db) {
         // Requiere cafés creados
-        $cnt = (int)$db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
+        $cnt = (int) $db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
+
         return $cnt > 0;
     }],
     'Users' => ['class' => UserSeeder::class, 'prereq' => static function (PDO $db) {
         // Requiere rol 'user' existente
-        $stmt = $db->prepare("SELECT COUNT(*) FROM roles WHERE code = :code");
+        $stmt = $db->prepare('SELECT COUNT(*) FROM roles WHERE code = :code');
         $stmt->execute(['code' => 'user']);
-        return ((int)$stmt->fetchColumn()) > 0;
+
+        return ((int) $stmt->fetchColumn()) > 0;
     }],
     'Reservations' => ['class' => ReservationSeeder::class, 'prereq' => static function (PDO $db) {
-        // Requiere usuarios, cafés y product_type 'pass'
-        $u = (int)$db->query('SELECT COUNT(*) FROM users')->fetchColumn();
-        $c = (int)$db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
-        $p = (int)$db->query("SELECT COUNT(*) FROM products WHERE product_type = 'pass'")->fetchColumn();
-        return $u > 0 && $c > 0 && $p > 0;
+        // Requiere usuarios, cafés, product_type 'pass' y time_slots
+        $u = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn();
+        $c = (int) $db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
+        $p = (int) $db->query("SELECT COUNT(*) FROM products WHERE product_type = 'pass'")->fetchColumn();
+        $t = (int) $db->query('SELECT COUNT(*) FROM time_slots')->fetchColumn();
+
+        return $u > 0 && $c > 0 && $p > 0 && $t > 0;
     }],
     'Reviews' => ['class' => ReviewSeeder::class, 'prereq' => static function (PDO $db) {
         // Requiere reservas completadas
-        $cnt = (int)$db->query("SELECT COUNT(*) FROM reservations WHERE status = 'completed'")->fetchColumn();
+        $cnt = (int) $db->query("SELECT COUNT(*) FROM reservations WHERE status = 'completed'")->fetchColumn();
+
         return $cnt > 0;
     }],
-    'Telegram' => ['class' => TelegramSeeder::class, 'prereq' => null],
     'Newsletter' => ['class' => NewsletterSeeder::class, 'prereq' => null],
     'TimeSlots' => ['class' => TimeSlotSeeder::class, 'prereq' => static function (PDO $db) {
         // Requiere cafés creados
-        $cnt = (int)$db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
+        $cnt = (int) $db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
+
         return $cnt > 0;
     }],
     'Waitlist' => ['class' => WaitlistSeeder::class, 'prereq' => static function (PDO $db) {
         // Requiere usuarios y time_slots
-        $u = (int)$db->query('SELECT COUNT(*) FROM users')->fetchColumn();
-        $t = (int)$db->query('SELECT COUNT(*) FROM time_slots')->fetchColumn();
+        $u = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn();
+        $t = (int) $db->query('SELECT COUNT(*) FROM time_slots')->fetchColumn();
+
         return $u > 0 && $t > 0;
+    }],
+    'AuditLog' => ['class' => AuditLogSeeder::class, 'prereq' => static function (PDO $db) {
+        // Requiere usuarios existentes
+        $u = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn();
+
+        return $u > 0;
+    }],
+    'AuthAuditLog' => ['class' => AuthAuditLogSeeder::class, 'prereq' => static function (PDO $db) {
+        // Requiere usuarios existentes
+        $u = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn();
+
+        return $u > 0;
     }],
 ];
 
@@ -257,57 +270,79 @@ $seeders = [
 $shouldSeed = true;
 $forceSeedEnv = getenv('FORCE_SEED');
 
-if (file_exists($seedLock) && !$force && $forceSeedEnv !== '1') {
-    // Verificar si las tablas críticas tienen datos
+if (!$force && $forceSeedEnv !== '1') {
     try {
-        $userCount = (int)$db->query('SELECT COUNT(*) FROM users')->fetchColumn();
-        $cafeCount = (int)$db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
-        $roleCount = (int)$db->query('SELECT COUNT(*) FROM roles')->fetchColumn();
+        $userCount = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn();
+        $cafeCount = (int) $db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
+        $roleCount = (int) $db->query('SELECT COUNT(*) FROM roles')->fetchColumn();
 
         if ($userCount > 0 && $cafeCount > 0 && $roleCount > 0) {
-            logMsg("SKIP: Lockfile encontrado ($seedLock) y BD contiene datos. Saltando seeders.");
+            $lockStatus = file_exists($seedLock)
+                ? "Lockfile encontrado ($seedLock) y"
+                : 'Lockfile ausente (filesystem efímero) pero';
+            logMsg("SKIP: $lockStatus BD contiene datos. Saltando seeders.");
             logMsg("      (usuarios: $userCount, cafés: $cafeCount, roles: $roleCount)");
-            logMsg("      Para forzar re-seeding: --force o FORCE_SEED=1");
+            logMsg('      Para forzar re-seeding usar variable de entorno FORCE_SEED=1');
             $shouldSeed = false;
         } else {
-            logMsg("WARNING: Lockfile existe pero tablas están vacías. Ejecutando seeders...");
+            $lockStatus = file_exists($seedLock)
+                ? 'Lockfile existe pero tablas están vacías.'
+                : 'Primera ejecución — tablas vacías.';
+            logMsg("INFO: $lockStatus Ejecutando seeders...");
             logMsg("      (usuarios: $userCount, cafés: $cafeCount, roles: $roleCount)");
         }
     } catch (Throwable $e) {
-        logMsg("WARNING: Error verificando datos existentes: " . $e->getMessage());
-        logMsg("      Ejecutando seeders por precaución...");
+        logMsg('WARNING: Error verificando datos existentes: ' . $e->getMessage());
+        logMsg('      Ejecutando seeders por precaución...');
     }
 }
 
 if ($shouldSeed) {
-    // IMPORTANTE: Limpiar tablas antes de ejecutar seeders para evitar duplicados
-    logMsg("\n▶ Limpiando tablas antes de insertar datos...");
+    logMsg('Limpiando tablas antes de insertar datos...');
 
     $tablesToClean = [
-        'newsletter_subscriptions',
-        'telegram_message_log',
+        'api_tokens',
+        'active_sessions',
+        'email_verification_tokens',
+        'password_reset_tokens',
+        'telegram_message_logs',
         'telegram_users',
+        'api_audit_logs',
+        'audit_logs',
+        'auth_audit_logs',
         'favorites',
+        'waitlist',
+        'time_slots',
+        'user_animal_visits',
+        'loyalty_rewards',
+        'loyalty_cards',
+        'loyalty_reward_catalog',
+        'supervisor_assignments',
         'reservation_items',
         'reservations',
         'reviews',
+        'animal_health_checks',
         'animal_incidents',
         'animal_relationships',
         'animal_status_log',
+        'interaction_sessions',
         'animals',
         'species_rules',
+        'staff_shifts',
         'trackers',
         'cafe_zones',
         'user_roles',
         'users',
         'product_allergens',
         'products',
+        'allergens',
         'menu_categories',
         'cafes',
         'role_permissions',
         'permissions',
         'roles',
         'settings',
+        'newsletter_subscriptions',
     ];
 
     try {
@@ -327,25 +362,24 @@ if ($shouldSeed) {
         $db->exec('SET FOREIGN_KEY_CHECKS = 1');
         logMsg("OK Tablas limpiadas correctamente\n");
     } catch (Throwable $e) {
-        logMsg("⚠️  Error durante limpieza de tablas: " . $e->getMessage());
+        logMsg('WARNING: Error durante limpieza de tablas: ' . $e->getMessage(), 'warning');
     }
 
     $pending = $seeders;
     $results = [];
-    $max_passes = 3;
+    $maxPasses = 3;
 
-    for ($pass = 1; $pass <= $max_passes && !empty($pending); $pass++) {
+    for ($pass = 1; $pass <= $maxPasses && !empty($pending); $pass++) {
         logMsg("[Pass $pass] Seeders pendientes: " . implode(', ', array_keys($pending)));
 
         foreach ($pending as $name => $meta) {
             $cls = $meta['class'];
             $prereq = $meta['prereq'];
 
-            // Comprobar prerequisitos
             $canRun = true;
             if (is_callable($prereq)) {
                 try {
-                    $canRun = (bool)$prereq($db);
+                    $canRun = (bool) $prereq($db);
                 } catch (Throwable $e) {
                     logMsg("[$name] Error comprobando prerequisitos: " . $e->getMessage());
                     $canRun = false;
@@ -357,7 +391,6 @@ if ($shouldSeed) {
                 continue;
             }
 
-            // Clase debe existir
             if (!class_exists($cls)) {
                 logMsg("SKIP: Seeder $name (clase $cls no encontrada)");
                 $results[$name] = 'missing_class';
@@ -374,64 +407,57 @@ if ($shouldSeed) {
                 $results[$name] = 'ok';
                 unset($pending[$name]);
             } catch (Throwable $e) {
-                // Log detallado: mensaje + trace
                 logMsg("ERROR: {$name}Seeder falló: " . $e->getMessage());
                 logMsg("[$name] Exception: " . $e->__toString());
                 $results[$name] = 'failed';
 
                 if (!$force) {
-                    logMsg('\nERROR: Seeder fallido. Detener ejecución.');
+                    logMsg('ERROR: Seeder fallido. Detener ejecución.', 'error');
                     exit(1);
                 }
-
-                // En modo force, no eliminar de pending para permitir reintentos en siguientes pasadas
-                // Se mantiene en $pending para que pueda volver a intentarse si fue por prereqs
             }
         }
 
-        if (!empty($pending) && $pass < $max_passes) {
-            logMsg("Seeders aún pendientes: " . implode(', ', array_keys($pending)) . ". Esperando 2s antes del siguiente pass...");
+        if (!empty($pending) && $pass < $maxPasses) {
+            logMsg('Seeders aún pendientes: ' . implode(', ', array_keys($pending)) . '. Esperando 2s antes del siguiente pass...');
             sleep(2);
         }
     }
 
-    // Informe final
     if (!empty($pending)) {
-        logMsg('\nWARNING: Algunos seeders no se ejecutaron tras ' . $max_passes . ' pasadas: ' . implode(', ', array_keys($pending)) . '\n');
-        foreach ($pending as $n => $m) {
-            $results[$n] = $results[$n] ?? 'pending';
+        logMsg('WARNING: Algunos seeders no se ejecutaron tras ' . $maxPasses . ' pasadas: ' . implode(', ', array_keys($pending)), 'warning');
+        foreach (array_keys($pending) as $n) {
+            $results[$n] ??= 'pending';
         }
     }
 
-    // Crear lockfile si OK (ok o missing_class)
     $allOk = array_reduce($results, static function ($carry, $item) {
         return $carry && ($item === 'ok' || $item === 'missing_class');
     }, true);
 
     if ($allOk) {
-        if ($logFile !== 'php://stdout') {
-            $dt = new \DateTime();
-            @file_put_contents($seedLock, $dt->format(DATE_ATOM));
+        if (is_writable(dirname($seedLock))) {
+            $dt = new DateTime();
+            file_put_contents($seedLock, $dt->format(DATE_ATOM));
             logMsg("Lockfile creado: $seedLock");
         } else {
-            logMsg('Lockfile no creado porque el log está en stdout (entorno no escribible)');
+            logMsg('Lockfile no creado: directorio de storage no escribible');
         }
     } else {
         logMsg('No se creó lockfile porque algunos seeders fallaron o quedaron pendientes');
     }
 
-    // Resumen
-    logMsg('\nResumen de seeders:');
+    logMsg('Resumen de seeders:');
     foreach ($results as $n => $status) {
         logMsg(" - $n : $status");
     }
 
     if (!$allOk) {
-        logMsg('\nWARNING: Atención: revisar logs y corregir errores antes de considerar el proceso completo.');
+        logMsg('WARNING: Atención: revisar logs y corregir errores antes de considerar el proceso completo.', 'warning');
     }
 }
 
-logMsg('\n✅ Seeders (intento) finalizado');
+logMsg('OK: Seeders (intento) finalizado');
 
 // ════════════════════════════════════════════════════════════════
 // PASO 3: VERIFICAR EVENTOS RGPD
@@ -442,7 +468,7 @@ logMsg('  PASO 3: VERIFICANDO EVENTOS RGPD');
 logMsg(SEPARATOR);
 
 try {
-    $stmt = $db->query("SHOW EVENTS");
+    $stmt = $db->query('SHOW EVENTS');
     $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $expectedEvents = [
@@ -454,9 +480,12 @@ try {
         'evt_cleanup_old_products',
         'evt_purge_telegram_logs',
         'evt_cleanup_old_animals',
+        'evt_expire_waitlist',
+        'evt_cleanup_old_time_slots',
+        'evt_expire_loyalty_rewards',
     ];
 
-    $foundEvents = array_map(static fn($e) => $e['Name'], $events);
+    $foundEvents = array_map(static fn ($e) => $e['Name'], $events);
 
     logMsg('Eventos encontrados:');
     $totalFound = 0;
@@ -469,11 +498,11 @@ try {
         }
     }
 
-    logMsg('\nTotal: ' . $totalFound . ' / ' . count($expectedEvents) . ' eventos RGPD activos');
+    logMsg('Total: ' . $totalFound . ' / ' . count($expectedEvents) . ' eventos RGPD activos');
 
     if ($totalFound < count($expectedEvents)) {
-        logMsg('\nWARNING: ADVERTENCIA: Algunos eventos RGPD no están activos.');
-        logMsg("   Verifica que MySQL tenga el event_scheduler habilitado: SET GLOBAL event_scheduler = ON;");
+        logMsg('ADVERTENCIA: Algunos eventos RGPD no están activos.', 'warning');
+        logMsg('   Verifica que MySQL tenga el event_scheduler habilitado: SET GLOBAL event_scheduler = ON;');
     }
 } catch (PDOException $e) {
     logMsg('WARNING: No se pudo verificar eventos: ' . $e->getMessage());
@@ -484,13 +513,13 @@ try {
 // ════════════════════════════════════════════════════════════════
 
 logMsg(SEPARATOR);
-logMsg('  REDISEÑO DE BD APLICADO (resumen)');
+logMsg('  PROCESO COMPLETADO (resumen)');
 logMsg(SEPARATOR);
 
-logMsg('\nPróximos pasos recomendados:');
+logMsg('Próximos pasos recomendados:');
 logMsg('1. Verificar eventos MySQL: SHOW EVENTS;');
 logMsg("2. Verificar scheduler: SHOW VARIABLES LIKE 'event_scheduler';");
-logMsg("3. Habilitar scheduler: SET GLOBAL event_scheduler = ON;");
+logMsg('3. Habilitar scheduler: SET GLOBAL event_scheduler = ON;');
 logMsg('4. Ejecutar tests: docker compose exec app php vendor/bin/phpunit');
 logMsg('5. Revisar logs: docker compose logs -f app');
 

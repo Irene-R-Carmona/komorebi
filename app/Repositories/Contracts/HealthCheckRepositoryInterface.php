@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\AnimalHealthCheckDTO;
+use PDOException;
+
 /**
  * Interfaz para el repositorio de chequeos de salud animal.
  * Define operaciones CRUD y consultas específicas del sistema de health checks.
@@ -16,26 +19,23 @@ interface HealthCheckRepositoryInterface
      * Obtener un chequeo por su ID.
      *
      * @param int $id ID del chequeo
-     * @return array|null Datos del chequeo o null si no existe
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?AnimalHealthCheckDTO;
 
     /**
      * Obtener el chequeo de un animal para una fecha específica.
      *
      * @param int $animalId ID del animal
      * @param string|null $date Fecha en formato Y-m-d (default: hoy)
-     * @return array|null Datos del chequeo o null si no existe
      */
-    public function findByAnimalAndDate(int $animalId, ?string $date = null): ?array;
+    public function findByAnimalAndDate(int $animalId, ?string $date = null): ?AnimalHealthCheckDTO;
 
     /**
      * Obtener el chequeo de hoy para un animal.
      *
      * @param int $animalId ID del animal
-     * @return array|null Datos del chequeo o null si no existe
      */
-    public function findTodayByAnimalId(int $animalId): ?array;
+    public function findTodayByAnimalId(int $animalId): ?AnimalHealthCheckDTO;
 
     /**
      * Obtener historial de chequeos de un animal.
@@ -76,9 +76,18 @@ interface HealthCheckRepositoryInterface
      *
      * @param array $data Datos del chequeo
      * @return int ID del chequeo creado
-     * @throws \PDOException Si falla la inserción
+     * @throws PDOException Si falla la inserción
      */
     public function create(array $data): int;
+
+    /**
+     * Actualizar un chequeo existente (solo corrección de errores).
+     *
+     * @param int $id ID del chequeo
+     * @param array $data Campos a actualizar
+     * @return bool True si se actualizó correctamente
+     */
+    public function update(int $id, array $data): bool;
 
     /**
      * Verificar si existe un chequeo para un animal en una fecha.
@@ -87,7 +96,7 @@ interface HealthCheckRepositoryInterface
      * @param string $date Fecha en formato Y-m-d
      * @return bool True si existe, false en caso contrario
      */
-    public function exists(int $animalId, string $date): bool;
+    public function existsForAnimalOnDate(int $animalId, string $date): bool;
 
     /**
      * Contar chequeos realizados por un keeper en un rango de fechas.
@@ -106,4 +115,20 @@ interface HealthCheckRepositoryInterface
      * @return array Estadísticas agrupadas por tipo de alerta
      */
     public function getAlertStatistics(int $days = 7): array;
+
+    /**
+     * Obtener logs recientes de las últimas 24 horas.
+     *
+     * @param int $limit Número máximo de resultados
+     * @return array<int, array<string, mixed>>
+     */
+    public function getRecentLogs(int $limit = 20): array;
+
+    /**
+     * Registrar un cuidado simple (upsert por día).
+     *
+     * @param array $data Debe contener: animal_id, notes, logged_by_user_id
+     * @return int ID del registro creado o actualizado
+     */
+    public function createCareLog(array $data): int;
 }

@@ -19,6 +19,7 @@ use App\Exceptions\RouterException;
 use App\Exceptions\RouterParameterException;
 use App\Exceptions\ValidationException;
 use ErrorException;
+use JsonException;
 use Throwable;
 
 /**
@@ -36,13 +37,17 @@ final class ExceptionHandler
      * @param string|null $context Contexto adicional (nombre del controlador/servicio)
      *
      * @return void
-     * @throws \JsonException
+     * @throws JsonException
      */
     public static function handle(Throwable $exception, ?string $context = null): void
     {
         // Registrar la excepción
         ExceptionLogger::log($exception, $context);
         ExceptionLogger::recordMetrics($exception);
+
+        if (\class_exists(\Sentry\State\HubInterface::class)) {
+            \Sentry\captureException($exception);
+        }
 
         // Detectar si es petición API/AJAX
         $isApiRequest = self::isApiRequest();
@@ -91,7 +96,7 @@ final class ExceptionHandler
     /**
      * Maneja ValidationException (422)
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleValidation(ValidationException $exception, bool $isApi): void
     {
@@ -112,7 +117,7 @@ final class ExceptionHandler
             if (!\headers_sent()) {
                 @\http_response_code($exception->getHttpCode());
             }
-            \header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '/'));
+            \header('Location: ' . View::safeReferer());
             exit;
         }
     }
@@ -120,7 +125,7 @@ final class ExceptionHandler
     /**
      * Maneja NotFoundException (404)
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleNotFound(NotFoundException $exception, bool $isApi): void
     {
@@ -131,7 +136,7 @@ final class ExceptionHandler
                 $exception->getHttpCode(),
                 [
                     'resource_type' => $exception->getResourceType(),
-                    'resource_id'   => $exception->getResourceId(),
+                    'resource_id' => $exception->getResourceId(),
                 ]
             );
         } else {
@@ -141,14 +146,14 @@ final class ExceptionHandler
             View::render('errors/404', [
                 'message' => $exception->getMessage(),
                 'resource_type' => $exception->getResourceType(),
-            ]);
+            ], [], 'errors');
         }
     }
 
     /**
      * Maneja AuthenticationException (401)
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleAuthentication(AuthenticationException $exception, bool $isApi): void
     {
@@ -171,7 +176,7 @@ final class ExceptionHandler
     /**
      * Maneja AuthorizationException (403)
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleAuthorization(AuthorizationException $exception, bool $isApi): void
     {
@@ -182,7 +187,7 @@ final class ExceptionHandler
                 $exception->getHttpCode(),
                 [
                     'permission' => $exception->getPermission(),
-                    'resource'   => $exception->getResource(),
+                    'resource' => $exception->getResource(),
                 ]
             );
         } else {
@@ -192,14 +197,14 @@ final class ExceptionHandler
             View::render('errors/403', [
                 'message' => $exception->getMessage(),
                 'permission' => $exception->getPermission(),
-            ]);
+            ], [], 'errors');
         }
     }
 
     /**
      * Maneja BusinessRuleException (400)
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleBusinessRule(BusinessRuleException $exception, bool $isApi): void
     {
@@ -210,7 +215,7 @@ final class ExceptionHandler
                 $exception->getHttpCode(),
                 [
                     'rule_code' => $exception->getRuleCode(),
-                    'context'   => $exception->getContext(),
+                    'context' => $exception->getContext(),
                 ]
             );
         } else {
@@ -219,7 +224,7 @@ final class ExceptionHandler
             if (!\headers_sent()) {
                 @\http_response_code($exception->getHttpCode());
             }
-            \header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '/'));
+            \header('Location: ' . View::safeReferer());
             exit;
         }
     }
@@ -227,7 +232,7 @@ final class ExceptionHandler
     /**
      * Maneja RateLimitException (429)
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleRateLimit(RateLimitException $exception, bool $isApi): void
     {
@@ -241,8 +246,8 @@ final class ExceptionHandler
                 $exception->getHttpCode(),
                 [
                     'retry_after' => $exception->getRetryAfter(),
-                    'limit'       => $exception->getLimit(),
-                    'action'      => $exception->getAction(),
+                    'limit' => $exception->getLimit(),
+                    'action' => $exception->getAction(),
                 ]
             );
         } else {
@@ -250,9 +255,10 @@ final class ExceptionHandler
                 @\http_response_code($exception->getHttpCode());
             }
             View::render('errors/429', [
+                'titulo' => '429 - Demasiadas solicitudes',
                 'message' => $exception->getMessage(),
-                'retry_after' => $exception->getRetryAfter(),
-            ]);
+                'retryAfter' => $exception->getRetryAfter(),
+            ], [], 'errors');
         }
     }
 
@@ -261,7 +267,7 @@ final class ExceptionHandler
     /**
      * Maneja RouterParameterException (400)
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleRouterParameter(RouterParameterException $exception, bool $isApi): void
     {
@@ -276,14 +282,14 @@ final class ExceptionHandler
             if (!\headers_sent()) {
                 @\http_response_code($exception->getHttpCode());
             }
-            View::render('errors/400', ['message' => $exception->getMessage()]);
+            View::render('errors/400', ['message' => $exception->getMessage()], [], 'errors');
         }
     }
 
     /**
      * Maneja RouterException (500)
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleRouter(RouterException $exception, bool $isApi): void
     {
@@ -293,14 +299,14 @@ final class ExceptionHandler
             if (!\headers_sent()) {
                 @\http_response_code(500);
             }
-            View::render('errors/500', ['message' => $exception->getMessage()]);
+            View::render('errors/500', ['message' => $exception->getMessage()], [], 'errors');
         }
     }
 
     /**
      * Maneja MiddlewareException (500)
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleMiddleware(MiddlewareException $exception, bool $isApi): void
     {
@@ -315,14 +321,14 @@ final class ExceptionHandler
             if (!\headers_sent()) {
                 @\http_response_code(500);
             }
-            View::render('errors/500', ['message' => $exception->getMessage()]);
+            View::render('errors/500', ['message' => $exception->getMessage()], [], 'errors');
         }
     }
 
     /**
      * Maneja DatabaseException (500)
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleDatabase(DatabaseException $exception, bool $isApi): void
     {
@@ -341,14 +347,14 @@ final class ExceptionHandler
             View::render('errors/500', [
                 'message' => $message,
                 'show_details' => $isDebug,
-            ]);
+            ], [], 'errors');
         }
     }
 
     /**
      * Maneja ConfigurationException (500)
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleConfiguration(ConfigurationException $exception, bool $isApi): void
     {
@@ -367,14 +373,14 @@ final class ExceptionHandler
             View::render('errors/500', [
                 'message' => $message,
                 'show_details' => false, // Nunca mostrar config
-            ]);
+            ], [], 'errors');
         }
     }
 
     /**
      * Maneja ExternalServiceException (503)
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleExternalService(ExternalServiceException $exception, bool $isApi): void
     {
@@ -390,16 +396,17 @@ final class ExceptionHandler
                 @\http_response_code(503);
             }
             View::render('errors/503', [
+                'titulo' => '503 - Servicio no disponible',
                 'message' => $exception->getMessage(),
                 'service' => $exception->getServiceName(),
-            ]);
+            ], [], 'errors');
         }
     }
 
     /**
      * Maneja excepciones genéricas no capturadas
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     private static function handleGeneric(Throwable $exception, bool $isApi): void
     {
@@ -416,9 +423,9 @@ final class ExceptionHandler
                 'server_error',
                 500,
                 $isDebug ? [
-                    'type'     => \get_class($exception),
-                    'file'     => $exception->getFile(),
-                    'line'     => $exception->getLine(),
+                    'type' => \get_class($exception),
+                    'file' => $exception->getFile(),
+                    'line' => $exception->getLine(),
                     'error_id' => $errorId,
                 ] : ['error_id' => $errorId]
             );
@@ -430,8 +437,8 @@ final class ExceptionHandler
                 'message' => $message,
                 'error_id' => $errorId,
                 'show_details' => $isDebug,
-                'exception' => $isDebug ? $exception : null,
-            ]);
+                'exception' => $isDebug ? (string) $exception : null,
+            ], [], 'errors');
         }
     }
 
@@ -446,7 +453,7 @@ final class ExceptionHandler
      * - Convierte errores en excepciones controladas.
      * - Registra un shutdown function para errores fatales.
      *
-     * @throws \JsonException
+     * @throws JsonException
      * @throws ErrorException
      *
      * @return void

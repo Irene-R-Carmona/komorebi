@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\BaseService;
-use App\Core\Database;
+use App\Domain\DTO\MenuDTO;
 use App\Repositories\Contracts\MenuRepositoryInterface;
-use App\Repositories\MenuRepository;
-use JsonException;
-use PDO;
+use App\Services\Contracts\MenuServiceInterface;
+use Override;
 
 /**
  * Servicio de Menú
@@ -21,51 +20,13 @@ use PDO;
  * - Decodificar JSON de alérgenos y atributos de forma segura
  * - Preparar datos para renderizado en vista
  */
-final class MenuService extends BaseService
+final class MenuService extends BaseService implements MenuServiceInterface
 {
-    private PDO $db;
     private MenuRepositoryInterface $menuRepository;
 
-    public function __construct(?PDO $db = null, ?MenuRepositoryInterface $menuRepository = null)
+    public function __construct(MenuRepositoryInterface $menuRepository)
     {
-        $this->db = $db ?? Database::getConnection();
-        $this->menuRepository = $menuRepository ?? new MenuRepository($this->db);
-    }
-
-    /**
-     * Comprueba si una columna existe en la tabla (soporta SQLite y MySQL)
-     */
-    private function columnExists(string $table, string $column): bool
-    {
-        try {
-            $driver = $this->db->getAttribute(PDO::ATTR_DRIVER_NAME);
-
-            if ($driver === 'sqlite') {
-                $stmt = $this->db->prepare("PRAGMA table_info($table)");
-                $stmt->execute();
-                $cols = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-                foreach ($cols as $c) {
-                    if (isset($c['name']) && $c['name'] === $column) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            // MySQL / MariaDB
-            if ($driver === 'mysql') {
-                $stmt = $this->db->prepare(
-                    'SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = :table AND COLUMN_NAME = :col AND TABLE_SCHEMA = DATABASE()'
-                );
-                $stmt->execute(['table' => $table, 'col' => $column]);
-                return (bool) $stmt->fetch();
-            }
-        } catch (\Throwable $e) {
-            // En caso de error, asumimos que no existe
-            return false;
-        }
-
-        return false;
+        $this->menuRepository = $menuRepository;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -79,6 +40,7 @@ final class MenuService extends BaseService
      * @param bool $includeExperiences Si incluir categoría "experiencias" (por defecto false)
      * @return array<int, array{id: int, name: string, slug: string, display_order: int}>
      */
+    #[Override]
     public function getCategories(bool $includeExperiences = false): array
     {
         return $this->menuRepository->getCategories($includeExperiences);
@@ -87,41 +49,20 @@ final class MenuService extends BaseService
     /**
      * Obtiene productos disponibles (items solo, no pases) agrupados por categoría.
      * Usa LEFT JOIN para cargar alérgenos en una sola query (elimina N+1)
+     *
+     * @param array<int> $excludeAllergens IDs de alérgenos a excluir
+     * @return array<int, array<int, array<string, mixed>>>
      */
+    #[Override]
     public function getProductsByCategory(array $excludeAllergens = []): array
     {
-        $products = $this->menuRepository->getProductsByCategory($excludeAllergens);
+        $rows = $this->menuRepository->getProductsByCategory($excludeAllergens);
 
-        // Agrupar productos por category_id
+        // Convertir filas crudas a DTOs y agrupar por category_id
         $grouped = [];
-        foreach ($products as $product) {
-            $categoryId = (int)$product['category_id'];
-            if (!isset($grouped[$categoryId])) {
-                $grouped[$categoryId] = [];
-            }
-
-            // Parsear allergen_ids y allergen_names en allergens_list
-            $allergensList = [];
-            if (!empty($product['allergen_ids'])) {
-                $ids = explode(',', $product['allergen_ids']);
-                $names = explode(',', $product['allergen_names']);
-                $icons = !empty($product['allergen_icons']) ? explode(',', $product['allergen_icons']) : [];
-                $colors = !empty($product['allergen_colors']) ? explode(',', $product['allergen_colors']) : [];
-                $severities = !empty($product['allergen_severities']) ? explode(',', $product['allergen_severities']) : [];
-
-                foreach ($ids as $idx => $id) {
-                    $allergensList[] = [
-                        'id' => (int)$id,
-                        'name' => $names[$idx] ?? '',
-                        'icon' => $icons[$idx] ?? '',
-                        'icon_color' => $colors[$idx] ?? '',
-                        'severity' => $severities[$idx] ?? 'moderate'
-                    ];
-                }
-            }
-            $product['allergens_list'] = $allergensList;
-
-            $grouped[$categoryId][] = $product;
+        foreach ($rows as $row) {
+            $dto = MenuDTO::fromArray($row);
+            $grouped[$dto->category_id][] = $dto->toViewArray();
         }
 
         return $grouped;
@@ -130,16 +71,20 @@ final class MenuService extends BaseService
     /**
      * Obtiene todos los productos disponibles sin agrupar.
      *
-     * @return array<int, array{id: int, category_id: int, name: string, japanese_name: string, description: string, price: int, image_url: string, is_active: int, product_type: string, allergens_list: array}>
+     * @return array<int, array<string, mixed>>
      */
+    #[Override]
     public function getAllProducts(): array
     {
-        return $this->menuRepository->getAllProducts();
+        $dtos = $this->menuRepository->getAllProducts();
+
+        return \array_map(static fn (MenuDTO $dto): array => $dto->toViewArray(), $dtos);
     }
 
     /**
      * Obtiene pases disponibles.
      */
+    #[Override]
     public function getPasses(): array
     {
         return $this->menuRepository->getPasses();
@@ -154,79 +99,10 @@ final class MenuService extends BaseService
      * @param string|null $animalType   Tipo de animal del café
      * @return array<int, array>
      */
+    #[Override]
     public function getPassesForCafe(?string $cafeCategory = null, ?string $animalType = null): array
     {
         return $this->menuRepository->getPassesForCafe($cafeCategory, $animalType);
-    }
-
-    /**
-     * Verifica si un pase cumple con los criterios de café y animal
-     */
-    private function passMatchesCriteria(array $pass, ?string $cafeCategory, ?string $animalType): bool
-    {
-        $cafeTargets = $this->decodeJsonField($pass['target_cafe_types'] ?? null);
-        $animalTargets = $this->decodeJsonField($pass['target_animal_types'] ?? null);
-
-        // Si JSON inválido, descartar pase
-        if ($cafeTargets === false || $animalTargets === false) {
-            return false;
-        }
-
-        // Si tiene targets específicos, filtrar estrictamente
-        if (!empty($cafeTargets) || !empty($animalTargets)) {
-            return $this->targetsMatch($cafeTargets, $animalTargets, $cafeCategory, $animalType);
-        }
-
-        // Si no tiene targets, es genérico - incluir siempre
-        return true;
-    }
-
-    /**
-     * Decodifica campo JSON o retorna array si ya es array
-     *
-     * @return array|false Array decodificado o false si JSON inválido
-     */
-    private function decodeJsonField($field)
-    {
-        if (empty($field)) {
-            return [];
-        }
-
-        if (\is_array($field)) {
-            return $field;
-        }
-
-        if (\is_string($field)) {
-            try {
-                return \json_decode($field, true, 512, JSON_THROW_ON_ERROR) ?? [];
-            } catch (JsonException) {
-                return false; // JSON inválido
-            }
-        }
-
-        return [];
-    }
-
-    /**
-     * Verifica si los targets específicos coinciden con los criterios
-     */
-    private function targetsMatch(
-        array $cafeTargets,
-        array $animalTargets,
-        ?string $cafeCategory,
-        ?string $animalType
-    ): bool {
-        // Verificar categoría del café si hay targets
-        if (!empty($cafeTargets) && $cafeCategory !== null && !\in_array($cafeCategory, $cafeTargets, true)) {
-            return false;
-        }
-
-        // Verificar tipo de animal si hay targets
-        if (!empty($animalTargets) && $animalType !== null && !\in_array($animalType, $animalTargets, true)) {
-            return false;
-        }
-
-        return true;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -244,6 +120,7 @@ final class MenuService extends BaseService
      *     cafeTypes: array<int, array>
      * }
      */
+    #[Override]
     public function getMenuForView(array $excludeAllergens = []): array
     {
         return [
@@ -253,10 +130,10 @@ final class MenuService extends BaseService
             'allergens' => $this->getAllergens(),
             // Añadir tipos de café para filtrado (coinciden con Cafe::CATEGORY_*)
             'cafeTypes' => [
-                ['value' => 'lounge', 'label' => 'Cat Lounge', 'icon' => '🐱'],
-                ['value' => 'playroom', 'label' => 'Cat Playroom', 'icon' => '🐾'],
-                ['value' => 'farm', 'label' => 'Mini Farm', 'icon' => '🐰'],
-                ['value' => 'zen', 'label' => 'Zen Garden', 'icon' => '🌿'],
+                ['value' => 'lounge', 'label' => 'Cat Lounge', 'icon' => 'bi bi-house-heart'],
+                ['value' => 'playroom', 'label' => 'Cat Playroom', 'icon' => 'bi bi-controller'],
+                ['value' => 'farm', 'label' => 'Mini Farm', 'icon' => 'bi bi-tree'],
+                ['value' => 'zen', 'label' => 'Zen Garden', 'icon' => 'bi bi-flower1'],
             ],
         ];
     }
@@ -270,6 +147,7 @@ final class MenuService extends BaseService
      *
      * @return array<int, array{id: int, name: string, name_jp: string, icon: string, icon_color: string, severity: string}>
      */
+    #[Override]
     public function getAllergens(): array
     {
         return $this->menuRepository->getAllergens();

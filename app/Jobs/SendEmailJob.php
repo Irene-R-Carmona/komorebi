@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Core\Cache;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Exceptions\ExternalServiceException;
+use Override;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\PHPMailer;
 use Throwable;
@@ -25,22 +27,28 @@ use Throwable;
  * - cc: array<string> (opcional)
  * - bcc: array<string> (opcional)
  * - attachments: array<string> (opcional, rutas de archivos)
- *
- * @package App\Jobs
+
  */
 final class SendEmailJob implements JobInterface
 {
     /**
-     * Ejecuta el envío del email
-     *
      * @param array<string, mixed> $payload Datos del email
-     * @return void
      * @throws ExternalServiceException Si falla el envío del email
      */
-    #[\Override]
+    #[Override]
     public function handle(array $payload): void
     {
         $this->validatePayload($payload);
+
+        $idempotencyKey = 'email_sent:' . ($payload['_correlation_id'] ?? \md5(\serialize($payload)));
+
+        if (Cache::has($idempotencyKey)) {
+            Logger::info('[SendEmailJob] Skipped duplicate (idempotency key already set)', [
+                'key' => $idempotencyKey,
+            ]);
+
+            return;
+        }
 
         try {
             $mail = $this->createMailer();
@@ -48,6 +56,7 @@ final class SendEmailJob implements JobInterface
             $this->configureEmailContent($mail, $payload);
             $this->configureEmailAttachments($mail, $payload);
             $this->sendEmail($mail, $payload);
+            Cache::set($idempotencyKey, true, 86400);
         } catch (PHPMailerException $e) {
             $this->handleMailerException($e, $payload);
         } catch (Throwable $e) {
@@ -55,13 +64,10 @@ final class SendEmailJob implements JobInterface
         }
     }
 
-    /**
-     * Configura destinatarios (to, cc, bcc, from)
-     */
     private function configureEmailRecipients(PHPMailer $mail, array $payload): void
     {
         $to = isset($payload['to']) ? (string) $payload['to'] : '';
-        if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        if ($to === '' || !\filter_var($to, FILTER_VALIDATE_EMAIL)) {
             throw new ExternalServiceException('Destinatario inválido en SendEmailJob', 'SendEmailJob');
         }
         $mail->addAddress($to);
@@ -76,7 +82,7 @@ final class SendEmailJob implements JobInterface
         if (isset($payload['cc']) && \is_array($payload['cc'])) {
             foreach ($payload['cc'] as $cc) {
                 $ccEmail = (string) $cc;
-                if ($ccEmail !== '' && filter_var($ccEmail, FILTER_VALIDATE_EMAIL)) {
+                if ($ccEmail !== '' && \filter_var($ccEmail, FILTER_VALIDATE_EMAIL)) {
                     $mail->addCC($ccEmail);
                 }
             }
@@ -85,16 +91,13 @@ final class SendEmailJob implements JobInterface
         if (isset($payload['bcc']) && \is_array($payload['bcc'])) {
             foreach ($payload['bcc'] as $bcc) {
                 $bccEmail = (string) $bcc;
-                if ($bccEmail !== '' && filter_var($bccEmail, FILTER_VALIDATE_EMAIL)) {
+                if ($bccEmail !== '' && \filter_var($bccEmail, FILTER_VALIDATE_EMAIL)) {
                     $mail->addBCC($bccEmail);
                 }
             }
         }
     }
 
-    /**
-     * Configura contenido del email (asunto, cuerpo)
-     */
     private function configureEmailContent(PHPMailer $mail, array $payload): void
     {
         $mail->Subject = $payload['subject'];
@@ -102,14 +105,11 @@ final class SendEmailJob implements JobInterface
         $mail->isHTML(true);
     }
 
-    /**
-     * Configura archivos adjuntos
-     */
     private function configureEmailAttachments(PHPMailer $mail, array $payload): void
     {
         // Soporte para adjunto único (attachment_path + attachment_name)
-        if (isset($payload['attachment_path']) && file_exists($payload['attachment_path'])) {
-            $attachmentName = $payload['attachment_name'] ?? basename($payload['attachment_path']);
+        if (isset($payload['attachment_path']) && \file_exists($payload['attachment_path'])) {
+            $attachmentName = $payload['attachment_name'] ?? \basename($payload['attachment_path']);
             $mail->addAttachment($payload['attachment_path'], $attachmentName);
             Logger::debug('[SendEmailJob] Adjunto añadido', [
                 'path' => $payload['attachment_path'],
@@ -129,9 +129,6 @@ final class SendEmailJob implements JobInterface
         }
     }
 
-    /**
-     * Envía el email y registra el resultado
-     */
     private function sendEmail(PHPMailer $mail, array $payload): void
     {
         if (!$mail->send()) {
@@ -144,9 +141,6 @@ final class SendEmailJob implements JobInterface
         ]);
     }
 
-    /**
-     * Maneja excepciones de PHPMailer
-     */
     private function handleMailerException(PHPMailerException $e, array $payload): void
     {
         Logger::error('[SendEmailJob] Error de PHPMailer', [
@@ -160,9 +154,6 @@ final class SendEmailJob implements JobInterface
         );
     }
 
-    /**
-     * Maneja excepciones inesperadas
-     */
     private function handleUnexpectedException(Throwable $e, array $payload): void
     {
         Logger::error('[SendEmailJob] Error inesperado al enviar email', [
@@ -175,8 +166,6 @@ final class SendEmailJob implements JobInterface
     }
 
     /**
-     * Crea y configura una instancia de PHPMailer
-     *
      * @return PHPMailer
      * @throws PHPMailerException
      */
@@ -210,10 +199,7 @@ final class SendEmailJob implements JobInterface
     }
 
     /**
-     * Valida que el payload tenga los campos requeridos
-     *
      * @param array<string, mixed> $payload
-     * @return void
      * @throws ExternalServiceException Si falta algún campo requerido
      */
     private function validatePayload(array $payload): void

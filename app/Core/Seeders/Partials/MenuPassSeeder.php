@@ -31,6 +31,7 @@ final class MenuPassSeeder
         $passes = [
             // Pases Básicos - Todos los cafés
             [
+                'slug' => 'pass-rapido',
                 'name' => 'Pase Rápido',
                 'japanese_name' => 'クイックパス',
                 'description' => 'Visita express de 30 minutos perfecta para una pausa rápida con los animales.',
@@ -43,6 +44,7 @@ final class MenuPassSeeder
                 'target_animal_types' => null,
             ],
             [
+                'slug' => 'pass-estandar',
                 'name' => 'Pase Estándar',
                 'japanese_name' => 'スタンダードパス',
                 'description' => 'Experiencia completa de 60 minutos. Incluye tiempo para relajarte y disfrutar con los animales.',
@@ -55,6 +57,7 @@ final class MenuPassSeeder
                 'target_animal_types' => null,
             ],
             [
+                'slug' => 'pass-extendido',
                 'name' => 'Pase Extendido',
                 'japanese_name' => '拡張パス',
                 'description' => 'Dos horas de pura felicidad animal. Ideal para fotógrafos y amantes de los animales.',
@@ -69,6 +72,7 @@ final class MenuPassSeeder
 
             // Pases Especiales - Grupos
             [
+                'slug' => 'pass-familiar',
                 'name' => 'Pase Familiar',
                 'japanese_name' => 'ファミリーパス',
                 'description' => '90 minutos para grupos de 4-8 personas. Perfecto para familias con niños.',
@@ -81,6 +85,7 @@ final class MenuPassSeeder
                 'target_animal_types' => null,
             ],
             [
+                'slug' => 'pass-grupo-grande',
                 'name' => 'Pase Grupo Grande',
                 'japanese_name' => 'グループパス',
                 'description' => '2 horas para grupos de 8-15 personas. Ideal para celebraciones y eventos corporativos.',
@@ -95,6 +100,7 @@ final class MenuPassSeeder
 
             // Pases Premium - Cafés Específicos
             [
+                'slug' => 'pass-zen',
                 'name' => 'Experiencia Zen',
                 'japanese_name' => '禅体験',
                 'description' => '3 horas de meditación y conexión con animales de movimiento lento. Solo en cafés Zen.',
@@ -107,6 +113,7 @@ final class MenuPassSeeder
                 'target_animal_types' => '["tortugas", "cobayas"]',
             ],
             [
+                'slug' => 'pass-granja',
                 'name' => 'Aventura Granja',
                 'japanese_name' => '農場アドベンチャー',
                 'description' => 'Medio día (4 horas) interactuando con animales de granja. Incluye alimentación guiada.',
@@ -119,6 +126,7 @@ final class MenuPassSeeder
                 'target_animal_types' => '["capibaras", "alpacas", "caballos", "patos"]',
             ],
             [
+                'slug' => 'pass-foto-pro',
                 'name' => 'Sesión Fotográfica Pro',
                 'japanese_name' => 'プロフォトセッション',
                 'description' => '2 horas exclusivas para fotografía profesional en cafés Lounge o Playroom.',
@@ -133,6 +141,7 @@ final class MenuPassSeeder
 
             // Pases VIP
             [
+                'slug' => 'pass-dia-completo',
                 'name' => 'Pase Día Completo',
                 'japanese_name' => '一日パス',
                 'description' => 'Acceso ilimitado durante todo el día (6 horas). Incluye bebida y postre de cortesía.',
@@ -145,6 +154,7 @@ final class MenuPassSeeder
                 'target_animal_types' => null,
             ],
             [
+                'slug' => 'pass-vip-private',
                 'name' => 'Experiencia VIP Private',
                 'japanese_name' => 'VIPプライベート体験',
                 'description' => 'Cafetería privada durante 3 horas. Solo para tu grupo. Incluye menú especial.',
@@ -160,24 +170,36 @@ final class MenuPassSeeder
 
         $stmt = $this->db->prepare(
             "INSERT INTO products (
-                category_id, product_type, name, japanese_name, description,
+                category_id, product_type, name, japanese_name, slug, description,
                 price, is_active, image_url,
                 pass_duration_minutes, min_pax, max_pax,
                 target_cafe_types, target_animal_types,
                 created_at
             ) VALUES (
-                :category_id, 'pass', :name, :japanese_name, :description,
+                :category_id, 'pass', :name, :japanese_name, :slug, :description,
                 :price, 1, :image_url,
                 :duration_minutes, :min_pax, :max_pax,
                 :target_cafe_types, :target_animal_types,
                 NOW()
-            )"
+            )
+            ON DUPLICATE KEY UPDATE
+                name               = VALUES(name),
+                japanese_name      = VALUES(japanese_name),
+                description        = VALUES(description),
+                price              = VALUES(price),
+                image_url          = VALUES(image_url),
+                pass_duration_minutes = VALUES(pass_duration_minutes),
+                min_pax            = VALUES(min_pax),
+                max_pax            = VALUES(max_pax),
+                target_cafe_types  = VALUES(target_cafe_types),
+                target_animal_types = VALUES(target_animal_types),
+                updated_at         = NOW()"
         );
 
-        $count = 0;
         foreach ($passes as $pass) {
             $stmt->execute([
                 'category_id' => $categoryId,
+                'slug' => $pass['slug'],
                 'name' => $pass['name'],
                 'japanese_name' => $pass['japanese_name'],
                 'description' => $pass['description'],
@@ -189,9 +211,8 @@ final class MenuPassSeeder
                 'target_cafe_types' => $pass['target_cafe_types'],
                 'target_animal_types' => $pass['target_animal_types'],
             ]);
-            $count++;
         }
 
-        echo "    $count pases creados\n";
+        echo '    ' . \count($passes) . " pases insertados/actualizados\n";
     }
 }

@@ -1,0 +1,94 @@
+name: Deploy
+
+# Continuous Delivery — se dispara al mergear a main.
+#
+# Pasos:
+#   1. Build imagen de producción y push a GHCR
+#   2. Deploy automático a Railway (app + workers)
+#
+# Secrets necesarios (Settings → Secrets and variables → Actions):
+#   GITHUB_TOKEN      ya disponible (packages: write)
+#   RAILWAY_TOKEN     Railway Dashboard → Project Settings → Tokens
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # Build y push de imagen de producción a GHCR
+      # -----------------------------------------------------------------------
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest
+
+      - name: Build and push production image to GHCR
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/php/Dockerfile.prod
+          push: true
+          build-args: |
+            BUILD_ENV=production
+            INSTALL_DEV=false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # --------------------------------------------------------------------------
+  # Deploy a Railway (activo)
+  # --------------------------------------------------------------------------
+  deploy-railway:
+    name: Deploy to Railway
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli@latest
+
+      - name: Deploy app service to Railway
+        run: railway up --service app --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Deploy worker-email service to Railway
+        run: railway up --service worker-email --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Deploy worker-default service to Railway
+        run: railway up --service worker-default --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

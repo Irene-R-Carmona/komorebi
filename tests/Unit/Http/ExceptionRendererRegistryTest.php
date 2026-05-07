@@ -16,16 +16,22 @@ namespace Tests\Unit\Http;
 
 use App\Core\Http\ExceptionRendererInterface;
 use App\Core\Http\ExceptionRendererRegistry;
+use LogicException;
+use Override;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
+use Throwable;
 
+#[CoversClass(ExceptionRendererRegistry::class)]
 final class ExceptionRendererRegistryTest extends TestCase
 {
     public function testFindReturnsNullWhenEmpty(): void
     {
         $registry = new ExceptionRendererRegistry();
-        $this->assertNull($registry->find(new \RuntimeException('test')));
+        $this->assertNull($registry->find(new RuntimeException('test')));
     }
 
     public function testFindReturnsNullWhenNoneSupport(): void
@@ -33,47 +39,47 @@ final class ExceptionRendererRegistryTest extends TestCase
         $registry = new ExceptionRendererRegistry();
         $registry->register($this->makeRenderer(supports: false, priority: 10));
 
-        $this->assertNull($registry->find(new \RuntimeException('test')));
+        $this->assertNull($registry->find(new RuntimeException('test')));
     }
 
     public function testFindReturnsSupportingRenderer(): void
     {
         $renderer = $this->makeRenderer(supports: true, priority: 10);
-        $registry  = new ExceptionRendererRegistry();
+        $registry = new ExceptionRendererRegistry();
         $registry->register($renderer);
 
-        $this->assertSame($renderer, $registry->find(new \RuntimeException('test')));
+        $this->assertSame($renderer, $registry->find(new RuntimeException('test')));
     }
 
     public function testFindReturnsHighestPriorityRenderer(): void
     {
-        $low  = $this->makeRenderer(supports: true, priority: 5);
+        $low = $this->makeRenderer(supports: true, priority: 5);
         $high = $this->makeRenderer(supports: true, priority: 100);
 
         $registry = new ExceptionRendererRegistry();
         $registry->register($low);
         $registry->register($high);
 
-        $this->assertSame($high, $registry->find(new \RuntimeException('test')));
+        $this->assertSame($high, $registry->find(new RuntimeException('test')));
     }
 
     public function testFindIgnoresNonSupportingRendererWhenSelecting(): void
     {
-        $noMatch  = $this->makeRenderer(supports: false, priority: 999);
+        $noMatch = $this->makeRenderer(supports: false, priority: 999);
         $matching = $this->makeRenderer(supports: true, priority: 1);
 
         $registry = new ExceptionRendererRegistry();
         $registry->register($noMatch);
         $registry->register($matching);
 
-        $this->assertSame($matching, $registry->find(new \RuntimeException('test')));
+        $this->assertSame($matching, $registry->find(new RuntimeException('test')));
     }
 
     public function testFindDoesNotMutateOriginalOrder(): void
     {
-        $first  = $this->makeRenderer(supports: true, priority: 1);
+        $first = $this->makeRenderer(supports: true, priority: 1);
         $second = $this->makeRenderer(supports: true, priority: 2);
-        $third  = $this->makeRenderer(supports: true, priority: 3);
+        $third = $this->makeRenderer(supports: true, priority: 3);
 
         $registry = new ExceptionRendererRegistry();
         $registry->register($first);
@@ -81,7 +87,7 @@ final class ExceptionRendererRegistryTest extends TestCase
         $registry->register($third);
 
         // Llamar dos veces — debe ser determinista
-        $this->assertSame($registry->find(new \RuntimeException()), $registry->find(new \RuntimeException()));
+        $this->assertSame($registry->find(new RuntimeException()), $registry->find(new RuntimeException()));
     }
 
     // -----------------------------------------------------------------------
@@ -90,23 +96,24 @@ final class ExceptionRendererRegistryTest extends TestCase
 
     private function makeRenderer(bool $supports, int $priority): ExceptionRendererInterface
     {
-        return new class($supports, $priority) implements ExceptionRendererInterface {
+        return new class ($supports, $priority) implements ExceptionRendererInterface {
             public function __construct(
                 private readonly bool $s,
                 private readonly int  $p,
-            ) {}
+            ) {
+            }
 
-            #[\Override] public function supports(\Throwable $e): bool
+            #[Override] public function supports(Throwable $e): bool
             {
                 return $this->s;
             }
-            #[\Override] public function priority(): int
+            #[Override] public function priority(): int
             {
                 return $this->p;
             }
-            #[\Override] public function render(\Throwable $e, ServerRequestInterface $req): ResponseInterface
+            #[Override] public function render(Throwable $e, ServerRequestInterface $req): ResponseInterface
             {
-                throw new \LogicException('should not be called in registry test');
+                throw new LogicException('should not be called in registry test');
             }
         };
     }

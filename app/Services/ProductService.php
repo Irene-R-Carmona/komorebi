@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\BaseService;
 use App\Core\Cache;
-use App\Core\Database;
-use App\Core\TransactionalService;
+use App\Core\Logger;
+use App\Domain\DTO\ProductDTO;
 use App\Exceptions\DatabaseException;
 use App\Exceptions\ValidationException;
 use App\Models\AuditLog;
-use App\Repositories\ProductRepository;
-use PDO;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Services\Contracts\ProductServiceInterface;
+use Override;
 use PDOException;
-use RuntimeException;
+use Throwable;
 
 /**
  * Servicio de gestión de productos
@@ -21,14 +23,13 @@ use RuntimeException;
  * Encapsula la lógica de negocio relacionada con productos del menú.
  * Maneja validación, persistencia y consultas.
  */
-final class ProductService extends TransactionalService
+final class ProductService extends BaseService implements ProductServiceInterface
 {
-    private ProductRepository $productRepo;
+    private ProductRepositoryInterface $productRepo;
 
-    public function __construct(?ProductRepository $productRepo = null)
+    public function __construct(ProductRepositoryInterface $productRepo)
     {
-        parent::__construct(Database::getConnection());
-        $this->productRepo = $productRepo ?? new ProductRepository();
+        $this->productRepo = $productRepo;
     }
 
     /**
@@ -36,6 +37,7 @@ final class ProductService extends TransactionalService
      *
      * @return array
      */
+    #[Override]
     public function getAll(): array
     {
         $cacheKey = 'products:all';
@@ -47,14 +49,7 @@ final class ProductService extends TransactionalService
         }
 
         // Si no está en cache, consultar BD
-        $stmt = $this->db->query('
-            SELECT p.*, c.name as category_name
-            FROM products p
-            LEFT JOIN menu_categories c ON p.category_id = c.id
-            ORDER BY c.name, p.name
-        ');
-
-        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $products = $this->productRepo->findAllWithCategoryName();
 
         // Guardar en cache por 1 hora
         Cache::set($cacheKey, $products, 3600);
@@ -70,8 +65,12 @@ final class ProductService extends TransactionalService
      * @param array   $filters Filtros opcionales: category_id, product_type, is_active, search
      * @return array{data: array, total: int, page: int, perPage: int, totalPages: int}
      */
+    #[Override]
     public function getAllPaginated(int $page = 1, int $perPage = 20, array $filters = []): array
     {
+        $page = \max(1, $page);
+        $perPage = \min(100, \max(1, $perPage));
+
         return $this->productRepo->findFiltered($filters, $page, $perPage);
     }
 
@@ -79,9 +78,10 @@ final class ProductService extends TransactionalService
      * Obtiene un producto por ID
      *
      * @param integer $id
-     * @return array|null
+     * @return ProductDTO|null
      */
-    public function getById(int $id): ?array
+    #[Override]
+    public function getById(int $id): ?ProductDTO
     {
         return $this->productRepo->findById($id);
     }
@@ -93,6 +93,7 @@ final class ProductService extends TransactionalService
      * @throws ValidationException Si faltan campos obligatorios
      * @throws DatabaseException Si falla la creación
      */
+    #[Override]
     public function create(array $data): int
     {
         // Validación de campos obligatorios
@@ -100,10 +101,22 @@ final class ProductService extends TransactionalService
             throw ValidationException::multipleRequired(['name', 'slug', 'category_id']);
         }
 
+        // Validar product_type contra ENUM DB (item, pass)
+        $productType = $data['product_type'] ?? 'item';
+        if (!\in_array($productType, ['item', 'pass'], true)) {
+            throw ValidationException::invalidFormat('product_type', 'item|pass');
+        }
+
+        // Validar station contra ENUM DB si se proporciona
+        $station = \trim($data['station'] ?? '') ?: null;
+        if ($station !== null && !\in_array($station, ['bar', 'kitchen_hot', 'kitchen_cold', 'bakery', 'assembly'], true)) {
+            throw ValidationException::invalidFormat('station', 'bar|kitchen_hot|kitchen_cold|bakery|assembly');
+        }
+
         // Preparar datos con valores por defecto
         $productData = [
             'category_id' => (int) $data['category_id'],
-            'product_type' => $data['product_type'] ?? 'food',
+            'product_type' => $productType,
             'name' => \trim($data['name']),
             'japanese_name' => \trim($data['japanese_name'] ?? ''),
             'slug' => \trim($data['slug']),
@@ -112,7 +125,7 @@ final class ProductService extends TransactionalService
             'image_url' => \trim($data['image_url'] ?? '') ?: null,
             'is_active' => isset($data['is_active']) ? 1 : 0,
             'prep_time' => !empty($data['prep_time']) ? (int) $data['prep_time'] : null,
-            'station' => \trim($data['station'] ?? '') ?: null,
+            'station' => $station,
             'duration_minutes' => !empty($data['duration_minutes']) ? (int) $data['duration_minutes'] : null,
             'min_pax' => !empty($data['min_pax']) ? (int) $data['min_pax'] : null,
             'max_pax' => !empty($data['max_pax']) ? (int) $data['max_pax'] : null,
@@ -125,8 +138,12 @@ final class ProductService extends TransactionalService
 
         try {
             $productId = $this->productRepo->create($productData);
+        } catch (PDOException $e) {
+            throw DatabaseException::fromPDOException($e);
+        }
 
-            // Log de auditoría
+        // Log de auditoría (best-effort: no bloquea la operación principal)
+        try {
             AuditLog::log(
                 'create_product',
                 'product',
@@ -134,14 +151,14 @@ final class ProductService extends TransactionalService
                 null,
                 ['name' => $productData['name'], 'category_id' => $productData['category_id'], 'price' => $productData['price']]
             );
-
-            // Invalidar cache
-            $this->invalidateCache();
-
-            return $productId;
-        } catch (PDOException $e) {
-            throw DatabaseException::fromPDOException($e);
+        } catch (Throwable) {
+            // Ignorar fallos del log de auditoría
         }
+
+        // Invalidar cache
+        $this->invalidateCache();
+
+        return $productId;
     }
 
     /**
@@ -152,6 +169,7 @@ final class ProductService extends TransactionalService
      * @throws ValidationException Si faltan campos obligatorios
      * @throws DatabaseException Si falla la actualización
      */
+    #[Override]
     public function update(int $id, array $data): bool
     {
         // Validación de campos obligatorios
@@ -159,10 +177,22 @@ final class ProductService extends TransactionalService
             throw ValidationException::multipleRequired(['name', 'slug', 'category_id']);
         }
 
+        // Validar product_type contra ENUM DB (item, pass)
+        $productType = $data['product_type'] ?? 'item';
+        if (!\in_array($productType, ['item', 'pass'], true)) {
+            throw ValidationException::invalidFormat('product_type', 'item|pass');
+        }
+
+        // Validar station contra ENUM DB si se proporciona
+        $station = \trim($data['station'] ?? '') ?: null;
+        if ($station !== null && !\in_array($station, ['bar', 'kitchen_hot', 'kitchen_cold', 'bakery', 'assembly'], true)) {
+            throw ValidationException::invalidFormat('station', 'bar|kitchen_hot|kitchen_cold|bakery|assembly');
+        }
+
         // Preparar datos con valores por defecto
         $productData = [
             'category_id' => (int) $data['category_id'],
-            'product_type' => $data['product_type'] ?? 'food',
+            'product_type' => $productType,
             'name' => \trim($data['name']),
             'japanese_name' => \trim($data['japanese_name'] ?? ''),
             'slug' => \trim($data['slug']),
@@ -171,7 +201,7 @@ final class ProductService extends TransactionalService
             'image_url' => \trim($data['image_url'] ?? '') ?: null,
             'is_active' => isset($data['is_active']) ? 1 : 0,
             'prep_time' => !empty($data['prep_time']) ? (int) $data['prep_time'] : null,
-            'station' => \trim($data['station'] ?? '') ?: null,
+            'station' => $station,
             'duration_minutes' => !empty($data['duration_minutes']) ? (int) $data['duration_minutes'] : null,
             'min_pax' => !empty($data['min_pax']) ? (int) $data['min_pax'] : null,
             'max_pax' => !empty($data['max_pax']) ? (int) $data['max_pax'] : null,
@@ -211,6 +241,7 @@ final class ProductService extends TransactionalService
      * @return boolean
      * @throws DatabaseException Si falla la eliminación
      */
+    #[Override]
     public function delete(int $id): bool
     {
         try {
@@ -225,6 +256,9 @@ final class ProductService extends TransactionalService
                     null,
                     ['id' => $id]
                 );
+
+                // Invalidar cache
+                $this->invalidateCache();
             }
 
             return $success;
@@ -239,14 +273,21 @@ final class ProductService extends TransactionalService
      * @param integer $id
      * @return boolean
      */
+    #[Override]
     public function toggleActive(int $id): bool
     {
         try {
-            $sql = 'UPDATE products SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP WHERE id = :id';
+            $success = $this->productRepo->toggleAvailability($id);
 
-            return $this->db->prepare($sql)->execute(['id' => $id]);
+            if ($success) {
+                $this->invalidateCache();
+            }
+
+            return $success;
         } catch (PDOException $e) {
-            throw new RuntimeException('Error al cambiar estado del producto: ' . $e->getMessage());
+            Logger::error('[ProductService] Error al cambiar estado del producto', ['exception' => $e->getMessage()]);
+
+            return false;
         }
     }
 
@@ -256,18 +297,10 @@ final class ProductService extends TransactionalService
      * @param integer $categoryId
      * @return array
      */
+    #[Override]
     public function getByCategory(int $categoryId): array
     {
-        $stmt = $this->db->prepare('
-            SELECT * FROM products
-            WHERE category_id = :category_id
-            AND is_active = 1
-            ORDER BY name
-        ');
-
-        $stmt->execute(['category_id' => $categoryId]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->productRepo->findByCategoryId($categoryId);
     }
 
     /**
@@ -276,21 +309,10 @@ final class ProductService extends TransactionalService
      * @param string $query
      * @return array
      */
+    #[Override]
     public function search(string $query): array
     {
-        $stmt = $this->db->prepare('
-            SELECT p.*, c.name as category_name
-            FROM products p
-            LEFT JOIN menu_categories c ON p.category_id = c.id
-            WHERE p.name LIKE :query
-            OR p.description LIKE :query
-            OR p.japanese_name LIKE :query
-            ORDER BY p.name
-        ');
-
-        $stmt->execute(['query' => "%$query%"]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->productRepo->search($query);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -305,33 +327,12 @@ final class ProductService extends TransactionalService
      * @return boolean
      * @throws DatabaseException Si falla la sincronización
      */
+    #[Override]
     public function syncAllergens(int $productId, array $allergenIds): bool
     {
-        try {
-            $this->db->beginTransaction();
+        $success = $this->productRepo->syncAllergens($productId, $allergenIds);
 
-            // Eliminar alérgenos actuales
-            $stmt = $this->db->prepare('DELETE FROM product_allergens WHERE product_id = :product_id');
-            $stmt->execute(['product_id' => $productId]);
-
-            // Insertar nuevos alérgenos
-            if (!empty($allergenIds)) {
-                $stmt = $this->db->prepare('
-                    INSERT INTO product_allergens (product_id, allergen_id)
-                    VALUES (:product_id, :allergen_id)
-                ');
-
-                foreach ($allergenIds as $allergenId) {
-                    $stmt->execute([
-                        'product_id' => $productId,
-                        'allergen_id' => $allergenId,
-                    ]);
-                }
-            }
-
-            $this->db->commit();
-
-            // Log de auditoría
+        if ($success) {
             AuditLog::log(
                 'sync_product_allergens',
                 'product',
@@ -339,12 +340,9 @@ final class ProductService extends TransactionalService
                 null,
                 ['allergen_count' => \count($allergenIds)]
             );
-
-            return true;
-        } catch (PDOException $e) {
-            $this->db->rollBack();
-            throw DatabaseException::fromPDOException($e);
         }
+
+        return $success;
     }
 
     /**
@@ -363,37 +361,14 @@ final class ProductService extends TransactionalService
      * @param integer|null $categoryId
      * @return array
      */
+    #[Override]
     public function getWithoutAllergens(array $excludeAllergenIds, ?int $categoryId = null): array
     {
         if (empty($excludeAllergenIds)) {
             return $this->getAll();
         }
 
-        $placeholders = \implode(',', \array_fill(0, \count($excludeAllergenIds), '?'));
-
-        $sql = "SELECT DISTINCT p.*, c.name as category_name
-                FROM products p
-                LEFT JOIN menu_categories c ON p.category_id = c.id
-                WHERE p.is_active = 1
-                  AND p.id NOT IN (
-                      SELECT product_id
-                      FROM product_allergens
-                      WHERE allergen_id IN ($placeholders)
-                  )";
-
-        $params = $excludeAllergenIds;
-
-        if ($categoryId !== null) {
-            $sql .= ' AND p.category_id = ?';
-            $params[] = $categoryId;
-        }
-
-        $sql .= ' ORDER BY c.name, p.name';
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->productRepo->findWithoutAllergensByCategory($excludeAllergenIds, $categoryId);
     }
 
     /**
@@ -402,32 +377,10 @@ final class ProductService extends TransactionalService
      * @param integer|null $categoryId
      * @return array
      */
+    #[Override]
     public function getAllWithAllergens(?int $categoryId = null): array
     {
-        $sql = 'SELECT p.*, c.name as category_name
-                FROM products p
-                LEFT JOIN menu_categories c ON p.category_id = c.id
-                WHERE p.is_active = 1';
-
-        $params = [];
-
-        if ($categoryId !== null) {
-            $sql .= ' AND p.category_id = :category_id';
-            $params['category_id'] = $categoryId;
-        }
-
-        $sql .= ' ORDER BY c.name, p.name';
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Cargar alérgenos para cada producto
-        foreach ($products as &$product) {
-            $product['allergens_list'] = $this->getAllergensByProduct((int) $product['id']);
-        }
-
-        return $products;
+        return $this->productRepo->getAllWithAllergens($categoryId);
     }
 
     /**
@@ -436,24 +389,9 @@ final class ProductService extends TransactionalService
      * @param integer $productId
      * @return array
      */
+    #[Override]
     public function getAllergensByProduct(int $productId): array
     {
-        $stmt = $this->db->prepare('
-            SELECT a.*
-            FROM allergens a
-            JOIN product_allergens pa ON a.id = pa.allergen_id
-            WHERE pa.product_id = :product_id
-            ORDER BY
-                CASE a.severity
-                    WHEN "high" THEN 1
-                    WHEN "medium" THEN 2
-                    WHEN "low" THEN 3
-                END,
-                a.name
-        ');
-
-        $stmt->execute(['product_id' => $productId]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->productRepo->getAllergens($productId);
     }
 }

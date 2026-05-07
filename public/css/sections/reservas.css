@@ -317,23 +317,27 @@
 }
 
 .rsv2-pill--confirmed {
-  background: rgba(46, 196, 182, 0.12);
-  border-color: rgba(46, 196, 182, 0.35);
+  background: color-mix(in srgb, var(--color-info) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-info) 35%, transparent);
+  color: var(--color-info-dark);
 }
 
 .rsv2-pill--pending {
-  background: rgba(255, 193, 7, 0.15);
-  border-color: rgba(255, 193, 7, 0.35);
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning) 35%, transparent);
+  color: var(--color-warning-dark);
 }
 
 .rsv2-pill--cancelled {
-  background: rgba(155, 35, 53, 0.10);
-  border-color: rgba(155, 35, 53, 0.25);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-danger) 25%, transparent);
+  color: var(--color-danger-dark);
 }
 
 .rsv2-pill--active {
-  background: rgba(76, 175, 80, 0.12);
-  border-color: rgba(76, 175, 80, 0.35);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 35%, transparent);
+  color: var(--color-success-dark);
 }
 
 /* Form */
@@ -413,7 +417,7 @@
   margin: 0;
 }
 
-/* Botón principal submit (diseño destacado con paleta Komorebi) */
+/* Botón principal submit */
 .btn--primario,
 .btn-primary,
 .btn-confirmar {
@@ -596,7 +600,7 @@
   color: var(--color-texto);
 }
 
-/* Select y inputs mejorados (estilo Komorebi) */
+/* Select y inputs */
 .form-select,
 .form-input,
 .form-textarea {
@@ -638,7 +642,7 @@
 .booking-section .form-textarea:focus {
   outline: none;
   border-color: var(--color-acento);
-  box-shadow: 0 0 0 4px rgba(201, 169, 89, 0.15);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-acento) 15%, transparent);
   background: var(--color-fondo);
 }
 
@@ -648,7 +652,7 @@
   line-height: 1.5;
 }
 
-/* Contador de personas (Diseño Komorebi) */
+/* Contador de personas */
 .stepper-fancy {
   display: inline-flex;
   align-items: center;
@@ -716,12 +720,12 @@
   font-weight: 600;
 }
 
-/* Resumen financiero (diseño Komorebi) */
+/* Resumen financiero */
 .booking-summary {
   padding: var(--espaciado-md);
   background: linear-gradient(135deg,
-      rgba(201, 169, 89, 0.08),
-      rgba(92, 61, 46, 0.05));
+      color-mix(in srgb, var(--color-acento) 8%, transparent),
+      color-mix(in srgb, var(--color-primario) 5%, transparent));
   border: 2px solid var(--color-acento);
   border-radius: var(--radio-md);
   margin-top: var(--espaciado-md);
@@ -748,23 +752,428 @@
   font-family: var(--fuente-titulo);
 }
 
-.booking-summary__line {
+/* ============================================================================
+   CONFIRMACIÓN DE RESERVA
+   ============================================================================ */
+.rsv2-confirmation {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.rsv2-confirmation__header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.rsv2-confirmation__icon {
+  font-size: 3rem;
+  color: var(--color-acento);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.rsv2-confirmation__title {
+  font-size: clamp(1.375rem, 3vw, 1.75rem);
+  color: var(--color-primario);
+  margin-bottom: 0.375rem;
+}
+
+.rsv2-confirmation__subtitle {
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+
+.rsv2-confirmation__code-card {
+  background: var(--color-fondo-alt);
+  border-radius: var(--radio-md);
+  padding: 1.5rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.rsv2-confirmation__code-label {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  margin-bottom: 0.5rem;
+}
+
+.rsv2-confirmation__code-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primario);
+  letter-spacing: 0.1em;
+  font-family: var(--fuente-titulo);
+  margin-bottom: 0.375rem;
+}
+
+.rsv2-confirmation__code-hint {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+
+.rsv2-confirmation__detail-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--sombra-sm);
+}
+
+.rsv2-confirmation__detail-heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+}
+
+.rsv2-confirmation__dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.rsv2-confirmation__dt {
+  color: var(--color-texto-suave);
+  font-weight: 400;
+}
+
+.rsv2-confirmation__dd {
+  font-weight: 500;
+  margin: 0;
+}
+
+.rsv2-confirmation__dd-note {
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  margin-left: 0.375rem;
+}
+
+.rsv2-confirmation__actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Extras del carrito en la confirmación */
+.rsv2-confirmation__extras-card {
+  background: color-mix(in srgb, var(--color-acento) 6%, var(--color-superficie));
+  border: 1px solid color-mix(in srgb, var(--color-acento) 30%, transparent);
+  border-radius: var(--radio-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.rsv2-confirmation__extras-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.rsv2-confirmation__extras-line {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
+  font-size: 0.9375rem;
+  color: var(--color-texto);
 }
 
-.booking-summary__line:last-child {
-  margin-bottom: 0;
-  padding-top: 1rem;
-  margin-top: 0.5rem;
-  border-top: 2px solid var(--color-borde);
-  font-size: 1.375rem;
-  font-weight: 700;
+.rsv2-confirmation__extras-name {
+  flex: 1;
+}
+
+.rsv2-confirmation__extras-price {
+  font-weight: 600;
+  color: var(--color-primario);
+  white-space: nowrap;
+}
+
+.rsv2-confirmation__extras-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-acento) 30%, transparent);
+  font-size: 1rem;
+  color: var(--color-acento-text, var(--color-acento));
+}
+
+.rsv2-confirmation__extras-total strong {
+  font-size: 1.125rem;
+  font-family: var(--fuente-titulo);
+  color: var(--color-acento-text, var(--color-acento));
+}
+
+/* ============================================================================
+   LISTA DE RESERVAS
+   ============================================================================ */
+.rsv2-lista {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.rsv2-lista__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.rsv2-lista__title {
+  font-size: clamp(1.375rem, 3vw, 1.75rem);
+  color: var(--color-primario);
+  margin-bottom: 0.25rem;
+}
+
+.rsv2-lista__subtitle {
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+
+.rsv2-lista__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rsv2-empty {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: var(--sombra-sm);
+}
+
+.rsv2-empty__icon {
+  font-size: 2.5rem;
+  color: var(--color-texto-suave);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.rsv2-empty__title {
+  font-size: 1.125rem;
+  color: var(--color-primario);
+  margin-bottom: 0.5rem;
+}
+
+.rsv2-empty__text {
+  color: var(--color-texto-suave);
+  margin-bottom: 1.5rem;
+}
+
+.rsv2-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  box-shadow: var(--sombra-sm);
+  overflow: hidden;
+}
+
+.rsv2-card__body {
+  padding: 1.25rem;
+}
+
+.rsv2-card__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.rsv2-card__ref {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  margin-bottom: 0.25rem;
+}
+
+.rsv2-card__name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  margin-bottom: 0.25rem;
+}
+
+.rsv2-card__pass {
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  margin: 0;
+}
+
+.rsv2-card__meta {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-borde);
+}
+
+.rsv2-card__meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.rsv2-card__actions {
+  margin-top: 0.75rem;
+  text-align: right;
+}
+
+.rsv2-card__cancel {
+  font-size: 0.8125rem;
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.rsv2-card__cancel:hover:not(:disabled) {
+  background-color: rgba(220, 53, 69, 0.08);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+/* ============================================================================
+   SLOT PICKER — Rejilla de turnos
+   ============================================================================ */
+.booking-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.booking-slot {
+  min-height: 44px;
+  padding: 0.5rem 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1.5px solid var(--color-borde);
+  border-radius: var(--radio-sm);
+  background: var(--color-superficie);
   color: var(--color-texto);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-out);
+  font-family: var(--fuente-cuerpo);
+  text-align: center;
+}
+
+.booking-slot:hover:not(.booking-slot--selected) {
+  border-color: var(--color-acento);
+  background: color-mix(in srgb, var(--color-acento) 8%, transparent);
+}
+
+.booking-slot--selected {
+  background: linear-gradient(135deg, var(--color-primario), var(--color-acento));
+  color: white;
+  border-color: transparent;
+  box-shadow: var(--sombra-sm);
+}
+
+.booking-slot:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   INDICADOR DE PASOS — Visual progreso
+   ============================================================================ */
+.booking-steps {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: var(--espaciado-md);
+}
+
+.booking-steps__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  flex: 0 0 auto;
+}
+
+.booking-steps__circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--color-borde);
+  background: var(--color-superficie);
+  color: var(--color-texto-suave);
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-normal) var(--easing-out);
+  line-height: 1;
+}
+
+.booking-steps__item.is-active .booking-steps__circle {
+  border-color: var(--color-acento);
+  color: var(--color-primario);
+  background: color-mix(in srgb, var(--color-acento) 12%, var(--color-superficie));
+}
+
+.booking-steps__item.is-done .booking-steps__circle {
+  background: linear-gradient(135deg, var(--color-primario), var(--color-acento));
+  border-color: transparent;
+  color: white;
+}
+
+.booking-steps__label {
+  font-size: 0.7rem;
+  color: var(--color-texto-suave);
+  white-space: nowrap;
+  text-align: center;
+  transition: color var(--duration-fast);
+  line-height: 1.2;
+}
+
+.booking-steps__item.is-active .booking-steps__label {
+  color: var(--color-primario);
+  font-weight: 600;
+}
+
+.booking-steps__line {
+  flex: 1;
+  height: 2px;
+  background: var(--color-borde);
+  margin: 0 0.25rem;
+  align-self: flex-start;
+  margin-top: 1rem;
+  margin-bottom: 1.4rem;
+  transition: background var(--duration-normal);
+}
+
+.booking-steps__line.is-done {
+  background: var(--color-acento);
+}
+
+@media (max-width: 400px) {
+  .booking-steps__label {
+    font-size: 0.6rem;
+  }
+
+  .booking-slot-grid {
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+  }
 }
 
 /* Accesibilidad: focus visible */
@@ -773,13 +1182,11 @@
 .form-textarea:focus-visible,
 .btn-confirmar:focus-visible,
 .btn-danger-outline:focus-visible {
-  outline: 3px solid rgba(46, 196, 182, 0.35);
+  outline: 3px solid color-mix(in srgb, var(--color-acento) 35%, transparent);
   outline-offset: 2px;
 }
 
-/* SECCIÓN DUPLICADA ELIMINADA - mantener solo la versión principal arriba */
-
-/* Pases (selector tipo cards - Diseño Komorebi) */
+/* Pases (selector tipo cards) */
 .booking-pass-grid {
   display: grid;
   gap: var(--espaciado-sm);
@@ -808,9 +1215,9 @@
   border-color: var(--color-acento);
   border-width: 3px;
   background: linear-gradient(135deg,
-      rgba(201, 169, 89, 0.1),
-      rgba(92, 61, 46, 0.05));
-  box-shadow: 0 0 0 3px rgba(201, 169, 89, 0.2), var(--sombra-md);
+      color-mix(in srgb, var(--color-acento) 10%, transparent),
+      color-mix(in srgb, var(--color-primario) 5%, transparent));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-acento) 20%, transparent), var(--sombra-md);
   padding: calc(var(--espaciado-md) - 1px);
 }
 
@@ -1021,13 +1428,14 @@
   }
 }
 
-align-items: center;
-gap: 0.6rem;
-padding: 0.45rem 0.6rem;
-border-radius: 999px;
-border: 1px solid var(--color-borde);
-background: rgba(255, 255, 255, 0.7);
-backdrop-filter: blur(4px);
+.booking-ticket .stepper-fancy {
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-borde);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
 }
 
 .booking-ticket .stepper-btn {
@@ -1044,8 +1452,8 @@ backdrop-filter: blur(4px);
 
 .booking-ticket .stepper-btn:hover {
   transform: translateY(-1px);
-  border-color: rgba(46, 196, 182, 0.45);
-  background: rgba(46, 196, 182, 0.08);
+  border-color: color-mix(in srgb, var(--color-acento) 45%, transparent);
+  background: color-mix(in srgb, var(--color-acento) 8%, transparent);
 }
 
 .booking-ticket .stepper-btn:active {
@@ -1060,7 +1468,7 @@ backdrop-filter: blur(4px);
 }
 
 .booking-ticket .stepper-btn:focus-visible {
-  outline: 3px solid rgba(46, 196, 182, 0.35);
+  outline: 3px solid color-mix(in srgb, var(--color-acento) 35%, transparent);
   outline-offset: 2px;
 }
 
@@ -1072,149 +1480,202 @@ backdrop-filter: blur(4px);
   font-family: var(--fuente-acento);
 }
 
-/* Pases (selector tipo cards - Diseño moderno tipo Airbnb) */
-.booking-pass-grid {
-  display: grid;
-  gap: 1rem;
-  margin-top: 1rem;
+/* ============================================================================
+   LISTA HEADER — Acciones alineadas
+   ============================================================================ */
+.rsv2-lista__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.booking-pass {
+/* ============================================================================
+   PRINT — Confirmación de reserva y lista de reservas
+   ============================================================================ */
+@media print {
+
+  /* Ocultar chrome de navegación */
+  header,
+  nav,
+  footer,
+  .site-header,
+  .site-footer,
+  .site-nav,
+  .rsv2-confirmation__actions,
+  .rsv2-confirmation__print-btn,
+  .rsv2-lista__print-btn,
+  .rsv2-card__actions,
+  .rsv2-lista__header .btn-komorebi-primary,
+  .loyalty-widget,
+  .notification-toast,
+  [data-floating],
+  [data-modal] {
+    display: none !important;
+  }
+
+  /* Página en blanco */
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Quitar sombras y fondos decorativos */
+  .rsv2-confirmation__code-card,
+  .rsv2-confirmation__detail-card,
+  .rsv2-card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    background: white !important;
+  }
+
+  /* Icono de confirmación en negro */
+  .rsv2-confirmation__icon {
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Número de reserva visible */
+  .rsv2-confirmation__code-number {
+    color: black !important;
+    font-size: 2rem !important;
+  }
+
+  /* Pills de estado */
+  .rsv2-pill--confirmed {
+    background: #d4edda !important;
+    color: #155724 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .rsv2-pill--pending {
+    background: #fff3cd !important;
+    color: #856404 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .rsv2-pill--cancelled {
+    background: #f8d7da !important;
+    color: #721c24 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Branding al pie */
+  .rsv2-confirmation::after {
+    content: "Komorebi Café · komorebi.cafe · Conserva este comprobante";
+    display: block;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ccc;
+    font-size: 0.75rem;
+    color: #666;
+    text-align: center;
+  }
+
+  /* Lista de reservas — quitar acciones de cancelación */
+  .rsv2-lista__header-actions {
+    display: none !important;
+  }
+}
+
+/* ============================================================================
+   CANCELAR RESERVA
+   ============================================================================ */
+.rsv2-cancel {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.rsv2-cancel__header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.rsv2-cancel__icon {
+  font-size: 3rem;
+  color: var(--color-error);
   display: block;
-  position: relative;
-  padding: 1.25rem;
-  border-radius: 12px;
-  border: 1.5px solid #E0E0E0;
-  background: var(--color-superficie);
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-}
-
-.booking-pass:hover {
-  border-color: var(--color-primario);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.booking-pass--selected {
-  border-color: var(--color-primario);
-  border-width: 2px;
-  background: linear-gradient(135deg, rgba(201, 169, 89, 0.04), rgba(92, 61, 46, 0.02));
-  box-shadow: 0 0 0 1px var(--color-primario), 0 2px 8px rgba(92, 61, 46, 0.12);
-  padding: calc(1.25rem - 0.5px);
-}
-
-.booking-pass input[type="radio"] {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 24px;
-  height: 24px;
-  margin: 0;
-  cursor: pointer;
-  accent-color: var(--color-primario);
-  z-index: 2;
-}
-
-.booking-pass__img {
-  width: 100%;
-  height: 140px;
-  border-radius: 8px;
-  object-fit: cover;
-  background: linear-gradient(135deg, var(--color-fondo-alt), var(--color-fondo));
-  margin-bottom: 1rem;
-}
-
-.booking-pass__body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.booking-pass__top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 0.25rem;
-}
-
-.booking-pass__name {
-  font-weight: 600;
-  color: var(--color-texto);
-  font-size: 1.0625rem;
-  line-height: 1.3;
-  flex: 1;
-  padding-right: 2rem;
-}
-
-.booking-pass__price {
-  font-weight: 700;
-  color: var(--color-texto);
-  font-size: 1.25rem;
-  white-space: nowrap;
-  font-family: var(--fuente-titulo);
-}
-
-.booking-pass__jp {
-  font-size: 0.875rem;
-  color: var(--color-texto-suave);
-  font-family: var(--fuente-acento);
   margin-bottom: 0.5rem;
 }
 
-.booking-pass__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.badge-mini {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  background: var(--color-fondo);
-  color: var(--color-texto);
-  white-space: nowrap;
-}
-
-.booking-pass__badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.booking-mini-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  background: rgba(201, 169, 89, 0.1);
+.rsv2-cancel__title {
+  font-size: clamp(1.375rem, 3vw, 1.75rem);
   color: var(--color-primario);
-  white-space: nowrap;
+  margin-bottom: 0.375rem;
 }
 
-/* Responsive */
-@media (max-width: 640px) {
-  .booking-pass__img {
-    height: 120px;
-  }
+.rsv2-cancel__subtitle {
+  color: var(--color-texto-suave);
+  margin: 0;
+}
 
-  .booking-pass__name {
-    font-size: 1rem;
-  }
+.rsv2-cancel__detail-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--sombra-sm);
+}
 
-  .booking-pass__price {
-    font-size: 1.125rem;
-  }
+.rsv2-cancel__heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+}
+
+.rsv2-cancel__dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.rsv2-cancel__dt {
+  color: var(--color-texto-suave);
+  font-weight: 400;
+}
+
+.rsv2-cancel__dd {
+  font-weight: 500;
+  margin: 0;
+}
+
+.rsv2-cancel__alert {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  background: color-mix(in srgb, var(--color-error) 8%, transparent);
+  border-left: 4px solid var(--color-error);
+  border-radius: 0 var(--radio-sm) var(--radio-sm) 0;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.rsv2-cancel__alert-icon {
+  color: var(--color-error);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.rsv2-cancel__alert-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-texto);
+  line-height: 1.5;
+}
+
+.rsv2-cancel__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }

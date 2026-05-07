@@ -12,11 +12,11 @@
                     </div>
                 </div>
                 <div class="reserva__invitado-neko">
-                    <span class="reserva__invitado-neko-emoji" aria-hidden="true">🐱</span>
+                    <span class="reserva__invitado-neko-emoji" aria-hidden="true"><i class="bi bi-house-heart"></i></span>
                     <div class="reserva__invitado-neko-zzz">z z z</div>
                 </div>
                 <div class="reserva__invitado-tatami"></div>
-                <div class="reserva__invitado-yunomi" aria-hidden="true">🍵</div>
+                <div class="reserva__invitado-yunomi" aria-hidden="true"><i class="bi bi-cup-hot"></i></div>
             </div>
 
             <div class="reserva__invitado-contenido">
@@ -29,7 +29,7 @@
 
                 <div class="reserva__invitado-acciones">
                     <a href="/login" class="reserva__invitado-btn reserva__invitado-btn--principal">
-                        <span aria-hidden="true" class="reserva__invitado-btn-icon">🔐</span>
+                        <span aria-hidden="true" class="reserva__invitado-btn-icon"><i class="bi bi-shield-lock"></i></span>
                         <span>Iniciar Sesión</span>
                     </a>
                     <a href="/registro" class="reserva__invitado-btn reserva__invitado-btn--secundario">

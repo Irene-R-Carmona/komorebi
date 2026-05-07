@@ -16,6 +16,9 @@
   border-radius: var(--radio-lg);
   box-shadow: var(--sombra-sm);
   border: 1px solid var(--color-borde);
+  position: sticky;
+  top: calc(64px + 0.75rem);
+  z-index: var(--z-dropdown);
 }
 
 .filtros__busqueda {
@@ -323,7 +326,8 @@
 /* Hero Inmersivo */
 .cafe-hero {
   position: relative;
-  height: 500px;
+  aspect-ratio: 21 / 9;
+  max-height: 60vh;
   border-radius: var(--radio-lg);
   overflow: hidden;
   margin-bottom: var(--espaciado-xl);
@@ -707,12 +711,17 @@
   border-radius: var(--radio-lg);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
   width: 100%;
-  max-width: 950px;
+  max-width: min(950px, 90vw);
   height: 85vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animal-modal__card {
+    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
 }
 
 @media (min-width: 850px) {

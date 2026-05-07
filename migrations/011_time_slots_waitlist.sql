@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS time_slots (
         CHECK (duration_minutes BETWEEN 30 AND 240),
 
     -- Índices críticos para rendimiento
-    UNIQUE KEY uk_time_slots_unique (cafe_id, slot_date, slot_time)
+    UNIQUE KEY uk_time_slots_cafe_date_time (cafe_id, slot_date, slot_time)
         COMMENT 'Evita duplicados de slots en misma fecha/hora/café',
 
     INDEX idx_time_slots_availability (cafe_id, slot_date, slot_time, available_spots, is_blocked)
@@ -115,6 +115,12 @@ CREATE TABLE IF NOT EXISTS waitlist (
         'cancelled'     -- Canceló voluntariamente
     ) NOT NULL DEFAULT 'waiting',
 
+    -- Centinela para UNIQUE activo: 1 si estado activo (waiting/notified), NULL si terminal.
+    -- MySQL no aplica unicidad sobre NULLs → permite histórico ilimitado pero solo un activo.
+    active_slot_sentinel TINYINT UNSIGNED GENERATED ALWAYS AS (
+        CASE WHEN status IN ('waiting', 'notified') THEN 1 ELSE NULL END
+    ) VIRTUAL,
+
     -- Datos de contacto (redundantes para notificaciones rápidas)
     contact_email VARCHAR(255) NOT NULL COMMENT 'Email para notificaciones',
     contact_phone VARCHAR(20) DEFAULT NULL COMMENT 'Teléfono opcional (SMS)',
@@ -158,8 +164,8 @@ CREATE TABLE IF NOT EXISTS waitlist (
     UNIQUE KEY uk_waitlist_token (token)
         COMMENT 'Búsqueda rápida por token en URLs de confirmación',
 
-    UNIQUE KEY uk_waitlist_user_slot (user_id, time_slot_id, status)
-        COMMENT 'Evita duplicados: un usuario no puede estar 2 veces en waiting/notified',
+    UNIQUE KEY uk_waitlist_user_slot_active (user_id, time_slot_id, active_slot_sentinel)
+        COMMENT 'Un usuario solo puede tener UN registro activo (waiting/notified) por slot; NULLs permiten histórico ilimitado',
 
     INDEX idx_waitlist_slot_position (time_slot_id, position, status)
         COMMENT 'Obtener siguiente en cola: ORDER BY position ASC LIMIT 1',
@@ -206,7 +212,7 @@ WHERE ts.is_blocked = FALSE
   AND c.is_active = TRUE
   AND c.has_reservations = TRUE
   AND ts.slot_date >= CURDATE()
-ORDER BY ts.slot_date ASC, ts.slot_time ASC;
+ORDER BY ts.slot_date, ts.slot_time;
 
 -- Vista: Estadísticas de waitlist por slot
 CREATE OR REPLACE VIEW v_waitlist_stats AS
@@ -282,7 +288,7 @@ CROSS JOIN (
 ) t
 WHERE c.is_active = TRUE
   AND c.has_reservations = TRUE
-  AND NOT EXISTS (SELECT 1 FROM time_slots LIMIT 1)
+  AND NOT EXISTS (SELECT 1 FROM time_slots)
 LIMIT 500; -- Limitar para no saturar en desarrollo
 
 -- ============================================

@@ -49,4 +49,16 @@ interface StaffShiftRepositoryInterface extends RepositoryInterface
      * @return array{total_shifts: int, total_hours: float, shifts_this_month: int, avg_shift_duration: float}
      */
     public function getPerformanceMetrics(int $userId, int $cafeId): array;
+
+    /**
+     * Actualizar los campos permitidos de un turno.
+     *
+     * @param array<string, mixed> $data Campos a actualizar (shift_date, shift_start, shift_end, notes)
+     */
+    public function update(int $id, array $data): bool;
+
+    /**
+     * Soft-delete de un turno (establece deleted_at).
+     */
+    public function delete(int $id): bool;
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Componente: Checkbox de Alérgeno
  *
@@ -12,8 +13,8 @@
  * [
  *     'id' => int,
  *     'name' => string,
- *     'name_jp' => string|null,
- *     'icon' => string (clase FontAwesome),
+ *     'japanese_name' => string|null,
+ *     'icon_class' => string (clase FontAwesome),
  *     'icon_color' => string (color hex),
  *     'severity' => 'high'|'medium'|'low'
  * ]
@@ -25,8 +26,8 @@ $checked ??= false;
 // Datos del alérgeno con defaults
 $id = (int) ($allergen['id'] ?? 0);
 $name = $allergen['name'] ?? 'Desconocido';
-$nameJp = $allergen['name_jp'] ?? null;
-$icon = $allergen['icon'] ?? 'fa-question';
+$nameJp = $allergen['japanese_name'] ?? null;
+$icon = $allergen['icon_class'] ?? 'fa-question';
 $iconColor = $allergen['icon_color'] ?? '#666666';
 $severity = $allergen['severity'] ?? 'low';
 
@@ -42,18 +43,17 @@ $severityLabel = $severityLabels[$severity] ?? 'N/A';
 
 <div class="allergen-card">
     <input
-            type="checkbox"
-            class="allergen-card__input"
-            name="allergens[]"
-            value="<?= $id ?>"
-            id="allergen_<?= $id ?>"
-            @click="toggleAllergen(<?= $id ?>)"
-            :checked="hasAllergen(<?= $id ?>)"
-    >
+        type="checkbox"
+        class="allergen-card__input"
+        name="allergens[]"
+        value="<?= $id ?>"
+        id="allergen_<?= $id ?>"
+        @click="toggleAllergen(<?= $id ?>)"
+        :checked="hasAllergen(<?= $id ?>)">
     <label class="allergen-card__label" for="allergen_<?= $id ?>">
         <!-- Icono -->
         <span class="allergen-card__icon">
-            <i class="fa-solid <?= e($icon) ?>" style="color: <?= e($iconColor) ?>"></i>
+            <i class="<?= e($icon !== '' ? $icon : 'bi bi-question-circle') ?>" style="color: <?= e($iconColor) ?>"></i>
         </span>
 
         <!-- Contenido -->

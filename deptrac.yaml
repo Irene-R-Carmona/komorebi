@@ -1,0 +1,73 @@
+deptrac:
+  paths:
+    - ./app
+
+  exclude_files:
+    - '#app/Core/Seeders/.*#'
+
+  layers:
+    - name: Controllers
+      collectors:
+        - type: classLike
+          value: App\\Http\\Controllers\\.*
+
+    - name: Services
+      collectors:
+        - type: classLike
+          value: App\\Services\\.*
+
+    - name: Repositories
+      collectors:
+        - type: classLike
+          value: App\\Repositories\\.*
+
+    - name: Domain
+      collectors:
+        - type: classLike
+          value: App\\Domain\\.*
+
+    - name: Models
+      collectors:
+        - type: classLike
+          value: App\\Models\\.*
+
+    - name: Core
+      collectors:
+        - type: classLike
+          value: App\\Core\\.*
+
+    - name: Exceptions
+      collectors:
+        - type: classLike
+          value: App\\Exceptions\\.*
+
+  ruleset:
+    Controllers:
+      - Services
+      - Repositories
+      - Domain
+      - Core
+      - Exceptions
+    Services:
+      - Repositories
+      - Domain
+      - Models
+      - Core
+      - Exceptions
+    Repositories:
+      - Domain
+      - Models
+      - Core
+      - Exceptions
+    Domain:
+      - Exceptions
+    Models:
+      - Domain
+      - Core
+      - Exceptions
+    Core:
+      - Models
+      - Exceptions
+    Exceptions: ~
+
+  ignore_uncovered_internal_classes: true

@@ -5,17 +5,27 @@
 services:
 
   # ==========================================================================
-  # APP - Override para desarrollo: CORS permisivo (wildcard)
+  # APP - Override para desarrollo: CORS permisivo + root para FrankenPHP
+  # FrankenPHP necesita CAP_NET_BIND_SERVICE para el puerto 80.
+  # En dev se ejecuta como root y se restituye NET_BIND_SERVICE (cap_drop:ALL lo quitó).
   # ==========================================================================
   app:
+    user: root
+    cap_add:
+      - NET_BIND_SERVICE
     environment:
       CORS_ALLOWED_ORIGINS: "*"
+      XDEBUG_MODE: "debug,develop"  # activar IDE debugging en dev local; ignorado en CI
+    deploy:
+      resources:
+        limits:
+          memory: 1.5g
 
   # ==========================================================================
   # MAILPIT - SMTP capturador + Web UI (solo desarrollo)
   # ==========================================================================
   mailpit:
-    image: axllent/mailpit:v1.21
+    image: axllent/mailpit:v1.29.6
     container_name: komorebi_mailpit
     restart: unless-stopped
     ports:
@@ -25,10 +35,27 @@ services:
       - komorebi-net
 
   # ==========================================================================
+  # DB - Exponer puerto MySQL al host para IDEs (PhpStorm, DataGrip, TablePlus…)
+  # ==========================================================================
+  db:
+    ports:
+      - "3306:3306"
+    command:
+      - --performance-schema=OFF
+      - --innodb-buffer-pool-size=268435456
+      - --innodb-buffer-pool-instances=1
+      - --innodb-flush-log-at-trx-commit=2
+      - --innodb-flush-method=O_DIRECT
+      - --max-connections=25
+      - --key-buffer-size=16777216
+      - --slow-query-log=OFF
+      - --event-scheduler=ON
+
+  # ==========================================================================
   # PHPMYADMIN - Gestor web de MySQL (solo desarrollo)
   # ==========================================================================
   pma:
-    image: phpmyadmin:5.2.1-apache
+    image: phpmyadmin:5.2.3
     container_name: komorebi_pma
     restart: unless-stopped
     environment:
@@ -42,18 +69,26 @@ services:
       - db
     networks:
       - komorebi-net
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 128m
 
   # ==========================================================================
   # REDIS COMMANDER - Visor web de Redis (solo desarrollo)
   # ==========================================================================
   redis_commander:
-    image: rediscommander/redis-commander:0.8.0
+    image: redis/redisinsight:3.2.0
     container_name: komorebi_redis_commander
     restart: unless-stopped
     environment:
-      REDIS_HOSTS: local:cache:6379:0:${REDIS_PASSWORD:-redis_password}
+      RI_REDIS_HOST: cache
+      RI_REDIS_PORT: 6379
+      RI_REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
     ports:
-      - "8082:8081"
+      - "8082:5540"
     depends_on:
       - cache
     networks:
@@ -86,7 +121,7 @@ services:
       - komorebi-net
 
   sonarqube_db:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     profiles: [sonar]
     container_name: komorebi_sonarqube_db
     environment:
@@ -103,6 +138,7 @@ services:
   # ==========================================================================
   telegram_bot:
     image: alpine:3.20
+    profiles: [telegram]
     container_name: komorebi_telegram_bot
     restart: unless-stopped
     command: >

@@ -112,7 +112,7 @@
             csrf_token: this.csrfToken
           });
 
-          const response = await fetch(`/admin/reservas/${id}/cancel`, {
+          const response = await fetch(`/api/v1/admin/reservations/${id}/cancel`, {
             method: 'POST',
             body: formData,
             headers: {
@@ -122,13 +122,9 @@
 
           const data = await response.json();
 
-          if (response.ok && data.success) {
-            // Actualizar estado local
-            const reservation = this.reservations.find(r => r.id === id);
-            if (reservation) {
-              reservation.status = 'cancelled';
-            }
+          if (response.ok && data.ok) {
             KomorebiToast.success('Reserva cancelada correctamente');
+            setTimeout(() => window.location.reload(), 800);
           } else {
             KomorebiToast.error(data.message || 'Error al cancelar');
           }
@@ -147,7 +143,7 @@
             csrf_token: this.csrfToken
           });
 
-          const response = await fetch(`/admin/reservations/${id}/confirm`, {
+          const response = await fetch(`/api/v1/admin/reservations/${id}/confirm`, {
             method: 'POST',
             body: formData,
             headers: {
@@ -157,13 +153,9 @@
 
           const data = await response.json();
 
-          if (response.ok && data.success) {
-            // Actualizar estado local
-            const reservation = this.reservations.find(r => r.id === id);
-            if (reservation) {
-              reservation.status = 'confirmed';
-            }
+          if (response.ok && data.ok) {
             KomorebiToast.success('Reserva confirmada correctamente');
+            setTimeout(() => window.location.reload(), 800);
           } else {
             KomorebiToast.error(data.message || 'Error al confirmar');
           }

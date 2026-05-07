@@ -1,0 +1,157 @@
+/* ============================================================================
+   KOMOREBI — CARDS COMPONENT SYSTEM
+   Variantes: base, featured, horizontal, interactive, skeleton
+   ============================================================================ */
+
+/* ----------------------------------------
+   Base
+---------------------------------------- */
+.card-komorebi {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-komorebi__image {
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.card-komorebi__body {
+  padding: var(--espaciado-md);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.card-komorebi__title {
+  font-family: var(--fuente-titulo);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-texto);
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.card-komorebi__text {
+  font-size: var(--text-sm);
+  color: var(--color-texto-suave);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.card-komorebi__footer {
+  padding: var(--espaciado-sm) var(--espaciado-md);
+  border-top: 1px solid var(--color-borde);
+  display: flex;
+  align-items: center;
+  gap: var(--espaciado-sm);
+}
+
+/* ----------------------------------------
+   Variante: FEATURED
+---------------------------------------- */
+.card-komorebi--featured {
+  box-shadow: var(--elevation-3);
+  border-color: var(--color-acento);
+}
+
+/* ----------------------------------------
+   Variante: HORIZONTAL
+---------------------------------------- */
+.card-komorebi--horizontal {
+  flex-direction: row;
+}
+
+.card-komorebi--horizontal .card-komorebi__image {
+  width: 160px;
+  min-height: 120px;
+  flex-shrink: 0;
+}
+
+/* ----------------------------------------
+   Variante: INTERACTIVE
+---------------------------------------- */
+.card-komorebi--interactive {
+  cursor: pointer;
+  transition:
+    transform var(--duration-normal) var(--easing-out),
+    box-shadow var(--duration-normal) var(--easing-out);
+}
+
+.card-komorebi--interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elevation-3);
+}
+
+.card-komorebi--interactive:focus-within {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-komorebi--interactive:hover {
+    transform: none;
+  }
+}
+
+/* ----------------------------------------
+   Skeleton (loading placeholder)
+   — se combina con skeleton.css
+---------------------------------------- */
+.card-komorebi--skeleton {
+  pointer-events: none;
+}
+
+.card-komorebi--skeleton .card-komorebi__image,
+.card-komorebi--skeleton .card-komorebi__title,
+.card-komorebi--skeleton .card-komorebi__text {
+  background: var(--skeleton-base, #e8dcc4);
+  border-radius: var(--radio-sm);
+  color: transparent;
+}
+
+/* ----------------------------------------
+   Image aspect ratios (utility)
+---------------------------------------- */
+.card-komorebi__image-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-komorebi__image-wrap--16-9 {
+  aspect-ratio: 16 / 9;
+}
+
+.card-komorebi__image-wrap--4-3 {
+  aspect-ratio: 4 / 3;
+}
+
+.card-komorebi__image-wrap--21-9 {
+  aspect-ratio: 21 / 9;
+}
+
+.card-komorebi__image-wrap>img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* ----------------------------------------
+   Dark mode
+---------------------------------------- */
+[data-tema="oscuro"] .card-komorebi {
+  background: var(--color-superficie);
+  border-color: var(--color-borde);
+}
+
+[data-tema="oscuro"] .card-komorebi--featured {
+  border-color: var(--color-acento);
+}

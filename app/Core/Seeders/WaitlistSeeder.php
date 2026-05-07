@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Seeders;
 
 use App\Core\Database;
+use App\Core\Logger;
 use PDO;
 
 /**
@@ -23,50 +24,51 @@ final class WaitlistSeeder
 
     public function run(): void
     {
-        echo "[WaitlistSeeder] Creando datos de lista de espera...\n";
+        Logger::info('[WaitlistSeeder] starting');
 
         // Obtener algunos time slots con capacidad completa
-        $fullSlots = $this->db->query("
+        $fullSlots = $this->db->query('
             SELECT id, cafe_id, slot_date, slot_time, available_spots
             FROM time_slots
             WHERE available_spots = 0
             ORDER BY slot_date DESC, slot_time DESC
             LIMIT 5
-        ")->fetchAll(PDO::FETCH_ASSOC);
+        ')->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($fullSlots)) {
-            echo "[WaitlistSeeder] ⚠️  No hay slots completos, creando algunos...\n";
+            Logger::warning('[WaitlistSeeder] no full slots, marking some as full');
             // Marcar algunos slots como completos
-            $this->db->exec("
+            $this->db->exec('
                 UPDATE time_slots
                 SET available_spots = 0
                 WHERE slot_date >= CURDATE()
                 ORDER BY slot_date, slot_time
                 LIMIT 5
-            ");
+            ');
 
-            $fullSlots = $this->db->query("
+            $fullSlots = $this->db->query('
                 SELECT id, cafe_id, slot_date, slot_time, available_spots
                 FROM time_slots
                 WHERE available_spots = 0
                 ORDER BY slot_date DESC, slot_time DESC
                 LIMIT 5
-            ")->fetchAll(PDO::FETCH_ASSOC);
+            ')->fetchAll(PDO::FETCH_ASSOC);
         }
 
         // Obtener usuarios de prueba (clientes, no staff)
         $users = $this->db->query("
-            SELECT u.id, u.name, u.email
+            SELECT DISTINCT u.id, u.name, u.email
             FROM users u
             INNER JOIN user_roles ur ON u.id = ur.user_id
             INNER JOIN roles r ON ur.role_id = r.id
-            WHERE r.name = 'user'
+            WHERE r.code = 'user'
             ORDER BY RAND()
             LIMIT 15
         ")->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($users)) {
-            echo "[WaitlistSeeder] ⚠️  No hay usuarios disponibles\n";
+            Logger::warning('[WaitlistSeeder] no users available');
+
             return;
         }
 
@@ -82,7 +84,7 @@ final class WaitlistSeeder
 
                 $status = 'waiting';
                 $notifiedAt = null;
-                $expiresAt = null;
+                $expiresAt = \date('Y-m-d H:i:s', \time() + 86400); // seed: expira en 24h
                 $token = \bin2hex(\random_bytes(16));
 
                 // Algunos en estado 'notified' (10%)
@@ -92,7 +94,7 @@ final class WaitlistSeeder
                     $expiresAt = \date('Y-m-d H:i:s', \time() + \rand(300, 900));
                 }
 
-                $this->db->prepare("
+                $this->db->prepare('
                     INSERT INTO waitlist (
                         user_id, time_slot_id, position, status,
                         guest_count, contact_email, contact_phone,
@@ -105,7 +107,7 @@ final class WaitlistSeeder
                         :token, :notified_at, :expires_at,
                         15, :special_requests, NOW()
                     )
-                ")->execute([
+                ')->execute([
                     'user_id' => $user['id'],
                     'time_slot_id' => $slot['id'],
                     'position' => $position++,
@@ -126,7 +128,7 @@ final class WaitlistSeeder
             $position = 1;
         }
 
-        echo "[WaitlistSeeder] ✅ {$inserted} entradas de waitlist creadas\n";
+        Logger::info('[WaitlistSeeder] completed', ['inserted' => $inserted]);
     }
 
     private function generatePhone(): ?string

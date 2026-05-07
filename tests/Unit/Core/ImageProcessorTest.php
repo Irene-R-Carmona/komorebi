@@ -9,8 +9,10 @@ declare(strict_types=1);
  */
 
 use App\Core\ImageProcessor;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+#[CoversClass(ImageProcessor::class)]
 final class ImageProcessorTest extends TestCase
 {
     private string $tmp;

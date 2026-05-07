@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use DateTime;
+use App\Services\Contracts\FestivosJaponesesServiceInterface;
+use DateMalformedStringException;
+use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 
@@ -22,7 +24,7 @@ use DateTimeZone;
  * @author TFC DAW - Komorebi Café
  * @version 1.0.0
  */
-final class FestivosJaponesesService
+final class FestivosJaponesesService implements FestivosJaponesesServiceInterface
 {
     /**
      * Festivos fijos anuales
@@ -117,7 +119,7 @@ final class FestivosJaponesesService
      *
      * @param DateTimeInterface|string|null $fecha Fecha a consultar (default: hoy en Tokyo)
      * @return array|null Datos del festivo o null si no es festivo
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function obtenerFestivo(DateTimeInterface|string|null $fecha = null): ?array
     {
@@ -147,7 +149,7 @@ final class FestivosJaponesesService
      *
      * @param DateTimeInterface|string|null $fecha Fecha a verificar
      * @return boolean True si es festivo
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function esFestivo(DateTimeInterface|string|null $fecha = null): bool
     {
@@ -159,12 +161,12 @@ final class FestivosJaponesesService
      *
      * @param integer|null $anio Año (default: año actual en Tokyo)
      * @return array Lista de festivos del año
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function obtenerFestivosDelAnio(?int $anio = null): array
     {
         if ($anio === null) {
-            $dateTime = new DateTime('now', new DateTimeZone('Asia/Tokyo'));
+            $dateTime = new DateTimeImmutable('now', new DateTimeZone('Asia/Tokyo'));
             $anio = (int) $dateTime->format('Y');
         }
         $festivos = [];
@@ -206,7 +208,7 @@ final class FestivosJaponesesService
      *
      * @param DateTimeInterface|string|null $fecha Fecha a consultar
      * @return string Mensaje poético o información
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function obtenerMensajeContextual(DateTimeInterface|string|null $fecha = null): string
     {
@@ -243,7 +245,7 @@ final class FestivosJaponesesService
      *
      * @param DateTimeInterface|string|null $fecha Fecha a verificar
      * @return boolean True si se permiten reservas
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function permiteReservas(DateTimeInterface|string|null $fecha = null): bool
     {
@@ -263,7 +265,7 @@ final class FestivosJaponesesService
     /**
      * Calcula festivos móviles para una fecha específica
      */
-    private function calcularFestivoMovil(DateTime $fecha): ?array
+    private function calcularFestivoMovil(DateTimeInterface $fecha): ?array
     {
         $anio = (int) $fecha->format('Y');
         $mes = (int) $fecha->format('m');
@@ -312,7 +314,7 @@ final class FestivosJaponesesService
      * Segundo lunes de enero - Día de la Mayoría de Edad (成人の日)
      * @param integer $anio
      * @return array
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function calcularSegundoLunesEnero(int $anio): array
     {
@@ -334,7 +336,7 @@ final class FestivosJaponesesService
      * Tercer lunes de julio - Día del Mar (海の日)
      * @param integer $anio
      * @return array
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function calcularTercerLunesJulio(int $anio): array
     {
@@ -357,7 +359,7 @@ final class FestivosJaponesesService
      * Tercer lunes de septiembre - Día del Respeto a los Ancianos (敬老の日)
      * @param integer $anio
      * @return array
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function calcularTercerLunesSeptiembre(int $anio): array
     {
@@ -379,7 +381,7 @@ final class FestivosJaponesesService
      * Segundo lunes de octubre - Día del Deporte (スポーツの日)
      * @param integer $anio
      * @return array
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function calcularSegundoLunesOctubre(int $anio): array
     {
@@ -444,46 +446,43 @@ final class FestivosJaponesesService
      * @param integer $anio
      * @param integer $mes
      * @param integer $numero
-     * @return DateTime
-     * @throws \DateMalformedStringException
+     * @return DateTimeImmutable
+     * @throws DateMalformedStringException
      */
-    private function calcularNesimoLunes(int $anio, int $mes, int $numero): DateTime
+    private function calcularNesimoLunes(int $anio, int $mes, int $numero): DateTimeImmutable
     {
-        $fecha = new DateTime("$anio-$mes-01", new DateTimeZone('Asia/Tokyo'));
+        $fecha = new DateTimeImmutable("$anio-$mes-01", new DateTimeZone('Asia/Tokyo'));
 
         // Encontrar el primer lunes del mes
         while ((int) $fecha->format('N') !== 1) {
-            $fecha->modify('+1 day');
+            $fecha = $fecha->modify('+1 day');
         }
 
         // Avanzar al n-ésimo lunes
         if ($numero > 1) {
-            $fecha->modify('+' . ($numero - 1) . ' weeks');
+            $fecha = $fecha->modify('+' . ($numero - 1) . ' weeks');
         }
 
         return $fecha;
     }
 
     /**
-     * Normaliza una fecha a DateTime en timezone Tokyo
+     * Normaliza una fecha a DateTimeImmutable en timezone Tokyo
      * @param DateTimeInterface|string|null $fecha
-     * @return DateTime
-     * @throws \DateMalformedStringException
+     * @return DateTimeImmutable
+     * @throws DateMalformedStringException
      */
-    private function normalizarFecha(DateTimeInterface|string|null $fecha): DateTime
+    private function normalizarFecha(DateTimeInterface|string|null $fecha): DateTimeImmutable
     {
         if ($fecha === null) {
-            return new DateTime('now', new DateTimeZone('Asia/Tokyo'));
+            return new DateTimeImmutable('now', new DateTimeZone('Asia/Tokyo'));
         }
 
         if (\is_string($fecha)) {
-            return new DateTime($fecha, new DateTimeZone('Asia/Tokyo'));
+            return new DateTimeImmutable($fecha, new DateTimeZone('Asia/Tokyo'));
         }
 
         // Si ya es DateTimeInterface, crear copia en timezone Tokyo
-        $dt = DateTime::createFromInterface($fecha);
-        $dt->setTimezone(new DateTimeZone('Asia/Tokyo'));
-
-        return $dt;
+        return DateTimeImmutable::createFromInterface($fecha)->setTimezone(new DateTimeZone('Asia/Tokyo'));
     }
 }

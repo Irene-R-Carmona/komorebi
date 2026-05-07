@@ -16,8 +16,6 @@ use Exception;
  */
 final class Session
 {
-    private static bool $started = false;
-
     // ─────────────────────────────────────────────────────────────
     // Inicio y destrucción
     // ─────────────────────────────────────────────────────────────
@@ -25,8 +23,6 @@ final class Session
     /**
      * Inicia la sesión si no está activa.
      * Configura cookies seguras automáticamente.
-     *
-     * @return void
      */
     public static function start(): void
     {
@@ -36,26 +32,26 @@ final class Session
             $GLOBALS['_SESSION'] = [];
         }
 
-        // Si la sesión ya está activa en este proceso, nada que hacer
         if (\session_status() === PHP_SESSION_ACTIVE) {
-            self::$started = true;
             return;
         }
 
-        // En entornos CLI (tests) evitamos manipular parámetros de cookie
-        // ya que pueden generar warnings si los "headers" ya fueron
-        // considerados como enviados por la harness; arrancar la sesión
-        // sin tocar las cookies es suficiente para los tests.
-        // Si los headers ya fueron enviados (por la harness de tests), no
-        // intentar arrancar la sesión ni tocar parámetros de cookie (evita
-        // warnings/excepciones); en ese caso nos quedamos con la superglobal
-        // inicializada y seguimos.
-        if (headers_sent()) {
-            if (!\array_key_exists('_SESSION', $GLOBALS) || !\is_array($GLOBALS['_SESSION'])) {
-                $GLOBALS['_SESSION'] = [];
-            }
+        if (\headers_sent()) {
+            // La superglobal ya fue inicializada al inicio de start()
         } else {
-            // En entornos normales (web/server) configuramos cookies y arrancamos
+            // Configurar Redis como session handler si SESSION_DRIVER=redis
+            if (Env::get('SESSION_DRIVER', 'file') === 'redis') {
+                $redisHost = Env::get('REDIS_HOST', '127.0.0.1');
+                $redisPort = Env::int('REDIS_PORT', 6379);
+                $redisPass = Env::get('REDIS_PASSWORD', '');
+                $sessionTtl = Env::int('SESSION_LIFETIME', 7200);
+                $savePath = "tcp://{$redisHost}:{$redisPort}?database=1&lifetime={$sessionTtl}";
+                if ($redisPass !== '') {
+                    $savePath .= "&auth={$redisPass}";
+                }
+                \ini_set('session.save_handler', 'redis');
+                \ini_set('session.save_path', $savePath);
+            }
             \session_set_cookie_params([
                 'lifetime' => 0,                              // Hasta cerrar navegador
                 'path' => '/',
@@ -67,18 +63,10 @@ final class Session
 
             \session_start();
         }
-
-        // Si la sesión fue realmente iniciada, marcar flag
-        if (\session_status() === PHP_SESSION_ACTIVE) {
-            self::$started = true;
-        }
     }
 
     /**
-     * Regenera el ID de sesión.
      * SIEMPRE llamar después de login (previene session fixation).
-     *
-     * @return void
      */
     public static function regenerate(): void
     {
@@ -86,32 +74,25 @@ final class Session
         \session_regenerate_id(true);
     }
 
-    /**
-     * Destruye la sesión completamente (logout).
-     *
-     * @return void
-     */
     public static function destroy(): void
     {
         self::start();
 
-        // Limpiar datos
         $_SESSION = [];
 
-        // Destruir cookie de sesión
         if (\ini_get('session.use_cookies')) {
             $params = \session_get_cookie_params();
-            $samesite = isset($params['samesite']) ? (string) $params['samesite'] : 'Lax';
-            if (!in_array($samesite, ['Lax', 'lax', 'None', 'none', 'Strict', 'strict'], true)) {
+            $samesite = (string) $params['samesite'];
+            if (!\in_array($samesite, ['Lax', 'lax', 'None', 'none', 'Strict', 'strict'], true)) {
                 $samesite = 'Lax';
             }
 
             $cookieOptions = [
                 'expires' => \time() - 42000,
-                'path' => isset($params['path']) ? (string) $params['path'] : '/',
-                'domain' => isset($params['domain']) ? (string) $params['domain'] : '',
-                'secure' => isset($params['secure']) ? (bool) $params['secure'] : false,
-                'httponly' => isset($params['httponly']) ? (bool) $params['httponly'] : true,
+                'path' => (string) $params['path'],
+                'domain' => (string) $params['domain'],
+                'secure' => (bool) $params['secure'],
+                'httponly' => (bool) $params['httponly'],
                 'samesite' => $samesite,
             ];
 
@@ -119,18 +100,12 @@ final class Session
         }
 
         \session_destroy();
-        self::$started = false;
     }
 
     // ─────────────────────────────────────────────────────────────
     // Autenticación - Métodos específicos de usuario
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Verifica si hay un usuario autenticado.
-     *
-     * @return boolean
-     */
     public static function isAuthenticated(): bool
     {
         self::start();
@@ -138,11 +113,6 @@ final class Session
         return !empty($_SESSION['user_id']);
     }
 
-    /**
-     * Obtiene el ID del usuario actual (null si no autenticado).
-     *
-     * @return integer|null
-     */
     public static function userId(): ?int
     {
         self::start();
@@ -150,11 +120,6 @@ final class Session
         return isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
     }
 
-    /**
-     * Obtiene el rol del usuario actual.
-     *
-     * @return string
-     */
     public static function role(): string
     {
         self::start();
@@ -173,11 +138,6 @@ final class Session
         return 'guest';
     }
 
-    /**
-     * Obtiene el nombre del usuario actual.
-     *
-     * @return string
-     */
     public static function userName(): string
     {
         self::start();
@@ -185,11 +145,6 @@ final class Session
         return (string) ($_SESSION['user_name'] ?? '');
     }
 
-    /**
-     * Obtiene el email del usuario actual.
-     *
-     * @return string
-     */
     public static function userEmail(): string
     {
         self::start();
@@ -197,11 +152,6 @@ final class Session
         return (string) ($_SESSION['user_email'] ?? '');
     }
 
-    /**
-     * Obtiene el café asignado al usuario (para staff).
-     *
-     * @return integer|null
-     */
     public static function userCafeId(): ?int
     {
         self::start();
@@ -232,8 +182,7 @@ final class Session
      * Establece la sesión del usuario tras login/registro.
      * Regenera el ID de sesión automáticamente (seguridad).
      *
-     * @param array{id: int, name?: string, email?: string, role?: string, cafe_id?: int|null} $user
-     * @return void
+     * @param array{id: int, name?: string, email?: string, role?: string|array<string>, cafe_id?: int|null} $user
      */
     public static function setUser(array $user): void
     {
@@ -273,7 +222,7 @@ final class Session
         $_SESSION['user_cafe_id'] = $user['cafe_id'] ?? null;
 
         // Nota: Evitar cerrar y reabrir la sesión aquí (puede causar race conditions)
-        Logger::error('[Session::setUser] Datos de sesión establecidos para user_id: ' . $_SESSION['user_id']);
+        Logger::info('[Session::setUser] Datos de sesión establecidos para user_id: ' . (string) $_SESSION['user_id']);
     }
 
     /**
@@ -282,7 +231,6 @@ final class Session
      * IMPORTANTE: Llamar después de setUser() en login.
      *
      * @param integer $userId ID del usuario a cargar permisos
-     * @return void
      */
     public static function cacheUserPermissions(int $userId): void
     {
@@ -307,16 +255,11 @@ final class Session
             $_SESSION['user_permissions'] = $permissions;
             $_SESSION['permissions_cached_at'] = \time();
         } catch (Exception $e) {
-            Logger::error('[Session] Error cacheando permisos: ' . $e->getMessage());
+            Logger::error('[Session] Error cacheando permisos', ['exception' => $e->getMessage()]);
             $_SESSION['user_permissions'] = [];
         }
     }
 
-    /**
-     * Invalida el caché de permisos actual.
-     *
-     * @return void
-     */
     public static function invalidatePermissionsCache(): void
     {
         self::start();
@@ -336,10 +279,8 @@ final class Session
     }
 
     /**
-     * Verifica si un permiso está en el caché.
-     *
      * @param string $permission Código del permiso (ej: 'cafe.kitchen.view')
-     * @return boolean|null true si tiene, false si no tiene, null si no está en caché
+     * @return bool|null true si tiene, false si no tiene, null si no está en caché
      */
     public static function hasPermissionCached(string $permission): ?bool
     {
@@ -358,13 +299,6 @@ final class Session
     // Helpers genéricos (para cualquier dato en sesión)
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Obtiene un valor de sesión.
-     *
-     * @param string $key     Clave de sesión
-     * @param mixed  $default Valor por defecto si no existe
-     * @return mixed Valor almacenado en sesión o `$default`
-     */
     public static function get(string $key, mixed $default = null): mixed
     {
         self::start();
@@ -372,25 +306,12 @@ final class Session
         return $_SESSION[$key] ?? $default;
     }
 
-    /**
-     * Establece un valor en sesión.
-     *
-     * @param string $key   Clave a establecer
-     * @param mixed  $value Valor a guardar
-     * @return void
-     */
     public static function set(string $key, mixed $value): void
     {
         self::start();
         $_SESSION[$key] = $value;
     }
 
-    /**
-     * Verifica si existe una clave en sesión.
-     *
-     * @param string $key Clave a comprobar
-     * @return boolean True si la clave existe
-     */
     public static function has(string $key): bool
     {
         self::start();
@@ -398,12 +319,6 @@ final class Session
         return isset($_SESSION[$key]);
     }
 
-    /**
-     * Elimina una clave de sesión.
-     *
-     * @param string $key Clave a eliminar
-     * @return void
-     */
     public static function remove(string $key): void
     {
         self::start();

@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\CafeDTO;
+
 interface CafeRepositoryInterface
 {
     /**
      * Find cafe by ID
      *
      * @param int $id
-     * @return array<string, mixed>|null
+     * @return CafeDTO|null
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?CafeDTO;
 
     /**
      * Find cafe by slug
@@ -49,9 +51,11 @@ interface CafeRepositoryInterface
      * Find cafes with filters
      *
      * @param array<string, mixed> $filters
+     * @param int $limit
+     * @param int $offset
      * @return array<int, array<string, mixed>>
      */
-    public function findFiltered(array $filters): array;
+    public function findFiltered(array $filters, int $limit = 100, int $offset = 0): array;
 
     /**
      * Check if cafe has available capacity
@@ -87,4 +91,81 @@ interface CafeRepositoryInterface
      * @return bool
      */
     public function delete(int $id): bool;
+
+    /**
+     * Soft delete a cafe (sets deleted_at)
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function softDelete(int $id): bool;
+
+    /**
+     * Buscar cafés disponibles para reserva.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAvailableForReservation(): array;
+
+    /**
+     * Buscar cafés disponibles para reserva, indexados por ID.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAvailableForReservationById(): array;
+
+    /**
+     * Verificar que un café existe y está activo.
+     *
+     * @param int $cafeId
+     * @return bool
+     */
+    public function existsAndActive(int $cafeId): bool;
+
+    /**
+     * Recalcular y actualizar el rating promedio de un café.
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function updateRating(int $id): bool;
+
+    /**
+     * Búsqueda de texto libre en nombre, ubicación y descripción.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function search(string $query, int $limit = 10): array;
+
+    /**
+     * Buscar cafés por múltiples IDs.
+     *
+     * @param array<int> $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function findByIds(array $ids): array;
+
+    /**
+     * Find a cafe with its animals by slug.
+     *
+     * @param string $slug
+     * @return array<string, mixed>|null
+     */
+    public function findWithAnimals(string $slug): ?array;
+
+    /**
+     * Get the zones of a cafe.
+     *
+     * @param int $cafeId
+     * @return array<int, array<string, mixed>>
+     */
+    public function getZones(int $cafeId): array;
+
+    /**
+     * Get the number of users who have marked a cafe as favorite.
+     *
+     * @param int $cafeId
+     * @return int
+     */
+    public function getFavoritesCount(int $cafeId): int;
 }

@@ -52,7 +52,6 @@ final class RbacSeeder
         $this->migrateExistingUsers();
 
         Logger::info('RbacSeeder: completed', ['roles' => \count($roles), 'permissions' => \count($permissions)]);
-        echo "[RbacSeeder] RBAC inicializado correctamente\n";
     }
 
     /**
@@ -148,6 +147,11 @@ final class RbacSeeder
             'admin.cafes.edit' => ['Editar café', 'admin', 'cafes_edit'],
             'admin.cafes.delete' => ['Eliminar café', 'admin', 'cafes_delete'],
             'admin.audit.view' => ['Ver auditoría', 'admin', 'audit_view'],
+
+            // ────────────────────────────────────────
+            // PERMISOS DE LISTA DE ESPERA
+            // ────────────────────────────────────────
+            'waitlist.view_own' => ['Ver propias listas de espera', 'waitlist', 'view_own'],
         ];
 
         $created = [];
@@ -242,6 +246,7 @@ final class RbacSeeder
                 'review.create',
                 'review.edit_own',
                 'review.delete_own',
+                'waitlist.view_own',
             ],
             'reception' => [
                 'user.profile.view',
@@ -251,7 +256,7 @@ final class RbacSeeder
                 'cafe.reception.checkin',
                 'cafe.reception.checkout',
                 'cafe.reception.view',
-                'review.moderate',
+                'cafe.animals.view',
             ],
             'kitchen' => [
                 'user.profile.view',
@@ -338,7 +343,7 @@ final class RbacSeeder
                 try {
                     $this->roleModel->grantPermission($roleId, $permId);
                 } catch (Exception $e) {
-                    Logger::error('[RbacSeeder] Error asignando permiso: ' . $e->getMessage());
+                    Logger::error('[RbacSeeder] Error asignando permiso: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
                 }
             }
         }
@@ -353,7 +358,7 @@ final class RbacSeeder
         $userRole = $this->roleModel->findByKey('user');
 
         if (!$userRole) {
-            Logger::error('[RbacSeeder] No se encontró rol "user"');
+            Logger::error('[RbacSeeder] No se encontró rol "user"', []);
 
             return;
         }

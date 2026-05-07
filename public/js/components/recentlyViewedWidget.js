@@ -24,7 +24,7 @@
 
         this.loading = true;
         try {
-          const res = await fetch('/api/cookies/recently-viewed/data');
+          const res = await fetch('/api/v1/cookies/recently-viewed/data');
           const data = await res.json();
           if (data && data.success) {
             this.cafes = data.cafes || [];
@@ -40,9 +40,8 @@
       clearAll: async function () {
         if (!confirm('¿Estás seguro de que quieres limpiar el historial?')) return;
         try {
-          const res = await fetch('/api/cookies/recently-viewed/clear', { method: 'DELETE' });
-          const data = await res.json();
-          if (data && data.success) this.cafes = [];
+          const res = await fetch('/api/v1/cookies/recently-viewed', { method: 'DELETE' });
+          if (res.ok) this.cafes = [];
         } catch (err) {
           console.warn('recentlyViewedWidget clear error', err);
         }

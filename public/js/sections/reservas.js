@@ -1,35 +1,18 @@
 document.addEventListener('alpine:init', () => {
-  Alpine.data('reservaForm', (cafesData, passesData, cartTotal = 0, festivosData = []) => {
-    // Validar y parsear datos
-    let cafes = [];
-    let passes = [];
+  Alpine.data('reservaForm', (cartTotal = 0, festivosData = []) => {
+    // Festivos desde PHP (no requieren API)
     let festivos = [];
-
     try {
-      cafes = Array.isArray(cafesData) ? cafesData : [];
-      passes = Array.isArray(passesData) ? passesData : [];
       festivos = Array.isArray(festivosData) ? festivosData : [];
-
-      console.log('📊 Datos cargados:', {
-        cafes: cafes.length,
-        passes: passes.length,
-        festivos: festivos.length,
-        cartTotal: cartTotal
-      });
-
-      if (cafes.length === 0) {
-        console.warn('⚠️ No se cargaron cafés');
-      }
-      if (passes.length === 0) {
-        console.warn('⚠️ No se cargaron pases');
-      }
     } catch (error) {
-      console.error('❌ Error al procesar datos:', error);
+      console.error('❌ Error al procesar festivos:', error);
     }
 
     return {
-      cafes: cafes,
-      passes: passes,
+      cafes: [],
+      passes: [],
+      historial: [],
+      historialLoading: false,
       festivos: festivos,
       cartTotal: Number(cartTotal) || 0,
 
@@ -41,6 +24,9 @@ document.addEventListener('alpine:init', () => {
       hora: '',
       personas: 2,
       comentarios: '',
+
+      submitting: false,
+      submitError: null,
 
       // APIs externas
       weatherData: null,
@@ -157,15 +143,15 @@ document.addEventListener('alpine:init', () => {
       passBadges(p) {
         const attrs = this.parseJsonObject(p.attributes) || {};
         const out = [];
-        if (attrs.includes_drink) out.push({ icon: '🥤', label: 'Bebida' });
-        if (attrs.includes_dessert) out.push({ icon: '🍡', label: 'Postre' });
-        if (attrs.includes_feed) out.push({ icon: '🥕', label: 'Feed' });
-        if (attrs.private_room) out.push({ icon: '🪟', label: 'Privado' });
-        if (attrs.guided) out.push({ icon: '🧑‍🏫', label: 'Guiado' });
-        if (attrs.quiet) out.push({ icon: '🤫', label: 'Quiet' });
-        if (attrs.high_energy) out.push({ icon: '⚡', label: 'Energía' });
+        if (attrs.includes_drink) out.push({ icon: 'bi-cup-straw', label: 'Bebida' });
+        if (attrs.includes_dessert) out.push({ icon: 'bi-cake2', label: 'Postre' });
+        if (attrs.includes_feed) out.push({ icon: 'bi-basket2', label: 'Feed' });
+        if (attrs.private_room) out.push({ icon: 'bi-door-closed', label: 'Privado' });
+        if (attrs.guided) out.push({ icon: 'bi-person-video3', label: 'Guiado' });
+        if (attrs.quiet) out.push({ icon: 'bi-volume-mute', label: 'Quiet' });
+        if (attrs.high_energy) out.push({ icon: 'bi-lightning-charge', label: 'Energía' });
         if (attrs.allowed_start && attrs.allowed_end) out.push({
-          icon: '🌙',
+          icon: 'bi-moon-stars',
           label: `${attrs.allowed_start}-${attrs.allowed_end}`
         });
         return out;
@@ -269,8 +255,8 @@ document.addEventListener('alpine:init', () => {
         return {
           permitido: festivo.permite_reservas === true || festivo.permite_reservas === 1,
           mensaje: festivo.permite_reservas
-            ? `🎌 ${festivo.nombre_es} (${festivo.nombre_ja}) - Reserva con anticipación`
-            : `⛔ ${festivo.nombre_es} (${festivo.nombre_ja}) - No se aceptan reservas este día`,
+            ? `[Festivo] ${festivo.nombre_es} (${festivo.nombre_ja}) - Reserva con anticipación`
+            : `[No disponible] ${festivo.nombre_es} (${festivo.nombre_ja}) - No se aceptan reservas este día`,
           festivo: festivo
         };
       },
@@ -320,7 +306,29 @@ document.addEventListener('alpine:init', () => {
         this.loadWeatherAndHolidays();
       },
 
-      init() {
+      async init() {
+        // Cargar cafés y pases desde la API (FASE 3: shell)
+        try {
+          const [cafesRes, passesRes] = await Promise.all([
+            fetch('/api/v1/cafes'),
+            fetch('/api/v1/passes'),
+          ]);
+          if (cafesRes.ok) {
+            const json = await cafesRes.json();
+            this.cafes = json.data?.items ?? [];
+          } else {
+            console.error('❌ Error cargando cafés:', cafesRes.status);
+          }
+          if (passesRes.ok) {
+            const json = await passesRes.json();
+            this.passes = json.data?.items ?? [];
+          } else {
+            console.error('❌ Error cargando pases:', passesRes.status);
+          }
+        } catch (err) {
+          console.error('❌ Error cargando datos de reserva:', err);
+        }
+
         const urlParams = new URLSearchParams(globalThis.location.search);
 
         const cafeParam = urlParams.get('cafe');
@@ -339,6 +347,24 @@ document.addEventListener('alpine:init', () => {
         this.$watch('fecha', this.onFechaChange.bind(this));
 
         this.applyPreselectedPassIfPossible();
+        await this.loadHistorial();
+      },
+
+      async loadHistorial() {
+        this.historialLoading = true;
+        try {
+          const res = await fetch('/api/v1/user/reservations');
+          if (res.ok) {
+            const json = await res.json();
+            this.historial = json.data?.items ?? [];
+          } else {
+            console.error('❌ Error cargando historial:', res.status);
+          }
+        } catch (e) {
+          console.error('❌ loadHistorial error:', e);
+        } finally {
+          this.historialLoading = false;
+        }
       },
 
       // Cargar información de clima y festividades desde APIs reales
@@ -402,7 +428,7 @@ document.addEventListener('alpine:init', () => {
         const holidayPromise = (async () => {
           try {
             const holidayResponse = await fetch(
-              `/api/v1/holidays/check?date=${this.fecha}`
+              `/api/v1/holidays/${this.fecha}`
             );
 
             if (holidayResponse.ok) {
@@ -505,6 +531,100 @@ document.addEventListener('alpine:init', () => {
         };
 
         return descriptions[name] || 'Festividad nacional - Reserva con anticipación';
+      },
+
+      async submitReservation() {
+        if (!this.canSubmit || this.submitting) return;
+
+        this.submitting = true;
+        this.submitError = null;
+
+        try {
+          const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+          const resp = await fetch('/api/v1/reservations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrf,
+            },
+            body: JSON.stringify({
+              cafe_id: this.selectedCafeId,
+              pass_product_id: this.selectedPassId,
+              date: this.fecha,
+              time: this.hora,
+              guests: this.personas,
+              special_requests: this.comentarios,
+            }),
+          });
+
+          const json = await resp.json();
+
+          if (resp.status === 201) {
+            const id = json.data?.reservation_id ?? '';
+            window.location.href = '/reservas/confirmacion/' + id;
+          } else {
+            this.submitError = json.detail ?? json.error ?? 'Error al crear la reserva';
+          }
+        } catch {
+          this.submitError = 'Error de conexión. Por favor, inténtalo de nuevo.';
+        } finally {
+          this.submitting = false;
+        }
+      },
+
+      isPast(res) {
+        const ts = Date.parse(res.reservation_date + 'T' + (res.reservation_time || '00:00:00'));
+        return !isNaN(ts) && ts < Date.now();
+      },
+
+      isCancelable(res) {
+        const status = res.status || '';
+        return ['pending', 'confirmed'].includes(status) && !this.isPast(res);
+      },
+
+      statusLabel(status) {
+        const labels = {
+          pending: 'Pendiente',
+          confirmed: 'Confirmada',
+          cancelled: 'Cancelada',
+          completed: 'Completada',
+          active: 'Activa',
+          no_show: 'No presentado',
+        };
+        return labels[status] ?? (status || '').toUpperCase();
+      },
+
+      formatFecha(dateStr) {
+        if (!dateStr) return '—';
+        const [y, m, d] = dateStr.split('-');
+        return (d ?? '') + '/' + (m ?? '') + '/' + (y ?? '');
+      },
+
+      async cancelReservation(reservationId) {
+        if (!reservationId) return;
+
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        try {
+          const resp = await fetch('/api/v1/reservations/' + reservationId + '/cancel', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrf,
+            },
+            body: '{}',
+          });
+
+          if (resp.ok) {
+            window.location.reload();
+          } else {
+            const json = await resp.json();
+            alert(json.detail ?? 'No se pudo cancelar la reserva');
+          }
+        } catch {
+          alert('Error de conexión. Por favor, inténtalo de nuevo.');
+        }
       }
     };
   });

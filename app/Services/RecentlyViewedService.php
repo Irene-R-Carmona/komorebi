@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\CookieManager;
+use App\Services\Contracts\RecentlyViewedServiceInterface;
+use Override;
 
 /**
  * Servicio para gestionar el historial de cafés vistos recientemente
  * Almacena hasta 10 cafés en orden FIFO (primero en entrar, primero en salir)
  */
-final class RecentlyViewedService
+final class RecentlyViewedService implements RecentlyViewedServiceInterface
 {
     private const MAX_ITEMS = 10;
     private const COOKIE_DURATION = 30 * 24 * 3600; // 30 días
@@ -23,12 +25,13 @@ final class RecentlyViewedService
      *
      * @return boolean True si se guardó correctamente
      */
+    #[Override]
     public function add(int $cafeId): bool
     {
         $viewed = $this->getAll();
 
         // Eliminar el café si ya existe (para moverlo al principio)
-        $viewed = \array_filter($viewed, static fn($id) => $id !== $cafeId);
+        $viewed = \array_filter($viewed, static fn ($id) => $id !== $cafeId);
 
         // Añadir al principio
         \array_unshift($viewed, $cafeId);
@@ -50,6 +53,7 @@ final class RecentlyViewedService
      *
      * @return array<int> Array de IDs ordenados por recencia (más reciente primero)
      */
+    #[Override]
     public function getAll(): array
     {
         $cookie = CookieManager::get(CookieManager::RECENTLY_VIEWED);
@@ -73,6 +77,7 @@ final class RecentlyViewedService
      *
      * @return boolean True si se eliminó correctamente
      */
+    #[Override]
     public function clear(): bool
     {
         return CookieManager::delete(CookieManager::RECENTLY_VIEWED);
@@ -83,6 +88,7 @@ final class RecentlyViewedService
      *
      * @return integer
      */
+    #[Override]
     public function getMaxItems(): int
     {
         return self::MAX_ITEMS;

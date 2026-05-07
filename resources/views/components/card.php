@@ -61,7 +61,7 @@ function renderCard(array $props): string
     $classes = [
         'card',
         "card--{$variant}",
-        "card--padding-{$padding}"
+        "card--padding-{$padding}",
     ];
 
     if ($interactive) {
@@ -77,12 +77,12 @@ function renderCard(array $props): string
     // Build attributes
     $attrString = '';
     foreach ($attributes as $key => $value) {
-        $attrString .= ' ' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '="' . htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8') . '"';
+        $attrString .= ' ' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '="' . htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8') . '"';
     }
 
     // Render card
     ob_start();
-?>
+    ?>
     <div class="<?= htmlspecialchars($classString, ENT_QUOTES, 'UTF-8') ?>" <?= $attrString ?>>
         <?php if ($header): ?>
             <div class="card__header">
@@ -101,7 +101,7 @@ function renderCard(array $props): string
         <?php endif; ?>
     </div>
 <?php
-    return ob_get_clean();
+        return ob_get_clean();
 }
 
 // Auto-render if body provided directly in scope

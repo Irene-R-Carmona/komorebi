@@ -38,7 +38,8 @@
         <template x-for="cafe in cafes" :key="cafe.id">
             <a :href="'/cafes/' + cafe.slug" class="cafe-card-mini">
                 <div class="cafe-card-mini__image">
-                    <img :src="cafe.image_url" :alt="cafe.name" loading="lazy">
+                    <img :src="cafe.image_url" :alt="cafe.name" loading="lazy"
+                        @error="$event.target.src='/images/ui/placeholder-cafe.svg'">
                 </div>
                 <div class="cafe-card-mini__content">
                     <h4 class="cafe-card-mini__name" x-text="cafe.name"></h4>

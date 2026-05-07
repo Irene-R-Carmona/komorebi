@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Timeline / Historial de Chequeos de un Animal
  *
  * Muestra el historial completo de chequeos de salud de un animal específico.
  */
+
+use App\Support\DateFormatting;
+
 ?>
 
 <div class="container py-4">
@@ -21,10 +26,10 @@
                             </h1>
                             <h5 class="text-muted mb-0">
                                 <?= htmlspecialchars($animal['name'], ENT_QUOTES, 'UTF-8') ?>
-                                <span class="badge bg-info ms-2"><?= htmlspecialchars($animal['species_type'], ENT_QUOTES, 'UTF-8') ?></span>
+                                <span class="badge bg-info ms-2"><?= htmlspecialchars($animal['species'], ENT_QUOTES, 'UTF-8') ?></span>
                             </h5>
                             <p class="text-muted small mb-0 mt-1">
-                                Estado Actual: <span class="badge bg-secondary"><?= htmlspecialchars($animal['current_status'], ENT_QUOTES, 'UTF-8') ?></span> •
+                                Estado Actual: <span class="badge bg-secondary"><?= htmlspecialchars($animal['is_active'] ? 'Activo' : 'Inactivo', ENT_QUOTES, 'UTF-8') ?></span> •
                                 Mostrando últimos <?= $limit ?> chequeos
                             </p>
                         </div>
@@ -47,7 +52,7 @@
         <div class="col-md-4 mb-3">
             <div class="card shadow-sm h-100">
                 <div class="card-body text-center">
-                    <i class="bi bi-clipboard-data fa-3x text-primary mb-2"></i>
+                    <i class="bi bi-clipboard-data fs-1 text-primary mb-2"></i>
                     <h4 class="mb-0"><?= count($history) ?></h4>
                     <p class="text-muted mb-0">Chequeos Registrados</p>
                 </div>
@@ -56,10 +61,10 @@
         <div class="col-md-4 mb-3">
             <div class="card shadow-sm h-100">
                 <div class="card-body text-center">
-                    <i class="bi bi-calendar-check fa-3x text-success mb-2"></i>
+                    <i class="bi bi-calendar-check fs-1 text-success mb-2"></i>
                     <h4 class="mb-0">
                         <?php if (!empty($history)): ?>
-                            <?= date('d/m/Y', strtotime($history[0]['check_date'])) ?>
+                            <?= e(DateFormatting::toSpanishDate($history[0]['check_date'])) ?>
                         <?php else: ?>
                             -
                         <?php endif; ?>
@@ -71,17 +76,17 @@
         <div class="col-md-4 mb-3">
             <div class="card shadow-sm h-100">
                 <div class="card-body text-center">
-                    <i class="bi bi-exclamation-triangle fa-3x text-warning mb-2"></i>
+                    <i class="bi bi-exclamation-triangle fs-1 text-warning mb-2"></i>
                     <h4 class="mb-0">
                         <?php
                         $alertCount = 0;
-                        foreach ($history as $check) {
-                            if (!empty($check['alerts']) && is_array($check['alerts'])) {
-                                $alertCount += count($check['alerts']);
-                            }
-                        }
-                        echo $alertCount;
-                        ?>
+foreach ($history as $check) {
+    if (!empty($check['alerts']) && is_array($check['alerts'])) {
+        $alertCount += count($check['alerts']);
+    }
+}
+echo $alertCount;
+?>
                     </h4>
                     <p class="text-muted mb-0">Alertas Totales</p>
                 </div>
@@ -105,7 +110,7 @@
                             <div>
                                 <strong>
                                     <i class="bi bi-calendar3"></i>
-                                    <?= date('d/m/Y', strtotime($check['check_date'])) ?>
+                                    <?= e(DateFormatting::toSpanishDate($check['check_date'])) ?>
                                 </strong>
                                 <span class="text-muted ms-2">
                                     • Registrado <?= date('H:i', strtotime($check['created_at'])) ?> por
@@ -135,13 +140,13 @@
                                     <ul class="list-unstyled mb-0">
                                         <li>
                                             <strong>Peso:</strong>
-                                            <?= $check['weight_kg'] ? number_format((float)$check['weight_kg'], 2) . ' kg' : '<span class="text-muted">-</span>' ?>
+                                            <?= $check['weight_kg'] ? number_format((float) $check['weight_kg'], 2) . ' kg' : '<span class="text-muted">-</span>' ?>
                                         </li>
                                         <li>
                                             <strong>Temperatura:</strong>
                                             <?php if ($check['temperature_c']): ?>
                                                 <?php
-                                                $temp = (float)$check['temperature_c'];
+                        $temp = (float) $check['temperature_c'];
                                                 $tempClass = $temp > 39.5 ? 'text-danger' : ($temp < 36 ? 'text-warning' : '');
                                                 ?>
                                                 <span class="<?= $tempClass ?>">

@@ -62,6 +62,8 @@ make db-migrate        # aplica las nuevas migraciones si las hay
 
 ## Backups
 
+### Backup local (Docker Compose)
+
 ```bash
 make db-backup   # crea backups/backup_YYYYMMDD_HHMMSS.sql
 ```
@@ -71,6 +73,22 @@ Restaurar un backup:
 ```bash
 docker compose exec -i db mysql -u root -p komorebi < backups/FILENAME.sql
 ```
+
+### Backup en Railway (producción)
+
+```bash
+# Exportar BD desde Railway (requiere Railway CLI: npm install -g @railway/cli)
+railway run mysqldump -h $MYSQLHOST -P $MYSQLPORT -u $MYSQLUSER -p$MYSQLPASSWORD $MYSQLDATABASE \
+  > backups/railway_backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Restaurar sobre instancia Railway
+railway run mysql -h $MYSQLHOST -P $MYSQLPORT -u $MYSQLUSER -p$MYSQLPASSWORD $MYSQLDATABASE \
+  < backups/FILENAME.sql
+```
+
+> **Nota:** Railway no ofrece acceso SSH directo al MySQL Plugin. `railway run <comando>`
+> inyecta automáticamente las variables `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`,
+> `MYSQLPASSWORD` y `MYSQLDATABASE` en el entorno del comando ejecutado.
 
 ## Rollback
 

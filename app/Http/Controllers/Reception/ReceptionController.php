@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Reception;
 
-use App\Core\Flash;
+use App\Core\Container;
 use App\Core\Http\ResponseFactory;
-use App\Core\Middleware;
+use App\Core\Raw;
 use App\Core\Session;
 use App\Core\View;
-use App\Exceptions\ValidationException;
-use App\Services\ContextService;
-use App\Services\ReceptionService;
+use App\Exceptions\AuthorizationException;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Services\ContextServiceInstance;
+use App\Services\Contracts\ReceptionServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Throwable;
 
 /**
  * Controlador de Recepción
@@ -23,31 +23,43 @@ use Throwable;
  */
 final class ReceptionController
 {
-    private ReceptionService $service;
+    private ReceptionServiceInterface $service;
+
+    private ?ContextServiceInstance $context = null;
 
     private ResponseFactory $response;
 
+    private ProductRepositoryInterface $productRepo;
+
     public function __construct(
-        ?ReceptionService $service = null,
+        ?ReceptionServiceInterface $service = null,
+        ?ContextServiceInstance $context = null,
         ?ResponseFactory $response = null,
+        ?ProductRepositoryInterface $productRepo = null,
     ) {
-        Middleware::auth();
-        $this->service = $service ?? new ReceptionService();
-        $this->response = $response ?? new ResponseFactory();
+        $this->service = $service ?? Container::make(ReceptionServiceInterface::class);
+        $this->context = $context;
+        $this->response = $response ?? Container::make(ResponseFactory::class);
+        $this->productRepo = $productRepo ?? Container::make(ProductRepositoryInterface::class);
+    }
+
+    private function context(): ContextServiceInstance
+    {
+        return $this->context ??= \App\Core\Container::make(ContextServiceInstance::class);
     }
 
     /**
      * GET /ops/reception
      * Muestra el panel de recepción con reservas próximas y grupos activos.
      *
-     * @throws ValidationException Si falta contexto de sede
+     * @throws AuthorizationException Si falta contexto de sede
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $cafeId = ContextService::getCafeId();
+        $cafeId = $this->context()->getCafeId();
 
         if ($cafeId === null) {
-            throw ValidationException::withMessage('Recepción requiere un contexto de sede');
+            throw new AuthorizationException('Recepción requiere un contexto de sede');
         }
 
         // Obtener datos del servicio
@@ -55,104 +67,87 @@ final class ReceptionController
         $activeGroups = $this->service->getActiveGroups($cafeId);
         $freeTrackers = $this->service->getAvailableTrackers($cafeId);
         $capInfo = $this->service->getCapacityInfo($cafeId);
+        $orderableItems = $this->productRepo->findOrderableItems($cafeId);
 
         // Procesar reservas para presentación
         $reservasUI = $this->processReservationsForDisplay($reservasRaw);
 
         // Calcular ocupación actual
-        $ocupacion = \array_sum(\array_column($activeGroups, 'guests'));
+        $ocupacion = \array_sum(\array_column($activeGroups, 'guest_count'));
 
         // Guardar nombre de sede en sesión para el layout
-        Session::set('user_cafe_name', ContextService::getCafeName());
+        $cafeName = $this->context()->getCafeName();
+        Session::set('user_cafe_name', $cafeName);
 
         // Renderizar vista
         View::render('reception/index', [
-            'titulo' => 'Recepción - ' . ContextService::getCafeName(),
+            'titulo' => 'Recepción - ' . $cafeName,
+            'cafe_id' => $cafeId,
             'reservas' => $reservasUI,
             'active_groups' => $activeGroups,
             'free_trackers' => $freeTrackers,
             'ocupacion' => $ocupacion,
-            'cap_max' => $capInfo['capacity_max'] ?? 0,
+            'cap_max' => $capInfo['max'] ?? 0,
+            'orderable_items_json' => Raw::json($orderableItems),
         ], ['workspaces/reception.css'], 'reception');
-    }
-
-    /**
-     * GET /ops/reception/reservations
-     * Lista las reservas del día actual para la sede activa.
-     *
-     * @throws ValidationException Si falta contexto de sede
-     */
-    public function todayReservations(ServerRequestInterface $request): ?ResponseInterface
-    {
-        $cafeId = ContextService::getCafeId();
-
-        if ($cafeId === null) {
-            throw ValidationException::withMessage('Recepción requiere un contexto de sede');
-        }
-
-        $reservations = $this->service->getPendingArrivals($cafeId);
-
-        View::render('reception/index', [
-            'titulo' => 'Reservas de hoy - ' . ContextService::getCafeName(),
-            'reservations' => $reservations,
-        ], [], 'reception');
 
         return null;
     }
 
     /**
+     * GET /ops/reception/reservations
+     * Redirige al panel principal de recepción.
+     */
+    public function todayReservations(ServerRequestInterface $request): ResponseInterface
+    {
+        return $this->response->redirect('/ops/reception');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Acciones de check-in / check-out
+    // ─────────────────────────────────────────────────────────────
+
+    /**
      * POST /ops/reception/reservations/{id}/checkin
-     * Realiza check-in de una reserva.
-     *
-     * @throws Throwable
      */
     public function checkIn(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        $body = $request->getParsedBody();
-        $trackId = isset($body['tracker_id']) ? (int) $body['tracker_id'] : 0;
-
-        if ($id <= 0 || $trackId <= 0) {
-            Flash::error('Parámetros requeridos: id y tracker_id.');
-
-            return $this->response->redirect('/ops/reception');
+        if ($id <= 0) {
+            return $this->response->json(['ok' => false, 'message' => 'ID de reserva inválido'], 400);
         }
 
-        $result = $this->service->processCheckin($id, $trackId);
+        $body = (array) ($request->getParsedBody() ?? []);
+        $trackerId = isset($body['tracker_id']) ? (int) $body['tracker_id'] : 0;
+
+        if ($trackerId <= 0) {
+            return $this->response->json(['ok' => false, 'message' => 'ID de tracker inválido'], 400);
+        }
+
+        $result = $this->service->processCheckin($id, $trackerId);
 
         if (!$result->ok) {
-            Flash::error($result->getMessage());
-            return $this->response->redirect('/ops/reception');
+            return $this->response->json(['ok' => false, 'message' => $result->error], 422);
         }
 
-        Flash::success('Check-in realizado.');
-
-        return $this->response->redirect('/ops/reception');
+        return $this->response->json(['ok' => true]);
     }
 
     /**
      * POST /ops/reception/reservations/{id}/checkout
-     * Realiza check-out de una reserva.
-     *
-     * @throws Throwable
      */
     public function checkOut(ServerRequestInterface $request, int $id): ResponseInterface
     {
         if ($id <= 0) {
-            Flash::error('Identificador de reserva inválido.');
-
-            return $this->response->redirect('/ops/reception');
+            return $this->response->json(['ok' => false, 'message' => 'ID de reserva inválido'], 400);
         }
 
         $result = $this->service->processCheckout($id);
 
         if (!$result->ok) {
-            Flash::error($result->getMessage());
-            return $this->response->redirect('/ops/reception');
+            return $this->response->json(['ok' => false, 'message' => $result->error], 422);
         }
 
-        Flash::success('Check-out realizado.');
-
-        return $this->response->redirect('/ops/reception');
+        return $this->response->json(['ok' => true]);
     }
 
     // ─────────────────────────────────────────────────────────────

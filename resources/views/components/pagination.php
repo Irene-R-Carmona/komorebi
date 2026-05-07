@@ -47,7 +47,7 @@ unset($queryParams['page']); // Remover page para construir desde cero
 $buildUrl = function ($page) use ($queryParams) {
     $params = array_merge($queryParams, ['page' => $page]);
 
-    return '?' . http_build_query($params);
+    return e('?' . http_build_query($params));
 };
 ?>
 
@@ -56,7 +56,7 @@ $buildUrl = function ($page) use ($queryParams) {
         <p class="pagination__text">
             P\u00e1gina <strong><?= $currentPage ?></strong> de <strong><?= $totalPages ?></strong>
             <?php if (isset($pagination['total'])): ?>
-                (<?= number_format($pagination['total']) ?> resultados)
+                (<?= \App\Support\CurrencyFormatting::number($pagination['total']) ?> resultados)
             <?php endif; ?>
         </p>
     </div>

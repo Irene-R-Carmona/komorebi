@@ -1,0 +1,60 @@
+# railway.toml — Configuración de despliegue para Railway.app
+# Docs: https://docs.railway.com/reference/config-as-code
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "docker/php/Dockerfile.prod"
+
+[deploy]
+releaseCommand = "php /app/scripts/apply-db.php"
+startCommand = "supervisord -n -c /etc/supervisor/supervisord.conf"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Variables de entorno requeridas en Railway (ajusta los valores a tu proyecto):
+#
+#   APP_ENV=production
+#   APP_URL=https://komorebi-cafe.up.railway.app
+#   APP_KEY=base64:dGhpcy1pcy1hLXNlY3JldC1rZXktMzItY2hhcnMhISE=
+#   DATABASE_URL=${{MySQL.MYSQL_URL}}            # Variable de referencia del plugin MySQL
+#   REDIS_HOST=${{Redis.REDISHOST}}              # Variable de referencia del plugin Redis
+#   REDIS_PORT=${{Redis.REDISPORT}}
+#   REDIS_PASSWORD=${{Redis.REDISPASSWORD}}
+#   SESSION_DRIVER=redis
+#   CACHE_DRIVER=redis
+#   MAIL_HOST=smtp.mailgun.org
+#   MAIL_PORT=587
+#   MAIL_USERNAME=postmaster@mg.komorebi-cafe.com
+#   MAIL_PASSWORD=tu-api-key-de-mailgun
+#   MAIL_FROM=no-reply@komorebi-cafe.com
+#   MAIL_FROM_NAME=Komorebi Café
+#   MAIL_ENCRYPTION=tls
+#   CSRF_TOKEN_SECRET=genera-con-bin/generate-secrets.php
+#   SESSION_SECRET=genera-con-bin/generate-secrets.php
+#   ENCRYPTION_KEY=genera-con-bin/generate-secrets.php
+#   FEATURE_BACKOFFICE=1
+#   FEATURE_OPS=1
+#   FEATURE_KEEPER=1
+#   MAX_REQUESTS=500                  # Requests por worker FrankenPHP antes de reciclar el proceso
+#
+# OBLIGATORIO PARA RAILWAY (evita doble ejecución de migraciones al reiniciar el contenedor):
+# Las migraciones se ejecutan UNA SOLA VEZ via releaseCommand (arriba).
+# Si SKIP_MIGRATIONS no está definida, el entrypoint también las ejecutaría (innecesario).
+#   SKIP_MIGRATIONS=1
+#   MERCURE_JWT_SECRET=genera-con-openssl-rand-base64-32
+#   CLOUDINARY_CLOUD_NAME=tu_cloud_name
+#   CLOUDINARY_API_KEY=tu_api_key
+#   CLOUDINARY_API_SECRET=tu_api_secret
+#   SENTRY_DSN=https://xxx@oXX.ingest.sentry.io/xxx
+#   APP_VERSION=1.0.0
+#   APP_HTTPS=true
+#   SESSION_SECURE=true
+#   MAIL_HOST=smtp.resend.com
+#   MAIL_PORT=587
+#   MAIL_USERNAME=resend
+#   MAIL_PASSWORD=re_xxxxxxxxxxxx     # API key de Resend
+#   MAIL_FROM=no-reply@tu-dominio.com
+#   MAIL_FROM_NAME=Komorebi Café
+#   MAIL_ENCRYPTION=tls

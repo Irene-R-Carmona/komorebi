@@ -6,9 +6,6 @@ namespace App\Events;
 
 use DateTimeImmutable;
 
-/**
- * Evento disparado cuando se publica una review.
- */
 final readonly class ReviewPublishedEvent
 {
     public function __construct(

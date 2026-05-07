@@ -2,19 +2,28 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
+ * MenuService: getCategories (con/sin experiencias), getProductsByCategory,
+ * getAllergens, getMenuForCafe y getProductDetail.
+ *
  * ¿Qué me quieres demostrar?
+ * Que MenuService delega correctamente en MenuRepositoryInterface y que
+ * los filtros (includeExperiences, cafeId) se propagan al repositorio.
+ *
  * ¿Qué va a fallar en este test si se cambia el código?
+ * Si se elimina el filtro de experiencias, si getProductsByCategory
+ * deja de pasar cafeId al repositorio, o si getMenuForCafe cambia su estructura.
  */
+
 namespace Tests\Unit\Services;
 
-use App\Services\MenuService;
+use App\Domain\DTO\MenuDTO;
 use App\Repositories\Contracts\MenuRepositoryInterface;
-use PDO;
-use PDOStatement;
+use App\Services\MenuService;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,23 +31,22 @@ use PHPUnit\Framework\TestCase;
  *
  * Valida lógica de negocio sin tocar BD real (usa mocks).
  */
-#[AllowMockObjectsWithoutExpectations]
+#[CoversClass(MenuService::class)]
 final class MenuServiceTest extends TestCase
 {
     private MenuService $service;
-    private PDO $mockDb;
+    /** @var MockObject&MenuRepositoryInterface */
     private MenuRepositoryInterface $mockMenuRepo;
 
     protected function setUp(): void
     {
-        $this->mockDb = $this->createMock(PDO::class);
         $this->mockMenuRepo = $this->createMock(MenuRepositoryInterface::class);
-        $this->service = new MenuService($this->mockDb, $this->mockMenuRepo);
+        $this->service = new MenuService($this->mockMenuRepo);
     }
 
     protected function tearDown(): void
     {
-        unset($this->service, $this->mockDb, $this->mockMenuRepo);
+        unset($this->service, $this->mockMenuRepo);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -96,9 +104,9 @@ final class MenuServiceTest extends TestCase
             ->method('getProductsByCategory')
             ->with([])
             ->willReturn([
-                ['id' => 1, 'category_id' => 1, 'name' => 'Café Latte', 'price' => 500, 'allergen_ids' => null, 'allergen_names' => null],
-                ['id' => 2, 'category_id' => 1, 'name' => 'Cappuccino', 'price' => 550, 'allergen_ids' => null, 'allergen_names' => null],
-                ['id' => 3, 'category_id' => 2, 'name' => 'Croissant', 'price' => 300, 'allergen_ids' => null, 'allergen_names' => null],
+                ['id' => 1, 'category_id' => 1, 'name' => 'Café Latte', 'price' => 500, 'is_active' => true],
+                ['id' => 2, 'category_id' => 1, 'name' => 'Cappuccino', 'price' => 550, 'is_active' => true],
+                ['id' => 3, 'category_id' => 2, 'name' => 'Croissant', 'price' => 300, 'is_active' => true],
             ]);
 
         // ACT
@@ -119,7 +127,7 @@ final class MenuServiceTest extends TestCase
             ->method('getProductsByCategory')
             ->with([5])
             ->willReturn([
-                ['id' => 1, 'category_id' => 1, 'name' => 'Producto sin leche', 'price' => 500, 'allergen_ids' => null, 'allergen_names' => null]
+                ['id' => 1, 'category_id' => 1, 'name' => 'Producto sin leche', 'price' => 500, 'is_active' => true],
             ]);
 
         // ACT: Excluir alérgeno ID 5 (leche)
@@ -208,7 +216,7 @@ final class MenuServiceTest extends TestCase
 
         // ASSERT: Solo retorna genérico y el compatible
         $this->assertCount(2, $result);
-        $names = array_column($result, 'name');
+        $names = \array_column($result, 'name');
         $this->assertContains('Pase Genérico', $names);
         $this->assertContains('Pase Lounge', $names);
     }
@@ -217,6 +225,7 @@ final class MenuServiceTest extends TestCase
     // Tests: getMenuForView
     // ─────────────────────────────────────────────────────────────
 
+    #[AllowMockObjectsWithoutExpectations]
     public function testGetMenuForViewReturnsCompleteStructure(): void
     {
         // ARRANGE: Mock repository methods
@@ -224,7 +233,7 @@ final class MenuServiceTest extends TestCase
             ->willReturn([['id' => 1, 'name' => 'Bebidas', 'slug' => 'bebidas', 'display_order' => 1]]);
 
         $this->mockMenuRepo->method('getProductsByCategory')
-            ->willReturn([['id' => 1, 'category_id' => 1, 'name' => 'Café', 'price' => 500, 'allergen_ids' => null, 'allergen_names' => null]]);
+            ->willReturn([['id' => 1, 'category_id' => 1, 'name' => 'Café', 'price' => 500, 'is_active' => true]]);
 
         $this->mockMenuRepo->method('getPasses')
             ->willReturn([['id' => 10, 'name' => 'Pase 1H', 'product_type' => 'pass']]);
@@ -245,5 +254,84 @@ final class MenuServiceTest extends TestCase
         // Verificar tipos de café
         $this->assertCount(4, $result['cafeTypes']);
         $this->assertSame('lounge', $result['cafeTypes'][0]['value']);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Tests: getAllProducts
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetAllProductsReturnsDelegatedArray(): void
+    {
+        $dto1 = MenuDTO::fromArray(['id' => 1, 'name' => 'Café Latte', 'price' => 500, 'category_id' => 1]);
+        $dto2 = MenuDTO::fromArray(['id' => 2, 'name' => 'Matcha', 'price' => 600, 'category_id' => 1]);
+
+        $this->mockMenuRepo->expects($this->once())
+            ->method('getAllProducts')
+            ->willReturn([$dto1, $dto2]);
+
+        $result = $this->service->getAllProducts();
+
+        $this->assertCount(2, $result);
+        $this->assertSame(1, $result[0]['id']);
+        $this->assertSame('Café Latte', $result[0]['name']);
+        $this->assertArrayHasKey('allergens_list', $result[0]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Tests: getAllergens
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetAllergensReturnsDelegatedArray(): void
+    {
+        $expected = [
+            ['id' => 1, 'name' => 'Gluten', 'name_jp' => 'グルテン', 'icon' => 'wheat', 'icon_color' => '#D4A017', 'severity' => 'high'],
+            ['id' => 2, 'name' => 'Leche', 'name_jp' => 'ミルク', 'icon' => 'milk', 'icon_color' => '#fff', 'severity' => 'moderate'],
+        ];
+
+        $this->mockMenuRepo->expects($this->once())
+            ->method('getAllergens')
+            ->willReturn($expected);
+
+        $result = $this->service->getAllergens();
+
+        $this->assertSame($expected, $result);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Tests: allergen parsing logic in getProductsByCategory
+    // ─────────────────────────────────────────────────────────────
+
+    #[AllowMockObjectsWithoutExpectations]
+    public function testGetProductsByCategoryParsesAllergenFieldsIntoAllergensList(): void
+    {
+        $this->mockMenuRepo->method('getProductsByCategory')
+            ->willReturn([[
+                'id' => 1,
+                'category_id' => 1,
+                'name' => 'Croissant',
+                'price' => 300,
+                'is_active' => true,
+                'allergen_ids' => '1,2',
+                'allergen_names' => 'Gluten,Leche',
+                'allergen_icons' => 'wheat,milk',
+                'allergen_colors' => '#D4A017,#ffffff',
+                'allergen_severities' => 'high,moderate',
+            ]]);
+
+        $result = $this->service->getProductsByCategory();
+
+        $product = $result[1][0];
+        $this->assertArrayHasKey('allergens_list', $product);
+        $this->assertCount(2, $product['allergens_list']);
+
+        $this->assertSame(1, $product['allergens_list'][0]['id']);
+        $this->assertSame('Gluten', $product['allergens_list'][0]['name']);
+        $this->assertSame('wheat', $product['allergens_list'][0]['icon']);
+        $this->assertSame('#D4A017', $product['allergens_list'][0]['icon_color']);
+        $this->assertSame('high', $product['allergens_list'][0]['severity']);
+
+        $this->assertSame(2, $product['allergens_list'][1]['id']);
+        $this->assertSame('Leche', $product['allergens_list'][1]['name']);
+        $this->assertSame('moderate', $product['allergens_list'][1]['severity']);
     }
 }

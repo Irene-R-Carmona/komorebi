@@ -26,7 +26,7 @@ $alpineConfig = json_encode([
         'icon' => 'plus-circle',
         'title' => 'Nuevo Producto',
         'breadcrumbs' => [
-            ['label' => 'Productos', 'url' => '/admin/productos', 'icon' => 'box-seam'],
+            ['label' => 'Productos', 'url' => '/admin/menu', 'icon' => 'box-seam'],
             ['label' => 'Nuevo Producto'],
         ],
     ]) ?>
@@ -70,7 +70,7 @@ $alpineConfig = json_encode([
                             </span>
                         </template>
                     </button>
-                    <a href="/admin/productos" class="btn btn-outline-secondary w-100">
+                    <a href="/admin/menu" class="btn btn-outline-secondary w-100">
                         <i class="bi bi-x-lg me-2"></i>Cancelar
                     </a>
                 </div>

@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Workers;
 
 use App\Workers\EmailWorker;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -18,6 +19,7 @@ use PHPUnit\Framework\TestCase;
  *
  * Valida la lógica del worker de emails (sin ejecutar loop real).
  */
+#[CoversNothing]
 final class EmailWorkerTest extends TestCase
 {
     private EmailWorker $worker;
@@ -39,7 +41,7 @@ final class EmailWorkerTest extends TestCase
 
     public function testWorkerHasRunMethod(): void
     {
-        $this->assertTrue(method_exists($this->worker, 'run'));
+        $this->assertTrue(\method_exists($this->worker, 'run'));
     }
 
     /**

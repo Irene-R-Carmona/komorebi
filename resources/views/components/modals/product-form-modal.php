@@ -148,8 +148,8 @@
                         id="product_type"
                         x-model="form.product_type"
                         required>
-                        <option value="item">🍽️ Item del Menú</option>
-                        <option value="pass">🎫 Pase de Experiencia</option>
+                        <option value="item">Item del Menú</option>
+                        <option value="pass">Pase de Experiencia</option>
                     </select>
                 </div>
 
@@ -245,11 +245,11 @@
                     id="product_station"
                     x-model="form.station">
                     <option value="">-- Sin asignar --</option>
-                    <option value="bar">☕ Bar</option>
-                    <option value="kitchen_hot">🔥 Cocina Caliente</option>
-                    <option value="kitchen_cold">❄️ Cocina Fría</option>
-                    <option value="bakery">🥐 Repostería</option>
-                    <option value="assembly">🍱 Ensamblaje</option>
+                    <option value="bar">Bar</option>
+                    <option value="kitchen_hot">Cocina Caliente</option>
+                    <option value="kitchen_cold">Cocina Fría</option>
+                    <option value="bakery">Repostería</option>
+                    <option value="assembly">Ensamblaje</option>
                 </select>
             </div>
 

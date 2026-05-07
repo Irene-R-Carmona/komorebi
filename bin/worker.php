@@ -17,6 +17,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Core\Config;
 use App\Core\Logger;
 use App\Core\Queue;
+use App\Core\WideEvent;
 use App\Jobs\JobInterface;
 
 // ============================================================================
@@ -27,7 +28,7 @@ use App\Jobs\JobInterface;
 try {
     Config::init();
 } catch (Throwable $e) {
-    fwrite(STDERR, "[Worker] [FATAL] Error de configuración: " . $e->getMessage() . "\n");
+    fwrite(STDERR, '[Worker] [FATAL] Error de configuración: ' . $e->getMessage() . "\n");
     exit(1);
 }
 
@@ -41,12 +42,19 @@ try {
         'queue' => $queueName,
         'pending' => $testSize,
         'pid' => getmypid(),
-        'env' => Config::getString('app.env', 'production')
+        'env' => Config::getString('app.env', 'production'),
     ]);
 } catch (Throwable $e) {
     Logger::critical('[Worker] Sin conexión a Redis', ['error' => $e->getMessage()]);
     fwrite(STDERR, "[Worker] ERROR: No se pudo conectar a Redis\n");
     exit(1);
+}
+
+// Crear consumer group en el stream (XGROUP CREATE MKSTREAM)
+try {
+    Queue::ensureConsumerGroup($queueName);
+} catch (Throwable $e) {
+    Logger::warning('[Worker] No se pudo crear consumer group', ['error' => $e->getMessage()]);
 }
 
 // ============================================================================
@@ -64,7 +72,7 @@ $signalHandler = static function (int $signo) use (&$shouldStop, $queueName): vo
 
     Logger::warning('[Worker] Señal recibida, shutdown graceful', [
         'signal' => $signalName,
-        'queue' => $queueName
+        'queue' => $queueName,
     ]);
 
     fwrite(STDOUT, "\n[Worker] $signalName recibido. Finalizando...\n");
@@ -122,24 +130,53 @@ while (!$shouldStop) {
         $start = microtime(true);
         fwrite(STDOUT, "[Worker] Procesando: $jobClass\n");
 
+        WideEvent::reset();
+        WideEvent::set('job_class', $jobClass);
+        WideEvent::set('queue', $queueName);
+        WideEvent::set('pid', getmypid());
+        WideEvent::set('request_id', ($jobData['payload'] ?? [])['_correlation_id'] ?? '');
+
         try {
             $job->handle($jobData['payload'] ?? []);
             $duration = round((microtime(true) - $start) * 1000, 2);
             $processed++;
 
-            Logger::info('[Worker] Job OK', [
-                'job' => $jobClass,
-                'ms' => $duration
-            ]);
+            WideEvent::set('duration_ms', $duration);
+            WideEvent::set('outcome', 'success');
+            Logger::channel('queue')->info('job.canonical', WideEvent::all());
+
+            // XACK: confirmar procesamiento exitoso (elimina de PEL)
+            $streamId = $jobData['_stream_id'] ?? null;
+            if ($streamId !== null) {
+                Queue::acknowledge($queueName, $streamId);
+            }
         } catch (Throwable $e) {
             $errors++;
+            $duration = round((microtime(true) - $start) * 1000, 2);
+
+            WideEvent::set('duration_ms', $duration);
+            WideEvent::set('outcome', 'error');
+            WideEvent::setSection('error', [
+                'type' => get_class($e),
+                'message' => $e->getMessage(),
+            ]);
+            Logger::channel('queue')->info('job.canonical', WideEvent::all());
+
             Logger::error('[Worker] Job falló', [
                 'job' => $jobClass,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
-            // Reintentar si aplica
+            // Reintentar si aplica (empuja nuevo mensaje al stream/delayed)
             Queue::retry($jobData, $queueName, 3);
+
+            // XACK: eliminar original del PEL (ya encolado nuevo mensaje para retry)
+            $streamId = $jobData['_stream_id'] ?? null;
+            if ($streamId !== null) {
+                Queue::acknowledge($queueName, $streamId);
+            }
+        } finally {
+            WideEvent::reset();
         }
     } catch (Throwable $e) {
         Logger::critical('[Worker] Error en loop', ['error' => $e->getMessage()]);
@@ -153,7 +190,7 @@ while (!$shouldStop) {
 
 Logger::info('[Worker] Detenido', [
     'processed' => $processed,
-    'errors' => $errors
+    'errors' => $errors,
 ]);
 
 fwrite(STDOUT, "[Worker] Finalizado. Procesados: $processed, Errores: $errors\n");

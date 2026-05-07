@@ -1,19 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.0/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/13.1/phpunit.xsd"
          bootstrap="tests/bootstrap.php"
          colors="true"
          cacheDirectory=".phpunit.cache"
-         executionOrder="depends,defects"
+         executionOrder="default"
          requireCoverageMetadata="false"
-         beStrictAboutCoverageMetadata="true"
+         beStrictAboutCoverageMetadata="false"
          failOnRisky="false"
          failOnWarning="true">
 
     <!-- Test Suites -->
     <testsuites>
         <testsuite name="Unit Tests">
-            <directory>tests/Unit</directory>
+            <directory>tests/Unit/Core</directory>
+            <directory>tests/Unit/Domain</directory>
+            <directory>tests/Unit/Events</directory>
+            <directory>tests/Unit/Http</directory>
+            <directory>tests/Unit/Jobs</directory>
+            <directory>tests/Unit/Listeners</directory>
+            <directory>tests/Unit/Middleware</directory>
+            <directory>tests/Unit/Models</directory>
+            <directory>tests/Unit/Providers</directory>
+            <directory>tests/Unit/Repositories</directory>
+            <directory>tests/Unit/Services</directory>
+            <directory>tests/Unit/Workers</directory>
         </testsuite>
 
         <testsuite name="Integration Tests">
@@ -25,17 +36,47 @@
     <source>
         <include>
             <directory suffix=".php">app/Core</directory>
-            <directory suffix=".php">app/Services</directory>
-            <directory suffix=".php">app/Models</directory>
+            <directory suffix=".php">app/Domain</directory>
+            <directory suffix=".php">app/Events</directory>
             <directory suffix=".php">app/Http/Controllers</directory>
+            <directory suffix=".php">app/Http/Middleware</directory>
+            <directory suffix=".php">app/Jobs</directory>
+            <directory suffix=".php">app/Listeners</directory>
+            <directory suffix=".php">app/Middleware</directory>
+            <directory suffix=".php">app/Models</directory>
             <directory suffix=".php">app/Repositories</directory>
+            <directory suffix=".php">app/Services</directory>
         </include>
 
         <exclude>
             <directory>app/Views</directory>
             <file>app/routes.php</file>
+            <directory suffix=".php">app/Core/Seeders</directory>
+            <directory suffix=".php">app/Events</directory>
+            <directory suffix=".php">app/Listeners</directory>
+            <directory suffix=".php">app/Domain/DTO</directory>
+            <file>app/Jobs/JobInterface.php</file>
+            <file>app/Jobs/SendTelegramNotificationJob.php</file>
+            <file>app/Http/Controllers/Api/AbstractApiController.php</file>
+            <directory suffix=".php">app/Services/Contracts</directory>
+            <directory suffix=".php">app/Repositories/Contracts</directory>
+            <directory suffix=".php">app/Models/Contracts</directory>
+            <!-- Untestable: generateReservationInvoice() usa new tFPDF() instanciado internamente,
+                 no se puede inyectar ni mockear. Excluir para no distorsionar el denominador. -->
+            <file>app/Services/InvoicePDFService.php</file>
         </exclude>
     </source>
+
+    <!-- Coverage Reports (umbrales: lowUpper=50%, highLower=70%) -->
+    <coverage>
+        <report>
+            <text outputFile="php://stdout" showOnlySummary="true"/>
+            <clover outputFile="tests/reports/coverage.xml"/>
+            <html outputDirectory="tests/reports/coverage/"
+                  lowUpperBound="50"
+                  highLowerBound="70"/>
+        </report>
+    </coverage>
 
     <!-- Logging -->
     <logging>
@@ -46,12 +87,16 @@
     <!-- PHP Settings -->
     <php>
         <env name="APP_ENV" value="testing"/>
-        <env name="DB_HOST" value="127.0.0.1"/>
-        <env name="DB_NAME" value="komorebi_test"/>
-        <env name="DB_USER" value="root"/>
-        <env name="DB_PASSWORD" value="root"/>
+        <env name="APP_KEY" value="testing-key-for-phpunit-32chars!!" force="true"/>
+        <env name="DB_HOST" value="db"/>
+        <env name="DB_DATABASE" value="komorebi_test" force="true"/>
+        <env name="DB_USERNAME" value="komorebi_user"/>
+        <env name="DB_PASSWORD" value="komorebi"/>
         <env name="RUN_INTEGRATION_TESTS" value="1"/>
-        <env name="REDIS_HOST" value="127.0.0.1"/>
+        <env name="RESERVATION_MAX_DAYS_AHEAD" value="9999"/>
+        <env name="REDIS_HOST" value="cache"/>
         <env name="REDIS_PORT" value="6379"/>
+        <env name="APP_URL" value="http://localhost"/>
+        <ini name="memory_limit" value="-1"/>
     </php>
 </phpunit>

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\ReservationDTO;
+use DateMalformedStringException;
+
 interface ReservationRepositoryInterface
 {
     /**
@@ -18,9 +21,9 @@ interface ReservationRepositoryInterface
      * Find reservation by ID
      *
      * @param int $id
-     * @return array<string, mixed>|null
+     * @return ReservationDTO|null
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?ReservationDTO;
 
     /**
      * Check if reservation exists for user and datetime
@@ -51,12 +54,11 @@ interface ReservationRepositoryInterface
     public function delete(int $id): bool;
 
     /**
-     * Get all reservations for a user
+     * Listar reservas de un café con filtros opcionales.
      *
-     * @param int $userId
      * @return array<int, array<string, mixed>>
      */
-    public function findByUserId(int $userId): array;
+    public function findByCafeWithFilters(int $cafeId, ?string $status = null, ?string $date = null, int $page = 1): array;
 
     /**
      * Cancelar una reserva verificando pertenencia al usuario
@@ -66,6 +68,16 @@ interface ReservationRepositoryInterface
      * @return bool True si se canceló exitosamente
      */
     public function cancel(int $id, int $userId): bool;
+
+    /**
+     * Actualizar el estado de una reserva directamente (uso administrativo)
+     */
+    public function updateStatus(int $id, string $status): bool;
+
+    /**
+     * Guardar la URL pública del PDF de factura en Cloudinary.
+     */
+    public function updateInvoicePdfUrl(int $id, string $url): bool;
 
     /**
      * Buscar reservas activas de un usuario
@@ -109,7 +121,44 @@ interface ReservationRepositoryInterface
      * @param int $cafeId
      * @param string $date Fecha en formato Y-m-d
      * @return array<int, array{time: string, available: int, bookable: bool}>
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function getAvailableSlots(int $cafeId, string $date): array;
+
+    /** @return array<int, array<string, mixed>> Reservas confirmed/active de hoy para un café */
+    public function findByCafeAndDate(int $cafeId, string $date): array;
+
+    /** @return array<int, array<string, mixed>> Grupos activos (status=active) en el café ahora */
+    public function findActiveByCafe(int $cafeId): array;
+
+    /** Registra check-in. $protocolData puede incluir tracker_id, zone_id, hygiene, briefing, shoes. */
+    public function checkIn(int $id, array $protocolData = []): bool;
+
+    /** Registra check-out. $paymentData puede incluir final_amount, payment_status, etc. */
+    public function checkOut(int $id, array $paymentData = []): bool;
+
+    /** Asigna tracker a reserva y lo marca 'in_use'. */
+    public function assignTracker(int $reservationId, int $trackerId): bool;
+
+    /** Marca un protocolo (hygiene|briefing|shoes) como completado. */
+    public function completeProtocol(int $id, string $protocol): bool;
+
+    /** @return array{total: int, completed: int, cancelled: int, no_shows: int, current_guests: int, total_revenue: float} */
+    public function getDailyStats(int $cafeId, string $date): array;
+
+    /**
+     * Find reservation by ID restricted to a specific user (ownership check).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findByIdAndUser(int $id, int $userId): ?array;
+
+    public function hasCompletedReservation(int $userId, int $cafeId): bool;
+
+    /**
+     * Find reservation with operational fields (protocol_hygiene, protocol_briefing, protocol_shoes, tracker_id, etc).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findWithOperationalData(int $id): ?array;
 }

@@ -1,43 +1,63 @@
 <section class="seccion seccion--activa">
-    <div class="seccion__container" x-data="catalogoApp(<?= json_encode($favoritos, JSON_THROW_ON_ERROR) ?>)" x-cloak>
+    <!-- Skeleton: visible antes de Alpine.js (x-cloak oculta el contenido real) -->
+    <div id="catalogo-skeleton" class="seccion__container" aria-hidden="true">
+        <div class="catalogo__grid skeleton-list">
+            <?php for ($i = 0; $i < 6; $i++): ?>
+                <div class="skeleton-card">
+                    <div class="skeleton skeleton-image skeleton-image--4-3"></div>
+                    <div class="skeleton skeleton-text skeleton-text--heading"></div>
+                    <div class="skeleton skeleton-text skeleton-text--sm"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text skeleton-text--sm"></div>
+                </div>
+            <?php endfor; ?>
+        </div>
+    </div>
+
+    <div class="seccion__container" x-data="catalogoApp(<?= json_encode($favoritos, JSON_THROW_ON_ERROR) ?>)" x-cloak x-init="document.getElementById('catalogo-skeleton')?.remove()">
         <header class="seccion__header">
             <h2 class="seccion__titulo">Nuestros Cafés</h2>
             <p class="seccion__subtitulo">Encuentra tu lugar perfecto para relajarte</p>
 
             <p class="seccion__hora">
-                <span aria-hidden="true" class="seccion__hora-icon">🕐</span>
+                <i class="bi bi-clock seccion__hora-icon" aria-hidden="true"></i>
                 Hora local: <span><?= date('H:i') ?></span>
             </p>
         </header>
 
         <!-- FILTROS -->
-        <div class="filtros">
+        <div class="filtros" role="search">
             <div class="filtros__busqueda">
-                <input class="filtros__input"
+                <label for="busqueda-cafes" class="visually-hidden">Buscar café por nombre o ubicación</label>
+                <input id="busqueda-cafes"
+                    class="filtros__input"
                     x-model="busqueda"
                     @input="watchBusqueda()"
-                    type="text"
-                    placeholder="Buscar café por nombre o ubicación...">
+                    type="search"
+                    placeholder="Buscar café por nombre o ubicación..."
+                    autocomplete="off">
             </div>
 
             <div class="filtros__tipos">
                 <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'todos' }"
                     @click="setFiltro('todos')">Todos
                 </button>
-                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'gato' }"
-                    @click="setFiltro('gato')">Gatos
+                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'lounge' }"
+                    @click="setFiltro('lounge')">
+                    <i class="bi bi-house-heart" aria-hidden="true"></i> Lounge
                 </button>
-                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'buho' }"
-                    @click="setFiltro('buho')">Búhos
+                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'playroom' }"
+                    @click="setFiltro('playroom')">
+                    <i class="bi bi-controller" aria-hidden="true"></i> Playroom
                 </button>
-                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'conejo' }"
-                    @click="setFiltro('conejo')">Conejos
+                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'farm' }"
+                    @click="setFiltro('farm')">
+                    <i class="bi bi-tree" aria-hidden="true"></i> Farm
                 </button>
-                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'erizo' }"
-                    @click="setFiltro('erizo')">Erizos
-                </button>
-                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'capybara' }"
-                    @click="setFiltro('capybara')">Capibaras
+                <button class="filtros__btn" :class="{ 'filtros__btn--activo': filtroTipo === 'zen' }"
+                    @click="setFiltro('zen')">
+                    <i class="bi bi-flower1" aria-hidden="true"></i> Zen
                 </button>
             </div>
 
@@ -61,73 +81,64 @@
         </div>
 
         <!-- GRID DE CAFÉS -->
-        <div class="catalogo__grid">
-            <?php foreach ($cafes as $cafe):
-                // Objeto JSON mínimo para el filtro JS
-                $cafeJs = e(json_encode([
-                    'tipo' => $cafe['animal_type'],
-                    'nombre' => $cafe['name'],
-                    'ubicacion' => $cafe['location'],
-                ], JSON_THROW_ON_ERROR));
-                ?>
-                <!-- Card -->
-                <article class="card"
-                    x-show="filtrar(<?= $cafeJs ?>)"
-                    x-transition.duration.300ms>
+        <div class="catalogo__grid" aria-live="polite" aria-atomic="false">
+            <template x-for="cafe in cafesFiltrados" :key="cafe.id">
+                <article class="card" x-transition.duration.300ms>
 
                     <div class="card__imagen">
-                        <img src="<?= e($cafe['image_url'] ?? '/images/ui/placeholder.jpg') ?>"
-                            alt="<?= e($cafe['name']) ?>"
+                        <img :src="cafe.image_url || '/images/ui/placeholder-cafe.svg'"
+                            :alt="cafe.name"
                             class="card__img"
-                            loading="lazy">
-                        <div class="card__tipo-badge"><?= ucfirst(e($cafe['animal_type'])) ?></div>
+                            width="400"
+                            height="266"
+                            loading="lazy"
+                            @error="$el.src='/images/ui/placeholder-cafe.svg'">
+                        <div class="card__tipo-badge" x-text="(cafe.animal_type||'').charAt(0).toUpperCase() + (cafe.animal_type||'').slice(1)"></div>
                     </div>
 
                     <div class="card__contenido">
                         <div class="card__header">
                             <div class="card__titulos">
-                                <h3 class="card__nombre"><?= e($cafe['name']) ?></h3>
-                                <span class="card__nombre-jp"><?= e($cafe['japanese_name']) ?></span>
+                                <h3 class="card__nombre" x-text="cafe.name"></h3>
+                                <span class="card__nombre-jp" x-text="cafe.japanese_name"></span>
                             </div>
                         </div>
 
-                        <div class="card__ubicacion"><?= e($cafe['location']) ?></div>
+                        <div class="card__ubicacion" x-text="cafe.location"></div>
 
                         <div class="card__horario">
-                            <span class="card__horario-icon">🕒</span>
-                            <?= substr($cafe['opening_time'], 0, 5) ?> - <?= substr($cafe['closing_time'], 0, 5) ?>
+                            <i class="bi bi-clock card__horario-icon" aria-hidden="true"></i>
+                            <span x-text="(cafe.opening_time||'').substring(0,5)"></span> - <span x-text="(cafe.closing_time||'').substring(0,5)"></span>
                         </div>
 
-                        <p class="card__descripcion"><?= e($cafe['description']) ?></p>
+                        <p class="card__descripcion line-clamp-3" x-text="cafe.description"></p>
 
                         <div class="card__footer">
                             <div class="card__rating">
-                                <span class="star--filled">★</span> <?= $cafe['rating_avg'] ?? '—' ?>
+                                <span class="star--filled" aria-hidden="true">★</span>
+                                <span class="visually-hidden">Valoración:</span>
+                                <span x-text="cafe.rating_avg ?? '—'"></span>
                             </div>
                         </div>
 
                         <div class="card__acciones">
-                            <a href="/cafes/<?= $cafe['slug'] ?>" class="card__btn card__btn--animales">
-                                Ver Animales
-                            </a>
-                            <a href="/reservas?cafe=<?= $cafe['id'] ?>" class="card__btn card__btn--reservar">
-                                Reservar
-                            </a>
+                            <a :href="'/cafes/' + cafe.slug" class="card__btn card__btn--animales">Ver Animales</a>
+                            <a :href="'/reservas?cafe=' + cafe.id" class="card__btn card__btn--reservar">Reservar</a>
                         </div>
                     </div>
                 </article>
-            <?php endforeach; ?>
+            </template>
         </div>
 
         <!-- Mensaje Vacío -->
-        <div class="catalogo__vacio"
-            x-show="$el.previousElementSibling.children.length > 0 && $el.previousElementSibling.querySelectorAll('article[style*=\'display: none\']').length === <?= count($cafes) ?>"
+        <div class="empty-state"
+            x-show="!hayResultados"
+            x-transition
             style="display: none;">
-
-            <span class="catalogo__vacio-icon">🍵</span>
-            <h3 class="catalogo__vacio-titulo">No hemos encontrado coincidencias</h3>
-            <p class="catalogo__vacio-texto">Intenta buscar con otro nombre o cambia el tipo de animal seleccionado.</p>
-            <button @click="limpiarFiltros()" class="btn btn--primario">🔄 Limpiar filtros</button>
+            <i class="bi bi-cup-hot empty-state__icon" aria-hidden="true"></i>
+            <h3 class="empty-state__title">Sin coincidencias</h3>
+            <p class="empty-state__body">Intenta buscar con otro nombre o cambia el tipo de animal seleccionado.</p>
+            <button @click="limpiarFiltros()" class="btn-komorebi btn-komorebi--secondary" type="button">Limpiar filtros</button>
         </div>
     </div>
 </section>

@@ -6,9 +6,6 @@ namespace App\Events;
 
 use DateTimeImmutable;
 
-/**
- * Evento disparado cuando se confirma una reserva.
- */
 final readonly class ReservationConfirmedEvent
 {
     public function __construct(

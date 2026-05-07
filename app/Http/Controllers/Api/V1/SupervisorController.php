@@ -1,13 +1,13 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Api\AbstractApiController;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
-use App\Services\SupervisorAssignmentService;
+use App\Http\Controllers\Api\AbstractApiController;
+use App\Services\Contracts\SupervisorAssignmentServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -21,13 +21,13 @@ final class SupervisorController extends AbstractApiController
 {
     public function __construct(
         ResponseFactory $response,
-        private readonly SupervisorAssignmentService $service,
+        private readonly SupervisorAssignmentServiceInterface $service,
     ) {
         parent::__construct($response);
     }
 
     /**
-     * POST /api/v1/supervisor/assign
+     * POST /api/v1/supervisor/assignments
      *
      * Asigna una reserva a una mesa.
      *
@@ -51,7 +51,7 @@ final class SupervisorController extends AbstractApiController
             return $this->response->problem($result, $status);
         }
 
-        return $this->success([
+        return $this->created([
             'message' => 'Mesa asignada correctamente',
             'assignment' => $result->data,
         ]);

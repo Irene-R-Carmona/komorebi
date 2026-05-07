@@ -110,7 +110,7 @@ final class Favorite
     public function getByUser(int $userId): array
     {
         $sql = 'SELECT c.id, c.name, c.japanese_name, c.slug, c.location,
-                       c.category, c.animal_type, c.price_per_hour, c.rating,
+                       c.category, c.animal_type, c.price_per_hour, c.rating_avg,
                        c.image_url, f.created_at AS favorited_at
                 FROM favorites f
                 JOIN cafes c ON c.id = f.cafe_id
@@ -160,7 +160,7 @@ final class Favorite
     public function getMostPopular(int $limit = 10): array
     {
         $sql = 'SELECT c.id, c.name, c.slug, c.category, c.animal_type,
-                       c.rating, c.image_url,
+                       c.rating_avg, c.image_url,
                        COUNT(f.user_id) as favorites_count
                 FROM cafes c
                 JOIN favorites f ON f.cafe_id = c.id

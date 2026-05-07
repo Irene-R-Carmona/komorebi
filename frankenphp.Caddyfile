@@ -1,24 +1,91 @@
+{
+	admin localhost:2019
+	metrics
+
+	frankenphp {
+		max_threads auto
+	}
+}
+
 :80 {
+	# HTTP → HTTPS redirect when Railway terminates TLS upstream
+	@http {
+		header X-Forwarded-Proto http
+	}
+	redir @http https://{host}{uri} 308
+
+	# Structured access logs (12-Factor XI: logs to stdout as JSON)
+	log {
+		output stdout
+		format json
+		level INFO
+	}
+
 	# Compression (gzip, zstd, brotli) para todos los responses
-	encode gzip zstd
+	encode br gzip zstd
 
-	# Cache control headers para assets estáticos (DESHABILITADO EN DEV)
-	# @static {
-	# 	path *.css *.js *.jpg *.jpeg *.png *.gif *.svg *.woff *.woff2 *.ttf *.eot *.ico
-	# }
-	# header @static Cache-Control "public, max-age=31536000, immutable"
+	# Cache-Control headers para assets estáticos propios
+	# Fuentes e imágenes: larga vida útil (no cambian sin renombrado)
+	@staticImmutable {
+		path *.woff *.woff2 *.ttf *.eot *.ico
+	}
+	header @staticImmutable Cache-Control "public, max-age=31536000, immutable"
 
-	# Cabeceras de seguridad (CSP, HSTS, etc.) manejadas por SecurityHeadersMiddleware en PHP
+	# CSS y JS: revalidación obligatoria (sin cache-fingerprint en URLs)
+	@staticRevalidate {
+		path *.css *.js
+	}
+	header @staticRevalidate Cache-Control "public, max-age=0, must-revalidate"
+
+	# Imágenes: caché razonable sin immutable
+	@staticImages {
+		path *.jpg *.jpeg *.png *.gif *.svg *.webp
+	}
+	header @staticImages Cache-Control "public, max-age=86400"
+
+	# Cabeceras de seguridad (CSP, HSTS, X-Frame-Options, etc.) manejadas exclusivamente
+	# por SecurityHeadersMiddleware en PHP para evitar valores duplicados/contradictorios.
 
 	# Deshabilitar server tokens
 	header -Server
 
-	# Cabeceras de seguridad HTTP
-	header X-Frame-Options "SAMEORIGIN"
-	header X-Content-Type-Options "nosniff"
-	header Referrer-Policy "strict-origin-when-cross-origin"
+	# Mercure Hub integrado: SSE en tiempo real para KDS y recepción
+	# Endpoint: /.well-known/mercure (no pasa por PHP)
+	mercure {
+		publisher_jwt {$MERCURE_JWT_SECRET} HS256
+		subscriber_jwt {$MERCURE_JWT_SECRET} HS256
+		anonymous
+		cors_origins {$CORS_ALLOWED_ORIGINS}
+	}
 
 	root * /app/public
-	php_server
+	php_server {
+		# Pool dedicado para admin: operaciones pesadas, reportes, CRUD
+		worker /app/public/index.php {
+			match /admin/*
+			num 2
+		}
+		# Pool principal: rutas públicas, recepción, KDS, API
+		worker /app/public/index.php {
+			match *
+			num 4
+		}
+	}
 	file_server
+
+	# X-Accel-Redirect / X-Sendfile: permite que PHP delegue el envío de archivos
+	# privados (facturas PDF, documentos protegidos) directamente a Caddy.
+	# El controller PHP debe responder con:
+	#   header('X-Accel-Redirect: /protected/invoices/invoice-123.pdf');
+	# Caddy intercepta la cabecera y sirve el fichero sin pasar el contenido por PHP.
+	@accelRedirect {
+		header X-Accel-Redirect *
+	}
+	route @accelRedirect {
+		# El valor de X-Accel-Redirect es una ruta interna relativa a /app
+		# Usar 'uri' para extraer el path del header y servirlo
+		file_server {
+			root /app
+		}
+	}
 }

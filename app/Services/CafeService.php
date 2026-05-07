@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\BaseService;
-use App\Core\Database;
+use App\Core\Cache;
+use App\Core\Container;
 use App\Core\Result;
 use App\Models\AuditLog;
-use App\Repositories\CafeRepository;
 use App\Repositories\Contracts\CafeRepositoryInterface;
-use PDO;
+use App\Repositories\Contracts\StatisticsRepositoryInterface;
+use App\Services\Contracts\CafeServiceInterface;
+use Override;
 use PDOException;
 use RuntimeException;
 
@@ -21,15 +23,17 @@ use RuntimeException;
  *
  * @package Komorebi\Services
  */
-final class CafeService extends BaseService
+final class CafeService extends BaseService implements CafeServiceInterface
 {
     private CafeRepositoryInterface $cafeRepo;
-    private PDO $db; // Mantener temporalmente para queries complejas legacy
+    private StatisticsRepositoryInterface $statsRepo;
 
-    public function __construct(?CafeRepositoryInterface $cafeRepo = null)
-    {
-        $this->cafeRepo = $cafeRepo ?? new CafeRepository();
-        $this->db = Database::getConnection(); // Usar getConnection()
+    public function __construct(
+        CafeRepositoryInterface $cafeRepo,
+        ?StatisticsRepositoryInterface $statsRepo = null,
+    ) {
+        $this->cafeRepo = $cafeRepo;
+        $this->statsRepo = $statsRepo ?? Container::make(StatisticsRepositoryInterface::class);
     }
 
     /**
@@ -40,10 +44,11 @@ final class CafeService extends BaseService
      * @param integer $offset  Offset para paginación
      * @return array Lista de cafés
      */
+    #[Override]
     public function getAll(array $filters = [], int $limit = 100, int $offset = 0): array
     {
         // Para filtros simples, usar métodos específicos del repositorio
-        if (isset($filters['is_active']) && (int)$filters['is_active'] === 1 && empty($filters['category']) && empty($filters['animal_type'])) {
+        if (isset($filters['is_active']) && (int) $filters['is_active'] === 1 && empty($filters['category']) && empty($filters['animal_type'])) {
             return $this->cafeRepo->findActive();
         }
 
@@ -60,9 +65,10 @@ final class CafeService extends BaseService
      * @param integer $id ID del café
      * @return array|null Datos del café o null si no existe
      */
+    #[Override]
     public function getById(int $id): ?array
     {
-        return $this->cafeRepo->findById($id);
+        return $this->cafeRepo->findById($id)?->toViewArray();
     }
 
     /**
@@ -72,6 +78,7 @@ final class CafeService extends BaseService
      * @return Result
      * @throws RuntimeException Si falla la creación en base de datos
      */
+    #[Override]
     public function create(array $data): Result
     {
         // Validación de campos requeridos
@@ -108,7 +115,7 @@ final class CafeService extends BaseService
 
             return Result::ok($cafeId);
         } catch (PDOException $e) {
-            throw new RuntimeException('Error al crear el café: ' . $e->getMessage());
+            return Result::fail('Error al crear el café: ' . $e->getMessage(), 'db_error');
         }
     }
 
@@ -120,10 +127,12 @@ final class CafeService extends BaseService
      * @return Result
      * @throws RuntimeException Si falla la actualización en base de datos
      */
+    #[Override]
     public function update(int $id, array $data): Result
     {
         // Verificar que el café existe (usa repositorio)
-        if (!$this->cafeRepo->findById($id)) {
+        $existing = $this->cafeRepo->findById($id);
+        if (!$existing) {
             return Result::fail('Café no encontrado', 'not_found');
         }
 
@@ -164,12 +173,20 @@ final class CafeService extends BaseService
         try {
             $this->cafeRepo->update($id, $params);
 
+            // Invalidar caché para evitar datos obsoletos tras la escritura
+            Cache::delete("cafe:id:{$id}");
+            Cache::delete("cafe:{$existing->slug}");
+            Cache::delete('cafes:active');
+            if (isset($params['slug']) && $params['slug'] !== $existing->slug) {
+                Cache::delete("cafe:{$params['slug']}");
+            }
+
             // Log de auditoría
             AuditLog::log('update_cafe', 'cafe', $id, null, $data);
 
             return Result::ok(true);
         } catch (PDOException $e) {
-            throw new RuntimeException('Error al actualizar el café: ' . $e->getMessage());
+            return Result::fail('Error al actualizar el café: ' . $e->getMessage(), 'db_error');
         }
     }
 
@@ -180,6 +197,7 @@ final class CafeService extends BaseService
      * @return Result
      * @throws RuntimeException Si falla la actualización en base de datos
      */
+    #[Override]
     public function toggleActive(int $id): Result
     {
         $cafe = $this->cafeRepo->findById($id);
@@ -187,17 +205,22 @@ final class CafeService extends BaseService
             return Result::fail('Café no encontrado', 'not_found');
         }
 
-        $newStatus = $cafe['is_active'] ? 0 : 1;
+        $newStatus = $cafe->is_active ? 0 : 1;
 
         try {
             $this->cafeRepo->update($id, ['is_active' => $newStatus]);
+
+            // Invalidar caché para evitar datos obsoletos tras la escritura
+            Cache::delete("cafe:id:{$id}");
+            Cache::delete("cafe:{$cafe->slug}");
+            Cache::delete('cafes:active');
 
             // Log de auditoría del cambio de estado
             AuditLog::log('toggle_cafe_status', 'cafe', $id, null, ['is_active' => $newStatus]);
 
             return Result::ok(true);
         } catch (PDOException $e) {
-            throw new RuntimeException('Error al cambiar el estado del café: ' . $e->getMessage());
+            return Result::fail('Error al cambiar el estado del café: ' . $e->getMessage(), 'db_error');
         }
     }
 
@@ -208,6 +231,7 @@ final class CafeService extends BaseService
      * @return Result
      * @throws RuntimeException Si falla la eliminación en base de datos
      */
+    #[Override]
     public function delete(int $id): Result
     {
         $cafe = $this->cafeRepo->findById($id);
@@ -218,12 +242,17 @@ final class CafeService extends BaseService
         try {
             $this->cafeRepo->softDelete($id);
 
+            // Invalidar caché para evitar datos obsoletos tras la escritura
+            Cache::delete("cafe:id:{$id}");
+            Cache::delete("cafe:{$cafe->slug}");
+            Cache::delete('cafes:active');
+
             // Log de auditoría de eliminación
             AuditLog::log('delete_cafe', 'cafe', $id, null, null);
 
             return Result::ok(true);
         } catch (PDOException $e) {
-            throw new RuntimeException('Error al eliminar el café: ' . $e->getMessage());
+            return Result::fail('Error al eliminar el café: ' . $e->getMessage(), 'db_error');
         }
     }
 
@@ -234,23 +263,10 @@ final class CafeService extends BaseService
      * @param integer $limit Límite de resultados
      * @return array Lista de cafés encontrados
      */
+    #[Override]
     public function search(string $query, int $limit = 20): array
     {
-        $searchTerm = "%$query%";
-
-        $sql = '
-            SELECT *
-            FROM cafes
-            WHERE (name LIKE ? OR location LIKE ? OR animal_type LIKE ?)
-            AND is_active = 1
-            ORDER BY name
-            LIMIT ?
-        ';
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$searchTerm, $searchTerm, $searchTerm, $limit]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->cafeRepo->search($query, $limit);
     }
 
     /**
@@ -260,18 +276,9 @@ final class CafeService extends BaseService
      *
      * @psalm-return array<string, null|scalar>|false
      */
+    #[Override]
     public function getStats(): array|false
     {
-        $sql = '
-            SELECT
-                COUNT(*) as total,
-                SUM(IF(is_active = 1, 1, 0)) as active,
-                SUM(IF(has_reservations = 1, 1, 0)) as with_reservations,
-                COUNT(DISTINCT category) as categories,
-                COUNT(DISTINCT animal_type) as animal_types
-            FROM cafes
-        ';
-
-        return $this->db->query($sql)->fetch(PDO::FETCH_ASSOC);
+        return $this->statsRepo->getCafeStats();
     }
 }

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Core;
 
-use App\Exceptions\ValidationException;
-
 /**
  * Clase base para Services.
  *
@@ -26,58 +24,18 @@ abstract class BaseService
         Logger::error('[' . static::class . '] ' . $message, $context);
     }
 
-    // ─── Validación ───────────────────────────────────────────────
-
-    /**
-     * @throws ValidationException
-     */
-    protected function assertNotBlank(string $value, string $field): void
+    protected function logDebug(string $message, array $context = []): void
     {
-        if (trim($value) === '') {
-            throw new ValidationException(
-                'Campo requerido',
-                [$field => "El campo {$field} es obligatorio"]
-            );
-        }
+        Logger::debug('[' . static::class . '] ' . $message, $context);
     }
 
-    /**
-     * @throws ValidationException
-     */
-    protected function assertMaxLength(string $value, int $max, string $field): void
+    protected function logWarning(string $message, array $context = []): void
     {
-        if (mb_strlen($value) > $max) {
-            throw new ValidationException(
-                'Valor demasiado largo',
-                [$field => "El campo {$field} no puede superar {$max} caracteres"]
-            );
-        }
+        Logger::warning('[' . static::class . '] ' . $message, $context);
     }
 
-    /**
-     * @throws ValidationException
-     */
-    protected function assertRange(int|float $value, int|float $min, int|float $max, string $field): void
+    protected function logCritical(string $message, array $context = []): void
     {
-        if ($value < $min || $value > $max) {
-            throw new ValidationException(
-                'Valor fuera de rango',
-                [$field => "El campo {$field} debe estar entre {$min} y {$max}"]
-            );
-        }
-    }
-
-    /**
-     * @param array<mixed> $allowed
-     * @throws ValidationException
-     */
-    protected function assertOneOf(mixed $value, array $allowed, string $field): void
-    {
-        if (!in_array($value, $allowed, true)) {
-            throw new ValidationException(
-                'Valor no permitido',
-                [$field => "El campo {$field} debe ser uno de: " . implode(', ', array_map('strval', $allowed))]
-            );
-        }
+        Logger::critical('[' . static::class . '] ' . $message, $context);
     }
 }

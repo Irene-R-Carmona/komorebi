@@ -10,7 +10,7 @@ declare(strict_types=1);
 <div class="static-page">
     <!-- Hero -->
     <header class="static-hero">
-        <span class="static-hero__icon">🔒</span>
+        <i class="bi bi-lock static-hero__icon" aria-hidden="true"></i>
         <h1 class="static-hero__title">Política de Privacidad</h1>
         <p class="static-hero__subtitle">Transparencia total sobre cómo tratamos tus datos personales</p>
         <p class="static-hero__date">Última actualización: 1 de febrero de 2026</p>
@@ -120,7 +120,7 @@ declare(strict_types=1);
             </ul>
 
             <div class="static-content__callout static-content__callout--warning">
-                <strong>⚠️ Importante:</strong> Todos los proveedores tienen DPA (Data Processing Agreement) y cumplen RGPD.
+                <strong><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Importante:</strong> Todos los proveedores tienen DPA (Data Processing Agreement) y cumplen RGPD.
             </div>
 
             <h3>5.2. Autoridades competentes</h3>

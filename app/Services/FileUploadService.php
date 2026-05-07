@@ -7,9 +7,12 @@ namespace App\Services;
 use App\Core\ImageProcessor;
 use App\Core\Result;
 use App\Exceptions\ConfigurationException;
+use App\Services\Contracts\FileUploadServiceInterface;
 use Exception;
 use finfo;
+use Override;
 use Random\RandomException;
+use Throwable;
 
 /**
  * Servicio de gestión de subida de archivos
@@ -19,7 +22,7 @@ use Random\RandomException;
  *
  * @package Komorebi\Services
  */
-final class FileUploadService
+final class FileUploadService implements FileUploadServiceInterface
 {
     private const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2 MB
     private const MAX_ANIMAL_PHOTO_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -34,17 +37,11 @@ final class FileUploadService
     private string $avatarPath;
     private string $animalPhotoPath;
 
-    /**
-     * @throws ConfigurationException
-     */
-    public function __construct()
+    public function __construct(?string $basePath = null)
     {
-        $this->uploadBasePath = __DIR__ . '/../../storage/uploads';
+        $this->uploadBasePath = $basePath ?? __DIR__ . '/../../storage/uploads';
         $this->avatarPath = $this->uploadBasePath . '/avatars';
         $this->animalPhotoPath = $this->uploadBasePath . '/animals';
-
-        // Crear directorios si no existen
-        $this->ensureDirectoriesExist();
     }
 
     /**
@@ -55,15 +52,23 @@ final class FileUploadService
      * @return Result URL relativa del avatar subido
      * @throws RandomException
      */
+    #[Override]
     public function uploadAvatar(array $file, int $userId): Result
     {
+        // Crear directorios si no existen
+        try {
+            $this->ensureDirectoriesExist();
+        } catch (Throwable $e) {
+            return Result::fail('El almacenamiento no está disponible: ' . $e->getMessage());
+        }
+
         // Validar archivo
         $validation = $this->validateFile(
             $file,
             self::MAX_AVATAR_SIZE
         );
 
-        if ($validation->isFail()) {
+        if ($validation->error !== null) {
             return $validation;
         }
 
@@ -83,7 +88,7 @@ final class FileUploadService
             self::AVATAR_MAX_HEIGHT
         );
 
-        if ($saveResult->isFail()) {
+        if ($saveResult->error !== null) {
             return $saveResult;
         }
 
@@ -99,6 +104,7 @@ final class FileUploadService
      * @param integer $userId ID del usuario
      * @return Result
      */
+    #[Override]
     public function deleteAvatar(int $userId): Result
     {
         try {
@@ -122,15 +128,23 @@ final class FileUploadService
      * @return Result URL relativa de la foto subida
      * @throws RandomException
      */
+    #[Override]
     public function uploadAnimalPhoto(array $file, int $animalId): Result
     {
+        // Crear directorios si no existen
+        try {
+            $this->ensureDirectoriesExist();
+        } catch (Throwable $e) {
+            return Result::fail('El almacenamiento no está disponible: ' . $e->getMessage());
+        }
+
         // Validar archivo
         $validation = $this->validateFile(
             $file,
             self::MAX_ANIMAL_PHOTO_SIZE
         );
 
-        if ($validation->isFail()) {
+        if ($validation->error !== null) {
             return $validation;
         }
 
@@ -147,12 +161,12 @@ final class FileUploadService
             1200
         );
 
-        if ($saveResult->isFail()) {
+        if ($saveResult->error !== null) {
             return $saveResult;
         }
 
         // Retornar URL relativa
-        $relativeUrl = '/storage/uploads/animals/' . $filename;
+        $relativeUrl = '/uploads/animals/' . $filename;
 
         return Result::ok($relativeUrl);
     }
@@ -232,6 +246,7 @@ final class FileUploadService
         int $maxHeight
     ): Result {
         $ok = ImageProcessor::resizeAndSave($sourcePath, $destPath, $maxWidth, $maxHeight);
+
         return $ok ? Result::ok(true) : Result::fail('Error al procesar la imagen');
     }
 
@@ -264,6 +279,7 @@ final class FileUploadService
      * @param string $relativeUrl URL relativa del archivo
      * @return Result
      */
+    #[Override]
     public function deleteFile(string $relativeUrl): Result
     {
         // Construir ruta absoluta desde URL relativa
@@ -319,6 +335,7 @@ final class FileUploadService
      * @param string $type Tipo de archivo ('avatar' o 'animal')
      * @return array{maxSize: int, maxSizeMB: float, allowedTypes: array, allowedExtensions: array}
      */
+    #[Override]
     public function getUploadLimits(string $type = 'avatar'): array
     {
         if ($type === 'animal') {

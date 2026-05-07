@@ -3,25 +3,6 @@
 
     <?php
 
-    use App\Core\Logger;
-
-    $animalesPrep = array_map(static function ($a) {
-        $attrs = [];
-        if (!empty($a['attributes'])) {
-            try {
-                $attrs = json_decode($a['attributes'], true, 512, JSON_THROW_ON_ERROR) ?? [];
-            } catch (Exception $e) {
-                Logger::warning('Error decodificando atributos de animal', [
-                    'exception' => get_class($e),
-                    'message' => $e->getMessage(),
-                    'animal_id' => $a['id'] ?? 'unknown',
-                ]);
-            }
-        }
-
-        return array_merge($a, $attrs);
-    }, $animales);
-
     // Preparar datos de ratings y café
     $cafeId = (int) ($cafe['id'] ?? 0);
     $ratingAvg = (float) ($ratingStats['average'] ?? 0);
@@ -41,7 +22,7 @@
 
         <!-- HERO -->
         <header class="cafe-hero">
-            <div class="cafe-hero__bg" style="background-image: url('<?= $cafe['image_url'] ?>');"></div>
+            <div class="cafe-hero__bg" style="background-image: url('<?= e($cafe['image_url']) ?>');"></div>
             <div class="cafe-hero__overlay"></div>
             <div class="cafe-hero__content">
                 <div class="cafe-hero__badges">
@@ -52,10 +33,11 @@
                 <h1 class="cafe-hero__titulo"><?= $cafe['name'] ?></h1>
                 <p class="cafe-hero__subtitulo"><?= $cafe['japanese_name'] ?></p>
                 <div class="cafe-hero__meta">
-                    <div class="cafe-hero__meta-item"><span>📍</span> <?= $cafe['location'] ?></div>
+                    <div class="cafe-hero__meta-item"><i class="bi bi-geo-alt" aria-hidden="true"></i> <?= e($cafe['location']) ?></div>
                     <div class="cafe-hero__meta-item">
-                        <span>⭐</span>
-                        <?= number_format($ratingAvg, 1) ?> / 5.0
+                        <i class="bi bi-star-fill" aria-hidden="true" style="color:var(--color-acento)"></i>
+                        <span class="visually-hidden">Valoración:</span>
+                        <?= \App\Support\CurrencyFormatting::rating($ratingAvg) ?> / 5.0
                         <?php if ($ratingCount > 0): ?>
                             <span class="rating-count">(<?= $ratingCount ?> reseña<?= $ratingCount !== 1 ? 's' : '' ?>)</span>
                         <?php endif; ?>
@@ -83,8 +65,8 @@
                         <div class="detail-card__content">
                             <h4 class="detail-card__title">Horario</h4>
                             <p class="detail-card__text">
-                                <strong><?= substr($cafe['opening_time'], 0, 5) ?></strong> -
-                                <strong><?= substr($cafe['closing_time'], 0, 5) ?></strong>
+                                <strong><?= e(\App\Support\TimeHelper::display($cafe['opening_time'])) ?></strong> -
+                                <strong><?= e(\App\Support\TimeHelper::display($cafe['closing_time'])) ?></strong>
                             </p>
                         </div>
                     </div>
@@ -145,7 +127,7 @@
                         <div class="detail-card__content">
                             <h4 class="detail-card__title">Valoración</h4>
                             <p class="detail-card__text">
-                                <?= number_format($ratingAvg, 1) ?>/5.0
+                                <?= \App\Support\CurrencyFormatting::rating($ratingAvg) ?>/5.0
                                 <?php if ($ratingCount > 0): ?>
                                     <span class="detail-card__meta">(<?= $ratingCount ?> reseñas)</span>
                                 <?php endif; ?>
@@ -157,21 +139,21 @@
                 <!-- Características adicionales si están disponibles -->
                 <?php
                 $amenities = [];
-                if (!empty($cafe['has_wifi'])) {
-                    $amenities[] = ['icon' => 'wifi', 'text' => 'WiFi gratuito'];
-                }
-                if (!empty($cafe['has_food'])) {
-                    $amenities[] = ['icon' => 'food', 'text' => 'Servicio de comida'];
-                }
-                if (!empty($cafe['has_drinks'])) {
-                    $amenities[] = ['icon' => 'drink', 'text' => 'Bebidas incluidas'];
-                }
-                if (!empty($cafe['wheelchair_accessible'])) {
-                    $amenities[] = ['icon' => 'accessible', 'text' => 'Accesible'];
-                }
+    if (!empty($cafe['has_wifi'])) {
+        $amenities[] = ['icon' => 'wifi', 'text' => 'WiFi gratuito'];
+    }
+    if (!empty($cafe['has_food'])) {
+        $amenities[] = ['icon' => 'food', 'text' => 'Servicio de comida'];
+    }
+    if (!empty($cafe['has_drinks'])) {
+        $amenities[] = ['icon' => 'drink', 'text' => 'Bebidas incluidas'];
+    }
+    if (!empty($cafe['wheelchair_accessible'])) {
+        $amenities[] = ['icon' => 'accessible', 'text' => 'Accesible'];
+    }
 
-                if (count($amenities) > 0):
-                ?>
+    if (count($amenities) > 0):
+        ?>
                     <div class="cafe-amenities">
                         <h4 class="cafe-amenities__title">Servicios y comodidades</h4>
                         <ul class="cafe-amenities__list">
@@ -221,12 +203,13 @@
                         <!-- AL HACER CLICK: Pasamos el índice, no el objeto entero -->
                         <article class="animal-card" @click="abrirModal(<?= $index ?>)">
                             <div class="animal-card__avatar">
-                                <img src="<?= $animal['image_url'] ?>" alt="<?= $animal['name'] ?>"
-                                    class="animal-card__img" loading="lazy">
+                                <img src="<?= e($animal['image_url'] ?? '') ?>" alt="<?= e($animal['name'] ?? '') ?>"
+                                    class="animal-card__img" loading="lazy"
+                                    @error="$event.target.src='/images/ui/placeholder-animal.svg'">
                             </div>
                             <div class="animal-card__info">
-                                <span class="animal-card__nombre"><?= $animal['name'] ?></span>
-                                <span class="animal-card__detalle"><?= $animal['age'] ?> años</span>
+                                <span class="animal-card__nombre"><?= e($animal['name'] ?? '') ?></span>
+                                <span class="animal-card__detalle"><?= e((string) ($animal['age'] ?? '')) ?> años</span>
                             </div>
                             <div class="animal-card__flecha">→</div>
                         </article>
@@ -239,8 +222,8 @@
         <?php
         // Variable necesaria para experiences_section.php
         $cafeId = (int) $cafe['id'];
-        include 'experiences_section.php';
-        ?>
+    include 'experiences_section.php';
+    ?>
 
         <!-- RESEÑAS Y VALORACIONES -->
         <section id="reviews-section" class="reviews-section">
@@ -252,13 +235,13 @@
             <!-- Stats de Rating -->
             <div class="rating-stats">
                 <div class="rating-stats__average">
-                    <div class="rating-stats__number"><?= number_format($ratingAvg, 1) ?></div>
+                    <div class="rating-stats__number"><?= \App\Support\CurrencyFormatting::rating($ratingAvg) ?></div>
                     <div class="rating-stats__stars">
                         <?php
-                        $wholePart = floor($ratingAvg);
-                        for ($i = 1; $i <= 5; $i++):
-                            $filled = $i <= $wholePart ? 'review-star--filled' : '';
-                        ?>
+                    $wholePart = floor($ratingAvg);
+    for ($i = 1; $i <= 5; $i++):
+        $filled = $i <= $wholePart ? 'review-star--filled' : '';
+        ?>
                             <span class="review-star <?= $filled ?>">★</span>
                         <?php endfor; ?>
                     </div>
@@ -270,14 +253,14 @@
                 <!-- Distribución de ratings (si hay reseñas) -->
                 <?php if ($ratingCount > 0):
                     $distribution = $ratingStats['distribution'] ?? [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
-                ?>
+                    ?>
                     <div class="rating-distribution">
                         <?php for ($rating = 5; $rating >= 1; $rating--):
                             $count = (int) ($distribution[$rating] ?? 0);
                             $percentage = $ratingCount > 0 ? round(($count / $ratingCount) * 100) : 0;
-                        ?>
+                            ?>
                             <div class="rating-bar">
-                                <span class="rating-bar__label"><?= $rating ?> ⭐</span>
+                                <span class="rating-bar__label"><?= $rating ?> <i class="bi bi-star-fill" aria-hidden="true"></i></span>
                                 <div class="rating-bar__container">
                                     <div class="rating-bar__fill" style="width: <?= $percentage ?>%"></div>
                                 </div>
@@ -293,17 +276,17 @@
                 <h3 class="reviews-container__title">Reseñas recientes</h3>
                 <?php
                 $page = max(1, (int) ($_GET['page'] ?? 1));
-                include 'reviews_section.php';
-                ?>
+    include 'reviews_section.php';
+    ?>
             </div>
 
             <!-- Formulario para dejar reseña -->
             <div class="review-form-container">
                 <h3 class="review-form-container__title">Comparte tu experiencia</h3>
                 <?php
-                // Variables locales para review_form.php
-                include 'review_form.php';
-                ?>
+    // Variables locales para review_form.php
+    include 'review_form.php';
+    ?>
             </div>
         </section>
 
@@ -323,7 +306,8 @@
                         <button class="animal-modal__close" @click="cerrarModal()">×</button>
 
                         <div class="animal-modal__foto">
-                            <img :src="animalActivo.image_url" class="animal-modal__img">
+                            <img :src="animalActivo.image_url" class="animal-modal__img"
+                                @error="$event.target.src='/images/ui/placeholder-animal.svg'">
                         </div>
 
                         <div class="animal-modal__content">
@@ -339,20 +323,20 @@
                             <p class="animal-modal__bio" x-text="animalActivo.description"></p>
 
                             <div class="animal-modal__preferencias"
-                                x-show="animalActivo.gustos || animalActivo.disgustos">
-                                <div class="animal-modal__lista" x-show="animalActivo.gustos">
+                                x-show="animalActivo.attributes?.gustos || animalActivo.attributes?.disgustos">
+                                <div class="animal-modal__lista" x-show="animalActivo.attributes?.gustos">
                                     <div class="detalle__lista-titulo" style="color: var(--color-exito);">♥ LE ENCANTA
                                     </div>
                                     <ul>
-                                        <template x-for="gusto in animalActivo.gustos">
+                                        <template x-for="gusto in animalActivo.attributes.gustos">
                                             <li x-text="gusto"></li>
                                         </template>
                                     </ul>
                                 </div>
-                                <div class="animal-modal__lista" x-show="animalActivo.disgustos">
+                                <div class="animal-modal__lista" x-show="animalActivo.attributes?.disgustos">
                                     <div class="detalle__lista-titulo" style="color: var(--color-error);">✕ EVITAR</div>
                                     <ul>
-                                        <template x-for="disgusto in animalActivo.disgustos">
+                                        <template x-for="disgusto in animalActivo.attributes.disgustos">
                                             <li x-text="disgusto"></li>
                                         </template>
                                     </ul>

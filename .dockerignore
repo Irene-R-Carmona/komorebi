@@ -5,14 +5,12 @@
 # Dependencias (se instalan en build)
 vendor/
 node_modules/
-composer.lock
 package-lock.json
 
 # Entorno (12-Factor: nunca en imagen)
 .env
 .env.*
 !.env.example
-secrets/
 
 # Desarrollo
 tests/
@@ -20,6 +18,9 @@ tests/
 phpunit.xml
 .php-cs-fixer.cache
 phpstan.neon
+phpstan-baseline.neon
+deptrac.yaml
+.php-cs-fixer.php
 .idea/
 .vscode/
 *.swp
@@ -37,6 +38,30 @@ README*
 .gitlab-ci.yml
 .travis.yml
 Jenkinsfile
+
+# Herramientas y scripts de desarrollo
+tools/
+.agents/
+screenshots/
+lighthouse-reports/
+storage/
+playwright.config.ts
+sonar-project.properties
+
+# Security — nunca en imagen
+secrets/
+auth.json
+*.pem
+*.key
+*.crt
+*.cert
+*.cer
+*.p12
+*.pfx
+*.jks
+*.token
+*.secret
+*.secrets
 
 # Storage (volumen externo)
 storage/logs/*

@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
-use App\Core\Http\ResponseFactory;
 use App\Core\View;
-use App\Exceptions\DatabaseException;
-use App\Exceptions\ValidationException;
-use App\Models\MenuCategory;
-use App\Models\Product;
-use App\Services\ProductService;
-use JsonException;
+use App\Http\Transformers\ProductTransformer;
+use App\Repositories\Contracts\AllergenRepositoryInterface;
+use App\Repositories\Contracts\MenuCategoryRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -23,13 +22,17 @@ use Random\RandomException;
  */
 final class MenuController
 {
-    private ProductService $productService;
-    private ResponseFactory $response;
+    private ProductTransformer $productTransformer;
+    private ProductRepositoryInterface $productRepo;
+    private MenuCategoryRepositoryInterface $categoryRepo;
+    private AllergenRepositoryInterface $allergenRepo;
 
-    public function __construct(?ProductService $productService = null, ?ResponseFactory $response = null)
+    public function __construct(?ProductTransformer $productTransformer = null, ?ProductRepositoryInterface $productRepo = null, ?MenuCategoryRepositoryInterface $categoryRepo = null, ?AllergenRepositoryInterface $allergenRepo = null)
     {
-        $this->productService = $productService ?? new ProductService();
-        $this->response = $response ?? new ResponseFactory();
+        $this->productTransformer = $productTransformer ?? new ProductTransformer();
+        $this->productRepo = $productRepo ?? Container::make(ProductRepositoryInterface::class);
+        $this->categoryRepo = $categoryRepo ?? Container::make(MenuCategoryRepositoryInterface::class);
+        $this->allergenRepo = $allergenRepo ?? Container::make(AllergenRepositoryInterface::class);
     }
 
     /**
@@ -38,30 +41,59 @@ final class MenuController
      *
      * @throws RandomException
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $productModel = new Product();
-        $categoryModel = new MenuCategory();
+        $q = $request->getQueryParams();
+        $page = \max(1, (int) ($q['page'] ?? 1));
+        $perPage = 20;
+        $search = \trim((string) ($q['search'] ?? ''));
+        $categoryId = (int) ($q['category'] ?? 0);
+        $status = \trim((string) ($q['status'] ?? ''));
 
-        $productsData = $productModel->findAllAdmin();
-        $categories = $categoryModel->findAll();
+        $filters = [];
+        if ($search !== '') {
+            $filters['search'] = $search;
+        }
+        if ($categoryId > 0) {
+            $filters['category_id'] = $categoryId;
+        }
+        if ($status !== '') {
+            $filters['is_active'] = (int) $status;
+        }
+
+        $productsData = $this->productRepo->findFiltered($filters, $page, $perPage);
+        $categories = \array_map(fn ($dto) => $dto->toViewArray(), $this->categoryRepo->findAll());
+
+        $totalAll = $this->productRepo->findFiltered([], 1, 1)['total'] ?? 0;
+        $totalActive = $this->productRepo->findFiltered(['is_active' => 1], 1, 1)['total'] ?? 0;
 
         // Mapeo de categorías de café para UI
         $cafeTypeLabels = [
             'lounge' => 'Lounge',
             'playroom' => 'Playroom',
             'farm' => 'Farm',
-            'zen' => 'Zen'
+            'zen' => 'Zen',
         ];
 
         // Cargar alérgenos y formatear disponibilidad por café para cada producto
-        foreach ($productsData['data'] as &$product) {
-            $product['allergens_list'] = $productModel->getAllergensNormalized((int) $product['id']);
+        $rawData = $productsData['data'] ?? [];
+        foreach ($rawData as &$product) {
+            // Decodificar campos JSON (findFiltered no los decodifica)
+            foreach (['attributes', 'target_cafe_types', 'target_animal_types'] as $field) {
+                if (\is_string($product[$field] ?? null) && $product[$field] !== '') {
+                    $decoded = \json_decode($product[$field], true);
+                    $product[$field] = \is_array($decoded) ? $decoded : null;
+                } elseif (!isset($product[$field])) {
+                    $product[$field] = null;
+                }
+            }
+
+            $product['allergens_list'] = $this->productRepo->getAllergens((int) $product['id']);
 
             // Formatear target_cafe_types
             if (!empty($product['target_cafe_types']) && \is_array($product['target_cafe_types'])) {
                 $product['cafe_types_display'] = \array_map(
-                    fn($type) => $cafeTypeLabels[$type] ?? $type,
+                    fn ($type) => $cafeTypeLabels[$type] ?? $type,
                     $product['target_cafe_types']
                 );
             } else {
@@ -70,120 +102,95 @@ final class MenuController
         }
         unset($product);
 
+        // Aplicar transformer (excluye campos de cocina) y re-inyectar campos de display seguros
+        $products = $this->productTransformer->collection($rawData);
+        foreach ($products as $key => $product) {
+            $products[$key]['allergens_list'] = $rawData[$key]['allergens_list'] ?? [];
+            $products[$key]['cafe_types_display'] = $rawData[$key]['cafe_types_display'] ?? ['Todos los cafés'];
+        }
+
+        $total = $productsData['total'] ?? 0;
+        $totalPages = $productsData['totalPages'] ?? 1;
+        $meta = ['page' => $page, 'has_next_page' => $page < $totalPages];
+
+        $currentParams = \array_filter([
+            'search' => $search,
+            'category' => $categoryId > 0 ? (string) $categoryId : '',
+            'status' => $status,
+        ], static fn ($v) => $v !== '');
+
+        $stats = [
+            'total_products' => $totalAll,
+            'active_products' => $totalActive,
+            'category_count' => \count($categories),
+            'with_allergens' => 0,
+        ];
+
         View::render('admin/products/index', [
-            'titulo' => 'Gestión de Productos',
-            'products' => $productsData['data'] ?? [],
+            'titulo' => 'Gestión de Productos | Komorebi Admin',
+            'products' => $products,
             'categories' => $categories,
-            'total' => $productsData['total'] ?? 0,
+            'total' => $total,
+            'meta' => $meta,
+            'currentParams' => $currentParams,
+            'stats' => $stats,
             'csrf_token' => Csrf::token(),
             'extraJs' => ['admin/admin-products.js'],
         ], ['admin/admin-products.css'], 'backoffice');
+
+        return null;
     }
 
     /**
-     * POST /admin/productos/create
-     * Crear nuevo producto
+     * GET /admin/menu/{id}/edit
+     * Formulario de edición de producto
      *
-     * @throws JsonException
      * @throws RandomException
-     * @throws ValidationException
-     * @throws DatabaseException
      */
-    public function create(): ResponseInterface
+    public function edit(ServerRequestInterface $request): ?ResponseInterface
     {
-        if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+        $id = (int) $request->getAttribute('id');
+        $productDto = $id > 0 ? $this->productRepo->findById($id) : null;
+
+        if ($productDto === null) {
+            return new \App\Core\Http\ResponseFactory()->redirect('/admin/menu');
         }
 
-        try {
-            $productId = $this->productService->create($_POST);
+        $product = $productDto->toViewArray();
+        $categories = \array_map(fn ($dto) => $dto->toViewArray(), $this->categoryRepo->findAll());
+        $allergens = \array_map(fn ($dto) => $dto->toViewArray(), $this->allergenRepo->findAll(true));
+        $productAllergens = $this->productRepo->getAllergens($id);
 
-            return $this->response->json(['ok' => true, 'data' => [
-                'message' => 'El producto se ha creado correctamente.',
-                'product_id' => $productId,
-            ]]);
-        } catch (ValidationException $e) {
-            // Errores de validación desde el servicio → convertir a ValidationException
-            throw ValidationException::withMessage($e->getMessage(), 422);
-        }
+        View::render('admin/products/edit', [
+            'titulo' => 'Editar Producto | Komorebi Admin',
+            'product' => $product,
+            'categories' => $categories,
+            'allergens' => $allergens,
+            'product_allergens' => $productAllergens,
+            'csrf_token' => Csrf::token(),
+        ], [], 'backoffice');
+
+        return null;
     }
 
     /**
-     * POST /admin/productos/{productId}/edit
-     * Actualizar producto existente
+     * GET /admin/menu/create
+     * Formulario de creación de producto
      *
-     * @param integer $productId
-     *
-     * @throws DatabaseException
-     * @throws JsonException
      * @throws RandomException
-     * @throws ValidationException
      */
-    public function update(int $productId): ResponseInterface
+    public function create(ServerRequestInterface $request): ?ResponseInterface
     {
-        if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
-        }
+        $categories = \array_map(fn ($dto) => $dto->toViewArray(), $this->categoryRepo->findAll());
+        $allergens = \array_map(fn ($dto) => $dto->toViewArray(), $this->allergenRepo->findAll(true));
 
-        try {
-            $this->productService->update($productId, $_POST);
+        View::render('admin/products/create', [
+            'titulo' => 'Nuevo Producto | Komorebi Admin',
+            'categories' => $categories,
+            'allergens' => $allergens,
+            'csrf_token' => Csrf::token(),
+        ], [], 'backoffice');
 
-            return $this->response->json(['ok' => true, 'data' => [
-                'message' => 'El producto se ha actualizado correctamente.',
-            ]]);
-        } catch (ValidationException $e) {
-            throw ValidationException::withMessage($e->getMessage(), 422);
-        }
-    }
-
-    /**
-     * POST /admin/productos/{productId}/toggle-available
-     * Activar/desactivar disponibilidad de producto
-     *
-     * @param integer $productId
-     *
-     * @throws JsonException
-     * @throws RandomException
-     * @throws ValidationException
-     */
-    public function toggleAvailability(int $productId): ResponseInterface
-    {
-        if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
-        }
-
-        $success = $this->productService->toggleActive($productId);
-
-        if ($success) {
-            return $this->response->json(['ok' => true, 'data' => [
-                'message' => 'Estado de disponibilidad actualizado.',
-            ]]);
-        }
-
-        throw ValidationException::withMessage('No se pudo actualizar el producto', 500);
-    }
-
-    /**
-     * POST /admin/productos/{productId}/delete
-     * Eliminar producto (desactivar)
-     *
-     * @param integer $productId
-     *
-     * @throws DatabaseException
-     * @throws JsonException
-     * @throws RandomException
-     * @throws ValidationException
-     */
-    public function delete(int $productId): ResponseInterface
-    {
-        if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
-        }
-
-        $this->productService->delete($productId);
-
-        return $this->response->json(['ok' => true, 'data' => [
-            'message' => 'El producto se ha eliminado correctamente.',
-        ]]);
+        return null;
     }
 }

@@ -62,12 +62,16 @@
         const ctx = document.getElementById('reservationsChart');
         if (!ctx) return;
 
-        // Datos de ejemplo (reemplazar con datos reales del backend)
+        const cfg = window.reportsConfig || {};
+        const trend = (cfg.chartData || {}).trend || [];
+        const labels = trend.map(r => r.date);
+        const counts = trend.map(r => parseInt(r.total_reservations, 10));
+
         const data = {
-          labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+          labels: labels.length ? labels : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
           datasets: [{
             label: 'Reservas',
-            data: [12, 19, 15, 25, 22, 30, 28, 35, 32, 40, 38, 45],
+            data: counts.length ? counts : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             borderColor: 'rgb(75, 192, 192)',
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             tension: 0.4
@@ -102,18 +106,27 @@
         const ctx = document.getElementById('popularCafesChart');
         if (!ctx) return;
 
-        // Datos de ejemplo (reemplazar con datos reales del backend)
+        const cfg = window.reportsConfig || {};
+        const cafes = cfg.cafeData || [];
+        const cafeLabels = cafes.map(r => r.name);
+        const cafeCounts = cafes.map(r => parseInt(r.total_reservations, 10));
+
         const data = {
-          labels: ['Café Central', 'Café Bosque', 'Café Mar', 'Café Montaña', 'Café Ciudad'],
+          labels: cafeLabels.length ? cafeLabels : ['Sin datos'],
           datasets: [{
             label: 'Visitas',
-            data: [120, 95, 80, 65, 50],
+            data: cafeCounts.length ? cafeCounts : [0],
             backgroundColor: [
               'rgba(255, 99, 132, 0.7)',
               'rgba(54, 162, 235, 0.7)',
               'rgba(255, 206, 86, 0.7)',
               'rgba(75, 192, 192, 0.7)',
-              'rgba(153, 102, 255, 0.7)'
+              'rgba(153, 102, 255, 0.7)',
+              'rgba(255, 159, 64, 0.7)',
+              'rgba(201, 203, 207, 0.7)',
+              'rgba(92, 61, 46, 0.7)',
+              'rgba(139, 175, 147, 0.7)',
+              'rgba(201, 169, 89, 0.7)'
             ],
             borderWidth: 1
           }]
@@ -137,17 +150,15 @@
       async exportPDF() {
         this.loading = true;
         try {
-          const response = await fetch('/api/admin/reports/export/pdf', {
-            method: 'POST',
+          const params = new URLSearchParams({
+            format: 'pdf',
+            date_from: this.dateFrom,
+            date_to: this.dateTo
+          });
+          const response = await fetch(`/admin/reports/export?${params}`, {
             headers: {
-              'Content-Type': 'application/json',
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            },
-            body: JSON.stringify({
-              type: this.reportType,
-              dateFrom: this.dateFrom,
-              dateTo: this.dateTo
-            })
+            }
           });
 
           if (response.ok) {
@@ -174,19 +185,18 @@
       },
 
       async exportExcel() {
+        // El servidor genera CSV; Excel lo abre correctamente
         this.loading = true;
         try {
-          const response = await fetch('/api/admin/reports/export/excel', {
-            method: 'POST',
+          const params = new URLSearchParams({
+            format: 'csv',
+            date_from: this.dateFrom,
+            date_to: this.dateTo
+          });
+          const response = await fetch(`/admin/reports/export?${params}`, {
             headers: {
-              'Content-Type': 'application/json',
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            },
-            body: JSON.stringify({
-              type: this.reportType,
-              dateFrom: this.dateFrom,
-              dateTo: this.dateTo
-            })
+            }
           });
 
           if (response.ok) {
@@ -194,19 +204,19 @@
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `reporte-${this.reportType}-${new Date().toISOString().split('T')[0]}.xlsx`;
+            a.download = `reporte-${this.reportType}-${new Date().toISOString().split('T')[0]}.csv`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
-            this.showNotification('Reporte Excel exportado correctamente', 'success');
+            this.showNotification('Reporte exportado correctamente (abre en Excel)', 'success');
           } else {
-            throw new Error('Error al exportar Excel');
+            throw new Error('Error al exportar');
           }
         } catch (error) {
           console.error('Export Excel error:', error);
-          this.showNotification('Error al exportar el reporte Excel', 'error');
+          this.showNotification('Error al exportar el reporte', 'error');
         } finally {
           this.loading = false;
         }
@@ -215,17 +225,15 @@
       async exportCSV() {
         this.loading = true;
         try {
-          const response = await fetch('/api/admin/reports/export/csv', {
-            method: 'POST',
+          const params = new URLSearchParams({
+            format: 'csv',
+            date_from: this.dateFrom,
+            date_to: this.dateTo
+          });
+          const response = await fetch(`/admin/reports/export?${params}`, {
             headers: {
-              'Content-Type': 'application/json',
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            },
-            body: JSON.stringify({
-              type: this.reportType,
-              dateFrom: this.dateFrom,
-              dateTo: this.dateTo
-            })
+            }
           });
 
           if (response.ok) {

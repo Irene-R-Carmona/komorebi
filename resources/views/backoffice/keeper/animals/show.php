@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Detalle de Animal - Módulo Keeper
  *
@@ -11,21 +13,21 @@
 
 $getStatusBadgeClass = function (string $status): string {
     return match ($status) {
-        'active'  => 'success',
+        'active' => 'success',
         'resting' => 'warning',
-        'sick'    => 'danger',
+        'sick' => 'danger',
         'retired' => 'secondary',
-        default   => 'secondary'
+        default => 'secondary'
     };
 };
 
 $getStatusLabel = function (string $status): string {
     return match ($status) {
-        'active'  => 'Activo',
+        'active' => 'Activo',
         'resting' => 'Reposo',
-        'sick'    => 'Enfermo',
+        'sick' => 'Enfermo',
         'retired' => 'Retirado',
-        default   => ucfirst($status)
+        default => ucfirst($status)
     };
 };
 
@@ -55,17 +57,17 @@ $csrfToken = \App\Core\Csrf::token();
     </div>
 
     <!-- Flash Messages -->
-    <?php
-    $flash = \App\Core\Flash::getAll();
-    if (!empty($flash['success'])): ?>
+    <?php $flashSuccess = \App\Core\Flash::get('success'); ?>
+    <?php if ($flashSuccess !== null): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($flash['success'], ENT_QUOTES, 'UTF-8') ?>
+            <?= htmlspecialchars($flashSuccess, ENT_QUOTES, 'UTF-8') ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
-    <?php if (!empty($flash['error'])): ?>
+    <?php $flashError = \App\Core\Flash::get('error'); ?>
+    <?php if ($flashError !== null): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($flash['error'], ENT_QUOTES, 'UTF-8') ?>
+            <?= htmlspecialchars($flashError, ENT_QUOTES, 'UTF-8') ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
@@ -77,8 +79,15 @@ $csrfToken = \App\Core\Csrf::token();
                 <?php if (!empty($animal['image_url'])): ?>
                     <img src="<?= htmlspecialchars($animal['image_url'], ENT_QUOTES, 'UTF-8') ?>"
                         alt="Foto de <?= htmlspecialchars($animal['name'], ENT_QUOTES, 'UTF-8') ?>"
-                        class="card-img-top"
-                        style="height: 220px; object-fit: cover;">
+                        class="card-img-top img-fluid rounded-top"
+                        style="max-height:300px; object-fit:cover; width:100%;"
+                        x-data
+                        x-on:error="$el.src='/images/ui/placeholder-animal.svg'">
+                <?php else: ?>
+                    <img src="/images/ui/placeholder-animal.svg"
+                        alt="Sin foto de <?= htmlspecialchars($animal['name'], ENT_QUOTES, 'UTF-8') ?>"
+                        class="card-img-top img-fluid rounded-top"
+                        style="max-height:300px; object-fit:cover; width:100%;">
                 <?php endif; ?>
                 <div class="card-body">
                     <h5 class="card-title">
@@ -87,6 +96,43 @@ $csrfToken = \App\Core\Csrf::token();
                             <?= $getStatusLabel($animal['current_status'] ?? '') ?>
                         </span>
                     </h5>
+                    <?php /* Toggle de estado — solo para animales no retirados */ ?>
+                    <?php if (($animal['current_status'] ?? '') !== 'retired'): ?>
+                        <div class="mb-3"
+                            x-data="{
+                             status: '<?= htmlspecialchars($animal['current_status'] ?? 'active', ENT_QUOTES) ?>',
+                             loading: false,
+                             async toggle() {
+                                 this.loading = true;
+                                 try {
+                                     const csrfToken = document.querySelector('meta[name=csrf-token]')?.content ?? '';
+                                     const body = new FormData();
+                                     body.append('csrf_token', csrfToken);
+                                     const res = await fetch('/keeper/animals/<?= (int) $animal['id'] ?>/toggle', {
+                                         method: 'POST',
+                                         body
+                                     });
+                                     const json = await res.json();
+                                     if (json.ok) {
+                                         this.status = this.status === 'active' ? 'inactive' : 'active';
+                                     }
+                                 } finally {
+                                     this.loading = false;
+                                 }
+                             }
+                         }">
+                            <span :class="status === 'active' ? 'badge bg-success fs-6' : 'badge bg-secondary fs-6'"
+                                x-text="status === 'active' ? 'Activo' : 'Inactivo'">
+                            </span>
+                            <button class="btn btn-sm ms-2"
+                                :class="status === 'active' ? 'btn-outline-secondary' : 'btn-outline-success'"
+                                :disabled="loading"
+                                @click="toggle()">
+                                <span x-show="loading" class="spinner-border spinner-border-sm me-1" x-cloak></span>
+                                <span x-text="status === 'active' ? 'Desactivar' : 'Activar'"></span>
+                            </button>
+                        </div>
+                    <?php endif; ?>
                     <ul class="list-unstyled small text-muted mb-0">
                         <li class="mb-1">
                             <i class="bi bi-tag me-1"></i>

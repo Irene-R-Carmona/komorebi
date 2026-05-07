@@ -87,6 +87,24 @@
   margin-bottom: 3rem;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes quizSlideIn {
+    from {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .quiz-slide-in {
+    animation: quizSlideIn 0.25s var(--easing-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+  }
+}
+
 .quiz-pregunta__texto {
   font-family: var(--fuente-titulo);
   font-size: 1.75rem;
@@ -367,5 +385,558 @@
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* --- PANTALLA 3: RESULTADO --- */
+
+.quiz-resultado {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: var(--espaciado-lg) var(--espaciado-md) var(--espaciado-xl);
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* ── Hero ── */
+.quiz-resultado__hero {
+  position: relative;
+  text-align: center;
+  padding: 3.5rem 2rem 3rem;
+  background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-acento) 100%);
+  color: white;
+  border-radius: var(--radio-lg);
+  margin-bottom: var(--espaciado-lg);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+}
+
+.quiz-resultado__kanji {
+  position: absolute;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 6rem;
+  font-family: var(--fuente-titulo);
+  opacity: 0.08;
+  letter-spacing: -4px;
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+}
+
+.quiz-resultado__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.35rem 1rem;
+  border-radius: var(--radio-full, 9999px);
+  margin-bottom: 1.25rem;
+}
+
+.quiz-resultado__titulo {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  margin: 0.5rem 0 0.75rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  line-height: 1.15;
+}
+
+.quiz-resultado__subtitulo {
+  font-size: 1.125rem;
+  font-family: var(--fuente-acento);
+  opacity: 0.92;
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* ── Animal guía ── */
+.animal-guia {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+  background: var(--color-superficie);
+  padding: 1.75rem;
+  border-radius: var(--radio-lg);
+  margin-bottom: var(--espaciado-lg);
+  border: 2px solid var(--color-borde);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.25s ease;
+}
+
+.animal-guia:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+}
+
+.animal-guia__icono-wrap {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primario), var(--color-acento));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.animal-guia__icono {
+  font-size: 2.5rem;
+  color: white;
+  display: block;
+}
+
+.animal-guia__titulo {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-texto-suave);
+  margin-bottom: 0.35rem;
+}
+
+.animal-guia__nombre {
+  font-size: 1.5rem;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  color: var(--color-primario);
+  margin-bottom: 0.35rem;
+  line-height: 1.2;
+}
+
+.animal-guia__personalidad {
+  font-style: italic;
+  color: var(--color-texto-suave);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* ── Descripción ── */
+.quiz-descripcion {
+  background: var(--color-superficie);
+  padding: 2rem 1.75rem;
+  border-left: 4px solid var(--color-acento);
+  border-radius: 0 var(--radio-md) var(--radio-md) 0;
+  margin-bottom: var(--espaciado-lg);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.quiz-descripcion__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: var(--fuente-titulo);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  margin-bottom: 1rem;
+}
+
+.quiz-descripcion__titulo .bi {
+  color: var(--color-acento);
+}
+
+.quiz-descripcion__texto {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: var(--color-texto);
+}
+
+/* ── Perfil energético ── */
+.quiz-caracteristicas {
+  background: var(--color-superficie);
+  padding: 2rem 1.75rem;
+  border-radius: var(--radio-lg);
+  margin-bottom: var(--espaciado-lg);
+  border: 1px solid var(--color-borde);
+}
+
+.quiz-caracteristicas__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: var(--fuente-titulo);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  margin-bottom: 1.5rem;
+}
+
+.quiz-caracteristicas__titulo .bi {
+  color: var(--color-acento);
+}
+
+.caracteristicas-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.caracteristica-item {
+  display: grid;
+  grid-template-columns: 120px 1fr 52px;
+  align-items: center;
+  gap: 1rem;
+}
+
+.caracteristica-item__nombre {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-texto);
+  text-transform: capitalize;
+}
+
+.caracteristica-item__barra {
+  height: 14px;
+  background: var(--color-fondo);
+  border-radius: var(--radio-full, 9999px);
+  overflow: hidden;
+  border: 1px solid var(--color-borde);
+}
+
+.caracteristica-item__relleno {
+  height: 100%;
+  border-radius: var(--radio-full, 9999px);
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.caracteristica-item__relleno--alto {
+  background: linear-gradient(90deg, var(--color-acento), var(--color-primario));
+}
+
+.caracteristica-item__relleno--medio {
+  background: linear-gradient(90deg, #b5a989, var(--color-acento));
+}
+
+.caracteristica-item__relleno--bajo {
+  background: linear-gradient(90deg, var(--color-borde), #b5a989);
+}
+
+.caracteristica-item__valor {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-primario);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.caracteristica-item__max {
+  font-weight: 400;
+  opacity: 0.55;
+  font-size: 0.8em;
+}
+
+/* ── Café destino ── */
+.cafe-destino {
+  background: var(--color-superficie);
+  padding: 2rem 1.75rem;
+  border-radius: var(--radio-lg);
+  margin-bottom: var(--espaciado-lg);
+  border: 1px solid var(--color-borde);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.cafe-destino__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: var(--fuente-titulo);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  margin-bottom: 1.5rem;
+}
+
+.cafe-destino__titulo .bi {
+  color: var(--color-acento);
+}
+
+.cafe-destino__card {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  align-items: start;
+}
+
+.cafe-destino__imagen {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: var(--radio-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cafe-destino__nombre {
+  font-family: var(--fuente-titulo);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-primario);
+  margin-bottom: 0.5rem;
+}
+
+.cafe-destino__descripcion {
+  font-size: 0.9375rem;
+  color: var(--color-texto-suave);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.cafe-destino__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cafe-destino__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--color-texto-suave);
+}
+
+.cafe-destino__meta-item--rating {
+  color: var(--color-acento);
+  font-weight: 600;
+}
+
+.cafe-destino__acciones {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ── Acciones ── */
+.quiz-acciones {
+  display: flex;
+  gap: 0.875rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--espaciado-lg);
+}
+
+/* ── Compartir ── */
+.quiz-compartir {
+  text-align: center;
+  padding-top: var(--espaciado-lg);
+  border-top: 1px solid var(--color-borde);
+}
+
+.quiz-compartir__titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  font-size: 0.9375rem;
+  margin-bottom: var(--espaciado-md);
+}
+
+.compartir-botones {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.compartir-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: var(--radio-md);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  text-decoration: none;
+}
+
+.compartir-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+.compartir-btn--twitter {
+  background: #000;
+  color: #fff;
+}
+
+.compartir-btn--facebook {
+  background: #1877f2;
+  color: #fff;
+}
+
+.compartir-btn--copiar {
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  border: 1px solid var(--color-borde);
+}
+
+/* ── Responsive ── */
+@media (max-width: 48em) {
+  .quiz-resultado {
+    padding: var(--espaciado-md) var(--espaciado-sm) var(--espaciado-lg);
+  }
+
+  .quiz-resultado__hero {
+    padding: 2.5rem 1.25rem 2rem;
+  }
+
+  .quiz-resultado__kanji {
+    font-size: 4rem;
+    right: 1rem;
+  }
+
+  .quiz-resultado__titulo {
+    font-size: 1.875rem;
+  }
+
+  .animal-guia {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  .animal-guia__icono-wrap {
+    width: 72px;
+    height: 72px;
+  }
+
+  .caracteristica-item {
+    grid-template-columns: 96px 1fr 44px;
+    gap: 0.75rem;
+  }
+
+  .cafe-destino__card {
+    grid-template-columns: 1fr;
+  }
+
+  .cafe-destino__imagen {
+    height: 200px;
+  }
+
+  .quiz-acciones {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .quiz-acciones .btn-komorebi {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Print / PDF ── */
+@media print {
+  @page {
+    margin: 1.5cm;
+    size: A4 portrait;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Ocultar todo excepto el resultado */
+  header,
+  nav,
+  footer,
+  .quiz-acciones,
+  .quiz-compartir,
+  .seccion__nav,
+  [data-navbar],
+  .cookie-banner,
+  .seccion__selector {
+    display: none !important;
+  }
+
+  .seccion__container {
+    padding: 0 !important;
+  }
+
+  .quiz-resultado {
+    max-width: 100%;
+    padding: 0;
+    animation: none;
+  }
+
+  .quiz-resultado__hero {
+    background: var(--color-primario, #3d3320) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    margin-bottom: 1.5rem;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .quiz-resultado__kanji {
+    opacity: 0.05;
+  }
+
+  .animal-guia {
+    break-inside: avoid;
+    border: 2px solid #ccc;
+    margin-bottom: 1rem;
+    box-shadow: none;
+  }
+
+  .animal-guia__icono-wrap {
+    background: var(--color-primario, #3d3320) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .quiz-descripcion {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+
+  .quiz-caracteristicas {
+    break-inside: avoid;
+    border: 1px solid #ccc;
+    margin-bottom: 1rem;
+  }
+
+  .caracteristica-item__relleno {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .cafe-destino {
+    break-inside: avoid;
+    border: 1px solid #ccc;
+    margin-bottom: 1rem;
+  }
+
+  .cafe-destino__imagen {
+    max-height: 120px;
+    object-fit: cover;
+  }
+
+  .compartir-btn,
+  .cafe-destino__acciones {
+    display: none !important;
+  }
+
+  /* Pie de página impreso */
+  .quiz-resultado::after {
+    content: "Komorebi Café — komorebi.cafe";
+    display: block;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
   }
 }

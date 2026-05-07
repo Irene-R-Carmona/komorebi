@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -25,13 +26,13 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     public function __construct()
     {
         // Generar nonce único para esta request
-        $this->nonce = base64_encode(random_bytes(16));
+        $this->nonce = \base64_encode(\random_bytes(16));
 
         // Hacer nonce disponible globalmente para vistas
         $GLOBALS['cspNonce'] = $this->nonce;
     }
 
-    #[\Override]
+    #[Override]
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
@@ -40,10 +41,12 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
         $response = $handler->handle($request);
 
         // Content Security Policy con nonce dinámico
-        $csp = implode('; ', [
+        $csp = \implode('; ', [
             "default-src 'self'",
-            // Scripts: self, CDN Bootstrap/Alpine, nonce para inline, unsafe-eval para Alpine.js
-            // Usamos nonce dinámico para permitir scripts inline legítimos y mantenemos CSP estricta.
+            // Scripts: self, CDN Bootstrap/Alpine, nonce para inline.
+            // 'unsafe-eval' es requerido por Alpine.js v3 (usa new Function() para evaluar
+            // expresiones en directivas x-data/x-on). No puede eliminarse sin migrar a
+            // @alpinejs/csp (build sin eval). Ver: https://alpinejs.dev/advanced/csp
             "script-src 'self' https://cdn.jsdelivr.net 'nonce-{$this->nonce}' 'unsafe-eval'",
             // Estilos: self, CDNs, unsafe-inline necesario para estilos inline en SVG/componentes
             "style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'",
@@ -62,7 +65,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
             // Form actions solo a mismo origen
             "form-action 'self'",
             // Upgrade insecure requests
-            "upgrade-insecure-requests"
+            'upgrade-insecure-requests',
         ]);
 
         // Aplicar headers de seguridad

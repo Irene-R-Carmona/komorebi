@@ -6,6 +6,7 @@ namespace App\Core\Seeders;
 
 use App\Core\Database;
 use App\Core\Logger;
+use DateTimeImmutable;
 use PDO;
 
 /**
@@ -25,8 +26,7 @@ final class TimeSlotSeeder
 
     public function run(): void
     {
-        echo "Generando time_slots...\n";
-        Logger::info('TimeSlotSeeder: starting');
+        Logger::info('[TimeSlotSeeder] starting');
 
         // Obtener cafés con sus horarios
         $cafes = $this->db->query('
@@ -36,7 +36,7 @@ final class TimeSlotSeeder
         ')->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($cafes)) {
-            echo "⚠️  No hay cafés activos\n";
+            Logger::warning('[TimeSlotSeeder] no active cafes found');
 
             return;
         }
@@ -46,12 +46,12 @@ final class TimeSlotSeeder
 
         if ($existingSlots === 0) {
             // Crear slots nuevos
-            echo "  → Creando slots para los próximos 14 días...\n";
+            Logger::info('[TimeSlotSeeder] creating slots for next 14 days');
             $this->createTimeSlots($cafes);
         } else {
             // Resetear reserved_spots (las reservas se crearán después)
             $this->db->exec('UPDATE time_slots SET reserved_spots = 0');
-            echo "  → reserved_spots reseteados\n";
+            Logger::info('[TimeSlotSeeder] reserved_spots reset');
         }
 
         $updated = 0;
@@ -111,8 +111,7 @@ final class TimeSlotSeeder
         // Bloquear algunos slots aleatoriamente (mantenimiento, eventos privados)
         $this->blockRandomSlots();
 
-        echo "✅ $updated time_slots actualizados\n";
-        Logger::info('TimeSlotSeeder: completed', ['updated' => $updated]);
+        Logger::info('[TimeSlotSeeder] completed', ['updated' => $updated]);
     }
 
     private function blockRandomSlots(): void
@@ -154,13 +153,13 @@ final class TimeSlotSeeder
             }
         }
 
-        echo "  📅 $blocked slots bloqueados por eventos/mantenimiento\n";
+        Logger::info('[TimeSlotSeeder] slots blocked', ['count' => $blocked]);
     }
 
     private function createTimeSlots(array $cafes): void
     {
         $created = 0;
-        $today = new \DateTime();
+        $today = new DateTimeImmutable();
 
         // Slots cada 30 minutos durante el horario del café
         $slotDuration = 30;
@@ -170,19 +169,19 @@ final class TimeSlotSeeder
 
             // Generar slots para los próximos 14 días
             for ($day = 0; $day < 14; $day++) {
-                $date = (clone $today)->modify("+$day days");
+                $date = $today->modify("+$day days");
                 $dateStr = $date->format('Y-m-d');
 
                 // Parsear horarios del café
-                $opening = \DateTime::createFromFormat('H:i:s', $cafe['opening_time']);
-                $closing = \DateTime::createFromFormat('H:i:s', $cafe['closing_time']);
+                $opening = DateTimeImmutable::createFromFormat('H:i:s', $cafe['opening_time']);
+                $closing = DateTimeImmutable::createFromFormat('H:i:s', $cafe['closing_time']);
 
                 if (!$opening || !$closing) {
                     continue;
                 }
 
                 // Generar slots cada 30 minutos
-                $currentTime = clone $opening;
+                $currentTime = $opening;
                 while ($currentTime < $closing) {
                     $timeStr = $currentTime->format('H:i:s');
 
@@ -206,12 +205,12 @@ final class TimeSlotSeeder
                     ]);
 
                     $created++;
-                    $currentTime->modify("+$slotDuration minutes");
+                    $currentTime = $currentTime->modify("+$slotDuration minutes");
                 }
             }
         }
 
-        echo "  ✓ $created slots creados\n";
+        Logger::info('[TimeSlotSeeder] slots created', ['count' => $created]);
     }
 
     private function getSlotCapacity(int $baseCapacity, string $hour): int
@@ -232,6 +231,7 @@ final class TimeSlotSeeder
         ];
 
         $variation = $variations[$hour] ?? 0.8;
+
         return \max(1, (int) \round($baseCapacity * $variation));
     }
 }

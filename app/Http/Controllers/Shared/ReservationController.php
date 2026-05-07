@@ -4,25 +4,23 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shared;
 
+use App\Core\Container;
+use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
-use App\Core\Logger;
-use App\Core\Raw;
 use App\Core\Session;
 use App\Core\View;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Services\Contracts\AvailabilityServiceInterface;
+use App\Services\Contracts\CartServiceInterface;
+use App\Services\Contracts\ClimaContextoServiceInterface;
+use App\Services\Contracts\FestivosJaponesesServiceInterface;
+use App\Services\Contracts\ReservationServiceInterface;
+use DateMalformedStringException;
+use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use App\Exceptions\NotFoundException;
-use App\Exceptions\ValidationException;
-use App\Models\Reservation;
-use App\Core\Container;
-use App\Services\CartService;
-use App\Services\ClimaContextoService;
-use App\Services\FestivosJaponesesService;
-use App\Services\ReservationService;
-use JsonException;
-use Random\RandomException;
-use Throwable;
 
 /**
  * Controlador de Reservas Compartido
@@ -32,205 +30,74 @@ use Throwable;
  */
 final class ReservationController
 {
-    private CartService $cartService;
-    private ReservationService $reservationService;
-    private Reservation $reservationModel;
-    private ClimaContextoService $climaService;
-    private FestivosJaponesesService $festivosService;
+    private const string WIZARD_KEY = 'reservation_wizard';
+    private const string ROUTE_LOGIN = '/login';
+    private const string ROUTE_RESERVAR = '/reservar';
+    private const string ROUTE_PASO2 = '/reservar/paso-2';
+    private const string ROUTE_PASO3 = '/reservar/paso-3';
+    private const string MSG_NOT_FOUND = 'Reserva no encontrada.';
+
+    private CartServiceInterface $cartService;
+    private ReservationServiceInterface $reservationService;
+    private ReservationRepositoryInterface $reservationRepo;
+    private ClimaContextoServiceInterface $climaService;
+    private FestivosJaponesesServiceInterface $festivosService;
+    private AvailabilityServiceInterface $availability;
     private ResponseFactory $response;
+    private ReservationItemRepositoryInterface $itemRepo;
 
     public function __construct(
-        ?CartService $cartService = null,
-        ?ReservationService $reservationService = null,
-        ?Reservation $reservationModel = null,
-        ?ClimaContextoService $climaService = null,
-        ?FestivosJaponesesService $festivosService = null,
-        ?ResponseFactory $response = null
+        ?CartServiceInterface $cartService = null,
+        ?ReservationServiceInterface $reservationService = null,
+        ?ReservationRepositoryInterface $reservationRepo = null,
+        ?ClimaContextoServiceInterface $climaService = null,
+        ?FestivosJaponesesServiceInterface $festivosService = null,
+        ?AvailabilityServiceInterface $availability = null,
+        ?ResponseFactory $response = null,
+        ?ReservationItemRepositoryInterface $itemRepo = null
     ) {
-        $this->cartService = $cartService ?? new CartService();
-        $this->reservationService = $reservationService ?? new ReservationService();
-        $this->reservationModel = $reservationModel ?? new Reservation();
-        $this->climaService = $climaService ?? Container::make(ClimaContextoService::class);
-        $this->festivosService = $festivosService ?? new FestivosJaponesesService();
+        $this->cartService = $cartService ?? Container::make(CartServiceInterface::class);
+        $this->reservationService = $reservationService ?? Container::make(ReservationServiceInterface::class);
+        $this->reservationRepo = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
+        $this->climaService = $climaService ?? Container::make(ClimaContextoServiceInterface::class);
+        $this->festivosService = $festivosService ?? Container::make(FestivosJaponesesServiceInterface::class);
+        $this->availability = $availability ?? Container::make(AvailabilityServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
+        $this->itemRepo = $itemRepo ?? Container::make(ReservationItemRepositoryInterface::class);
     }
 
     /**
      * GET /reservas
-     * Muestra la página principal de reservas
      * @throws JsonException
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
-    public function index(): void
+    public function index(): ?ResponseInterface
     {
         if (!Session::isAuthenticated()) {
-            View::render('shared/reservas/guest', [
-                'titulo' => 'Reservas',
-            ], ['reservas.css']);
+            View::render('shared/reservas/guest', ['titulo' => 'Reservas'], ['reservas.css']);
 
-            return;
+            return null;
         }
-
-        $userId = Session::userId();
-
-        $result = $this->reservationModel->findByUser($userId);
-        $misReservas = $result['data'] ?? [];
-
-        $cafes = $this->reservationService->getAvailableCafesForReservation();
-        $cafesById = $this->reservationService->getAvailableCafesById();
-
-        $passes = $this->reservationService->getAvailablePassesForReservation();
 
         $cart = $this->cartService->get();
         $cartDetails = $this->getCartDetails($cart);
 
-        $clima = $this->climaService->obtenerClimaActual();
-        $festivosDelMes = $this->festivosService->obtenerFestivosDelAnio();
-
         View::render('shared/reservas/index', [
             'titulo' => 'Mis Reservas',
-            'reservas' => $misReservas,
-            'cafes' => $cafes,
-            'cafesById' => $cafesById,
-            'cafesJson' => Raw::json($cafes),
-            'passes' => $passes,
-            'passesJson' => Raw::json($passes),
             'cart' => $cart,
             'cartDetails' => $cartDetails,
             'flash' => Flash::consume(),
-            'clima' => $clima,
-            'festivos' => $festivosDelMes,
+            'clima' => $this->climaService->obtenerClimaActual(),
+            'festivos' => $this->festivosService->obtenerFestivosDelAnio(),
+            'cafes' => $this->availability->getAvailableCafesForReservation(),
+            'passes' => $this->availability->getAvailablePassesForReservation(),
         ], ['reservas.css']);
-    }
 
-    /**
-     * POST /reservas/crear
-     * Crea una nueva reserva desde el carrito
-     *
-     * @throws Throwable
-     */
-    public function create(): ResponseInterface
-    {
-        Logger::info('POST /reservas/crear - Inicio', ['method' => 'create']);
-
-        if (!Session::isAuthenticated()) {
-            throw ValidationException::withMessage('Debes iniciar sesión para hacer una reserva.', 401);
-        }
-
-        $userId = Session::userId();
-
-        $cafeId = \filter_input(INPUT_POST, 'cafe_id', FILTER_VALIDATE_INT);
-        $passProductId = \filter_input(INPUT_POST, 'pass_product_id', FILTER_VALIDATE_INT);
-        $fecha = \trim((string) ($_POST['fecha'] ?? ''));
-        $hora = \trim((string) ($_POST['hora'] ?? ''));
-        $personas = \filter_input(INPUT_POST, 'personas', FILTER_VALIDATE_INT);
-        $comentarios = \trim(\strip_tags((string) ($_POST['comentarios'] ?? '')));
-
-        $errors = [];
-        if (!$cafeId) {
-            $errors['cafe_id'] = 'Debes seleccionar un café.';
-        }
-        if (!$passProductId) {
-            $errors['pass_product_id'] = 'Debes seleccionar un pase.';
-        }
-        if (!$fecha || !$hora) {
-            $errors['datetime'] = 'Fecha y hora son requeridas.';
-        }
-        if (!$personas || $personas < 1) {
-            $errors['personas'] = 'Número de personas inválido.';
-        }
-
-        if (!empty($errors)) {
-            throw ValidationException::fromArray($errors);
-        }
-
-        if (!$this->reservationService->validateCafeExists($cafeId)) {
-            throw NotFoundException::forResource('Café', $cafeId);
-        }
-
-        if (!$this->reservationService->validatePassExists($passProductId)) {
-            throw NotFoundException::forResource('Pase', $passProductId);
-        }
-
-        Logger::debug('Validaciones OK - Llamando a ReservationService::create()', [
-            'cafe_id' => $cafeId,
-            'pass_id' => $passProductId,
-            'fecha' => $fecha,
-            'hora' => $hora,
-            'personas' => $personas,
-        ]);
-
-        $result = $this->reservationService->create([
-            'user_id' => $userId,
-            'cafe_id' => $cafeId,
-            'pass_product_id' => $passProductId,
-            'date' => $fecha,
-            'time' => $hora,
-            'guests' => $personas,
-            'comments' => $comentarios,
-        ], $this->cartService);
-
-        if (!$result->ok) {
-            Flash::error($result->getMessage());
-            return $this->response->redirect('/reservas');
-        }
-
-        $this->cartService->clear();
-
-        Flash::success('¡Reserva confirmada! Te esperamos.');
-
-        return $this->response->redirect('/reservas');
-    }
-
-    /**
-     * POST /reservas/cancelar
-     * Cancela una reserva existente
-     * @throws JsonException
-     * @throws NotFoundException
-     * @throws ValidationException
-     * @throws RandomException
-     */
-    public function cancel(): void
-    {
-        if (!Session::isAuthenticated()) {
-            throw ValidationException::withMessage('Debes iniciar sesión.', 401);
-        }
-
-        $userId = Session::userId();
-        $reservationId = \filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
-
-        if (!$reservationId || $reservationId <= 0) {
-            throw ValidationException::withMessage('Reserva inválida');
-        }
-
-        $reservation = $this->reservationModel->findById($reservationId);
-        if (!$reservation) {
-            throw NotFoundException::forResource('Reserva', $reservationId);
-        }
-
-        if ($reservation['user_id'] !== $userId) {
-            throw ValidationException::withMessage('No puedes cancelar esta reserva');
-        }
-
-        $cancelableStates = ['pending', 'confirmed', 'active'];
-        if (!\in_array($reservation['status'], $cancelableStates, true)) {
-            throw ValidationException::withMessage('Esta reserva no puede ser cancelada (estado: ' . $reservation['status'] . ')');
-        }
-
-        try {
-            $this->reservationService->cancel($reservationId, $userId);
-            Flash::set('success', 'Reserva cancelada correctamente. Se procesará el reembolso en 3-5 días hábiles.');
-        } catch (\RuntimeException $e) {
-            Flash::set('error', $e->getMessage());
-        }
-
-        \header('Location: /reservas');
-        exit;
+        return null;
     }
 
     /**
      * GET /reservas/{id}/confirmacion
-     * Muestra la página de confirmación de una reserva del usuario autenticado.
      */
     public function confirmation(ServerRequestInterface $request): ?ResponseInterface
     {
@@ -238,19 +105,90 @@ final class ReservationController
         $userId = Session::userId();
 
         if (!$userId || $id <= 0) {
-            Flash::error('Reserva no encontrada.');
+            Flash::error(self::MSG_NOT_FOUND);
+
             return $this->response->redirect('/reservas');
         }
 
-        $reservation = $this->reservationModel->findByIdAndUser($id, $userId);
+        $reservation = $this->reservationRepo->findByIdAndUser($id, $userId);
 
         if (!$reservation) {
-            Flash::error('Reserva no encontrada.');
+            Flash::error(self::MSG_NOT_FOUND);
+
             return $this->response->redirect('/reservas');
         }
+
+        $cartItems = $this->itemRepo->findByReservation($id);
+        $cartTotal = \array_sum(\array_map(
+            fn (array $item): float => (float) $item['quantity'] * (float) $item['unit_price'],
+            $cartItems
+        ));
 
         View::render('shared/reservas/confirmation', [
             'titulo' => 'Confirmación de Reserva',
+            'reservation' => $reservation,
+            'cart_items' => $cartItems,
+            'cart_total' => $cartTotal,
+        ], ['reservas.css']);
+
+        return null;
+    }
+
+    /**
+     * POST /reservas/mis-reservas/{id}/cancel
+     */
+    public function cancelReservation(ServerRequestInterface $request): ResponseInterface
+    {
+        $id = (int) $request->getAttribute('id');
+        $userId = Session::userId();
+
+        if (!$userId || $id <= 0) {
+            Flash::error(self::MSG_NOT_FOUND);
+
+            return $this->response->redirect('/reservas/mis-reservas');
+        }
+
+        $result = $this->reservationService->cancel($id, $userId);
+
+        if (!$result->ok) {
+            Flash::error($result->error ?? 'No se pudo cancelar la reserva.');
+        } else {
+            Flash::success('Reserva cancelada correctamente.');
+        }
+
+        return $this->response->redirect('/reservas/mis-reservas');
+    }
+
+    /**
+     * GET /reservas/mis-reservas/{id}/cancelar
+     */
+    public function cancelConfirm(ServerRequestInterface $request): ?ResponseInterface
+    {
+        $id = (int) $request->getAttribute('id');
+        $userId = Session::userId();
+
+        if (!$userId || $id <= 0) {
+            Flash::error(self::MSG_NOT_FOUND);
+
+            return $this->response->redirect('/reservas/mis-reservas');
+        }
+
+        $reservation = $this->reservationRepo->findByIdAndUser($id, $userId);
+
+        if ($reservation === null) {
+            Flash::error(self::MSG_NOT_FOUND);
+
+            return $this->response->redirect('/reservas/mis-reservas');
+        }
+
+        if (\in_array($reservation['status'] ?? '', ['cancelled', 'completed', 'no_show'], true)) {
+            Flash::error('Esta reserva no puede cancelarse.');
+
+            return $this->response->redirect('/reservas/mis-reservas');
+        }
+
+        View::render('shared/reservas/cancelar', [
+            'titulo' => 'Cancelar Reserva',
             'reservation' => $reservation,
         ], ['reservas.css']);
 
@@ -259,33 +197,286 @@ final class ReservationController
 
     /**
      * GET /reservas/mis-reservas
-     * Lista las reservas del usuario autenticado.
      */
-    public function userReservations(ServerRequestInterface $request): ?ResponseInterface
+    public function userReservations(): ?ResponseInterface
     {
         $userId = Session::userId();
 
         if (!$userId) {
             Flash::error('Debes iniciar sesión para ver tus reservas.');
-            return $this->response->redirect('/login');
+
+            return $this->response->redirect(self::ROUTE_LOGIN);
         }
 
-        $reservations = $this->reservationService->getByUser($userId);
+        $reservationData = $this->reservationService->getByUser($userId);
 
         View::render('shared/reservas/lista', [
             'titulo' => 'Mis Reservas',
-            'reservations' => $reservations,
+            'reservations' => $reservationData['data'] ?? $reservationData,
+            'flash' => Flash::consume(),
         ], ['reservas.css']);
 
         return null;
     }
 
     /**
-     * Obtiene detalles del carrito para la vista
-     *
-     * @param array $cart Datos del carrito
-     * @return array Detalles formateados
+     * POST /reservar/paso-1
      */
+    public function procesarPaso1(ServerRequestInterface $request): ResponseInterface
+    {
+        if ($r = $this->requireAuthRedirect()) {
+            return $r;
+        }
+
+        Csrf::verify($request);
+
+        $body = $request->getParsedBody();
+        $cafeId = (int) ($body['cafe_id'] ?? 0);
+        $passId = (int) ($body['pass_product_id'] ?? 0);
+        $guests = (int) ($body['guests'] ?? 0);
+
+        if ($cafeId <= 0 || $passId <= 0 || $guests < 1 || $guests > 6) {
+            Flash::error('Selecciona un café, un pase y el número de personas.');
+
+            return $this->response->redirect(self::ROUTE_RESERVAR);
+        }
+
+        $wizard = $this->buildWizardStep1($cafeId, $passId, $guests);
+        if ($wizard !== null) {
+            Session::set(self::WIZARD_KEY, $wizard);
+        } else {
+            Flash::error('La selección no está disponible.');
+        }
+
+        return $this->response->redirect($wizard !== null ? self::ROUTE_PASO2 : self::ROUTE_RESERVAR);
+    }
+
+    /**
+     * GET /reservar/paso-2
+     */
+    public function paso2(): ?ResponseInterface
+    {
+        if ($r = $this->requireAuthRedirect()) {
+            return $r;
+        }
+
+        $wizard = Session::get(self::WIZARD_KEY, []);
+
+        if (empty($wizard['cafe_id']) || empty($wizard['pass_product_id'])) {
+            Flash::error('Completa el paso 1 primero.');
+
+            return $this->response->redirect(self::ROUTE_RESERVAR);
+        }
+
+        View::render('shared/reservas/paso-2', [
+            'titulo' => 'Reserva — Fecha y Hora',
+            'wizard' => $wizard,
+            'festivos' => $this->festivosService->obtenerFestivosDelAnio(),
+        ], ['reservas.css']);
+
+        return null;
+    }
+
+    /**
+     * POST /reservar/paso-2
+     */
+    public function procesarPaso2(ServerRequestInterface $request): ResponseInterface
+    {
+        if ($r = $this->requireAuthRedirect()) {
+            return $r;
+        }
+
+        Csrf::verify($request);
+
+        [$wizard, $flashMsg, $redirectTo] = $this->resolvePaso2Data($request);
+
+        if ($flashMsg !== null) {
+            Flash::error($flashMsg);
+
+            return $this->response->redirect($redirectTo);
+        }
+
+        Session::set(self::WIZARD_KEY, $wizard);
+
+        return $this->response->redirect(self::ROUTE_PASO3);
+    }
+
+    /**
+     * GET /reservar/paso-3
+     */
+    public function paso3(): ?ResponseInterface
+    {
+        if ($r = $this->requireAuthRedirect()) {
+            return $r;
+        }
+
+        $wizard = Session::get(self::WIZARD_KEY, []);
+
+        if (empty($wizard['cafe_id']) || empty($wizard['fecha']) || empty($wizard['hora'])) {
+            Flash::error('Completa los pasos anteriores primero.');
+
+            return $this->response->redirect(self::ROUTE_RESERVAR);
+        }
+
+        $cart = $this->cartService->get();
+        $cartTotal = (float) ($cart['totalPrice'] ?? 0);
+        $passTotal = (float) ($wizard['pass_price'] ?? 0) * (int) ($wizard['guests'] ?? 1);
+
+        View::render('shared/reservas/paso-3', [
+            'titulo' => 'Reserva — Confirmar',
+            'wizard' => $wizard,
+            'cartDetails' => $this->getCartDetails($cart),
+            'passTotal' => $passTotal,
+            'grandTotal' => $passTotal + $cartTotal,
+        ], ['reservas.css']);
+
+        return null;
+    }
+
+    /**
+     * POST /reservar
+     */
+    public function procesarReserva(ServerRequestInterface $request): ResponseInterface
+    {
+        if ($r = $this->requireAuthRedirect()) {
+            return $r;
+        }
+
+        Csrf::verify($request);
+
+        [$data, $errorMsg] = $this->resolveWizardData();
+
+        if ($errorMsg !== null) {
+            Flash::error($errorMsg);
+
+            return $this->response->redirect(self::ROUTE_RESERVAR);
+        }
+
+        return $this->executeReservation($data);
+    }
+
+    private function requireAuthRedirect(): ?ResponseInterface
+    {
+        if (Session::isAuthenticated()) {
+            return null;
+        }
+
+        return $this->response->redirect(self::ROUTE_LOGIN);
+    }
+
+    private function buildWizardStep1(int $cafeId, int $passId, int $guests): ?array
+    {
+        $cafes = $this->availability->getAvailableCafesForReservation();
+        $passes = $this->availability->getAvailablePassesForReservation();
+
+        $cafe = null;
+        foreach ($cafes as $c) {
+            if ((int) ($c['id'] ?? 0) === $cafeId) {
+                $cafe = $c;
+                break;
+            }
+        }
+
+        $pass = null;
+        foreach ($passes as $p) {
+            if ((int) ($p['id'] ?? 0) === $passId) {
+                $pass = $p;
+                break;
+            }
+        }
+
+        if ($cafe === null || $pass === null) {
+            return null;
+        }
+
+        return [
+            'cafe_id' => $cafeId,
+            'cafe_name' => (string) ($cafe['name'] ?? ''),
+            'pass_product_id' => $passId,
+            'pass_name' => (string) ($pass['name'] ?? ''),
+            'pass_price' => (float) ($pass['price'] ?? 0),
+            'pass_duration' => (int) ($pass['duration_minutes'] ?? 0),
+            'guests' => $guests,
+        ];
+    }
+
+    /**
+     * @return array{0: array<string,mixed>, 1: string|null, 2: string}
+     */
+    private function resolvePaso2Data(ServerRequestInterface $request): array
+    {
+        $wizard = Session::get(self::WIZARD_KEY, []);
+
+        if (empty($wizard['cafe_id'])) {
+            return [$wizard, 'Completa el paso 1 primero.', self::ROUTE_RESERVAR];
+        }
+
+        $body = $request->getParsedBody();
+        $fecha = (string) ($body['fecha'] ?? '');
+        $hora = (string) ($body['hora'] ?? '');
+
+        $fieldError = $this->validatePaso2Fields($fecha, $hora);
+        if ($fieldError !== null) {
+            return [$wizard, $fieldError, self::ROUTE_PASO2];
+        }
+
+        $wizard['fecha'] = $fecha;
+        $wizard['hora'] = $hora;
+        $wizard['comments'] = (string) ($body['comments'] ?? '');
+
+        return [$wizard, null, self::ROUTE_PASO3];
+    }
+
+    private function validatePaso2Fields(string $fecha, string $hora): ?string
+    {
+        if (empty($fecha) || !\preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha) || $fecha < \date('Y-m-d')) {
+            return 'Selecciona una fecha válida (no en el pasado).';
+        }
+
+        if (empty($hora) || !\preg_match('/^\d{2}:\d{2}$/', $hora)) {
+            return 'Selecciona un turno.';
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{0: array<string,mixed>, 1: string|null}
+     */
+    private function resolveWizardData(): array
+    {
+        $wizard = Session::get(self::WIZARD_KEY, []);
+
+        if (empty($wizard['cafe_id']) || empty($wizard['fecha']) || empty($wizard['hora'])) {
+            return [[], 'Sesión del wizard expirada. Por favor, comienza de nuevo.'];
+        }
+
+        return [[
+            'user_id' => (int) Session::userId(),
+            'cafe_id' => (int) $wizard['cafe_id'],
+            'pass_product_id' => (int) $wizard['pass_product_id'],
+            'date' => (string) $wizard['fecha'],
+            'time' => (string) $wizard['hora'],
+            'guests' => (int) $wizard['guests'],
+            'comments' => (string) ($wizard['comments'] ?? ''),
+        ], null];
+    }
+
+    private function executeReservation(array $data): ResponseInterface
+    {
+        $result = $this->reservationService->create($data, $this->cartService);
+
+        if (!$result->ok) {
+            Flash::error($result->error ?? 'No se pudo crear la reserva.');
+
+            return $this->response->redirect(self::ROUTE_PASO3);
+        }
+
+        Session::remove(self::WIZARD_KEY);
+
+        return $this->response->redirect('/reservas/confirmacion/' . (int) $result->data);
+    }
+
     private function getCartDetails(array $cart): array
     {
         if (empty($cart['items'])) {

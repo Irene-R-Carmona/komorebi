@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -17,10 +16,13 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use Tests\Support\BaseIntegrationTest;
-use App\Services\ProductService;
 use App\Repositories\ProductRepository;
+use App\Services\ProductService;
+use Override;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use Tests\Support\BaseIntegrationTest;
 
+#[CoversNothing]
 final class ProductIntegrationTest extends BaseIntegrationTest
 {
     private ProductService $service;
@@ -29,7 +31,7 @@ final class ProductIntegrationTest extends BaseIntegrationTest
     private const TEST_CATEGORY_ID = 88880;
     private const TEST_PRODUCT_ID_BASE = 88881;
 
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -44,28 +46,28 @@ final class ProductIntegrationTest extends BaseIntegrationTest
     private function seedTestData(): void
     {
         // Limpiar datos previos
-        self::$db->exec("DELETE FROM products WHERE id >= " . self::TEST_PRODUCT_ID_BASE);
-        self::$db->exec("DELETE FROM menu_categories WHERE id = " . self::TEST_CATEGORY_ID);
+        self::$db->exec('DELETE FROM products WHERE id >= ' . self::TEST_PRODUCT_ID_BASE);
+        self::$db->exec('DELETE FROM menu_categories WHERE id = ' . self::TEST_CATEGORY_ID);
 
         // Categoría de prueba
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO menu_categories (id, name, slug)
             VALUES (
-                " . self::TEST_CATEGORY_ID . ",
+                ' . self::TEST_CATEGORY_ID . ",
                 'Test Category Integration',
                 'test-category-integration'
             )
         ");
 
         // Producto activo tipo 'item'
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO products (
                 id, category_id, product_type, name, slug, price,
                 station, is_active
             )
             VALUES (
-                " . self::TEST_PRODUCT_ID_BASE . ",
-                " . self::TEST_CATEGORY_ID . ",
+                ' . self::TEST_PRODUCT_ID_BASE . ',
+                ' . self::TEST_CATEGORY_ID . ",
                 'item',
                 'Test Product Active',
                 'test-product-active',
@@ -76,14 +78,14 @@ final class ProductIntegrationTest extends BaseIntegrationTest
         ");
 
         // Producto inactivo tipo 'pass'
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO products (
                 id, category_id, product_type, name, slug, price,
                 station, duration_minutes, is_active
             )
             VALUES (
-                " . (self::TEST_PRODUCT_ID_BASE + 1) . ",
-                " . self::TEST_CATEGORY_ID . ",
+                ' . (self::TEST_PRODUCT_ID_BASE + 1) . ',
+                ' . self::TEST_CATEGORY_ID . ",
                 'pass',
                 'Test Pass Inactive',
                 'test-pass-inactive',
@@ -95,14 +97,14 @@ final class ProductIntegrationTest extends BaseIntegrationTest
         ");
 
         // Producto con texto para búsqueda
-        self::$db->exec("
+        self::$db->exec('
             INSERT INTO products (
                 id, category_id, product_type, name, slug, description,
                 price, station, is_active
             )
             VALUES (
-                " . (self::TEST_PRODUCT_ID_BASE + 2) . ",
-                " . self::TEST_CATEGORY_ID . ",
+                ' . (self::TEST_PRODUCT_ID_BASE + 2) . ',
+                ' . self::TEST_CATEGORY_ID . ",
                 'item',
                 'Matcha Latte Premium',
                 'matcha-latte-premium',
@@ -140,7 +142,7 @@ final class ProductIntegrationTest extends BaseIntegrationTest
     {
         // ACT: Filtrar por categoría de test
         $result = $this->service->getAllPaginated(1, 20, [
-            'category_id' => self::TEST_CATEGORY_ID
+            'category_id' => self::TEST_CATEGORY_ID,
         ]);
 
         // ASSERT: Solo debe retornar productos de nuestra categoría
@@ -156,7 +158,7 @@ final class ProductIntegrationTest extends BaseIntegrationTest
         // ACT: Filtrar solo productos activos de nuestra categoría
         $result = $this->service->getAllPaginated(1, 20, [
             'category_id' => self::TEST_CATEGORY_ID,
-            'is_active' => 1
+            'is_active' => 1,
         ]);
 
         // ASSERT: Solo debe retornar productos activos (2 de 3)
@@ -172,15 +174,15 @@ final class ProductIntegrationTest extends BaseIntegrationTest
         // ACT: Buscar por texto "Matcha"
         $result = $this->service->getAllPaginated(1, 20, [
             'category_id' => self::TEST_CATEGORY_ID,
-            'search' => 'Matcha'
+            'search' => 'Matcha',
         ]);
 
         // ASSERT: Debe retornar solo el producto con "Matcha" en el nombre
-        $this->assertGreaterThanOrEqual(1, count($result['data']), 'Debe encontrar al menos 1 producto con "Matcha"');
+        $this->assertGreaterThanOrEqual(1, \count($result['data']), 'Debe encontrar al menos 1 producto con "Matcha"');
 
         $found = false;
         foreach ($result['data'] as $product) {
-            if (stripos($product['name'], 'Matcha') !== false) {
+            if (\stripos($product['name'], 'Matcha') !== false) {
                 $found = true;
                 break;
             }

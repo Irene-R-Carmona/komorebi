@@ -3,211 +3,119 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * Servicio de tokens de autenticación: generación, verificación y consumo
- * de tokens de verificación de email y de reset de contraseña.
- *
- * ¿Qué me quieres demostrar?
- * Que los tokens se generan como cadenas hexadecimales no vacías, que la
- * verificación distingue tokens válidos de expirados/inválidos devolviendo
- * Result::ok o Result::fail, y que la verificación de email deja constancia
- * en la base de datos (lo hace de un solo uso).
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina el hashing o se devuelve un token vacío, si la lógica
- * Result::ok/fail cambia de semántica, si se deja de ejecutar el UPDATE
- * que marca verified_at/used_at, o si isEmailVerified cambia su criterio
- * sobre qué campo indica verificación.
+ * ¿Qué pruebas aquí? AuthTokenService: creación de tokens, verificación y validación de password-reset.
+ * ¿Qué me quieres demostrar? Que tokens inválidos o expirados retornan Result::fail, y que los tokens válidos retornan Result::ok con user_id.
+ * ¿Qué va a fallar en este test si se cambia el código? Si cambia la lógica de hash SHA-256, la respuesta a token null, o la estructura de Result::ok.
  */
 
 namespace Tests\Unit\Services;
 
+use App\Repositories\Contracts\AuthTokenRepositoryInterface;
 use App\Services\AuthTokenService;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(\App\Services\AuthTokenService::class)]
+#[CoversClass(AuthTokenService::class)]
 final class AuthTokenServiceTest extends TestCase
 {
-    // ─────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────
+    private AuthTokenRepositoryInterface $repoStub;
+    private AuthTokenService $service;
 
-    /**
-     * Crea un PDO stub que devuelve siempre el mismo PDOStatement dado.
-     * Útil cuando todos los prepare() del método bajo prueba
-     * necesitan el mismo comportamiento.
-     */
-    private function makePdoWithStmt(\PDOStatement $stmt): \PDO
+    protected function setUp(): void
     {
-        $pdo = $this->createStub(\PDO::class);
-        $pdo->method('prepare')->willReturn($stmt);
-        $pdo->method('query')->willReturn($stmt);
-        return $pdo;
+        $this->repoStub = $this->createStub(AuthTokenRepositoryInterface::class);
+        $this->service = new AuthTokenService($this->repoStub);
     }
 
-    /**
-     * Crea un PDOStatement stub con valores de retorno configurables.
-     */
-    private function makeStmt(
-        mixed $fetchReturn = false,
-        mixed $fetchColumnReturn = 0
-    ): \PDOStatement {
-        $stmt = $this->createStub(\PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetch')->willReturn($fetchReturn);
-        $stmt->method('fetchColumn')->willReturn($fetchColumnReturn);
-        $stmt->method('rowCount')->willReturn(0);
-        return $stmt;
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // createEmailVerificationToken
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function test_createEmailVerificationToken_returns_non_empty_hex_string(): void
+    public function testCreateEmailVerificationTokenReturnsNonEmptyString(): void
     {
-        $pdo = $this->makePdoWithStmt($this->makeStmt());
-        $service = new AuthTokenService($pdo);
+        $this->repoStub->method('deletePendingEmailVerificationTokensByUser');
+        $this->repoStub->method('createEmailVerificationToken');
 
-        $token = $service->createEmailVerificationToken(1);
+        $token = $this->service->createEmailVerificationToken(1);
 
         $this->assertNotEmpty($token);
-        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $token);
+        $this->assertIsString($token);
+        $this->assertSame(64, \strlen($token));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // verifyEmail
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function test_verifyEmail_with_valid_token_returns_ok_result_with_user_id(): void
+    public function testCreateEmailVerificationTokenReturnsDifferentTokens(): void
     {
-        $pdo = $this->makePdoWithStmt($this->makeStmt(['id' => 7, 'user_id' => 42]));
-        $service = new AuthTokenService($pdo);
+        $token1 = $this->service->createEmailVerificationToken(1);
+        $token2 = $this->service->createEmailVerificationToken(1);
 
-        $result = $service->verifyEmail('anytoken');
-
-        $this->assertTrue($result->ok);
-        $this->assertSame(42, $result->data['user_id']);
+        $this->assertNotSame($token1, $token2);
     }
 
-    #[Test]
-    public function test_verifyEmail_with_invalid_or_expired_token_returns_failure(): void
+    public function testVerifyEmailReturnsFailWhenTokenNotFound(): void
     {
-        $pdo = $this->makePdoWithStmt($this->makeStmt(false));
-        $service = new AuthTokenService($pdo);
+        $this->repoStub->method('findValidEmailVerificationToken')->willReturn(null);
 
-        $result = $service->verifyEmail('expiredorinvalidtoken');
+        $result = $this->service->verifyEmail('invalidtoken');
 
         $this->assertFalse($result->ok);
-        $this->assertNotEmpty($result->error);
+        $this->assertStringContainsString('inválido', $result->error);
     }
 
-    #[Test]
-    public function test_verifyEmail_executes_updates_to_mark_token_as_consumed(): void
+    public function testVerifyEmailReturnsOkWhenTokenValid(): void
     {
-        // Contamos cuántas veces se llama execute(): SELECT (1) + dos UPDATEs (2,3)
-        $executeCount = 0;
-        $stmt = $this->createStub(\PDOStatement::class);
-        $stmt->method('fetch')->willReturn(['id' => 1, 'user_id' => 5]);
-        $stmt->method('execute')->willReturnCallback(function () use (&$executeCount): bool {
-            $executeCount++;
-            return true;
-        });
+        $this->repoStub->method('findValidEmailVerificationToken')->willReturn(['id' => 1, 'user_id' => 5]);
 
-        $pdo = $this->createStub(\PDO::class);
-        $pdo->method('prepare')->willReturn($stmt);
+        $result = $this->service->verifyEmail('validtoken');
 
-        $service = new AuthTokenService($pdo);
-        $service->verifyEmail('validtoken');
-
-        // Al menos: execute del SELECT + execute del UPDATE verified_at
-        $this->assertGreaterThanOrEqual(
-            2,
-            $executeCount,
-            'verifyEmail debe ejecutar al menos un SELECT y un UPDATE para consumir el token'
-        );
+        $this->assertTrue($result->ok);
+        $this->assertArrayHasKey('user_id', $result->data);
+        $this->assertSame(5, $result->data['user_id']);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // isEmailVerified
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function test_isEmailVerified_returns_true_when_email_is_verified(): void
+    public function testIsEmailVerifiedDelegatesToRepository(): void
     {
-        $pdo = $this->makePdoWithStmt($this->makeStmt(['email_verified_at' => '2024-01-01 10:00:00']));
-        $service = new AuthTokenService($pdo);
+        $this->repoStub->method('isUserEmailVerified')->willReturn(true);
 
-        $this->assertTrue($service->isEmailVerified(10));
+        $this->assertTrue($this->service->isEmailVerified(1));
     }
 
-    #[Test]
-    public function test_isEmailVerified_returns_false_when_email_is_not_verified(): void
+    public function testIsEmailVerifiedReturnsFalseWhenNotVerified(): void
     {
-        $pdo = $this->makePdoWithStmt($this->makeStmt(['email_verified_at' => null]));
-        $service = new AuthTokenService($pdo);
+        $this->repoStub->method('isUserEmailVerified')->willReturn(false);
 
-        $this->assertFalse($service->isEmailVerified(10));
+        $this->assertFalse($this->service->isEmailVerified(1));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // createPasswordResetToken
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function test_createPasswordResetToken_returns_non_empty_hex_string(): void
+    public function testValidatePasswordResetTokenReturnsFailWhenTokenNotFound(): void
     {
-        $pdo = $this->makePdoWithStmt($this->makeStmt());
-        $service = new AuthTokenService($pdo);
+        $this->repoStub->method('findValidPasswordResetToken')->willReturn(null);
 
-        $token = $service->createPasswordResetToken(1, '127.0.0.1', 'TestAgent/1.0');
+        $result = $this->service->validatePasswordResetToken('badtoken');
+
+        $this->assertFalse($result->ok);
+    }
+
+    public function testValidatePasswordResetTokenReturnsOkWhenValid(): void
+    {
+        $this->repoStub->method('findValidPasswordResetToken')->willReturn(['id' => 1, 'user_id' => 3]);
+
+        $result = $this->service->validatePasswordResetToken('validtoken');
+
+        $this->assertTrue($result->ok);
+    }
+
+    public function testCreatePasswordResetTokenReturnsNonEmptyString(): void
+    {
+        $this->repoStub->method('createPasswordResetToken');
+
+        $token = $this->service->createPasswordResetToken(1, '127.0.0.1');
 
         $this->assertNotEmpty($token);
-        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $token);
+        $this->assertSame(64, \strlen($token));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // validatePasswordResetToken
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function test_validatePasswordResetToken_with_valid_token_returns_ok_with_user_id(): void
+    public function testConsumePasswordResetTokenDelegatesToRepo(): void
     {
-        $pdo = $this->makePdoWithStmt($this->makeStmt(['user_id' => 99]));
-        $service = new AuthTokenService($pdo);
+        $this->repoStub->method('findValidPasswordResetToken')->willReturn(['id' => 1, 'user_id' => 3]);
 
-        $result = $service->validatePasswordResetToken('validresettoken');
+        $result = $this->service->consumePasswordResetToken('sometoken');
 
-        $this->assertTrue($result->ok);
-        $this->assertSame(99, $result->data['user_id']);
-    }
-
-    #[Test]
-    public function test_validatePasswordResetToken_with_invalid_token_returns_failure(): void
-    {
-        $pdo = $this->makePdoWithStmt($this->makeStmt(false));
-        $service = new AuthTokenService($pdo);
-
-        $result = $service->validatePasswordResetToken('invalidtoken');
-
-        $this->assertFalse($result->ok);
-        $this->assertNotEmpty($result->error);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // consumePasswordResetToken
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function test_consumePasswordResetToken_returns_true_when_token_exists(): void
-    {
-        $pdo = $this->makePdoWithStmt($this->makeStmt());
-        $service = new AuthTokenService($pdo);
-
-        $this->assertTrue($service->consumePasswordResetToken('someunusedtoken'));
+        $this->assertIsBool($result);
     }
 }

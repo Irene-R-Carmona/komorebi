@@ -50,25 +50,34 @@
 
   function loyaltyRewards() {
     return {
+      redemption: null,
+      loading: false,
       async redeemReward(rewardType) {
         if (!confirm('¿Confirmas que deseas canjear esta recompensa?')) return;
+        this.loading = true;
         try {
           const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-          const response = await fetch('/api/loyalty/redeem', {
+          const response = await fetch('/api/v1/loyalty/redeem', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': (csrfMeta && csrfMeta.content) || '' },
             body: JSON.stringify({ reward_type: rewardType })
           });
           const result = await response.json();
           if (result && result.ok && result.data) {
-            alert(`✨ ¡Recompensa canjeada!\n\nTu código: ${result.data.code}\n\nExpira: ${result.data.expires_at}`);
-            window.location.reload();
+            const redemptionData = result.data.result ?? result.data;
+            this.redemption = {
+              code: redemptionData.redemption_code ?? '—',
+              expires: redemptionData.expires_at ?? '—'
+            };
+            setTimeout(() => { this.redemption = null; }, 10000);
           } else {
             alert('Error: ' + ((result && result.error) || 'No se pudo canjear'));
           }
         } catch (error) {
           console.error('redeemReward error:', error);
           alert('Error de conexión. Por favor, intenta de nuevo.');
+        } finally {
+          this.loading = false;
         }
       }
     };
@@ -138,8 +147,10 @@
     registerWithAlpine(window.Alpine);
   } else {
     document.addEventListener('alpine:init', function () { registerWithAlpine(window.Alpine); });
-    // some builds may use alpine:initializing event
-    document.addEventListener('alpine:initializing', function () { registerWithAlpine(window.Alpine); });
+    // NOTE: alpine:initializing is NOT registered here intentionally.
+    // Alpine 3.x dispatches alpine:initializing AFTER alpine:init, so adding a second
+    // registerWithAlpine call here would overwrite page-specific components (e.g. receptionApp,
+    // kdsApp) that register themselves during alpine:init after this fallback registry runs.
   }
 
 })();

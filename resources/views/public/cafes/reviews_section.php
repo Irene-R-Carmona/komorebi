@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -19,17 +20,19 @@ if ($total === 0): ?>
     <div class="reviews-list__empty">
         <p>Aún no hay reseñas. ¡Sé el primero!</p>
     </div>
-    <?php else: ?>
+<?php else: ?>
     <div class="reviews-list">
         <?php foreach ($reviews as $review): ?>
             <article class="review-card">
                 <!-- Header: Avatar + Nombre + Fecha -->
                 <div class="review-card__header">
-                    <div class="review-card__avatar">
-                        <?php
-                        $name = e($review['name'] ?? 'Anónimo');
+                    <?php
+                    $name = e($review['user_name'] ?? $review['name'] ?? 'Anónimo');
             $firstLetter = mb_strtoupper(mb_substr($name, 0, 1));
+            $colorIndex = ord($firstLetter) % 6;
+            $avatarClass = $colorIndex > 0 ? ' review-card__avatar--c' . $colorIndex : '';
             ?>
+                    <div class="review-card__avatar<?= $avatarClass ?>">
                         <span><?= $firstLetter ?></span>
                     </div>
                     <div class="review-card__meta">
@@ -43,7 +46,7 @@ if ($total === 0): ?>
                 <!-- Rating -->
                 <div class="review-card__rating">
                     <?php
-                    $rating = (int) ($review['rating'] ?? 0);
+            $rating = (int) ($review['rating'] ?? 0);
             for ($i = 1; $i <= 5; $i++):
                 $filled = $i <= $rating ? 'review-star--filled' : '';
                 ?>

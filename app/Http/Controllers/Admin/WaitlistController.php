@@ -4,92 +4,101 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
+use App\Core\Http\ResponseFactory;
 use App\Core\View;
-use App\Models\Waitlist;
-use PDO;
+use App\Http\Transformers\WaitlistTransformer;
+use App\Repositories\Contracts\WaitlistRepositoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * WaitlistController - Panel de administración de listas de espera
  */
 final class WaitlistController
 {
-    private Waitlist $waitlistModel;
+    private WaitlistRepositoryInterface $waitlistRepo;
+    private WaitlistTransformer $waitlistTransformer;
+    private ResponseFactory $response;
 
-    public function __construct(PDO $db)
-    {
-        $this->waitlistModel = new Waitlist($db);
+    public function __construct(
+        ?WaitlistRepositoryInterface $waitlistRepo = null,
+        ?ResponseFactory $response = null,
+        ?WaitlistTransformer $waitlistTransformer = null,
+    ) {
+        $this->waitlistRepo = $waitlistRepo ?? Container::make(WaitlistRepositoryInterface::class);
+        $this->response = $response ?? new ResponseFactory();
+        $this->waitlistTransformer = $waitlistTransformer ?? new WaitlistTransformer();
     }
 
-    /**
-     * Vista principal - listado de todas las waitlists activas
-     *
-     * @return void
-     */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
+        $queryParams = $request->getQueryParams();
+        $page = \max(1, (int) ($queryParams['page'] ?? 1));
+        $perPage = 25;
+
         $filters = [
-            'cafe_id' => $_GET['cafe_id'] ?? null,
-            'status'  => $_GET['status'] ?? 'waiting',
-            'date'    => $_GET['date'] ?? null,
+            'cafe_id' => $queryParams['cafe_id'] ?? null,
+            'status' => $queryParams['status'] ?? 'waiting',
+            'date' => $queryParams['date'] ?? null,
         ];
 
-        // Obtener todas las waitlists activas con información del slot y usuario
-        $waitlists = $this->waitlistModel->getAllWithDetails($filters);
+        $allWaitlists = $this->waitlistTransformer->collection(
+            $this->waitlistRepo->getAllWithDetails($filters)
+        );
 
-        // Obtener resumen por estado
-        $summary = $this->waitlistModel->getSummaryByStatus();
+        $total = \count($allWaitlists);
+        $waitlists = \array_slice($allWaitlists, ($page - 1) * $perPage, $perPage);
+        $hasNextPage = ($page * $perPage) < $total;
+
+        $summary = $this->waitlistRepo->getSummaryByStatus();
+
+        $meta = ['page' => $page, 'has_next_page' => $hasNextPage];
+        $currentParams = \array_filter([
+            'cafe_id' => $filters['cafe_id'] ?? '',
+            'status' => ($filters['status'] !== 'waiting') ? $filters['status'] : '',
+            'date' => $filters['date'] ?? '',
+        ], static fn ($v) => $v !== '');
 
         View::render('admin/waitlist/index', [
             'waitlists' => $waitlists,
-            'summary'   => $summary,
-            'filters'   => $filters,
+            'summary' => $summary,
+            'filters' => $filters,
+            'total' => $total,
+            'meta' => $meta,
+            'currentParams' => $currentParams,
         ], [], 'backoffice');
+
+        return null;
     }
 
-    /**
-     * Ver detalle de una waitlist específica
-     *
-     * @param integer $id
-     * @return void
-     */
-    public function show(int $id): void
+    public function show(ServerRequestInterface $request, int $id): ?ResponseInterface
     {
-        $waitlist = $this->waitlistModel->findById($id);
+        $rawWaitlist = $this->waitlistRepo->findById($id);
 
-        if (!$waitlist) {
-            http_response_code(404);
+        if (!$rawWaitlist) {
             View::render('errors/404', [], [], 'errors');
-            exit;
+
+            return null;
         }
 
         View::render('admin/waitlist/show', [
-            'waitlist' => $waitlist,
+            'waitlist' => $this->waitlistTransformer->transform($rawWaitlist->toViewArray()),
         ], [], 'backoffice');
+
+        return null;
     }
 
-    /**
-     * Cancelar una waitlist manualmente
-     *
-     * @param integer $id
-     * @return void
-     */
-    public function cancel(int $id): void
+    public function cancel(ServerRequestInterface $request, int $id): ?ResponseInterface
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            echo 'Method not allowed';
-            exit;
+        if ($request->getMethod() !== 'POST') {
+            return $this->response->html('Method not allowed', 405);
         }
 
-        $result = $this->waitlistModel->cancelById($id);
-
-        if ($result) {
-            header('Location: /admin/waitlists?msg=cancelled');
-            exit;
+        if ($this->waitlistRepo->cancelById($id)) {
+            return $this->response->redirect('/admin/waitlists?msg=cancelled');
         }
 
-        http_response_code(500);
-        echo 'Error cancelando waitlist';
-        exit;
+        return $this->response->html('Error cancelando waitlist', 500);
     }
 }

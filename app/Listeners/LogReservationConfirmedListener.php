@@ -8,9 +8,6 @@ use App\Core\Logger;
 use App\Events\ReservationConfirmedEvent;
 use Throwable;
 
-/**
- * Listener que registra cuando se confirma una reserva.
- */
 final class LogReservationConfirmedListener
 {
     public function __invoke(ReservationConfirmedEvent $event): void

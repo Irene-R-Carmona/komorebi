@@ -37,7 +37,7 @@ declare(strict_types=1);
     </div>
 
     <!-- Filtro de fechas -->
-    <div class="glass-card mb-4" style="padding: 1.25rem;">
+    <div class="glass-card mb-4 p-3">
         <form method="GET" action="/manager/reports" class="d-flex gap-3 align-items-end flex-wrap">
             <div>
                 <label for="filter-from" class="form-label">Desde</label>
@@ -113,7 +113,7 @@ declare(strict_types=1);
         <!-- Distribución de estados (últimos 30 días) -->
         <div class="col-lg-4">
             <div class="glass-card h-100">
-                <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">
+                <h3 class="h6 fw-semibold mb-3">
                     Estado de reservas <span class="text-muted">(últimos 30 días)</span>
                 </h3>
                 <?php if (empty($statusDistribution)): ?>
@@ -127,9 +127,19 @@ declare(strict_types=1);
                             </tr>
                         </thead>
                         <tbody>
+                            <?php
+                            $statusLabels = [
+                                'pending' => 'Pendiente',
+                                'confirmed' => 'Confirmada',
+                                'active' => 'Activa',
+                                'completed' => 'Completada',
+                                'cancelled' => 'Cancelada',
+                                'no_show' => 'No Show',
+                            ];
+                    ?>
                             <?php foreach ($statusDistribution as $row): ?>
                                 <tr>
-                                    <td><?= $row['status'] ?></td>
+                                    <td><?= htmlspecialchars($statusLabels[$row['status']] ?? ucfirst($row['status']), ENT_QUOTES, 'UTF-8') ?></td>
                                     <td class="text-end fw-bold"><?= (int) $row['count'] ?></td>
                                 </tr>
                             <?php endforeach; ?>
@@ -143,7 +153,7 @@ declare(strict_types=1);
         <div class="col-lg-8">
             <div class="glass-card h-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3 style="font-size: 1rem; font-weight: 600; margin: 0;">
+                    <h3 class="h6 fw-semibold mb-0">
                         Reservas
                         <span class="text-muted">(<?= $from ?> – <?= $to ?>)</span>
                     </h3>
@@ -173,7 +183,7 @@ declare(strict_types=1);
                                     <tr>
                                         <td class="text-muted small"><?= (int) $row['id'] ?></td>
                                         <td><?= $row['fecha'] ?></td>
-                                        <td><?= $row['estado'] ?></td>
+                                        <td><?= $statusLabels[$row['estado']] ?? ucfirst($row['estado']) ?></td>
                                         <td class="text-center"><?= (int) $row['personas'] ?></td>
                                         <td class="text-end">¥<?= number_format((float) $row['importe'], 0) ?></td>
                                         <td><?= $row['pago'] ?></td>

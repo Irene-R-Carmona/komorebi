@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Http\ExceptionRenderers;
 
 use App\Core\Flash;
-use App\Core\View;
+use App\Core\Result;
+use App\Core\ServiceErrorCode;
 use App\Exceptions\ValidationException;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Renderiza ValidationException → 422.
@@ -17,28 +20,28 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class ValidationExceptionRenderer extends AbstractExceptionRenderer
 {
-    #[\Override]
-    public function supports(\Throwable $e): bool
+    #[Override]
+    public function supports(Throwable $e): bool
     {
         return $e instanceof ValidationException;
     }
 
-    #[\Override]
+    #[Override]
     public function priority(): int
     {
         return 90;
     }
 
-    #[\Override]
-    public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
+    #[Override]
+    public function render(Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
-        assert($e instanceof ValidationException);
+        \assert($e instanceof ValidationException);
 
         if ($this->isApiRequest($request)) {
-            return $this->response->json([
-                'error'  => $e->getMessage(),
-                'errors' => $e->getErrors(),
-            ], $e->getHttpCode());
+            return $this->response->problem(
+                Result::fail($e->getMessage(), ServiceErrorCode::VALIDATION_ERROR, context: ['errors' => $e->getErrors()]),
+                $e->getHttpCode()
+            );
         }
 
         Flash::error($e->getMessage());
@@ -47,6 +50,7 @@ final class ValidationExceptionRenderer extends AbstractExceptionRenderer
         }
 
         $referer = $request->getHeaderLine('Referer') ?: '/';
+
         return $this->response->redirect($referer, 302);
     }
 }

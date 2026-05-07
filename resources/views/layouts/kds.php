@@ -3,11 +3,15 @@
 
 <head>
     <?php
+
+    use App\Core\Csrf;
+
     // CSP Nonce para scripts inline
     $cspNonce = $GLOBALS['cspNonce'] ?? '';
     ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="csrf-token" content="<?= Csrf::token() ?>">
     <title>KDS | <?= e($cafe_name ?? 'Cocina') ?></title>
 
     <!-- Fuentes Técnicas (Space Grotesk + Roboto Mono) -->
@@ -30,7 +34,8 @@
                     if (link.crossOrigin) ss.crossOrigin = link.crossOrigin;
                     document.head.appendChild(ss);
                 } catch (e) {
-                    /* noop */ }
+                    /* noop */
+                }
             });
         })();
     </script>
@@ -56,7 +61,12 @@
     <script defer src="/js/vendor/alpine.min.js"></script>
     <script src="/js/sections/kds.js"></script>
 
-    <meta http-equiv="refresh" content="30">
+    <script nonce="<?= $cspNonce ?? '' ?>">
+        window.__MERCURE__ = {
+            cafeId: <?= (int) ($cafe_id ?? 0) ?>,
+            hub: '/.well-known/mercure'
+        };
+    </script>
 </head>
 
 <body class="kds-mode">
@@ -67,7 +77,7 @@
     <!-- HEADER -->
     <header class="kds-header">
         <div class="kds-brand">
-            <span class="material-symbols-outlined" style="font-size:32px; color:var(--color-primary);">token</span>
+            <img src="/images/logos/komorebi-logo-icon.svg" class="kds-brand-logo" width="36" height="36" alt="">
             <div>
                 <h1 style="margin:0; font-size:1.25rem;">KITCHEN CONTROL</h1>
                 <div class="kds-subtitle">SYSTEM ONLINE // <?= e($cafe_name ?? '') ?></div>
@@ -77,17 +87,20 @@
         <div class="kds-meta">
             <div class="meta-item">
                 <span class="meta-lbl">Open Tickets</span>
-                <span class="meta-val" style="color:var(--color-warn);"><?= $total_tickets ?? 0 ?></span>
+                <span class="meta-val" style="color:var(--color-warn);" id="kdsOpenTickets"><?= $total_tickets ?? 0 ?></span>
             </div>
             <div class="meta-item">
                 <span class="meta-lbl">Avg Time</span>
-                <span class="meta-val">04:12</span>
+                <span class="meta-val"><?= e($avg_prep_time_formatted ?? '--:--') ?></span>
             </div>
         </div>
 
         <div style="display:flex; gap:1.5rem; align-items:center;">
             <div class="kds-clock-box" id="kdsClock">--:--</div>
-            <a href="/logout" class="btn-out"><span class="material-symbols-outlined">power_settings_new</span></a>
+            <form method="POST" action="/logout" style="margin:0;">
+                <?= \App\Core\Csrf::field() ?>
+                <button type="submit" class="btn-out" title="Cerrar sesión" aria-label="Cerrar sesión"><span class="material-symbols-outlined">power_settings_new</span></button>
+            </form>
         </div>
     </header>
 

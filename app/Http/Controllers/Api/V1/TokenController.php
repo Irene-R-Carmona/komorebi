@@ -45,18 +45,18 @@ final class TokenController extends AbstractApiController
     public function create(ServerRequestInterface $request): ResponseInterface
     {
         $body = (array) ($request->getParsedBody() ?? []);
-        $name = trim((string) ($body['name'] ?? ''));
+        $name = \trim((string) ($body['name'] ?? ''));
 
         if ($name === '') {
             throw ValidationException::withMessage('El campo "name" es obligatorio.', 422);
         }
 
-        if (mb_strlen($name) > 100) {
+        if (\mb_strlen($name) > 100) {
             throw ValidationException::withMessage('El campo "name" no puede superar 100 caracteres.', 422);
         }
 
         $userId = (int) $request->getAttribute('user_id');
-        $plain  = $this->tokenService->generate($userId, $name);
+        $plain = $this->tokenService->generate($userId, $name);
 
         return $this->success(['token' => $plain, 'name' => $name], 201);
     }
@@ -68,7 +68,7 @@ final class TokenController extends AbstractApiController
     public function revoke(ServerRequestInterface $request): ResponseInterface
     {
         $tokenId = (int) $request->getAttribute('id');
-        $userId  = (int) $request->getAttribute('user_id');
+        $userId = (int) $request->getAttribute('user_id');
 
         $result = $this->tokenService->revoke($tokenId, $userId);
 

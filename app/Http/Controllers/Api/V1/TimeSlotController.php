@@ -22,6 +22,9 @@ final class TimeSlotController
 
     public function __construct()
     {
+        // TODO(plan6-controller-di): Eliminar Database::getConnection() directo para poder testear.
+        //                            Inyectar TimeSlotRepositoryInterface vía constructor requerido.
+        //                            Ver docs/superpowers/plans/2026-04-10-plan6-controller-di.md
         $this->timeSlotModel = new TimeSlot(Database::getConnection());
         $this->response = new ResponseFactory();
     }
@@ -43,12 +46,12 @@ final class TimeSlotController
 
         $result = $this->timeSlotModel->findAvailable($cafeId, $startDate, $endDate, $minSpots);
 
-        if (!$result->isOk()) {
+        if (!$result->ok) {
             return $this->response->problem(Result::fail($result->error ?? 'Error', 'server_error'), 500);
         }
 
         $slots = $result->data;
-        if (!is_array($slots)) {
+        if (!\is_array($slots)) {
             $slots = [];
         }
 
@@ -62,7 +65,7 @@ final class TimeSlotController
                 ],
                 'total_slots' => \count($slots),
                 'slots' => \array_map(function ($slot) {
-                    $slot = is_array($slot) ? $slot : [];
+                    $slot = \is_array($slot) ? $slot : [];
 
                     $slotTime = (string) ($slot['slot_time'] ?? '');
                     $available = isset($slot['available_spots']) ? (int) $slot['available_spots'] : 0;
@@ -81,7 +84,7 @@ final class TimeSlotController
                     ];
                 }, $slots),
             ],
-        ], 200);
+        ], 200, ['Cache-Control' => 'private, no-cache', 'Vary' => 'Accept']);
     }
 
     /**
@@ -99,10 +102,10 @@ final class TimeSlotController
 
         $result = $this->timeSlotModel->getOccupancyStats($cafeId, $startDate, $endDate);
 
-        if (!$result->isOk()) {
+        if (!$result->ok) {
             return $this->response->problem(Result::fail($result->error ?? 'Error', 'server_error'), 500);
         }
 
-        return $this->response->json(['ok' => true, 'data' => $result->data], 200);
+        return $this->response->json(['ok' => true, 'data' => $result->data], 200, ['Vary' => 'Accept']);
     }
 }

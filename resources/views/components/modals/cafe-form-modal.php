@@ -158,10 +158,10 @@
                     x-model="form.category"
                     required>
                     <option value="">-- Selecciona una categoría --</option>
-                    <option value="lounge">🛋️ Lounge</option>
-                    <option value="playroom">🎮 Playroom</option>
-                    <option value="farm">🌾 Farm</option>
-                    <option value="zen">🧘 Zen</option>
+                    <option value="lounge">Lounge</option>
+                    <option value="playroom">Playroom</option>
+                    <option value="farm">Farm</option>
+                    <option value="zen">Zen</option>
                 </select>
                 <small class="form-text text-muted">
                     Define el estilo y ambiente del café
@@ -180,12 +180,12 @@
                     x-model="form.animal_type"
                     required>
                     <option value="">-- Selecciona el tipo de animal --</option>
-                    <option value="cat">🐱 Gatos</option>
-                    <option value="dog">🐶 Perros</option>
-                    <option value="rabbit">🐰 Conejos</option>
-                    <option value="bird">🦜 Aves</option>
-                    <option value="hedgehog">🦔 Erizos</option>
-                    <option value="mixed">🐾 Mixto</option>
+                    <option value="cat">Gatos</option>
+                    <option value="dog">Perros</option>
+                    <option value="rabbit">Conejos</option>
+                    <option value="bird">Aves</option>
+                    <option value="hedgehog">Erizos</option>
+                    <option value="mixed">Mixto</option>
                 </select>
             </div>
 

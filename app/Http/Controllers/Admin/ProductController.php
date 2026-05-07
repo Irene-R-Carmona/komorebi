@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
@@ -11,12 +12,13 @@ use App\Core\View;
 use App\Exceptions\DatabaseException;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
-use App\Models\Allergen;
-use App\Models\Product;
+use App\Http\Transformers\ProductTransformer;
+use App\Repositories\Contracts\AllergenRepositoryInterface;
 use App\Repositories\ProductRepository;
-use App\Services\ProductService;
+use App\Services\Contracts\ProductServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -27,19 +29,26 @@ use Random\RandomException;
  */
 final class ProductController
 {
-    private ProductService $productService;
-    private Product $productModel;
-    private Allergen $allergenModel;
+    private ProductServiceInterface $productService;
+    private AllergenRepositoryInterface $allergenRepo;
     private ProductRepository $productRepo;
     private ResponseFactory $response;
+    private ProductTransformer $productTransformer;
 
-    public function __construct()
-    {
-        $this->productService = new ProductService();
-        $this->productModel = new Product();
-        $this->allergenModel = new Allergen();
-        $this->productRepo = new ProductRepository();
-        $this->response = new ResponseFactory();
+    private const CSRF_INVALID = 'Token de seguridad inválido';
+
+    public function __construct(
+        ?ProductServiceInterface $productService = null,
+        ?AllergenRepositoryInterface $allergenRepo = null,
+        ?ProductRepository $productRepo = null,
+        ?ResponseFactory $response = null,
+        ?ProductTransformer $productTransformer = null,
+    ) {
+        $this->productService = $productService ?? Container::make(ProductServiceInterface::class);
+        $this->allergenRepo = $allergenRepo ?? Container::make(AllergenRepositoryInterface::class);
+        $this->productRepo = $productRepo ?? Container::make(ProductRepository::class);
+        $this->response = $response ?? new ResponseFactory();
+        $this->productTransformer = $productTransformer ?? new ProductTransformer();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -48,61 +57,63 @@ final class ProductController
 
     /**
      * GET /admin/productos
-     * Lista de productos con filtros y paginación
+     * Lista de productos con filtros y paginación server-side (HDA).
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        // Obtener parámetros de paginación
-        $page = \filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?: 1;
-        $perPage = \filter_input(INPUT_GET, 'per_page', FILTER_VALIDATE_INT) ?: 20;
+        $q = $request->getQueryParams();
+        $page = \max(1, (int) ($q['page'] ?? 1));
+        $search = \trim((string) ($q['search'] ?? ''));
+        $category = (int) ($q['category'] ?? 0);
+        $status = \trim((string) ($q['status'] ?? ''));
 
-        // Obtener filtros
         $filters = [];
-
-        if ($categoryId = \filter_input(INPUT_GET, 'category', FILTER_VALIDATE_INT)) {
-            $filters['category_id'] = $categoryId;
-        }
-
-        if (isset($_GET['is_active'])) {
-            $filters['is_active'] = $_GET['is_active'] === '1' ? 1 : 0;
-        }
-
-        if ($search = \filter_input(INPUT_GET, 'search', FILTER_SANITIZE_SPECIAL_CHARS)) {
+        if ($search !== '') {
             $filters['search'] = $search;
         }
-
-        if ($type = \filter_input(INPUT_GET, 'type', FILTER_SANITIZE_SPECIAL_CHARS)) {
-            $filters['product_type'] = $type;
+        if ($category > 0) {
+            $filters['category_id'] = $category;
+        }
+        if ($status !== '') {
+            $filters['is_active'] = $status === '1' ? 1 : 0;
         }
 
-        // Obtener productos paginados con filtros
-        $result = $this->productService->getAllPaginated($page, $perPage, $filters);
+        $result = $this->productService->getAllPaginated($page, 20, $filters);
 
-        // Cargar alérgenos en una única consulta (evita N+1)
-        $allProductsWithAllergens = $this->productRepo->getAllWithAllergens();
-        $allergenMap = array_column($allProductsWithAllergens, 'allergens_list', 'id');
-        foreach ($result['data'] as &$product) {
-            $product['allergens_list'] = $allergenMap[(int) $product['id']] ?? [];
+        // Alérgenos: una sola query para todos (N+1 prevention)
+        $allergenMap = \array_column(
+            $this->productRepo->getAllWithAllergens(),
+            'allergens_list',
+            'id',
+        );
+
+        $products = $this->productTransformer->collection($result['data']);
+        foreach ($products as $k => $p) {
+            $products[$k]['allergens_list'] = $allergenMap[(int) $p['id']] ?? [];
         }
-        unset($product);
 
-        // Obtener categorías para filtros
         $categories = $this->productRepo->getCategories();
+        $stats = $this->productRepo->getAdminStats();
+        $currentParams = \array_filter([
+            'search' => $search,
+            'category' => $category > 0 ? (string) $category : '',
+            'status' => $status,
+        ], static fn ($v) => $v !== '');
 
-        View::render('management/products/index', [
-            'title' => 'Gestión de Productos | Komorebi Admin',
-            'products' => $result['data'],
+        View::render('admin/products/index', [
+            'titulo' => 'Gestión de Productos | Komorebi Admin',
+            'products' => $products,
             'categories' => $categories,
-            'pagination' => [
-                'current_page' => $result['page'],
-                'per_page' => $result['perPage'],
-                'total' => $result['total'],
-                'total_pages' => $result['totalPages'],
-                'has_prev' => $result['page'] > 1,
-                'has_next' => $result['page'] < $result['totalPages'],
+            'stats' => $stats,
+            'meta' => [
+                'page' => $result['page'],
+                'has_next_page' => $result['page'] < $result['totalPages'],
             ],
-            'filters' => $filters,
+            'currentParams' => $currentParams,
+            'extraJs' => ['admin/admin-products.js'],
         ], [], 'backoffice');
+
+        return null;
     }
 
     /**
@@ -110,20 +121,22 @@ final class ProductController
      * Formulario de creación
      * @throws RandomException
      */
-    public function create(): void
+    public function create(ServerRequestInterface $request): ?ResponseInterface
     {
         // Obtener categorías
         $categories = $this->productRepo->getCategories();
 
-        // Obtener alérgenos
-        $allergens = $this->allergenModel->getAll(true);
+        // Obtener alérgenos como arrays para la vista
+        $allergens = \array_map(static fn ($dto) => $dto->toViewArray(), $this->allergenRepo->findAll(true));
 
-        View::render('management/products/create', [
-            'title' => 'Nuevo Producto | Komorebi Admin',
+        View::render('admin/products/create', [
+            'titulo' => 'Nuevo Producto | Komorebi Admin',
             'categories' => $categories,
             'allergens' => $allergens,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+
+        return null;
     }
 
     /**
@@ -142,14 +155,14 @@ final class ProductController
     public function store(): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         // Extraer IDs de alérgenos
         $allergenIds = $_POST['allergens'] ?? [];
 
         // Crear producto (lanza ValidationException o DatabaseException si falla)
-        $productId = $this->productService->create($_POST);
+        $productId = $this->productService->create($_POST); // NOSONAR
 
         // Sincronizar alérgenos (lanza DatabaseException si falla)
         if (!empty($allergenIds)) {
@@ -157,6 +170,7 @@ final class ProductController
         }
 
         Session::set('flash_success', 'Producto creado correctamente');
+
         return $this->response->json(['ok' => true, 'data' => ['redirect' => '/admin/productos']]);
     }
 
@@ -167,9 +181,9 @@ final class ProductController
      * @throws RandomException
      * @throws NotFoundException Si el producto no existe (manejado por ExceptionHandler)
      */
-    public function edit(int $id): void
+    public function edit(ServerRequestInterface $request, int $id): ?ResponseInterface
     {
-        $product = $this->productModel->findById($id);
+        $product = $this->productRepo->findById($id)?->toViewArray();
 
         if (!$product) {
             throw NotFoundException::product($id);
@@ -178,20 +192,22 @@ final class ProductController
         // Obtener categorías
         $categories = $this->productRepo->getCategories();
 
-        // Obtener alérgenos
-        $allergens = $this->allergenModel->getAll(true);
+        // Obtener alérgenos como arrays para la vista
+        $allergens = \array_map(static fn ($dto) => $dto->toViewArray(), $this->allergenRepo->findAll(true));
 
         // Obtener alérgenos asignados al producto
-        $product_allergens = $this->productModel->getAllergensNormalized($id);
+        $product_allergens = $this->productRepo->getAllergens($id);
 
-        View::render('management/products/edit', [
-            'title' => 'Editar Producto | Komorebi Admin',
+        View::render('admin/products/edit', [
+            'titulo' => 'Editar Producto | Komorebi Admin',
             'product' => $product,
             'categories' => $categories,
             'allergens' => $allergens,
             'product_allergens' => $product_allergens,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+
+        return null;
     }
 
     /**
@@ -211,19 +227,20 @@ final class ProductController
     public function update(int $id): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         // Extraer IDs de alérgenos
         $allergenIds = $_POST['allergens'] ?? [];
 
         // Actualizar producto (lanza ValidationException o DatabaseException si falla)
-        $this->productService->update($id, $_POST);
+        $this->productService->update($id, $_POST); // NOSONAR
 
         // Sincronizar alérgenos (lanza DatabaseException si falla)
         $this->productService->syncAllergens($id, $allergenIds);
 
         Session::set('flash_success', 'Producto actualizado correctamente');
+
         return $this->response->json(['ok' => true, 'data' => ['redirect' => '/admin/productos']]);
     }
 
@@ -241,10 +258,11 @@ final class ProductController
     public function delete(int $id): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         $this->productService->delete($id);
+
         return $this->response->json(['ok' => true, 'data' => ['message' => 'Producto eliminado correctamente']]);
     }
 
@@ -261,10 +279,11 @@ final class ProductController
     public function toggleAvailability(int $id): ResponseInterface
     {
         if (!Csrf::validate()) {
-            throw ValidationException::withMessage('Token de seguridad inválido', 419);
+            throw ValidationException::withMessage(self::CSRF_INVALID, 419);
         }
 
         $this->productService->toggleActive($id);
+
         return $this->response->json(['ok' => true, 'data' => ['message' => 'Estado actualizado']]);
     }
 
@@ -295,7 +314,7 @@ final class ProductController
 
         // Cargar alérgenos
         foreach ($products as &$product) {
-            $product['allergens_list'] = $this->productModel->getAllergensNormalized((int) $product['id']);
+            $product['allergens_list'] = $this->productRepo->getAllergens((int) $product['id']);
         }
         unset($product); // Liberar referencia
 
@@ -311,14 +330,15 @@ final class ProductController
      */
     public function apiShow(int $id): ResponseInterface
     {
-        $product = $this->productModel->findById($id);
+        $productDto = $this->productRepo->findById($id);
 
-        if (!$product) {
+        if (!$productDto) {
             throw NotFoundException::product($id);
         }
 
+        $product = $productDto->toViewArray();
         // Agregar alérgenos
-        $product['allergens_list'] = $this->productModel->getAllergensNormalized($id);
+        $product['allergens_list'] = $this->productRepo->getAllergens($id);
 
         return $this->response->json(['ok' => true, 'data' => $product]);
     }
@@ -333,7 +353,8 @@ final class ProductController
      */
     public function apiAllergens(): ResponseInterface
     {
-        $allergens = $this->allergenModel->getAll(true);
+        $allergens = $this->allergenRepo->findAll(true);
+
         return $this->response->json(['ok' => true, 'data' => ['allergens' => $allergens]]);
     }
 }

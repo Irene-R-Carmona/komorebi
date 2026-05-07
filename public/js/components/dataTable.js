@@ -54,7 +54,8 @@
         const value = row[column];
         if (column === 'is_active' || column === 'active') return value ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>';
         if (column === 'created_at' || column === 'updated_at') { if (!value) return '-'; const date = new Date(value); return date.toLocaleDateString('es-ES'); }
-        return value || '-';
+        if (value === null || value === undefined || value === '') return '-';
+        return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       },
 
       updateData(newData) { this.data = newData; this.currentPage = 1; }

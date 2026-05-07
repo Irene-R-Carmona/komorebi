@@ -4,41 +4,46 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shared;
 
+use App\Core\Container;
 use App\Core\Flash;
+use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
+use App\Domain\AvatarOptions;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
-use App\Services\GamificationService;
-use App\Services\ReservationService;
-use App\Services\ReviewService;
-use App\Services\UserService;
+use App\Services\Contracts\ReservationServiceInterface;
+use App\Services\Contracts\ReviewQueryServiceInterface;
+use App\Services\Contracts\UserAccountServiceInterface;
+use App\Services\Contracts\UserProfileServiceInterface;
 use JsonException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 final class UserController
 {
-    private UserService $users;
-    private ReservationService $reservations;
-    private ReviewService $reviews;
-    private GamificationService $gamification;
+    private UserProfileServiceInterface $profileService;
+    private UserAccountServiceInterface $accountService;
+    private ReservationServiceInterface $reservations;
+    private ReviewQueryServiceInterface $reviews;
+    private ResponseFactory $response;
 
     public function __construct(
-        ?UserService $users = null,
-        ?ReservationService $reservations = null,
-        ?ReviewService $reviews = null,
-        ?GamificationService $gamification = null
+        ?UserProfileServiceInterface $profileService = null,
+        ?UserAccountServiceInterface $accountService = null,
+        ?ReservationServiceInterface $reservations = null,
+        ?ReviewQueryServiceInterface $reviews = null,
+        ?ResponseFactory $response = null
     ) {
-        $this->users = $users ?? new UserService();
-        $this->reservations = $reservations ?? new ReservationService();
-        $this->reviews = $reviews ?? new ReviewService();
-        $this->gamification = $gamification ?? new GamificationService();
+        $this->profileService = $profileService ?? Container::make(UserProfileServiceInterface::class);
+        $this->accountService = $accountService ?? Container::make(UserAccountServiceInterface::class);
+        $this->reservations = $reservations ?? Container::make(ReservationServiceInterface::class);
+        $this->reviews = $reviews ?? Container::make(ReviewQueryServiceInterface::class);
+        $this->response = $response ?? new ResponseFactory();
     }
 
-    /**
-     * @throws NotFoundException
-     */
-    public function profile(): void
+    public function profile(ServerRequestInterface $request): ?ResponseInterface
     {
         $userId = Session::userId();
         if ($userId === null) {
@@ -48,31 +53,16 @@ final class UserController
                 $returnTo = '/';
             }
             Session::set('redirect_after_login', $returnTo);
-            \header('Location: /login');
-            exit;
+
+            return $this->response->redirect('/login');
         }
-
-        $profile = $this->users->getProfile($userId);
-
-        // Obtener próxima reserva activa (puede lanzar si falla la BD)
-        $reservas = $this->reservations->getByUser($userId, 'active');
-        $reservasCount = \count($reservas);
-        $nextReservation = !empty($reservas) ? \reset($reservas) : null;
-
-        // Obtener reseñas del usuario
-        $userReviews = $this->reviews->listUserReviews($userId);
-
-        $nivel = $this->gamification->calculateUserLevel($reservasCount);
 
         View::render('shared/user/profile', [
             'titulo' => 'Mi Perfil',
-            'profile' => $profile,
-            'nivel' => $nivel,
-            'stats' => ['reservasCount' => $reservasCount],
-            'nextReservation' => $nextReservation,
-            'userReviews' => $userReviews,
             'flash' => Flash::consume(),
         ], ['profile.css', 'reviews.css']);
+
+        return null;
     }
 
     /**
@@ -81,31 +71,32 @@ final class UserController
      * @throws RandomException
      * @throws JsonException
      */
-    public function update(): void
+    public function update(ServerRequestInterface $request): ?ResponseInterface
     {
         $userId = Session::userId();
         if ($userId === null) {
             Flash::error('Necesitas iniciar sesión para continuar.');
-            \header('Location: /login');
-            exit;
+
+            return $this->response->redirect('/login');
         }
 
-        $name = \trim((string) ($_POST['name'] ?? ''));
-        $email = \strtolower(\trim((string) ($_POST['email'] ?? '')));
+        $body = (array) $request->getParsedBody();
+        $name = \trim((string) ($body['name'] ?? ''));
+        $email = \strtolower(\trim((string) ($body['email'] ?? '')));
 
-        $result = $this->users->updateProfile($userId, $name, $email);
+        $result = $this->profileService->updateProfile($userId, $name, $email);
 
         if (!$result->ok) {
             throw ValidationException::fromArray($result->data ?? ['error' => $result->error ?? 'No se pudo actualizar el perfil.']);
         }
 
         // Actualizar sesión
-        $profile = $this->users->getProfile($userId);
+        $profile = $this->profileService->getProfile($userId);
         Session::set('user', $profile);
 
         Flash::success('Tu perfil se ha actualizado con éxito.');
-        \header('Location: /perfil');
-        exit;
+
+        return $this->response->redirect('/perfil');
     }
 
     /**
@@ -113,138 +104,75 @@ final class UserController
      *
      * Cambia la contraseña del usuario actual.
      */
-    public function changePassword(): void
+    public function changePassword(ServerRequestInterface $request): ?ResponseInterface
     {
         // VALIDACIÓN CONTEXTO: Usuario autenticado
         $userId = Session::userId();
         if ($userId === null) {
             // Backup defensivo (middleware 'auth' ya verificó)
             Flash::error('Necesitas iniciar sesión para continuar.');
-            \header('Location: /login');
-            exit;
+
+            return $this->response->redirect('/login');
         }
 
         // RECOPILACIÓN DE INPUTS
-        $current = \trim((string) ($_POST['current_password'] ?? ''));
-        $new = \trim((string) ($_POST['new_password'] ?? ''));
-        $confirm = \trim((string) ($_POST['new_password_confirm'] ?? ''));
+        $body = (array) $request->getParsedBody();
+        $current = \trim((string) ($body['current_password'] ?? ''));
+        $new = \trim((string) ($body['new_password'] ?? ''));
+        $confirm = \trim((string) ($body['new_password_confirm'] ?? ''));
 
-        $result = $this->users->changePassword($userId, $current, $new, $confirm);
+        $result = $this->accountService->changePassword($userId, $current, $new, $confirm);
 
         if (!$result->ok) {
             // Error en validación: mostrar genérico (no revelar si current es válida)
             Flash::error($result->error ?? 'No se pudo cambiar la contraseña.');
-            \header('Location: /perfil');
-            exit;
+
+            return $this->response->redirect('/perfil');
         }
 
         // UX: Confirmar cambio
         Flash::success('Tu contraseña se ha actualizado correctamente.');
-        \header('Location: /perfil');
-        exit;
+
+        return $this->response->redirect('/perfil');
     }
 
     /**
      * POST /account/avatar/upload
      *
-     * Subir avatar del usuario
+     * Seleccionar avatar preset del usuario.
+     * Body JSON: {avatar_id: string, csrf_token: string}
      */
-    public function uploadAvatar(): void
+    public function uploadAvatar(ServerRequestInterface $request): ?ResponseInterface
     {
-        // VALIDACIÓN CONTEXTO: Usuario autenticado
         $userId = Session::userId();
         if ($userId === null) {
-            \header('Content-Type: application/json');
-            \http_response_code(401);
-            echo \json_encode(['success' => false, 'message' => 'No autenticado']);
-            exit;
+            return $this->response->json(['success' => false, 'message' => 'No autenticado'], 401);
         }
 
-        // Validar que se haya enviado un archivo
-        if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
-            \header('Content-Type: application/json');
-            \http_response_code(400);
-            echo \json_encode(['success' => false, 'message' => 'No se recibió ningún archivo válido']);
-            exit;
+        $body = (array) ($request->getParsedBody() ?? []);
+        $avatarId = \trim((string) ($body['avatar_id'] ?? ''));
+
+        if (!AvatarOptions::isValid($avatarId)) {
+            return $this->response->json(['success' => false, 'message' => 'Avatar no válido'], 422);
         }
 
-        $file = $_FILES['avatar'];
-
-        // Validación de tipo MIME
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
-        $finfo = \finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = \finfo_file($finfo, $file['tmp_name']);
-        \finfo_close($finfo);
-
-        if (!\in_array($mimeType, $allowedMimes, true)) {
-            \header('Content-Type: application/json');
-            \http_response_code(400);
-            echo \json_encode(['success' => false, 'message' => 'Tipo de archivo no permitido. Solo JPG, PNG o WebP.']);
-            exit;
-        }
-
-        // Validación de tamaño (2MB)
-        $maxSize = 2 * 1024 * 1024;
-        if ($file['size'] > $maxSize) {
-            \header('Content-Type: application/json');
-            \http_response_code(400);
-            echo \json_encode(['success' => false, 'message' => 'El archivo es demasiado grande. Máximo 2MB.']);
-            exit;
-        }
-
-        // Validación de extensión
-        $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
-        $extension = \strtolower(\pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!\in_array($extension, $allowedExts, true)) {
-            \header('Content-Type: application/json');
-            \http_response_code(400);
-            echo \json_encode(['success' => false, 'message' => 'Extensión de archivo no permitida.']);
-            exit;
-        }
-
-        // Generar nombre único
-        $filename = 'avatar_' . $userId . '_' . \time() . '.' . $extension;
-        $uploadDir = __DIR__ . '/../../../storage/uploads/avatars/';
-
-        // Crear directorio si no existe
-        if (!\is_dir($uploadDir)) {
-            \mkdir($uploadDir, 0755, true);
-        }
-
-        $uploadPath = $uploadDir . $filename;
-
-        // Mover archivo
-        if (!\move_uploaded_file($file['tmp_name'], $uploadPath)) {
-            \header('Content-Type: application/json');
-            \http_response_code(500);
-            echo \json_encode(['success' => false, 'message' => 'Error al guardar el archivo.']);
-            exit;
-        }
-
-        // Actualizar en base de datos
-        $avatarUrl = '/storage/uploads/avatars/' . $filename;
-        $result = $this->users->updateAvatar($userId, $avatarUrl);
+        $avatarUrl = AvatarOptions::toUrl($avatarId);
+        $result = $this->profileService->updateAvatar($userId, $avatarUrl);
 
         if (!$result->ok) {
-            // Eliminar archivo si falla la actualización en BD
-            \unlink($uploadPath);
-            \header('Content-Type: application/json');
-            \http_response_code(500);
-            echo \json_encode(['success' => false, 'message' => $result->error ?? 'Error al actualizar el avatar.']);
-            exit;
+            return $this->response->json(['success' => false, 'message' => $result->error ?? 'Error al actualizar el avatar.'], 500);
         }
 
-        // Actualizar sesión
-        $profile = $this->users->getProfile($userId);
+        $profile = $this->profileService->getProfile($userId);
         Session::set('user', $profile);
 
-        \header('Content-Type: application/json');
-        echo \json_encode([
-            'success' => true,
-            'message' => 'Avatar actualizado correctamente',
-            'avatar_url' => $avatarUrl
+        return $this->response->json([
+            'ok' => true,
+            'data' => [
+                'avatar_id' => $avatarId,
+                'avatar_url' => $avatarUrl,
+            ],
         ]);
-        exit;
     }
 
     /**
@@ -252,33 +180,27 @@ final class UserController
      *
      * Eliminar avatar del usuario
      */
-    public function deleteAvatar(): void
+    public function deleteAvatar(ServerRequestInterface $request): ?ResponseInterface
     {
         // VALIDACIÓN CONTEXTO: Usuario autenticado
         $userId = Session::userId();
         if ($userId === null) {
-            \header('Content-Type: application/json');
-            \http_response_code(401);
-            echo \json_encode(['success' => false, 'message' => 'No autenticado']);
-            exit;
+            return $this->response->json(['success' => false, 'message' => 'No autenticado'], 401);
         }
 
         // Obtener avatar actual
-        $profile = $this->users->getProfile($userId);
+        $profile = $this->profileService->getProfile($userId);
         $currentAvatar = $profile['avatar'] ?? null;
 
         // Eliminar de base de datos
-        $result = $this->users->updateAvatar($userId, null);
+        $result = $this->profileService->updateAvatar($userId, null);
 
         if (!$result->ok) {
-            \header('Content-Type: application/json');
-            \http_response_code(500);
-            echo \json_encode(['success' => false, 'message' => $result->error ?? 'Error al eliminar el avatar.']);
-            exit;
+            return $this->response->json(['success' => false, 'message' => $result->error ?? 'Error al eliminar el avatar.'], 500);
         }
 
         // Eliminar archivo físico si existe y es local
-        if ($currentAvatar && \str_starts_with($currentAvatar, '/storage/uploads/')) {
+        if ($currentAvatar !== null && \str_starts_with($currentAvatar, '/storage/uploads/')) {
             $filePath = __DIR__ . '/../../../' . \ltrim($currentAvatar, '/');
             if (\file_exists($filePath)) {
                 \unlink($filePath);
@@ -286,15 +208,13 @@ final class UserController
         }
 
         // Actualizar sesión
-        $profile = $this->users->getProfile($userId);
+        $profile = $this->profileService->getProfile($userId);
         Session::set('user', $profile);
 
-        \header('Content-Type: application/json');
-        echo \json_encode([
+        return $this->response->json([
             'success' => true,
-            'message' => 'Avatar eliminado correctamente'
+            'message' => 'Avatar eliminado correctamente',
         ]);
-        exit;
     }
 
     /**
@@ -302,20 +222,21 @@ final class UserController
      *
      * Exportar todos los datos personales del usuario (GDPR Art. 20 - Portabilidad)
      * @throws NotFoundException
+     * @throws JsonException
      */
-    public function exportData(): void
+    public function exportData(ServerRequestInterface $request): ?ResponseInterface
     {
         // VALIDACIÓN CONTEXTO: Usuario autenticado
         $userId = Session::userId();
         if ($userId === null) {
             Flash::error('Necesitas iniciar sesión para exportar tus datos.');
-            \header('Location: /login');
-            exit;
+
+            return $this->response->redirect('/login');
         }
 
         // Recopilar todos los datos personales
-        $profile = $this->users->getProfile($userId);
-        $reservations = $this->reservations->getByUser($userId, 'all');
+        $profile = $this->profileService->getProfile($userId);
+        $reservations = $this->reservations->getByUser($userId);
         $reviews = $this->reviews->listUserReviews($userId);
 
         // Construir estructura JSON con todos los datos
@@ -350,14 +271,15 @@ final class UserController
             'gdpr_notice' => 'Este archivo contiene todos sus datos personales almacenados en Komorebi Café según GDPR Art. 20.',
         ];
 
-        // Headers para descarga
-        \header('Content-Type: application/json; charset=utf-8');
-        \header('Content-Disposition: attachment; filename="komorebi-cafe-data-' . \date('Y-m-d') . '.json"');
-        \header('Cache-Control: no-cache, no-store, must-revalidate');
-        \header('Pragma: no-cache');
-        \header('Expires: 0');
+        $json = \json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        $stream = $this->response->createStream($json);
 
-        echo \json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        exit;
+        return $this->response->createResponse(200)
+            ->withHeader('Content-Type', 'application/json; charset=utf-8')
+            ->withHeader('Content-Disposition', 'attachment; filename="komorebi-cafe-data-' . \date('Y-m-d') . '.json"')
+            ->withHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->withHeader('Pragma', 'no-cache')
+            ->withHeader('Expires', '0')
+            ->withBody($stream);
     }
 }

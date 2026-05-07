@@ -6,7 +6,11 @@ namespace App\Http\Middleware;
 
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
+use App\Core\Result;
+use App\Core\ServiceErrorCode;
 use Exception;
+use JsonException;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -27,9 +31,9 @@ final class CsrfMiddleware implements MiddlewareInterface
     }
 
     /**
-     * @throws \JsonException
+     * @throws JsonException
      */
-    #[\Override]
+    #[Override]
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
@@ -37,16 +41,23 @@ final class CsrfMiddleware implements MiddlewareInterface
         $method = $request->getMethod();
 
         if (\in_array($method, ['POST', 'PUT', 'DELETE', 'PATCH'], true)) {
+            // Las peticiones autenticadas con Bearer token no necesitan CSRF
+            if ($request->getAttribute('auth_method') === 'bearer') {
+                return $handler->handle($request);
+            }
+
             try {
                 if (!Csrf::validate($request)) {
-                    return $this->response->json([
-                        'error' => 'Token CSRF inválido o expirado.',
-                    ], 403);
+                    return $this->response->problem(
+                        Result::fail('Token CSRF inválido o expirado.', ServiceErrorCode::FORBIDDEN),
+                        403
+                    );
                 }
             } catch (Exception) {
-                return $this->response->json([
-                    'error' => 'Token CSRF inválido o expirado.',
-                ], 403);
+                return $this->response->problem(
+                    Result::fail('Token CSRF inválido o expirado.', ServiceErrorCode::FORBIDDEN),
+                    403
+                );
             }
         }
 

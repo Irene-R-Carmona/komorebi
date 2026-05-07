@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Tests\Unit\Middleware;
 
 use App\Middleware\SecurityHeadersMiddleware;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -27,6 +28,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  * - CSP con nonce dinámico
  * - Exposición del nonce en $GLOBALS['cspNonce']
  */
+#[CoversClass(SecurityHeadersMiddleware::class)]
 final class SecurityHeadersMiddlewareTest extends TestCase
 {
     private SecurityHeadersMiddleware $middleware;
@@ -68,7 +70,7 @@ final class SecurityHeadersMiddlewareTest extends TestCase
         $this->assertMatchesRegularExpression('/^[A-Za-z0-9+\/=]+$/', $nonce, 'Nonce debe ser base64 válido');
 
         // Verificar que se puede decodificar
-        $decoded = base64_decode($nonce, true);
+        $decoded = \base64_decode($nonce, true);
         $this->assertNotFalse($decoded, 'Nonce debe ser base64 válido decodificable');
     }
 
@@ -83,7 +85,7 @@ final class SecurityHeadersMiddlewareTest extends TestCase
 
         $csp = $response->getHeaderLine('Content-Security-Policy');
         $this->assertStringContainsString("default-src 'self'", $csp);
-        $this->assertStringContainsString("script-src", $csp);
+        $this->assertStringContainsString('script-src', $csp);
         $this->assertStringContainsString("'unsafe-eval'", $csp, 'Alpine.js requiere unsafe-eval');
     }
 
@@ -239,15 +241,15 @@ final class SecurityHeadersMiddlewareTest extends TestCase
         // Verificar directivas críticas
         $requiredDirectives = [
             "default-src 'self'",
-            "script-src",
-            "style-src",
-            "font-src",
-            "img-src",
+            'script-src',
+            'style-src',
+            'font-src',
+            'img-src',
             "connect-src 'self'",
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",
-            "upgrade-insecure-requests"
+            'upgrade-insecure-requests',
         ];
 
         foreach ($requiredDirectives as $directive) {
@@ -295,6 +297,7 @@ final class SecurityHeadersMiddlewareTest extends TestCase
     {
         $handler = $this->createStub(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn(new Response(200));
+
         return $handler;
     }
 }

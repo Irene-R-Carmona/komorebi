@@ -1,5 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Core\View;
+use App\Support\DateFormatting;
+
 /**
  * Dashboard de Chequeos de Salud Animal
  *
@@ -27,66 +32,25 @@
     </div>
 
     <!-- Estadísticas Rápidas -->
-    <div class="row mb-4">
-        <div class="col-xl-4 col-md-6 mb-3">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Chequeos Completados Hoy
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= $completed_count ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-check-circle-fill fa-2x text-success"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-4 col-md-6 mb-3">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Chequeos Pendientes
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= $pending_count ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-hourglass-split fa-2x text-warning"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-4 col-md-6 mb-3">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                Alertas Activas (7 días)
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= count($active_alerts) ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-exclamation-triangle-fill fa-2x text-danger"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="stats-grid stats-grid--3 mb-4">
+        <?= View::componentToString('components/admin/stat-card', [
+            'icon' => 'check-circle-fill',
+            'variant' => 'success',
+            'label' => 'Chequeos Completados Hoy',
+            'value' => $completed_count,
+        ]) ?>
+        <?= View::componentToString('components/admin/stat-card', [
+            'icon' => 'hourglass-split',
+            'variant' => 'warning',
+            'label' => 'Chequeos Pendientes',
+            'value' => $pending_count,
+        ]) ?>
+        <?= View::componentToString('components/admin/stat-card', [
+            'icon' => 'exclamation-triangle-fill',
+            'variant' => 'error',
+            'label' => 'Alertas Activas (7 días)',
+            'value' => count($active_alerts),
+        ]) ?>
     </div>
 
     <!-- Tabbed Content: Pendientes | Completados | Alertas -->
@@ -153,16 +117,24 @@
                                                             'resting' => 'secondary',
                                                             'sick' => 'danger',
                                                         ];
-                                                        $statusColor = $statusColors[$animal['current_status']] ?? 'secondary';
-                                                        ?>
+                                                $statusLabels = [
+                                                    'active' => 'Activo',
+                                                    'monitoring' => 'En observación',
+                                                    'resting' => 'Descansando',
+                                                    'sick' => 'Enfermo',
+                                                    'retired' => 'Retirado',
+                                                ];
+                                                $statusColor = $statusColors[$animal['current_status']] ?? 'secondary';
+                                                $statusLabel = $statusLabels[$animal['current_status']] ?? ucfirst($animal['current_status']);
+                                                ?>
                                                         <span class="badge bg-<?= $statusColor ?>">
-                                                            <?= htmlspecialchars($animal['current_status'], ENT_QUOTES, 'UTF-8') ?>
+                                                            <?= htmlspecialchars($statusLabel, ENT_QUOTES, 'UTF-8') ?>
                                                         </span>
                                                     </td>
                                                     <td>
                                                         <?php if ($animal['last_health_check']): ?>
                                                             <span class="text-muted small">
-                                                                <?= date('d/m/Y', strtotime($animal['last_health_check'])) ?>
+                                                                <?= e(DateFormatting::toSpanishDate($animal['last_health_check'])) ?>
                                                             </span>
                                                         <?php else: ?>
                                                             <span class="badge bg-warning">Sin registro</span>
@@ -216,7 +188,7 @@
                                                     <td><small class="text-muted"><?= date('H:i', strtotime($check['created_at'])) ?></small></td>
                                                     <td>
                                                         <?php if ($check['temperature_c']): ?>
-                                                            <?= number_format((float)$check['temperature_c'], 1) ?>°C
+                                                            <?= number_format((float) $check['temperature_c'], 1) ?>°C
                                                         <?php else: ?>
                                                             <span class="text-muted">-</span>
                                                         <?php endif; ?>
@@ -264,7 +236,7 @@
                                         <h6 class="alert-heading">
                                             <i class="bi bi-exclamation-triangle-fill"></i>
                                             <?= htmlspecialchars($alertCheck['animal_name'], ENT_QUOTES, 'UTF-8') ?>
-                                            <small class="text-muted">(<?= date('d/m/Y', strtotime($alertCheck['check_date'])) ?>)</small>
+                                            <small class="text-muted">(<?= e(DateFormatting::toSpanishDate($alertCheck['check_date'])) ?>)</small>
                                         </h6>
                                         <ul class="mb-2">
                                             <?php if (!empty($alertCheck['alerts']) && is_array($alertCheck['alerts'])): ?>

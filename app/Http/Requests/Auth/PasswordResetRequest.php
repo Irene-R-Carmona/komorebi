@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Requests\Auth;
 
 use App\Core\Http\FormRequest;
+use Override;
 
 /**
  * Valida y sanitiza el formulario de solicitud de restablecimiento de contraseña.
  */
 final class PasswordResetRequest extends FormRequest
 {
-    #[\Override]
+    #[Override]
     protected function rules(): array
     {
         return [
@@ -19,11 +20,11 @@ final class PasswordResetRequest extends FormRequest
         ];
     }
 
-    #[\Override]
+    #[Override]
     protected function sanitize(array $raw): array
     {
         return [
-            'email' => strtolower(trim((string) ($raw['email'] ?? ''))),
+            'email' => \strtolower(\trim((string) ($raw['email'] ?? ''))),
         ];
     }
 }

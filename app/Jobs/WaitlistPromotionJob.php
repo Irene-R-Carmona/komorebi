@@ -8,7 +8,9 @@ use App\Core\Database;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Queue;
+use App\Core\WideEvent;
 use App\Exceptions\BusinessRuleException;
+use Override;
 use PDO;
 use Throwable;
 
@@ -28,8 +30,7 @@ use Throwable;
  * - time: string (formato: H:i)
  * - token: string (UUID para confirmación)
  * - expires_at: int (timestamp de expiración)
- *
- * @package App\Jobs
+
  */
 final class WaitlistPromotionJob implements JobInterface
 {
@@ -41,23 +42,21 @@ final class WaitlistPromotionJob implements JobInterface
     }
 
     /**
-     * Ejecuta la notificación de promoción
-     *
      * @param array<string, mixed> $payload Datos de la promoción
-     * @return void
      * @throws BusinessRuleException Si el token ya expiró
      */
-    #[\Override]
+    #[Override]
     public function handle(array $payload): void
     {
         // Support lightweight push: just the entry ID — hydrate from DB
         if (isset($payload['waitlist_entry_id']) && !isset($payload['waitlist_id'])) {
-            $entryId        = (int) $payload['waitlist_entry_id'];
+            $entryId = (int) $payload['waitlist_entry_id'];
             $hydratedPayload = $this->hydratePayload($entryId);
             if ($hydratedPayload === null) {
                 Logger::warning('[WaitlistPromotionJob] Entrada waitlist no encontrada', [
                     'waitlist_entry_id' => $entryId,
                 ]);
+
                 return;
             }
             $payload = $hydratedPayload;
@@ -85,11 +84,9 @@ final class WaitlistPromotionJob implements JobInterface
                 return;
             }
 
-            // Generar enlace de confirmación
             $confirmUrl = $this->generateConfirmUrl($token);
-            $expiresIn = (int) \ceil(($expiresAt - \time()) / 60); // minutos
+            $expiresIn = (int) \ceil(($expiresAt - \time()) / 60);
 
-            // Preparar contenido del email
             $emailBody = $this->buildEmailBody($payload, $confirmUrl, $expiresIn);
 
             // Encolar email (evitar bloquear este job si falla el email)
@@ -97,6 +94,7 @@ final class WaitlistPromotionJob implements JobInterface
                 'to' => $userEmail,
                 'subject' => '¡Tenemos una plaza disponible! - Komorebi Café',
                 'body' => $emailBody,
+                '_correlation_id' => WideEvent::get('request_id') ?? '',
             ]);
 
             // Enviar notificación por Telegram si el usuario tiene telegram_id
@@ -194,7 +192,7 @@ final class WaitlistPromotionJob implements JobInterface
      */
     private function generateConfirmUrl(string $token): string
     {
-        $baseUrl = Env::get('APP_URL', 'http://localhost:8080');
+        $baseUrl = Env::require('APP_URL');
 
         return $baseUrl . '/reservas/waitlist/confirm?token=' . \urlencode($token);
     }
@@ -230,21 +228,21 @@ final class WaitlistPromotionJob implements JobInterface
     {
         try {
             $stmt = $this->db->prepare(<<<'SQL'
-                SELECT
-                    w.id                          AS waitlist_id,
-                    w.token,
-                    UNIX_TIMESTAMP(w.expires_at)  AS expires_at,
-                    u.name                        AS user_name,
-                    u.email                       AS user_email,
-                    c.name                        AS cafe_name,
-                    ts.slot_date                  AS date,
-                    ts.slot_time                  AS time
-                FROM waitlist w
-                INNER JOIN users u      ON w.user_id      = u.id
-                INNER JOIN time_slots ts ON w.time_slot_id = ts.id
-                INNER JOIN cafes c       ON ts.cafe_id     = c.id
-                WHERE w.id = :id
-            SQL);
+                    SELECT
+                        w.id                          AS waitlist_id,
+                        w.token,
+                        UNIX_TIMESTAMP(w.expires_at)  AS expires_at,
+                        u.name                        AS user_name,
+                        u.email                       AS user_email,
+                        c.name                        AS cafe_name,
+                        ts.slot_date                  AS date,
+                        ts.slot_time                  AS time
+                    FROM waitlist w
+                    INNER JOIN users u      ON w.user_id      = u.id
+                    INNER JOIN time_slots ts ON w.time_slot_id = ts.id
+                    INNER JOIN cafes c       ON ts.cafe_id     = c.id
+                    WHERE w.id = :id
+                SQL);
             $stmt->execute([':id' => $entryId]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -252,8 +250,9 @@ final class WaitlistPromotionJob implements JobInterface
         } catch (Throwable $e) {
             Logger::error('[WaitlistPromotionJob] Error al hidratar payload', [
                 'waitlist_entry_id' => $entryId,
-                'error'             => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -317,6 +316,7 @@ final class WaitlistPromotionJob implements JobInterface
 
             if (!$botToken) {
                 Logger::warning('[WaitlistPromotionJob] TELEGRAM_BOT_TOKEN no configurado');
+
                 return;
             }
 

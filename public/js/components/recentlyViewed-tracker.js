@@ -16,7 +16,7 @@
     if (!cafeId) return;
 
     if (typeof CookieHelper !== 'undefined' && CookieHelper.hasConsent && CookieHelper.hasConsent('functional')) {
-      fetch('/api/cookies/recently-viewed/add', {
+      fetch('/api/v1/cookies/recently-viewed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cafeId: cafeId })

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\ReviewDTO;
+
 /**
  * Contrato para ReviewRepository
  *
@@ -15,9 +17,8 @@ interface ReviewRepositoryInterface
      * Buscar reseña por ID
      *
      * @param int $id
-     * @return array<string, mixed>|null
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?ReviewDTO;
 
     /**
      * Obtener reseñas de un usuario
@@ -36,13 +37,15 @@ interface ReviewRepositoryInterface
      */
     public function findByCafeId(int $cafeId, string $status = 'approved'): array;
 
+    public function findAllStatusesPaginated(int $cafeId, ?string $status = null, int $page = 1): array;
+
     /**
      * Obtener reseñas aprobadas con paginación
      *
      * @param int $cafeId
      * @param int $page
      * @param int $perPage
-     * @return array<int, array<string, mixed>>
+     * @return array{data: array<int, array<string, mixed>>, total: int, pages: int}
      */
     public function findApprovedPaginated(int $cafeId, int $page = 1, int $perPage = 10): array;
 

@@ -28,7 +28,6 @@ final class MenuSeeder
      */
     public function run(): void
     {
-        echo "Iniciando carga del menú...\n";
         Logger::info('MenuSeeder: starting');
 
         // 1. Crear Categorías Base
@@ -54,11 +53,9 @@ final class MenuSeeder
             $passSeeder = new MenuPassSeeder();
             $passSeeder->run((int) $experienciasId);
         } else {
-            echo "AVISO: Categoría 'experiencias' no encontrada, pases no creados\n";
             Logger::warning("MenuSeeder: 'experiencias' category missing");
         }
 
-        echo "Menú completo cargado.\n";
         Logger::info('MenuSeeder: completed');
     }
 
@@ -94,7 +91,6 @@ final class MenuSeeder
         // Obtener IDs de todas las categorías
         $result = $this->db->query('SELECT id, slug FROM menu_categories')->fetchAll(PDO::FETCH_KEY_PAIR);
 
-        echo "   -> Categorías creadas.\n";
         Logger::info('MenuSeeder: categories created', ['count' => \count($result)]);
 
         return $result;

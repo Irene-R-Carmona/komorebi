@@ -3,11 +3,15 @@
 
 <head>
     <?php
+
+    use App\Core\Csrf;
+
     // CSP Nonce para scripts inline
     $cspNonce = $GLOBALS['cspNonce'] ?? '';
     ?>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= Csrf::token() ?>">
     <title>Komorebi Reception</title>
 
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
@@ -48,6 +52,12 @@
     <script nonce="<?= $cspNonce ?? '' ?>" src="/js/init/alpine-components.js"></script>
     <script src="/js/sections/reception.js"></script>
     <script defer src="/js/vendor/alpine.min.js"></script>
+    <script nonce="<?= $cspNonce ?? '' ?>">
+        window.__MERCURE__ = {
+            cafeId: <?= (int) ($cafe_id ?? 0) ?>,
+            hub: '/.well-known/mercure'
+        };
+    </script>
 </head>
 
 <body class="reception-mode">

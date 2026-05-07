@@ -2,256 +2,160 @@
 
 declare(strict_types=1);
 
-
 /**
- * ¿Qué pruebas aquí?
- * ¿Qué me quieres demostrar?
- * ¿Qué va a fallar en este test si se cambia el código?
+ * ¿Qué pruebas aquí? AuthService: validaciones de login (campos vacíos) y register (nombre, email, contraseña, coincidencia, duplicado).
+ * ¿Qué me quieres demostrar? Que las validaciones de entrada en login y register retornan Result::fail antes de tocar la BD.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se eliminan o cambian las validaciones de formato/contenido.
  */
 
-use App\Models\User;
-use App\Repositories\UserRepository;
+namespace Tests\Unit\Services;
+
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\AuthService;
+use App\Services\Contracts\RateLimitingServiceInterface;
+use App\Services\Contracts\SessionManagementServiceInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Random\RandomException;
 
-/**
- * Tests para AuthService usando Result Pattern
- *
- * AuthService NO lanza excepciones, retorna Result{ok:bool, data, error}
- */
+#[CoversClass(AuthService::class)]
 final class AuthServiceTest extends TestCase
 {
+    private UserRepositoryInterface $userRepoStub;
+    private SessionManagementServiceInterface $sessionStub;
+    private RateLimitingServiceInterface $rateLimiterStub;
     private AuthService $service;
-    private UserRepository $userRepoMock;
-    private User $userModelMock;
 
     protected function setUp(): void
     {
-        // Mock del repositorio UserRepository
-        $this->userRepoMock = $this->createStub(UserRepository::class);
-        $this->service = new AuthService($this->userRepoMock);
+        $this->userRepoStub = $this->createStub(UserRepositoryInterface::class);
+        $this->sessionStub = $this->createStub(SessionManagementServiceInterface::class);
+        $this->rateLimiterStub = $this->createStub(RateLimitingServiceInterface::class);
 
-        // Mock del modelo User utilizado por algunos tests
-        $this->userModelMock = $this->createStub(User::class);
+        $this->rateLimiterStub->method('isBlocked')->willReturn(['blocked' => false]);
 
-        // Simular superglobales (usar IP única por test para evitar rate-limits acumulados)
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.' . (string) random_int(2, 254);
-        $_SERVER['HTTP_USER_AGENT'] = 'PHPUnit Test';
+        $this->service = new AuthService(
+            $this->userRepoStub,
+            $this->sessionStub,
+            $this->rateLimiterStub
+        );
     }
 
-    protected function tearDown(): void
+    public function testLoginFailsWhenEmailEmpty(): void
     {
-        unset($_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT']);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Login - Validaciones básicas
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * @throws RandomException
-     */
-    public function testLoginWithEmptyEmailReturnsError(): void
-    {
-        $result = $this->service->login('', 'password123');
+        $result = $this->service->login('', 'password');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('email', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('requeridos', $result->error);
     }
 
-    /**
-     * @throws RandomException
-     */
-    public function testLoginWithEmptyPasswordReturnsError(): void
+    public function testLoginFailsWhenPasswordEmpty(): void
     {
         $result = $this->service->login('test@example.com', '');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('contraseña', strtolower($result->error ?? ''));
     }
 
-    /**
-     * @throws RandomException
-     */
-    public function testLoginWithInvalidEmailFormatReturnsError(): void
+    public function testRegisterFailsWhenNameEmpty(): void
     {
-        // Mock: usuario no existe (email inválido no se valida hasta BD)
-        $this->userRepoMock
-            ->method('findByEmail')
-            ->willReturn(null);
-
-        $result = $this->service->login('not-an-email', 'password123');
+        $result = $this->service->register('', 'a@a.com', 'Password1', 'Password1');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('credencial', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('Nombre inválido', $result->error);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Login - Usuario no existe
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * @throws RandomException
-     */
-    public function testLoginWithNonExistentUserReturnsError(): void
+    public function testRegisterFailsWhenEmailInvalid(): void
     {
-        $this->userRepoMock
-            ->method('findByEmail')
-            ->willReturn(null);
-
-        $result = $this->service->login('noexiste@example.com', 'password123');
+        $result = $this->service->register('María', 'not-email', 'Password1', 'Password1');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('credencial', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('Email inválido', $result->error);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Password Security
-    // ─────────────────────────────────────────────────────────────
-
-    public function testPasswordIsHashedWithArgon2id(): void
+    public function testRegisterFailsWhenPasswordTooShort(): void
     {
-        $plainPassword = 'test_password_123';
-        $hashedPassword = password_hash($plainPassword, PASSWORD_ARGON2ID);
-
-        // Verificar algoritmo Argon2id
-        $this->assertStringStartsWith('$argon2id$', $hashedPassword);
-
-        // Verificar no es reversible
-        $this->assertNotEquals($plainPassword, $hashedPassword);
-
-        // Verificar password_verify funciona
-        $this->assertTrue(password_verify($plainPassword, $hashedPassword));
-    }
-
-    public function testPasswordHashIsNotReversible(): void
-    {
-        $password = 'my_secret_password';
-        $hash = password_hash($password, PASSWORD_ARGON2ID);
-
-        // Hash no debe contener password en texto plano
-        $this->assertStringNotContainsString($password, $hash);
-        $this->assertGreaterThan(60, strlen($hash)); // Hash Argon2id es largo
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Email normalization
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * @throws RandomException
-     */
-    public function testEmailIsNormalizedToLowercase(): void
-    {
-        // Construir un mock local con expectativa sobre el argumento
-        $mock = $this->createMock(UserRepository::class);
-        $mock->expects($this->once())
-            ->method('findByEmail')
-            ->with($this->equalTo('test@example.com'))
-            ->willReturn(null);
-
-        // Usar un servicio construido con el mock que verifica el argumento
-        $service = new AuthService($mock);
-        $service->login('TEST@EXAMPLE.COM', 'password123');
-
-        $this->assertTrue(true);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Register - Validaciones y éxito
-    // ─────────────────────────────────────────────────────────────
-
-    // Test comentado: requiere integration test con sesiones reales
-    // public function testRegisterWithValidDataSuccess(): void
-
-    public function testRegisterValidatesNameLength(): void
-    {
-        $result = $this->service->register(str_repeat('A', 101), 'user@example.com', 'SecurePass123!', 'SecurePass123!');
+        $result = $this->service->register('María', 'a@a.com', 'short', 'short');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('nombre', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('8 caracteres', $result->error);
     }
 
-    public function testRegisterWithMismatchedPasswordsFails(): void
+    public function testRegisterFailsWhenPasswordsDoNotMatch(): void
     {
-        $result = $this->service->register('User', 'user@example.com', 'SecurePass123!', 'DifferentPass123!');
+        $result = $this->service->register('María', 'a@a.com', 'Password1', 'Password2');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('contraseñ', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('no coinciden', $result->error);
     }
 
-    public function testRegisterWithExistingEmailFails(): void
+    public function testRegisterFailsWhenEmailAlreadyExists(): void
     {
-        // Mock: email ya existe
-        $this->userRepoMock
-            ->method('emailExists')
-            ->willReturn(true);
+        $this->userRepoStub->method('emailExists')->willReturn(true);
 
-        $result = $this->service->register('User', 'existing@example.com', 'SecurePass123!', 'SecurePass123!');
+        $result = $this->service->register('María', 'existing@a.com', 'Password1', 'Password1');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('email', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('registrado', $result->error);
     }
 
-    public function testRegisterWithEmptyNameFails(): void
+    public function testLoginFailsWhenUserNotFound(): void
     {
-        $result = $this->service->register('', 'user@example.com', 'SecurePass123!', 'SecurePass123!');
+        $this->userRepoStub->method('findByEmailWithCredentials')->willReturn(null);
+
+        $result = $this->service->login('noexiste@example.com', 'password');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('nombre', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('Credenciales', $result->error);
     }
 
-    public function testRegisterHashesPasswordCorrectly(): void
+    public function testLoginFailsWhenAccountIsLocked(): void
     {
-        $plainPassword = 'SecurePass123!';
-        $capturedHash = null;
+        $user = ['id' => 1, 'email' => 'test@example.com', 'is_active' => true, 'failed_attempts' => 5];
+        $this->userRepoStub->method('findByEmailWithCredentials')->willReturn($user);
+        $this->userRepoStub->method('isLocked')->willReturn(true);
+        $this->userRepoStub->method('lockoutMinutesRemaining')->willReturn(10);
 
-        // Mock: capturar el hash generado
-        $this->userRepoMock
-            ->method('emailExists')
-            ->willReturn(false);
-
-        $this->userRepoMock
-            ->method('create')
-            ->willReturnCallback(function ($data) use (&$capturedHash, $plainPassword) {
-                $capturedHash = $data['password'] ?? null;
-                $this->assertNotNull($capturedHash, 'Password hash should not be null');
-                $this->assertNotEquals($plainPassword, $capturedHash, 'Password should be hashed');
-                $this->assertStringStartsWith('$argon2id$', $capturedHash, 'Should use Argon2id');
-                return 1; // Retorna int (user ID)
-            });
-
-        // Mock findById para auto-login
-        $this->userRepoMock
-            ->method('findById')
-            ->willReturn(['id' => 1, 'email' => 'test@example.com']);
-
-        $this->service->register('User', 'test@example.com', $plainPassword, $plainPassword);
-
-        $this->assertNotNull($capturedHash);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Login - Tests que requieren integration (sesiones/auditoría)
-    // ─────────────────────────────────────────────────────────────
-
-    // Test comentado: requiere integration test con audit logs
-    // public function testLoginWithWrongPasswordFails(): void
-
-    public function testRegisterValidatesPasswordMinLength(): void
-    {
-        $result = $this->service->register('User', 'user@example.com', 'Short1!', 'Short1!');
+        $result = $this->service->login('test@example.com', 'password');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('contraseña', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('bloqueada', $result->error);
     }
 
-    public function testRegisterWithInvalidEmailFormatFails(): void
+    public function testLoginFailsWhenAccountIsDeactivated(): void
     {
-        $result = $this->service->register('User', 'not-an-email', 'SecurePass123!', 'SecurePass123!');
+        $user = ['id' => 1, 'email' => 'test@example.com', 'is_active' => false, 'failed_attempts' => 0];
+        $this->userRepoStub->method('findByEmailWithCredentials')->willReturn($user);
+        $this->userRepoStub->method('isLocked')->willReturn(false);
+
+        $result = $this->service->login('test@example.com', 'password');
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('email', strtolower($result->error ?? ''));
+        $this->assertStringContainsString('desactivada', $result->error);
+    }
+
+    public function testLoginFailsWhenPasswordIsWrong(): void
+    {
+        $user = ['id' => 1, 'email' => 'test@example.com', 'is_active' => true, 'failed_attempts' => 0];
+        $this->userRepoStub->method('findByEmailWithCredentials')->willReturn($user);
+        $this->userRepoStub->method('isLocked')->willReturn(false);
+        $this->userRepoStub->method('verifyPassword')->willReturn(false);
+
+        $result = $this->service->login('test@example.com', 'wrong-password');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Credenciales', $result->error);
+    }
+
+    public function testCheckReturnsFalseWhenNotAuthenticated(): void
+    {
+        $result = $this->service->check();
+
+        $this->assertFalse($result);
+    }
+
+    public function testUserReturnsNullWhenNotAuthenticated(): void
+    {
+        $result = $this->service->user();
+
+        $this->assertNull($result);
     }
 }

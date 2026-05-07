@@ -1,10 +1,50 @@
 {
   "version": 1,
   "skills": {
+    "SVG Logo Designer": {
+      "source": "rknall/claude-skills",
+      "sourceType": "github",
+      "computedHash": "a4733318997e024c77f9bc585581d924d8444d45295e21ef0d77bd569fcbafd9"
+    },
+    "api-design-principles": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "b242f962d5f78bf8bc147e92f2aa0341459b9f5f2f955e9867a8c41b85f22648"
+    },
     "brainstorming": {
       "source": "obra/superpowers",
       "sourceType": "github",
       "computedHash": "f483c304fcde060211ffae00f49bb728536e7e7613c99db45b5b924d9fc17243"
+    },
+    "brand-visual-generator": {
+      "source": "kostja94/marketing-skills",
+      "sourceType": "github",
+      "computedHash": "e345397b2ee217e19d8349d45ad84b11bb6092038a15ba5e0f8b81bd28f92172"
+    },
+    "branding": {
+      "source": "kostja94/marketing-skills",
+      "sourceType": "github",
+      "computedHash": "7fadacd3c7bebbdeb579614bd607970a9866f78e5c8aedd6f34f026871aec7a3"
+    },
+    "caveman": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "ac5fb2168c653fa5d660b5f510a4688d210717c7e10eb8fd91ef0d9b59f4e96e"
+    },
+    "caveman-compress": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "4f3cad023d7153f247fa6d9fda7b39477ee9c0c08054b8740c9a9dd9ec26aed7"
+    },
+    "caveman-help": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "3468ac41877d388fc19d902ed9d442cd36609bd9e8d16205c41b362f481ea731"
+    },
+    "caveman-review": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "368a26f2b079ffe0d584f48006524f65cf997cb9369411aa8c6ead216dee22eb"
     },
     "dispatching-parallel-agents": {
       "source": "obra/superpowers",
@@ -20,6 +60,21 @@
       "source": "obra/superpowers",
       "sourceType": "github",
       "computedHash": "9edba9a38684c060fdc38290f640e1dc0c37de286723ac9be73bacacf7cd6f3d"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "516bd2154eb843a8240e43d5b285229129853114ad7075a5e141e1c08e408c84"
+    },
+    "interface-design": {
+      "source": "dammyjay93/interface-design",
+      "sourceType": "github",
+      "computedHash": "4d5fe1dacfebc0c1b3837b061405150ed2e4971c096543afc46c23161c5a4f7a"
+    },
+    "logo-generator": {
+      "source": "kostja94/marketing-skills",
+      "sourceType": "github",
+      "computedHash": "b77b629b68bf5f8d6ba4ea59bb396205b29788f4fc18d21a6d10b4feb4115304"
     },
     "receiving-code-review": {
       "source": "obra/superpowers",
@@ -46,6 +101,11 @@
       "sourceType": "github",
       "computedHash": "126f1ebf6ccd414f42544f6e83d8cc5adb089e1108eaffb7c400701e37eecd9f"
     },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "computedHash": "6337038fe1fe6bbe1b9f252ab678ee575859190bab6f0f246f4061824eb40875"
+    },
     "using-superpowers": {
       "source": "obra/superpowers",
       "sourceType": "github",
@@ -65,6 +125,16 @@
       "source": "obra/superpowers",
       "sourceType": "github",
       "computedHash": "b0e3065034610df41b9119445b5fd052042752bb3e598ca66aea2403a7c7685e"
+    },
+    "zoom-out": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "computedHash": "2a6894c7f9b1c9c55f451c625a834c4f377e217b623a85280e55db5fe9cacf48"
+    },
+    "improve-codebase-architecture": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "computedHash": "16bcce7ba8db8ee30b5931f17e86134a527498c8901b35da96c587ff155d067b"
     }
   }
 }

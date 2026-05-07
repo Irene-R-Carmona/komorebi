@@ -174,9 +174,11 @@ $roles ??= [];
                                     x-model="form.role_id"
                                     required>
                                     <option value="">Seleccionar rol...</option>
-                                    <template x-for="role in availableRoles" :key="role.id">
-                                        <option :value="role.id" x-text="role.name"></option>
-                                    </template>
+                                    <?php foreach ($roles as $r): ?>
+                                    <option value="<?= (int) $r['id'] ?>">
+                                        <?= htmlspecialchars((string) $r['name'], ENT_QUOTES, 'UTF-8') ?>
+                                    </option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
 

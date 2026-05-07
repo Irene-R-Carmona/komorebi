@@ -10,27 +10,22 @@ declare(strict_types=1);
  * - string $message - Mensaje de error específico
  */
 ?>
-<div class="error-card">
-    <div class="error-icon">⚠️</div>
-    <h1 class="error-code">400</h1>
-    <h2 class="error-title">Solicitud Incorrecta</h2>
+<div class="error-card" data-kanji="誤">
+    <i class="bi bi-exclamation-triangle-fill error-icon" aria-hidden="true"></i>
+    <p class="error-code">400</p>
+    <h1 class="error-title">Solicitud incorrecta</h1>
 
     <p class="error-desc">
-        La solicitud enviada no es válida o contiene parámetros incorrectos.
+        <?= isset($message) && $message !== ''
+            ? htmlspecialchars($message, ENT_QUOTES, 'UTF-8')
+            : 'La solicitud no pudo ser procesada por datos inválidos.' ?>
     </p>
 
-    <?php if (!empty($message)): ?>
-        <p class="error-desc" style="opacity:.8;">
-            Detalle: <strong><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></strong>
-        </p>
-    <?php endif; ?>
-
     <div class="error-actions">
-        <a href="<?= $_SERVER['HTTP_REFERER'] ?? '/' ?>" class="error-btn">
-            Volver atrás
-        </a>
-        <a href="/" class="error-btn" style="background: var(--color-secondary);">
-            Ir al inicio
-        </a>
+        <a href="/" class="error-btn">Ir al inicio</a>
     </div>
+
+    <nav class="error-nav" aria-label="Páginas de ayuda">
+        <a href="/contacto" class="error-nav__link">Contacto</a>
+    </nav>
 </div>

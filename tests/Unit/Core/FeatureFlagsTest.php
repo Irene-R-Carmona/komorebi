@@ -23,10 +23,13 @@ namespace Tests\Unit\Core;
 
 use App\Core\Env;
 use App\Core\Router;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionProperty;
 
+#[CoversClass(Env::class)]
+#[CoversClass(Router::class)]
 final class FeatureFlagsTest extends TestCase
 {
     private ReflectionProperty $envCache;
@@ -67,12 +70,13 @@ final class FeatureFlagsTest extends TestCase
         $routesPath = __DIR__ . '/../../../app/routes.php';
         $router = (static function (string $path): Router {
             require $path;
+
             // $router is created inside routes.php in this scope
             return $router; // @phpstan-ignore-line
         })($routesPath);
 
         // Extract registered routes via reflection
-        $ref        = new ReflectionClass(Router::class);
+        $ref = new ReflectionClass(Router::class);
         $routesProp = $ref->getProperty('routes');
         /** @var array<string, array<string, mixed>> $routes */
         $routes = $routesProp->getValue($router);
@@ -100,7 +104,7 @@ final class FeatureFlagsTest extends TestCase
     {
         $routes = $this->loadRoutesAndGetRegistered(['FEATURE_BACKOFFICE' => '0']);
 
-        $get  = $routes['GET']  ?? [];
+        $get = $routes['GET'] ?? [];
         $post = $routes['POST'] ?? [];
 
         $this->assertArrayNotHasKey('/admin/dashboard', $get, 'Admin routes must be absent when FEATURE_BACKOFFICE=0');
@@ -154,6 +158,27 @@ final class FeatureFlagsTest extends TestCase
 
         $this->assertArrayNotHasKey('/keeper/dashboard', $get, 'Keeper routes must be absent when FEATURE_KEEPER=0');
         $this->assertArrayNotHasKey('/keeper/animals', $get, 'Keeper routes must be absent when FEATURE_KEEPER=0');
+    }
+
+    public function testKeeperRoutesAbsentWhenFeatureDisabled(): void
+    {
+        $routes = $this->loadRoutesAndGetRegistered(['FEATURE_KEEPER' => '0']);
+
+        $get = $routes['GET'] ?? [];
+        $post = $routes['POST'] ?? [];
+
+        // Dashboard directo (F5/F6 routes depend on this block)
+        $this->assertArrayNotHasKey('/keeper/dashboard', $get, 'Keeper dashboard must be absent when FEATURE_KEEPER=0');
+
+        // F5: rutas POST de cuidado de animales (AnimalCareController)
+        $this->assertArrayNotHasKey('/keeper/animals/{id}/feeding', $post, 'Keeper feeding route must be absent when FEATURE_KEEPER=0');
+        $this->assertArrayNotHasKey('/keeper/animals/{id}/health', $post, 'Keeper health route must be absent when FEATURE_KEEPER=0');
+
+        // F6: rutas de edición/actualización de HealthCheck e Incident
+        $this->assertArrayNotHasKey('/keeper/health-checks/{checkId}/edit', $get, 'Keeper health-check edit must be absent when FEATURE_KEEPER=0');
+        $this->assertArrayNotHasKey('/keeper/health-checks/{checkId}', $post, 'Keeper health-check update must be absent when FEATURE_KEEPER=0');
+        $this->assertArrayNotHasKey('/keeper/incidents/{id}/edit', $get, 'Keeper incident edit must be absent when FEATURE_KEEPER=0');
+        $this->assertArrayNotHasKey('/keeper/incidents/{id}', $post, 'Keeper incident update must be absent when FEATURE_KEEPER=0');
     }
 
     // -------------------------------------------------------------------------

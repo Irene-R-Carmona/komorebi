@@ -2,15 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Core\Csrf;
+use App\Support\CurrencyFormatting;
 
 /**
  * Vista: Reservas (pase obligatorio)
  *
  * Variables esperadas:
  * - array $reservas
- * - \App\Core\Raw $cafesJson
- * - \App\Core\Raw $passesJson
  * - array $cart
  * - array $cartDetails
  * - array|null $flash
@@ -21,23 +19,13 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
     <script src="/js/sections/reservas.js?v=11"></script>
     <script src="/js/dietary-preferences.js"></script>
 
-    <!-- Debug temporal (remover en producci\u00f3n) -->
-    <?php if (isset($_GET['debug'])): ?>
-        <div style="background: #f0f0f0; padding: 1rem; margin: 1rem; border: 2px solid #333; font-family: monospace; font-size: 12px;">
-            <strong>DEBUG INFO:</strong><br>
-            Caf\u00e9s JSON: <?= htmlspecialchars(substr((string) $cafesJson, 0, 200)) ?>...<br>
-            Pases JSON: <?= htmlspecialchars(substr((string) $passesJson, 0, 200)) ?>...<br>
-            Cart Total: <?= $cartTotal ?><br>
-        </div>
-    <?php endif; ?>
-
     <div class="seccion__container rsv2"
-        x-data='reservaForm(<?= $cafesJson ?>, <?= $passesJson ?>, <?= $cartTotal ?>, <?= json_encode($festivos ?? []) ?>)'>
+        x-data="reservaForm(<?= $cartTotal ?>, <?= e((string) json_encode($festivos ?? [])) ?>)">
 
         <?php if (!empty($flash)): ?>
             <div class="toast <?= ($flash['type'] ?? '') === 'success' ? 'toast--exito' : 'toast--error' ?> mb-lg">
-                <span class="toast__icono"><?= ($flash['type'] ?? '') === 'success' ? '✅' : '⚠️' ?></span>
-                <span class="toast__mensaje"><?= $flash['message'] ?? '' ?></span>
+                <span class="toast__icono"><?= ($flash['type'] ?? '') === 'success' ? '<i class="bi bi-check-circle-fill" aria-hidden="true"></i>' : '<i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>' ?></span>
+                <span class="toast__mensaje"><?= e((string) ($flash['message'] ?? '')) ?></span>
             </div>
         <?php endif; ?>
 
@@ -57,8 +45,7 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
 
             <!-- FORMULARIO TICKET -->
             <section class="rsv2-card rsv2-card--form" x-cloak>
-                <form class="booking-ticket" method="POST" action="/reservas/crear" autocomplete="off">
-                    <?= Csrf::field() ?>
+                <form class="booking-ticket" @submit.prevent="submitReservation()" autocomplete="off">
 
                     <header class="booking-ticket__header">
                         <div class="booking-ticket__kanji">予約</div>
@@ -73,15 +60,32 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                         </div>
                     </header>
 
-                    <!-- Progreso -->
-                    <div class="booking-progress">
+                    <!-- Indicador de pasos -->
+                    <div class="booking-steps" role="progressbar" aria-valuenow="<?= 1 ?>" aria-valuemin="1" aria-valuemax="3" aria-label="Progreso de reserva">
+                        <div class="booking-steps__item" :class="{'is-active': step >= 1, 'is-done': step > 1}">
+                            <div class="booking-steps__circle" aria-hidden="true">
+                                <i class="bi bi-check-lg" x-show="step > 1"></i>
+                                <span x-show="step <= 1">1</span>
+                            </div>
+                            <span class="booking-steps__label">Café & Pase</span>
+                        </div>
+                        <div class="booking-steps__line" :class="{'is-done': step > 1}" aria-hidden="true"></div>
+                        <div class="booking-steps__item" :class="{'is-active': step >= 2, 'is-done': step > 2}">
+                            <div class="booking-steps__circle" aria-hidden="true">
+                                <i class="bi bi-check-lg" x-show="step > 2"></i>
+                                <span x-show="step <= 2">2</span>
+                            </div>
+                            <span class="booking-steps__label">Fecha & Hora</span>
+                        </div>
+                        <div class="booking-steps__line" :class="{'is-done': step > 2}" aria-hidden="true"></div>
+                        <div class="booking-steps__item" :class="{'is-active': step >= 3}">
+                            <div class="booking-steps__circle" aria-hidden="true">3</div>
+                            <span class="booking-steps__label">Confirmar</span>
+                        </div>
+                    </div>
+                    <div class="booking-progress" aria-hidden="true">
                         <div class="booking-progress__bar">
                             <div class="booking-progress__fill" :style="`width:${progressPercent}%`"></div>
-                        </div>
-                        <div class="booking-progress__labels">
-                            <span :class="{ 'is-done': step > 1 }">Café & Pase</span>
-                            <span :class="{ 'is-done': step > 2 }">Fecha & Hora</span>
-                            <span :class="{ 'is-done': step >= 3 }">Confirmar</span>
                         </div>
                     </div>
 
@@ -131,6 +135,7 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
 
                                     <img class="booking-pass__img"
                                         :src="p.image_url || '/images/ui/placeholder.jpg'"
+                                        @error="$event.target.src='/images/ui/placeholder.jpg'"
                                         alt="">
 
                                     <div class="booking-pass__body">
@@ -146,14 +151,14 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                                             x-text="p.description || ''"></div>
 
                                         <div class="booking-pass__meta">
-                                            <span class="badge-mini">⏱️ <span x-text="(p.duration_minutes || 0) + ' min'"></span></span>
+                                            <span class="badge-mini"><i class="bi bi-stopwatch" aria-hidden="true"></i> <span x-text="(p.duration_minutes || 0) + ' min'"></span></span>
 
                                             <span class="badge-mini">
-                                                👥 <span x-text="'Pax ' + (p.min_pax || 1) + (p.max_pax ? ('-' + p.max_pax) : '+')"></span>
+                                                <i class="bi bi-people" aria-hidden="true"></i> <span x-text="'Pax ' + (p.min_pax || 1) + (p.max_pax ? ('-' + p.max_pax) : '+')"></span>
                                             </span>
 
                                             <template x-if="passAnimalLabel(p) !== ''">
-                                                <span class="badge-mini">🐾 <span
+                                                <span class="badge-mini"><i class="bi bi-house-heart" aria-hidden="true"></i> <span
                                                         x-text="passAnimalLabel(p)"></span></span>
                                             </template>
                                         </div>
@@ -161,7 +166,7 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                                         <div class="booking-pass__badges">
                                             <template x-for="b in passBadges(p)" :key="b.label">
                                                 <span class="booking-mini-badge">
-                                                    <span x-text="b.icon"></span>
+                                                    <i :class="'bi ' + b.icon" aria-hidden="true"></i>
                                                     <span x-text="b.label"></span>
                                                 </span>
                                             </template>
@@ -194,14 +199,14 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                         <div class="booking-info-box" x-show="fecha && (weatherData || holidayData || loadingWeather || loadingHoliday)" x-cloak x-transition>
                             <!-- Clima -->
                             <div class="booking-info-item" x-show="loadingWeather" x-transition>
-                                <div class="booking-info-item__icon">⏳</div>
+                                <div class="booking-info-item__icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></div>
                                 <div class="booking-info-item__content">
                                     <div class="booking-info-item__title">Consultando clima...</div>
                                 </div>
                             </div>
 
                             <div class="booking-info-item" x-show="!loadingWeather && weatherData" x-transition>
-                                <div class="booking-info-item__icon">🌤️</div>
+                                <div class="booking-info-item__icon"><i class="bi bi-cloud-sun" aria-hidden="true"></i></div>
                                 <div class="booking-info-item__content">
                                     <div class="booking-info-item__title">Clima previsto</div>
                                     <div class="booking-weather">
@@ -213,14 +218,14 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
 
                             <!-- Festividad -->
                             <div class="booking-info-item" x-show="loadingHoliday" x-transition>
-                                <div class="booking-info-item__icon">⏳</div>
+                                <div class="booking-info-item__icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></div>
                                 <div class="booking-info-item__content">
                                     <div class="booking-info-item__title">Verificando festividades...</div>
                                 </div>
                             </div>
 
                             <div class="booking-info-item" x-show="!loadingHoliday && holidayData" x-transition>
-                                <div class="booking-info-item__icon">🎌</div>
+                                <div class="booking-info-item__icon"><i class="bi bi-flag" aria-hidden="true"></i></div>
                                 <div class="booking-info-item__content">
                                     <div class="booking-info-item__title" x-text="(holidayData && holidayData.name) || 'Festividad'"></div>
                                     <div class="booking-info-item__text" x-text="(holidayData && holidayData.description) || ''"></div>
@@ -231,13 +236,17 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                         <!-- Hora -->
                         <div class="booking-row" style="margin-bottom: 1rem;">
                             <div class="booking-row__label">Turno</div>
-                            <select name="hora" class="form-select" x-model="hora" required
-                                aria-required="true">
-                                <option value="" disabled>Selecciona un turno...</option>
+                            <div class="booking-slot-grid" role="group" aria-label="Selecciona un turno">
                                 <template x-for="h in horariosDisponibles" :key="h">
-                                    <option :value="h" x-text="h"></option>
+                                    <button type="button" class="booking-slot"
+                                        :class="{ 'booking-slot--selected': hora === h }"
+                                        @click="hora = h"
+                                        :aria-pressed="hora === h ? 'true' : 'false'"
+                                        x-text="h">
+                                    </button>
                                 </template>
-                            </select>
+                            </div>
+                            <input type="hidden" name="hora" :value="hora">
                             <p class="booking-hint" x-show="horariosDisponibles.length === 0">
                                 No hay turnos disponibles con este pase.
                             </p>
@@ -267,15 +276,18 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                                 <?php foreach ($cartDetails as $item): ?>
                                     <div class="booking-summary__line">
                                         <span><?= (int) $item['qty'] ?>x <?= $item['name'] ?></span>
-                                        <span>¥<?= number_format((float) $item['subtotal']) ?></span>
+                                        <span><?= e(CurrencyFormatting::yen((float) $item['subtotal'])) ?></span>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
 
-                        <button type="submit" class="btn btn--primario booking-btn-confirm" :disabled="!canSubmit">
-                            Confirmar pase
+                        <button type="submit" class="btn btn--primario booking-btn-confirm" :disabled="!canSubmit || submitting">
+                            <span x-show="!submitting">Confirmar pase</span>
+                            <span x-show="submitting" aria-live="polite">Procesando…</span>
                         </button>
+
+                        <p x-show="submitError" x-text="submitError" class="form-error" role="alert" aria-live="assertive"></p>
 
                         <p class="booking-note">Pago en el local · Experiencia obligatoria.</p>
                     </div>
@@ -285,51 +297,38 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
             <!-- HISTORIAL -->
             <section class="rsv2-card rsv2-card--history">
                 <h3 class="rsv2-card__title">
-                    Historial <span class="rsv2-count">(<?= count($reservas ?? []) ?>)</span>
+                    Historial <span class="rsv2-count" x-text="'(' + historial.length + ')'"></span>
                 </h3>
 
                 <div class="rsv2-history">
-                    <?php if (empty($reservas)): ?>
+                    <template x-if="historialLoading">
+                        <p class="rsv2-empty">Cargando historial…</p>
+                    </template>
+                    <template x-if="!historialLoading && historial.length === 0">
                         <p class="rsv2-empty">Aún no tienes reservas.</p>
-                    <?php else: ?>
-                        <?php foreach ($reservas as $res): ?>
-                            <?php
-                            $ts = strtotime($res['reservation_date'] . ' ' . $res['reservation_time']);
-                            $past = $ts !== false && $ts < time();
-                            $status = (string) ($res['status'] ?? '');
-                            $cancelable = in_array($status, ['pending', 'confirmed'], true) && !$past;
-                            $fechaFmt = date('d/m/Y', strtotime((string) $res['reservation_date']));
-                            $horaFmt = substr((string) $res['reservation_time'], 0, 5);
-                            ?>
-                            <article class="rsv2-item <?= $past ? 'rsv2-item--dim' : '' ?>">
-                                <div>
-                                    <p class="rsv2-item__title"><?= $res['cafe_name'] ?? 'Café' ?></p>
-                                    <p class="rsv2-item__meta">
-                                        <?= $fechaFmt ?> · <?= $horaFmt ?> · <?= (int) ($res['guest_count'] ?? 1) ?> pers.
-                                    </p>
-                                    <p class="rsv2-item__meta">
-                                        Pase: <strong><?= $res['pass_name'] ?? '—' ?></strong>
-                                        (<?= (int) ($res['pass_duration_minutes'] ?? 0) ?>m)
-                                    </p>
-                                    <div class="rsv2-pill rsv2-pill--<?= $status ?>"><?= strtoupper($status) ?></div>
-                                </div>
-
-                                <div class="rsv2-item__actions">
-                                    <div class="rsv2-ref">#<?= (int) $res['id'] ?></div>
-
-                                    <?php if ($cancelable): ?>
-                                        <form method="POST" action="/reservas/cancelar"
-                                            data-action="confirm" data-confirm="¿Seguro que deseas cancelar?">
-                                            <?= Csrf::field() ?>
-                                            <input type="hidden" name="id" value="<?= (int) $res['id'] ?>">
-                                            <button type="submit" class="btn-danger-outline rsv2-btn-cancel">Cancelar
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
-                                </div>
-                            </article>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                    </template>
+                    <template x-for="res in historial" :key="res.id">
+                        <article class="rsv2-item" :class="{ 'rsv2-item--dim': isPast(res) }">
+                            <div>
+                                <p class="rsv2-item__title" x-text="res.cafe_name ?? 'Café'"></p>
+                                <p class="rsv2-item__meta"
+                                    x-text="formatFecha(res.reservation_date) + ' · ' + (res.reservation_time||'').substring(0,5) + ' · ' + (res.guest_count ?? 1) + ' pers.'">
+                                </p>
+                                <div class="rsv2-pill"
+                                    :class="'rsv2-pill--' + (res.status||'')"
+                                    x-text="statusLabel(res.status)"></div>
+                            </div>
+                            <div class="rsv2-item__actions">
+                                <div class="rsv2-ref" x-text="'#' + res.id"></div>
+                                <template x-if="isCancelable(res)">
+                                    <button type="button" class="btn-danger-outline rsv2-btn-cancel"
+                                        @click="if(confirm('¿Seguro que deseas cancelar?')) cancelReservation(res.id)">
+                                        Cancelar
+                                    </button>
+                                </template>
+                            </div>
+                        </article>
+                    </template>
                 </div>
             </section>
 

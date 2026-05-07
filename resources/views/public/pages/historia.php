@@ -17,18 +17,18 @@ $equipo = $datos['equipo'] ?? [];
 <div class="static-page">
     <!-- Hero -->
     <header class="static-hero">
-        <span class="static-hero__icon"><?= $hero['icono'] ?? '🍵' ?></span>
+        <i class="<?= e($hero['icono'] ?? 'bi bi-cup-hot') ?> static-hero__icon" aria-hidden="true"></i>
         <h1 class="static-hero__title"><?= htmlspecialchars($hero['titulo'] ?? 'Nuestra Historia', ENT_QUOTES, 'UTF-8') ?></h1>
         <p class="static-hero__subtitle"><?= htmlspecialchars($hero['subtitulo'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
     </header>
 
     <!-- Misión (Statement grande) -->
     <?php if (!empty($mision)): ?>
-        <section class="static-content" style="max-width: 800px; margin: 0 auto 4rem;">
-            <h2 style="font-size: 1.875rem; line-height: 1.4; font-weight: 700; text-align: center; color: var(--color-primario); margin-bottom: 1.5rem;">
+        <section class="static-mission">
+            <h2 class="static-mission__title">
                 <?= htmlspecialchars($mision['titulo'] ?? '', ENT_QUOTES, 'UTF-8') ?>
             </h2>
-            <p style="font-size: 1.125rem; line-height: 1.7; text-align: center; color: var(--color-texto-suave);">
+            <p class="static-mission__text">
                 <?= htmlspecialchars($mision['descripcion'] ?? '', ENT_QUOTES, 'UTF-8') ?>
             </p>
         </section>
@@ -36,25 +36,25 @@ $equipo = $datos['equipo'] ?? [];
 
     <!-- Historia en secciones -->
     <?php if (!empty($historia)): ?>
-        <section class="static-content" style="max-width: 800px; margin: 0 auto 4rem;">
-            <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--color-acento);">
+        <section class="static-history">
+            <h2 class="static-history__title">
                 <?= htmlspecialchars($historia['titulo'] ?? 'Nuestro viaje', ENT_QUOTES, 'UTF-8') ?>
             </h2>
 
             <?php if (!empty($historia['secciones'])): ?>
                 <?php foreach ($historia['secciones'] as $seccion): ?>
-                    <div style="margin-bottom: 3rem;">
+                    <div class="static-history__entry">
                         <?php if (!empty($seccion['año'])): ?>
-                            <h3 style="color: var(--color-acento); font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem;">
+                            <h3 class="static-history__year">
                                 <?= htmlspecialchars($seccion['año'], ENT_QUOTES, 'UTF-8') ?>
                             </h3>
                         <?php endif; ?>
 
-                        <h4 style="font-size: 1.375rem; font-weight: 600; color: var(--color-primario); margin-bottom: 1rem;">
+                        <h4 class="static-history__entry-title">
                             <?= htmlspecialchars($seccion['titulo'], ENT_QUOTES, 'UTF-8') ?>
                         </h4>
 
-                        <p style="line-height: 1.7; color: var(--color-texto);">
+                        <p class="static-history__body">
                             <?= htmlspecialchars($seccion['descripcion'], ENT_QUOTES, 'UTF-8') ?>
                         </p>
                     </div>
@@ -66,7 +66,7 @@ $equipo = $datos['equipo'] ?? [];
     <!-- Equipo (Team grid) -->
     <?php if (!empty($equipo) && !empty($equipo['miembros'])): ?>
         <section class="static-team">
-            <h2 style="font-size: 1.75rem; font-weight: 700; text-align: center; margin-bottom: 3rem; color: var(--color-primario);">
+            <h2 class="static-team__section-title">
                 <?= htmlspecialchars($equipo['titulo'] ?? 'Nuestro Equipo', ENT_QUOTES, 'UTF-8') ?>
             </h2>
 
@@ -77,9 +77,11 @@ $equipo = $datos['equipo'] ?? [];
                             <img src="<?= htmlspecialchars($miembro['foto'], ENT_QUOTES, 'UTF-8') ?>"
                                 alt="<?= htmlspecialchars($miembro['nombre'], ENT_QUOTES, 'UTF-8') ?>"
                                 class="static-team__photo"
-                                loading="lazy">
+                                loading="lazy"
+                                x-data
+                                x-on:error="$el.src='/images/ui/placeholder.svg'">
                         <?php else: ?>
-                            <div class="static-team__photo" style="background: var(--color-fondo-alt); display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+                            <div class="static-team__photo static-team__photo--initial">
                                 <?= mb_substr($miembro['nombre'], 0, 1) ?>
                             </div>
                         <?php endif; ?>

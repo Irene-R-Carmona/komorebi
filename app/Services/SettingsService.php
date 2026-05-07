@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Container;
 use App\Exceptions\ConfigurationException;
 use App\Exceptions\DatabaseException;
 use App\Models\AuditLog;
 use App\Models\Setting;
+use App\Repositories\Contracts\SettingRepositoryInterface;
+use App\Services\Contracts\SettingsServiceInterface;
 use Exception;
+use Override;
 
 /**
  * Servicio de gestión de configuración del sistema
@@ -18,13 +22,31 @@ use Exception;
  *
  * @package Komorebi\Services
  */
-final class SettingsService
+final class SettingsService implements SettingsServiceInterface
 {
-    private Setting $settingModel;
+    private SettingRepositoryInterface $settingRepo;
 
-    public function __construct()
+    /** @var array<string, mixed>|null Cache local construida desde el repositorio */
+    private ?array $localCache = null;
+
+    public function __construct(?SettingRepositoryInterface $settingRepo = null)
     {
-        $this->settingModel = new Setting();
+        $this->settingRepo = $settingRepo ?? Container::make(SettingRepositoryInterface::class);
+    }
+
+    /**
+     * Obtiene un valor de configuración desde el repositorio (sin DB estática)
+     */
+    private function getSetting(string $key, mixed $default = null): mixed
+    {
+        if ($this->localCache === null) {
+            $this->localCache = [];
+            foreach ($this->settingRepo->findAll() as $row) {
+                $this->localCache[$row->key] = $row->value;
+            }
+        }
+
+        return $this->localCache[$key] ?? $default;
     }
 
     /**
@@ -32,13 +54,14 @@ final class SettingsService
      *
      * @return array Configuraciones como array asociativo [key => value]
      */
+    #[Override]
     public function getAll(): array
     {
-        $allSettings = $this->settingModel->findAll();
+        $allSettings = $this->settingRepo->findAll();
 
         $settings = [];
         foreach ($allSettings as $setting) {
-            $settings[$setting['key']] = Setting::get($setting['key']);
+            $settings[$setting->key] = Setting::get($setting->key);
         }
 
         return $settings;
@@ -51,6 +74,7 @@ final class SettingsService
      * @param mixed|null $default Valor por defecto si no existe
      * @return mixed Valor de la configuración
      */
+    #[Override]
     public function get(string $key, mixed $default = null): mixed
     {
         return Setting::get($key, $default);
@@ -65,6 +89,7 @@ final class SettingsService
      * @return boolean True si se actualizó correctamente
      * @throws DatabaseException Si falla la actualización
      */
+    #[Override]
     public function update(string $key, mixed $value, ?int $userId = null): bool
     {
         // Obtener valor antiguo para auditoría
@@ -99,6 +124,7 @@ final class SettingsService
      * @return integer Número de configuraciones actualizadas
      * @throws DatabaseException Si falla la actualización masiva
      */
+    #[Override]
     public function updateBulk(array $settings, ?string $group = null, ?int $userId = null): int
     {
         $updated = 0;
@@ -144,6 +170,7 @@ final class SettingsService
      * @param string $group Prefijo del grupo (ej: 'smtp_', 'app_')
      * @return array Configuraciones del grupo
      */
+    #[Override]
     public function getByGroup(string $group): array
     {
         $allSettings = $this->getAll();
@@ -158,9 +185,10 @@ final class SettingsService
      *
      * @return boolean True si SMTP está habilitado
      */
+    #[Override]
     public function isSmtpEnabled(): bool
     {
-        return (bool) Setting::get('smtp_enabled', false);
+        return (bool) $this->getSetting('smtp_enabled', false);
     }
 
     /**
@@ -168,17 +196,18 @@ final class SettingsService
      *
      * @return array Configuración SMTP
      */
+    #[Override]
     public function getSmtpConfig(): array
     {
         return [
             'enabled' => $this->isSmtpEnabled(),
-            'host' => Setting::get('smtp_host', ''),
-            'port' => (int) Setting::get('smtp_port', 587),
-            'username' => Setting::get('smtp_username', ''),
-            'password' => Setting::get('smtp_password', ''),
-            'from_email' => Setting::get('smtp_from_email', ''),
-            'from_name' => Setting::get('smtp_from_name', 'Komorebi Café'),
-            'encryption' => Setting::get('smtp_encryption', 'tls'),
+            'host' => $this->getSetting('smtp_host', ''),
+            'port' => (int) $this->getSetting('smtp_port', 587),
+            'username' => $this->getSetting('smtp_username', ''),
+            'password' => $this->getSetting('smtp_password', ''),
+            'from_email' => $this->getSetting('smtp_from_email', ''),
+            'from_name' => $this->getSetting('smtp_from_name', 'Komorebi Café'),
+            'encryption' => $this->getSetting('smtp_encryption', 'tls'),
         ];
     }
 
@@ -187,12 +216,13 @@ final class SettingsService
      *
      * @return array Resultados de validación
      */
+    #[Override]
     public function validate(): array
     {
         $issues = [];
 
         // Verificar configuración de app
-        if (empty(Setting::get('app_name'))) {
+        if (empty($this->getSetting('app_name'))) {
             $issues[] = 'Nombre de la aplicación no configurado';
         }
 
@@ -224,13 +254,14 @@ final class SettingsService
      *
      * @return array Estadísticas
      */
+    #[Override]
     public function getStats(): array
     {
-        $allSettings = $this->settingModel->findAll();
+        $allSettings = $this->settingRepo->findAll();
 
         $groups = [];
         foreach ($allSettings as $setting) {
-            $prefix = \explode('_', $setting['key'])[0];
+            $prefix = \explode('_', $setting->key)[0];
             $groups[$prefix] = ($groups[$prefix] ?? 0) + 1;
         }
 
@@ -248,6 +279,7 @@ final class SettingsService
      * @return boolean
      * @throws ConfigurationException Si no existe valor por defecto
      */
+    #[Override]
     public function resetToDefault(string $key): bool
     {
         $defaultValue = $this->getDefaults()[$key] ?? null;

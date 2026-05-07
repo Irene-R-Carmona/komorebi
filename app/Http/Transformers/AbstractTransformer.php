@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Transformers;
 
+use Override;
+
 /**
  * Base para todos los Transformers.
  *
@@ -14,9 +16,9 @@ abstract class AbstractTransformer implements TransformerInterface
     /**
      * {@inheritDoc}
      */
-    #[\Override]
+    #[Override]
     public function collection(array $items): array
     {
-        return \array_values(\array_map(fn(array $item) => $this->transform($item), $items));
+        return \array_values(\array_map(fn (array $item) => $this->transform($item), $items));
     }
 }

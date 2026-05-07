@@ -2,297 +2,446 @@
 
 declare(strict_types=1);
 
-
 /**
- * ¿Qué pruebas aquí?
- * ¿Qué me quieres demostrar?
- * ¿Qué va a fallar en este test si se cambia el código?
+ * ¿Qué pruebas aquí? ReviewService: validaciones de rating, título, cuerpo y reglas de negocio (una reseña por usuario/café).
+ * ¿Qué me quieres demostrar? Que valores inválidos (rating fuera de rango, title corto, body corto) retornan Result::fail.
+ * ¿Qué va a fallar en este test si se cambia el código? Si cambian los rangos válidos de rating/título/cuerpo o la guard de reseña duplicada.
  */
 
 namespace Tests\Unit\Services;
 
-use App\Core\Result;
-use App\Models\Review;
-use App\Models\User;
-use App\Services\ReviewService;
+use App\Domain\DTO\UserDTO;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\ReviewService;
+use Exception;
+use PHPUnit\Framework\Attributes\CoversClass;
+use RuntimeException;
 
-/**
- * Tests para ReviewService
- *
- * Verifica:
- * - Creación de reseñas con validaciones
- * - Validación de ratings
- * - Sanitización de contenido
- * - Moderación de reseñas
- */
-#[AllowMockObjectsWithoutExpectations]
-final class ReviewServiceTest extends TestCase
+#[CoversClass(ReviewService::class)]
+final class ReviewServiceTest extends ServiceTestCase
 {
+    private UserRepositoryInterface $userRepoStub;
+    private ReviewRepositoryInterface $reviewRepoStub;
+    private ReservationRepositoryInterface $reservationRepoStub;
     private ReviewService $service;
-    private Review&MockObject $reviewModelMock;
-    private User&MockObject $userModelMock;
-    private ReviewRepositoryInterface&MockObject $reviewRepoMock;
 
     protected function setUp(): void
     {
-        $this->reviewModelMock = $this->createMock(Review::class);
-        $this->userModelMock = $this->createMock(User::class);
-        $this->reviewRepoMock = $this->createMock(ReviewRepositoryInterface::class);
-        $this->service = new ReviewService($this->reviewModelMock, $this->userModelMock, $this->reviewRepoMock);
+        $this->userRepoStub = $this->createStub(UserRepositoryInterface::class);
+        $this->reviewRepoStub = $this->createStub(ReviewRepositoryInterface::class);
+        $this->reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
+        $this->service = new ReviewService(
+            $this->userRepoStub,
+            $this->reviewRepoStub,
+            $this->reservationRepoStub
+        );
     }
 
-    public function testCreateReviewWithValidDataReturnsSuccess(): void
+    public function testCreateReviewFailsWhenUserNotFound(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
-            'id' => 1,
-            'is_active' => true
-        ]);
+        $this->userRepoStub->method('findById')->willReturn(null);
 
-        $this->reviewRepoMock->method('create')->willReturn(123);
-
-        $result = $this->service->createReview(
-            userId: 1,
-            cafeId: 5,
-            rating: 5,
-            title: 'Excelente café',
-            body: 'Una experiencia maravillosa con los gatos.'
-        );
-
-        $this->assertTrue($result->ok);
-        $this->assertArrayHasKey('id', $result->data);
-    }
-
-    public function testCreateReviewWithInvalidUserReturnsError(): void
-    {
-        $this->userModelMock->method('findById')->willReturn(null);
-
-        $result = $this->service->createReview(
-            userId: 999,
-            cafeId: 5,
-            rating: 5,
-            title: 'Test',
-            body: 'Test review'
-        );
+        $result = $this->service->createReview(1, 1, 3, 'Título OK aquí', 'Cuerpo suficientemente largo para pasar');
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Usuario no encontrado', $result->error);
     }
 
-    public function testCreateReviewWithInactiveUserReturnsError(): void
+    public function testCreateReviewFailsWhenUserIsInactive(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
-            'id' => 1,
-            'is_active' => false
-        ]);
+        $this->userRepoStub->method('findById')->willReturn(new UserDTO(id: 1, uuid: '', name: 'Test', email: 'test@test.com', avatar: null, roles: [], is_active: false, cafe_id: null, created_at: ''));
 
-        $result = $this->service->createReview(
-            userId: 1,
-            cafeId: 5,
-            rating: 5,
-            title: 'Test',
-            body: 'Test review body'
-        );
+        $result = $this->service->createReview(1, 1, 3, 'Título OK aquí', 'Cuerpo suficientemente largo para pasar');
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('desactivada', $result->error);
     }
 
-    public function testCreateReviewWithInvalidRatingReturnsError(): void
+    public function testCreateReviewFailsWhenRatingBelowOne(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
-            'id' => 1,
-            'is_active' => true
-        ]);
+        $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
 
-        // Rating fuera de rango (< 1)
-        $result = $this->service->createReview(
-            userId: 1,
-            cafeId: 5,
-            rating: 0,
-            title: 'Test',
-            body: 'Test review body'
-        );
-
-        $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Rating', $result->error);
-
-        // Rating fuera de rango (> 5)
-        $result = $this->service->createReview(
-            userId: 1,
-            cafeId: 5,
-            rating: 6,
-            title: 'Test',
-            body: 'Test review body'
-        );
+        $result = $this->service->createReview(1, 1, 0, 'Título OK aquí', 'Cuerpo suficientemente largo para pasar');
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Rating', $result->error);
     }
 
-    public function testCreateReviewWithShortTitleReturnsError(): void
+    public function testCreateReviewFailsWhenRatingAboveFive(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
-            'id' => 1,
-            'is_active' => true
-        ]);
+        $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
 
-        $result = $this->service->createReview(
-            userId: 1,
-            cafeId: 5,
-            rating: 5,
-            title: 'Ab', // Muy corto
-            body: 'This is a valid review body with enough characters.'
-        );
+        $result = $this->service->createReview(1, 1, 6, 'Título OK aquí', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+    }
+
+    public function testCreateReviewFailsWhenTitleTooShort(): void
+    {
+        $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
+
+        $result = $this->service->createReview(1, 1, 4, 'AB', 'Cuerpo suficientemente largo para pasar');
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Título', $result->error);
     }
 
-    public function testCreateReviewWithLongTitleReturnsError(): void
+    public function testCreateReviewFailsWhenBodyTooShort(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
-            'id' => 1,
-            'is_active' => true
-        ]);
+        $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
 
-        $longTitle = str_repeat('A', 101); // Más de 100 caracteres
-
-        $result = $this->service->createReview(
-            userId: 1,
-            cafeId: 5,
-            rating: 5,
-            title: $longTitle,
-            body: 'This is a valid review body.'
-        );
-
-        $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Título', $result->error);
-    }
-
-    public function testCreateReviewWithShortBodyReturnsError(): void
-    {
-        $this->userModelMock->method('findById')->willReturn([
-            'id' => 1,
-            'is_active' => true
-        ]);
-
-        $result = $this->service->createReview(
-            userId: 1,
-            cafeId: 5,
-            rating: 5,
-            title: 'Valid Title',
-            body: 'Short' // Menos de 10 caracteres
-        );
+        $result = $this->service->createReview(1, 1, 4, 'Título válido aquí', 'Corto');
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Descripción', $result->error);
     }
 
-    public function testCreateReviewSanitizesHtmlContent(): void
+    public function testCreateReviewFailsWhenDuplicateReview(): void
     {
-        $this->userModelMock->method('findById')->willReturn([
-            'id' => 1,
-            'is_active' => true
-        ]);
+        $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
+        $this->reviewRepoStub->method('userHasReview')->willReturn(true);
 
-        // Capturar los argumentos pasados al método create del repository
-        $capturedData = null;
+        $result = $this->service->createReview(1, 1, 4, 'Título válido aquí', 'Cuerpo suficientemente largo para pasar correctamente');
 
-        $this->reviewRepoMock->expects($this->once())
-            ->method('create')
-            ->willReturnCallback(function ($data) use (&$capturedData) {
-                $capturedData = $data;
-                return 123;
-            });
-
-        $this->service->createReview(
-            userId: 1,
-            cafeId: 5,
-            rating: 5,
-            title: 'Test <script>alert("XSS")</script>',
-            body: 'Body with <b>HTML</b> tags and <script>malicious</script> code'
-        );
-
-        // Verificar que el HTML fue escapado
-        $this->assertNotNull($capturedData);
-        $this->assertStringContainsString('&lt;script&gt;', $capturedData['title'] ?? '');
-        $this->assertStringContainsString('&lt;script&gt;', $capturedData['body'] ?? '');
+        $this->assertFalse($result->ok);
+        $this->assertSame('duplicate_review', $result->code);
     }
 
-    public function testGetReviewsByUserIdReturnsArray(): void
+    public function testCreateReviewSucceedsWithValidData(): void
     {
-        $expectedReviews = [
-            ['id' => 1, 'rating' => 5, 'title' => 'Great'],
-            ['id' => 2, 'rating' => 4, 'title' => 'Good']
-        ];
+        $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
+        $this->reviewRepoStub->method('userHasReview')->willReturn(false);
+        $this->reviewRepoStub->method('create')->willReturn(42);
 
-        $this->reviewRepoMock->method('findByUserId')->willReturn($expectedReviews);
+        $result = $this->service->createReview(1, 1, 4, 'Título válido aquí', 'Cuerpo suficientemente largo para pasar correctamente');
 
-        $reviews = $this->service->getReviewsByUserId(1);
-
-        $this->assertIsArray($reviews);
-        $this->assertCount(2, $reviews);
+        $this->assertTrue($result->ok);
+        $this->assertArrayHasKey('id', $result->data);
     }
 
-    public function testGetReviewsByCafeIdReturnsArray(): void
+    public function testDeleteReviewFailsWhenReviewNotFound(): void
     {
-        $expectedReviews = [
-            ['id' => 1, 'rating' => 5],
-            ['id' => 2, 'rating' => 3]
-        ];
+        $this->reviewRepoStub->method('findById')->willReturn(null);
 
-        $this->reviewRepoMock->method('findByCafeId')->willReturn($expectedReviews);
+        $result = $this->service->deleteReview(999, 1);
 
-        $reviews = $this->service->getReviewsByCafeId(5);
-
-        $this->assertIsArray($reviews);
-        $this->assertCount(2, $reviews);
+        $this->assertFalse($result->ok);
     }
 
-    public function testCalculateAverageRatingReturnsCorrectValue(): void
+    public function testDeleteReviewAdminSucceeds(): void
     {
-        $this->reviewRepoMock->method('calculateAverageRating')
-            ->with(5)
-            ->willReturn(4.0);
+        $this->reviewRepoStub->method('delete')->willReturn(true);
 
-        $average = $this->service->calculateAverageRating(5);
+        $result = $this->service->deleteReviewAdmin(1);
 
-        $this->assertEquals(4.0, $average);
+        $this->assertTrue($result->ok);
     }
 
-    public function testCalculateAverageRatingWithNoReviewsReturnsZero(): void
+    public function testDeleteReviewAdminFailsWhenDeleteFails(): void
     {
-        $this->reviewRepoMock->method('calculateAverageRating')
-            ->with(5)
-            ->willReturn(0.0);
+        $this->reviewRepoStub->method('delete')->willReturn(false);
 
-        $average = $this->service->calculateAverageRating(5);
+        $result = $this->service->deleteReviewAdmin(1);
 
-        $this->assertEquals(0, $average);
+        $this->assertFalse($result->ok);
+        $this->assertSame('delete_failed', $result->code);
     }
 
-    public function testModerateReviewUpdatesStatus(): void
+    // ──────────────────────────────────────────────
+    // deleteReview — ownership + success
+    // ──────────────────────────────────────────────
+
+    public function testDeleteReviewFailsWhenOwnershipMismatch(): void
     {
-        $this->reviewRepoMock->expects($this->once())
-            ->method('updateStatus')
-            ->with(123, 'approved')
-            ->willReturn(true);
+        $this->reviewRepoStub->method('findById')->willReturn($this->makeReview(userId: 99));
 
-        $result = $this->service->moderateReview(123, 'approved');
+        $result = $this->service->deleteReview(10, 1);
 
-        $this->assertTrue($result);
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('eliminar', $result->error);
     }
 
-    public function testDeleteReviewReturnsBoolean(): void
+    public function testDeleteReviewSucceedsWhenOwner(): void
     {
-        $this->reviewRepoMock->method('delete')->willReturn(true);
+        $this->reviewRepoStub->method('findById')->willReturn($this->makeReview(userId: 1));
+        $this->reviewRepoStub->method('delete')->willReturn(true);
 
-        $result = $this->service->deleteReview(123);
+        $result = $this->service->deleteReview(10, 1);
 
-        $this->assertTrue($result);
+        $this->assertTrue($result->ok);
+    }
+
+    // ──────────────────────────────────────────────
+    // updateReview — todos los caminos
+    // ──────────────────────────────────────────────
+
+    public function testUpdateReviewFailsWhenNotFound(): void
+    {
+        $this->reviewRepoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->updateReview(999, 1, 4, 'Título válido', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('encontrada', $result->error);
+    }
+
+    public function testUpdateReviewFailsWhenOwnershipMismatch(): void
+    {
+        $this->reviewRepoStub->method('findById')->willReturn($this->makeReview(userId: 99));
+
+        $result = $this->service->updateReview(10, 1, 4, 'Título válido', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('editar', $result->error);
+    }
+
+    public function testUpdateReviewFailsWhenRatingBelowOne(): void
+    {
+        $this->reviewRepoStub->method('findById')->willReturn($this->makeReview(userId: 1));
+
+        $result = $this->service->updateReview(10, 1, 0, 'Título válido', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Rating', $result->error);
+    }
+
+    public function testUpdateReviewFailsWhenRatingAboveFive(): void
+    {
+        $this->reviewRepoStub->method('findById')->willReturn($this->makeReview(userId: 1));
+
+        $result = $this->service->updateReview(10, 1, 6, 'Título válido', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+    }
+
+    public function testUpdateReviewFailsWhenTitleTooShort(): void
+    {
+        $this->reviewRepoStub->method('findById')->willReturn($this->makeReview(userId: 1));
+
+        $result = $this->service->updateReview(10, 1, 4, 'AB', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Título', $result->error);
+    }
+
+    public function testUpdateReviewFailsWhenTitleTooLong(): void
+    {
+        $this->reviewRepoStub->method('findById')->willReturn($this->makeReview(userId: 1));
+        $longTitle = \str_repeat('A', 101);
+
+        $result = $this->service->updateReview(10, 1, 4, $longTitle, 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Título', $result->error);
+    }
+
+    public function testUpdateReviewFailsWhenBodyTooShort(): void
+    {
+        $this->reviewRepoStub->method('findById')->willReturn($this->makeReview(userId: 1));
+
+        $result = $this->service->updateReview(10, 1, 4, 'Título válido', 'Corto');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Descripción', $result->error);
+    }
+
+    public function testUpdateReviewFailsWhenBodyTooLong(): void
+    {
+        $this->reviewRepoStub->method('findById')->willReturn($this->makeReview(userId: 1));
+        $longBody = \str_repeat('X', 5001);
+
+        $result = $this->service->updateReview(10, 1, 4, 'Título válido', $longBody);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Descripción', $result->error);
+    }
+
+    public function testUpdateReviewSucceedsWithValidData(): void
+    {
+        $this->reviewRepoStub->method('findById')->willReturn($this->makeReview(userId: 1));
+        $this->reviewRepoStub->method('update')->willReturn(true);
+
+        $result = $this->service->updateReview(10, 1, 5, 'Título perfectamente válido', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertTrue($result->ok);
+    }
+
+    // ──────────────────────────────────────────────
+    // canUserReview
+    // ──────────────────────────────────────────────
+
+    public function testCanUserReviewReturnsFalseWhenAlreadyReviewed(): void
+    {
+        $this->reviewRepoStub->method('userHasReview')->willReturn(true);
+
+        $result = $this->service->canUserReview(1, 1);
+
+        $this->assertFalse($result['can_review']);
+        $this->assertStringContainsString('reseña', $result['reason']);
+    }
+
+    public function testCanUserReviewReturnsTrueWhenNoExistingReview(): void
+    {
+        $this->reviewRepoStub->method('userHasReview')->willReturn(false);
+
+        $result = $this->service->canUserReview(1, 1);
+
+        $this->assertTrue($result['can_review']);
+    }
+
+    // ──────────────────────────────────────────────
+    // userHasCompletedReservation
+    // ──────────────────────────────────────────────
+
+    public function testUserHasCompletedReservationReturnsTrue(): void
+    {
+        $this->reservationRepoStub->method('hasCompletedReservation')->willReturn(true);
+
+        $this->assertTrue($this->service->userHasCompletedReservation(1, 1));
+    }
+
+    public function testUserHasCompletedReservationReturnsFalse(): void
+    {
+        $this->reservationRepoStub->method('hasCompletedReservation')->willReturn(false);
+
+        $this->assertFalse($this->service->userHasCompletedReservation(1, 1));
+    }
+
+    // ──────────────────────────────────────────────
+    // userHasReviewInCafe
+    // ──────────────────────────────────────────────
+
+    public function testUserHasReviewInCafeReturnsTrue(): void
+    {
+        $this->reviewRepoStub->method('userHasReview')->willReturn(true);
+
+        $this->assertTrue($this->service->userHasReviewInCafe(1, 1));
+    }
+
+    public function testUserHasReviewInCafeReturnsFalse(): void
+    {
+        $this->reviewRepoStub->method('userHasReview')->willReturn(false);
+
+        $this->assertFalse($this->service->userHasReviewInCafe(1, 1));
+    }
+
+    // ──────────────────────────────────────────────
+    // createReview — casos límite adicionales
+    // ──────────────────────────────────────────────
+
+    public function testCreateReviewFailsWhenTitleTooLong(): void
+    {
+        $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
+        $longTitle = \str_repeat('A', 101);
+
+        $result = $this->service->createReview(1, 1, 4, $longTitle, 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Título', $result->error);
+    }
+
+    public function testCreateReviewFailsWhenBodyTooLong(): void
+    {
+        $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
+        $longBody = \str_repeat('X', 5001);
+
+        $result = $this->service->createReview(1, 1, 4, 'Título válido aquí', $longBody);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Descripción', $result->error);
+    }
+
+    // ──────────────────────────────────────────────
+    // Exception paths
+    // ──────────────────────────────────────────────
+
+    public function testCreateReviewHandlesRuntimeException(): void
+    {
+        $this->userRepoStub->method('findById')
+            ->willThrowException(new RuntimeException('Connection lost'));
+
+        $result = $this->service->createReview(1, 1, 3, 'Título válido aquí', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Connection lost', $result->error);
+    }
+
+    public function testCreateReviewHandlesGenericException(): void
+    {
+        $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
+        $this->reviewRepoStub->method('userHasReview')->willReturn(false);
+        $this->reviewRepoStub->method('create')
+            ->willThrowException(new Exception('Unexpected error'));
+
+        $result = $this->service->createReview(1, 1, 4, 'Título válido aquí', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testUpdateReviewHandlesException(): void
+    {
+        $this->reviewRepoStub->method('findById')
+            ->willThrowException(new Exception('DB error'));
+
+        $result = $this->service->updateReview(1, 1, 4, 'Título válido', 'Cuerpo suficientemente largo para pasar');
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testDeleteReviewHandlesException(): void
+    {
+        $this->reviewRepoStub->method('findById')
+            ->willThrowException(new Exception('DB error'));
+
+        $result = $this->service->deleteReview(1, 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error', $result->error);
+    }
+
+    public function testDeleteReviewAdminHandlesException(): void
+    {
+        $this->reviewRepoStub->method('delete')
+            ->willThrowException(new Exception('DB error'));
+
+        $result = $this->service->deleteReviewAdmin(1);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('delete_error', $result->code);
+    }
+
+    public function testCanUserReviewHandlesException(): void
+    {
+        $this->reviewRepoStub->method('userHasReview')
+            ->willThrowException(new Exception('DB error'));
+
+        $result = $this->service->canUserReview(1, 1);
+
+        $this->assertFalse($result['can_review']);
+        $this->assertStringContainsString('Error', $result['reason']);
+    }
+
+    public function testUserHasCompletedReservationHandlesException(): void
+    {
+        $this->reservationRepoStub->method('hasCompletedReservation')
+            ->willThrowException(new Exception('DB error'));
+
+        $result = $this->service->userHasCompletedReservation(1, 1);
+
+        $this->assertFalse($result);
+    }
+
+    public function testUserHasReviewInCafeHandlesException(): void
+    {
+        $this->reviewRepoStub->method('userHasReview')
+            ->willThrowException(new Exception('DB error'));
+
+        $result = $this->service->userHasReviewInCafe(1, 1);
+
+        $this->assertFalse($result);
     }
 }

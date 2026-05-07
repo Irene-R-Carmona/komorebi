@@ -6,133 +6,183 @@ declare(strict_types=1);
  * Vista: Gestión de Reseñas del Manager
  * Ruta: GET /manager/reviews
  *
- * @var string $titulo
- * @var array  $reviews    Lista de reseñas del café (id, user_id, cafe_id, rating, title, body, status, created_at)
- * @var array  $stats      ['average' => float, 'count' => int, 'distribution' => [1=>int,...,5=>int]]
- * @var string $csrf_token Token CSRF para formularios POST
+ * @var string      $titulo
+ * @var array       $reviews       Lista de reseñas del café
+ * @var array       $stats         ['average' => float, 'count' => int, 'distribution' => [...]]
+ * @var string      $csrf_token    Token CSRF para formularios POST
+ * @var string|null $activeStatus  Filtro de estado activo
+ * @var array       $meta          Metadatos de paginación {page, has_next_page}
+ * @var array       $currentParams Query params para paginationLinks
  */
+
+use App\Support\DateFormatting;
+use App\Support\StatusLabeling;
+use App\Support\ViewHelpers;
+
+$meta ??= ['page' => 1, 'has_next_page' => false];
+$currentParams ??= [];
+$activeStatus ??= null;
+
+$statusOptions = ['pending', 'approved', 'rejected'];
 ?>
 
 <div class="container-fluid">
-    <div class="dashboard-header">
-        <div>
-            <h1 class="dashboard-header__title"><?= e($titulo) ?></h1>
-            <p class="dashboard-header__subtitle">Moderación y respuesta a reseñas</p>
+    <div class="page-header mb-4">
+        <div class="page-header__content">
+            <h1 class="page-header__title"><?= e($titulo) ?></h1>
+            <p class="page-header__subtitle">Moderación y respuesta a reseñas de tu café</p>
         </div>
     </div>
 
     <!-- Resumen de estadísticas -->
-    <div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin:1.5rem 0;">
-        <div class="glass-card" style="padding:1.25rem;text-align:center;">
-            <div style="font-size:2rem;font-weight:700;color:var(--primary-600,#2563eb);">
-                <?= number_format((float) ($stats['average'] ?? 0), 1) ?>
+    <div class="stats-grid mb-4">
+        <div class="stat-card">
+            <div class="stat-card__inner">
+                <div class="stat-card__icon stat-card__icon--warning">
+                    <i class="bi bi-star-fill" aria-hidden="true"></i>
+                </div>
+                <div class="stat-card__content">
+                    <div class="stat-card__label">Valoración media</div>
+                    <div class="stat-card__value"><?= number_format((float) ($stats['average'] ?? 0), 1) ?></div>
+                </div>
             </div>
-            <div style="font-size:0.85rem;color:var(--text-secondary,#6b7280);margin-top:0.25rem;">Valoración media</div>
         </div>
-        <div class="glass-card" style="padding:1.25rem;text-align:center;">
-            <div style="font-size:2rem;font-weight:700;color:var(--primary-600,#2563eb);">
-                <?= (int) ($stats['count'] ?? 0) ?>
+        <div class="stat-card">
+            <div class="stat-card__inner">
+                <div class="stat-card__icon stat-card__icon--success">
+                    <i class="bi bi-check-circle" aria-hidden="true"></i>
+                </div>
+                <div class="stat-card__content">
+                    <div class="stat-card__label">Reseñas aprobadas</div>
+                    <div class="stat-card__value"><?= (int) ($stats['count'] ?? 0) ?></div>
+                </div>
             </div>
-            <div style="font-size:0.85rem;color:var(--text-secondary,#6b7280);margin-top:0.25rem;">Reseñas aprobadas</div>
         </div>
-        <div class="glass-card" style="padding:1.25rem;text-align:center;">
-            <div style="font-size:2rem;font-weight:700;color:var(--primary-600,#2563eb);">
-                <?= count($reviews) ?>
+        <div class="stat-card">
+            <div class="stat-card__inner">
+                <div class="stat-card__icon stat-card__icon--info">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                </div>
+                <div class="stat-card__content">
+                    <div class="stat-card__label">Reseñas visibles</div>
+                    <div class="stat-card__value"><?= (int) ($stats['count'] ?? 0) ?></div>
+                </div>
             </div>
-            <div style="font-size:0.85rem;color:var(--text-secondary,#6b7280);margin-top:0.25rem;">Reseñas visibles</div>
         </div>
     </div>
 
+    <!-- Filtro de estado -->
+    <div class="glass-card mt-3 p-3 mb-3">
+        <form method="GET" action="/manager/reviews" role="search"
+            aria-label="Filtrar reseñas por estado" class="d-flex flex-wrap align-items-end gap-2">
+            <div>
+                <label for="filter-status" class="form-label small fw-semibold mb-1">Estado</label>
+                <select id="filter-status" name="status" class="form-select form-select-sm">
+                    <option value="">Todos los estados</option>
+                    <?php foreach ($statusOptions as $optValue): ?>
+                        <option value="<?= e($optValue) ?>"
+                            <?= $activeStatus === $optValue ? 'selected' : '' ?>>
+                            <?= e(StatusLabeling::reviewLabel($optValue)) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-sm btn-komorebi-primary">Filtrar</button>
+            <?php if ($activeStatus !== null): ?>
+                <a href="/manager/reviews" class="btn btn-sm btn-outline-secondary">Limpiar</a>
+            <?php endif; ?>
+        </form>
+    </div>
+
     <!-- Tabla de reseñas -->
-    <div class="glass-card" style="margin-top:1rem;">
+    <div class="card-admin">
         <?php if (empty($reviews)): ?>
-            <div style="padding:3rem;text-align:center;">
-                <div style="font-size:3rem;margin-bottom:1rem;">⭐</div>
-                <p style="color:var(--text-secondary,#6b7280);">No hay reseñas todavía en tu café.</p>
+            <div class="empty-state">
+                <div class="empty-state__icon" aria-hidden="true">
+                    <i class="bi bi-star"></i>
+                </div>
+                <h4 class="empty-state__title">Sin reseñas todavía</h4>
+                <p class="empty-state__text">No hay reseñas registradas en tu café.</p>
             </div>
         <?php else: ?>
-            <div style="overflow-x:auto;">
-                <table class="data-table" style="width:100%;border-collapse:collapse;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
                     <thead>
-                        <tr style="border-bottom:2px solid var(--border-color,#e5e7eb);">
-                            <th style="padding:0.75rem 1rem;text-align:left;">Valoración</th>
-                            <th style="padding:0.75rem 1rem;text-align:left;">Reseña</th>
-                            <th style="padding:0.75rem 1rem;text-align:left;">Estado</th>
-                            <th style="padding:0.75rem 1rem;text-align:left;">Fecha</th>
-                            <th style="padding:0.75rem 1rem;text-align:center;">Acciones</th>
+                        <tr>
+                            <th>Valoración</th>
+                            <th>Reseña</th>
+                            <th>Estado</th>
+                            <th class="text-nowrap">Fecha</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($reviews as $review): ?>
-                            <?php
-                            $statusColors = [
-                                'pending'  => ['bg' => '#fef3c7', 'text' => '#92400e', 'label' => 'Pendiente'],
-                                'approved' => ['bg' => '#d1fae5', 'text' => '#065f46', 'label' => 'Aprobada'],
-                                'rejected' => ['bg' => '#fee2e2', 'text' => '#991b1b', 'label' => 'Rechazada'],
-                            ];
-                            $status      = $review['status'] ?? 'pending';
-                            $statusStyle = $statusColors[$status] ?? $statusColors['pending'];
-                            $rating      = (int) ($review['rating'] ?? 0);
-                            $stars       = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
+                        <?php foreach ($reviews as $review):
+                            $rstatus = (string) ($review['status'] ?? 'pending');
+                            $rating = (int) ($review['rating'] ?? 0);
+                            $stars = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
                             ?>
-                            <tr style="border-bottom:1px solid var(--border-color,#e5e7eb);">
-                                <td style="padding:0.75rem 1rem;">
-                                    <span style="color:#f59e0b;font-size:1.1rem;letter-spacing:0.05em;" title="<?= $rating ?>/5">
+                            <tr>
+                                <td>
+                                    <span class="star-rating" title="<?= $rating ?>/5">
                                         <?= $stars ?>
                                     </span>
                                     <br>
-                                    <small style="color:var(--text-secondary,#6b7280);"><?= $rating ?>/5</small>
+                                    <small class="text-muted"><?= $rating ?>/5</small>
                                 </td>
-                                <td style="padding:0.75rem 1rem;max-width:400px;">
+                                <td class="text-break">
                                     <?php if (!empty($review['title'])): ?>
-                                        <strong style="display:block;margin-bottom:0.25rem;"><?= e($review['title']) ?></strong>
+                                        <strong class="d-block mb-1"><?= e($review['title']) ?></strong>
                                     <?php endif; ?>
-                                    <p style="margin:0;color:var(--text-secondary,#6b7280);font-size:0.9rem;line-height:1.5;">
+                                    <p class="mb-0 text-muted small lh-sm">
                                         <?= e($review['body'] ?? '') ?>
                                     </p>
                                 </td>
-                                <td style="padding:0.75rem 1rem;">
-                                    <span style="display:inline-block;padding:0.25rem 0.75rem;border-radius:9999px;font-size:0.8rem;font-weight:600;background:<?= $statusStyle['bg'] ?>;color:<?= $statusStyle['text'] ?>;">
-                                        <?= $statusStyle['label'] ?>
+                                <td>
+                                    <span class="badge-status <?= e(StatusLabeling::reviewBadge($rstatus)) ?>">
+                                        <?= e(StatusLabeling::reviewLabel($rstatus)) ?>
                                     </span>
                                 </td>
-                                <td style="padding:0.75rem 1rem;white-space:nowrap;color:var(--text-secondary,#6b7280);font-size:0.85rem;">
-                                    <?= e($review['created_at'] ?? '') ?>
+                                <td class="text-muted small text-nowrap">
+                                    <?= e(DateFormatting::toSpanishDate(substr((string) ($review['created_at'] ?? ''), 0, 10))) ?>
                                 </td>
-                                <td style="padding:0.75rem 1rem;">
-                                    <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
+                                <td>
+                                    <div class="d-flex gap-2 justify-content-center flex-wrap">
                                         <!-- Aprobar -->
-                                        <?php if ($status !== 'approved'): ?>
-                                            <form method="POST" action="/manager/reviews/<?= (int) $review['id'] ?>/approve"
-                                                onsubmit="return confirm('¿Aprobar esta reseña?');"
-                                                style="display:inline;">
+                                        <?php if ($rstatus !== 'approved'): ?>
+                                            <form method="POST"
+                                                action="/manager/reviews/<?= (int) $review['id'] ?>/approve"
+                                                x-data
+                                                @submit.prevent="if(confirm('¿Aprobar esta reseña?')) $el.submit()"
+                                                class="d-inline">
                                                 <input type="hidden" name="csrf_token" value="<?= e($csrf_token) ?>">
                                                 <input type="hidden" name="id" value="<?= (int) $review['id'] ?>">
-                                                <button type="submit"
-                                                    style="padding:0.4rem 0.8rem;background:#10b981;color:#fff;border:none;border-radius:0.375rem;cursor:pointer;font-size:0.8rem;font-weight:600;">
-                                                    ✓ Aprobar
+                                                <button type="submit" class="btn btn-sm btn-komorebi-primary">
+                                                    <i class="bi bi-check-lg" aria-hidden="true"></i> Aprobar
                                                 </button>
                                             </form>
                                         <?php endif; ?>
 
                                         <!-- Rechazar -->
-                                        <?php if ($status !== 'rejected'): ?>
-                                            <details style="display:inline-block;position:relative;">
-                                                <summary style="padding:0.4rem 0.8rem;background:#ef4444;color:#fff;border-radius:0.375rem;cursor:pointer;font-size:0.8rem;font-weight:600;list-style:none;">
-                                                    ✗ Rechazar
+                                        <?php if ($rstatus !== 'rejected'): ?>
+                                            <details class="reject-details">
+                                                <summary class="btn btn-sm btn-komorebi-danger">
+                                                    <i class="bi bi-x-lg" aria-hidden="true"></i> Rechazar
                                                 </summary>
-                                                <div style="position:absolute;right:0;top:calc(100% + 0.5rem);z-index:10;background:#fff;border:1px solid #e5e7eb;border-radius:0.5rem;padding:1rem;width:280px;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-                                                    <form method="POST" action="/manager/reviews/<?= (int) $review['id'] ?>/reject">
+                                                <div class="reject-popover p-3">
+                                                    <form method="POST"
+                                                        action="/manager/reviews/<?= (int) $review['id'] ?>/reject">
                                                         <input type="hidden" name="csrf_token" value="<?= e($csrf_token) ?>">
                                                         <input type="hidden" name="id" value="<?= (int) $review['id'] ?>">
-                                                        <label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;">
+                                                        <label class="form-label fw-semibold small">
                                                             Motivo del rechazo
                                                         </label>
                                                         <textarea name="reason" required minlength="5" maxlength="500"
                                                             placeholder="Indica el motivo (5-500 caracteres)…"
-                                                            style="width:100%;padding:0.5rem;border:1px solid #d1d5db;border-radius:0.375rem;font-size:0.85rem;resize:vertical;min-height:80px;box-sizing:border-box;"></textarea>
+                                                            class="form-control form-control-sm mb-2"
+                                                            rows="3"></textarea>
                                                         <button type="submit"
-                                                            style="margin-top:0.5rem;width:100%;padding:0.5rem;background:#ef4444;color:#fff;border:none;border-radius:0.375rem;cursor:pointer;font-weight:600;">
+                                                            class="btn btn-sm btn-komorebi-danger w-100">
                                                             Confirmar rechazo
                                                         </button>
                                                     </form>
@@ -148,9 +198,7 @@ declare(strict_types=1);
             </div>
         <?php endif; ?>
     </div>
-</div>
 
-.btn--primary:hover {
-background: var(--primary-700, #1d4ed8);
-}
-</style>
+    <?= ViewHelpers::paginationLinks($meta, $currentParams) ?>
+
+</div>

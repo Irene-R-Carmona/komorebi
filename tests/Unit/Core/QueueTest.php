@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 use App\Core\Queue;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -17,6 +19,8 @@ use PHPUnit\Framework\TestCase;
  * NOTA: Este test requiere Redis disponible. Para ejecutar sin Redis,
  * mockear Cache::getRedis() en setUp().
  */
+#[CoversClass(Queue::class)]
+#[RunTestsInSeparateProcesses]
 final class QueueTest extends TestCase
 {
     private const string TEST_QUEUE = 'test_queue_phpunit';
@@ -70,7 +74,10 @@ final class QueueTest extends TestCase
         $this->assertArrayHasKey('job', $job);
         $this->assertArrayHasKey('payload', $job);
         $this->assertSame(\App\Jobs\SendEmailJob::class, $job['job']);
-        $this->assertSame(0, Queue::size(self::TEST_QUEUE), 'Cola debería estar vacía');
+
+        // Con Redis Streams, el mensaje pasa al PEL tras xReadGroup (pendiente de ACK).
+        // Un segundo pop() con '>' no ve mensajes ya entregados — la cola está efectivamente vacía.
+        $this->assertNull(Queue::pop(self::TEST_QUEUE), 'No debe haber más jobs disponibles tras consumir el único');
     }
 
     public function testPopFromEmptyQueueReturnsNull(): void

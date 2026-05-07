@@ -5,7 +5,7 @@ Custom PHP 8.4 MVC framework (no Laravel/Symfony app layer). Everything runs ins
 
 ## Architecture Overview
 
-```
+```text
 public/index.php          → Front controller (12-Factor bootstrap)
 bootstrap/container.php   → Service Providers (register → boot lifecycle)
 app/routes.php            → All route definitions (PSR-7/PSR-15)
@@ -24,6 +24,28 @@ resources/views/          → Templates grouped by role; layouts/ holds main, ba
 
 **Every PHP file** must start with `declare(strict_types=1);`.
 
+**Global PHP classes** — import with `use` statements at the top of the file, then reference unqualified:
+
+```php
+use PDO;
+use Throwable;
+use DateTimeImmutable;
+use RuntimeException;
+use Override;
+// Then use: PDO::FETCH_ASSOC, catch (Throwable $e), new DateTimeImmutable(), #[Override]
+```
+
+Never use FQFN `\` prefix for global classes (`\PDO`, `\Throwable`) — always `use` import them.
+
+**Global PHP functions** — always use the `\` prefix for native functions inside namespaced files
+(enforced by `php-cs-fixer` `native_function_invocation`). Never use `use function`:
+
+```php
+\time(), \trim(), \array_map(), \sprintf(), \urlencode()  // ✅
+time(), trim()                                             // ❌ — triggers namespace lookup
+use function time;                                         // ❌ — unnecessary
+```
+
 **Result pattern** — all service methods return `Result`, never throw for expected failures:
 
 ```php
@@ -34,7 +56,7 @@ if (!$result->ok) { Flash::error($result->getMessage()); return $this->response-
 $data = $result->data;
 ```
 
-**Controller return type** — methods return `?ResponseInterface`.  
+**Controller return type** — methods return `?ResponseInterface`.
 Return `null` when calling `View::render()` directly (it echoes); return a `ResponseInterface` for redirects/JSON:
 
 ```php
@@ -90,11 +112,12 @@ $router->group(['prefix' => '/admin', 'middleware' => $adminMiddleware], functio
 **Middleware** — use `MiddlewareFactory` (`$mw`) in `routes.php`; PSR-15 objects go in the third argument array:
 
 ```php
-$mw->auth()          // requires session
-$mw->role('admin')   // RBAC check (roles: admin, manager, supervisor, reception, kitchen, keeper, user)
-$mw->csrf()          // CSRF validation for POST routes
-$mw->guest()         // redirect if already authenticated
-$mw->api()           // JSON-only API gate
+$mw->auth()               // requires session
+$mw->role('admin')        // RBAC check (roles: admin, manager, supervisor, reception, kitchen, keeper, user)
+$mw->csrf()               // CSRF validation — required on ALL mutating routes (POST/PUT/PATCH/DELETE)
+$mw->guest()              // redirect if already authenticated
+$mw->api()                // JSON-only API gate
+$mw->rateLimit('key')     // Redis-backed rate limiting per named bucket
 ```
 
 **Repositories** — extend `AbstractRepository`; must implement two abstract methods:
@@ -102,8 +125,8 @@ $mw->api()           // JSON-only API gate
 ```php
 final class CafeRepository extends AbstractRepository
 {
-    #[\Override] protected function getTable(): string { return 'cafes'; }
-    #[\Override] protected function getSelectFields(): array { return ['id', 'slug', 'name', 'is_active']; }
+    #[Override] protected function getTable(): string { return 'cafes'; }
+    #[Override] protected function getSelectFields(): array { return ['id', 'slug', 'name', 'is_active']; }
     // Custom queries go here using $this->db (PDO)
 }
 // Obtain PDO directly: Database::getConnection()  (not Container::make(PDO::class))
@@ -139,24 +162,92 @@ Container::singleton(MyService::class, fn() => new MyService(Container::make(PDO
 
 **Value objects** are `final readonly` classes: `Result`, `Raw`, all `app/Events/*`.
 
-**`#[\Override]`** attribute is required on every method that overrides a parent or implements an interface.
+**`#[Override]`** attribute is required on every method that overrides a parent or implements an interface.
+Always import: `use Override;` — then use `#[Override]` (not `#[\Override]`).
+
+**DTOs** — live in `app/Domain/DTO/`, are `final readonly` classes. Always implement `fromArray()` + `toViewArray()`:
+
+```php
+final readonly class ProductDTO
+{
+    public static function fromArray(array $data): self { /* … */ }
+    public function toViewArray(): array { return ['id' => $this->id, 'name' => $this->name]; }
+}
+```
+
+**View contract** — `View::render()` accepts only scalar/array/Raw values in `$data`. No objects allowed:
+
+```php
+// CORRECT — call toViewArray() before render
+View::render('public/menu/show', ['product' => $dto->toViewArray()]);
+// WRONG — passing a DTO object directly (PHPStan will catch this)
+View::render('public/menu/show', ['product' => $dto]);
+```
+
+**Service interfaces** — controllers inject the interface from `app/Services/Contracts/`, not the concrete class:
+
+```php
+// In ServiceProvider:
+Container::singleton(ProductServiceInterface::class, fn() => new ProductService(…));
+// In Controller constructor:
+public function __construct(private readonly ProductServiceInterface $service) {}
+```
+
+**API versioning** — all REST API routes use the `/api/v1/` prefix and `App\Http\Controllers\Api\V1\` namespace:
+
+```php
+$router->group(['prefix' => '/api/v1', 'middleware' => [$mw->cors()]], function (Router $r) {
+    $r->get('/menu/alergenos', 'Api\V1\MenuController@allergens');
+});
+```
 
 ## Developer Workflows
 
 ```bash
-make dev          # Start Docker stack (app + mysql + redis + mailpit)
-make bash         # Shell inside app container
-make test         # PHPUnit --testdox
-make phpstan      # Static analysis (level 5, baseline: phpstan-baseline.neon)
-make db-migrate   # Apply SQL migrations only
-make db-seed      # Run seeders only
-make clean        # Clear storage/cache/* and storage/logs/*
-make logs-app     # Tail app container logs
-make db-reset     # Drop + recreate volumes (destructive, asks confirmation)
+make dev              # Start Docker stack (app + mysql + redis + mailpit)
+make bash             # Shell inside app container
+make logs-app         # Tail app container logs
+make clean            # Clear storage/cache/* and storage/logs/*
+
+make db-migrate       # Apply SQL migrations only
+make db-seed          # Run seeders only
+make db-reset         # Drop + recreate volumes (destructive, asks confirmation)
+make db-verify        # Verify current schema state
+
+make test             # Full test cycle (build image → migrate → phpunit → down)
+make test-unit        # Unit tests in parallel (requires dev stack running)
+make test-integration # Integration tests with ephemeral DB
+make test-coverage    # HTML + Clover coverage report
+
+make phpstan          # PHPStan level 5 (baseline: phpstan-baseline.neon)
+make psalm            # Psalm static analysis
+make cs-check         # PSR-12 dry-run
+make cs-fix           # Auto-fix PSR-12 style
+make ci               # Full quality gate: phpstan + psalm + test + cs-check
+make audit            # Composer security audit
+
+make e2e              # Playwright end-to-end tests
+make e2e-a11y         # Accessibility tests only (WCAG 2.1 AA)
 ```
 
 Config is read from environment variables only (12-Factor III). Secrets use `SecretLoader::require('db_password')`
 which looks for env var `DB_PASSWORD` then `/run/secrets/db_password`.
+
+**Env helpers** — never use `getenv()` directly; use the typed wrappers:
+
+```php
+Env::get('KEY', 'default');  // string
+Env::int('PORT', 8080);      // int
+Env::bool('DEBUG', false);   // bool
+```
+
+**Feature flags** — optional modules gated by env vars; disabled flags skip provider registration:
+
+```bash
+FEATURE_OPS=1         # Ops module: shifts, supervisor assignments
+FEATURE_BACKOFFICE=1  # Backoffice admin module
+FEATURE_KEEPER=1      # Keeper module: animal health checks
+```
 
 ## Testing Conventions
 
@@ -189,3 +280,167 @@ Every test file **must** include this docblock (enforced by `tests/bootstrap.php
 | `bootstrap/container.php`                 | Service Provider boot order                     |
 | `Makefile`                                | All dev commands                                |
 
+## Gestión del Ciclo de Vida de los Planes
+
+Los planes viven en `docs/plans/`. El índice maestro es `docs/plans/indice-maestro.md`.
+
+### Reglas obligatorias al completar trabajo planificado
+
+**Al terminar una fase o tarea de un plan:**
+
+1. Marcar la tarea con `[x]` en el archivo del plan.
+2. Actualizar el estado de la fase en el encabezado del plan (`En implementación` → `Implementación completa` →
+   `Verificado`).
+3. Actualizar la fila correspondiente en `docs/plans/indice-maestro.md` con el nuevo estado y emoji:
+    - 🔵 Plan creado — pendiente inicio
+    - 🟡 En implementación
+    - 🟢 Implementación completa — pendiente verificación
+    - ✅ Verificado y cerrado
+
+**Al completar todas las fases de un plan:**
+
+1. Verificar que todas las tareas estén marcadas con `[x]` y la verificación final ejecutada.
+2. **Eliminar el archivo del plan** (`docs/plans/YYYY-MM-DD-nombre.md`) — no acumular planes obsoletos.
+3. Actualizar `docs/plans/indice-maestro.md`: cambiar la fila a `✅ Completado y eliminado (YYYY-MM-DD)`.
+
+> **Razón:** Los planes completados no aportan valor como documentación persistente; ese rol
+> lo cumplen `docs/ARCHITECTURE.md`, `CHANGELOG.md` y los commits. Mantener planes terminados
+> genera ruido y confunde el estado real del proyecto.
+
+## Reference Docs
+
+| Doc                     | Topic                                          |
+|-------------------------|------------------------------------------------|
+| `README.md`             | Quick-start, env vars, local Docker setup      |
+| `CONTRIBUTING.md`       | Branch naming, PR process, local workflow      |
+| `DEFINITION_OF_DONE.md` | Acceptance criteria by change type             |
+| `docs/ARCHITECTURE.md`  | 12-Factor layers, RBAC, dependencies, patterns |
+| `docs/DEPLOYMENT.md`    | Production secrets, scaling, ops guide         |
+| `docs/openapi.yaml`     | REST API specification                         |
+| `docs/diagrams/`        | C4, request lifecycle, auth flow, ER diagrams  |
+| `SECURITY.md`           | Vulnerability reporting policy                 |
+
+## MCP Servers Configurados
+
+Los servidores MCP amplían las capacidades del agente con acceso a herramientas externas.
+Configurados en `.vscode/mcp.json` (compatible con VS Code ≥ 1.99 y JetBrains + GitHub Copilot plugin).
+Requieren **Node.js ≥ 20 en el host** (no dentro de Docker).
+
+### Configurados en `.vscode/mcp.json`
+
+| Servidor              | Paquete                                            | Herramientas (`tool_*`)                  | Cuándo es útil                                                                                                                                    |
+|-----------------------|----------------------------------------------------|------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| `sequential-thinking` | `@modelcontextprotocol/server-sequential-thinking` | —                                        | Razonamiento encadenado para tareas complejas. Skills: `writing-plans`, `executing-plans`.                                                        |
+| `filesystem`          | `@modelcontextprotocol/server-filesystem`          | —                                        | Lectura estructurada del workspace (docs/plans/, .agents/skills/, migrations/, views/).                                                           |
+| `context7`            | `@upstash/context7-mcp`                            | `resolve-library-id`, `get-library-docs` | Documentación actualizada de librerías en tiempo real. Consultar antes de usar APIs de Alpine.js, PHP 8.4, PHPUnit, Symfony EventDispatcher, etc. |
+
+### Disponibles vía extensión GitHub Copilot Chat (no requieren mcp.json)
+
+| Herramienta              | Prefijo de tools | Cuándo es útil                                                                                                                                                                                             |
+|--------------------------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `github`                 | `git_*`          | Crear PRs, listar issues, revisar diffs, push archivos. Skills: `requesting-code-review`, `finishing-a-development-branch`.                                                                                |
+| `playwright` (Microsoft) | `pla_browser_*`  | Navegación, screenshots, árbol de accesibilidad. Skills: `ui-ux-pro-max`, `frontend-design`, `interface-design`, `systematic-debugging`.                                                                   |
+| `chrome-devtools`        | `chr_*`          | Lighthouse audits (accessibility, SEO, best practices), performance traces, heap snapshots, consola de red y errores JS. Ideal para `systematic-debugging`, `ui-ux-pro-max` y verificación de rendimiento. |
+
+> **Nota sobre MCPs de browser:** `playwright` (Microsoft) y `chrome-devtools` son complementarios.
+> Usar `playwright` para navegación/snapshots/acciones; usar `chrome-devtools` para auditorías Lighthouse,
+> trazas de rendimiento y análisis de memoria.
+
+> **Figma MCP eliminado** — superó el límite de llamadas a la API. Las referencias visuales
+> se gestionan ahora en `docs/design-system/` y via screenshots de Playwright.
+
+**Variable de entorno requerida:** `GITHUB_TOKEN` (PAT con scopes `repo`, `read:org`).
+Añádela a `.env` (no se compromete al repositorio — ver `.gitignore`).
+
+### Subagentes disponibles (`run_subagent`)
+
+| Agente | Cuándo invocarlo                                                                                                                                                     |
+|--------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Plan` | Cuando se necesita investigar y desglosar una tarea compleja en un plan multi-paso antes de actuar. Complementa la skill `writing-plans` con investigación autónoma. |
+
+## Prompts Reutilizables (`.github/prompts/`)
+
+Invocables con `/nombre` en Copilot Chat (JetBrains + GitHub Copilot plugin o VS Code ≥ 1.99).
+Cada prompt incluye el flujo completo, patrones obligatorios y checklist de validación.
+
+| Prompt (`/comando`)    | Descripción                                                        | Skills invocadas                                                                                                        |
+|------------------------|--------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| `/nueva-feature`       | Flujo completo: brainstorming → plan → TDD → verificación → PR     | `brainstorming`, `writing-plans`, `test-driven-development`, `verification-before-completion`, `requesting-code-review` |
+| `/debug-bug`           | Debugging sistemático con evidencia real + chrome-devtools         | `systematic-debugging`, `test-driven-development`, `verification-before-completion`                                     |
+| `/nuevo-controller`    | Scaffolding de controller PHP con todos los patrones               | `test-driven-development`                                                                                               |
+| `/nuevo-service`       | Service + interface + Result pattern + registro en container       | `test-driven-development`                                                                                               |
+| `/nuevo-repository`    | Repository extendiendo AbstractRepository                          | `test-driven-development`                                                                                               |
+| `/nueva-migracion`     | Migración SQL numerada con convenciones del proyecto               | —                                                                                                                       |
+| `/nuevo-componente-ui` | Componente de vista + ui-ux-pro-max + Lighthouse audit             | `ui-ux-pro-max`, `verification-before-completion`                                                                       |
+| `/finalizar-rama`      | Quality gate completo + PR con Definition of Done                  | `verification-before-completion`, `requesting-code-review`, `finishing-a-development-branch`                            |
+| `/revision-codigo`     | Code review estructurado con checklist PHP, seguridad, tests, a11y | `requesting-code-review`, `receiving-code-review`                                                                       |
+
+## Skills de IA Disponibles
+
+Las skills amplían el comportamiento del agente con flujos de trabajo disciplinados.
+Todas las skills del proyecto están en `.agents/skills/` y registradas en `skills-lock.json`.
+Las skills globales/extensión (`find-skills`, `troubleshoot`, `agent-customization`) viven
+en el perfil de usuario o extensión — no se registran en el lock file del proyecto.
+
+> **Regla de oro:** Antes de cualquier acción o respuesta, consulta `.github/instructions/ai-workflow.instructions.md`
+> para saber qué skill invocar. Cuando haya duda (≥ 1% de probabilidad), invoca la skill.
+
+### Planificación y Diseño
+
+| Skill                         | Cuándo invocarla en Komorebi Café                                                                                           |
+|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| `brainstorming`               | ANTES de cualquier feature, componente nuevo o cambio de comportamiento. Explora requisitos y diseño antes de tocar código. |
+| `writing-plans`               | Tras brainstorming aprobado, para crear el plan de implementación paso a paso en `docs/plans/`.                             |
+| `executing-plans`             | Para ejecutar un plan ya escrito en `docs/plans/` con checkpoints de revisión.                                              |
+| `subagent-driven-development` | Cuando el plan del proyecto tiene 3+ tareas independientes dentro de la misma sesión.                                       |
+| `dispatching-parallel-agents` | Cuando hay 2+ tareas completamente independientes (sin estado compartido) ejecutables en paralelo.                          |
+
+### Desarrollo
+
+| Skill                     | Cuándo invocarla en Komorebi Café                                                                                                                                                                                                  |
+|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `test-driven-development` | Al implementar cualquier feature o bugfix — escribe el test antes del código. Todos los tests en `tests/Unit/` o `tests/Integration/`.                                                                                             |
+| `systematic-debugging`    | Ante cualquier bug, test fallido o comportamiento inesperado. ANTES de proponer un fix.                                                                                                                                            |
+| `zoom-out`                | Al desconocer un área del código — genera un mapa de módulos y callers usando el vocabulario de `CONTEXT.md`.                                                                                                                      |
+| `improve-codebase-architecture` | Al detectar fricciones arquitectónicas: módulos superficiales, acoplamiento, testabilidad. Requiere `CONTEXT.md` para vocabulario del dominio.                                                                             |
+| `ui-ux-pro-max`           | **Skill primaria para TODO trabajo visual**: componentes, layouts, dark mode, accesibilidad, colores, tipografía, animaciones, formularios, placeholders. Incluye 99 guías UX, 50+ estilos y checklists de accesibilidad WCAG 2.1. |
+| `frontend-design`         | Vistas con lógica interactiva compleja (Alpine.js, animaciones CSS custom, micro-interacciones).                                                                                                                                   |
+| `interface-design`        | Dashboards y paneles admin/operativos con alta densidad de información: backoffice, KDS, recepción, keeper.                                                                                                                        |
+| `api-design-principles`   | Al modificar o añadir rutas en la API REST — revisar `docs/openapi.yaml` y seguir convenciones PSR-7.                                                                                                                              |
+
+### Marca e Identidad Visual
+
+| Skill                    | Cuándo invocarla en Komorebi Café                                                                                            |
+|--------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| `branding`               | Al definir o auditar la estrategia de marca: propósito, valores, posicionamiento, storytelling, voz y narrativa de Komorebi. |
+| `brand-visual-generator` | Al crear o actualizar la identidad visual: paleta de colores, tipografía, tokens de diseño o guía de estilos del proyecto.   |
+| `logo-generator`         | Al colocar o ajustar el logo en vistas web: posición, tamaño, alt text, enlace, favicon y variantes responsivas.             |
+| `svg-logo-designer`      | Al crear el logo del café o iconos de marca como SVG escalables: variaciones de layout, estilos y marcas visuales.           |
+
+### Calidad y Revisión
+
+| Skill                            | Cuándo invocarla en Komorebi Café                                                                                                 |
+|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `verification-before-completion` | ANTES de afirmar que algo está hecho, arreglado o que los tests pasan. Requiere evidencia real (`make test-unit`, PHPStan, etc.). |
+| `requesting-code-review`         | Tras completar la implementación y antes de hacer merge — verifica que el trabajo cumple la Definition of Done.                   |
+| `receiving-code-review`          | Al recibir feedback en una PR — exige rigor técnico antes de aceptar o rechazar cambios.                                          |
+| `finishing-a-development-branch` | Cuando la implementación está completa y todos los tests pasan — guía el proceso de integración o PR.                             |
+
+### Utilidades
+
+| Skill                 | Cuándo invocarla en Komorebi Café                                                                                  |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------|
+| `using-superpowers`   | Al iniciar cada sesión de trabajo — establece qué skills están disponibles y cuándo usarlas.                       |
+| `writing-skills`      | Al crear o editar archivos `SKILL.md` en `.agents/skills/`. Aplica TDD a documentación de procesos.                |
+| `find-skills`         | Cuando se identifica una necesidad que podría tener una skill instalable (`npx skills find`).                      |
+| `troubleshoot`        | Cuando el comportamiento del agente es inesperado (tools ignoradas, skills no cargadas, instrucciones omitidas).   |
+| `agent-customization` | Al crear o editar archivos de configuración del agente: `.instructions.md`, `.prompt.md`, `AGENTS.md`, `SKILL.md`. |
+
+### Límites de contexto / sesiones largas (suite caveman)
+
+| Skill              | Cuándo invocarla en Komorebi Café                                                                                             |
+|--------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| `caveman`          | Sesión muy larga o límite de tokens próximo — respuestas ultra-comprimidas con ~75% menos tokens sin perder precisión técnica. |
+| `caveman-compress` | Antes de cerrar sesiones largas — comprime `CLAUDE.md`, todos o preferencias para que el contexto sea pequeño en la siguiente sesión. |
+| `caveman-help`     | Para ver todos los comandos y modos disponibles del sistema caveman.                                                          |
+| `caveman-review`   | Code review con muchos archivos (contexto grande) — una línea por problema.                                                   |

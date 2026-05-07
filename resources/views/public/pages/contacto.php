@@ -15,20 +15,22 @@ $opciones = $datos['opciones'] ?? [];
 <div class="static-page">
     <!-- Hero -->
     <header class="static-hero">
-        <span class="static-hero__icon"><?= $hero['icono'] ?? '📧' ?></span>
+        <span class="static-hero__icon" aria-hidden="true"><i class="bi bi-envelope"></i></span>
         <h1 class="static-hero__title"><?= htmlspecialchars($hero['titulo'] ?? 'Contacto', ENT_QUOTES, 'UTF-8') ?></h1>
         <p class="static-hero__subtitle"><?= htmlspecialchars($hero['subtitulo'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
 
         <?php if (isset($_SESSION['success'])): ?>
             <div class="static-hero__alert static-hero__alert--success">
-                ✅ <?= htmlspecialchars($_SESSION['success'], ENT_QUOTES, 'UTF-8') ?>
+                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                <?= htmlspecialchars($_SESSION['success'], ENT_QUOTES, 'UTF-8') ?>
             </div>
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['error'])): ?>
             <div class="static-hero__alert static-hero__alert--error">
-                ❌ <?= $_SESSION['error'] ?>
+                <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
+                <?= htmlspecialchars($_SESSION['error'], ENT_QUOTES, 'UTF-8') ?>
             </div>
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
@@ -61,8 +63,9 @@ $opciones = $datos['opciones'] ?? [];
                 <?php endif; ?>
 
                 <?php if (!empty($opcion['horario'])): ?>
-                    <p class="static-card__text" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--color-texto-suave);">
-                        🕐 <?= htmlspecialchars($opcion['horario'], ENT_QUOTES, 'UTF-8') ?>
+                    <p class="static-card__horario">
+                        <i class="bi bi-clock" aria-hidden="true"></i>
+                        <?= htmlspecialchars($opcion['horario'], ENT_QUOTES, 'UTF-8') ?>
                     </p>
                 <?php endif; ?>
             </div>

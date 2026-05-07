@@ -6,17 +6,19 @@ namespace App\Services;
 
 use App\Core\BaseService;
 use App\Core\Csrf;
-use App\Core\Database;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Result;
 use App\Core\Session;
+use App\Domain\DTO\UserDTO;
 use App\Events\UserRegisteredEvent;
 use App\Exceptions\ValidationException;
-use App\Models\User;
-use App\Repositories\UserRepository;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\Contracts\AuthServiceInterface;
+use App\Services\Contracts\RateLimitingServiceInterface;
+use App\Services\Contracts\SessionManagementServiceInterface;
 use DateTimeImmutable;
-use PDO;
+use Override;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Random\RandomException;
 use RuntimeException;
@@ -24,34 +26,22 @@ use RuntimeException;
 /**
  * Servicio de Autenticación
  */
-final class AuthService extends BaseService
+final class AuthService extends BaseService implements AuthServiceInterface
 {
-    private UserRepository $userRepo;
-    private User $userModel; // Mantener temporalmente
-    private AuthTokenService $tokenService;
-    private SessionManagementService $sessionService;
-    private RateLimitingService $rateLimiter;
-    private EmailService $emailService;
-    private PDO $db;
+    private UserRepositoryInterface $userRepo;
+    private SessionManagementServiceInterface $sessionService;
+    private RateLimitingServiceInterface $rateLimiter;
     private ?EventDispatcherInterface $eventDispatcher;
 
     public function __construct(
-        ?UserRepository $userRepo = null,
-        ?User $userModel = null,
-        ?AuthTokenService $tokenService = null,
-        ?SessionManagementService $sessionService = null,
-        ?RateLimitingService $rateLimiter = null,
-        ?EmailService $emailService = null,
-        ?PDO $db = null,
+        UserRepositoryInterface $userRepo,
+        SessionManagementServiceInterface $sessionService,
+        RateLimitingServiceInterface $rateLimiter,
         ?EventDispatcherInterface $eventDispatcher = null
     ) {
-        $this->userRepo = $userRepo ?? new UserRepository();
-        $this->userModel = $userModel ?? new User(); // Legacy
-        $this->tokenService = $tokenService ?? new AuthTokenService();
-        $this->sessionService = $sessionService ?? new SessionManagementService();
-        $this->rateLimiter = $rateLimiter ?? new RateLimitingService();
-        $this->emailService = $emailService ?? new EmailService();
-        $this->db = $db ?? Database::getConnection();
+        $this->userRepo = $userRepo;
+        $this->sessionService = $sessionService;
+        $this->rateLimiter = $rateLimiter;
         $this->eventDispatcher = $eventDispatcher;
     }
 
@@ -67,6 +57,7 @@ final class AuthService extends BaseService
      * @return Result Data contiene ['redirect' => string] si exitoso
      * @throws RandomException
      */
+    #[Override]
     public function login(string $email, string $password): Result
     {
         $email = \strtolower(\trim($email));
@@ -83,7 +74,7 @@ final class AuthService extends BaseService
             return $error;
         }
 
-        $user = $this->userRepo->findByEmail($email);
+        $user = $this->userRepo->findByEmailWithCredentials($email);
         if ($error = $this->validateUser($user, $password, $email, $ipAddress, $userAgent)) {
             return $error;
         }
@@ -107,6 +98,7 @@ final class AuthService extends BaseService
      * @throws RandomException
      * @throws ValidationException
      */
+    #[Override]
     public function register(string $name, string $email, string $password, string $confirmPassword): Result
     {
         $name = \trim($name);
@@ -137,7 +129,7 @@ final class AuthService extends BaseService
             $userId = $this->userRepo->create([
                 'name' => $name,
                 'email' => $email,
-                'password' => password_hash($password, PASSWORD_ARGON2ID),
+                'password' => \password_hash($password, PASSWORD_ARGON2ID),
             ]);
 
             // Disparar evento de registro
@@ -165,6 +157,7 @@ final class AuthService extends BaseService
      * Cierra la sesión del usuario.
      * @throws RandomException
      */
+    #[Override]
     public function logout(): void
     {
         $user = Session::user();
@@ -194,29 +187,29 @@ final class AuthService extends BaseService
      * Crea sesión de usuario con caché de permisos.
      * @throws RandomException
      */
-    private function createSession(?array $user): void
+    private function createSession(?UserDTO $user): void
     {
         // IMPORTANTE: Asegurar que la sesión esté iniciada
         Session::start();
 
         if (Env::get('APP_ENV') === 'local') {
-            Logger::error('[AuthService::createSession] START - Session ID: ' . \session_id());
-            Logger::error('[AuthService::createSession] User: ' . \json_encode($user));
+            Logger::error('[AuthService::createSession] START - Session ID: ' . \session_id(), []);
+            Logger::error('[AuthService::createSession] User: ' . \json_encode($user), []);
         }
 
-        if (!$user || !isset($user['id'])) {
+        if (!$user) {
             // No hay usuario válido para crear la sesión; abortar silenciosamente
             return;
         }
 
-        $userId = (int) $user['id'];
+        $userId = $user->id;
 
         // Obtener roles del usuario via RBAC
-        $roles = $this->userModel->getRoles($userId) ?: [];
-        $rolesCodes = is_array($roles) ? \array_column($roles, 'code') : [];
+        $roles = $this->userRepo->getRoles($userId) ?: [];
+        $rolesCodes = \array_column($roles, 'slug');
 
         if (Env::get('APP_ENV') === 'local') {
-            Logger::error('[AuthService::createSession] Roles: ' . \json_encode($rolesCodes));
+            Logger::error('[AuthService::createSession] Roles: ' . \json_encode($rolesCodes), []);
         }
 
         // Crear ID de sesión
@@ -233,12 +226,11 @@ final class AuthService extends BaseService
         $this->sessionService->logAuthEvent($userId, 'login', $ipAddress, $userAgent, $deviceName, true);
 
         // Actualizar last_login_at en usuarios
-        $stmt = $this->db->prepare('UPDATE users SET updated_at = NOW() WHERE id = :id');
-        $stmt->execute(['id' => $userId]);
+        $this->userRepo->update($userId, ['updated_at' => \date('Y-m-d H:i:s')]);
 
         // 1. Establecer datos básicos de usuario en sesión
         // Seleccionar rol principal (si existe) o 'user' por defecto
-        $primaryRole = is_string($rolesCodes[0] ?? null) ? $rolesCodes[0] : 'user';
+        $primaryRole = \is_string($rolesCodes[0] ?? null) ? $rolesCodes[0] : 'user';
 
         // Pasar la lista de roles al Session::setUser para popular 'user_roles'
         $roleValue = !empty($rolesCodes) ? $rolesCodes : [$primaryRole];
@@ -246,10 +238,10 @@ final class AuthService extends BaseService
         // Pasar `role` como string para cumplir la firma de Session::setUser
         Session::setUser([
             'id' => $userId,
-            'name' => isset($user['name']) ? (string) $user['name'] : '',
-            'email' => isset($user['email']) ? (string) $user['email'] : '',
+            'name' => $user->name,
+            'email' => $user->email,
             'role' => $primaryRole,
-            'cafe_id' => $user['cafe_id'] ?? null,
+            'cafe_id' => $user->cafe_id,
         ]);
 
         // Guardar lista completa de roles por separado
@@ -293,6 +285,7 @@ final class AuthService extends BaseService
     /**
      * Verifica si el usuario actual está autenticado.
      */
+    #[Override]
     public function check(): bool
     {
         return Session::isAuthenticated();
@@ -301,6 +294,7 @@ final class AuthService extends BaseService
     /**
      * Obtiene el usuario actual.
      */
+    #[Override]
     public function user(): ?array
     {
         if (!$this->check()) {
@@ -308,230 +302,6 @@ final class AuthService extends BaseService
         }
 
         return Session::user();
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // EMAIL VERIFICATION
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Solicitar envío de email de verificación
-     *
-     * @param integer $userId
-     * @return Result
-     */
-    public function sendVerificationEmail(int $userId): Result
-    {
-        $user = $this->userModel->findById($userId);
-        if (!$user) {
-            return Result::fail('Usuario no encontrado.');
-        }
-
-        if ($this->tokenService->isEmailVerified($userId)) {
-            return Result::fail('Email ya verificado.');
-        }
-
-        try {
-            $token = $this->tokenService->createEmailVerificationToken($userId);
-            $verifyUrl = Env::get('APP_URL') . "/auth/verify-email?token=$token";
-
-            $this->emailService->sendVerificationEmail(
-                (string)($user['email'] ?? ''),
-                (string)($user['name'] ?? ''),
-                $verifyUrl
-            );
-
-            return Result::ok('Email de verificación enviado correctamente');
-        } catch (RandomException) {
-            return Result::fail('Error generando token.');
-        }
-    }
-
-    /**
-     * Verificar email con token
-     *
-     * @param string $token
-     * @return Result
-     */
-    public function verifyEmailToken(string $token): Result
-    {
-        return $this->tokenService->verifyEmail($token);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // PASSWORD RESET
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Solicitar reset de contraseña (forgot password)
-     *
-     * @param string      $email
-     * @param string      $ipAddress
-     * @param string|null $userAgent
-     * @return Result
-     */
-    public function requestPasswordReset(string $email, string $ipAddress, ?string $userAgent = null): Result
-    {
-        $email = \strtolower(\trim($email));
-
-        // Rate limiting
-        $blocked = $this->rateLimiter->isBlocked('password_reset', $email);
-        if (!empty($blocked['blocked'])) {
-            $minutes = isset($blocked['minutes_remaining']) ? (int) $blocked['minutes_remaining'] : 0;
-
-            return Result::fail("Demasiados intentos. Intenta en {$minutes} minutos.");
-        }
-
-        $user = $this->userModel->findByEmail($email);
-
-        // Mensaje genérico por seguridad (no revelar si email existe)
-        if (!$user) {
-            $this->rateLimiter->recordAttempt('password_reset', $email, $ipAddress);
-
-            return Result::ok('Si el email existe, recibirás instrucciones para recuperar tu contraseña');
-        }
-
-        try {
-            $token = $this->tokenService->createPasswordResetToken((int) $user['id'], $ipAddress, $userAgent);
-            $resetUrl = Env::get('APP_URL') . "/auth/reset-password?token=$token";
-
-            $this->emailService->sendPasswordResetEmail((string)($user['email'] ?? ''), (string)($user['name'] ?? ''), $resetUrl);
-
-            $this->rateLimiter->clearAttempts('password_reset', $email);
-
-            // Log del evento
-            $this->sessionService->logAuthEvent(
-                (int) $user['id'],
-                'password_reset',
-                $ipAddress,
-                $userAgent,
-                null,
-                true,
-                'Reset solicitado'
-            );
-
-            return Result::ok('Si el email existe, recibirás instrucciones para recuperar tu contraseña');
-        } catch (RandomException) {
-            $this->rateLimiter->recordAttempt('password_reset', $email, $ipAddress);
-
-            return Result::fail('Error generando token.');
-        }
-    }
-
-    /**
-     * Validar token de reset (sin consumirlo)
-     *
-     * @param string $token
-     * @return Result Data contiene ['user_id' => int] si válido
-     */
-    public function validatePasswordResetToken(string $token): Result
-    {
-        return $this->tokenService->validatePasswordResetToken($token);
-    }
-
-    /**
-     * Cambiar contraseña con token
-     *
-     * @param string $token
-     * @param string $newPassword
-     * @param string $confirmPassword
-     * @return Result
-     */
-    public function resetPasswordWithToken(string $token, string $newPassword, string $confirmPassword): Result
-    {
-        // Validar token
-        $validation = $this->tokenService->validatePasswordResetToken($token);
-        if ($validation->isFail()) {
-            return $validation;
-        }
-
-        // Validar contraseña
-        if (\mb_strlen($newPassword) < 8) {
-            return Result::fail('La contraseña debe tener al menos 8 caracteres.');
-        }
-
-        if ($newPassword !== $confirmPassword) {
-            return Result::fail('Las contraseñas no coinciden.');
-        }
-
-        $userId = (int) $validation->data['user_id'];
-
-        try {
-            // Actualizar contraseña
-            $this->userModel->updatePassword($userId, $newPassword);
-
-            // Consumir token
-            $this->tokenService->consumePasswordResetToken($token);
-
-            // Revocar todas las sesiones existentes por seguridad
-            $this->revokeAllOtherSessions($userId, '');
-
-            // Log del evento
-            $this->sessionService->logAuthEvent($userId, 'password_reset', '', null, null, true, 'Reset completado');
-
-            return Result::ok('Contraseña actualizada correctamente');
-        } catch (RuntimeException $e) {
-            return Result::fail($e->getMessage());
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // GESTIÓN DE SESIONES
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Obtener todas las sesiones activas del usuario
-     *
-     * @param integer $userId
-     * @return array[]
-     */
-    public function getActiveSessions(int $userId): array
-    {
-        return $this->sessionService->getActiveSessions($userId);
-    }
-
-    /**
-     * Revocar una sesión específica
-     *
-     * @param integer $userId
-     * @param integer $sessionRecordId
-     * @param string  $reason
-     * @return boolean
-     */
-    public function revokeSession(int $userId, int $sessionRecordId, string $reason = 'user_requested'): bool
-    {
-        $session = $this->sessionService->getSessionById($sessionRecordId);
-
-        // Verificar que la sesión pertenece al usuario
-        if (!$session || (int) $session['user_id'] !== $userId) {
-            return false;
-        }
-
-        return $this->sessionService->revokeSession($sessionRecordId, $userId, $reason);
-    }
-
-    /**
-     * Revocar todas las demás sesiones del usuario
-     *
-     * @param integer $userId
-     * @param string  $currentSessionId
-     * @return integer Número de sesiones revocadas
-     */
-    public function revokeAllOtherSessions(int $userId, string $currentSessionId): int
-    {
-        return $this->sessionService->revokeAllOtherSessions($userId, $currentSessionId, $userId);
-    }
-
-    /**
-     * Obtener historial de autenticación
-     *
-     * @param integer $userId
-     * @param integer $limit
-     * @return array[]
-     */
-    public function getAuthHistory(int $userId, int $limit = 20): array
-    {
-        return $this->sessionService->getAuthHistory($userId, $limit);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -612,8 +382,8 @@ final class AuthService extends BaseService
         $userId = (int) $user['id'];
 
         // Cuenta bloqueada
-        if ($this->userModel->isLocked($user)) {
-            $minutes = $this->userModel->lockoutMinutesRemaining($user);
+        if ($this->userRepo->isLocked($user)) {
+            $minutes = $this->userRepo->lockoutMinutesRemaining($user);
             $this->sessionService->logAuthEvent($userId, 'lockout', $ipAddress, $userAgent, null, false, "Bloqueado $minutes minutos");
 
             return Result::fail("Cuenta bloqueada temporalmente. Intenta en $minutes minutos.");
@@ -627,8 +397,8 @@ final class AuthService extends BaseService
         }
 
         // Verificar contraseña
-        if (!$this->userModel->verifyPassword($user, $password)) {
-            $this->userModel->registerFailedAttempt($userId);
+        if (!$this->userRepo->verifyPassword($user, $password)) {
+            $this->userRepo->registerFailedAttempt($userId);
             $this->rateLimiter->recordAttempt('login', $email, $ipAddress);
             $this->rateLimiter->recordAttempt('login', $ipAddress);
             $this->sessionService->logAuthEvent($userId, 'failed_login', $ipAddress, $userAgent, null, false, 'Contraseña incorrecta');
@@ -657,20 +427,20 @@ final class AuthService extends BaseService
         $userId = (int) $user['id'];
 
         if (Env::get('APP_ENV') === 'local') {
-            Logger::error('[AuthService::login] Password verified successfully for user ID: ' . $userId);
+            Logger::error('[AuthService::login] Password verified successfully for user ID: ' . $userId, []);
         }
 
         // Limpiar intentos fallidos
-        $this->userModel->clearLoginAttempts($userId);
+        $this->userRepo->clearLoginAttempts($userId);
         $this->rateLimiter->clearAttempts('login', $email);
         $this->rateLimiter->clearAttempts('login', $ipAddress);
 
         if (Env::get('APP_ENV') === 'local') {
-            Logger::error('[AuthService::login] About to call createSession');
+            Logger::error('[AuthService::login] About to call createSession', []);
         }
-        $this->createSession($user);
+        $this->createSession($this->userRepo->findById($userId));
         if (Env::get('APP_ENV') === 'local') {
-            Logger::error('[AuthService::login] createSession completed');
+            Logger::error('[AuthService::login] createSession completed', []);
         }
 
         // Determinar redirección basada en el rol del usuario
@@ -707,7 +477,7 @@ final class AuthService extends BaseService
 
         // Si hay un redirect guardado y no es una ruta de autenticación, usarlo.
         // Si apunta al backoffice, normalizar a la raíz /admin/ para evitar redirects intermedios.
-        if (is_string($savedRedirect) && $savedRedirect !== '' && !\str_starts_with($savedRedirect, '/login') && !\str_starts_with($savedRedirect, '/registro')) {
+        if (\is_string($savedRedirect) && $savedRedirect !== '' && !\str_starts_with($savedRedirect, '/login') && !\str_starts_with($savedRedirect, '/registro')) {
             if (\str_starts_with($savedRedirect, '/admin')) {
                 return '/admin/';
             }

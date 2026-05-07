@@ -10,8 +10,10 @@ declare(strict_types=1);
 
 use App\Core\Result;
 use App\Core\TransactionalService;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+#[CoversClass(TransactionalService::class)]
 final class ConcreteTransactionalService extends TransactionalService
 {
     public function __construct(PDO $db)
@@ -27,7 +29,8 @@ final class ConcreteTransactionalService extends TransactionalService
 
 final class TransactionalServiceTest extends TestCase
 {
-    private \PDO $pdoMock;
+    /** @var \PHPUnit\Framework\MockObject\Stub&\PDO */
+    private PDO $pdoMock;
     private ConcreteTransactionalService $service;
 
     protected function setUp(): void
@@ -41,7 +44,7 @@ final class TransactionalServiceTest extends TestCase
         $this->pdoMock->method('beginTransaction')->willReturn(true);
         $this->pdoMock->method('commit')->willReturn(true);
 
-        $result = $this->service->runTransact(fn() => Result::ok('data'));
+        $result = $this->service->runTransact(fn () => Result::ok('data'));
 
         $this->assertTrue($result->ok);
         $this->assertSame('data', $result->data);
@@ -57,7 +60,7 @@ final class TransactionalServiceTest extends TestCase
         });
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('DB error', $result->getMessage());
+        $this->assertStringContainsString('DB error', $result->error);
     }
 
     public function testTransactPropagatesFailResultWithRollback(): void
@@ -65,9 +68,9 @@ final class TransactionalServiceTest extends TestCase
         $this->pdoMock->method('beginTransaction')->willReturn(true);
         $this->pdoMock->method('rollBack')->willReturn(true);
 
-        $result = $this->service->runTransact(fn() => Result::fail('negocio falló', 'business_error'));
+        $result = $this->service->runTransact(fn () => Result::fail('negocio falló', 'business_error'));
 
         $this->assertFalse($result->ok);
-        $this->assertSame('negocio falló', $result->getMessage());
+        $this->assertSame('negocio falló', $result->error);
     }
 }

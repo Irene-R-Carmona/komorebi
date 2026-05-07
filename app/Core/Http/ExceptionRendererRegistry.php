@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Http;
 
+use Throwable;
+
 /**
  * Registro de renderers para excepciones.
  *
@@ -27,15 +29,15 @@ final class ExceptionRendererRegistry
      * Encuentra el renderer con mayor prioridad que soporte la excepción.
      * Retorna null si ninguno la soporta.
      */
-    public function find(\Throwable $e): ?ExceptionRendererInterface
+    public function find(Throwable $e): ?ExceptionRendererInterface
     {
-        $matches = \array_filter($this->renderers, static fn($r) => $r->supports($e));
+        $matches = \array_filter($this->renderers, static fn ($r) => $r->supports($e));
 
         if ($matches === []) {
             return null;
         }
 
-        \usort($matches, static fn($a, $b) => $b->priority() <=> $a->priority());
+        \usort($matches, static fn ($a, $b) => $b->priority() <=> $a->priority());
 
         return $matches[0];
     }

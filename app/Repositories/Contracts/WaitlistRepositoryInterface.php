@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories\Contracts;
 
+use App\Domain\DTO\WaitlistEntryDTO;
+
 /**
  * Contrato para WaitlistRepository
  *
@@ -15,17 +17,17 @@ interface WaitlistRepositoryInterface
      * Buscar entrada de waitlist por ID
      *
      * @param int $id
-     * @return array<string, mixed>|null
+     * @return WaitlistEntryDTO|null
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): ?WaitlistEntryDTO;
 
     /**
      * Buscar entrada por token de confirmación
      *
      * @param string $token
-     * @return array<string, mixed>|null
+     * @return WaitlistEntryDTO|null
      */
-    public function findByToken(string $token): ?array;
+    public function findByToken(string $token): ?WaitlistEntryDTO;
 
     /**
      * Obtener waitlists activas de un usuario
@@ -131,4 +133,36 @@ interface WaitlistRepositoryInterface
      * @return bool
      */
     public function userInWaitlist(int $userId, int $timeSlotId): bool;
+
+    /**
+     * Obtener waitlists con detalle de slot, café y usuario.
+     *
+     * @param array<string, mixed> $filters  Claves: cafe_id, status, date
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAllWithDetails(array $filters = []): array;
+
+    /**
+     * Resumen de entradas agrupadas por estado.
+     *
+     * @return array<string, int>  status => count
+     */
+    public function getSummaryByStatus(): array;
+
+    /**
+     * Cancelar una entrada de waitlist por ID (acción admin).
+     */
+    public function cancelById(int $id): bool;
+
+    /**
+     * Buscar una entrada de waitlist por ID y usuario (validación de ownership).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findByIdAndUser(int $id, int $userId): ?array;
+
+    /**
+     * Contar entradas de waitlist de un time slot por estado.
+     */
+    public function countByTimeSlotAndStatus(int $timeSlotId, string $status): int;
 }

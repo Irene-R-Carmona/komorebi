@@ -33,13 +33,97 @@ final class Queue
     /** @var int Timeout en segundos para operaciones bloqueantes */
     private const int BLOCKING_TIMEOUT = 5;
 
+    /** @var string Nombre del consumer group para Redis Streams */
+    private const string CONSUMER_GROUP = 'workers';
+
+    /** @var string Sufijo del stream dead-letter para jobs fallidos */
+    private const string DLQ_SUFFIX = ':dlq';
+
     /** @var mixed Instancia de Redis o fallback en memoria */
     private static mixed $redis = null;
 
     /**
      * Constructor privado para evitar instanciación directa (Singleton)
      */
-    private function __construct() {}
+    private function __construct()
+    {
+    }
+
+    /**
+     * Genera un nombre único de consumidor para este proceso worker.
+     * Combina hostname + PID para identificación única por proceso.
+     *
+     * @return string
+     */
+    private static function getConsumerName(): string
+    {
+        return \gethostname() . '-' . \getmypid();
+    }
+
+    /**
+     * Crea el consumer group en el stream si no existe.
+     * Debe llamarse al arrancar cada worker antes del loop principal.
+     *
+     * @param string $queue Nombre de la cola
+     * @return void
+     * @throws ExternalServiceException Si falla la conexión con Redis
+     */
+    public static function ensureConsumerGroup(string $queue = self::DEFAULT_QUEUE): void
+    {
+        try {
+            $redis = self::getRedis();
+            $streamKey = self::REDIS_PREFIX . $queue;
+
+            // MKSTREAM (true) crea el stream si no existe
+            // '$' significa: solo mensajes nuevos a partir de ahora
+            $redis->xGroup('CREATE', $streamKey, self::CONSUMER_GROUP, '$', true);
+
+            Logger::info('[Queue] Consumer group creado', [
+                'stream' => $streamKey,
+                'group' => self::CONSUMER_GROUP,
+            ]);
+        } catch (RedisException $e) {
+            // BUSYGROUP: el grupo ya existe — ignorar
+            if (\str_contains($e->getMessage(), 'BUSYGROUP')) {
+                return;
+            }
+
+            Logger::error('[Queue] Error al crear consumer group', [
+                'queue' => $queue,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new ExternalServiceException('Error al crear consumer group: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Confirma que un mensaje del stream fue procesado correctamente (XACK).
+     * Elimina el mensaje del PEL (Pending Entry List) del consumer group.
+     *
+     * @param string $queue     Nombre de la cola
+     * @param string $messageId ID del mensaje de Redis Streams (ej: '1234567890-0')
+     * @return void
+     */
+    public static function acknowledge(string $queue, string $messageId): void
+    {
+        try {
+            $redis = self::getRedis();
+            $redis->xAck(self::REDIS_PREFIX . $queue, self::CONSUMER_GROUP, [$messageId]);
+
+            Logger::debug('[Queue] Mensaje confirmado (XACK)', [
+                'queue' => $queue,
+                'message_id' => $messageId,
+            ]);
+        } catch (Throwable $e) {
+            // XACK fallido no es crítico: el mensaje quedará en PEL y puede reclamarse
+            Logger::warning('[Queue] Error en XACK', [
+                'queue' => $queue,
+                'message_id' => $messageId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 
     /**
      * Obtiene la instancia de Redis (o fallback) para colas
@@ -96,11 +180,11 @@ final class Queue
             $queueKey = self::REDIS_PREFIX . $queue;
 
             if ($delay !== null && $delay > 0) {
-                // Job diferido: usar sorted set con score = timestamp de disponibilidad
+                // Job diferido: sorted set con score = timestamp de disponibilidad
                 $redis->zAdd($queueKey . ':delayed', [], (float) $jobData['available_at'], $serialized);
             } else {
-                // Job inmediato: usar lista
-                $redis->lPush($queueKey, $serialized);
+                // Job inmediato: Redis Stream (XADD) — garantiza at-least-once con consumer groups
+                $redis->xAdd($queueKey, '*', ['data' => $serialized]);
             }
 
             Logger::info('[Queue] Job añadido a la cola', [
@@ -141,21 +225,52 @@ final class Queue
             $redis = self::getRedis();
             $queueKey = self::REDIS_PREFIX . $queue;
 
-            // Procesar jobs diferidos primero
+            // Procesar jobs diferidos primero (sorted set → stream)
             self::processDelayedJobs($queue);
 
-            // Extraer job de la cola (bloqueante para evitar polling agresivo)
-            $result = $redis->brPop([$queueKey], self::BLOCKING_TIMEOUT);
+            // Asegurar que el consumer group existe.
+            // Se usa '0' para leer desde el inicio del stream; si ya existe (BUSYGROUP) se ignora.
+            try {
+                $redis->xGroup('CREATE', $queueKey, self::CONSUMER_GROUP, '0', true);
+            } catch (RedisException $e) {
+                if (!\str_contains($e->getMessage(), 'BUSYGROUP')) {
+                    throw new ExternalServiceException('Error al crear consumer group: ' . $e->getMessage());
+                }
+            }
 
-            if ($result === false || !isset($result[1])) {
+            // XREADGROUP: leer el siguiente mensaje no entregado del stream.
+            // '>' indica "solo mensajes pendientes de entrega" (not yet delivered to any consumer).
+            // El mensaje permanece en el PEL hasta que se llame a acknowledge().
+            $consumer = self::getConsumerName();
+            $blockMs = self::BLOCKING_TIMEOUT * 1000;
+
+            $result = $redis->xReadGroup(
+                self::CONSUMER_GROUP,
+                $consumer,
+                [$queueKey => '>'],
+                1,
+                $blockMs,
+            );
+
+            if ($result === false || $result === null || empty($result[$queueKey])) {
                 return null;
             }
 
-            $jobData = \json_decode($result[1], true, 512, JSON_THROW_ON_ERROR);
+            // PhpRedis devuelve: ['stream_key' => ['message_id' => ['field' => 'value']]]
+            $messages = $result[$queueKey];
+            $messageId = (string) \array_key_first($messages);
+            $fields = $messages[$messageId];
 
-            Logger::debug('[Queue] Job extraído de la cola', [
+            $jobData = \json_decode($fields['data'], true, 512, JSON_THROW_ON_ERROR);
+
+            // Adjuntar el ID del stream para que el worker pueda llamar a acknowledge()
+            $jobData['_stream_id'] = $messageId;
+            $jobData['_stream_queue'] = $queue;
+
+            Logger::debug('[Queue] Job leído del stream', [
                 'job' => $jobData['job'] ?? 'unknown',
                 'queue' => $queue,
+                'message_id' => $messageId,
                 'attempts' => $jobData['attempts'] ?? 0,
             ]);
 
@@ -199,8 +314,8 @@ final class Queue
             }
 
             foreach ($jobs as $job) {
-                // Mover a cola principal
-                $redis->lPush($queueKey, $job);
+                // Mover al stream principal (XADD)
+                $redis->xAdd($queueKey, '*', ['data' => $job]);
                 // Eliminar de cola diferida
                 $redis->zRem($delayedKey, $job);
             }
@@ -222,13 +337,13 @@ final class Queue
      *
      * @param array<string, mixed> $jobData     Datos del job
      * @param string               $queue       Nombre de la cola
-     * @param integer              $maxAttempts Número máximo de reintentos (por defecto: 3)
+     * @param integer              $maxAttempts Número máximo de reintentos (por defecto: 10)
      * @return boolean True si se reencoló, false si alcanzó máximo de intentos
      */
     public static function retry(
         array $jobData,
         string $queue = self::DEFAULT_QUEUE,
-        int $maxAttempts = 3
+        int $maxAttempts = 10
     ): bool {
         $attempts = ($jobData['attempts'] ?? 0) + 1;
 
@@ -249,8 +364,8 @@ final class Queue
             $redis = self::getRedis();
             $jobData['attempts'] = $attempts;
 
-            // Delay exponencial: 2^attempts segundos
-            $delay = 2 ** $attempts;
+            // Full jitter: uniforme en [0, min(300, 2^attempts)] para evitar thundering herd
+            $delay = \random_int(0, \min(300, 2 ** $attempts));
 
             $serialized = \json_encode($jobData, JSON_THROW_ON_ERROR);
             $delayedKey = self::REDIS_PREFIX . $queue . ':delayed';
@@ -295,9 +410,10 @@ final class Queue
             ];
 
             $serialized = \json_encode($failedData, JSON_THROW_ON_ERROR);
-            $redis->lPush($failedKey, $serialized);
+            // Dead-letter stream: mensajes que superaron el máximo de reintentos
+            $redis->xAdd($failedKey . self::DLQ_SUFFIX, '*', ['data' => $serialized]);
 
-            Logger::error('[Queue] Job movido a cola de fallos', [
+            Logger::error('[Queue] Job movido a dead-letter stream', [
                 'job' => $jobData['job'] ?? 'unknown',
                 'queue' => $queue,
             ]);
@@ -321,7 +437,8 @@ final class Queue
             $redis = self::getRedis();
             $queueKey = self::REDIS_PREFIX . $queue;
 
-            return (int) $redis->lLen($queueKey);
+            // xLen devuelve el número total de mensajes en el stream
+            return (int) $redis->xLen($queueKey);
         } catch (Throwable $e) {
             Logger::error('[Queue] Error al obtener tamaño de cola', [
                 'queue' => $queue,
@@ -347,6 +464,7 @@ final class Queue
 
             $redis->del($queueKey);
             $redis->del($delayedKey);
+            $redis->del($queueKey . self::DLQ_SUFFIX);
 
             Logger::warning('[Queue] Cola limpiada', ['queue' => $queue]);
 

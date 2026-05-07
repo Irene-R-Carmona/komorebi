@@ -1,0 +1,434 @@
+/**
+ * Manager Reservations — Estilos de sección
+ * ============================================================================
+ * Estilos para la vista GET /manager/reservations.
+ * Amplía admin-common.css usando las mismas variables semánticas.
+ *
+ * Secciones:
+ * - Cabecera de filtros
+ * - Campos de formulario
+ * - Botones de acción
+ * - Tabla de reservas
+ * - Badges de estado
+ * - Estado vacío
+ * - Responsive
+ * - Reduced motion
+ *
+ * @requires admin-common.css  (--admin-* vars)
+ * @requires design-tokens.css (--color-* vars)
+ */
+
+/* ============================================================================
+   CABECERA DE FILTROS
+   ============================================================================ */
+
+.reservations-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--admin-space-md);
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-space-xs);
+  min-width: 0;
+}
+
+.filter-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ============================================================================
+   CAMPOS DE FORMULARIO
+   ============================================================================ */
+
+.filter-input,
+.filter-select {
+  display: block;
+  min-height: var(--admin-touch-min);
+  padding: 0 var(--admin-space-md);
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  font-size: 0.9rem;
+  color: var(--admin-text);
+  transition: border-color var(--admin-transition),
+    box-shadow var(--admin-transition);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px var(--admin-primary-light);
+}
+
+.filter-select {
+  min-width: 160px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235C4A3A' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.25rem;
+  cursor: pointer;
+}
+
+/* ============================================================================
+   BOTONES DE ACCIÓN
+   ============================================================================ */
+
+.filter-actions {
+  display: flex;
+  gap: var(--admin-space-sm);
+  align-items: flex-end;
+}
+
+.filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--admin-space-xs);
+  min-height: var(--admin-touch-min);
+  padding: 0 var(--admin-space-lg);
+  border: none;
+  border-radius: var(--admin-radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color var(--admin-transition),
+    transform var(--admin-transition-fast),
+    box-shadow var(--admin-transition);
+  white-space: nowrap;
+}
+
+.filter-btn--primary {
+  background-color: var(--admin-primary);
+  color: var(--admin-text-light);
+}
+
+.filter-btn--primary:hover {
+  background-color: var(--admin-primary-hover);
+  box-shadow: var(--admin-shadow-sm);
+  transform: translateY(-1px);
+}
+
+.filter-btn--secondary {
+  background-color: var(--admin-bg-alt);
+  color: var(--admin-text);
+  border: 1px solid var(--admin-border);
+}
+
+.filter-btn--secondary:hover {
+  background-color: var(--admin-border);
+  transform: translateY(-1px);
+}
+
+/* ============================================================================
+   TABLA DE RESERVAS
+   ============================================================================ */
+
+.reservations-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.reservations-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.reservations-table thead tr {
+  border-bottom: 2px solid var(--admin-border);
+}
+
+.reservations-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.reservations-table th--center {
+  text-align: center;
+}
+
+.reservations-table tbody tr {
+  border-bottom: 1px solid var(--admin-border);
+  transition: background-color var(--admin-transition-fast);
+}
+
+.reservations-table tbody tr:hover {
+  background-color: var(--admin-primary-light);
+}
+
+.reservations-table td {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: var(--admin-text);
+  vertical-align: middle;
+}
+
+.reservations-table td--muted {
+  color: var(--admin-text-muted);
+}
+
+.reservations-table td--center {
+  text-align: center;
+}
+
+.reservations-table td--nowrap {
+  white-space: nowrap;
+}
+
+.reservations-table__id {
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.reservations-table__date,
+.reservations-table__time {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.reservations-table__count {
+  text-align: center;
+}
+
+.reservations-table__meta {
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+  white-space: nowrap;
+}
+
+/* Pie de tabla */
+.reservations-table__footer {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--admin-border);
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+}
+
+/* ============================================================================
+   BADGES DE ESTADO
+   ============================================================================ */
+
+.reservation-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* Pendiente — amarillo cálido (warning) */
+.reservation-badge--pending {
+  background-color: var(--admin-warning-light);
+  color: var(--admin-warning);
+  border: 1px solid rgba(230, 149, 0, 0.2);
+}
+
+/* Confirmada — azul info */
+.reservation-badge--confirmed {
+  background-color: var(--admin-info-light);
+  color: var(--admin-info);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* Activa — verde éxito */
+.reservation-badge--active {
+  background-color: var(--admin-success-light);
+  color: var(--admin-success);
+  border: 1px solid rgba(94, 111, 100, 0.2);
+}
+
+/* Completada — neutro oscuro */
+.reservation-badge--completed {
+  background-color: var(--admin-bg-alt);
+  color: var(--admin-text-muted);
+  border: 1px solid var(--admin-border);
+}
+
+/* Cancelada — rojo error */
+.reservation-badge--cancelled {
+  background-color: var(--admin-error-light);
+  color: var(--admin-error);
+  border: 1px solid rgba(155, 35, 53, 0.2);
+}
+
+/* No Show — gris neutro, no violeta/morado */
+.reservation-badge--no-show {
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+  border: 1px solid var(--admin-border-hover);
+}
+
+/* ============================================================================
+   ESTADO VACÍO
+   ============================================================================ */
+
+.reservations-empty {
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.reservations-empty__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--admin-space-md);
+  border-radius: var(--admin-radius-full);
+  background-color: var(--admin-primary-light);
+  color: var(--admin-primary);
+  font-size: 1.75rem;
+}
+
+.reservations-empty__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin: 0 0 var(--admin-space-xs);
+}
+
+.reservations-empty__message {
+  font-size: 0.9375rem;
+  color: var(--admin-text-muted);
+  margin: 0;
+}
+
+/* ============================================================================
+   DARK MODE (Bootstrap data-bs-theme="dark" + custom [data-tema="oscuro"])
+   ============================================================================ */
+
+[data-bs-theme="dark"] .filter-input,
+[data-bs-theme="dark"] .filter-select,
+[data-tema="oscuro"] .filter-input,
+[data-tema="oscuro"] .filter-select {
+  background-color: var(--color-superficie, #3D2E1F);
+  border-color: var(--color-borde, #4A3828);
+  color: var(--color-texto, #E8DCC4);
+}
+
+[data-bs-theme="dark"] .filter-select,
+[data-tema="oscuro"] .filter-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23B8A890' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+}
+
+[data-bs-theme="dark"] .filter-btn--secondary,
+[data-tema="oscuro"] .filter-btn--secondary {
+  background-color: var(--color-superficie, #3D2E1F);
+  border-color: var(--color-borde, #4A3828);
+  color: var(--color-texto, #E8DCC4);
+}
+
+[data-bs-theme="dark"] .reservations-table tbody tr:hover,
+[data-tema="oscuro"] .reservations-table tbody tr:hover {
+  background-color: rgba(201, 169, 89, 0.05);
+}
+
+/* Badges en modo oscuro — mayor contraste */
+[data-bs-theme="dark"] .reservation-badge--pending,
+[data-tema="oscuro"] .reservation-badge--pending {
+  background-color: rgba(230, 149, 0, 0.15);
+  color: #fcd34d;
+  border-color: rgba(230, 149, 0, 0.3);
+}
+
+[data-bs-theme="dark"] .reservation-badge--confirmed,
+[data-tema="oscuro"] .reservation-badge--confirmed {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+[data-bs-theme="dark"] .reservation-badge--active,
+[data-tema="oscuro"] .reservation-badge--active {
+  background-color: rgba(94, 111, 100, 0.15);
+  color: #86efac;
+  border-color: rgba(94, 111, 100, 0.3);
+}
+
+[data-bs-theme="dark"] .reservation-badge--completed,
+[data-tema="oscuro"] .reservation-badge--completed {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #B8A890;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .reservation-badge--cancelled,
+[data-tema="oscuro"] .reservation-badge--cancelled {
+  background-color: rgba(155, 35, 53, 0.15);
+  color: #fca5a5;
+  border-color: rgba(155, 35, 53, 0.3);
+}
+
+[data-bs-theme="dark"] .reservation-badge--no-show,
+[data-tema="oscuro"] .reservation-badge--no-show {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #B8A890;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .reservations-filter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group,
+  .filter-actions {
+    width: 100%;
+  }
+
+  .filter-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .reservations-table th,
+  .reservations-table td {
+    padding: 0.625rem 0.75rem;
+  }
+}
+
+/* ============================================================================
+   REDUCED MOTION
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .filter-input,
+  .filter-select,
+  .filter-btn,
+  .reservations-table tbody tr {
+    transition: none;
+  }
+
+  .filter-btn:hover,
+  .filter-btn--primary:hover,
+  .filter-btn--secondary:hover {
+    transform: none;
+  }
+}

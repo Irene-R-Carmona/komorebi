@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Partial: Tab Seguridad - Configuración de seguridad y autenticación
  */
@@ -26,8 +27,7 @@
                         x-model.number="settings.session_lifetime"
                         min="15"
                         max="480"
-                        step="15"
-                    >
+                        step="15">
                     <div class="range-input__value">
                         <span x-text="sessionHours"></span>
                         <span class="range-input__unit">horas</span>
@@ -45,8 +45,7 @@
                     id="maxLoginAttempts"
                     x-model.number="settings.max_login_attempts"
                     min="3"
-                    max="10"
-                >
+                    max="10">
                 <p class="form-hint">Intentos fallidos antes de bloquear la cuenta</p>
             </div>
 
@@ -61,8 +60,7 @@
                         x-model.number="settings.lockout_duration"
                         min="5"
                         max="120"
-                        step="5"
-                    >
+                        step="5">
                     <div class="range-input__value">
                         <span x-text="settings.lockout_duration"></span>
                         <span class="range-input__unit">min</span>
@@ -80,8 +78,7 @@
                         id="passwordMinLength"
                         x-model.number="settings.password_min_length"
                         min="6"
-                        max="32"
-                    >
+                        max="32">
                     <div class="range-input__value">
                         <span x-text="settings.password_min_length"></span>
                         <span class="range-input__unit">chars</span>
@@ -97,8 +94,7 @@
                         type="checkbox"
                         role="switch"
                         id="requireEmailVerification"
-                        x-model="settings.require_email_verification"
-                    >
+                        x-model="settings.require_email_verification">
                     <label class="form-check-label" for="requireEmailVerification">
                         <strong>Verificación de Email</strong>
                         <span class="d-block text-muted small">
@@ -116,8 +112,7 @@
                         type="checkbox"
                         role="switch"
                         id="passwordRequireSpecial"
-                        x-model="settings.password_require_special"
-                    >
+                        x-model="settings.password_require_special">
                     <label class="form-check-label" for="passwordRequireSpecial">
                         <strong>Caracteres Especiales</strong>
                         <span class="d-block text-muted small">
@@ -135,12 +130,11 @@
                         type="checkbox"
                         role="switch"
                         id="enable2fa"
-                        x-model="settings.enable_2fa"
-                    >
+                        x-model="settings.enable_2fa">
                     <label class="form-check-label" for="enable2fa">
                         <strong>Autenticación de Dos Factores (2FA)</strong>
                         <span class="d-block text-muted small">
-                            ⚠️ Experimental - Requiere configuración adicional de servidor
+                            <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Experimental - Requiere configuraci&oacute;n adicional de servidor
                         </span>
                     </label>
                 </div>
@@ -160,8 +154,7 @@
                 type="button"
                 class="btn btn-outline-secondary"
                 @click="resetGroup('security')"
-                :disabled="saving"
-            >
+                :disabled="saving">
                 <i class="bi bi-arrow-counterclockwise me-1"></i>
                 Restaurar
             </button>
@@ -169,8 +162,7 @@
                 type="button"
                 class="btn btn-primary"
                 @click="saveGroup('security')"
-                :disabled="saving"
-            >
+                :disabled="saving">
                 <span x-show="!saving">
                     <i class="bi bi-save me-1"></i>
                     Guardar Cambios

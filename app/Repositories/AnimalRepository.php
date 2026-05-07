@@ -4,234 +4,244 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Domain\DTO\AnimalDTO;
+use App\Domain\Mappers\AnimalMapper;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
+use Override;
 use PDO;
 
 /**
- * Repositorio de Animales
+ * Repositorio de Animales.
  *
- * Implementa acceso a datos de animales con prepared statements.
- * Sigue el principio SOLID de Inversión de Dependencias.
+ * Encapsula el acceso a datos de animales, health_checks e incidentes
+ * siguiendo el principio de Inversión de Dependencias (SOLID).
  */
-final class AnimalRepository implements AnimalRepositoryInterface
+final class AnimalRepository extends AbstractRepository implements AnimalRepositoryInterface
 {
-    private PDO $db;
-
-    public function __construct(PDO $db)
+    public function __construct(private readonly AnimalMapper $mapper, ?PDO $db = null)
     {
-        $this->db = $db;
+        parent::__construct($db);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function findById(int $id): ?array
+    #[Override]
+    protected function getTable(): string
     {
-        $stmt = $this->db->prepare("
-            SELECT
-                id, cafe_id, current_zone_id, name, species_type, age,
-                personality, description, interaction_level, attributes,
-                image_url, current_status, last_check_at, last_health_check,
-                deleted_at, created_at, updated_at
-            FROM animals
-            WHERE id = ? AND deleted_at IS NULL
-        ");
-
-        $stmt->execute([$id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $result ?: null;
+        return 'animals';
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[Override]
+    protected function getSelectFields(): array
+    {
+        return [
+            'id',
+            'cafe_id',
+            'current_zone_id',
+            'name',
+            'species_type',
+            'age',
+            'personality',
+            'description',
+            'interaction_level',
+            'attributes',
+            'image_url',
+            'current_status',
+            'last_health_check',
+            'deleted_at',
+            'created_at',
+            'updated_at',
+        ];
+    }
+
+    #[Override]
+    public function findById(int $id): ?AnimalDTO
+    {
+        $fields = \implode(', ', $this->getSelectFields());
+        $stmt = $this->getDb()->prepare(
+            "SELECT $fields FROM animals WHERE id = :id AND deleted_at IS NULL LIMIT 1"
+        );
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ? $this->mapper->toDTO($row) : null;
+    }
+
+    #[Override]
     public function findActiveByCafe(int $cafeId): array
     {
-        $stmt = $this->db->prepare("
-            SELECT
-                id, cafe_id, name, species_type, current_status,
-                interaction_level, image_url, personality
+        $stmt = $this->getDb()->prepare("
+            SELECT id, cafe_id, name, species_type, current_status,
+                   interaction_level, image_url, personality
             FROM animals
-            WHERE cafe_id = ?
-              AND current_status = 'active'
-              AND deleted_at IS NULL
+            WHERE cafe_id = :cafe_id AND current_status = 'active' AND deleted_at IS NULL
             ORDER BY name ASC
         ");
-
-        $stmt->execute([$cafeId]);
+        $stmt->execute(['cafe_id' => $cafeId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[Override]
     public function isAvailable(int $animalId): bool
     {
-        $stmt = $this->db->prepare("
-            SELECT current_status
-            FROM animals
-            WHERE id = ? AND deleted_at IS NULL
-        ");
-
-        $stmt->execute([$animalId]);
-        $animal = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$animal) {
-            return false;
-        }
-
-        // Solo animales con status 'active' están disponibles
-        return $animal['current_status'] === 'active';
+        return $this->fetchCurrentStatus($animalId) === 'active';
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[Override]
     public function isResting(int $animalId): bool
     {
-        // Verificar si el animal tiene status de descanso
-        $stmt = $this->db->prepare("
-            SELECT current_status
-            FROM animals
-            WHERE id = ? AND deleted_at IS NULL
-        ");
-
-        $stmt->execute([$animalId]);
-        $animal = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$animal) {
-            return false;
-        }
-
-        // Si está en estado resting, sick o retired, está descansando
-        $restingStatuses = ['resting', 'sick', 'retired'];
-
-        return in_array($animal['current_status'], $restingStatuses, true);
+        return \in_array($this->fetchCurrentStatus($animalId), ['resting', 'sick', 'retired'], true);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private function fetchCurrentStatus(int $id): ?string
+    {
+        $stmt = $this->getDb()->prepare(
+            'SELECT current_status FROM animals WHERE id = :id AND deleted_at IS NULL'
+        );
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ? $row['current_status'] : null;
+    }
+
+    #[Override]
     public function getAnimalsWithCafeInfoOptimized(): array
     {
-        $stmt = $this->db->query("
-            SELECT
-                a.*,
-                c.name as cafe_name,
-                COUNT(hc.id) as logs_today
+        $stmt = $this->getDb()->query('
+            SELECT a.*, c.name as cafe_name, COUNT(hc.id) as logs_today
             FROM animals a
             LEFT JOIN cafes c ON a.cafe_id = c.id
             LEFT JOIN animal_health_checks hc
-                ON hc.animal_id = a.id
-                AND DATE(hc.check_date) = CURDATE()
+                ON hc.animal_id = a.id AND DATE(hc.check_date) = CURDATE()
             WHERE a.deleted_at IS NULL
-            GROUP BY
-                a.id, a.cafe_id, a.current_zone_id, a.name, a.species_type,
-                a.age, a.personality, a.description, a.interaction_level,
-                a.attributes, a.current_status, a.image_url,
-                a.last_check_at, a.last_health_check, a.deleted_at,
-                a.created_at, a.updated_at, c.name
+            GROUP BY a.id, a.cafe_id, a.current_zone_id, a.name, a.species_type,
+                     a.age, a.personality, a.description, a.interaction_level,
+                     a.attributes, a.current_status, a.image_url,
+                     a.last_health_check, a.deleted_at,
+                     a.created_at, a.updated_at, c.name
             ORDER BY a.name
-        ");
+        ');
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    #[Override]
     public function getHealthStatistics(): array
     {
-        // Una sola query con SUM + CASE para contar por estado
-
-        $stmt = $this->db->query("
-            SELECT
-                COUNT(*) as total_animals,
-                SUM(CASE WHEN current_status = 'active' THEN 1 ELSE 0 END) as healthy,
-                SUM(CASE WHEN current_status = 'resting' THEN 1 ELSE 0 END) as monitoring,
-                SUM(CASE WHEN current_status = 'sick' THEN 1 ELSE 0 END) as sick
-            FROM animals
-            WHERE deleted_at IS NULL
+        $stmt = $this->getDb()->query("
+            SELECT COUNT(*) as total_animals,
+                   SUM(CASE WHEN current_status = 'active'  THEN 1 ELSE 0 END) as healthy,
+                   SUM(CASE WHEN current_status = 'resting' THEN 1 ELSE 0 END) as monitoring,
+                   SUM(CASE WHEN current_status = 'sick'    THEN 1 ELSE 0 END) as sick
+            FROM animals WHERE deleted_at IS NULL
         ");
-
         $animalStats = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Query separada para logs de hoy (no afecta performance)
-        $logsStmt = $this->db->query("
-            SELECT COUNT(*) as logs_today
-            FROM animal_health_checks
-            WHERE check_date = CURDATE()
-        ");
-
-        $logsData = $logsStmt->fetch(PDO::FETCH_ASSOC);
+        $logsToday = (int) $this->getDb()
+            ->query('SELECT COUNT(*) FROM animal_health_checks WHERE check_date = CURDATE()')
+            ->fetchColumn();
 
         return [
             'total_animals' => (int) $animalStats['total_animals'],
             'healthy' => (int) $animalStats['healthy'],
             'monitoring' => (int) $animalStats['monitoring'],
             'sick' => (int) $animalStats['sick'],
-            'logs_today' => (int) $logsData['logs_today'],
+            'logs_today' => $logsToday,
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getRecentLogs(int $limit = 20): array
+    #[Override]
+    public function countDistinctSpecies(): int
     {
-        $stmt = $this->db->prepare("
-            SELECT
-                hc.*,
-                a.name as animal_name,
-                a.species_type as species,
-                u.name as keeper_name
-            FROM animal_health_checks hc
-            JOIN animals a ON hc.animal_id = a.id
-            LEFT JOIN users u ON hc.checked_by = u.id
-            WHERE hc.created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-            ORDER BY hc.created_at DESC
-            LIMIT :limit
-        ");
-
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getActiveIncidents(): array
-    {
-        $stmt = $this->db->query("
-            SELECT
-                ai.*,
-                a.name as animal_name,
-                a.species_type as species
-            FROM animal_incidents ai
-            JOIN animals a ON ai.animal_id = a.id
-            WHERE ai.resolved_at IS NULL
-            ORDER BY ai.severity DESC, ai.created_at DESC
-        ");
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function updateImageUrl(int $animalId, string $imageUrl): bool
-    {
-        $stmt = $this->db->prepare(
-            'UPDATE animals SET image_url = :image_url, updated_at = NOW() WHERE id = :id AND deleted_at IS NULL'
+        $stmt = $this->getDb()->query(
+            "SELECT COUNT(DISTINCT species_type) FROM animals WHERE current_status IN ('active', 'resting')"
         );
 
-        return $stmt->execute([
-            'image_url' => $imageUrl,
-            'id' => $animalId,
+        return (int) $stmt->fetchColumn();
+    }
+
+    #[Override]
+    public function updateImageUrl(int $animalId, string $imageUrl): bool
+    {
+        $stmt = $this->getDb()->prepare(
+            'UPDATE animals SET image_url = :url, updated_at = NOW() WHERE id = :id AND deleted_at IS NULL'
+        );
+
+        return $stmt->execute(['url' => $imageUrl, 'id' => $animalId]);
+    }
+
+    #[Override]
+    public function createAnimal(array $data): int
+    {
+        $stmt = $this->getDb()->prepare('
+            INSERT INTO animals (cafe_id, name, species_type, age, personality, current_status, created_at, updated_at)
+            VALUES (:cafe_id, :name, :species, :age, :personality, \'active\', NOW(), NOW())
+        ');
+        $stmt->execute([
+            'cafe_id' => $data['cafe_id'] ?? null,
+            'name' => $data['name'],
+            'species' => $data['species'],
+            'age' => $data['age_years'] ?? null,
+            'personality' => $data['personality'] ?? null,
         ]);
+
+        return (int) $this->getDb()->lastInsertId();
+    }
+
+    #[Override]
+    public function updateAnimal(int $id, array $data): bool
+    {
+        $stmt = $this->getDb()->prepare('
+            UPDATE animals
+            SET name = :name, species_type = :species, age = :age,
+                personality = :personality, cafe_id = :cafe_id, updated_at = NOW()
+            WHERE id = :id AND deleted_at IS NULL
+        ');
+
+        return $stmt->execute([
+            'name' => $data['name'] ?? '',
+            'species' => $data['species'] ?? '',
+            'age' => $data['age_years'] ?? null,
+            'personality' => $data['personality'] ?? null,
+            'cafe_id' => $data['cafe_id'] ?? null,
+            'id' => $id,
+        ]) && $stmt->rowCount() > 0;
+    }
+
+    #[Override]
+    public function softDeleteAnimal(int $id): bool
+    {
+        $stmt = $this->getDb()->prepare(
+            'UPDATE animals SET deleted_at = NOW() WHERE id = :id AND deleted_at IS NULL'
+        );
+        $stmt->execute(['id' => $id]);
+
+        return $stmt->rowCount() > 0;
+    }
+
+    #[Override]
+    public function updateStatus(int $id, string $status): bool
+    {
+        $stmt = $this->getDb()->prepare(
+            'UPDATE animals SET current_status = :status, last_health_check = NOW() WHERE id = :id'
+        );
+
+        return $stmt->execute(['status' => $status, 'id' => $id]);
+    }
+
+    #[Override]
+    public function toggleStatus(int $id): array
+    {
+        $current = $this->fetchCurrentStatus($id);
+        if ($current === null) {
+            return ['found' => false];
+        }
+
+        $newStatus = $current === 'active' ? 'resting' : 'active';
+
+        $this->getDb()->prepare(
+            'UPDATE animals SET current_status = :status, updated_at = NOW() WHERE id = :id'
+        )->execute(['status' => $newStatus, 'id' => $id]);
+
+        return ['found' => true, 'current_status' => $newStatus];
     }
 }

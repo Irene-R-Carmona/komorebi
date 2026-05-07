@@ -44,9 +44,9 @@ function color(string $text, string $color): string
 
 // Banner
 echo "\n";
-echo color("╔═══════════════════════════════════════════════════════════╗\n", 'blue');
-echo color("║  🔐 Komorebi Café - Generador de Secretos               ║\n", 'blue');
-echo color("╚═══════════════════════════════════════════════════════════╝\n", 'blue');
+echo color("=============================================================\n", 'blue');
+echo color("  Komorebi Cafe - Generador de Secretos                    \n", 'blue');
+echo color("=============================================================\n", 'blue');
 echo "\n";
 
 // Generar claves
@@ -62,7 +62,7 @@ $secrets = [
 
 // Mostrar claves generadas
 foreach ($secrets as $name => $value) {
-    echo color("✓ $name: ", 'green') . $value . "\n";
+    echo color("[OK] $name: ", 'green') . $value . "\n";
 }
 
 echo "\n";
@@ -76,7 +76,7 @@ if (in_array('--show-only', $argv, true)) {
 // Buscar archivo .env
 $envPath = __DIR__ . '/../.env';
 if (!file_exists($envPath)) {
-    echo color("⚠ Archivo .env no encontrado.\n", 'yellow');
+    echo color("[WARN] Archivo .env no encontrado.\n", 'yellow');
     echo color('¿Deseas crear uno desde .env.example? (y/n): ', 'yellow');
 
     $handle = fopen('php://stdin', 'rb');
@@ -86,11 +86,11 @@ if (!file_exists($envPath)) {
     if (strtolower($response) === 'y') {
         $examplePath = __DIR__ . '/../.env.example';
         if (!file_exists($examplePath)) {
-            echo color("✗ Error: .env.example no encontrado\n", 'red');
+            echo color("[ERROR] .env.example no encontrado\n", 'red');
             exit(1);
         }
         copy($examplePath, $envPath);
-        echo color("✓ Archivo .env creado desde .env.example\n", 'green');
+        echo color("[OK] Archivo .env creado desde .env.example\n", 'green');
     } else {
         echo color("Operación cancelada.\n", 'red');
         exit(1);
@@ -108,11 +108,11 @@ foreach ($secrets as $name => $value) {
     if (preg_match($pattern, $envContent)) {
         // Actualizar valor existente
         $envContent = preg_replace($pattern, $replacement, $envContent);
-        echo color("✓ Actualizado $name en .env\n", 'green');
+        echo color("[OK] Actualizado $name en .env\n", 'green');
     } else {
         // Añadir nuevo valor
         $envContent .= "\n$replacement";
-        echo color("✓ Añadido $name a .env\n", 'green');
+        echo color("[OK] Anadido $name a .env\n", 'green');
     }
 }
 
@@ -120,13 +120,13 @@ foreach ($secrets as $name => $value) {
 file_put_contents($envPath, $envContent);
 
 echo "\n";
-echo color("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", 'green');
-echo color("✓ Secretos generados y guardados en .env correctamente\n", 'green');
-echo color("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", 'green');
+echo color("========================================================\n", 'green');
+echo color("[OK] Secretos generados y guardados en .env correctamente\n", 'green');
+echo color("========================================================\n", 'green');
 echo "\n";
 
 // Advertencias de seguridad
-echo color("⚠  IMPORTANTE:\n", 'yellow');
+echo color("[WARN] IMPORTANTE:\n", 'yellow');
 echo "   1. NO commitear .env a Git (verificar .gitignore)\n";
 echo "   2. Rotar secretos cada 90 días en producción\n";
 echo "   3. Usar diferentes claves por entorno (dev/staging/prod)\n";
@@ -137,15 +137,15 @@ $gitignorePath = __DIR__ . '/../.gitignore';
 if (file_exists($gitignorePath)) {
     $gitignoreContent = file_get_contents($gitignorePath);
     if (!str_contains($gitignoreContent, '.env')) {
-        echo color("✗ ADVERTENCIA: .env NO está en .gitignore\n", 'red');
-        echo color("  Añade '.env' a tu .gitignore INMEDIATAMENTE\n", 'red');
+        echo color("[ERROR] .env NO esta en .gitignore\n", 'red');
+        echo color("  Anade '.env' a tu .gitignore INMEDIATAMENTE\n", 'red');
     } else {
-        echo color("✓ .env está protegido en .gitignore\n", 'green');
+        echo color("[OK] .env esta protegido en .gitignore\n", 'green');
     }
 }
 
 echo "\n";
-echo color("Happy coding! 🚀\n", 'blue');
+echo color("Secretos listos.\n", 'blue');
 echo "\n";
 
 exit(0);

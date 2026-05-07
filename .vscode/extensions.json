@@ -1,0 +1,30 @@
+{
+  "recommendations": [
+    // GitHub Copilot — Chat con soporte de MCPs y skills
+    "github.copilot",
+    "github.copilot-chat",
+    // PHP — Language server (no requiere PHP local, LSP propio en Node.js)
+    "bmewburn.vscode-intelephense-client",
+    // PHP — Code style
+    "wongjn.php-sniffer",
+    "junstyle.php-cs-fixer",
+    // PHP — Static analysis
+    "swordev.phpstan",
+    "getpsalm.psalm-vscode-plugin",
+    // PHP — Tests
+    "recca0120.vscode-phpunit",
+    // PHP — Debugging (conecta con Xdebug dentro del contenedor)
+    "xdebug.php-debug",
+    // JavaScript / Node.js — E2E
+    "ms-playwright.playwright"
+  ],
+  "unwantedRecommendations": [
+    // Sus funciones están cubiertas por Intelephense.
+    // Su activación junto a Intelephense genera conflictos y el aviso de
+    // "No se ha encontrado una instalación de PHP".
+    "vscode.php-language-features",
+    // Requiere PHP local instalado; llama php.exe directamente.
+    // Intelephense cubre las mismas funcionalidades sin necesitar PHP en el host.
+    "felixfbecker.php-intellisense"
+  ]
+}

@@ -16,18 +16,18 @@ use App\Core\Csrf;
  */
 ?>
 <section class="auth-page">
-    <script src="/js/sections/auth.js"></script>
+    <script src="/js/sections/auth.js" nonce="<?= $cspNonce ?? '' ?>"></script>
 
     <div class="auth-card">
         <div class="auth-header">
-            <span class="auth-header__icon">🌱</span>
+            <span class="auth-header__icon"><i class="bi bi-leaf-fill"></i></span>
             <h1 class="auth-header__titulo">Crear Cuenta</h1>
             <p class="auth-header__subtitulo">Únete a la comunidad Komorebi</p>
         </div>
 
         <?php if (isset($error) && $error !== ''): ?>
             <div class="alert-error">
-                <span>⚠️</span> <?= $error ?>
+                <i class="bi bi-exclamation-triangle-fill"></i> <?= $error ?>
             </div>
         <?php endif; ?>
 

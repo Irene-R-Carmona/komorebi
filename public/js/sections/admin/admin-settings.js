@@ -79,7 +79,7 @@
 
       async loadSettings() {
         try {
-          const response = await fetch('/admin/settings/data', {
+          const response = await fetch('/api/v1/admin/settings', {
             headers: {
               'Accept': 'application/json',
               'X-Requested-With': 'XMLHttpRequest'
@@ -88,11 +88,11 @@
 
           const data = await response.json();
 
-          if (data.success && data.settings) {
+          if (data.ok && data.data) {
             // Merge settings con defaults
             this.settings = {
               ...this.settings,
-              ...data.settings
+              ...data.data.settings
             };
 
             // Guardar copia para detectar cambios
@@ -101,6 +101,8 @@
         } catch (error) {
           console.error('[Settings] Error loading:', error);
           KomorebiToast.error('Error al cargar configuración');
+        } finally {
+          this.loading = false;
         }
       },
 
@@ -126,8 +128,8 @@
         try {
           const groupSettings = this.getSettingsForGroup(group);
 
-          const response = await fetch(`/admin/settings/group/${group}/update`, {
-            method: 'POST',
+          const response = await fetch(`/api/v1/admin/settings/${group}`, {
+            method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
               'X-CSRF-Token': KomorebiForm.getCsrfToken(),
@@ -138,7 +140,7 @@
 
           const data = await response.json();
 
-          if (response.ok && data.success) {
+          if (response.ok && data.ok) {
             // Actualizar copia original
             this.originalSettings = {
               ...this.originalSettings,
@@ -202,7 +204,7 @@
         this.testingEmail = true;
 
         try {
-          const response = await fetch('/admin/settings/test-email', {
+          const response = await fetch('/api/v1/admin/settings/test-email', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -213,7 +215,7 @@
 
           const data = await response.json();
 
-          if (response.ok && data.success) {
+          if (response.ok && data.ok) {
             KomorebiToast.success('Email de prueba enviado correctamente');
           } else {
             KomorebiToast.error(data.message || 'Error al enviar email de prueba');

@@ -21,7 +21,7 @@ return new Config()
         '@PSR12:risky' => true,
 
         // PHP 8.4 Migration
-        '@PHP84Migration' => true,
+        '@PHP8x4Migration' => true,
 
         // Array notation
         'array_syntax' => ['syntax' => 'short'],
@@ -60,12 +60,19 @@ return new Config()
             'strict' => true,
         ],
 
+        // Global namespace imports: use-import classes, \ prefix for functions/constants
+        'global_namespace_import' => [
+            'import_classes' => true,
+            'import_functions' => false,
+            'import_constants' => false,
+        ],
+
         // Final classes when possible
         'final_class' => true,
         'final_internal_class' => true,
 
-        // Visibility
-        'visibility_required' => [
+        // Visibility / modifiers
+        'modifier_keywords' => [
             'elements' => ['property', 'method', 'const'],
         ],
 

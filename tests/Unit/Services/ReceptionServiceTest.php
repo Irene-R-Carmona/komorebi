@@ -3,377 +3,581 @@
 declare(strict_types=1);
 
 /**
- * ¿Qué pruebas aquí?
- * Servicio de recepción: check-in, check-out y filtrado de llegadas
- * pendientes para el dashboard de recepción.
- *
- * ¿Qué me quieres demostrar?
- * Que processCheckin devuelve Result::ok con reservas confirmadas y tracker
- * disponible, y Result::fail para reservas inexistentes, en estado
- * incorrecto o con tracker no disponible. Que processCheckout devuelve
- * Result::ok para reservas activas y Result::fail en caso contrario.
- * Y que getPendingArrivals filtra exclusivamente reservas en estado
- * "confirmed".
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * Si se elimina la validación de estado, si Result::ok/fail cambia de
- * semántica, si se cambia el filtro STATUS_CONFIRMED en getPendingArrivals,
- * o si el check de tracker disponible desaparece.
+ * ¿Qué pruebas aquí? ReceptionService: getDashboard, addItem y processPayment.
+ * ¿Qué me quieres demostrar? Que el servicio valida estado de reserva, pertenencia al café y delega a repos.
+ * ¿Qué va a fallar en este test si se cambia el código? Si addItem/processPayment dejan de validar estado o café.
  */
 
 namespace Tests\Unit\Services;
 
-use App\Core\Database;
-use App\Models\Reservation;
-use App\Models\Tracker;
+use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Repositories\Contracts\TrackerRepositoryInterface;
 use App\Services\ReceptionService;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(\App\Services\ReceptionService::class)]
+#[CoversClass(ReceptionService::class)]
 final class ReceptionServiceTest extends TestCase
 {
-    private \PDO $pdoStub;
-
-    // ─────────────────────────────────────────────────────────────
-    // setUp / tearDown
-    // ─────────────────────────────────────────────────────────────
+    private ReservationRepositoryInterface $reservationRepoStub;
+    private TrackerRepositoryInterface $trackerRepoStub;
+    private CafeRepositoryInterface $cafeRepoStub;
+    private ReservationItemRepositoryInterface $itemRepoStub;
+    private ProductRepositoryInterface $productRepoStub;
+    private ReceptionService $service;
 
     protected function setUp(): void
     {
-        $this->pdoStub = $this->createStub(\PDO::class);
+        $this->reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
+        $this->trackerRepoStub = $this->createStub(TrackerRepositoryInterface::class);
+        $this->cafeRepoStub = $this->createStub(CafeRepositoryInterface::class);
+        $this->itemRepoStub = $this->createStub(ReservationItemRepositoryInterface::class);
+        $this->productRepoStub = $this->createStub(ProductRepositoryInterface::class);
 
-        // Inyectamos el mismo stub en el singleton de Database para que
-        // Database::transaction() también use nuestro PDO de prueba.
-        $this->injectPdoIntoDatabase($this->pdoStub);
-    }
-
-    protected function tearDown(): void
-    {
-        $this->resetDatabaseSingleton();
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Helpers de infraestructura
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Reemplaza la conexión PDO del singleton Database::$instance
-     * por el stub proporcionado, evitando toda conexión real a BD.
-     */
-    private function injectPdoIntoDatabase(\PDO $pdo): void
-    {
-        $reflection = new \ReflectionClass(Database::class);
-
-        $instanceProp = $reflection->getProperty('instance');
-        $instanceProp->setAccessible(true);
-
-        $fakeInstance = $reflection->newInstanceWithoutConstructor();
-
-        $connectionProp = $reflection->getProperty('connection');
-        $connectionProp->setAccessible(true);
-        $connectionProp->setValue($fakeInstance, $pdo);
-
-        $instanceProp->setValue(null, $fakeInstance);
-    }
-
-    /**
-     * Resetea el singleton de Database para no contaminar otros tests.
-     */
-    private function resetDatabaseSingleton(): void
-    {
-        $reflection = new \ReflectionClass(Database::class);
-        $instanceProp = $reflection->getProperty('instance');
-        $instanceProp->setAccessible(true);
-        $instanceProp->setValue(null, null);
-    }
-
-    /**
-     * Crea un PDOStatement stub configurable.
-     */
-    private function makeStmt(
-        mixed $fetchReturn = false,
-        mixed $fetchAllReturn = [],
-        mixed $fetchColumnReturn = 0
-    ): \PDOStatement {
-        $stmt = $this->createStub(\PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetch')->willReturn($fetchReturn);
-        $stmt->method('fetchAll')->willReturn($fetchAllReturn);
-        $stmt->method('fetchColumn')->willReturn($fetchColumnReturn);
-        return $stmt;
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Fixtures de datos
-    // ─────────────────────────────────────────────────────────────
-
-    private function confirmedReservation(): array
-    {
-        return [
-            'id'             => 42,
-            'status'         => Reservation::STATUS_CONFIRMED,
-            'cafe_id'        => 1,
-            'user_id'        => 10,
-            'tracker_id'     => null,
-            'guests'         => 2,
-            'guest_count'    => 2,
-            'pass_unit_price' => '5.00',
-            'check_in_at'    => null,
-            'check_out_at'   => null,
-        ];
-    }
-
-    /**
-     * Reserva activa sin tracker ni user_id para evitar las ramas de
-     * releaseTracker() y LoyaltyService en el checkout.
-     */
-    private function activeReservation(): array
-    {
-        return [
-            'id'             => 42,
-            'status'         => Reservation::STATUS_ACTIVE,
-            'cafe_id'        => 1,
-            'user_id'        => null,
-            'tracker_id'     => null,
-            'guests'         => 2,
-            'guest_count'    => 2,
-            'pass_unit_price' => '5.00',
-            'check_in_at'    => '2024-01-01 14:00:00',
-            'check_out_at'   => null,
-        ];
-    }
-
-    private function completedReservation(): array
-    {
-        return [
-            'id'           => 42,
-            'status'       => Reservation::STATUS_COMPLETED,
-            'cafe_id'      => 1,
-            'user_id'      => null,
-            'tracker_id'   => null,
-            'final_price'  => '10.00',
-            'check_in_at'  => '2024-01-01 14:00:00',
-            'check_out_at' => '2024-01-01 16:00:00',
-        ];
-    }
-
-    private function availableTracker(): array
-    {
-        return [
-            'id'      => 5,
-            'cafe_id' => 1,
-            'code'    => 'A01',
-            'status'  => Tracker::STATUS_AVAILABLE,
-        ];
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // getPendingArrivals
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function test_getPendingArrivals_returns_only_confirmed_reservations(): void
-    {
-        $stmt = $this->makeStmt(
-            fetchAllReturn: [
-                ['id' => 1, 'status' => Reservation::STATUS_CONFIRMED],
-                ['id' => 2, 'status' => Reservation::STATUS_ACTIVE],
-                ['id' => 3, 'status' => Reservation::STATUS_CONFIRMED],
-                ['id' => 4, 'status' => Reservation::STATUS_PENDING],
-                ['id' => 5, 'status' => Reservation::STATUS_CANCELLED],
-            ]
+        $this->service = new ReceptionService(
+            $this->reservationRepoStub,
+            $this->trackerRepoStub,
+            $this->cafeRepoStub,
+            null,
+            $this->itemRepoStub,
+            $this->productRepoStub
         );
-        $this->pdoStub->method('prepare')->willReturn($stmt);
-
-        $service = new ReceptionService($this->pdoStub);
-        $arrivals = $service->getPendingArrivals(1);
-
-        $this->assertCount(2, $arrivals);
-        foreach ($arrivals as $r) {
-            $this->assertSame(Reservation::STATUS_CONFIRMED, $r['status']);
-        }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // processCheckin — camino feliz
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * processCheckin dispara 4 llamadas a prepare() en orden:
-     *   1. ReceptionService: Reservation::findById()
-     *   2. ReceptionService: Tracker::findById()
-     *   3. Reservation::checkIn(): findById() interno
-     *   4. Reservation::checkIn(): UPDATE reservations
-     */
-    #[Test]
-    public function test_processCheckin_with_valid_reservation_and_tracker_returns_ok_result(): void
+    public function testGetPendingArrivalsReturnsArray(): void
     {
-        $confirmed = $this->confirmedReservation();
-        $tracker   = $this->availableTracker();
+        $this->reservationRepoStub->method('findByCafeAndDate')->willReturn([]);
 
-        $this->pdoStub->method('prepare')->willReturnOnConsecutiveCalls(
-            $this->makeStmt($confirmed),    // findById (service)
-            $this->makeStmt($tracker),      // tracker findById
-            $this->makeStmt($confirmed),    // findById interno en checkIn()
-            $this->makeStmt()               // UPDATE (execute devuelve true)
+        $result = $this->service->getPendingArrivals(1);
+
+        $this->assertIsArray($result);
+    }
+
+    public function testGetActiveGroupsReturnsArray(): void
+    {
+        $this->reservationRepoStub->method('findActiveByCafe')->willReturn([]);
+
+        $result = $this->service->getActiveGroups(1);
+
+        $this->assertIsArray($result);
+    }
+
+    public function testGetAvailableTrackersReturnsArray(): void
+    {
+        $this->trackerRepoStub->method('findAvailable')->willReturn([]);
+
+        $result = $this->service->getAvailableTrackers(1);
+
+        $this->assertIsArray($result);
+    }
+
+    public function testGetPendingArrivalsFiltersToConfirmedOnly(): void
+    {
+        $this->reservationRepoStub->method('findByCafeAndDate')->willReturn([
+            ['id' => 1, 'status' => 'confirmed'],
+            ['id' => 2, 'status' => 'pending'],
+            ['id' => 3, 'status' => 'cancelled'],
+        ]);
+
+        $result = $this->service->getPendingArrivals(1);
+
+        $this->assertCount(1, $result);
+    }
+
+    public function testGetPendingArrivalsReturnsEmptyWhenNoConfirmed(): void
+    {
+        $this->reservationRepoStub->method('findByCafeAndDate')->willReturn([
+            ['id' => 1, 'status' => 'pending'],
+        ]);
+
+        $result = $this->service->getPendingArrivals(1);
+
+        $this->assertCount(0, $result);
+    }
+
+    public function testGetDashboardContainsExpectedKeys(): void
+    {
+        $this->reservationRepoStub->method('findByCafeAndDate')->willReturn([]);
+        $this->reservationRepoStub->method('findActiveByCafe')->willReturn([]);
+        $this->reservationRepoStub->method('getDailyStats')->willReturn([]);
+        $this->trackerRepoStub->method('findAvailable')->willReturn([]);
+        $this->cafeRepoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->getDashboard(1);
+
+        $this->assertArrayHasKey('pending_arrivals', $result);
+        $this->assertArrayHasKey('active_groups', $result);
+        $this->assertArrayHasKey('available_trackers', $result);
+        $this->assertArrayHasKey('capacity', $result);
+        $this->assertArrayHasKey('stats', $result);
+    }
+
+    public function testGetActiveGroupsEnrichesGroupWithCheckinData(): void
+    {
+        $checkinAt = \date('Y-m-d H:i:s', \time() - 1800); // 30 min ago
+        $this->reservationRepoStub->method('findActiveByCafe')->willReturn([
+            ['id' => 1, 'status' => 'active', 'guests' => 2, 'check_in_at' => $checkinAt, 'pass_duration_minutes' => 60],
+        ]);
+
+        $result = $this->service->getActiveGroups(1);
+
+        $this->assertCount(1, $result);
+        $this->assertArrayHasKey('elapsed_minutes', $result[0]);
+        $this->assertArrayHasKey('remaining_minutes', $result[0]);
+        $this->assertArrayHasKey('is_overtime', $result[0]);
+    }
+
+    public function testGetActiveGroupsWithNoCheckinDoesNotEnrich(): void
+    {
+        $this->reservationRepoStub->method('findActiveByCafe')->willReturn([
+            ['id' => 1, 'status' => 'active', 'guests' => 2, 'check_in_at' => null],
+        ]);
+
+        $result = $this->service->getActiveGroups(1);
+
+        $this->assertCount(1, $result);
+        $this->assertArrayNotHasKey('elapsed_minutes', $result[0]);
+    }
+
+    public function testGetCapacityInfoReturnsExpectedStructure(): void
+    {
+        $cafe = new \App\Domain\DTO\CafeDTO(
+            id: 1,
+            slug: 'test',
+            name: 'Test',
+            japanese_name: null,
+            description: null,
+            location: 'loc',
+            category: 'cat',
+            animal_type: 'cat',
+            price_per_hour: 10.0,
+            capacity_max: 20,
+            rating_avg: 4.5,
+            opening_time: '09:00',
+            closing_time: '18:00',
+            timezone: 'UTC',
+            is_active: true,
+            has_reservations: true,
+            image_url: null
         );
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+        $this->reservationRepoStub->method('findActiveByCafe')->willReturn([
+            ['guests' => 3],
+            ['guests' => 2],
+        ]);
 
-        $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckin(42, 5);
+        $result = $this->service->getCapacityInfo(1);
 
-        $this->assertTrue($result->ok);
-        $this->assertTrue($result->data);
+        $this->assertArrayHasKey('max', $result);
+        $this->assertArrayHasKey('current', $result);
+        $this->assertArrayHasKey('available', $result);
+        $this->assertArrayHasKey('percentage', $result);
+        $this->assertArrayHasKey('is_full', $result);
+        $this->assertSame(20, $result['max']);
+        $this->assertSame(5, $result['current']);
+        $this->assertSame(15, $result['available']);
+        $this->assertFalse($result['is_full']);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // processCheckin — fallos
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function test_processCheckin_with_nonexistent_reservation_returns_failure(): void
+    public function testGetCapacityInfoHandlesNullCafe(): void
     {
-        // fetch() devuelve false → findById retorna null → Result::fail con code 'not_found'
-        $this->pdoStub->method('prepare')->willReturn($this->makeStmt(false));
+        $this->cafeRepoStub->method('findById')->willReturn(null);
+        $this->reservationRepoStub->method('findActiveByCafe')->willReturn([]);
 
-        $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckin(999, 5);
+        $result = $this->service->getCapacityInfo(1);
+
+        $this->assertSame(0, $result['max']);
+        $this->assertSame(0, $result['percentage']);
+    }
+
+    public function testGetCapacityInfoIsFullWhenAtCapacity(): void
+    {
+        $cafe = new \App\Domain\DTO\CafeDTO(
+            id: 1,
+            slug: 'test',
+            name: 'Test',
+            japanese_name: null,
+            description: null,
+            location: 'loc',
+            category: 'cat',
+            animal_type: 'cat',
+            price_per_hour: 10.0,
+            capacity_max: 5,
+            rating_avg: 4.5,
+            opening_time: '09:00',
+            closing_time: '18:00',
+            timezone: 'UTC',
+            is_active: true,
+            has_reservations: true,
+            image_url: null
+        );
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+        $this->reservationRepoStub->method('findActiveByCafe')->willReturn([
+            ['guests' => 5],
+        ]);
+
+        $result = $this->service->getCapacityInfo(1);
+
+        $this->assertTrue($result['is_full']);
+        $this->assertSame(0, $result['available']);
+    }
+
+    public function testGetDailyStatsReturnsArrayFromRepo(): void
+    {
+        $this->reservationRepoStub->method('getDailyStats')->willReturn(['total' => 10, 'completed' => 8]);
+
+        $result = $this->service->getDailyStats(1, '2025-12-01');
+
+        $this->assertSame(['total' => 10, 'completed' => 8], $result);
+    }
+
+    public function testAssignTrackerDelegatesToRepo(): void
+    {
+        $this->reservationRepoStub->method('assignTracker')->willReturn(true);
+
+        $result = $this->service->assignTracker(1, 2);
+
+        $this->assertTrue($result);
+    }
+
+    public function testCompleteProtocolDelegatesToRepo(): void
+    {
+        $this->reservationRepoStub->method('completeProtocol')->willReturn(true);
+
+        $result = $this->service->completeProtocol(1, 'hygiene');
+
+        $this->assertTrue($result);
+    }
+
+    public function testGetProtocolStatusFailsWhenReservationNotFound(): void
+    {
+        $this->reservationRepoStub->method('findWithOperationalData')->willReturn(null);
+
+        $result = $this->service->getProtocolStatus(999);
 
         $this->assertFalse($result->ok);
         $this->assertSame('not_found', $result->code);
     }
 
-    #[Test]
-    public function test_processCheckin_with_non_confirmed_reservation_returns_failure(): void
+    public function testGetProtocolStatusReturnsAllProtocolFields(): void
     {
-        // La reserva ya está activa: estado inválido para check-in
-        $this->pdoStub->method('prepare')->willReturn($this->makeStmt($this->activeReservation()));
+        $this->reservationRepoStub->method('findWithOperationalData')->willReturn([
+            'protocol_hygiene' => true,
+            'protocol_briefing' => true,
+            'protocol_shoes' => true,
+        ]);
 
-        $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckin(42, 5);
-
-        $this->assertFalse($result->ok);
-        $this->assertNotEmpty($result->error);
-    }
-
-    #[Test]
-    public function test_processCheckin_with_unavailable_tracker_returns_failure(): void
-    {
-        $unavailableTracker = ['id' => 5, 'cafe_id' => 1, 'code' => 'A01', 'status' => Tracker::STATUS_IN_USE];
-
-        $this->pdoStub->method('prepare')->willReturnOnConsecutiveCalls(
-            $this->makeStmt($this->confirmedReservation()),  // findById reserva OK
-            $this->makeStmt($unavailableTracker)             // tracker en uso → fail
-        );
-
-        $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckin(42, 5);
-
-        $this->assertFalse($result->ok);
-        $this->assertSame('tracker_not_available', $result->code);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // processCheckout — camino feliz
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * processCheckout dispara 5 llamadas a prepare() en orden:
-     *   1. ReceptionService: Reservation::findById()
-     *   2. Reservation::checkOut(): findById() interno
-     *   3. calculateFinalPrice(): SELECT SUM de reservation_items
-     *   4. Reservation::checkOut(): UPDATE reservations
-     *   5. ReceptionService: Reservation::findById() post-checkout
-     */
-    #[Test]
-    public function test_processCheckout_with_active_reservation_returns_ok_result(): void
-    {
-        $active    = $this->activeReservation();
-        $completed = $this->completedReservation();
-
-        $this->pdoStub->method('prepare')->willReturnOnConsecutiveCalls(
-            $this->makeStmt($active),                  // findById (service)
-            $this->makeStmt($active),                  // findById interno en checkOut()
-            $this->makeStmt(fetchColumnReturn: 0),     // SUM items (calculateFinalPrice)
-            $this->makeStmt(),                         // UPDATE (execute → true)
-            $this->makeStmt($completed)                // findById post-checkout
-        );
-
-        $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckout(42);
+        $result = $this->service->getProtocolStatus(1);
 
         $this->assertTrue($result->ok);
-        $this->assertTrue($result->data['success']);
-        $this->assertArrayHasKey('final_price', $result->data);
-        $this->assertArrayHasKey('duration', $result->data);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // processCheckout — fallos
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function test_processCheckout_with_nonexistent_reservation_returns_failure(): void
-    {
-        $this->pdoStub->method('prepare')->willReturn($this->makeStmt(false));
-
-        $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckout(999);
-
-        $this->assertFalse($result->ok);
-        $this->assertSame('not_found', $result->code);
-    }
-
-    #[Test]
-    public function test_processCheckout_without_prior_checkin_returns_failure(): void
-    {
-        // La reserva está en "confirmed", no en "active": aún no ha hecho check-in
-        $this->pdoStub->method('prepare')->willReturn($this->makeStmt($this->confirmedReservation()));
-
-        $service = new ReceptionService($this->pdoStub);
-        $result  = $service->processCheckout(42);
-
-        $this->assertFalse($result->ok);
-        $this->assertNotEmpty($result->error);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // getProtocolStatus
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function test_getProtocolStatus_returns_ok_with_protocol_data_when_reservation_exists(): void
-    {
-        $reservation = [
-            'id'                => 42,
-            'status'            => Reservation::STATUS_ACTIVE,
-            'protocol_hygiene'  => 1,
-            'protocol_briefing' => 1,
-            'protocol_shoes'    => 1,
-        ];
-        $this->pdoStub->method('prepare')->willReturn($this->makeStmt($reservation));
-
-        $service = new ReceptionService($this->pdoStub);
-        $result  = $service->getProtocolStatus(42);
-
-        $this->assertTrue($result->ok);
-        $this->assertArrayHasKey('hygiene', $result->data);
-        $this->assertArrayHasKey('briefing', $result->data);
-        $this->assertArrayHasKey('shoes', $result->data);
-        $this->assertArrayHasKey('all_complete', $result->data);
+        $this->assertTrue($result->data['hygiene']);
+        $this->assertTrue($result->data['briefing']);
+        $this->assertTrue($result->data['shoes']);
         $this->assertTrue($result->data['all_complete']);
     }
 
-    #[Test]
-    public function test_getProtocolStatus_returns_failure_when_reservation_not_found(): void
+    public function testGetProtocolStatusAllCompleteIsFalseWhenAnyMissing(): void
     {
-        $this->pdoStub->method('prepare')->willReturn($this->makeStmt(false));
+        $this->reservationRepoStub->method('findWithOperationalData')->willReturn([
+            'protocol_hygiene' => true,
+            'protocol_briefing' => false,
+            'protocol_shoes' => true,
+        ]);
 
-        $service = new ReceptionService($this->pdoStub);
-        $result  = $service->getProtocolStatus(999);
+        $result = $this->service->getProtocolStatus(1);
+
+        $this->assertTrue($result->ok);
+        $this->assertFalse($result->data['all_complete']);
+    }
+
+    public function testGetActiveGroupsIsOvertimeWhenElapsedExceedsDuration(): void
+    {
+        $checkinAt = \date('Y-m-d H:i:s', \time() - 4800); // 80 min ago
+        $this->reservationRepoStub->method('findActiveByCafe')->willReturn([
+            ['id' => 1, 'check_in_at' => $checkinAt, 'pass_duration_minutes' => 60],
+        ]);
+
+        $result = $this->service->getActiveGroups(1);
+
+        $this->assertTrue($result[0]['is_overtime']);
+        $this->assertGreaterThan(0, $result[0]['overtime_minutes']);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // addItem
+    // ─────────────────────────────────────────────────────────────
+
+    public function testAddItemSuccessReturnsOk(): void
+    {
+        $reservation = new \App\Domain\DTO\ReservationDTO(
+            id: 10,
+            uuid: 'uuid-1',
+            cafe_id: 1,
+            user_id: 5,
+            date: '2025-12-01',
+            time: '10:00',
+            guest_count: 2,
+            status: 'active',
+            time_slot_id: null,
+            pass_name: null,
+            check_in_at: '2025-12-01 10:00:00',
+            check_out_at: null,
+            final_amount: null,
+            payment_status: null,
+            payment_method: null,
+            notes: null
+        );
+
+        $product = new \App\Domain\DTO\ProductDTO(
+            id: 7,
+            name: 'Onigiri',
+            slug: 'onigiri',
+            description: null,
+            price: 800.0,
+            category_id: 2,
+            category_name: 'Snacks',
+            allergens: [],
+            is_active: true,
+            image_url: null,
+            product_type: 'food',
+            min_pax: null,
+            max_pax: null,
+            duration_minutes: null,
+            attributes: null,
+            target_cafe_types: null,
+            target_animal_types: null,
+            stock_quantity: null
+        );
+
+        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+        $this->productRepoStub->method('findById')->willReturn($product);
+        $this->itemRepoStub->method('add')->willReturn(42);
+
+        $result = $this->service->addItem(10, 7, 2, 1);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(42, $result->data['item_id']);
+    }
+
+    public function testAddItemFailsWhenReservationNotFound(): void
+    {
+        $this->reservationRepoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->addItem(99, 7, 1, 1);
 
         $this->assertFalse($result->ok);
         $this->assertSame('not_found', $result->code);
+    }
+
+    public function testAddItemFailsWhenReservationNotActive(): void
+    {
+        $reservation = new \App\Domain\DTO\ReservationDTO(
+            id: 10,
+            uuid: 'uuid-1',
+            cafe_id: 1,
+            user_id: 5,
+            date: '2025-12-01',
+            time: '10:00',
+            guest_count: 2,
+            status: 'confirmed',
+            time_slot_id: null,
+            pass_name: null,
+            check_in_at: null,
+            check_out_at: null,
+            final_amount: null,
+            payment_status: null,
+            payment_method: null,
+            notes: null
+        );
+
+        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+
+        $result = $this->service->addItem(10, 7, 1, 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('invalid_state', $result->code);
+    }
+
+    public function testAddItemFailsWhenCafeMismatch(): void
+    {
+        $reservation = new \App\Domain\DTO\ReservationDTO(
+            id: 10,
+            uuid: 'uuid-1',
+            cafe_id: 2,
+            user_id: 5,
+            date: '2025-12-01',
+            time: '10:00',
+            guest_count: 2,
+            status: 'active',
+            time_slot_id: null,
+            pass_name: null,
+            check_in_at: '2025-12-01 10:00:00',
+            check_out_at: null,
+            final_amount: null,
+            payment_status: null,
+            payment_method: null,
+            notes: null
+        );
+
+        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+
+        $result = $this->service->addItem(10, 7, 1, 1); // cafe_id=1 but reservation is cafe_id=2
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('cafe_mismatch', $result->code);
+    }
+
+    public function testAddItemFailsWhenProductNotFound(): void
+    {
+        $reservation = new \App\Domain\DTO\ReservationDTO(
+            id: 10,
+            uuid: 'uuid-1',
+            cafe_id: 1,
+            user_id: 5,
+            date: '2025-12-01',
+            time: '10:00',
+            guest_count: 2,
+            status: 'active',
+            time_slot_id: null,
+            pass_name: null,
+            check_in_at: '2025-12-01 10:00:00',
+            check_out_at: null,
+            final_amount: null,
+            payment_status: null,
+            payment_method: null,
+            notes: null
+        );
+
+        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+        $this->productRepoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->addItem(10, 999, 1, 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('product_unavailable', $result->code);
+    }
+
+    public function testAddItemFailsWhenProductIsAPass(): void
+    {
+        $reservation = new \App\Domain\DTO\ReservationDTO(
+            id: 10,
+            uuid: 'uuid-1',
+            cafe_id: 1,
+            user_id: 5,
+            date: '2025-12-01',
+            time: '10:00',
+            guest_count: 2,
+            status: 'active',
+            time_slot_id: null,
+            pass_name: null,
+            check_in_at: '2025-12-01 10:00:00',
+            check_out_at: null,
+            final_amount: null,
+            payment_status: null,
+            payment_method: null,
+            notes: null
+        );
+
+        $product = new \App\Domain\DTO\ProductDTO(
+            id: 1,
+            name: 'Pass Rápido',
+            slug: 'pass-rapido',
+            description: null,
+            price: 1500.0,
+            category_id: 1,
+            category_name: 'Pases',
+            allergens: [],
+            is_active: true,
+            image_url: null,
+            product_type: 'pass',
+            min_pax: null,
+            max_pax: null,
+            duration_minutes: 60,
+            attributes: null,
+            target_cafe_types: null,
+            target_animal_types: null,
+            stock_quantity: null
+        );
+
+        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+        $this->productRepoStub->method('findById')->willReturn($product);
+
+        $result = $this->service->addItem(10, 1, 1, 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('invalid_product_type', $result->code);
+    }
+
+    public function testAddItemFailsWhenQuantityIsZero(): void
+    {
+        $result = $this->service->addItem(10, 7, 0, 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('invalid_params', $result->code);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // processPayment
+    // ─────────────────────────────────────────────────────────────
+
+    public function testProcessPaymentFailsWhenReservationNotFound(): void
+    {
+        $this->reservationRepoStub->method('findByIdWithCafeDetails')->willReturn(null);
+
+        $result = $this->service->processPayment(99, 'efectivo', 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('not_found', $result->code);
+    }
+
+    public function testProcessPaymentFailsWhenNotActive(): void
+    {
+        $this->reservationRepoStub->method('findByIdWithCafeDetails')->willReturn([
+            'id' => 10,
+            'cafe_id' => 1,
+            'status' => 'completed',
+            'guest_count' => 2,
+            'pass_unit_price' => 1500.0,
+        ]);
+
+        $result = $this->service->processPayment(10, 'efectivo', 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('invalid_state', $result->code);
+    }
+
+    public function testProcessPaymentFailsWhenCafeMismatch(): void
+    {
+        $this->reservationRepoStub->method('findByIdWithCafeDetails')->willReturn([
+            'id' => 10,
+            'cafe_id' => 2,
+            'status' => 'active',
+            'guest_count' => 2,
+            'pass_unit_price' => 1500.0,
+        ]);
+
+        $result = $this->service->processPayment(10, 'efectivo', 1); // caller cafe_id=1, reservation cafe_id=2
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('cafe_mismatch', $result->code);
+    }
+
+    public function testProcessPaymentFailsWhenParamsInvalid(): void
+    {
+        $result = $this->service->processPayment(0, 'efectivo', 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('invalid_params', $result->code);
+    }
+
+    public function testProcessPaymentFailsWhenPaymentMethodEmpty(): void
+    {
+        $result = $this->service->processPayment(10, '', 1);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('invalid_params', $result->code);
     }
 }

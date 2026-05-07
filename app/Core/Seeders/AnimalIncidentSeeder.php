@@ -8,6 +8,7 @@ use App\Core\Database;
 use App\Core\Logger;
 use PDO;
 use Random\RandomException;
+use Throwable;
 
 /**
  * AnimalIncidentSeeder
@@ -39,7 +40,6 @@ final class AnimalIncidentSeeder
         $animals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($animals)) {
-            echo "[AnimalIncidentSeeder] No hay animales disponibles\n";
             Logger::warning('AnimalIncidentSeeder: no animals found');
 
             return;
@@ -58,7 +58,6 @@ final class AnimalIncidentSeeder
         $staffUsers = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
         if (empty($staffUsers)) {
-            echo "[AnimalIncidentSeeder] No hay personal disponible\n";
             Logger::warning('AnimalIncidentSeeder: no staff users');
 
             return;
@@ -83,7 +82,7 @@ final class AnimalIncidentSeeder
                 'type' => 'health',
                 'severity' => 'high',
                 'description' => 'Rechazo de comida durante dos comidas consecutivas. Aletargado. Vet contactado - revisando mañana 10:00.',
-                'status' => 'in_progress',
+                'status' => 'monitoring',
                 'resolved' => false,
             ],
             [
@@ -97,7 +96,7 @@ final class AnimalIncidentSeeder
                 'type' => 'injury',
                 'severity' => 'medium',
                 'description' => 'Pequeño arañazo en almohadilla trasera izquierda (2cm). Limpiado con antiseptico. Revisando evolución cada 4h.',
-                'status' => 'in_progress',
+                'status' => 'monitoring',
                 'resolved' => false,
             ],
             [
@@ -166,13 +165,12 @@ final class AnimalIncidentSeeder
                         $resolvedBy,                    // resolved_by
                     ]);
                     $count++;
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     Logger::error('AnimalIncidentSeeder: insert failed', ['animal_id' => $animal['id'], 'exception' => $e->getMessage()]);
                 }
             }
         }
 
-        echo "[AnimalIncidentSeeder] $count incidentes de animales creados\n";
         Logger::info('AnimalIncidentSeeder: completed', ['created' => $count]);
     }
 }

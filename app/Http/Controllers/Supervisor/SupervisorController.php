@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Supervisor;
 
+use App\Core\Container;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Repositories\ReservationRepository;
-use App\Services\SupervisorAssignmentService;
+use App\Services\Contracts\SupervisorAssignmentServiceInterface;
+use App\Services\KitchenService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -23,22 +26,28 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class SupervisorController
 {
+    private ReservationRepository $reservationRepo;
+    private KitchenService $kitchenService;
     private ResponseFactory $response;
 
     /** @var array<string,string> */
     private const STATUS_LABELS = [
-        'pending'   => 'Pendiente',
+        'pending' => 'Pendiente',
         'confirmed' => 'Confirmada',
-        'active'    => 'Activa',
+        'active' => 'Activa',
         'completed' => 'Completada',
         'cancelled' => 'Cancelada',
-        'no_show'   => 'No Show',
+        'no_show' => 'No Show',
+        'checked_in' => 'En local',
     ];
 
     public function __construct(
-        private readonly SupervisorAssignmentService $assignmentService,
-        private readonly ?ReservationRepository $reservationRepo = null,
+        private readonly SupervisorAssignmentServiceInterface $assignmentService,
+        ?ReservationRepository $reservationRepo = null,
+        ?KitchenService $kitchenService = null,
     ) {
+        $this->reservationRepo = $reservationRepo ?? new ReservationRepository();
+        $this->kitchenService = $kitchenService ?? new KitchenService(Container::make(ReservationItemRepositoryInterface::class));
         $this->response = new ResponseFactory();
     }
 
@@ -47,45 +56,49 @@ final class SupervisorController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $user   = Session::user();
+        $user = Session::user();
         $cafeId = (int) ($user['cafe_id'] ?? 0);
 
         $reservations = [];
 
         if ($cafeId > 0) {
-            $repo = $this->reservationRepo ?? new ReservationRepository();
-            $raw  = $repo->findByCafeAndDate($cafeId, date('Y-m-d'));
+            $raw = $this->reservationRepo->findByCafeAndDate($cafeId, \date('Y-m-d'));
 
-            $reservations = array_map(function (array $r): array {
+            $reservations = \array_map(function (array $r): array {
                 $status = (string) ($r['status'] ?? 'pending');
+
                 return [
-                    'id'           => (int) $r['id'],
+                    'id' => (int) $r['id'],
                     'customer_name' => 'Cliente #' . (int) $r['user_id'],
-                    'time'         => substr((string) ($r['reservation_time'] ?? ''), 0, 5),
-                    'guests'       => (int) ($r['guest_count'] ?? 0),
-                    'status'       => $status,
-                    'statusLabel'  => self::STATUS_LABELS[$status] ?? ucfirst($status),
+                    'time' => \substr((string) ($r['reservation_time'] ?? ''), 0, 5),
+                    'guests' => (int) ($r['guest_count'] ?? 0),
+                    'status' => $status,
+                    'statusLabel' => self::STATUS_LABELS[$status] ?? \ucfirst($status),
+                    'table_code' => $r['table_code'] ?? null,
                 ];
             }, $raw);
         }
 
-        $tables = [
-            ['id' => 1, 'code' => 'A1', 'capacity' => 4, 'status' => 'free'],
-            ['id' => 2, 'code' => 'A2', 'capacity' => 2, 'status' => 'occupied'],
-            ['id' => 3, 'code' => 'B1', 'capacity' => 6, 'status' => 'free'],
-            ['id' => 4, 'code' => 'B2', 'capacity' => 2, 'status' => 'occupied'],
-        ];
+        // Mesas ocupadas = reservas con check-in activo ahora
+        $activeTables = \array_values(
+            \array_filter($reservations, fn (array $r): bool => $r['status'] === 'checked_in')
+        );
 
-        $orders = [
-            ['id' => 501, 'table' => 'A2', 'itemsSummary' => '1x Latte, 2x Scone', 'status' => 'preparing'],
-            ['id' => 502, 'table' => 'B2', 'itemsSummary' => '2x Ramen', 'status' => 'pending'],
-        ];
+        // Órdenes en curso desde el KDS
+        $activeOrders = $cafeId > 0 ? $this->kitchenService->getAllPending($cafeId) : [];
+
+        Logger::info('[SupervisorController] dashboard loaded', [
+            'cafe_id' => $cafeId,
+            'reservations' => \count($reservations),
+            'active_tables' => \count($activeTables),
+            'active_orders' => \count($activeOrders),
+        ]);
 
         View::render('supervisor/dashboard', [
             'titulo' => 'Supervisor — Panel',
             'reservations' => $reservations,
-            'tables' => $tables,
-            'orders' => $orders,
+            'activeTables' => $activeTables,
+            'activeOrders' => $activeOrders,
         ], [], 'backoffice');
 
         return null;
@@ -98,15 +111,15 @@ final class SupervisorController
      */
     public function assignments(ServerRequestInterface $request): ?ResponseInterface
     {
-        $result      = $this->assignmentService->listAssignments();
-        $assignments = $result->ok ? array_values((array) $result->data) : [];
+        $result = $this->assignmentService->listAssignments();
+        $assignments = $result->ok ? \array_values((array) $result->data) : [];
 
         if (!$result->ok) {
-            Flash::error($result->getMessage());
+            Flash::error($result->error);
         }
 
         View::render('supervisor/assignments', [
-            'titulo'      => 'Gestión de Asignaciones',
+            'titulo' => 'Gestión de Asignaciones',
             'assignments' => $assignments,
         ], [], 'backoffice');
 
@@ -121,14 +134,14 @@ final class SupervisorController
      */
     public function createAssignment(ServerRequestInterface $request): ResponseInterface
     {
-        $body   = (array) ($request->getParsedBody() ?? []);
+        $body = (array) ($request->getParsedBody() ?? []);
         $result = $this->assignmentService->createFromArray($body);
 
         if (!$result->ok) {
             Logger::warning('[SupervisorController] Error al crear asignación', [
-                'error' => $result->getMessage(),
+                'error' => $result->error,
             ]);
-            Flash::error($result->getMessage());
+            Flash::error($result->error);
         } else {
             Flash::success('Asignación creada correctamente.');
         }

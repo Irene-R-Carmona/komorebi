@@ -83,11 +83,11 @@ final class Config
             self::init();
         }
 
-        $keys = explode('.', $key);
+        $keys = \explode('.', $key);
         $value = self::$cache;
 
         foreach ($keys as $segment) {
-            if (!is_array($value) || !array_key_exists($segment, $value)) {
+            if (!\is_array($value) || !\array_key_exists($segment, $value)) {
                 return $default;
             }
             $value = $value[$segment];
@@ -127,7 +127,7 @@ final class Config
         // Validación especial para APP_KEY en producción
         if (self::get('app.env') === 'production') {
             $key = self::get('app.key');
-            if (strlen($key) < 32) {
+            if (!\is_string($key) || \strlen($key) < 32) {
                 throw new RuntimeException('APP_KEY debe tener al menos 32 caracteres en producción');
             }
         }
@@ -147,48 +147,52 @@ final class Config
     private static function bool(string $key, bool $default): bool
     {
         $val = self::env($key);
-        return $val === null ? $default : filter_var($val, FILTER_VALIDATE_BOOLEAN);
+
+        return $val === null ? $default : \filter_var($val, FILTER_VALIDATE_BOOLEAN);
     }
 
     private static function int(string $key, int $default): int
     {
-        return (int) self::env($key, (string)$default);
+        return (int) self::env($key, (string) $default);
     }
 
     // Tipos seguros de acceso a configuración
     public static function getInt(string $key, int $default): int
     {
         $val = self::get($key);
-        if (is_int($val)) {
+        if (\is_int($val)) {
             return $val;
         }
-        if (is_string($val) && is_numeric($val)) {
+        if (\is_string($val) && \is_numeric($val)) {
             return (int) $val;
         }
+
         return $default;
     }
 
     public static function getBool(string $key, bool $default): bool
     {
         $val = self::get($key);
-        if (is_bool($val)) {
+        if (\is_bool($val)) {
             return $val;
         }
-        if (is_string($val)) {
-            return filter_var($val, FILTER_VALIDATE_BOOLEAN);
+        if (\is_string($val)) {
+            return \filter_var($val, FILTER_VALIDATE_BOOLEAN);
         }
+
         return $default;
     }
 
     public static function getString(string $key, string $default): string
     {
         $val = self::get($key);
-        if (is_string($val)) {
+        if (\is_string($val)) {
             return $val;
         }
-        if (is_scalar($val)) {
+        if (\is_scalar($val)) {
             return (string) $val;
         }
+
         return $default;
     }
 }

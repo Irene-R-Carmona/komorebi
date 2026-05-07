@@ -18,9 +18,9 @@ final readonly class Email
 
     public function __construct(string $value)
     {
-        $normalized = strtolower(trim($value));
+        $normalized = \strtolower(\trim($value));
 
-        if ($normalized === '' || filter_var($normalized, FILTER_VALIDATE_EMAIL) === false) {
+        if ($normalized === '' || \filter_var($normalized, FILTER_VALIDATE_EMAIL) === false) {
             throw new ValidationException(
                 'Email inválido',
                 ['email' => 'El email no tiene un formato válido']

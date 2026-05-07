@@ -9,6 +9,7 @@ use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Session;
+use Override;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -31,7 +32,7 @@ final class AuthMiddleware implements MiddlewareInterface
         $this->response = $response;
     }
 
-    #[\Override]
+    #[Override]
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
@@ -41,12 +42,11 @@ final class AuthMiddleware implements MiddlewareInterface
         $userId = Session::get('user_id');
 
         if (empty($userId)) {
-            Flash::set('error', 'Debes iniciar sesión para acceder a esta página.');
+            Flash::error('Debes iniciar sesión para acceder a esta página.');
 
             return $this->response->redirect('/login', 302);
         }
 
-        // Verificar que el usuario existe y está activo.
         // Evitar consulta a BD si el usuario ya está en sesión (cache ligero).
         $sessionUser = Session::get('user');
         if (!empty($sessionUser) && isset($sessionUser['id']) && (int) $sessionUser['id'] === (int) $userId) {
@@ -62,7 +62,7 @@ final class AuthMiddleware implements MiddlewareInterface
         if (!$user || !$user['is_active']) {
             Session::destroy();
 
-            Flash::set('error', 'Tu cuenta ha sido desactivada.');
+            Flash::error('Tu cuenta ha sido desactivada.');
 
             return $this->response->redirect('/login', 302);
         }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Manager;
 
 use App\Core\Database;
+use App\Services\Contracts\DashboardServiceInterface;
+use Override;
 use PDO;
 
 /**
@@ -13,18 +15,19 @@ use PDO;
  * Proporciona métricas en tiempo real para el panel de control del gestor.
  * Todas las consultas están scopeadas al café asignado al manager.
  */
-final class DashboardService
+final class DashboardService implements DashboardServiceInterface
 {
     private PDO $db;
 
     public function __construct(?PDO $db = null)
     {
-        $this->db = $db ?? Database::getInstance()->getConnection();
+        $this->db = $db ?? Database::getConnection();
     }
 
     /**
      * Obtiene todas las métricas del dashboard en una sola llamada
      */
+    #[Override]
     public function getDashboardMetrics(int $cafeId): array
     {
         return [
@@ -42,6 +45,7 @@ final class DashboardService
     /**
      * Número de reservas de hoy para el café
      */
+    #[Override]
     public function getReservationsToday(int $cafeId): int
     {
         $stmt = $this->db->prepare(
@@ -62,6 +66,7 @@ final class DashboardService
     /**
      * Ingresos totales de hoy (reservas completadas)
      */
+    #[Override]
     public function getRevenueToday(int $cafeId): float
     {
         $stmt = $this->db->prepare(
@@ -83,6 +88,7 @@ final class DashboardService
     /**
      * Número de staff activo asignado al café
      */
+    #[Override]
     public function getActiveStaffCount(int $cafeId): int
     {
         $stmt = $this->db->prepare(
@@ -104,6 +110,7 @@ final class DashboardService
     /**
      * Número total de animales en el café
      */
+    #[Override]
     public function getAnimalsCount(int $cafeId): int
     {
         $stmt = $this->db->prepare(
@@ -122,6 +129,7 @@ final class DashboardService
     /**
      * Ingresos de los últimos 7 días (para gráfico Chart.js)
      */
+    #[Override]
     public function getWeeklyRevenue(int $cafeId): array
     {
         $stmt = $this->db->prepare(
@@ -145,6 +153,7 @@ final class DashboardService
     /**
      * Número de reservas por mes actual
      */
+    #[Override]
     public function getMonthlyReservationsCount(int $cafeId): int
     {
         $stmt = $this->db->prepare(
@@ -166,12 +175,13 @@ final class DashboardService
     /**
      * Promedio de rating del café
      */
+    #[Override]
     public function getAverageRating(int $cafeId): float
     {
         $stmt = $this->db->prepare(
-            "SELECT rating_avg
+            'SELECT rating_avg
              FROM cafes
-             WHERE id = :cafe_id"
+             WHERE id = :cafe_id'
         );
         $stmt->execute(['cafe_id' => $cafeId]);
 
@@ -183,6 +193,7 @@ final class DashboardService
     /**
      * Reservas pendientes de confirmación
      */
+    #[Override]
     public function getPendingReservationsCount(int $cafeId): int
     {
         $stmt = $this->db->prepare(
@@ -202,6 +213,7 @@ final class DashboardService
     /**
      * Obtiene los 5 animales más populares (más interacciones)
      */
+    #[Override]
     public function getTopAnimals(int $cafeId, int $limit = 5): array
     {
         $stmt = $this->db->prepare(
@@ -228,17 +240,18 @@ final class DashboardService
     /**
      * Distribución de estados de reservas (para gráfico de dona)
      */
+    #[Override]
     public function getReservationStatusDistribution(int $cafeId): array
     {
         $stmt = $this->db->prepare(
-            "SELECT
+            'SELECT
                 status,
                 COUNT(*) AS count
              FROM reservations
              WHERE cafe_id = :cafe_id
              AND reservation_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
              AND deleted_at IS NULL
-             GROUP BY status"
+             GROUP BY status'
         );
         $stmt->execute(['cafe_id' => $cafeId]);
 
@@ -256,30 +269,31 @@ final class DashboardService
      * @param string|null $to       Fecha fin   (YYYY-MM-DD); por defecto hoy
      * @param int|null    $limit    Máximo de filas (null = sin límite, para export)
      */
+    #[Override]
     public function getReservationReport(
         int $cafeId,
         ?string $from = null,
         ?string $to = null,
         ?int $limit = 100,
     ): array {
-        $from = $from ?? date('Y-m-d', strtotime('-30 days'));
-        $to   = $to   ?? date('Y-m-d');
+        $from ??= \date('Y-m-d', \strtotime('-30 days'));
+        $to ??= \date('Y-m-d');
 
-        $sql = "SELECT
+        $sql = 'SELECT
                     r.id,
                     r.reservation_date  AS fecha,
                     r.status            AS estado,
-                    r.party_size        AS personas,
+                    r.guest_count       AS personas,
                     COALESCE(r.final_amount, 0) AS importe,
                     r.payment_status    AS pago
                 FROM reservations r
                 WHERE r.cafe_id = :cafe_id
                 AND r.reservation_date BETWEEN :from AND :to
                 AND r.deleted_at IS NULL
-                ORDER BY r.reservation_date DESC, r.id DESC";
+                ORDER BY r.reservation_date DESC, r.id DESC';
 
         if ($limit !== null) {
-            $sql .= " LIMIT :limit";
+            $sql .= ' LIMIT :limit';
         }
 
         $stmt = $this->db->prepare($sql);

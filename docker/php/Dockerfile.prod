@@ -1,19 +1,32 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1
 
-FROM composer:2.8 AS vendor-build
+# Stage 1: Composer dependency resolution (separate for caching)
+FROM composer:2 AS vendor-build
 
 WORKDIR /app
 
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+RUN --mount=type=cache,target=/root/.composer/cache \
+    composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader \
+    --no-scripts \
+    --ignore-platform-reqs
 
+# Copy application code and generate optimized autoloader
 COPY . /app
-RUN composer dump-autoload --optimize
+RUN --mount=type=cache,target=/root/.composer/cache \
+    composer dump-autoload --optimize --no-scripts --ignore-platform-reqs
 
-FROM dunglas/frankenphp:1.11.1-php8.4-alpine
+# Stage 2: Final production image
+FROM dunglas/frankenphp:1.12.2-php8.4
 
 WORKDIR /app
 
+# Install PHP extensions from builder stage if using builder pattern
+# Or install directly as shown:
 RUN install-php-extensions \
     pdo_mysql \
     mbstring \
@@ -23,39 +36,48 @@ RUN install-php-extensions \
     bcmath \
     exif \
     redis \
-    pcntl
+    pcntl \
+    excimer
 
+# Copy PHP configuration files
 COPY docker/php/ini/php.ini /usr/local/etc/php/conf.d/00-php.ini
 COPY docker/php/ini/error-prod.ini /usr/local/etc/php/conf.d/01-error.ini
 COPY docker/php/ini/uploads.ini /usr/local/etc/php/conf.d/02-uploads.ini
 COPY docker/php/ini/opcache.ini /usr/local/etc/php/conf.d/04-opcache.ini
 
-COPY frankenphp.Caddyfile /app/frankenphp.Caddyfile
-COPY --from=vendor-build /app /app
+# Copy application code from build context (.dockerignore excludes vendor, tests, .env, etc.)
+COPY . /app
 
-# Normalizar entrypoint, crear public/vendor y establecer permisos en una única capa
-RUN apk add --no-cache dos2unix \
-    && dos2unix /app/docker/php/docker-entrypoint.sh || true \
-    && mkdir -p /app/public/vendor \
-    && chmod +x /app/docker/php/docker-entrypoint.sh || true
+# Overlay production vendor from Stage 1 (optimized autoloader — overwrites any vendor in context)
+COPY --from=vendor-build /app/vendor /app/vendor
 
-# Publicar assets públicos desde la etapa vendor-build a public/vendor (ej.: bootstrap-icons)
-COPY --from=vendor-build /app/vendor/twbs /app/public/vendor/twbs
+# Install system packages BEFORE copying config files to avoid dpkg conffile prompt
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends dos2unix supervisor && \
+    rm -rf /var/lib/apt/lists/*
 
+# Copy entrypoint and supervisor config (overwrite defaults after install)
 COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-RUN chmod +x /usr/local/bin/docker-entrypoint
+COPY docker/supervisor.prod.conf /etc/supervisor/supervisord.conf
+RUN dos2unix /usr/local/bin/docker-entrypoint && \
+    chmod +x /usr/local/bin/docker-entrypoint && \
+    mkdir -p /app/public/vendor /app/storage/logs /app/storage/cache /app/storage/cache/di /app/storage/uploads && \
+    rm -rf /app/docker
 
-# session.cookie_secure = 1 en producción (HTTPS obligatorio)
-RUN echo 'session.cookie_secure = 1' >> /usr/local/etc/php/conf.d/00-php.ini
+# Supervisord needs to fork as root; Railway provides container-level isolation
+RUN groupadd -r appgroup && \
+    useradd -r -g appgroup appuser && \
+    chown -R appuser:appgroup /app && \
+    chmod -R u+rw /app/storage
 
-# Seguridad: usuario no-root en producción
-RUN addgroup -S appgroup \
-    && adduser -S appuser -G appgroup \
-    && chown -R appuser:appgroup /app
-
-USER appuser
+# Defensive: ensure Xdebug is never activated even if the extension were installed
+# Defaults for supervisor worker concurrency — override via Railway env vars
+ENV XDEBUG_MODE=off \
+    QUEUE_EMAILS_PROCS=1 \
+    QUEUE_NOTIFICATIONS_PROCS=1 \
+    QUEUE_DEFAULT_PROCS=1
 
 EXPOSE 80
 
 ENTRYPOINT ["docker-entrypoint"]
-CMD ["frankenphp", "run", "--config=/app/frankenphp.Caddyfile"]
+CMD ["supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]

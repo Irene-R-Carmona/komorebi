@@ -7,15 +7,12 @@ document.addEventListener('alpine:init', () => {
     showAllergenFilter: false,
 
     // Estado carrito
-    cart: { items: {}, totalQty: 0, totalPrice: 0 },
-    loading: false,
+    cart: { items: {}, total_qty: 0, totalPrice: 0 },
+    loading: true,
 
     // Filtros
     excludedAllergens: [],
-    selectedCafeType: null, // null = todos, 'lounge' | 'playroom' | 'farm' | 'zen'
-
-    // Mensaje de error para el usuario (toast)
-    lastError: '',
+    selectedCafeType: null, // null = todos, 'lounge' | 'playroom' | 'farm' | 'zen',
 
     async init() {
       await this.fetchCart();
@@ -34,6 +31,8 @@ document.addEventListener('alpine:init', () => {
       if (Array.isArray(this.excludedAllergens) && this.excludedAllergens.length > 0) {
         this.applyAllergenFilter();
       }
+
+      this.loading = false;
     },
 
     // ----------------------------
@@ -43,7 +42,7 @@ document.addEventListener('alpine:init', () => {
       try {
         // Si no hay cookies presentes probable usuario anónimo -> evitar solicitar /api/cart y causar 401
         if (!document.cookie || document.cookie.trim() === '') {
-          const guestRes = await fetch('/api/cart/guest');
+          const guestRes = await fetch('/api/v1/cart/guest');
           if (guestRes.ok) {
             const guestData = await guestRes.json();
             if (guestData.ok && guestData.data) {
@@ -51,35 +50,32 @@ document.addEventListener('alpine:init', () => {
               return;
             }
           }
-          this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+          this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
           return;
         }
 
-        const res = await fetch('/api/cart');
+        const res = await fetch('/api/v1/cart');
         if (!res.ok) {
           // Si el servidor responde 401 (no autenticado), informar al usuario
           if (res.status === 401) {
-            // Mostrar mensaje amistoso en el toast para aclarar por qué no hay carrito
-            this.lastError = 'El carrito está disponible solo para usuarios registrados. Por favor, inicia sesión para acceder a tu carrito.';
+            // Mostrar mensaje amistoso para aclarar por qué no hay carrito
+            window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'El carrito está disponible solo para usuarios registrados. Por favor, inicia sesión para acceder a tu carrito.', type: 'error' } }));
             // Intentar endpoint público de guest como fallback silencioso
             try {
-              const guestRes = await fetch('/api/cart/guest');
+              const guestRes = await fetch('/api/v1/cart/guest');
               if (guestRes.ok) {
                 const guestData = await guestRes.json();
                 if (guestData.ok && guestData.data) {
                   this.cart = guestData.data;
                 } else {
-                  this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+                  this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
                 }
               } else {
-                this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+                this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
               }
             } catch (error_) {
-              this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+              this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
             }
-
-            // Limpiar el mensaje tras unos segundos para no saturar la UI
-            setTimeout(() => { this.lastError = ''; }, 6000);
             return;
           }
 
@@ -93,11 +89,11 @@ document.addEventListener('alpine:init', () => {
           this.cart = responseData.data;
         } else {
           console.warn('Formato de carrito inesperado:', responseData);
-          this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+          this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
         }
       } catch (e) {
         console.error('Error cargando carrito:', e);
-        this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+        this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
       }
     },
 
@@ -105,20 +101,19 @@ document.addEventListener('alpine:init', () => {
       if (this.loading) return;
 
       this.loading = true;
-      this.lastError = '';
       productId = Number.parseInt(productId, 10);
       change = Number.parseInt(change, 10);
       if (!Number.isFinite(productId) || !Number.isFinite(change)) {
         this.loading = false;
-        this.lastError = 'Parámetros de cantidad inválidos';
+        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Parámetros de cantidad inválidos', type: 'error' } }));
         return;
       }
 
-      // Backup para rollback
-      const oldCart = structuredClone(this.cart || { items: {}, totalQty: 0, totalPrice: 0 });
+      // Backup para rollback (JSON deep-copy evita problemas con Proxy de Alpine)
+      const oldCart = JSON.parse(JSON.stringify(this.cart || { items: {}, total_qty: 0, totalPrice: 0 }));
 
       // Optimistic UI
-      if (!this.cart) this.cart = { items: {}, totalQty: 0, totalPrice: 0 };
+      if (!this.cart) this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
       if (!this.cart.items) this.cart.items = {};
 
       const currentQty = this.cart.items[productId] || 0;
@@ -139,13 +134,13 @@ document.addEventListener('alpine:init', () => {
       const token = tokenEl ? tokenEl.getAttribute('content') : '';
 
       try {
-        const res = await fetch('/api/cart/update', {
-          method: 'POST',
+        const res = await fetch(`/api/v1/cart/items/${productId}`, {
+          method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': token
           },
-          body: JSON.stringify({ product_id: productId, change })
+          body: JSON.stringify({ change })
         });
 
         const responseData = await res.json();
@@ -153,9 +148,9 @@ document.addEventListener('alpine:init', () => {
         if (!res.ok) {
           // Manejo de errores HTTP
           if (res.status === 419) {
-            this.lastError = 'Sesión expirada. Recarga la página.';
+            window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Sesión expirada. Recarga la página.', type: 'error' } }));
           } else {
-            this.lastError = responseData.error || responseData.message || 'Error al actualizar';
+            window.dispatchEvent(new CustomEvent('toast', { detail: { message: responseData.error || responseData.message || 'Error al actualizar', type: 'error' } }));
           }
           this.cart = oldCart; // Rollback
           return;
@@ -164,16 +159,15 @@ document.addEventListener('alpine:init', () => {
         // Extraer data del wrapper {ok: true, data: {...}}
         if (responseData.ok && responseData.data) {
           this.cart = responseData.data;
-          console.log('✅ Carrito sincronizado:', this.cart);
         } else {
           console.error('⚠️ Formato inesperado:', responseData);
-          this.lastError = 'Error de formato en respuesta';
+          window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Error de formato en respuesta', type: 'error' } }));
           this.cart = oldCart;
         }
 
       } catch (e) {
         console.error('❌ Error de red:', e);
-        this.lastError = 'Error de conexión';
+        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Error de conexión', type: 'error' } }));
         this.cart = oldCart;
       } finally {
         this.loading = false;
@@ -191,7 +185,6 @@ document.addEventListener('alpine:init', () => {
     setTab(id) {
       this.activeTab = id;
       this.search = '';
-      this.lastError = '';
     },
 
     /**
@@ -217,19 +210,21 @@ document.addEventListener('alpine:init', () => {
         // Obtener atributo data-cafe-types
         const cafeTypesAttr = el && el.dataset && el.dataset.cafeTypes;
 
-        // Si no tiene el atributo (undefined) o está vacío = disponible en TODOS los cafés
-        if (!cafeTypesAttr || cafeTypesAttr.trim() === '') {
-          return true;
+        // Si tiene el atributo y no está vacío, verificar si coincide
+        if (cafeTypesAttr && cafeTypesAttr.trim() !== '') {
+          const types = cafeTypesAttr.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+          const selectedType = this.selectedCafeType.toLowerCase();
+          if (!types.includes(selectedType)) {
+            return false; // NO mostrar si el tipo no coincide
+          }
         }
+        // Si no tiene atributo = disponible en TODOS los cafés → continuar filtros
+      }
 
-        // Dividir por comas y verificar si el tipo seleccionado está presente
-        // Valores esperados: 'lounge', 'playroom', 'farm', 'zen'
-        const types = cafeTypesAttr.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-        const selectedType = this.selectedCafeType.toLowerCase();
-
-        if (!types.includes(selectedType)) {
-          return false; // NO mostrar si el tipo no coincide
-        }
+      // Filtro de alérgenos (integrado en matchesNode para que Alpine reactive lo detecte)
+      if (this.excludedAllergens.length > 0) {
+        const excludedSet = new Set(this.excludedAllergens.map(String));
+        if (this.cardHasExcludedAllergen(el, excludedSet)) return false;
       }
 
       return true; // Mostrar si pasa todos los filtros
@@ -292,17 +287,8 @@ document.addEventListener('alpine:init', () => {
       try {
         // Actualizar la URL sin recargar
         this.updateAllergenUrl();
-
-        // Filtrado en cliente: ocultar los productos que contengan alguno de los alérgenos excluidos
-        const grids = document.querySelectorAll('.menu__grid');
-        const excludedSet = new Set(this.excludedAllergens.map(String));
-
-        for (const grid of grids) {
-          const cards = grid.querySelectorAll('article.producto-card');
-          for (const card of cards) {
-            card.hidden = this.cardHasExcludedAllergen(card, excludedSet);
-          }
-        }
+        // La visibilidad se gestiona reactivamente por Alpine x-show="matchesNode($el)"
+        // que ahora incluye el check de alérgenos
       } catch (e) {
         console.error('Error applying allergen filter:', e);
       }

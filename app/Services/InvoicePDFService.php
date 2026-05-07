@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Services\Contracts\InvoicePDFServiceInterface;
-use FPDF;
+use tFPDF;
+use Throwable;
 
 /**
  * Servicio para generar billetes de reserva en PDF
@@ -27,19 +28,19 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
     public function generateReservationInvoice(array $reservation, array $user): string
     {
         // Crear directorio si no existe
-        if (!is_dir(self::INVOICE_DIR)) {
-            mkdir(self::INVOICE_DIR, 0755, true);
+        if (!\is_dir(self::INVOICE_DIR)) {
+            \mkdir(self::INVOICE_DIR, 0o755, true);
         }
 
         // Inicializar tFPDF con soporte UTF-8
-        $pdf = new \tFPDF();
+        $pdf = new tFPDF();
         $pdf->AddPage();
         $pdf->AddFont('DejaVu', '', 'DejaVuSans.ttf', true);
         $pdf->AddFont('DejaVu', 'B', 'DejaVuSans-Bold.ttf', true);
         $pdf->SetFont('DejaVu', '', 10);
 
         // Código de reserva
-        $reservationCode = 'RES-' . str_pad((string)$reservation['id'], 6, '0', STR_PAD_LEFT);
+        $reservationCode = 'RES-' . \str_pad((string) $reservation['id'], 6, '0', STR_PAD_LEFT);
 
         // Generar QR code
         $qrPath = $this->generateQRCode($reservationCode);
@@ -64,7 +65,7 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
         $pdf->SetX(15);
 
         // QR Code (si existe)
-        if (file_exists($qrPath)) {
+        if (\file_exists($qrPath)) {
             $pdf->Image($qrPath, 15, $pdf->GetY(), 40, 40);
         }
 
@@ -93,7 +94,7 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
             $rightColumnX,
             $currentY,
             'Fecha:',
-            date('d/m/Y', strtotime($reservation['reservation_date'] ?? 'now'))
+            \date('d/m/Y', \strtotime($reservation['reservation_date'] ?? 'now'))
         );
         $currentY += 6;
 
@@ -102,7 +103,7 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
             $rightColumnX,
             $currentY,
             'Hora:',
-            substr($reservation['reservation_time'] ?? '00:00:00', 0, 5)
+            \substr($reservation['reservation_time'] ?? '00:00:00', 0, 5)
         );
         $currentY += 6;
 
@@ -120,7 +121,7 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
             $rightColumnX,
             $currentY,
             'Personas:',
-            (string)($reservation['guest_count'] ?? 1)
+            (string) ($reservation['guest_count'] ?? 1)
         );
         $currentY += 6;
 
@@ -168,8 +169,8 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
         // Horario
         if (!empty($reservation['opening_time']) && !empty($reservation['closing_time'])) {
             $pdf->Cell(30, 5, 'Horario:', 0, 0);
-            $openTime = substr($reservation['opening_time'], 0, 5);
-            $closeTime = substr($reservation['closing_time'], 0, 5);
+            $openTime = \substr($reservation['opening_time'], 0, 5);
+            $closeTime = \substr($reservation['closing_time'], 0, 5);
             $pdf->SetFont('DejaVu', 'B', 9);
             $pdf->Cell(0, 5, "$openTime - $closeTime");
             $pdf->SetFont('DejaVu', '', 9);
@@ -232,14 +233,14 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
 
         $pdf->SetFont('DejaVu', '', 8);
         $pdf->SetTextColor(100, 100, 100);
-        $pdf->Cell(0, 4, 'Documento generado el ' . date('d/m/Y H:i'), 0, 1, 'C');
+        $pdf->Cell(0, 4, 'Documento generado el ' . \date('d/m/Y H:i'), 0, 1, 'C');
         $pdf->Cell(0, 4, 'Komorebi Cafe - Todos los derechos reservados', 0, 1, 'C');
 
         // Generar nombre de archivo
-        $filename = sprintf(
+        $filename = \sprintf(
             'reserva_%s_%s.pdf',
             $reservationCode,
-            date('Ymd_His')
+            \date('Ymd_His')
         );
         $filePath = self::INVOICE_DIR . $filename;
 
@@ -247,8 +248,8 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
         $pdf->Output('F', $filePath);
 
         // Limpiar QR temporal
-        if (file_exists($qrPath)) {
-            @unlink($qrPath);
+        if (\file_exists($qrPath)) {
+            @\unlink($qrPath);
         }
 
         return $filePath;
@@ -257,7 +258,7 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
     /**
      * Añade una fila de detalle (label + valor)
      */
-    private function addDetailRow(\tFPDF $pdf, float $x, float $y, string $label, string $value): void
+    private function addDetailRow(tFPDF $pdf, float $x, float $y, string $label, string $value): void
     {
         $pdf->SetXY($x, $y);
         $pdf->SetFont('DejaVu', '', 9);
@@ -272,7 +273,7 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
      */
     private function generateQRCode(string $code): string
     {
-        $qrPath = sys_get_temp_dir() . '/qr_' . $code . '.png';
+        $qrPath = \sys_get_temp_dir() . '/qr_' . $code . '.png';
 
         try {
             $options = new \chillerlan\QRCode\QROptions([
@@ -287,7 +288,7 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
             $qrcode->render($code, $qrPath);
 
             return $qrPath;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Si falla QR, devolver string vacío
             return '';
         }
@@ -298,17 +299,17 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
      */
     public function cleanOldInvoices(): int
     {
-        if (!is_dir(self::INVOICE_DIR)) {
+        if (!\is_dir(self::INVOICE_DIR)) {
             return 0;
         }
 
         $deleted = 0;
-        $files = glob(self::INVOICE_DIR . '*.pdf');
-        $cutoff = time() - (30 * 24 * 60 * 60); // 30 días
+        $files = \glob(self::INVOICE_DIR . '*.pdf');
+        $cutoff = \time() - (30 * 24 * 60 * 60); // 30 días
 
         foreach ($files as $file) {
-            if (is_file($file) && filemtime($file) < $cutoff) {
-                unlink($file);
+            if (\is_file($file) && \filemtime($file) < $cutoff) {
+                \unlink($file);
                 $deleted++;
             }
         }

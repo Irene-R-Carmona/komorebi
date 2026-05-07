@@ -9,19 +9,15 @@ use App\Core\Container;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Core\ServiceProvider;
+use Override;
 use PDO;
 use PDOException;
 use RuntimeException;
 use Throwable;
 
-/**
- * Database Service Provider.
- *
- * Registra la conexión PDO en el Container como singleton.
- */
 final class DatabaseServiceProvider extends ServiceProvider
 {
-    #[\Override]
+    #[Override]
     public function register(): void
     {
         Container::singleton(PDO::class, function () {
@@ -32,7 +28,7 @@ final class DatabaseServiceProvider extends ServiceProvider
         Container::alias('db', PDO::class);
     }
 
-    #[\Override]
+    #[Override]
     public function boot(): void
     {
         // Verificar conexión en modo debug
@@ -49,9 +45,6 @@ final class DatabaseServiceProvider extends ServiceProvider
         }
     }
 
-    /**
-     * Crear conexión PDO.
-     */
     private function createConnection(): PDO
     {
         $driver = Env::get('DB_CONNECTION', 'mysql');

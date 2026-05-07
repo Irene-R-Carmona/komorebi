@@ -6,7 +6,9 @@ namespace App\Core;
 
 use Closure;
 use DI\ContainerBuilder;
+use Override;
 use Psr\Container\ContainerInterface;
+use RuntimeException;
 
 /**
  * Dependency Injection Container (PSR-11 compatible)
@@ -49,8 +51,11 @@ final class Container implements ContainerInterface
 
     private static ?\DI\Container $phpdi = null;
     private static bool $built = false;
+    private static ?string $compilationPath = null;
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     public static function getInstance(): self
     {
@@ -66,7 +71,7 @@ final class Container implements ContainerInterface
      */
     public static function bind(string $abstract, ?Closure $concrete = null): void
     {
-        $concrete ??= static fn() => throw new \RuntimeException("No hay factory concreta para: $abstract");
+        $concrete ??= static fn () => throw new RuntimeException("No hay factory concreta para: $abstract");
         self::$prototypeClosures[$abstract] = $concrete;
     }
 
@@ -76,7 +81,7 @@ final class Container implements ContainerInterface
     public static function singleton(string $abstract, ?Closure $concrete = null): void
     {
         $concrete ??= static function () use ($abstract): object {
-            throw new \RuntimeException("No hay factory concreta para: $abstract");
+            throw new RuntimeException("No hay factory concreta para: $abstract");
         };
         self::$pendingDefinitions[$abstract] = [$concrete, true];
     }
@@ -109,7 +114,7 @@ final class Container implements ContainerInterface
     /**
      * PSR-11: get(). Construye PHP-DI si aún no está construido.
      */
-    #[\Override]
+    #[Override]
     public function get(string $id): mixed
     {
         // Resolver alias antes de todo
@@ -133,7 +138,7 @@ final class Container implements ContainerInterface
     /**
      * PSR-11: has().
      */
-    #[\Override]
+    #[Override]
     public function has(string $id): bool
     {
         $id = self::$pendingAliases[$id] ?? $id;
@@ -154,17 +159,28 @@ final class Container implements ContainerInterface
     }
 
     /**
+     * Habilita la compilación del container PHP-DI en el directorio indicado.
+     * Llamar ANTES del primer make() (idealmente en el arranque del proceso, en index.php).
+     * Solo tiene efecto en producción; en desarrollo se puede omitir para acelerar el ciclo.
+     */
+    public static function enableCompilation(string $path): void
+    {
+        self::$compilationPath = $path;
+    }
+
+    /**
      * Limpiar container — destruye PHP-DI y reinicia todo (para testing).
      */
     public static function reset(): void
     {
-        self::$instance           = null;
+        self::$instance = null;
         self::$pendingDefinitions = [];
-        self::$prototypeClosures  = [];
-        self::$pendingInstances   = [];
-        self::$pendingAliases     = [];
-        self::$phpdi              = null;
-        self::$built              = false;
+        self::$prototypeClosures = [];
+        self::$pendingInstances = [];
+        self::$pendingAliases = [];
+        self::$phpdi = null;
+        self::$built = false;
+        self::$compilationPath = null;
     }
 
     /**
@@ -198,7 +214,7 @@ final class Container implements ContainerInterface
         self::$built = true;
 
         $builder = new ContainerBuilder();
-        $defs    = [];
+        $defs = [];
 
         // Pre-built instances → DI\value()
         foreach (self::$pendingInstances as $abstract => $inst) {
@@ -207,8 +223,8 @@ final class Container implements ContainerInterface
 
         // Closures → DI\factory() (PHP-DI 7 cachea el resultado en resolvedEntries por defecto)
         foreach (self::$pendingDefinitions as $abstract => [$closure, $isSingleton]) {
-            $captured        = $closure;
-            $defs[$abstract] = \DI\factory(static fn() => $captured());
+            $captured = $closure;
+            $defs[$abstract] = \DI\factory(static fn () => $captured());
         }
 
         // Aliases → DI\get()
@@ -217,11 +233,20 @@ final class Container implements ContainerInterface
         }
 
         // El Container y la interfaz PSR-11 se resuelven a la façade estática misma
-        $self                         = self::getInstance();
-        $defs[self::class]            = \DI\value($self);
+        $self = self::getInstance();
+        $defs[self::class] = \DI\value($self);
         $defs[ContainerInterface::class] = \DI\value($self);
 
         $builder->addDefinitions($defs);
+
+        if (self::$compilationPath !== null) {
+            if (!\is_dir(self::$compilationPath)) {
+                \mkdir(self::$compilationPath, 0o755, true);
+            }
+            $builder->enableCompilation(self::$compilationPath);
+            $builder->writeProxiesToFile(true, self::$compilationPath);
+        }
+
         self::$phpdi = $builder->build();
     }
 }

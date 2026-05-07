@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\CurrencyFormatting;
+
 /**
  * experiences_section.php - Sección de Experiencias/Pases
  *
@@ -63,9 +65,10 @@ endif;
                         <img src="<?= e($exp['image_url']) ?>"
                             alt="<?= e($exp['name']) ?>"
                             class="experience-card__img"
-                            loading="lazy">
+                            loading="lazy"
+                            @error="$event.target.src='/images/ui/placeholder.svg'">
                     <?php else: ?>
-                        <div class="experience-card__placeholder">🎟️</div>
+                        <div class="experience-card__placeholder"><i class="bi bi-ticket-perforated" aria-hidden="true"></i></div>
                     <?php endif; ?>
                 </div>
 
@@ -88,14 +91,14 @@ endif;
                     <div class="experience-card__meta">
                         <?php if ($duration > 0): ?>
                             <span class="experience-meta__item">
-                                <span class="icon">⏱️</span>
+                                <i class="bi bi-stopwatch" aria-hidden="true"></i>
                                 <?= $duration ?> minutos
                             </span>
                         <?php endif; ?>
 
                         <?php if ($minPax > 0): ?>
                             <span class="experience-meta__item">
-                                <span class="icon">👥</span>
+                                <i class="bi bi-people" aria-hidden="true"></i>
                                 <?php if ($maxPax && $maxPax !== $minPax): ?>
                                     <?= $minPax ?>-<?= $maxPax ?> personas
                                 <?php else: ?>
@@ -110,7 +113,7 @@ endif;
 
                         <?php if (!empty($animalTargets)): ?>
                             <span class="experience-meta__item">
-                                <span class="icon">🐾</span>
+                                <i class="bi bi-paw" aria-hidden="true"></i>
                                 <?= implode(', ', array_map('ucfirst', $animalTargets)) ?>
                             </span>
                         <?php endif; ?>
@@ -120,25 +123,25 @@ endif;
                     <?php if (!empty($attrs)): ?>
                         <div class="experience-card__attrs">
                             <?php if (!empty($attrs['includes_drink'])): ?>
-                                <span class="experience-attr">☕ Bebida incluida</span>
+                                <span class="experience-attr"><i class="bi bi-cup-hot" aria-hidden="true"></i> Bebida incluida</span>
                             <?php endif; ?>
                             <?php if (!empty($attrs['includes_dessert'])): ?>
-                                <span class="experience-attr">🍰 Postre incluido</span>
+                                <span class="experience-attr"><i class="bi bi-cake" aria-hidden="true"></i> Postre incluido</span>
                             <?php endif; ?>
                             <?php if (!empty($attrs['includes_feed'])): ?>
-                                <span class="experience-attr">🌾 Alimentar animales</span>
+                                <span class="experience-attr"><i class="bi bi-leaf" aria-hidden="true"></i> Alimentar animales</span>
                             <?php endif; ?>
                             <?php if (!empty($attrs['private_room'])): ?>
-                                <span class="experience-attr">🔒 Sala privada</span>
+                                <span class="experience-attr"><i class="bi bi-lock-fill" aria-hidden="true"></i> Sala privada</span>
                             <?php endif; ?>
                             <?php if (!empty($attrs['quiet'])): ?>
-                                <span class="experience-attr">🤫 Ambiente tranquilo</span>
+                                <span class="experience-attr"><i class="bi bi-volume-mute-fill" aria-hidden="true"></i> Ambiente tranquilo</span>
                             <?php endif; ?>
                             <?php if (!empty($attrs['guided'])): ?>
-                                <span class="experience-attr">👨‍🏫 Sesión guiada</span>
+                                <span class="experience-attr"><i class="bi bi-mortarboard" aria-hidden="true"></i> Sesión guiada</span>
                             <?php endif; ?>
                             <?php if (!empty($attrs['high_energy'])): ?>
-                                <span class="experience-attr">⚡ Alta energía</span>
+                                <span class="experience-attr"><i class="bi bi-lightning-fill" aria-hidden="true"></i> Alta energía</span>
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
@@ -146,7 +149,7 @@ endif;
 
                 <div class="experience-card__footer">
                     <div class="experience-card__price">
-                        <span class="experience-price__amount">¥<?= number_format($price) ?></span>
+                        <span class="experience-price__amount"><?= CurrencyFormatting::yen($price) ?></span>
                         <span class="experience-price__label">/persona</span>
                     </div>
                     <a href="/reservas?cafe=<?= (int) $cafe['id'] ?>&pass=<?= (int) $exp['id'] ?>"

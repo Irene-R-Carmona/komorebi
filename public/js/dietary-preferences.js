@@ -35,8 +35,8 @@ let DietaryPreferencesHelper = {
     }
 
     try {
-      const response = await fetch('/api/cookies/save-dietary', {
-        method: 'POST',
+      const response = await fetch('/api/v1/cookies/dietary', {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest'

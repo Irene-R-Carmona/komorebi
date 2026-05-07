@@ -20,20 +20,20 @@
   // ========================================================================
 
   const CATEGORIES = {
-    lounge: { label: 'Lounge', icon: '🛋️', class: 'category-badge--lounge' },
-    playroom: { label: 'Playroom', icon: '🎮', class: 'category-badge--playroom' },
-    farm: { label: 'Farm', icon: '🌾', class: 'category-badge--farm' },
-    zen: { label: 'Zen', icon: '🧘', class: 'category-badge--zen' }
+    lounge: { label: 'Lounge', icon: 'bi-house-heart', class: 'category-badge--lounge' },
+    playroom: { label: 'Playroom', icon: 'bi-controller', class: 'category-badge--playroom' },
+    farm: { label: 'Farm', icon: 'bi-tree', class: 'category-badge--farm' },
+    zen: { label: 'Zen', icon: 'bi-flower1', class: 'category-badge--zen' }
   };
 
   const ANIMAL_TYPES = {
-    cat: { label: 'Gatos', icon: '🐱' },
-    dog: { label: 'Perros', icon: '🐶' },
-    rabbit: { label: 'Conejos', icon: '🐰' },
-    bird: { label: 'Aves', icon: '🦜' },
-    hedgehog: { label: 'Erizos', icon: '🦔' },
-    capybara: { label: 'Capibaras', icon: '🦫' },
-    mixed: { label: 'Mixto', icon: '🐾' }
+    cat: { label: 'Gatos', icon: 'bi-cat' },
+    dog: { label: 'Perros', icon: 'bi-heart-pulse' },
+    rabbit: { label: 'Conejos', icon: 'bi-flower2' },
+    bird: { label: 'Aves', icon: 'bi-feather' },
+    hedgehog: { label: 'Erizos', icon: 'bi-circle' },
+    capybara: { label: 'Capibaras', icon: 'bi-cursor' },
+    mixed: { label: 'Mixto', icon: 'bi-grid' }
   };
 
   // ========================================================================
@@ -322,8 +322,8 @@
 
         try {
           const url = this.isEditMode
-            ? `/admin/cafes/${this.form.id}/edit`
-            : '/admin/cafes/create';
+            ? `/api/v1/admin/cafes/${this.form.id}`
+            : '/api/v1/admin/cafes';
 
           const formData = new URLSearchParams({
             csrf_token: this.csrfToken,
@@ -344,7 +344,7 @@
           });
 
           const response = await fetch(url, {
-            method: 'POST',
+            method: this.isEditMode ? 'PUT' : 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
               'X-Requested-With': 'XMLHttpRequest'
@@ -354,7 +354,7 @@
 
           const data = await response.json();
 
-          if (response.ok && data.success) {
+          if (response.ok && data.ok) {
             KomorebiToast.success(data.message || 'Café guardado correctamente');
             this.closeModal();
             setTimeout(() => window.location.reload(), 800);
@@ -387,8 +387,8 @@
         cafe.is_active = !cafe.is_active;
 
         try {
-          const response = await fetch(`/admin/cafes/${cafeId}/toggle-active`, {
-            method: 'POST',
+          const response = await fetch(`/api/v1/admin/cafes/${cafeId}/status`, {
+            method: 'PATCH',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
               'X-Requested-With': 'XMLHttpRequest'
@@ -398,7 +398,7 @@
 
           const data = await response.json();
 
-          if (response.ok && data.success) {
+          if (response.ok && data.ok) {
             KomorebiToast.success(data.message || 'Estado actualizado correctamente');
           } else {
             // Revertir en caso de error
@@ -426,8 +426,8 @@
         const removedCafe = this.cafes.splice(cafeIndex, 1)[0];
 
         try {
-          const response = await fetch(`/admin/cafes/${cafeId}/delete`, {
-            method: 'POST',
+          const response = await fetch(`/api/v1/admin/cafes/${cafeId}`, {
+            method: 'DELETE',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
               'X-Requested-With': 'XMLHttpRequest'
@@ -437,7 +437,7 @@
 
           const data = await response.json();
 
-          if (response.ok && data.success) {
+          if (response.ok && data.ok) {
             KomorebiToast.success(data.message || 'Café eliminado correctamente');
           } else {
             // Revertir: restaurar el café en su posición original
@@ -461,7 +461,7 @@
       },
 
       getCategoryIcon(category) {
-        return CATEGORIES[category]?.icon || '📍';
+        return CATEGORIES[category]?.icon || 'bi-geo-alt-fill';
       },
 
       getCategoryClass(category) {
@@ -477,7 +477,7 @@
       },
 
       getAnimalIcon(animalType) {
-        return ANIMAL_TYPES[animalType]?.icon || '🐾';
+        return ANIMAL_TYPES[animalType]?.icon || 'bi-grid';
       },
 
       formatPrice(price) {

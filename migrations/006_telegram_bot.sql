@@ -24,10 +24,10 @@ CREATE TABLE IF NOT EXISTS telegram_users (
     INDEX idx_telegram_user_id (user_id),
     INDEX idx_telegram_id (telegram_id),
     INDEX idx_telegram_active (is_active, last_message_at DESC),
-    CONSTRAINT fk_tu_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    CONSTRAINT fk_telegram_users_users FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'Cuentas Telegram vinculadas (BotFather webhook)';
 -- Log de mensajes del bot (auditoría independiente de API logs)
-CREATE TABLE IF NOT EXISTS telegram_message_log (
+CREATE TABLE IF NOT EXISTS telegram_message_logs (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     telegram_user_id BIGINT UNSIGNED NOT NULL,
     direction ENUM('incoming', 'outgoing') NOT NULL COMMENT 'incoming=usuario, outgoing=bot',
@@ -42,11 +42,11 @@ CREATE TABLE IF NOT EXISTS telegram_message_log (
     INDEX idx_tg_command (command),
     INDEX idx_tg_direction (direction, created_at DESC),
     INDEX idx_tg_retention (retention_until) COMMENT 'Job purga RGPD',
-    CONSTRAINT fk_tml_user FOREIGN KEY (telegram_user_id) REFERENCES telegram_users (id) ON DELETE CASCADE
+    CONSTRAINT fk_telegram_message_logs_telegram_users FOREIGN KEY (telegram_user_id) REFERENCES telegram_users (id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'Auditoría de mensajes Telegram (independiente de api_audit_log)';
 -- Evento MySQL 8.4: Purga automática logs Telegram (RGPD 1 año)
 DROP EVENT IF EXISTS evt_purge_telegram_logs;
 CREATE EVENT evt_purge_telegram_logs ON SCHEDULE EVERY 1 MONTH DO
-DELETE FROM telegram_message_log
+DELETE FROM telegram_message_logs
 WHERE retention_until < NOW();
 SET FOREIGN_KEY_CHECKS = 1;

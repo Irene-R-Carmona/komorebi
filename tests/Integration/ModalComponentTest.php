@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -11,6 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,6 +22,7 @@ use PHPUnit\Framework\TestCase;
  * Run with:
  * docker compose exec app php vendor/bin/phpunit tests/Integration/ModalComponentTest.php --testdox
  */
+#[CoversNothing]
 final class ModalComponentTest extends TestCase
 {
     private string $componentPath;
@@ -30,7 +31,7 @@ final class ModalComponentTest extends TestCase
     {
         $this->componentPath = __DIR__ . '/../../resources/views/components/modal.php';
 
-        if (!file_exists($this->componentPath)) {
+        if (!\file_exists($this->componentPath)) {
             $this->markTestSkipped('Modal component not yet created');
         }
     }
@@ -43,16 +44,16 @@ final class ModalComponentTest extends TestCase
     public function testRenderModalFunctionExists(): void
     {
         require_once $this->componentPath;
-        $this->assertTrue(function_exists('renderModal'));
+        $this->assertTrue(\function_exists('renderModal'));
     }
 
     public function testRenderBasicModal(): void
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'test-modal',
-            'body' => 'Test content'
+            'body' => 'Test content',
         ]);
 
         $this->assertStringContainsString('modal-backdrop', $html);
@@ -70,10 +71,10 @@ final class ModalComponentTest extends TestCase
         $sizes = ['sm', 'md', 'lg', 'xl', 'full'];
 
         foreach ($sizes as $size) {
-            $html = renderModal([
+            $html = \renderModal([
                 'id' => "modal-{$size}",
                 'body' => 'Content',
-                'size' => $size
+                'size' => $size,
             ]);
 
             $this->assertStringContainsString("modal--{$size}", $html);
@@ -84,9 +85,9 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'modal-default',
-            'body' => 'Content'
+            'body' => 'Content',
         ]);
 
         $this->assertStringContainsString('modal--md', $html);
@@ -96,10 +97,10 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'titled-modal',
             'title' => 'Test Title',
-            'body' => 'Content'
+            'body' => 'Content',
         ]);
 
         $this->assertStringContainsString('modal__title', $html);
@@ -112,10 +113,10 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'header-modal',
             'header' => '<div class="custom-header">Custom Header</div>',
-            'body' => 'Content'
+            'body' => 'Content',
         ]);
 
         $this->assertStringContainsString('modal__header', $html);
@@ -127,10 +128,10 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'footer-modal',
             'body' => 'Content',
-            'footer' => '<button>Save</button><button>Cancel</button>'
+            'footer' => '<button>Save</button><button>Cancel</button>',
         ]);
 
         $this->assertStringContainsString('modal__footer', $html);
@@ -142,11 +143,11 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'closeable-modal',
             'body' => 'Content',
             'title' => 'Title',
-            'closeable' => true
+            'closeable' => true,
         ]);
 
         $this->assertStringContainsString('modal__close', $html);
@@ -160,10 +161,10 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'not-closeable-modal',
             'body' => 'Content',
-            'closeable' => false
+            'closeable' => false,
         ]);
 
         $this->assertStringNotContainsString('modal__close', $html);
@@ -173,10 +174,10 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'aria-modal',
             'title' => 'Aria Test',
-            'body' => 'Content'
+            'body' => 'Content',
         ]);
 
         $this->assertStringContainsString('role="dialog"', $html);
@@ -188,10 +189,10 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'escape-modal',
             'title' => '<script>alert("XSS")</script>',
-            'body' => 'Content'
+            'body' => 'Content',
         ]);
 
         $this->assertStringNotContainsString('<script>', $html);
@@ -202,9 +203,9 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'html-modal',
-            'body' => '<p class="text-bold">Formatted Content</p>'
+            'body' => '<p class="text-bold">Formatted Content</p>',
         ]);
 
         // Body content should not be escaped (allows formatting)
@@ -215,10 +216,10 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'footer-html-modal',
             'body' => 'Content',
-            'footer' => '<button class="btn btn-primary">Submit</button>'
+            'footer' => '<button class="btn btn-primary">Submit</button>',
         ]);
 
         // Footer content should not be escaped (allows buttons)
@@ -229,10 +230,10 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'custom-modal',
             'body' => 'Content',
-            'class' => 'modal--danger'
+            'class' => 'modal--danger',
         ]);
 
         $this->assertStringContainsString('modal--danger', $html);
@@ -242,14 +243,14 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'attr-modal',
             'body' => 'Content',
             'attributes' => [
                 'x-data' => '{ open: false }',
                 'x-show' => 'open',
-                'data-test' => 'modal'
-            ]
+                'data-test' => 'modal',
+            ],
         ]);
 
         $this->assertStringContainsString('x-data="{ open: false }"', $html);
@@ -261,12 +262,12 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'escape-attr-modal',
             'body' => 'Content',
             'attributes' => [
-                'data-value' => '<script>evil()</script>'
-            ]
+                'data-value' => '<script>evil()</script>',
+            ],
         ]);
 
         $this->assertStringNotContainsString('<script>evil()</script>', $html);
@@ -277,9 +278,9 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'backdrop-modal',
-            'body' => 'Content'
+            'body' => 'Content',
         ]);
 
         $this->assertStringContainsString('modal-backdrop', $html);
@@ -291,9 +292,9 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'transition-modal',
-            'body' => 'Content'
+            'body' => 'Content',
         ]);
 
         $this->assertStringContainsString('x-show="open"', $html);
@@ -306,7 +307,7 @@ final class ModalComponentTest extends TestCase
         require_once $this->componentPath;
 
         // Without explicit ID
-        $html = renderModal(['body' => 'Content']);
+        $html = \renderModal(['body' => 'Content']);
 
         $this->assertMatchesRegularExpression('/id="modal-[a-z0-9]+"/', $html);
     }
@@ -315,7 +316,7 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'complete-modal',
             'title' => 'Complete Modal',
             'size' => 'lg',
@@ -325,8 +326,8 @@ final class ModalComponentTest extends TestCase
             'class' => 'custom-modal-class',
             'attributes' => [
                 'x-data' => '{ open: false }',
-                'data-test' => 'complete'
-            ]
+                'data-test' => 'complete',
+            ],
         ]);
 
         $this->assertStringContainsString('id="complete-modal"', $html);
@@ -344,10 +345,10 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'esc-modal',
             'body' => 'Content',
-            'closeable' => true
+            'closeable' => true,
         ]);
 
         $this->assertStringContainsString('@keydown.escape.window', $html);
@@ -358,10 +359,10 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal([
+        $html = \renderModal([
             'id' => 'no-esc-modal',
             'body' => 'Content',
-            'closeable' => false
+            'closeable' => false,
         ]);
 
         // Should still have the keydown handler but empty action
@@ -372,7 +373,7 @@ final class ModalComponentTest extends TestCase
     {
         require_once $this->componentPath;
 
-        $html = renderModal(['id' => 'default-modal']);
+        $html = \renderModal(['id' => 'default-modal']);
 
         // Should have default body content
         $this->assertStringContainsString('Modal content', $html);

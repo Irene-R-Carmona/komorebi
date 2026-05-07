@@ -4,17 +4,23 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shared;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
+use App\Core\Http\ResponseFactory;
 use App\Core\Middleware;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\BusinessRuleException;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
-use App\Models\Cafe;
-use App\Services\ReviewService;
+use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Services\Contracts\ReviewModerationServiceInterface;
+use App\Services\Contracts\ReviewQueryServiceInterface;
+use App\Services\Contracts\ReviewServiceInterface;
 use JsonException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -27,19 +33,28 @@ use Random\RandomException;
  */
 final class ReviewController
 {
-    private ReviewService $reviewService;
-    private Cafe $cafeModel;
+    private ReviewServiceInterface $reviewService;
+    private ReviewQueryServiceInterface $queryService;
+    private ReviewModerationServiceInterface $moderationService;
+    private CafeRepositoryInterface $cafeRepo;
+    private ResponseFactory $response;
 
     // ─────────────────────────────────────────────────────────────
     // Inyección de dependencias
     // ─────────────────────────────────────────────────────────────
 
     public function __construct(
-        ?ReviewService $reviewService = null,
-        ?Cafe $cafeModel = null
+        ?ReviewServiceInterface $reviewService = null,
+        ?ReviewQueryServiceInterface $queryService = null,
+        ?ReviewModerationServiceInterface $moderationService = null,
+        ?CafeRepositoryInterface $cafeRepo = null,
+        ?ResponseFactory $response = null
     ) {
-        $this->reviewService = $reviewService ?? new ReviewService();
-        $this->cafeModel = $cafeModel ?? new Cafe();
+        $this->reviewService = $reviewService ?? Container::make(ReviewServiceInterface::class);
+        $this->queryService = $queryService ?? Container::make(ReviewQueryServiceInterface::class);
+        $this->moderationService = $moderationService ?? Container::make(ReviewModerationServiceInterface::class);
+        $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
+        $this->response = $response ?? new ResponseFactory();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -88,7 +103,7 @@ final class ReviewController
      * @throws ValidationException
      * @throws JsonException
      */
-    public function create(): void
+    public function create(ServerRequestInterface $request): ResponseInterface
     {
         // [x] VALIDACIÓN PERMISO: Middleware ya validó 'review.create'
 
@@ -99,10 +114,11 @@ final class ReviewController
         }
 
         // [x] RECOPILACIÓN DE INPUTS
-        $cafeId = (int) ($_POST['cafe_id'] ?? 0);
-        $rating = (int) ($_POST['rating'] ?? 0);
-        $title = \trim((string) ($_POST['title'] ?? ''));
-        $body = \trim((string) ($_POST['body'] ?? ''));
+        $postData = (array) $request->getParsedBody();
+        $cafeId = (int) ($postData['cafe_id'] ?? 0);
+        $rating = (int) ($postData['rating'] ?? 0);
+        $title = \trim((string) ($postData['title'] ?? ''));
+        $body = \trim((string) ($postData['body'] ?? ''));
 
         $errors = [];
         // [x] VALIDACIÓN: Inputs básicos
@@ -118,7 +134,7 @@ final class ReviewController
         }
 
         // [x] VALIDACIÓN CONTEXTO: Café existe
-        $cafe = $this->cafeModel->findById($cafeId);
+        $cafe = $this->cafeRepo->findById($cafeId);
         if (!$cafe) {
             throw NotFoundException::forResource('Café', $cafeId);
         }
@@ -137,13 +153,13 @@ final class ReviewController
         $result = $this->reviewService->createReview($userId, $cafeId, $rating, $title, $body);
 
         if ($result->ok) {
-            Flash::set('success', 'Tu reseña se ha enviado y está pendiente de aprobación. ¡Gracias por compartir tu experiencia!');
-            \header('Location: /cafes/' . $cafeId);
-            exit;
+            Flash::success('Tu reseña se ha enviado y está pendiente de aprobación. ¡Gracias por compartir tu experiencia!');
+
+            return $this->response->redirect('/cafes/' . $cafeId);
         }
 
         // El servicio devolvió un resultado de fallo — convertir a ValidationException
-        throw ValidationException::withMessage($result->getMessage());
+        throw ValidationException::withMessage($result->error ?? '');
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -180,21 +196,22 @@ final class ReviewController
      * @throws ValidationException
      * @throws JsonException
      */
-    public function update(): void
+    public function update(ServerRequestInterface $request): ResponseInterface
     {
         // [x] VALIDACIÓN PERMISO: Middleware ya validó 'review.edit_own'
 
         $userId = (Session::userId() ?? 0);
-        $reviewId = (int) ($_POST['id'] ?? 0);
+        $postData = (array) $request->getParsedBody();
+        $reviewId = (int) ($postData['id'] ?? 0);
 
         // [x] VALIDACIÓN CONTEXTO: Reseña existe
-        $review = $this->reviewService->getReview($reviewId);
+        $review = $this->queryService->getReview($reviewId);
         if (!$review) {
             throw NotFoundException::forResource('Reseña', $reviewId);
         }
 
         // [x] VALIDACIÓN CONTEXTO: Reseña pertenece a usuario O es moderador
-        $isOwner = ($review['user_id'] === $userId);
+        $isOwner = ($review->user_id === $userId);
         $isModerator = Middleware::hasPermission('review.moderate');
 
         if (!$isOwner && !$isModerator) {
@@ -202,20 +219,20 @@ final class ReviewController
         }
 
         // [x] RECOPILACIÓN DE INPUTS
-        $rating = (int) ($_POST['rating'] ?? 0);
-        $title = \trim((string) ($_POST['title'] ?? ''));
-        $body = \trim((string) ($_POST['body'] ?? ''));
+        $rating = (int) ($postData['rating'] ?? 0);
+        $title = \trim((string) ($postData['title'] ?? ''));
+        $body = \trim((string) ($postData['body'] ?? ''));
 
         // [x] LÓGICA DE NEGOCIO: Actualizar
         $result = $this->reviewService->updateReview($reviewId, $userId, $rating, $title, $body);
 
         if ($result->ok) {
-            Flash::set('success', 'Tu reseña se ha actualizado y quedará pendiente de aprobación.');
-            \header('Location: /perfil');
-            exit;
+            Flash::success('Tu reseña se ha actualizado y quedará pendiente de aprobación.');
+
+            return $this->response->redirect('/perfil');
         }
 
-        throw ValidationException::withMessage($result->getMessage());
+        throw ValidationException::withMessage($result->error ?? '');
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -240,21 +257,22 @@ final class ReviewController
      * @throws ValidationException
      * @throws JsonException
      */
-    public function delete(): void
+    public function delete(ServerRequestInterface $request): ResponseInterface
     {
         // [x] VALIDACIÓN PERMISO: Middleware ya validó 'review.delete_own'
 
         $userId = (Session::userId() ?? 0);
-        $reviewId = (int) ($_POST['id'] ?? 0);
+        $postData = (array) $request->getParsedBody();
+        $reviewId = (int) ($postData['id'] ?? 0);
 
         // [x] VALIDACIÓN CONTEXTO: Reseña existe
-        $review = $this->reviewService->getReview($reviewId);
+        $review = $this->queryService->getReview($reviewId);
         if (!$review) {
             throw NotFoundException::forResource('Reseña', $reviewId);
         }
 
         // [x] VALIDACIÓN CONTEXTO: Reseña es del usuario
-        if ($review['user_id'] !== $userId) {
+        if ($review->user_id !== $userId) {
             throw ValidationException::withMessage('No puedes eliminar esta reseña.', 403);
         }
 
@@ -262,12 +280,12 @@ final class ReviewController
         $result = $this->reviewService->deleteReview($reviewId, $userId);
 
         if ($result->ok) {
-            Flash::set('success', 'Reseña eliminada con éxito.');
-            \header('Location: /perfil');
-            exit;
+            Flash::success('Reseña eliminada con éxito.');
+
+            return $this->response->redirect('/perfil');
         }
 
-        throw ValidationException::withMessage($result->getMessage());
+        throw ValidationException::withMessage($result->error ?? '');
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -292,15 +310,15 @@ final class ReviewController
      * 2. Renderizar vista de backoffice
      * @throws RandomException
      */
-    public function pending(): void
+    public function pending(ServerRequestInterface $request): ?ResponseInterface
     {
         // [x] VALIDACIÓN PERMISO: Middleware ya validó 'review.moderate'
 
         // [x] RECOPILACIÓN DE INPUTS: Paginación
-        $page = \max(1, (int) ($_GET['page'] ?? 1));
+        $page = \max(1, (int) ($request->getQueryParams()['page'] ?? 1));
 
         // [x] LÓGICA: Obtener reseñas pendientes
-        $pending = $this->reviewService->listPendingReviews($page);
+        $pending = $this->moderationService->listPendingReviews($page);
 
         // [x] RENDERIZAR: Vista de backoffice
         View::render('admin/reviews/pending', [
@@ -310,6 +328,8 @@ final class ReviewController
             'csrf_token' => Csrf::token(),
             'extraJs' => ['admin/admin-reviews.js'],
         ], ['admin/admin-reviews.css'], 'backoffice');
+
+        return null;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -334,39 +354,40 @@ final class ReviewController
      * 3. Llamar a ReviewService::approveReview()
      * 4. Flash + redirect
      */
-    public function approve(): void
+    public function approve(ServerRequestInterface $request): ResponseInterface
     {
         // [x] VALIDACIÓN PERMISO: Middleware ya validó 'review.moderate'
 
-        $reviewId = (int) ($_POST['id'] ?? 0);
+        $postData = (array) $request->getParsedBody();
+        $reviewId = (int) ($postData['id'] ?? 0);
 
         // [x] VALIDACIÓN CONTEXTO: Reseña existe
-        $review = $this->reviewService->getReview($reviewId);
+        $review = $this->queryService->getReview($reviewId);
         if (!$review) {
-            Flash::set('error', 'Reseña no encontrada.');
-            \header('Location: /admin/reviews/pending');
-            exit;
+            Flash::error('Reseña no encontrada.');
+
+            return $this->response->redirect('/admin/reviews/pending');
         }
 
         // [x] VALIDACIÓN CONTEXTO: Reseña está pending
-        if ($review['status'] !== 'pending') {
-            Flash::set('warning', 'Esta reseña no está pendiente de aprobación.');
-            \header('Location: /admin/reviews/pending');
-            exit;
+        if ($review->status !== 'pending') {
+            Flash::warning('Esta reseña no está pendiente de aprobación.');
+
+            return $this->response->redirect('/admin/reviews/pending');
         }
 
         // [x] LÓGICA DE NEGOCIO: Aprobar
-        $result = $this->reviewService->approveReview($reviewId);
+        $result = $this->moderationService->approveReview($reviewId);
 
         if ($result->ok) {
-            Flash::set('success', 'Reseña aprobada y publicada.');
-            \header('Location: /admin/reviews/pending');
-            exit;
+            Flash::success('Reseña aprobada y publicada.');
+
+            return $this->response->redirect('/admin/reviews/pending');
         }
 
-        Flash::set('error', $result->getMessage());
-        \header('Location: /admin/reviews/pending');
-        exit;
+        Flash::error($result->error);
+
+        return $this->response->redirect('/admin/reviews/pending');
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -393,44 +414,45 @@ final class ReviewController
      *
      * NOTA: Se envía notificación al usuario sobre rechazo + motivo
      */
-    public function reject(): void
+    public function reject(ServerRequestInterface $request): ResponseInterface
     {
         // [x] VALIDACIÓN PERMISO: Middleware ya validó 'review.moderate'
 
-        $reviewId = (int) ($_POST['id'] ?? 0);
-        $reason = \trim((string) ($_POST['reason'] ?? ''));
+        $postData = (array) $request->getParsedBody();
+        $reviewId = (int) ($postData['id'] ?? 0);
+        $reason = \trim((string) ($postData['reason'] ?? ''));
 
         // [x] VALIDACIÓN CONTEXTO: Reseña existe
-        $review = $this->reviewService->getReview($reviewId);
+        $review = $this->queryService->getReview($reviewId);
         if (!$review) {
-            Flash::set('error', 'Reseña no encontrada.');
-            \header('Location: /admin/reviews/pending');
-            exit;
+            Flash::error('Reseña no encontrada.');
+
+            return $this->response->redirect('/admin/reviews/pending');
         }
 
         // [x] VALIDACIÓN CONTEXTO: Reseña está pending
-        if ($review['status'] !== 'pending') {
-            Flash::set('warning', 'Esta reseña no está pendiente de aprobación.');
-            \header('Location: /admin/reviews/pending');
-            exit;
+        if ($review->status !== 'pending') {
+            Flash::warning('Esta reseña no está pendiente de aprobación.');
+
+            return $this->response->redirect('/admin/reviews/pending');
         }
 
         // [x] VALIDACIÓN: Motivo de rechazo (recomendado)
         if (!$reason) {
-            Flash::set('warning', 'Se recomienda proporcionar un motivo de rechazo.');
+            Flash::warning('Se recomienda proporcionar un motivo de rechazo.');
         }
 
         // [x] LÓGICA DE NEGOCIO: Rechazar
-        $result = $this->reviewService->rejectReview($reviewId, $reason);
+        $result = $this->moderationService->rejectReview($reviewId, $reason);
 
         if ($result->ok) {
-            Flash::set('success', 'Reseña rechazada. Se notificará al autor con el motivo.');
-            \header('Location: /admin/reviews/pending');
-            exit;
+            Flash::success('Reseña rechazada. Se notificará al autor con el motivo.');
+
+            return $this->response->redirect('/admin/reviews/pending');
         }
 
-        Flash::set('error', $result->getMessage());
-        \header('Location: /admin/reviews/pending');
-        exit;
+        Flash::error($result->error);
+
+        return $this->response->redirect('/admin/reviews/pending');
     }
 }

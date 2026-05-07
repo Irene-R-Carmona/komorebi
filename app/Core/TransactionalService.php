@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core;
 
 use PDO;
+use Throwable;
 
 /**
  * Clase base para Services que requieren transacciones de base de datos.
@@ -13,7 +14,9 @@ use PDO;
  */
 abstract class TransactionalService extends BaseService
 {
-    public function __construct(protected PDO $db) {}
+    public function __construct(protected PDO $db)
+    {
+    }
 
     /**
      * Ejecuta un callable dentro de una transacción PDO.
@@ -27,19 +30,23 @@ abstract class TransactionalService extends BaseService
     protected function transact(callable $fn): Result
     {
         $this->db->beginTransaction();
+
         try {
             $result = $fn();
 
-            if ($result->isFail()) {
+            if ($result->error !== null) {
                 $this->db->rollBack();
+
                 return $result;
             }
 
             $this->db->commit();
+
             return $result;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->db->rollBack();
             $this->logError('Transaction failed', ['exception' => $e->getMessage()]);
+
             return Result::fail($e->getMessage(), 'transaction_error');
         }
     }

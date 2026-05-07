@@ -9,6 +9,8 @@ use App\Core\Database;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Session;
+use JsonException;
+use Override;
 use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -30,7 +32,6 @@ final class AuthorizationMiddleware implements MiddlewareInterface
     private string $permission;
 
     /**
-     * @param ResponseFactory $response
      * @param string          $permission Permiso requerido (ej: 'cafe.edit', 'review.moderate')
      */
     public function __construct(ResponseFactory $response, string $permission)
@@ -39,7 +40,7 @@ final class AuthorizationMiddleware implements MiddlewareInterface
         $this->permission = $permission;
     }
 
-    #[\Override]
+    #[Override]
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
@@ -81,7 +82,6 @@ final class AuthorizationMiddleware implements MiddlewareInterface
         $cacheKey = "user_permissions:$userId";
 
         try {
-            // Intentar obtener del caché
             $cachedPermissions = Cache::get($cacheKey);
 
             if (\is_array($cachedPermissions)) {
@@ -91,7 +91,6 @@ final class AuthorizationMiddleware implements MiddlewareInterface
             // No está en caché, consultar BD
             $permissions = $this->fetchUserPermissionsFromDb($userId);
 
-            // Guardar en caché
             Cache::set($cacheKey, $permissions, self::CACHE_TTL);
 
             return \in_array($permission, $permissions, true);
@@ -149,7 +148,7 @@ final class AuthorizationMiddleware implements MiddlewareInterface
                     'error' => 'No tienes permisos para realizar esta acción.',
                     'required_permission' => $this->permission,
                 ], 403);
-            } catch (\JsonException) {
+            } catch (JsonException) {
                 return $this->response->createResponse(403);
             }
         }

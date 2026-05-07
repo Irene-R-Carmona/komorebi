@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Vista de Detalle de Chequeo de Salud
  *
  * Muestra toda la información de un chequeo histórico específico.
  */
+
+use App\Support\DateFormatting;
+
 ?>
 
 <div class="container py-4">
@@ -48,7 +53,17 @@
                     </p>
                     <p class="mb-0">
                         <strong>Estado:</strong>
-                        <span class="badge bg-secondary"><?= htmlspecialchars($check['current_status'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <?php
+                        $animalStatusLabels = [
+                            'active' => 'Activo',
+                            'monitoring' => 'En observación',
+                            'resting' => 'Descansando',
+                            'sick' => 'Enfermo',
+                            'retired' => 'Retirado',
+                        ];
+$animalStatusLabel = $animalStatusLabels[$check['current_status']] ?? ucfirst($check['current_status']);
+?>
+                        <span class="badge bg-secondary"><?= htmlspecialchars($animalStatusLabel, ENT_QUOTES, 'UTF-8') ?></span>
                     </p>
                 </div>
             </div>
@@ -61,7 +76,7 @@
                 <div class="card-body">
                     <h5><?= htmlspecialchars($check['keeper_name'], ENT_QUOTES, 'UTF-8') ?></h5>
                     <p class="mb-1">
-                        <strong>Fecha del chequeo:</strong> <?= date('d/m/Y', strtotime($check['check_date'])) ?>
+                        <strong>Fecha del chequeo:</strong> <?= e(DateFormatting::toSpanishDate($check['check_date'])) ?>
                     </p>
                     <p class="mb-0">
                         <strong>Hora de registro:</strong> <?= date('H:i:s', strtotime($check['created_at'])) ?>
@@ -109,10 +124,10 @@
                     <table class="table table-borderless mb-0">
                         <tbody>
                             <tr>
-                                <th style="width: 50%;">Peso:</th>
+                                <th class="w-50">Peso:</th>
                                 <td>
                                     <?php if ($check['weight_kg']): ?>
-                                        <strong><?= number_format((float)$check['weight_kg'], 2) ?> kg</strong>
+                                        <strong><?= number_format((float) $check['weight_kg'], 2) ?> kg</strong>
                                     <?php else: ?>
                                         <span class="text-muted">No medido</span>
                                     <?php endif; ?>
@@ -123,7 +138,7 @@
                                 <td>
                                     <?php if ($check['temperature_c']): ?>
                                         <?php
-                                        $temp = (float)$check['temperature_c'];
+                $temp = (float) $check['temperature_c'];
                                         $tempClass = $temp > 39.5 ? 'text-danger' : ($temp < 36 ? 'text-warning' : 'text-success');
                                         ?>
                                         <strong class="<?= $tempClass ?>">
@@ -144,8 +159,8 @@
                                         'fair' => 'warning',
                                         'poor' => 'danger',
                                     ];
-                                    $coatColor = $coatColors[$check['coat_condition']] ?? 'secondary';
-                                    ?>
+$coatColor = $coatColors[$check['coat_condition']] ?? 'secondary';
+?>
                                     <span class="badge bg-<?= $coatColor ?>">
                                         <?= ucfirst(htmlspecialchars($check['coat_condition'], ENT_QUOTES, 'UTF-8')) ?>
                                     </span>
@@ -167,12 +182,12 @@
                     <table class="table table-borderless mb-0">
                         <tbody>
                             <tr>
-                                <th style="width: 50%;">Apetito:</th>
+                                <th class="w-50">Apetito:</th>
                                 <td>
                                     <?php
-                                    $appetiteColors = ['normal' => 'success', 'reduced' => 'warning', 'none' => 'danger'];
-                                    $appetiteColor = $appetiteColors[$check['appetite']] ?? 'secondary';
-                                    ?>
+$appetiteColors = ['normal' => 'success', 'reduced' => 'warning', 'none' => 'danger'];
+$appetiteColor = $appetiteColors[$check['appetite']] ?? 'secondary';
+?>
                                     <span class="badge bg-<?= $appetiteColor ?>">
                                         <?= ucfirst(htmlspecialchars($check['appetite'], ENT_QUOTES, 'UTF-8')) ?>
                                     </span>
@@ -182,9 +197,9 @@
                                 <th>Nivel de Energía:</th>
                                 <td>
                                     <?php
-                                    $energyColors = ['high' => 'primary', 'normal' => 'success', 'low' => 'warning'];
-                                    $energyColor = $energyColors[$check['energy_level']] ?? 'secondary';
-                                    ?>
+$energyColors = ['high' => 'primary', 'normal' => 'success', 'low' => 'warning'];
+$energyColor = $energyColors[$check['energy_level']] ?? 'secondary';
+?>
                                     <span class="badge bg-<?= $energyColor ?>">
                                         <?= ucfirst(htmlspecialchars($check['energy_level'], ENT_QUOTES, 'UTF-8')) ?>
                                     </span>

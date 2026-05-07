@@ -94,8 +94,8 @@
   /* Sidebar */
   --sidebar-bg: linear-gradient(180deg, #2D1F13 0%, #1A1108 100%);
   --sidebar-text: #F0E8D9;
-  --sidebar-hover: rgba(201, 168, 118, 0.15);
-  --sidebar-active: rgba(255, 179, 71, 0.25);
+  --sidebar-hover: rgba(201, 168, 118, 0.35);
+  --sidebar-active: rgba(255, 179, 71, 0.45);
   --sidebar-border: rgba(201, 168, 118, 0.1);
   --sidebar-width: 280px;
 
@@ -106,7 +106,7 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-glow: 0 0 20px rgba(201, 169, 89, 0.3);
 
   /* Spacing (1.5 ratio - tailwind inspired) */
   --space-1: 0.25rem;
@@ -179,6 +179,56 @@
   --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Bridge aliases → design-tokens.css compatibility */
+  --brand-primary: var(--coffee-700);
+  --brand-accent: var(--coffee-300);
+}
+
+/* ============================================================================
+   DARK MODE — [data-tema="oscuro"]
+   ============================================================================ */
+
+[data-tema="oscuro"] {
+  --bg-primary: #1A1108;
+  --bg-secondary: #2D1F13;
+  --bg-tertiary: #3D2E1F;
+  --bg-elevated: #2D1F13;
+
+  --text-primary: #F0E8D9;
+  --text-secondary: #C9A876;
+  --text-tertiary: #9A7D5A;
+  --text-inverse: #1A1108;
+
+  --border-primary: #4A3828;
+  --border-secondary: #6B5234;
+
+  --glass-bg: rgba(45, 30, 20, 0.88);
+  --glass-border: rgba(201, 168, 118, 0.15);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.35), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.35);
+}
+
+[data-tema="oscuro"] body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-tema="oscuro"] .navbar-main {
+  background: var(--bg-secondary) !important;
+  border-color: var(--border-primary) !important;
+  color: var(--text-primary);
+}
+
+[data-tema="oscuro"] .navbar-page-title {
+  color: var(--text-primary);
+}
+
+[data-tema="oscuro"] .main-content {
+  background: var(--bg-primary);
 }
 
 /* ============================================================================
@@ -192,13 +242,14 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Zen Maru Gothic', 'Noto Sans JP', system-ui, sans-serif;
   font-size: var(--font-base);
   line-height: var(--line-height-normal);
   color: var(--text-primary);
   background: var(--bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
 /* ============================================================================
@@ -306,7 +357,7 @@ body {
 .sidebar-nav .nav-link:hover {
   background: var(--sidebar-hover);
   transform: translateX(2px);
-  color: #FFB347;
+  color: var(--role-accent, #FFB347);
 }
 
 .sidebar-nav .nav-link:focus {
@@ -314,14 +365,14 @@ body {
 }
 
 .sidebar-nav .nav-link:focus-visible {
-  outline: 2px solid #FFB347;
+  outline: 2px solid var(--role-accent, #FFB347);
   outline-offset: 2px;
-  box-shadow: 0 0 0 3px rgba(255, 179, 71, 0.2);
+  box-shadow: 0 0 0 3px var(--role-accent-light, rgba(255, 179, 71, 0.2));
 }
 
 .sidebar-nav .nav-link.active {
   background: var(--sidebar-active);
-  color: #FFB347;
+  color: var(--role-accent, #FFB347);
   font-weight: var(--font-weight-semibold);
 }
 
@@ -619,6 +670,13 @@ body {
 
 .glass-card__body {
   min-height: 120px;
+}
+
+.glass-card__meta {
+  display: flex;
+  gap: var(--space-4);
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
 }
 
 /* ============================================================================
@@ -1091,4 +1149,87 @@ body {
 
 .hover-lift:hover {
   transform: translateY(-4px);
+}
+
+/* ============================================================================
+   LAYOUT — CLASES EXTRAÍDAS DE ATRIBUTOS STYLE
+   ============================================================================ */
+
+/* Sidebar brand icon (emoji ☕) */
+.sidebar-brand__icon {
+  font-size: 1.5rem;
+}
+
+/* Sidebar heading con separador para secciones no-primarias */
+.sidebar-heading--spaced {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+/* Botón de logout (override de Bootstrap btn-outline-light) */
+.btn-logout {
+  opacity: 0.9;
+  border-color: rgba(240, 232, 217, 0.3) !important;
+  color: var(--sidebar-text) !important;
+  padding: 0.375rem 0.75rem;
+}
+
+/* Navbar principal (header superior) */
+.navbar-main {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Toggle de menú móvil */
+.navbar-mobile-toggle {
+  color: var(--coffee-700) !important;
+}
+
+/* Título de página en el header */
+.navbar-page-title {
+  color: var(--coffee-700);
+  font-weight: 600;
+}
+
+/* Badge con nombre del café activo */
+.badge-cafe {
+  background: var(--gradient-warmth) !important;
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* Contenido principal */
+#main-content {
+  background: var(--bg-primary);
+}
+
+/* Offcanvas de navegación móvil */
+.offcanvas-sidebar {
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  width: var(--sidebar-width);
+}
+
+.offcanvas-sidebar .offcanvas-header {
+  border-bottom: 1px solid var(--sidebar-border);
+  padding: var(--space-6);
+}
+
+.offcanvas-sidebar .offcanvas-title {
+  color: var(--sidebar-text);
+}
+
+.offcanvas-sidebar .btn-close {
+  filter: invert(1);
+}
+
+.offcanvas-sidebar .offcanvas-body {
+  padding: var(--space-4);
+}
+
+.offcanvas-sidebar .nav-link {
+  color: var(--sidebar-text);
 }

@@ -100,7 +100,7 @@ function renderModal(array $props): string
 
     // Start output buffer
     ob_start();
-?>
+    ?>
     <!-- Modal Backdrop -->
     <div class="modal-backdrop"
         @click="open = false"
@@ -165,5 +165,5 @@ function renderModal(array $props): string
         </div>
     </div>
 <?php
-    return ob_get_clean();
+        return ob_get_clean();
 }

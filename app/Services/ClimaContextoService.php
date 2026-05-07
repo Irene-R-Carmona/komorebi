@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Logger;
-use DateTime;
+use App\Services\Contracts\ClimaContextoServiceInterface;
+use App\Services\Contracts\WeatherServiceInterface;
+use DateMalformedStringException;
+use DateTimeImmutable;
 use DateTimeZone;
+use Override;
 
 /**
  * Servicio de Clima Contextual con Tokyo
@@ -16,7 +20,7 @@ use DateTimeZone;
  *
  * Delega la obtención de datos y el caching a WeatherService.
  */
-final class ClimaContextoService
+final class ClimaContextoService implements ClimaContextoServiceInterface
 {
     private const TOKYO_LAT = 35.6762;
     private const TOKYO_LON = 139.6503;
@@ -63,9 +67,9 @@ final class ClimaContextoService
             '☁️ Entre nubes, la luz encuentra su camino',
         ],
         'rain' => [
-            '🌧️ Lluvia suave acaricia las calles de Tokyo',
-            '🌧️ Perfecto para escuchar la lluvia junto a una taza de café',
-            '🌧️ La lluvia canta su melodía en los tejados',
+            '️ Lluvia suave acaricia las calles de Tokyo',
+            '️ Perfecto para escuchar la lluvia junto a una taza de café',
+            '️ La lluvia canta su melodía en los tejados',
         ],
         'snow' => [
             '❄️ Copos de nieve adornan Tokyo',
@@ -73,9 +77,9 @@ final class ClimaContextoService
             '❄️ Nieve como pétalos de sakura en invierno',
         ],
         'fog' => [
-            '🌫️ Niebla misteriosa envuelve Tokyo',
-            '🌫️ La ciudad emerge entre brumas',
-            '🌫️ Como un sueño flotando entre nubes',
+            '️ Niebla misteriosa envuelve Tokyo',
+            '️ La ciudad emerge entre brumas',
+            '️ Como un sueño flotando entre nubes',
         ],
         'thunderstorm' => [
             '⚡️ Tormenta dramática sobre Tokyo',
@@ -84,7 +88,9 @@ final class ClimaContextoService
         ],
     ];
 
-    public function __construct(private readonly WeatherService $weatherService) {}
+    public function __construct(private readonly WeatherServiceInterface $weatherService)
+    {
+    }
 
     /**
      * Obtiene el clima actual de Tokyo con contexto poético.
@@ -93,17 +99,18 @@ final class ClimaContextoService
      * Añade condición normalizada, mensajes poéticos y efectos visuales.
      *
      * @return array{condicion: string, temperatura: float, temperatura_celsius: int, descripcion: string, mensaje_poetico: string, hora_tokyo: string, hora_local_tokyo: string, codigo_wmo: int, timestamp: int, desde_cache: bool}
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
+    #[Override]
     public function obtenerClimaActual(): array
     {
-        $horaTokyoObj = new DateTime('now', new DateTimeZone('Asia/Tokyo'));
+        $horaTokyoObj = new DateTimeImmutable('now', new DateTimeZone('Asia/Tokyo'));
 
         $result = $this->weatherService->getWeather(self::TOKYO_LAT, self::TOKYO_LON, 'Asia/Tokyo');
 
-        if ($result->isFail()) {
+        if ($result->error !== null) {
             Logger::warning('[ClimaContexto] WeatherService no disponible, usando datos por defecto', [
-                'error' => $result->getMessage(),
+                'error' => $result->error,
             ]);
 
             return \array_merge($this->obtenerClimaPorDefecto($horaTokyoObj), ['desde_cache' => false]);
@@ -139,9 +146,9 @@ final class ClimaContextoService
     /**
      * Clima por defecto cuando WeatherService no está disponible.
      *
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
-    private function obtenerClimaPorDefecto(DateTime $horaTokyoObj): array
+    private function obtenerClimaPorDefecto(DateTimeImmutable $horaTokyoObj): array
     {
         return [
             'condicion' => 'clouds',
@@ -193,6 +200,7 @@ final class ClimaContextoService
      *   color_secundario: string
      * }
      */
+    #[Override]
     public function obtenerConfiguracionEfectos(string $condicion): array
     {
         $configuraciones = [

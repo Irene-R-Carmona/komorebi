@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Formulario de Chequeo de Salud Animal
  *
@@ -21,11 +23,21 @@
                             </h1>
                             <h5 class="text-muted mb-0">
                                 <?= htmlspecialchars($animal['name'], ENT_QUOTES, 'UTF-8') ?>
-                                <span class="badge bg-info ms-2"><?= htmlspecialchars($animal['species_type'], ENT_QUOTES, 'UTF-8') ?></span>
+                                <span class="badge bg-info ms-2"><?= htmlspecialchars($animal['species'], ENT_QUOTES, 'UTF-8') ?></span>
                             </h5>
                             <p class="text-muted small mb-0 mt-1">
                                 Edad: <?= $animal['age'] ?? 'N/D' ?> años •
-                                Estado: <span class="badge bg-secondary"><?= htmlspecialchars($animal['current_status'], ENT_QUOTES, 'UTF-8') ?></span>
+                                <?php
+                                $animalStatusLabels = [
+                                    'active' => 'Activo',
+                                    'monitoring' => 'En observación',
+                                    'resting' => 'Descansando',
+                                    'sick' => 'Enfermo',
+                                    'retired' => 'Retirado',
+                                ];
+$animalStatusLabel = $animal['is_active'] ? 'Activo' : 'Inactivo';
+?>
+                                Estado: <span class="badge bg-secondary"><?= htmlspecialchars($animalStatusLabel, ENT_QUOTES, 'UTF-8') ?></span>
                             </p>
                         </div>
                         <div class="col-md-4 text-md-end">
@@ -137,7 +149,7 @@
         <div class="row">
             <div class="col-12 mb-4">
                 <div class="card shadow">
-                    <div class="card-header bg-info text-white">
+                    <div class="card-header bg-light">
                         <h5 class="mb-0"><i class="bi bi-journal-text"></i> Notas Adicionales</h5>
                     </div>
                     <div class="card-body">
@@ -180,7 +192,7 @@
 </div>
 
 <!-- Script para validación y UX mejorada -->
-<script>
+<script nonce="<?= $cspNonce ?? '' ?>">
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('healthCheckForm');
         const temperatureInput = document.getElementById('temperature_c');

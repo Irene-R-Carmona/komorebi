@@ -67,11 +67,11 @@ final class Middleware
         $userId = Session::get('user_id');
 
         if (empty($userId)) {
-            Flash::set('error', 'Debes iniciar sesión para acceder a esta página.');
+            Flash::error('Debes iniciar sesión para acceder a esta página.');
             if (!\headers_sent()) {
                 \header('Location: /login');
             } else {
-                Logger::error('[Middleware::auth] headers already sent; cannot redirect to /login');
+                Logger::error('[Middleware::auth] headers already sent; cannot redirect to /login', ['user_id' => $userId]);
             }
             if (PHP_SAPI === 'cli') {
                 throw new \App\Exceptions\MiddlewareException('No autenticado', 'auth', 'not_authenticated');
@@ -79,14 +79,23 @@ final class Middleware
             exit;
         }
 
-        $user = self::fetchUserFromDb((int) $userId);
+        // Verificar estado en BD si los roles aún no están cacheados en sesión,
+        // o si han pasado más de 5 minutos desde la última verificación (TTL).
+        // Esto garantiza que usuarios eliminados/desactivados pierden acceso en ≤5 min.
+        $verifiedAt = (int) Session::get('_user_verified_at', 0);
+        $needsVerification = !Session::has('user_roles') || (\time() - $verifiedAt) > 300;
 
-        // Solo forzar logout si el usuario existe y está marcado como inactivo.
-        if (is_array($user) && !($user['is_active'] ?? true)) {
-            self::forceLogout('account_locked');
+        if ($needsVerification) {
+            $user = self::fetchUserFromDb((int) $userId);
+
+            // Solo forzar logout si el usuario existe y está marcado como inactivo.
+            if (\is_array($user) && !($user['is_active'] ?? true)) {
+                self::forceLogout('account_locked');
+            }
+
+            Session::set('_user_verified_at', \time());
+            self::loadUserRolesInSession((int) $userId);
         }
-
-        self::loadUserRolesInSession((int) $userId);
     }
 
     /**
@@ -100,20 +109,20 @@ final class Middleware
         $allowedRoles = \is_array($allowedRoles) ? $allowedRoles : [$allowedRoles];
         $userRoles = (array) Session::get('user_roles', []);
 
-        // Admin siempre tiene acceso (soportar roles como `super_admin`)
+        // Admin siempre tiene acceso
         foreach ($userRoles as $r) {
             $rStr = (string) $r;
-            if ($rStr === self::ROLE_ADMIN || str_ends_with($rStr, '_admin')) {
+            if ($rStr === self::ROLE_ADMIN) {
                 return;
             }
         }
 
         // Verificar si usuario tiene alguno de los roles permitidos
-        $allowedRoles = array_map('strval', $allowedRoles);
+        $allowedRoles = \array_map('strval', $allowedRoles);
         $hasRole = \count(\array_intersect($userRoles, $allowedRoles)) > 0;
 
         if (!$hasRole) {
-            Logger::error('[Middleware::role] Acceso denegado. Requerido: ' . \implode(',', $allowedRoles) . ' | Usuario tiene: ' . \implode(',', $userRoles));
+            Logger::error('[Middleware::role] Acceso denegado', ['required' => $allowedRoles, 'actual' => $userRoles]);
             self::handleUnauthorized();
         }
     }
@@ -129,16 +138,16 @@ final class Middleware
 
         $userRoles = (array) Session::get('user_roles', []);
 
-        // Admin siempre tiene acceso completo (soportar roles como `super_admin`)
+        // Admin siempre tiene acceso completo
         foreach ($userRoles as $r) {
             $rStr = (string) $r;
-            if ($rStr === self::ROLE_ADMIN || str_ends_with($rStr, '_admin')) {
+            if ($rStr === self::ROLE_ADMIN) {
                 return;
             }
         }
 
         if (!self::userHasPermission($permission)) {
-            Logger::error("[Middleware::can] Acceso denegado. Permiso: $permission | Roles usuario: " . \implode(',', $userRoles));
+            Logger::error('[Middleware::can] Acceso denegado', ['permission' => $permission, 'roles' => $userRoles]);
             self::handleUnauthorized();
         }
     }
@@ -163,7 +172,7 @@ final class Middleware
             }
         } catch (Throwable $e) {
             // Log del error pero no fallar
-            Logger::error('[Middleware::guest] Error: ' . $e->getMessage());
+            Logger::error('[Middleware::guest] Error', ['exception' => $e->getMessage()]);
         }
     }
 
@@ -245,7 +254,8 @@ final class Middleware
     {
         Session::start();
         $roles = Session::get('user_roles', []);
-        return is_array($roles) ? $roles : [];
+
+        return \is_array($roles) ? $roles : [];
     }
 
     /**
@@ -364,7 +374,13 @@ final class Middleware
             return false;
         }
 
-        // Caché vacía o no inicializada: fallback a BD (seguro)
+        // Si la clave user_permissions existe en sesión (aunque vacía), el usuario
+        // no tiene permisos extra — no hacer fallback a BD.
+        if (Session::has('user_permissions')) {
+            return false;
+        }
+
+        // Caché no inicializada: fallback a BD (seguro)
         $userId = Session::userId();
         if (!$userId) {
             return false;
@@ -447,7 +463,7 @@ final class Middleware
         if (!\headers_sent()) {
             \header('Location: ' . $path);
         } else {
-            Logger::error('[Middleware::redirect] headers already sent; cannot redirect to ' . $path);
+            Logger::error('[Middleware::redirect] headers already sent', ['path' => $path]);
         }
         exit;
     }
@@ -460,7 +476,7 @@ final class Middleware
         if (!\headers_sent()) {
             @\http_response_code($code);
         } else {
-            Logger::error('[Middleware::abort] headers already sent; skipping http_response_code(' . $code . ')');
+            Logger::error('[Middleware::abort] headers already sent; skipping http_response_code', ['code' => $code]);
         }
         $errorPage = match ($code) {
             403 => '/error/403',
@@ -471,7 +487,7 @@ final class Middleware
         if (!\headers_sent()) {
             \header("Location: $errorPage");
         } else {
-            Logger::error('[Middleware::abort] headers already sent; cannot redirect to ' . $errorPage);
+            Logger::error('[Middleware::abort] headers already sent; cannot redirect', ['error_page' => $errorPage]);
         }
         exit;
     }
@@ -485,7 +501,7 @@ final class Middleware
             @\http_response_code($code);
             \header('Content-Type: application/json; charset=UTF-8');
         } else {
-            Logger::error('[Middleware::abortJson] headers already sent; skipping \header() and http_response_code()');
+            Logger::error('[Middleware::abortJson] headers already sent; skipping header()', ['code' => $code, 'message' => $message]);
         }
         echo \json_encode(['error' => $message], JSON_UNESCAPED_UNICODE);
         exit;
@@ -558,7 +574,7 @@ final class Middleware
             // X-Powered-By: Ocultar información del servidor
             \header_remove('X-Powered-By');
         } else {
-            Logger::error('[Middleware::securityHeaders] headers already sent; skipping security headers');
+            Logger::error('[Middleware::securityHeaders] headers already sent; skipping security headers', ['strict' => $strict]);
         }
     }
 

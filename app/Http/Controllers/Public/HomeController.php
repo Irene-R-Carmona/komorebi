@@ -4,43 +4,57 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Core\Container;
 use App\Core\Session;
 use App\Core\View;
-use App\Models\Animal;
-use App\Models\Cafe;
-use App\Models\Favorite;
+use App\Repositories\Contracts\AnimalRepositoryInterface;
+use App\Repositories\Contracts\CafeCatalogRepositoryInterface;
+use App\Repositories\Contracts\FavoriteRepositoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Controlador de la Página Principal
  */
 final class HomeController
 {
-    private Cafe $cafeModel;
-    private Animal $animalModel;
+    private CafeCatalogRepositoryInterface $cafeRepo;
+    private AnimalRepositoryInterface $animalRepo;
+    private FavoriteRepositoryInterface $favoriteRepo;
 
-    public function __construct()
-    {
-        $this->cafeModel = new Cafe();
-        $this->animalModel = new Animal();
+    public function __construct(
+        ?CafeCatalogRepositoryInterface $cafeRepo = null,
+        ?FavoriteRepositoryInterface $favoriteRepo = null,
+        ?AnimalRepositoryInterface $animalRepo = null
+    ) {
+        $this->cafeRepo = $cafeRepo ?? Container::make(CafeCatalogRepositoryInterface::class);
+        $this->favoriteRepo = $favoriteRepo ?? Container::make(FavoriteRepositoryInterface::class);
+        $this->animalRepo = $animalRepo ?? Container::make(AnimalRepositoryInterface::class);
     }
 
     /**
      * GET /
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
+        // 103 Early Hints — FrankenPHP envía la cabecera antes de las queries
+        \header('Link: </css/sections/home.css>; rel=preload; as=style', false);
+        if (\function_exists('headers_send')) {
+            \headers_send(103);
+        }
+
         // Estadísticas generales
-        $cafes = $this->cafeModel->findAll();
+        $cafes = $this->cafeRepo->findActive();
         $totalCafes = \count($cafes);
 
         // Calcular valoración media de todos los cafés activos
-        $ratings = \array_filter(\array_column($cafes, 'rating_avg'), fn($r) => $r !== null && (float) $r > 0);
+        $ratings = \array_filter(\array_column($cafes, 'rating_avg'), fn ($r) => $r !== null && (float) $r > 0);
         $ratingPromedio = $ratings !== []
             ? \number_format(\array_sum($ratings) / \count($ratings), 1)
             : '5.0';
 
         // Número de especies distintas en el sistema
-        $totalEspecies = $this->animalModel->countDistinctSpecies();
+        $totalEspecies = $this->animalRepo->countDistinctSpecies();
 
         // Cafés destacados (por rating)
         $featuredCafes = $this->getFeaturedCafes($cafes);
@@ -60,6 +74,8 @@ final class HomeController
             'userData' => $userData,
             'categories' => $this->getCategoryStats($cafes),
         ], ['home.css']);
+
+        return null;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -72,7 +88,7 @@ final class HomeController
     private function getFeaturedCafes(array $cafes): array
     {
         // Ordenar por rating descendente
-        \usort($cafes, static fn($a, $b) => (float) ($b['rating_avg'] ?? 0) <=> (float) ($a['rating_avg'] ?? 0));
+        \usort($cafes, static fn ($a, $b) => (float) ($b['rating_avg'] ?? 0) <=> (float) ($a['rating_avg'] ?? 0));
 
         return \array_slice($cafes, 0, 3);
     }
@@ -83,11 +99,10 @@ final class HomeController
     private function getUserHomeData(): array
     {
         $userId = Session::userId();
-        $favoriteModel = new Favorite();
 
         return [
             'name' => Session::userName(),
-            'favorites_count' => $favoriteModel->countByUser($userId),
+            'favorites_count' => $this->favoriteRepo->countByUser($userId),
         ];
     }
 

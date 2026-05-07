@@ -2,154 +2,71 @@
 
 declare(strict_types=1);
 
-
 /**
- * ¿Qué pruebas aquí?
- * ¿Qué me quieres demostrar?
- * ¿Qué va a fallar en este test si se cambia el código?
+ * ¿Qué pruebas aquí? RateLimitingService: lógica de bloqueo según el estado del caché.
+ * ¿Qué me quieres demostrar? Que isBlocked retorna false cuando no hay hit de caché, y true cuando locked_until está en el futuro.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se cambia la lógica de locked_until o la clave de retorno.
  */
 
 namespace Tests\Unit\Services;
 
 use App\Services\RateLimitingService;
-use PDO;
-use PDOStatement;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
-/**
- * Tests para RateLimitingService
- *
- * Verifica:
- * - Registro de intentos
- * - Verificación de límites
- * - Bloqueos temporales
- * - Reset de límites
- */
+#[CoversClass(RateLimitingService::class)]
 final class RateLimitingServiceTest extends TestCase
 {
-    private RateLimitingService $service;
-    private PDO $dbMock;
-
-    protected function setUp(): void
+    public function testIsBlockedReturnsFalseWhenCacheHasNoEntry(): void
     {
-        $this->dbMock = $this->createStub(PDO::class);
-        $this->service = new RateLimitingService($this->dbMock);
-    }
+        $itemStub = $this->createStub(CacheItemInterface::class);
+        $itemStub->method('isHit')->willReturn(false);
 
-    public function testRecordAttemptCreatesNewRecordWhenNotExists(): void
-    {
-        $stmtSelect = $this->createStub(PDOStatement::class);
-        $stmtSelect->method('execute')->willReturn(true);
-        $stmtSelect->method('fetch')->willReturn(false); // No existe
+        $cacheStub = $this->createStub(CacheItemPoolInterface::class);
+        $cacheStub->method('getItem')->willReturn($itemStub);
 
-        $stmtInsert = $this->createStub(PDOStatement::class);
-        $stmtInsert->method('execute')->willReturn(true);
+        $service = new RateLimitingService($cacheStub);
+        $result = $service->isBlocked('login', 'user@example.com');
 
-        $this->dbMock->method('prepare')
-            ->willReturnOnConsecutiveCalls($stmtSelect, $stmtInsert);
-
-        $result = $this->service->recordAttempt('login', 'test@example.com', '127.0.0.1');
-
-        $this->assertTrue($result);
-    }
-
-    public function testRecordAttemptIncrementsExistingRecord(): void
-    {
-        $stmtSelect = $this->createStub(PDOStatement::class);
-        $stmtSelect->method('execute')->willReturn(true);
-        $stmtSelect->method('fetch')->willReturn(['id' => 1, 'attempt_count' => 2]);
-
-        $stmtUpdate = $this->createStub(PDOStatement::class);
-        $stmtUpdate->method('execute')->willReturn(true);
-
-        $this->dbMock->method('prepare')
-            ->willReturnOnConsecutiveCalls($stmtSelect, $stmtUpdate);
-
-        $result = $this->service->recordAttempt('login', 'test@example.com', '127.0.0.1');
-
-        $this->assertTrue($result);
-    }
-
-    public function testIsBlockedReturnsFalseWhenNoRecordExists(): void
-    {
-        $stmtMock = $this->createStub(PDOStatement::class);
-        $stmtMock->method('execute')->willReturn(true);
-        $stmtMock->method('fetch')->willReturn(false);
-
-        $this->dbMock->method('prepare')->willReturn($stmtMock);
-
-        $result = $this->service->isBlocked('login', 'test@example.com');
-
-        $this->assertIsArray($result);
         $this->assertFalse($result['blocked']);
     }
 
-    public function testIsBlockedReturnsTrueWhenLockedUntilNotExpired(): void
+    public function testIsBlockedReturnsTrueWhenLockedUntilIsInFuture(): void
     {
-        $futureTime = date('Y-m-d H:i:s', time() + 600); // 10 minutos en el futuro
-
-        $stmtMock = $this->createStub(PDOStatement::class);
-        $stmtMock->method('execute')->willReturn(true);
-        $stmtMock->method('fetch')->willReturn([
-            'attempt_count' => 5,
-            'locked_until' => $futureTime
+        $itemStub = $this->createStub(CacheItemInterface::class);
+        $itemStub->method('isHit')->willReturn(true);
+        $itemStub->method('get')->willReturn([
+            'attempts' => 5,
+            'locked_until' => \time() + 300,
         ]);
 
-        $this->dbMock->method('prepare')->willReturn($stmtMock);
+        $cacheStub = $this->createStub(CacheItemPoolInterface::class);
+        $cacheStub->method('getItem')->willReturn($itemStub);
 
-        $result = $this->service->isBlocked('login', 'test@example.com');
+        $service = new RateLimitingService($cacheStub);
+        $result = $service->isBlocked('login', 'user@example.com');
 
-        $this->assertIsArray($result);
         $this->assertTrue($result['blocked']);
+        $this->assertArrayHasKey('minutes_remaining', $result);
     }
 
-    public function testGetRecentAttemptsReturnsCount(): void
+    public function testIsBlockedReturnsFalseWhenLockHasExpired(): void
     {
-        $stmtMock = $this->createStub(PDOStatement::class);
-        $stmtMock->method('execute')->willReturn(true);
-        $stmtMock->method('fetch')->willReturn(['attempt_count' => 3]);
+        $itemStub = $this->createStub(CacheItemInterface::class);
+        $itemStub->method('isHit')->willReturn(true);
+        $itemStub->method('get')->willReturn([
+            'attempts' => 5,
+            'locked_until' => \time() - 60,
+        ]);
 
-        $this->dbMock->method('prepare')->willReturn($stmtMock);
+        $cacheStub = $this->createStub(CacheItemPoolInterface::class);
+        $cacheStub->method('getItem')->willReturn($itemStub);
 
-        $attempts = $this->service->getRecentAttempts('login', 'test@example.com');
+        $service = new RateLimitingService($cacheStub);
+        $result = $service->isBlocked('login', 'user@example.com');
 
-        $this->assertEquals(3, $attempts);
-    }
-
-    public function testGetRecentAttemptsReturnsZeroWhenNoRecord(): void
-    {
-        $stmtMock = $this->createStub(PDOStatement::class);
-        $stmtMock->method('execute')->willReturn(true);
-        $stmtMock->method('fetch')->willReturn(false);
-
-        $this->dbMock->method('prepare')->willReturn($stmtMock);
-
-        $attempts = $this->service->getRecentAttempts('login', 'test@example.com');
-
-        $this->assertEquals(0, $attempts);
-    }
-
-    public function testClearAttemptsDeletesRecord(): void
-    {
-        $stmtMock = $this->createStub(PDOStatement::class);
-        $stmtMock->method('execute')->willReturn(true);
-
-        $this->dbMock->method('prepare')->willReturn($stmtMock);
-
-        $result = $this->service->clearAttempts('login', 'test@example.com');
-
-        $this->assertTrue($result);
-    }
-
-    public function testCleanupOldRecordsReturnsDeletedCount(): void
-    {
-        $stmtMock = $this->createStub(PDOStatement::class);
-        $stmtMock->method('rowCount')->willReturn(5);
-
-        $this->dbMock->method('query')->willReturn($stmtMock);
-
-        $deleted = $this->service->cleanupOldRecords();
-
-        $this->assertEquals(5, $deleted);
+        $this->assertFalse($result['blocked']);
     }
 }

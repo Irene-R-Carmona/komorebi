@@ -1,29 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Support\ViewHelpers;
+
 /**
  * Lista de Animales - Módulo Keeper
  *
  * Variables disponibles (escapadas por View::render):
  * @var array $animals  Array de animales con café info (getAnimalsWithCafeInfoOptimized)
+ * @var int   $total
+ * @var array $meta  ['page' => int, 'has_next_page' => bool]
+ * @var string $csrf_token
  */
+
+$meta ??= ['page' => 1, 'has_next_page' => false];
+$total ??= count($animals);
 
 $getStatusBadgeClass = function (string $status): string {
     return match ($status) {
-        'active'   => 'success',
-        'resting'  => 'warning',
-        'sick'     => 'danger',
-        'retired'  => 'secondary',
-        default    => 'secondary'
+        'active' => 'success',
+        'resting' => 'warning',
+        'sick' => 'danger',
+        'retired' => 'secondary',
+        default => 'secondary'
     };
 };
 
 $getStatusLabel = function (string $status): string {
     return match ($status) {
-        'active'  => 'Activo',
+        'active' => 'Activo',
         'resting' => 'Reposo',
-        'sick'    => 'Enfermo',
+        'sick' => 'Enfermo',
         'retired' => 'Retirado',
-        default   => ucfirst($status)
+        default => ucfirst($status)
     };
 };
 ?>
@@ -50,17 +60,17 @@ $getStatusLabel = function (string $status): string {
     </div>
 
     <!-- Flash Messages -->
-    <?php
-    $flash = \App\Core\Flash::getAll();
-    if (!empty($flash['success'])): ?>
+    <?php $flashSuccess = \App\Core\Flash::get('success'); ?>
+    <?php if ($flashSuccess !== null): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($flash['success'], ENT_QUOTES, 'UTF-8') ?>
+            <?= htmlspecialchars($flashSuccess, ENT_QUOTES, 'UTF-8') ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
-    <?php if (!empty($flash['error'])): ?>
+    <?php $flashError = \App\Core\Flash::get('error'); ?>
+    <?php if ($flashError !== null): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($flash['error'], ENT_QUOTES, 'UTF-8') ?>
+            <?= htmlspecialchars($flashError, ENT_QUOTES, 'UTF-8') ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
@@ -69,8 +79,11 @@ $getStatusLabel = function (string $status): string {
     <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
             <h5 class="mb-0 text-primary">
-                <i class="bi bi-table"></i> Animales (<?= count($animals) ?>)
+                <i class="bi bi-table"></i> Animales (<?= $total ?>)
             </h5>
+            <a href="/admin/animals/create" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg"></i> Nuevo Animal
+            </a>
         </div>
         <div class="card-body p-0">
             <?php if (empty($animals)): ?>
@@ -97,10 +110,13 @@ $getStatusLabel = function (string $status): string {
                                     <td class="fw-semibold">
                                         <?php if (!empty($animal['image_url'])): ?>
                                             <img src="<?= htmlspecialchars($animal['image_url'], ENT_QUOTES, 'UTF-8') ?>"
-                                                alt="<?= htmlspecialchars($animal['name'], ENT_QUOTES, 'UTF-8') ?>"
+                                                alt=""
+                                                aria-hidden="true"
                                                 class="rounded-circle me-2"
                                                 width="32" height="32"
-                                                style="object-fit:cover;">
+                                                style="object-fit:cover;"
+                                                x-data
+                                                x-on:error="$el.style.display='none'">
                                         <?php else: ?>
                                             <span class="me-2 text-muted"><i class="bi bi-image"></i></span>
                                         <?php endif; ?>
@@ -108,10 +124,41 @@ $getStatusLabel = function (string $status): string {
                                     </td>
                                     <td><?= htmlspecialchars($animal['species_type'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= htmlspecialchars($animal['cafe_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td>
-                                        <span class="badge bg-<?= $getStatusBadgeClass($animal['current_status'] ?? '') ?>">
-                                            <?= $getStatusLabel($animal['current_status'] ?? '') ?>
+                                    <td x-data="{
+                                            status: '<?= htmlspecialchars($animal['current_status'] ?? 'active', ENT_QUOTES) ?>',
+                                            loading: false,
+                                            async toggle() {
+                                                this.loading = true;
+                                                try {
+                                                    const csrfToken = document.querySelector('meta[name=csrf-token]')?.content ?? '';
+                                                    const body = new FormData();
+                                                    body.append('csrf_token', csrfToken);
+                                                    const res = await fetch('/api/v1/keeper/animals/<?= (int) $animal['id'] ?>/toggle', {
+                                                        method: 'PATCH',
+                                                        body
+                                                    });
+                                                    const json = await res.json();
+                                                    if (json.ok) {
+                                                        this.status = this.status === 'active' ? 'inactive' : 'active';
+                                                    }
+                                                } finally {
+                                                    this.loading = false;
+                                                }
+                                            }
+                                        }">
+                                        <span :class="status === 'active' ? 'badge bg-success' : 'badge bg-secondary'"
+                                            x-text="status === 'active' ? 'Activo' : 'Inactivo'">
                                         </span>
+                                        <?php if (($animal['current_status'] ?? '') !== 'retired'): ?>
+                                            <button class="btn btn-sm ms-1"
+                                                :class="status === 'active' ? 'btn-outline-secondary' : 'btn-outline-success'"
+                                                :disabled="loading"
+                                                @click.stop="toggle()"
+                                                :title="status === 'active' ? 'Desactivar' : 'Activar'">
+                                                <span x-show="loading" class="spinner-border spinner-border-sm" x-cloak></span>
+                                                <i x-show="!loading" :class="status === 'active' ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                                            </button>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="text-center">
                                         <?php $logsToday = (int) ($animal['logs_today'] ?? 0); ?>
@@ -132,5 +179,11 @@ $getStatusLabel = function (string $status): string {
                 </div>
             <?php endif; ?>
         </div>
+        <?php $paginationHtml = ViewHelpers::paginationLinks($meta, []); ?>
+        <?php if ($paginationHtml !== ''): ?>
+            <div class="d-flex justify-content-center mt-3 mb-2">
+                <?= $paginationHtml ?>
+            </div>
+        <?php endif; ?>
     </div>
 </div>

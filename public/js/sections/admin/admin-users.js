@@ -398,8 +398,8 @@
 
         try {
           const url = this.isEditMode
-            ? `/admin/usuarios/${this.form.id}/edit`
-            : '/admin/usuarios/create';
+            ? `/api/v1/admin/users/${this.form.id}`
+            : '/api/v1/admin/users';
 
           const formData = new URLSearchParams({
             csrf_token: this.csrfToken,
@@ -416,7 +416,7 @@
           }
 
           const response = await fetch(url, {
-            method: 'POST',
+            method: this.isEditMode ? 'PUT' : 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
               'X-Requested-With': 'XMLHttpRequest'
@@ -426,7 +426,7 @@
 
           const data = await response.json();
 
-          if (response.ok && data.success) {
+          if (response.ok && data.ok) {
             KomorebiToast.success(data.message || 'Usuario guardado correctamente');
             this.closeModal();
 
@@ -456,8 +456,8 @@
         }
 
         try {
-          const response = await fetch(`/admin/usuarios/${userId}/toggle-active`, {
-            method: 'POST',
+          const response = await fetch(`/api/v1/admin/users/${userId}/status`, {
+            method: 'PATCH',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
               'X-Requested-With': 'XMLHttpRequest'
@@ -467,7 +467,7 @@
 
           const data = await response.json();
 
-          if (response.ok && data.success) {
+          if (response.ok && data.ok) {
             // Actualizar estado local
             user.is_active = !user.is_active;
             KomorebiToast.success(data.message || 'Estado actualizado');
@@ -495,8 +495,8 @@
         }
 
         try {
-          const response = await fetch(`/admin/usuarios/${userId}/delete`, {
-            method: 'POST',
+          const response = await fetch(`/api/v1/admin/users/${userId}`, {
+            method: 'DELETE',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
               'X-Requested-With': 'XMLHttpRequest'
@@ -506,7 +506,7 @@
 
           const data = await response.json();
 
-          if (response.ok && data.success) {
+          if (response.ok && data.ok) {
             // Remover de la lista local
             const index = this.users.findIndex(u => u.id === userId);
             if (index > -1) {

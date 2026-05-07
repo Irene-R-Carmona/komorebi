@@ -20,13 +20,17 @@ namespace Tests\Unit\Middleware;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Middleware\CorsMiddleware;
+use InvalidArgumentException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\ServerRequest;
+use Override;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+#[CoversClass(CorsMiddleware::class)]
 final class CorsMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;
@@ -34,8 +38,8 @@ final class CorsMiddlewareTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->factory         = new Psr17Factory();
-        $this->responseFactory = new ResponseFactory($this->factory, $this->factory);
+        $this->factory = new Psr17Factory();
+        $this->responseFactory = new ResponseFactory();
     }
 
     // -------------------------------------------------------------------------
@@ -51,20 +55,27 @@ final class CorsMiddlewareTest extends TestCase
         foreach ($headers as $name => $value) {
             $request = $request->withHeader($name, $value);
         }
+
         return $request;
     }
 
+    /**
+     * @phpstan-return RequestHandlerInterface&object{callCount: int}
+     */
     private function makeHandler(int $status = 200): RequestHandlerInterface
     {
-        return new class($status, $this->factory) implements RequestHandlerInterface {
+        return new class ($status, $this->factory) implements RequestHandlerInterface {
             public int $callCount = 0;
 
-            public function __construct(private readonly int $status, private readonly Psr17Factory $factory) {}
+            public function __construct(private readonly int $status, private readonly Psr17Factory $factory)
+            {
+            }
 
-            #[\Override]
+            #[Override]
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
                 $this->callCount++;
+
                 return $this->factory->createResponse($this->status);
             }
         };
@@ -76,7 +87,7 @@ final class CorsMiddlewareTest extends TestCase
 
     public function testPassesThroughRequestWithoutOriginHeader(): void
     {
-        $mw      = new CorsMiddleware($this->responseFactory, ['https://app.example.com']);
+        $mw = new CorsMiddleware($this->responseFactory, ['https://app.example.com']);
         $handler = $this->makeHandler();
         $request = $this->makeRequest('GET'); // sin Origin
 
@@ -93,7 +104,7 @@ final class CorsMiddlewareTest extends TestCase
     public function testPreflightReturns204WithCorsHeaders(): void
     {
         $origin = 'https://app.example.com';
-        $mw     = new CorsMiddleware($this->responseFactory, [$origin]);
+        $mw = new CorsMiddleware($this->responseFactory, [$origin]);
         $request = $this->makeRequest('OPTIONS', $origin, [
             'Access-Control-Request-Method' => 'GET',
         ]);
@@ -114,8 +125,8 @@ final class CorsMiddlewareTest extends TestCase
 
     public function testPreflightDoesNotCallHandlerForOptions(): void
     {
-        $origin  = 'https://app.example.com';
-        $mw      = new CorsMiddleware($this->responseFactory, [$origin]);
+        $origin = 'https://app.example.com';
+        $mw = new CorsMiddleware($this->responseFactory, [$origin]);
         $handler = $this->makeHandler();
         $request = $this->makeRequest('OPTIONS', $origin);
 
@@ -130,7 +141,7 @@ final class CorsMiddlewareTest extends TestCase
 
     public function testPreflightReturns403ForDisallowedOrigin(): void
     {
-        $mw     = new CorsMiddleware($this->responseFactory, ['https://allowed.example.com']);
+        $mw = new CorsMiddleware($this->responseFactory, ['https://allowed.example.com']);
         $request = $this->makeRequest('OPTIONS', 'https://evil.com');
 
         $response = $mw->process($request, $this->makeHandler());
@@ -145,8 +156,8 @@ final class CorsMiddlewareTest extends TestCase
 
     public function testActualRequestAddsAllowOriginHeader(): void
     {
-        $origin  = 'https://app.example.com';
-        $mw      = new CorsMiddleware($this->responseFactory, [$origin]);
+        $origin = 'https://app.example.com';
+        $mw = new CorsMiddleware($this->responseFactory, [$origin]);
         $handler = $this->makeHandler(200);
         $request = $this->makeRequest('GET', $origin);
 
@@ -163,7 +174,7 @@ final class CorsMiddlewareTest extends TestCase
 
     public function testWildcardOriginAcceptsAnyOrigin(): void
     {
-        $mw      = new CorsMiddleware($this->responseFactory, ['*']);
+        $mw = new CorsMiddleware($this->responseFactory, ['*']);
         $request = $this->makeRequest('OPTIONS', 'https://cualquiera.com');
 
         $response = $mw->process($request, $this->makeHandler());
@@ -178,8 +189,8 @@ final class CorsMiddlewareTest extends TestCase
 
     public function testCredentialsModeAddsHeader(): void
     {
-        $origin  = 'https://app.example.com';
-        $mw      = new CorsMiddleware($this->responseFactory, [$origin], credentials: true);
+        $origin = 'https://app.example.com';
+        $mw = new CorsMiddleware($this->responseFactory, [$origin], credentials: true);
         $request = $this->makeRequest('GET', $origin);
 
         $response = $mw->process($request, $this->makeHandler());
@@ -193,7 +204,7 @@ final class CorsMiddlewareTest extends TestCase
 
     public function testCredentialsPlusWildcardThrows(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         new CorsMiddleware($this->responseFactory, ['*'], credentials: true);
     }

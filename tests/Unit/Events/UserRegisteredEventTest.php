@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Events;
 
 use App\Events\UserRegisteredEvent;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 final class UserRegisteredEventTest extends TestCase
 {
@@ -40,7 +41,7 @@ final class UserRegisteredEventTest extends TestCase
             new DateTimeImmutable()
         );
 
-        $ref = new \ReflectionClass($event);
+        $ref = new ReflectionClass($event);
         $this->assertTrue($ref->isReadOnly());
     }
 

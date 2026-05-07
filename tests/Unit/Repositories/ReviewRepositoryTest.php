@@ -1,124 +1,280 @@
 <?php
 
+/**
+ * ¿Qué prueba aquí? ReviewRepository — acceso a datos de reseñas.
+ * ¿Qué me quieres demostrar? El repositorio delega correctamente en PDO y retorna los tipos esperados
+ *   (ReviewDTO, array, bool, int, float) para cada método público.
+ * ¿Qué va a fallar en este test si se cambia el código? Cambios en la firma pública, las queries o la
+ *   lógica de fallback (avg_rating=null, getRatingStats empty, update sin campos válidos).
+ */
+
 declare(strict_types=1);
 
+namespace Tests\Unit\Repositories;
 
-/**
- * ¿Qué pruebas aquí?
- * ¿Qué me quieres demostrar?
- * ¿Qué va a fallar en este test si se cambia el código?
- */
-namespace Repositories;
-
+use App\Domain\DTO\ReviewDTO;
 use App\Repositories\ReviewRepository;
-use PDO;
-use PDOStatement;
-use PHPUnit\Framework\TestCase;
 
-/**
- * Tests para ReviewRepository
- */
-final class ReviewRepositoryTest extends TestCase
+final class ReviewRepositoryTest extends RepositoryTestCase
 {
-    private ReviewRepository $repository;
+    // ─────────────────────────────────────────────────────────────
+    // findById
+    // ─────────────────────────────────────────────────────────────
 
-    private PDO $db;
-
-    protected function setUp(): void
+    public function testFindByIdReturnsDtoWhenFound(): void
     {
-        $this->db = $this->createStub(PDO::class);
-        $this->repository = new ReviewRepository($this->db);
+        $pdo = $this->makePdo(fetchReturn: RowFactory::reviewRow());
+        $repo = new ReviewRepository($pdo);
+
+        $dto = $repo->findById(1);
+
+        $this->assertInstanceOf(ReviewDTO::class, $dto);
+        $this->assertSame(1, $dto->id);
+        $this->assertSame('approved', $dto->status);
     }
 
-    protected function tearDown(): void
+    public function testFindByIdReturnsNullWhenNotFound(): void
     {
-        unset($this->repository, $this->db);
+        $pdo = $this->makePdo(fetchReturn: false);
+        $repo = new ReviewRepository($pdo);
+
+        $this->assertNull($repo->findById(99));
     }
 
-    public function testRepositoryCanBeInstantiated(): void
+    // ─────────────────────────────────────────────────────────────
+    // findByUserId
+    // ─────────────────────────────────────────────────────────────
+
+    public function testFindByUserIdReturnsRows(): void
     {
-        $this->assertInstanceOf(ReviewRepository::class, $this->repository);
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::reviewRow()]);
+        $repo = new ReviewRepository($pdo);
+
+        $result = $repo->findByUserId(1);
+
+        $this->assertCount(1, $result);
     }
 
-    public function testFindByIdReturnsReview(): void
+    public function testFindByUserIdReturnsEmptyArray(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetch')->willReturn([
-            'id' => 1,
-            'user_id' => 5,
-            'cafe_id' => 3,
-            'rating' => 5,
-            'title' => 'Excelente',
-            'body' => 'Muy buen café',
-            'status' => 'approved',
-            'user_name' => 'Juan',
-            'cafe_name' => 'Komorebi Café',
+        $pdo = $this->makePdo(fetchAllReturn: []);
+        $repo = new ReviewRepository($pdo);
+
+        $this->assertSame([], $repo->findByUserId(1));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // findByCafeId
+    // ─────────────────────────────────────────────────────────────
+
+    public function testFindByCafeIdReturnsApprovedRows(): void
+    {
+        $pdo = $this->makePdo(fetchAllReturn: [
+            RowFactory::reviewRow(),
+            RowFactory::reviewRow(['id' => 2]),
         ]);
+        $repo = new ReviewRepository($pdo);
 
-        $this->db->method('prepare')->willReturn($stmt);
+        $result = $repo->findByCafeId(1, 'approved');
 
-        $result = $this->repository->findById(1);
-
-        $this->assertIsArray($result);
-        $this->assertSame(1, $result['id']);
-        $this->assertSame('Excelente', $result['title']);
-    }
-
-    public function testFindByCafeIdReturnsArray(): void
-    {
-        $stmt = $this->createStub(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetchAll')->willReturn([
-            ['id' => 1, 'rating' => 5, 'title' => 'Genial'],
-            ['id' => 2, 'rating' => 4, 'title' => 'Bueno'],
-        ]);
-
-        $this->db->method('prepare')->willReturn($stmt);
-
-        $result = $this->repository->findByCafeId(3);
-
-        $this->assertIsArray($result);
         $this->assertCount(2, $result);
     }
 
+    public function testFindByCafeIdReturnsEmptyWhenNone(): void
+    {
+        $pdo = $this->makePdo(fetchAllReturn: []);
+        $repo = new ReviewRepository($pdo);
+
+        $this->assertSame([], $repo->findByCafeId(1));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // findApprovedPaginated
+    // ─────────────────────────────────────────────────────────────
+
+    public function testFindApprovedPaginatedReturnsRows(): void
+    {
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::reviewRow()]);
+        $repo = new ReviewRepository($pdo);
+
+        $result = $repo->findApprovedPaginated(1, 1, 10);
+
+        $this->assertCount(1, $result['data']);
+    }
+
+    public function testFindApprovedPaginatedReturnsEmptyArray(): void
+    {
+        $pdo = $this->makePdo(fetchAllReturn: []);
+        $repo = new ReviewRepository($pdo);
+
+        $result = $repo->findApprovedPaginated(1, 2, 10);
+        $this->assertSame([], $result['data']);
+        $this->assertSame(0, $result['total']);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // findPendingPaginated
+    // ─────────────────────────────────────────────────────────────
+
+    public function testFindPendingPaginatedReturnsRows(): void
+    {
+        $pdo = $this->makePdo(fetchAllReturn: [RowFactory::reviewRow(['status' => 'pending'])]);
+        $repo = new ReviewRepository($pdo);
+
+        $result = $repo->findPendingPaginated(1, 20);
+
+        $this->assertCount(1, $result);
+    }
+
+    public function testFindPendingPaginatedReturnsEmptyArray(): void
+    {
+        $pdo = $this->makePdo(fetchAllReturn: []);
+        $repo = new ReviewRepository($pdo);
+
+        $this->assertSame([], $repo->findPendingPaginated());
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // create
+    // ─────────────────────────────────────────────────────────────
+
+    public function testCreateReturnsNewId(): void
+    {
+        $pdo = $this->makePdo(lastInsertId: '42');
+        $repo = new ReviewRepository($pdo);
+
+        $id = $repo->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'rating' => 5,
+            'title' => 'Genial',
+            'body' => 'Muy buen lugar.',
+            'status' => 'pending',
+            'rejection_reason' => null,
+        ]);
+
+        $this->assertSame(42, $id);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // update
+    // ─────────────────────────────────────────────────────────────
+
+    public function testUpdateReturnsTrueOnSuccess(): void
+    {
+        $pdo = $this->makePdo(rowCount: 1);
+        $repo = new ReviewRepository($pdo);
+
+        $result = $repo->update(1, ['rating' => 4, 'title' => 'Actualizada']);
+
+        $this->assertTrue($result);
+    }
+
+    public function testUpdateReturnsTrueWhenNoValidFields(): void
+    {
+        $pdo = $this->makePdo();
+        $repo = new ReviewRepository($pdo);
+
+        // No valid fields → early return true without hitting DB
+        $this->assertTrue($repo->update(1, ['unknown_field' => 'value']));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // updateStatus
+    // ─────────────────────────────────────────────────────────────
+
+    public function testUpdateStatusReturnsTrueOnSuccess(): void
+    {
+        $pdo = $this->makePdo(rowCount: 1);
+        $repo = new ReviewRepository($pdo);
+
+        $this->assertTrue($repo->updateStatus(1, 'approved'));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // calculateAverageRating
+    // ─────────────────────────────────────────────────────────────
+
     public function testCalculateAverageRatingReturnsFloat(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetch')->willReturn(['avg_rating' => '4.5']);
+        $pdo = $this->makePdo(fetchReturn: ['avg_rating' => '4.50']);
+        $repo = new ReviewRepository($pdo);
 
-        $this->db->method('prepare')->willReturn($stmt);
+        $avg = $repo->calculateAverageRating(1);
 
-        $result = $this->repository->calculateAverageRating(3);
-
-        $this->assertIsFloat($result);
-        $this->assertSame(4.5, $result);
+        $this->assertSame(4.5, $avg);
     }
 
     public function testCalculateAverageRatingReturnsZeroWhenNoReviews(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetch')->willReturn(['avg_rating' => null]);
+        $pdo = $this->makePdo(fetchReturn: false);
+        $repo = new ReviewRepository($pdo);
 
-        $this->db->method('prepare')->willReturn($stmt);
-
-        $result = $this->repository->calculateAverageRating(999);
-
-        $this->assertSame(0.0, $result);
+        $this->assertSame(0.0, $repo->calculateAverageRating(1));
     }
 
-    public function testUserHasReviewReturnsBool(): void
+    public function testCalculateAverageRatingReturnsZeroWhenAvgIsNull(): void
     {
-        $stmt = $this->createStub(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-        $stmt->method('fetch')->willReturn(['1' => 1]);
+        $pdo = $this->makePdo(fetchReturn: ['avg_rating' => null]);
+        $repo = new ReviewRepository($pdo);
 
-        $this->db->method('prepare')->willReturn($stmt);
+        $this->assertSame(0.0, $repo->calculateAverageRating(1));
+    }
 
-        $result = $this->repository->userHasReview(5, 3);
+    // ─────────────────────────────────────────────────────────────
+    // userHasReview
+    // ─────────────────────────────────────────────────────────────
 
-        $this->assertTrue($result);
+    public function testUserHasReviewReturnsTrueWhenExists(): void
+    {
+        $pdo = $this->makePdo(fetchReturn: ['1' => 1]);
+        $repo = new ReviewRepository($pdo);
+
+        $this->assertTrue($repo->userHasReview(1, 1));
+    }
+
+    public function testUserHasReviewReturnsFalseWhenNotExists(): void
+    {
+        $pdo = $this->makePdo(fetchReturn: false);
+        $repo = new ReviewRepository($pdo);
+
+        $this->assertFalse($repo->userHasReview(1, 99));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // getRatingStats
+    // ─────────────────────────────────────────────────────────────
+
+    public function testGetRatingStatsReturnsStatsRow(): void
+    {
+        $row = [
+            'total_reviews' => 10,
+            'avg_rating' => '4.3',
+            'min_rating' => 3,
+            'max_rating' => 5,
+            'five_stars' => 5,
+            'four_stars' => 3,
+            'three_stars' => 2,
+            'two_stars' => 0,
+            'one_star' => 0,
+        ];
+        $pdo = $this->makePdo(fetchReturn: $row);
+        $repo = new ReviewRepository($pdo);
+
+        $result = $repo->getRatingStats(1);
+
+        $this->assertSame(10, $result['total_reviews']);
+        $this->assertSame('4.3', $result['avg_rating']);
+    }
+
+    public function testGetRatingStatsReturnsDefaultsWhenNoData(): void
+    {
+        $pdo = $this->makePdo(fetchReturn: false);
+        $repo = new ReviewRepository($pdo);
+
+        $result = $repo->getRatingStats(1);
+
+        $this->assertSame(0, $result['total_reviews']);
+        $this->assertSame(0.0, $result['avg_rating']);
     }
 }

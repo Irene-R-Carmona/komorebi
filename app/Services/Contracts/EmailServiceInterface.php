@@ -46,4 +46,34 @@ interface EmailServiceInterface
      * @return bool
      */
     public function sendReservationConfirmation(string $userEmail, mixed $userNameOrReservationData, ?array $reservationData = null, ?string $pdfPath = null): bool;
+
+    /**
+     * Send password reset email.
+     *
+     * @param string $userEmail
+     * @param string $userName
+     * @param string $resetUrl
+     * @return bool
+     */
+    public function sendPasswordResetEmail(string $userEmail, string $userName, string $resetUrl): bool;
+
+    /**
+     * Send waitlist confirmation email with promotion token.
+     *
+     * @param string $userEmail
+     * @param string $userName
+     * @param string $token
+     * @param array<string, mixed> $waitlistData
+     * @return bool
+     */
+    public function sendWaitlistConfirmation(string $userEmail, string $userName, string $token, array $waitlistData): bool;
+
+    /**
+     * Send test email to verify email configuration.
+     *
+     * @param string $recipientEmail
+     * @param string $recipientName
+     * @return bool
+     */
+    public function sendTestEmail(string $recipientEmail, string $recipientName = 'Administrador'): bool;
 }

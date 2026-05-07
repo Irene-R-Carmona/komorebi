@@ -48,16 +48,17 @@
             ...this.filters
           });
 
-          const response = await fetch(`/api/admin/logs/audit?${params}`, {
+          const response = await fetch(`/api/v1/admin/logs/audit?${params}`, {
             headers: {
+              'X-Requested-With': 'XMLHttpRequest',
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
             }
           });
 
           if (response.ok) {
             const data = await response.json();
-            this.logs = data.logs || [];
-            this.totalPages = data.totalPages || 1;
+            this.logs = data.data?.logs || [];
+            this.totalPages = Math.ceil((data.data?.total || 0) / this.perPage) || 1;
           } else {
             const rawBody = await response.text().catch(() => '');
             const cuerpoResumido = rawBody.length > 500 ? rawBody.slice(0, 500) + '…' : rawBody;
@@ -96,7 +97,7 @@
 
         try {
           const params = new URLSearchParams(this.filters);
-          const response = await fetch(`/api/admin/logs/audit/export?${params}`, {
+          const response = await fetch(`/api/v1/admin/logs/audit/export?${params}`, {
             headers: {
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
             }
@@ -216,16 +217,17 @@
             ...this.filters
           });
 
-          const response = await fetch(`/api/admin/logs/auth?${params}`, {
+          const response = await fetch(`/api/v1/admin/logs/auth?${params}`, {
             headers: {
+              'X-Requested-With': 'XMLHttpRequest',
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
             }
           });
 
           if (response.ok) {
             const data = await response.json();
-            this.logs = data.logs || [];
-            this.totalPages = data.totalPages || 1;
+            this.logs = data.data?.logs || [];
+            this.totalPages = Math.ceil((data.data?.total || 0) / this.perPage) || 1;
           } else {
             const raw = await response.text().catch(() => '');
             const summary = raw.length > 500 ? raw.slice(0, 500) + '…' : raw;
@@ -242,7 +244,7 @@
 
       async loadSuspiciousCount() {
         try {
-          const response = await fetch('/api/admin/logs/auth/suspicious-count', {
+          const response = await fetch('/api/v1/admin/logs/auth/suspicious-count', {
             headers: {
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
             }
@@ -284,7 +286,7 @@
 
         try {
           const params = new URLSearchParams(this.filters);
-          const response = await fetch(`/api/admin/logs/auth/export?${params}`, {
+          const response = await fetch(`/api/v1/admin/logs/auth/export?${params}`, {
             headers: {
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
             }
@@ -344,7 +346,7 @@
         this.loading = true;
 
         try {
-          const response = await fetch('/api/admin/security/block-ip', {
+          const response = await fetch('/api/v1/admin/security/block-ip', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

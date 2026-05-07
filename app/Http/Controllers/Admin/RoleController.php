@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\View;
@@ -13,6 +14,7 @@ use App\Models\AuditLog;
 use App\Models\Permission;
 use App\Models\Role;
 use JsonException;
+use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Random\RandomException;
 
@@ -24,10 +26,14 @@ use Random\RandomException;
 final class RoleController
 {
     private ResponseFactory $response;
+    private Role $roleModel;
+    private Permission $permissionModel;
 
-    public function __construct(?ResponseFactory $response = null)
+    public function __construct(?ResponseFactory $response = null, ?Role $roleModel = null, ?Permission $permissionModel = null)
     {
         $this->response = $response ?? new ResponseFactory();
+        $this->roleModel = $roleModel ?? new Role(Container::make(PDO::class));
+        $this->permissionModel = $permissionModel ?? new Permission(Container::make(PDO::class));
     }
 
     /**
@@ -47,28 +53,33 @@ final class RoleController
         }
 
         // Obtener datos para renderizar vista
-        $roleModel = new Role();
-        $permissionModel = new Permission();
-
-        $roles = $roleModel->findAllWithCounts();
+        $roles = $this->roleModel->findAllWithCounts();
 
         // Cargar permisos de todos los roles en una única consulta (evita N+1)
-        $rolesWithPerms = $roleModel->getAllWithPermissions();
+        $rolesWithPerms = $this->roleModel->getAllWithPermissions();
         $rolePermissions = [];
         foreach ($rolesWithPerms as $r) {
             $rolePermissions[$r['id']] = \array_column($r['permissions'], 'id');
         }
 
-        $allPermissions = $permissionModel->all();
+        $allPermissions = $this->permissionModel->all();
+
+        $stats = [
+            'total_roles' => \count($roles),
+            'total_permissions' => \count($allPermissions),
+            'total_modules' => \count(\array_unique(\array_filter(\array_column($allPermissions, 'resource')))),
+            'users_with_roles' => $this->roleModel->getStats()['users_with_roles'] ?? 0,
+        ];
 
         View::render('admin/roles/index', [
-            'titulo' => 'Gestión de Roles y Permisos',
+            'titulo' => 'Gestión de Roles y Permisos | Komorebi Admin',
             'roles' => $roles,
             'permissions' => $allPermissions,
             'rolePermissions' => $rolePermissions,
-            'csrf_token' => Csrf::token(),
+            'stats' => $stats,
             'extraJs' => ['admin/admin-roles.js'],
         ], ['admin/admin-roles.css'], 'backoffice');
+
         return null;
     }
 
@@ -79,12 +90,10 @@ final class RoleController
      */
     private function getRolesData(): ResponseInterface
     {
-        $roleModel = new Role();
-
-        $roles = $roleModel->findAllWithCounts();
+        $roles = $this->roleModel->findAllWithCounts();
 
         // Cargar permisos de todos los roles en una única consulta (evita N+1)
-        $rolesWithPerms = $roleModel->getAllWithPermissions();
+        $rolesWithPerms = $this->roleModel->getAllWithPermissions();
         $rolePermissions = [];
         foreach ($rolesWithPerms as $r) {
             $rolePermissions[$r['id']] = \array_column($r['permissions'], 'id');
@@ -94,32 +103,6 @@ final class RoleController
             'roles' => $roles,
             'rolePermissions' => $rolePermissions,
         ]]);
-    }
-
-    /**
-     * GET /admin/permissions
-     * Obtener lista de todos los permisos
-     * @throws JsonException
-     */
-    public function getPermissions(): ResponseInterface
-    {
-        $permissionModel = new Permission();
-        $permissions = $permissionModel->all();
-
-        return $this->response->json(['ok' => true, 'data' => ['permissions' => $permissions]]);
-    }
-
-    /**
-     * GET /admin/roles/stats
-     * Obtener estadísticas de roles
-     * @throws JsonException
-     */
-    public function rolesStats(): ResponseInterface
-    {
-        $roleModel = new Role();
-        $stats = $roleModel->getStats();
-
-        return $this->response->json(['ok' => true, 'data' => ['stats' => $stats]]);
     }
 
     /**
@@ -153,13 +136,11 @@ final class RoleController
             throw ValidationException::withMessage('El código solo puede contener letras minúsculas y guiones bajos', 422);
         }
 
-        $roleModel = new Role();
-
-        if ($roleModel->findByKey($data['code'])) {
+        if ($this->roleModel->findByKey($data['code'])) {
             throw ValidationException::withMessage('Ya existe un rol con ese código', 422);
         }
 
-        $roleId = $roleModel->create(
+        $roleId = $this->roleModel->create(
             $data['code'],
             $data['name'],
             $data['description'] ?? null
@@ -190,9 +171,7 @@ final class RoleController
 
         $data = \json_decode((string) \file_get_contents('php://input'), true);
 
-        $roleModel = new Role();
-
-        $role = $roleModel->findById($roleId);
+        $role = $this->roleModel->findById($roleId);
         if (!$role) {
             throw NotFoundException::forResource('Rol', $roleId);
         }
@@ -201,7 +180,7 @@ final class RoleController
             throw ValidationException::withMessage('No se pueden editar roles del sistema', 403);
         }
 
-        $roleModel->update($roleId, $data['name'] ?? null, $data['description'] ?? null);
+        $this->roleModel->update($roleId, $data['name'] ?? null, $data['description'] ?? null);
 
         AuditLog::log('update_role', 'role', $roleId, null, ['name' => $data['name'], 'description' => $data['description']]);
 
@@ -223,9 +202,7 @@ final class RoleController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $roleModel = new Role();
-
-        $role = $roleModel->findById($roleId);
+        $role = $this->roleModel->findById($roleId);
         if (!$role) {
             throw NotFoundException::forResource('Rol', $roleId);
         }
@@ -234,11 +211,11 @@ final class RoleController
             throw ValidationException::withMessage('No se pueden eliminar roles del sistema', 403);
         }
 
-        if ($roleModel->countUsers($roleId) > 0) {
+        if ($this->roleModel->countUsers($roleId) > 0) {
             throw ValidationException::withMessage('No se puede eliminar un rol que tiene usuarios asignados', 422);
         }
 
-        $roleModel->delete($roleId);
+        $this->roleModel->delete($roleId);
 
         AuditLog::log('delete_role', 'role', $roleId, ['code' => $role['code'], 'name' => $role['name']], null);
 
@@ -261,17 +238,14 @@ final class RoleController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $roleModel = new Role();
-        $permissionModel = new Permission();
-
-        $role = $roleModel->findById($roleId);
-        $permission = $permissionModel->findById($permissionId);
+        $role = $this->roleModel->findById($roleId);
+        $permission = $this->permissionModel->findById($permissionId);
 
         if (!$role || !$permission) {
             throw NotFoundException::forResource('Rol o permiso', $roleId . '/' . $permissionId);
         }
 
-        $roleModel->grantPermission($roleId, $permissionId);
+        $this->roleModel->grantPermission($roleId, $permissionId);
 
         AuditLog::log('grant_permission', 'role', $roleId, null, ['permission_id' => $permissionId, 'permission_code' => $permission['code']]);
 
@@ -294,17 +268,14 @@ final class RoleController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        $roleModel = new Role();
-        $permissionModel = new Permission();
-
-        $role = $roleModel->findById($roleId);
-        $permission = $permissionModel->findById($permissionId);
+        $role = $this->roleModel->findById($roleId);
+        $permission = $this->permissionModel->findById($permissionId);
 
         if (!$role || !$permission) {
             throw NotFoundException::forResource('Rol o permiso', $roleId . '/' . $permissionId);
         }
 
-        $roleModel->revokePermission($roleId, $permissionId);
+        $this->roleModel->revokePermission($roleId, $permissionId);
 
         AuditLog::log('revoke_permission', 'role', $roleId, ['permission_id' => $permissionId, 'permission_code' => $permission['code']], null);
 

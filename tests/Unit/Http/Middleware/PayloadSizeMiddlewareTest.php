@@ -6,9 +6,12 @@ namespace Tests\Unit\Http\Middleware;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Middleware\PayloadSizeMiddleware;
+use Nyholm\Psr7\Stream;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
@@ -18,11 +21,14 @@ use Psr\Http\Server\RequestHandlerInterface;
  * ¿Qué me quieres demostrar?
  * Que peticiones dentro del límite pasan al siguiente handler,
  * y peticiones demasiado grandes reciben 413 sin pasar al handler.
+ * También que Transfer-Encoding: chunked se evalúa correctamente
+ * cuando Content-Length está ausente.
  *
  * ¿Qué va a fallar en este test si se cambia el código?
- * Cualquier cambio en la lógica de comparación de Content-Length
- * o en el código HTTP retornado romperá estos tests.
+ * Cualquier cambio en la lógica de comparación de Content-Length,
+ * en el fallback chunked o en el código HTTP retornado romperá estos tests.
  */
+#[CoversClass(PayloadSizeMiddleware::class)]
 final class PayloadSizeMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;
@@ -40,13 +46,22 @@ final class PayloadSizeMiddlewareTest extends TestCase
         $this->handler = $handler;
     }
 
-    private function makeRequest(string $contentLength): ServerRequestInterface
+    private function makeRequest(string $contentLength, string $transferEncoding = '', ?StreamInterface $body = null): ServerRequestInterface
     {
         $request = $this->createStub(ServerRequestInterface::class);
         $request->method('getHeaderLine')
-            ->willReturnCallback(static function (string $header) use ($contentLength): string {
-                return strtolower($header) === 'content-length' ? $contentLength : '';
+            ->willReturnCallback(static function (string $header) use ($contentLength, $transferEncoding): string {
+                return match (\strtolower($header)) {
+                    'content-length' => $contentLength,
+                    'transfer-encoding' => $transferEncoding,
+                    default => '',
+                };
             });
+
+        if ($body !== null) {
+            $request->method('getBody')->willReturn($body);
+        }
+
         return $request;
     }
 
@@ -108,5 +123,56 @@ final class PayloadSizeMiddlewareTest extends TestCase
         $response = $mw->process($request, $this->handler);
 
         $this->assertSame(413, $response->getStatusCode());
+    }
+
+    // -------------------------------------------------------------------------
+    // Chunked transfer (Content-Length absent / 0 + Transfer-Encoding: chunked)
+    // -------------------------------------------------------------------------
+
+    public function testChunkedWithinLimitPassesThrough(): void
+    {
+        $body = Stream::create(\str_repeat('x', 512)); // 512 bytes
+        $mw = new PayloadSizeMiddleware($this->responseFactory, 1); // limit 1 KB
+        $request = $this->makeRequest('', 'chunked', $body);
+
+        $response = $mw->process($request, $this->handler);
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    public function testChunkedExceedingLimitReturns413(): void
+    {
+        $body = Stream::create(\str_repeat('x', 1025)); // 1 byte over 1 KB
+        $mw = new PayloadSizeMiddleware($this->responseFactory, 1); // limit 1 KB
+        $request = $this->makeRequest('', 'chunked', $body);
+
+        $response = $mw->process($request, $this->handler);
+
+        $this->assertSame(413, $response->getStatusCode());
+    }
+
+    public function testChunkedWithNonSeekableStreamPassesThrough(): void
+    {
+        // Stream con getSize() === null (no-seekable) → pasar sin rechazar
+        $stream = $this->createStub(StreamInterface::class);
+        $stream->method('getSize')->willReturn(null);
+
+        $mw = new PayloadSizeMiddleware($this->responseFactory, 1);
+        $request = $this->makeRequest('', 'chunked', $stream);
+
+        $response = $mw->process($request, $this->handler);
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    public function testNoTransferEncodingWithoutContentLengthPassesThrough(): void
+    {
+        // Ni Content-Length ni Transfer-Encoding → pasa siempre
+        $mw = new PayloadSizeMiddleware($this->responseFactory, 1);
+        $request = $this->makeRequest('', '');
+
+        $response = $mw->process($request, $this->handler);
+
+        $this->assertSame(200, $response->getStatusCode());
     }
 }

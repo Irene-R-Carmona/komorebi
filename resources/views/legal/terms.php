@@ -9,7 +9,7 @@ declare(strict_types=1);
 ?>
 <div class="static-page">
     <header class="static-hero">
-        <span class="static-hero__icon">⚖️</span>
+        <i class="bi bi-balance-scale static-hero__icon" aria-hidden="true"></i>
         <h1 class="static-hero__title">Términos y Condiciones</h1>
         <p class="static-hero__subtitle">Condiciones generales de uso de Komorebi Café</p>
         <p class="static-hero__date">Última actualización: 1 de febrero de 2026</p>
@@ -176,7 +176,7 @@ declare(strict_types=1);
             <p>Si debemos cancelar tu reserva por causas ajenas a ti:</p>
             <ul>
                 <li>Reembolso 100% si hubo prepago</li>
-                <li>Compensación: vale de 10€ para tu próxima visita</li>
+                <li>Compensación: vale de ¥1,000 para tu próxima visita</li>
             </ul>
 
             <h2 id="propiedad">7. Propiedad intelectual</h2>
@@ -240,10 +240,11 @@ declare(strict_types=1);
 
             <h2 id="contacto">12. Contacto</h2>
             <p><strong>Komorebi Café</strong><br>
-                📧 Email: <a href="mailto:info@komorebi.cafe">info@komorebi.cafe</a><br>
-                📞 Teléfono: +34 910 123 456<br>
-                📍 Dirección: Calle Ficticia 123, 28001 Madrid<br>
-                🕐 Horario atención: Lunes a Viernes, 10:00 - 18:00</p>
+                <i class="bi bi-envelope" aria-hidden="true"></i> Email: <a href="mailto:info@komorebi.cafe">info@komorebi.cafe</a><br>
+                <i class="bi bi-telephone" aria-hidden="true"></i> Teléfono: +34 910 123 456<br>
+                <i class="bi bi-geo-alt" aria-hidden="true"></i> Dirección: Calle Ficticia 123, 28001 Madrid<br>
+                <i class="bi bi-clock" aria-hidden="true"></i> Horario atención: Lunes a Viernes, 10:00 - 18:00
+            </p>
 
             <p>También puedes usar nuestro <a href="/contacto">formulario de contacto</a>.</p>
         </article>

@@ -43,6 +43,14 @@ final class MenuRetailSeeder
         return (int) $stmt->fetchColumn() > 0;
     }
 
+    private function getExistingProductId(string $name, int $categoryId): int
+    {
+        $stmt = $this->db->prepare('SELECT id FROM products WHERE name = ? AND category_id = ?');
+        $stmt->execute([$name, $categoryId]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
     /**
      * Asigna alérgenos a un producto
      */
@@ -397,8 +405,11 @@ final class MenuRetailSeeder
         foreach ($items as $item) {
             // Verificar si el producto ya existe
             if ($this->productExists($item['name'], (int) $catId)) {
-                echo "   -> '{$item['name']}' ya existe, saltando...
-";
+                echo "   -> '{$item['name']}' ya existe, asignando al\u00e9rgenos...\n";
+                $existId = $this->getExistingProductId($item['name'], (int) $catId);
+                if ($existId > 0 && !empty($item['allergens'])) {
+                    $this->assignAllergens($existId, $item['allergens']);
+                }
                 continue;
             }
 

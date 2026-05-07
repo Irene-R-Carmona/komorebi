@@ -9,7 +9,7 @@ declare(strict_types=1);
 ?>
 <div class="static-page">
     <header class="static-hero">
-        <span class="static-hero__icon">🍪</span>
+        <i class="bi bi-shield-check static-hero__icon" aria-hidden="true"></i>
         <h1 class="static-hero__title">Política de Cookies</h1>
         <p class="static-hero__subtitle">Información completa sobre cookies en Komorebi Café</p>
         <p class="static-hero__date">Última actualización: 1 de febrero de 2026</p>
@@ -64,7 +64,7 @@ declare(strict_types=1);
             </table>
 
             <div class="static-content__callout static-content__callout--info">
-                <strong>📌 Importante:</strong> Si bloqueas estas cookies, algunas funcionalidades (login, reservas, formularios) no funcionarán correctamente.
+                <strong><i class="bi bi-info-circle-fill" aria-hidden="true"></i> Importante:</strong> Si bloqueas estas cookies, algunas funcionalidades (login, reservas, formularios) no funcionarán correctamente.
             </div>
 
             <h2 id="analisis">3. Cookies de análisis y rendimiento</h2>
@@ -102,7 +102,7 @@ declare(strict_types=1);
             <p>Menú (⋯) → <strong>Configuración</strong> → <strong>Cookies y permisos de sitio</strong> → <strong>Cookies y datos almacenados</strong></p>
 
             <div class="static-content__callout static-content__callout--warning">
-                <strong>⚠️ Advertencia:</strong> Si configuras tu navegador para bloquear todas las cookies, no podrás iniciar sesión ni realizar reservas en Komorebi Café.
+                <strong><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Advertencia:</strong> Si configuras tu navegador para bloquear todas las cookies, no podrás iniciar sesión ni realizar reservas en Komorebi Café.
             </div>
 
             <h2 id="legal">6. Marco legal</h2>

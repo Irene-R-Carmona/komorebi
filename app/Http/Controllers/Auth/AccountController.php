@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Core\Session;
 use App\Core\View;
+use App\Domain\AvatarOptions;
 use App\Exceptions\ValidationException;
-use App\Services\AccountDeletionService;
-use App\Services\AuthService;
-use App\Services\FileUploadService;
-use App\Services\UserService;
+use App\Services\Contracts\AccountDeletionServiceInterface;
+use App\Services\Contracts\AuthServiceInterface;
+use App\Services\Contracts\FileUploadServiceInterface;
+use App\Services\Contracts\SessionManagementServiceInterface;
+use App\Services\Contracts\UserAccountServiceInterface;
+use App\Services\Contracts\UserProfileServiceInterface;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -27,164 +31,209 @@ use Random\RandomException;
  */
 final class AccountController
 {
-    private AccountDeletionService $accountDeletionService;
-    private AuthService $authService;
-    private FileUploadService $fileUploadService;
+    private AccountDeletionServiceInterface $accountDeletionService;
+    private UserAccountServiceInterface $accountService;
+    private AuthServiceInterface $authService;
+    private FileUploadServiceInterface $fileUploadService;
+    private UserProfileServiceInterface $profileService;
     private ResponseFactory $response;
-    private UserService $userService;
+    private SessionManagementServiceInterface $sessionService;
 
     public function __construct(
-        ?AuthService $authService = null,
-        ?FileUploadService $fileUploadService = null,
-        ?UserService $userService = null,
+        ?AuthServiceInterface $authService = null,
+        ?FileUploadServiceInterface $fileUploadService = null,
+        ?UserProfileServiceInterface $profileService = null,
+        ?UserAccountServiceInterface $accountService = null,
         ?ResponseFactory $response = null,
-        ?AccountDeletionService $accountDeletionService = null
+        ?AccountDeletionServiceInterface $accountDeletionService = null,
+        ?SessionManagementServiceInterface $sessionService = null
     ) {
-        $this->accountDeletionService = $accountDeletionService ?? new AccountDeletionService();
-        $this->authService = $authService ?? new AuthService();
-        $this->fileUploadService = $fileUploadService ?? new FileUploadService();
-        $this->userService = $userService ?? new UserService();
+        $this->accountDeletionService = $accountDeletionService ?? Container::make(AccountDeletionServiceInterface::class);
+        $this->accountService = $accountService ?? Container::make(UserAccountServiceInterface::class);
+        $this->authService = $authService ?? Container::make(AuthServiceInterface::class);
+        $this->fileUploadService = $fileUploadService ?? Container::make(FileUploadServiceInterface::class);
+        $this->profileService = $profileService ?? Container::make(UserProfileServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
+        $this->sessionService = $sessionService ?? Container::make(SessionManagementServiceInterface::class);
     }
 
     /**
      * GET /account/sessions
      * Listar sesiones activas del usuario
      */
-    public function sessions(): void
+    public function sessions(ServerRequestInterface $request): ?ResponseInterface
     {
-        $this->requireAuth();
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
 
         $user = Session::user();
         $userId = (int) $user['id'];
 
-        $sessions = $this->authService->getActiveSessions($userId);
+        $sessions = $this->sessionService->getActiveSessions($userId);
 
-        View::render('account/sessions', [
+        View::render('shared/account/sessions', [
             'sessions' => $sessions,
             'csrf_token' => Csrf::token(),
-        ]);
+        ], ['profile.css']);
+
+        return null;
     }
 
     /**
      * POST /account/sessions/revoke/:sessionId
      * Revocar una sesión específica
      */
-    public function revokeSession(int $sessionId): void
+    public function revokeSession(ServerRequestInterface $request, int $sessionId): ResponseInterface
     {
-        $this->requireAuth();
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
 
         $user = Session::user();
         $userId = (int) $user['id'];
 
-        if ($this->authService->revokeSession($userId, $sessionId)) {
+        if ($this->sessionService->revokeSessionForUser($userId, $sessionId)) {
             Flash::success('Sesión revocada exitosamente.');
         } else {
             Flash::error('No se pudo revocar la sesión.');
         }
 
-        \header('Location: /account/sessions');
-        exit;
+        return $this->response->redirect('/account/sessions');
     }
 
     /**
      * POST /account/sessions/revoke-all
      * Revocar todas las demás sesiones
      */
-    public function revokeAllOther(): void
+    public function revokeAllOther(ServerRequestInterface $request): ResponseInterface
     {
-        $this->requireAuth();
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
 
         $user = Session::user();
         $userId = (int) $user['id'];
         $currentSessionId = \session_id();
 
-        $revoked = $this->authService->revokeAllOtherSessions($userId, $currentSessionId);
+        $revoked = $this->sessionService->revokeAllOtherSessions($userId, $currentSessionId, $userId);
 
         Flash::success("Se revocaron $revoked sesiones.");
 
-        \header('Location: /account/sessions');
-        exit;
+        return $this->response->redirect('/account/sessions');
     }
 
     /**
      * GET /account/security
      * Ver historial de seguridad y login
      */
-    public function security(): void
+    public function security(ServerRequestInterface $request): ?ResponseInterface
     {
-        $this->requireAuth();
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
 
         $user = Session::user();
         $userId = (int) $user['id'];
 
-        $authHistory = $this->authService->getAuthHistory($userId, 30);
+        $authHistory = $this->sessionService->getAuthHistory($userId, 30);
 
-        View::render('account/security', [
+        View::render('shared/account/security', [
             'auth_history' => $authHistory,
-        ]);
+        ], ['profile.css']);
+
+        return null;
     }
 
     /**
      * GET /account/change-password
      * Mostrar formulario de cambio de contraseña
      */
-    public function changePasswordForm(): void
+    public function changePasswordForm(ServerRequestInterface $request): ?ResponseInterface
     {
-        $this->requireAuth();
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
 
-        View::render('account/change-password', [
+        View::render('shared/account/change-password', [
             'csrf_token' => Csrf::token(),
-        ]);
+        ], ['profile.css']);
+
+        return null;
     }
 
     /**
      * POST /account/change-password
      * Procesar cambio de contraseña
      */
-    public function changePassword(): void
+    public function changePassword(ServerRequestInterface $request): ResponseInterface
     {
-        $this->requireAuth();
+        if ($redirect = $this->requireAuth()) {
+            return $redirect;
+        }
 
-        $currentPassword = $_POST['current_password'] ?? '';
-        $newPassword = $_POST['new_password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
+        $body = (array) $request->getParsedBody();
+        $currentPassword = $body['current_password'] ?? '';
+        $newPassword = $body['new_password'] ?? '';
+        $confirmPassword = $body['confirm_password'] ?? '';
 
         if (!$currentPassword || !$newPassword || !$confirmPassword) {
             Flash::error('Todos los campos son requeridos.');
-            \header('Location: /account/change-password');
-            exit;
+
+            return $this->response->redirect('/account/change-password');
         }
 
-        $result = $this->userService->changePassword(
+        $result = $this->accountService->changePassword(
             Session::userId(),
             $currentPassword,
             $newPassword,
             $confirmPassword
         );
 
-        if ($result->isOk()) {
+        if ($result->ok) {
             Flash::success('Contraseña actualizada exitosamente. Por seguridad, se revocaron otras sesiones.');
         } else {
             Flash::error($result->error);
-            \header('Location: /account/change-password');
-            exit;
+
+            return $this->response->redirect('/account/change-password');
         }
 
-        \header('Location: /account/security');
-        exit;
+        return $this->response->redirect('/account/security');
     }
 
     /**
      * Verificar que el usuario esté autenticado
      */
-    private function requireAuth(): void
+    private function requireAuth(): ?ResponseInterface
     {
         if (!$this->authService->check()) {
             Flash::error('Debes iniciar sesión.');
-            \header('Location: /auth/login');
-            exit;
+
+            return $this->response->redirect('/login');
         }
+
+        return null;
+    }
+
+    /**
+     * GET /account/delete
+     * Formulario de confirmación de eliminación de cuenta
+     */
+    public function showDeleteForm(ServerRequestInterface $request): ?ResponseInterface
+    {
+        if ($r = $this->requireAuth()) {
+            return $r;
+        }
+
+        $user = Session::user();
+
+        View::render('shared/account/delete-confirm', [
+            'titulo' => 'Eliminar cuenta',
+            'email' => $user['email'],
+            'nombre' => $user['name'],
+        ], ['profile.css']);
+
+        return null;
     }
 
     /**
@@ -201,7 +250,8 @@ final class AccountController
         $result = $this->accountDeletionService->deleteAndAnonymize($userId);
 
         if (!$result->ok) {
-            Flash::error($result->getMessage());
+            Flash::error($result->error);
+
             return $this->response->redirect('/account');
         }
 
@@ -215,9 +265,9 @@ final class AccountController
 
     /**
      * POST /account/avatar/upload
-     * Subir avatar del usuario
+     * Seleccionar avatar preset del usuario.
+     * Body JSON: {avatar_id: string, csrf_token: string}
      * @throws JsonException
-     * @throws RandomException
      */
     public function uploadAvatar(): ResponseInterface
     {
@@ -231,34 +281,30 @@ final class AccountController
             throw ValidationException::withMessage('Token de seguridad inválido', 419);
         }
 
-        if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] === UPLOAD_ERR_NO_FILE) {
-            return $this->response->problem(Result::fail('No se seleccionó ningún archivo', 'no_file'), 422);
+        $rawBody = (string) \file_get_contents('php://input');
+        $parsed = \json_decode($rawBody, true);
+        $avatarId = \trim((string) ($parsed['avatar_id'] ?? ($_POST['avatar_id'] ?? '')));
+
+        if (!AvatarOptions::isValid($avatarId)) {
+            return $this->response->problem(Result::fail('Avatar no válido', 'invalid_avatar'), 422);
         }
 
         $user = Session::user();
         $userId = (int) $user['id'];
 
-        // Subir avatar
-        $result = $this->fileUploadService->uploadAvatar($_FILES['avatar'], $userId);
+        $avatarUrl = AvatarOptions::toUrl($avatarId);
+        $updateResult = $this->profileService->updateAvatar($userId, $avatarUrl);
 
-        if ($result->isFail()) {
-            return $this->response->problem(Result::fail($result->getMessage() ?? 'Error', 'upload_failed'), 422);
-        }
-
-        // Actualizar URL del avatar en la base de datos
-        $updateResult = $this->userService->updateAvatar($userId, $result->data);
-
-        if ($updateResult->isFail()) {
-            $this->fileUploadService->deleteFile($result->data);
+        if ($updateResult->error !== null) {
             return $this->response->problem(Result::fail('Error al actualizar el avatar', 'server_error'), 500);
         }
 
-        $user['avatar'] = $result->data;
+        $user['avatar'] = $avatarUrl;
         Session::set('user', $user);
 
         return $this->response->json(['ok' => true, 'data' => [
-            'message' => 'Avatar actualizado exitosamente',
-            'avatar' => $result->data,
+            'avatar_id' => $avatarId,
+            'avatar_url' => $avatarUrl,
         ]]);
     }
 
@@ -287,9 +333,9 @@ final class AccountController
         $this->fileUploadService->deleteAvatar($userId);
 
         // Actualizar BD (eliminar referencia)
-        $updateResult = $this->userService->updateAvatar($userId, null);
+        $updateResult = $this->profileService->updateAvatar($userId, null);
 
-        if ($updateResult->isFail()) {
+        if ($updateResult->error !== null) {
             return $this->response->problem(Result::fail('Error al eliminar el avatar', 'server_error'), 500);
         }
 

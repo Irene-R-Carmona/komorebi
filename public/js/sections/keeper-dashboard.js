@@ -93,27 +93,28 @@ function initializePhotoUpload() {
 
     const formData = new FormData(this);
 
-    // Mostrar loading
     uploadBtn.disabled = true;
     spinner.classList.remove('d-none');
 
     try {
       const animalId = formData.get('animal_id') || document.getElementById('upload-animal-id').value;
-      const response = await fetch(`/keeper/animal/${animalId}/upload-photo`, {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      formData.set('csrf_token', csrfToken);
+
+      const response = await fetch(`/api/v1/keeper/animals/${animalId}/photo`, {
         method: 'POST',
-        body: formData
+        headers: { 'X-CSRF-Token': csrfToken },
+        body: formData,
       });
 
       const result = await response.json();
 
-      if (response.ok && result.success) {
-        showToast(result.message || 'Foto subida correctamente.', 'success');
+      if (response.ok && result.ok) {
+        showToast(result.data?.message || 'Foto subida correctamente.', 'success');
         modal.hide();
-
-        // Recargar la página para mostrar la nueva foto
-        setTimeout(() => location.reload(), 1500);
+        document.dispatchEvent(new CustomEvent('keeper:refresh'));
       } else {
-        showToast(result.message || 'Error al subir la foto.', 'error');
+        showToast(result.detail || result.error || 'Error al subir la foto.', 'error');
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -157,26 +158,34 @@ function initializeCareLogging() {
 
     const formData = new FormData(this);
 
-    // Mostrar loading
     logBtn.disabled = true;
     spinner.classList.remove('d-none');
 
     try {
-      const response = await fetch('/keeper/log', {
+      const animalId = formData.get('animal_id');
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      const body = {
+        activity_type: formData.get('activity_type'),
+        notes: formData.get('notes'),
+        duration_minutes: formData.get('duration_minutes') ? Number(formData.get('duration_minutes')) : null,
+        mood_before: formData.get('mood_before'),
+        mood_after: formData.get('mood_after'),
+      };
+
+      const response = await fetch(`/api/v1/keeper/animals/${animalId}/care-log`, {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        body: JSON.stringify(body),
       });
 
       const result = await response.json();
 
-      if (response.ok && result.success) {
-        showToast(result.message || 'Log registrado correctamente.', 'success');
+      if (response.ok && result.ok) {
+        showToast(result.data?.message || 'Log registrado correctamente.', 'success');
         modal.hide();
-
-        // Recargar la página para mostrar el nuevo log
-        setTimeout(() => location.reload(), 1500);
+        document.dispatchEvent(new CustomEvent('keeper:refresh'));
       } else {
-        showToast(result.message || 'Error al registrar el log.', 'error');
+        showToast(result.detail || result.error || 'Error al registrar el log.', 'error');
       }
     } catch (error) {
       console.error('Log error:', error);
@@ -221,27 +230,31 @@ function initializeStatusChanges() {
 
     const formData = new FormData(this);
 
-    // Mostrar loading
     statusBtn.disabled = true;
     spinner.classList.remove('d-none');
 
     try {
       const animalId = formData.get('animal_id');
-      const response = await fetch(`/keeper/animal/${animalId ?? ''}/health`, {
-        method: 'POST',
-        body: formData
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      const body = {
+        health_status: formData.get('health_status'),
+        notes: formData.get('notes'),
+      };
+
+      const response = await fetch(`/api/v1/keeper/animals/${animalId}/health`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        body: JSON.stringify(body),
       });
 
       const result = await response.json();
 
-      if (response.ok && result.success) {
-        showToast(result.message || 'Estado actualizado correctamente.', 'success');
+      if (response.ok && result.ok) {
+        showToast(result.data?.message || 'Estado actualizado correctamente.', 'success');
         modal.hide();
-
-        // Recargar la página para mostrar el nuevo estado
-        setTimeout(() => location.reload(), 1500);
+        document.dispatchEvent(new CustomEvent('keeper:refresh'));
       } else {
-        showToast(result.message || 'Error al actualizar el estado.', 'error');
+        showToast(result.detail || result.error || 'Error al actualizar el estado.', 'error');
       }
     } catch (error) {
       console.error('Status change error:', error);
@@ -288,26 +301,26 @@ function initializeIncidents() {
     const formData = new FormData(this);
     const incidentId = formData.get('incident_id');
 
-    // Mostrar loading
     resolveBtn.disabled = true;
     resolveSpinner.classList.remove('d-none');
 
     try {
-      const response = await fetch('/keeper/incident/' + incidentId + '/resolve', {
-        method: 'POST',
-        body: formData
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+      const response = await fetch(`/api/v1/keeper/incidents/${incidentId}/resolve`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        body: JSON.stringify({ resolution: formData.get('resolution') }),
       });
 
       const result = await response.json();
 
-      if (response.ok && result.success) {
-        showToast(result.message || 'Incidente resuelto correctamente.', 'success');
+      if (response.ok && result.ok) {
+        showToast(result.data?.message || 'Incidente resuelto correctamente.', 'success');
         resolveModal.hide();
-
-        // Recargar la página para actualizar la lista
-        setTimeout(() => location.reload(), 1500);
+        document.dispatchEvent(new CustomEvent('keeper:refresh'));
       } else {
-        showToast(result.message || 'Error al resolver el incidente.', 'error');
+        showToast(result.detail || result.error || 'Error al resolver el incidente.', 'error');
       }
     } catch (error) {
       console.error('Resolve incident error:', error);
@@ -324,29 +337,32 @@ function initializeIncidents() {
 
     const formData = new FormData(this);
 
-    // Mostrar loading
     incidentBtn.disabled = true;
     incidentSpinner.classList.remove('d-none');
 
     try {
-      const response = await fetch('/keeper/incident/create', {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      const body = {
+        animal_id: Number(formData.get('animal_id')),
+        severity: formData.get('severity'),
+        description: formData.get('description'),
+      };
+
+      const response = await fetch('/api/v1/keeper/incidents', {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        body: JSON.stringify(body),
       });
 
       const result = await response.json();
 
-      if (response.ok && result.success) {
-        showToast(result.message || 'Incidente reportado correctamente.', 'success');
-
-        // Reset form y cerrar modal
+      if (response.ok && result.ok) {
+        showToast(result.data?.message || 'Incidente reportado correctamente.', 'success');
         incidentForm.reset();
         bootstrap.Modal.getInstance(document.getElementById('incidentModal')).hide();
-
-        // Recargar la página para mostrar el nuevo incidente
-        setTimeout(() => location.reload(), 1500);
+        document.dispatchEvent(new CustomEvent('keeper:refresh'));
       } else {
-        showToast(result.message || 'Error al reportar el incidente.', 'error');
+        showToast(result.detail || result.error || 'Error al reportar el incidente.', 'error');
       }
     } catch (error) {
       console.error('Report incident error:', error);

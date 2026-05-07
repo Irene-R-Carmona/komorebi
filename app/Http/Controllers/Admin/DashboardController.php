@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Container;
 use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
-use App\Services\AdminService;
-use Exception;
+use App\Http\Transformers\ReservationTransformer;
+use App\Services\Contracts\AdminActivityServiceInterface;
+use App\Services\Contracts\AdminStatisticsServiceInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 
 /**
@@ -20,18 +24,25 @@ use Throwable;
  */
 final class DashboardController
 {
-    private AdminService $adminService;
+    private AdminStatisticsServiceInterface $statisticsService;
+    private AdminActivityServiceInterface $activityService;
+    private ReservationTransformer $reservationTransformer;
 
-    public function __construct(?AdminService $adminService = null)
-    {
-        $this->adminService = $adminService ?? new AdminService();
+    public function __construct(
+        ?AdminStatisticsServiceInterface $statisticsService = null,
+        ?AdminActivityServiceInterface $activityService = null,
+        ?ReservationTransformer $reservationTransformer = null
+    ) {
+        $this->statisticsService = $statisticsService ?? Container::make(AdminStatisticsServiceInterface::class);
+        $this->activityService = $activityService ?? Container::make(AdminActivityServiceInterface::class);
+        $this->reservationTransformer = $reservationTransformer ?? new ReservationTransformer();
     }
 
     /**
      * GET /admin/dashboard
      * Dashboard principal del administrador
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         try {
             // Logging informativo solo en entorno local
@@ -41,24 +52,39 @@ final class DashboardController
                 Logger::info('[DashboardController::index] User Roles: ' . \json_encode(Session::get('user_roles', [])));
             }
 
+            // 103 Early Hints — enviar antes de las queries pesadas de estadísticas
+            \header('Link: </css/sections/admin/admin-dashboard.css>; rel=preload; as=style', false);
+            \header('Link: </js/sections/admin/admin-dashboard.js>; rel=preload; as=script', false);
+            if (\function_exists('headers_send')) {
+                \headers_send(103);
+            }
+
             // Obtener estadísticas y datos del dashboard desde el servicio
-            $stats = $this->adminService->getSystemStatistics();
+            $statsResult = $this->statisticsService->getSystemStatistics();
+            $stats = $statsResult->ok ? $statsResult->data : [];
 
             if (Env::get('APP_ENV') === 'local') {
                 Logger::debug('[DashboardController::index] Stats loaded: ' . \json_encode($stats));
             }
 
-            $recentReservations = $this->adminService->getRecentReservations(10);
+            $reservationsResult = $this->activityService->getRecentReservations(10);
+            $recentReservations = $this->reservationTransformer->collection(
+                $reservationsResult->ok ? $reservationsResult->data : []
+            );
 
             if (Env::get('APP_ENV') === 'local') {
                 Logger::debug('[DashboardController::index] Reservations loaded: ' . \count($recentReservations));
             }
 
             // Obtener actividad reciente REAL del sistema
-            $recentActivity = $this->adminService->getRecentActivity(6);
+            $activityResult = $this->activityService->getRecentActivity(6);
+            $recentActivity = $activityResult->ok ? $activityResult->data : [];
 
             // Obtener estado del sistema VERIFICADO
-            $systemStatus = $this->adminService->getSystemStatus();
+            $statusResult = $this->activityService->getSystemStatus();
+            $systemStatus = $statusResult->ok
+                ? $statusResult->data
+                : ['database' => 'unknown', 'cache' => 'unknown', 'email' => 'unknown'];
 
             // Generar saludo según hora del día
             $hour = (int) \date('H');
@@ -69,7 +95,8 @@ final class DashboardController
             };
 
             // Datos del gráfico (últimos 7 días de reservas)
-            $chartData = $this->generateChartData();
+            $chartResult = $this->activityService->getReservationsChartData();
+            $chartData = $chartResult->ok ? $chartResult->data : ['labels' => [], 'values' => []];
 
             View::render('admin/home', [
                 'titulo' => 'Dashboard - Admin',
@@ -82,10 +109,10 @@ final class DashboardController
                 'system_status' => $systemStatus,
                 'extraJs' => ['admin/admin-dashboard.js'],
             ], ['admin/admin-dashboard.css'], 'backoffice');
-        } catch (Throwable $e) {
+        } catch (Throwable $e) { // NOSONAR
             if (Env::get('APP_ENV') === 'local') {
-                Logger::error('[DashboardController::index] FATAL ERROR: ' . $e->getMessage());
-                Logger::error('[DashboardController::index] Stack trace: ' . $e->getTraceAsString());
+                Logger::error('[DashboardController::index] FATAL ERROR: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+                Logger::error('[DashboardController::index] Stack trace: ' . $e->getTraceAsString(), ['trace' => $e->getTraceAsString()]);
             }
 
             // Mostrar página de error amigable
@@ -94,46 +121,9 @@ final class DashboardController
                 'titulo' => 'Error del Servidor',
                 'message' => 'Error al cargar el dashboard. Por favor, contacta al administrador.',
                 'details' => Env::get('APP_ENV') === 'local' ? $e->getMessage() : null,
-            ]);
+            ], [], 'errors');
         }
-    }
 
-    /**
-     * Genera datos del gráfico basados en reservas reales de los últimos 7 días
-     *
-     * @return array{labels: array, values: array}
-     */
-    private function generateChartData(): array
-    {
-        try {
-            // Obtener conteo de reservas por día (últimos 7 días)
-            $labels = [];
-            $values = [];
-
-            $daysEs = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
-            for ($i = 6; $i >= 0; $i--) {
-                $date = \date('Y-m-d', \strtotime("-$i days"));
-                $dayOfWeek = (int) \date('w', \strtotime($date));
-                $labels[] = $daysEs[$dayOfWeek];
-
-                // Contar reservas de ese día
-                $stmt = $this->adminService->getDatabase()->prepare(
-                    'SELECT COUNT(*) FROM reservations WHERE DATE(created_at) = :date'
-                );
-                $stmt->execute(['date' => $date]);
-                $values[] = (int) $stmt->fetchColumn();
-            }
-
-            return ['labels' => $labels, 'values' => $values];
-        } catch (Exception $e) {
-            Logger::error('[DashboardController] Error generating chart data: ' . $e->getMessage());
-
-            // Retornar datos vacíos en caso de error
-            return [
-                'labels' => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-                'values' => [0, 0, 0, 0, 0, 0, 0],
-            ];
-        }
+        return null;
     }
 }

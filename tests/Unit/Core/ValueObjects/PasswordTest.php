@@ -10,8 +10,10 @@ declare(strict_types=1);
 
 use App\Core\ValueObjects\Password;
 use App\Exceptions\ValidationException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+#[CoversClass(Password::class)]
 final class PasswordTest extends TestCase
 {
     public function testValidPasswordIsAccepted(): void

@@ -24,9 +24,9 @@ final class LoyaltyReward
     public function create(array $data): int
     {
         $stmt = $this->db->prepare(
-            "INSERT INTO loyalty_rewards
+            'INSERT INTO loyalty_rewards
                 (user_id, loyalty_card_id, reward_type, stamps_cost, redemption_code, expires_at, notes)
-             VALUES (?, ?, ?, ?, ?, ?, ?)"
+             VALUES (?, ?, ?, ?, ?, ?, ?)'
         );
 
         $stmt->execute([
@@ -36,7 +36,7 @@ final class LoyaltyReward
             $data['stamps_cost'],
             $data['redemption_code'],
             $data['expires_at'] ?? null,
-            $data['notes'] ?? null
+            $data['notes'] ?? null,
         ]);
 
         return (int) $this->db->lastInsertId();
@@ -47,20 +47,20 @@ final class LoyaltyReward
      */
     public function findByUserId(int $userId, ?string $status = null): array
     {
-        $sql = "SELECT lr.*,
+        $sql = 'SELECT lr.*,
                        lrc.name_es, lrc.description_es, lrc.icon
                 FROM loyalty_rewards lr
                 LEFT JOIN loyalty_reward_catalog lrc ON lr.reward_type = lrc.reward_type
-                WHERE lr.user_id = ?";
+                WHERE lr.user_id = ?';
 
         $params = [$userId];
 
         if ($status !== null) {
-            $sql .= " AND lr.status = ?";
+            $sql .= ' AND lr.status = ?';
             $params[] = $status;
         }
 
-        $sql .= " ORDER BY lr.redeemed_at DESC";
+        $sql .= ' ORDER BY lr.redeemed_at DESC';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
@@ -74,11 +74,11 @@ final class LoyaltyReward
     public function findByRedemptionCode(string $code): ?array
     {
         $stmt = $this->db->prepare(
-            "SELECT lr.*,
+            'SELECT lr.*,
                     lrc.name_es, lrc.description_es
              FROM loyalty_rewards lr
              LEFT JOIN loyalty_reward_catalog lrc ON lr.reward_type = lrc.reward_type
-             WHERE lr.redemption_code = ? LIMIT 1"
+             WHERE lr.redemption_code = ? LIMIT 1'
         );
         $stmt->execute([$code]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -123,7 +123,7 @@ final class LoyaltyReward
             return true;
         }
 
-        $placeholders = implode(',', array_fill(0, count($rewardIds), '?'));
+        $placeholders = \implode(',', \array_fill(0, \count($rewardIds), '?'));
         $stmt = $this->db->prepare(
             "UPDATE loyalty_rewards
              SET status = 'expired'

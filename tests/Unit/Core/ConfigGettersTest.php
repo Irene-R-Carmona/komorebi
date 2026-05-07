@@ -2,17 +2,19 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Tests\Unit\Core;
 
 use App\Core\Config;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+#[CoversClass(Config::class)]
 final class ConfigGettersTest extends TestCase
 {
     public function testGetIntReturnsDefaultWhenKeyMissing(): void

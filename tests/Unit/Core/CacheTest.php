@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -10,11 +9,13 @@ declare(strict_types=1);
  */
 
 use App\Core\Cache;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Tests para el sistema de Cache Redis
  */
+#[CoversClass(Cache::class)]
 final class CacheTest extends TestCase
 {
     protected function setUp(): void
@@ -257,5 +258,108 @@ final class CacheTest extends TestCase
         Cache::set($key, $value);
 
         $this->assertEquals($value, Cache::get($key));
+    }
+
+    // ── TagAware operations ───────────────────────────────────────────────────
+
+    /**
+     * Test: setWithTags almacena valor recuperable vía Cache::get()
+     */
+    public function testSetWithTagsStoresValueRetrievableViaGet(): void
+    {
+        $result = Cache::setWithTags('tag:product:1', ['id' => 1, 'name' => 'Café'], ['products']);
+
+        $this->assertTrue($result);
+        $this->assertEquals(['id' => 1, 'name' => 'Café'], Cache::get('tag:product:1'));
+    }
+
+    /**
+     * Test: invalidateTags elimina las entradas que llevan ese tag
+     */
+    public function testInvalidateTagsRemovesTaggedEntries(): void
+    {
+        Cache::setWithTags('tag:item:a', 'value-a', ['group1']);
+        Cache::setWithTags('tag:item:b', 'value-b', ['group1', 'group2']);
+        Cache::set('tag:item:c', 'value-c'); // sin tag — no debe borrarse
+
+        $invalidated = Cache::invalidateTags(['group1']);
+
+        $this->assertTrue($invalidated);
+        $this->assertNull(Cache::get('tag:item:a'), 'item:a debería haberse invalidado');
+        $this->assertNull(Cache::get('tag:item:b'), 'item:b debería haberse invalidado');
+        $this->assertEquals('value-c', Cache::get('tag:item:c'), 'item:c sin tag no debe borrarse');
+    }
+
+    /**
+     * Test: invalidateTags con tag inexistente retorna true sin error
+     */
+    public function testInvalidateTagsWithNonExistentTagReturnTrue(): void
+    {
+        $result = Cache::invalidateTags(['tag-que-no-existe-jamas']);
+
+        $this->assertTrue($result);
+    }
+
+    /**
+     * Test: computeIfAbsent ejecuta fn en cache miss y almacena el resultado
+     */
+    public function testComputeIfAbsentExecutesFnOnCacheMiss(): void
+    {
+        $callCount = 0;
+        $fn = static function () use (&$callCount): string {
+            $callCount++;
+
+            return 'computed-value';
+        };
+
+        $result = Cache::computeIfAbsent('cia:miss:key', $fn, 3600);
+
+        $this->assertEquals('computed-value', $result);
+        $this->assertEquals(1, $callCount, 'La función debe ejecutarse exactamente una vez en miss');
+    }
+
+    /**
+     * Test: computeIfAbsent NO ejecuta fn en cache hit
+     */
+    public function testComputeIfAbsentReturnsCachedValueOnHit(): void
+    {
+        $callCount = 0;
+        $fn = static function () use (&$callCount): string {
+            $callCount++;
+
+            return 'computed-value';
+        };
+
+        // Primera llamada: miss → fn ejecutada
+        Cache::computeIfAbsent('cia:hit:key', $fn, 3600);
+        // Segunda llamada: hit → fn NO ejecutada
+        $result = Cache::computeIfAbsent('cia:hit:key', $fn, 3600);
+
+        $this->assertEquals('computed-value', $result);
+        $this->assertEquals(1, $callCount, 'La función no debe ejecutarse en cache hit');
+    }
+
+    /**
+     * Test: computeIfAbsent con tags permite invalidación posterior
+     */
+    public function testComputeIfAbsentWithTagsAllowsTagInvalidation(): void
+    {
+        $callCount = 0;
+        $fn = static function () use (&$callCount): string {
+            $callCount++;
+
+            return 'tagged-value';
+        };
+
+        // Almacena con tags
+        Cache::computeIfAbsent('cia:tagged:key', $fn, 3600, ['menu', 'products']);
+        $this->assertEquals(1, $callCount);
+
+        // Invalida por tag
+        Cache::invalidateTags(['menu']);
+
+        // Tras invalidación, fn debe ejecutarse de nuevo
+        Cache::computeIfAbsent('cia:tagged:key', $fn, 3600, ['menu', 'products']);
+        $this->assertEquals(2, $callCount, 'La función debe ejecutarse de nuevo tras invalidar el tag');
     }
 }

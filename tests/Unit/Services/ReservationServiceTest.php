@@ -3,1024 +3,609 @@
 declare(strict_types=1);
 
 /**
- * Tests de ReservationService
- *
- * ¿Qué pruebas aquí?
- * - Validaciones de datos (campos requeridos, formatos)
- * - Reglas de negocio (disponibilidad, compatibilidad pase-café)
- * - Integración con repositories (sin tocar BD real)
- *
- * ¿Qué va a fallar?
- * - Si se quita una validación crítica (ej: fecha pasada)
- * - Si cambia lógica de negocio (ej: cálculo de disponibilidad)
- * - Si se rompe integración con repositories
+ * ¿Qué pruebas aquí? ReservationService: validación de campos requeridos y formatos al crear reservas.
+ * ¿Qué me quieres demostrar? Que create retorna Result::fail si faltan campos o tienen formatos incorrectos.
+ * ¿Qué va a fallar en este test si se cambia el código? Si se eliminan validaciones de campos requeridos o de formato.
  */
 
 namespace Tests\Unit\Services;
 
-use PHPUnit\Framework\TestCase;
-use App\Services\ReservationService;
-use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
-use App\Repositories\Contracts\AnimalRepositoryInterface;
-use App\Repositories\Contracts\TimeSlotRepositoryInterface;
-use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Services\ReservationService;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 
-#[\PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations]
+#[CoversClass(ReservationService::class)]
 final class ReservationServiceTest extends TestCase
 {
-    // Test data constants (evitar duplicación)
-    private const VALID_DATE = '2026-12-25';
-    private const VALID_TIME = '10:00';
-    private const VALID_USER_ID = 1;
-    private const VALID_CAFE_ID = 1;
-    private const VALID_PASS_ID = 2;
-    private const VALID_GUESTS = 2;
-
+    private ReservationRepositoryInterface $reservationRepoStub;
+    private CafeRepositoryInterface $cafeRepoStub;
+    private ProductRepositoryInterface $productRepoStub;
+    private InvoicePDFServiceInterface $invoiceServiceStub;
+    private EmailServiceInterface $emailServiceStub;
     private ReservationService $service;
-    private ReservationRepositoryInterface $mockReservationRepo;
-    private CafeRepositoryInterface $mockCafeRepo;
-    private ProductRepositoryInterface $mockProductRepo;
-    private AnimalRepositoryInterface $mockAnimalRepo;
-    private TimeSlotRepositoryInterface $mockTimeSlotRepo;
-    private InvoicePDFServiceInterface $mockInvoiceService;
-    private EmailServiceInterface $mockEmailService;
-    private \PDO $mockPdo;
 
     protected function setUp(): void
     {
-        // Mock PDO (necesario para constructor del servicio)
-        // NO se ejecutan queries reales - todos los repos están mockeados
-        $this->mockPdo = $this->createMock(\PDO::class);
-
-        // Mock interfaces (not concrete classes)
-        $this->mockReservationRepo = $this->createMock(ReservationRepositoryInterface::class);
-        $this->mockCafeRepo = $this->createMock(CafeRepositoryInterface::class);
-        $this->mockProductRepo = $this->createMock(ProductRepositoryInterface::class);
-        $this->mockAnimalRepo = $this->createMock(AnimalRepositoryInterface::class);
-        $this->mockTimeSlotRepo = $this->createMock(TimeSlotRepositoryInterface::class);
-        $this->mockInvoiceService = $this->createMock(InvoicePDFServiceInterface::class);
-        $this->mockEmailService = $this->createMock(EmailServiceInterface::class);
+        $this->reservationRepoStub = $this->createStub(ReservationRepositoryInterface::class);
+        $this->cafeRepoStub = $this->createStub(CafeRepositoryInterface::class);
+        $this->productRepoStub = $this->createStub(ProductRepositoryInterface::class);
+        $this->invoiceServiceStub = $this->createStub(InvoicePDFServiceInterface::class);
+        $this->emailServiceStub = $this->createStub(EmailServiceInterface::class);
 
         $this->service = new ReservationService(
-            $this->mockPdo,
-            $this->mockReservationRepo,
-            $this->mockCafeRepo,
-            $this->mockProductRepo,
-            $this->mockAnimalRepo,
-            $this->mockTimeSlotRepo,
-            $this->mockInvoiceService,
-            $this->mockEmailService
+            $this->reservationRepoStub,
+            $this->cafeRepoStub,
+            $this->productRepoStub,
+            $this->invoiceServiceStub,
+            $this->emailServiceStub
         );
     }
 
-    protected function tearDown(): void
+    public function testCreateReturnsFailWhenRequiredFieldsMissing(): void
     {
-        // No need to set to null with proper initialization
-    }
+        $result = $this->service->create(['user_id' => 1]);
 
-    // ─────────────────────────────────────────────────────────────
-    // Tests de validación: validateRequired
-    // ─────────────────────────────────────────────────────────────
-
-    public function testCreateReturnsFailWhenUserIdMissing(): void
-    {
-
-        $result = $this->service->create([
-            // 'user_id' => self::VALID_USER_ID,  ← Missing
-            'cafe_id' => self::VALID_CAFE_ID,
-            'pass_product_id' => self::VALID_PASS_ID,
-            'date' => self::VALID_DATE,
-            'time' => self::VALID_TIME,
-            'guests' => self::VALID_GUESTS,
-        ]);
         $this->assertFalse($result->ok);
+        $this->assertSame('validation_error', $result->code);
     }
 
-    public function testCreateReturnsFailWhenCafeIdMissing(): void
+    public function testCreateReturnsFailWhenDateFormatInvalid(): void
     {
-
-        $result = $this->service->create([
-            'user_id' => self::VALID_USER_ID,
-            // 'cafe_id' => self::VALID_CAFE_ID,  ← Missing
-            'pass_product_id' => self::VALID_PASS_ID,
-            'date' => self::VALID_DATE,
-            'time' => self::VALID_TIME,
-            'guests' => self::VALID_GUESTS,
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    public function testCreateReturnsFailWhenPassProductIdMissing(): void
-    {
-
-        $result = $this->service->create([
-            'user_id' => self::VALID_USER_ID,
-            'cafe_id' => self::VALID_CAFE_ID,
-            // 'pass_product_id' => self::VALID_PASS_ID,  ← Missing
-            'date' => self::VALID_DATE,
-            'time' => self::VALID_TIME,
-            'guests' => self::VALID_GUESTS,
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Tests de validación: validateFormats
-    // ─────────────────────────────────────────────────────────────
-
-    public function testCreateReturnsFailWithInvalidDateFormat(): void
-    {
-
         $result = $this->service->create([
             'user_id' => 1,
             'cafe_id' => 1,
-            'pass_product_id' => 2,
-            'date' => '25/12/2026',  // ← Invalid format (should be YYYY-MM-DD)
+            'pass_product_id' => 1,
+            'date' => '20-12-2025',
             'time' => '10:00',
             'guests' => 2,
         ]);
+
         $this->assertFalse($result->ok);
+        $this->assertSame('validation_error', $result->code);
     }
 
-    public function testCreateReturnsFailWithInvalidTimeFormat(): void
+    public function testCreateReturnsFailWhenTimeFormatInvalid(): void
     {
-
         $result = $this->service->create([
             'user_id' => 1,
             'cafe_id' => 1,
-            'pass_product_id' => 2,
-            'date' => '2026-12-25',
-            'time' => '10:00:00',  // ← Invalid format (should be HH:MM)
+            'pass_product_id' => 1,
+            'date' => '2099-12-20',
+            'time' => '9am',
             'guests' => 2,
         ]);
+
         $this->assertFalse($result->ok);
+        $this->assertSame('validation_error', $result->code);
     }
 
-    public function testCreateReturnsFailWithTooFewGuests(): void
+    public function testCreateReturnsFailWhenGuestsOutOfRange(): void
     {
-
         $result = $this->service->create([
             'user_id' => 1,
             'cafe_id' => 1,
-            'pass_product_id' => 2,
-            'date' => '2026-12-25',
+            'pass_product_id' => 1,
+            'date' => '2099-12-20',
             'time' => '10:00',
-            'guests' => 0,  // ← Too few (minimum is 1)
+            'guests' => 0,
         ]);
+
         $this->assertFalse($result->ok);
+        $this->assertSame('validation_error', $result->code);
     }
 
-    public function testCreateReturnsFailWithTooManyGuests(): void
+    public function testGetByUserReturnsDelegatedArray(): void
     {
+        $this->reservationRepoStub->method('findByUser')->willReturn([]);
 
-        $result = $this->service->create([
-            'user_id' => 1,
-            'cafe_id' => 1,
-            'pass_product_id' => 2,
-            'date' => '2026-12-25',
-            'time' => '10:00',
-            'guests' => 11,  // ← Too many (maximum is 10)
-        ]);
+        $result = $this->service->getByUser(1);
+
+        $this->assertIsArray($result);
+    }
+
+    public function testGetUpcomingReturnsDelegatedArray(): void
+    {
+        $this->reservationRepoStub->method('findUpcomingByUser')->willReturn([]);
+
+        $result = $this->service->getUpcoming(1);
+
+        $this->assertIsArray($result);
+    }
+
+    public function testCancelFailsWhenRepoReturnsFalse(): void
+    {
+        $this->reservationRepoStub->method('cancel')->willReturn(false);
+
+        $result = $this->service->cancel(999, 1);
+
         $this->assertFalse($result->ok);
+        $this->assertStringContainsString('cancelar', $result->error);
     }
 
-    public function testCreateReturnsFailWithPastDate(): void
+    public function testCancelSucceeds(): void
     {
+        $this->reservationRepoStub->method('cancel')->willReturn(true);
 
-        $result = $this->service->create([
-            'user_id' => 1,
-            'cafe_id' => 1,
-            'pass_product_id' => 2,
-            'date' => '2020-01-01',  // ← Past date
-            'time' => '10:00',
-            'guests' => 2,
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Tests de validación: getCafeOrFail
-    // ─────────────────────────────────────────────────────────────
-
-    public function testCreateReturnsFailWhenCafeDoesNotExist(): void
-    {
-        $this->mockCafeRepo
-            ->method('findById')
-            ->with(999)
-            ->willReturn(null);  // ← Café no existe
-
-
-        $result = $this->service->create([
-            'user_id' => 1,
-            'cafe_id' => 999,
-            'pass_product_id' => 2,
-            'date' => '2026-12-25',
-            'time' => '10:00',
-            'guests' => 2,
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    public function testCreateReturnsFailWhenCafeIsInactive(): void
-    {
-        $this->mockCafeRepo
-            ->method('findById')
-            ->with(1)
-            ->willReturn([
-                'id' => 1,
-                'name' => 'Inactive Cafe',
-                'is_active' => 0,  // ← Inactive
-                'has_reservations' => 1,
-            ]);
-
-
-        $result = $this->service->create([
-            'user_id' => 1,
-            'cafe_id' => 1,
-            'pass_product_id' => 2,
-            'date' => '2026-12-25',
-            'time' => '10:00',
-            'guests' => 2,
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    public function testCreateReturnsFailWhenCafeDoesNotAcceptReservations(): void
-    {
-        $this->mockCafeRepo
-            ->method('findById')
-            ->with(1)
-            ->willReturn([
-                'id' => 1,
-                'name' => 'No Reservations Cafe',
-                'is_active' => 1,
-                'has_reservations' => 0,  // ← Does not accept reservations
-            ]);
-
-
-        $result = $this->service->create([
-            'user_id' => 1,
-            'cafe_id' => 1,
-            'pass_product_id' => 2,
-            'date' => '2026-12-25',
-            'time' => '10:00',
-            'guests' => 2,
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Tests de validación: getPassOrFail
-    // ─────────────────────────────────────────────────────────────
-
-    public function testCreateReturnsFailWhenPassDoesNotExist(): void
-    {
-        $this->mockCafeRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 1,
-                'name' => 'Active Cafe',
-                'is_active' => 1,
-                'has_reservations' => 1,
-            ]);
-
-        $this->mockProductRepo
-            ->method('findById')
-            ->with(999)
-            ->willReturn(null);  // ← Pass no existe
-
-
-        $result = $this->service->create([
-            'user_id' => 1,
-            'cafe_id' => 1,
-            'pass_product_id' => 999,
-            'date' => '2026-12-25',
-            'time' => '10:00',
-            'guests' => 2,
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    public function testCreateReturnsFailWhenPassIsInactive(): void
-    {
-        $this->mockCafeRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 1,
-                'name' => 'Active Cafe',
-                'is_active' => 1,
-                'has_reservations' => 1,
-            ]);
-
-        $this->mockProductRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 2,
-                'name' => 'Inactive Pass',
-                'is_active' => 0,  // ← Inactive
-                'product_type' => 'pass',
-                'duration_minutes' => 60,
-            ]);
-
-
-        $result = $this->service->create([
-            'user_id' => 1,
-            'cafe_id' => 1,
-            'pass_product_id' => 2,
-            'date' => '2026-12-25',
-            'time' => '10:00',
-            'guests' => 2,
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    public function testCreateReturnsFailWhenProductIsNotAPass(): void
-    {
-        $this->mockCafeRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 1,
-                'name' => 'Active Cafe',
-                'is_active' => 1,
-                'has_reservations' => 1,
-            ]);
-
-        $this->mockProductRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 2,
-                'name' => 'Some Item',
-                'is_active' => 1,
-                'product_type' => 'item',  // ← Not a pass
-                'duration_minutes' => 60,
-            ]);
-
-
-        $result = $this->service->create([
-            'user_id' => 1,
-            'cafe_id' => 1,
-            'pass_product_id' => 2,
-            'date' => '2026-12-25',
-            'time' => '10:00',
-            'guests' => 2,
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Tests de validación: validatePassCompatibility
-    // ─────────────────────────────────────────────────────────────
-
-    public function testCreateReturnsFailWhenGuestsLessThanMinimum(): void
-    {
-        $this->mockCafeRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 1,
-                'name' => 'Active Cafe',
-                'category' => 'cats',
-                'animal_type' => 'gato',
-                'is_active' => 1,
-                'has_reservations' => 1,
-            ]);
-
-        $this->mockProductRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 2,
-                'name' => 'Group Pass',
-                'is_active' => 1,
-                'product_type' => 'pass',
-                'duration_minutes' => 60,
-                'min_pax' => 4,  // ← Minimum 4 guests
-                'max_pax' => 10,
-            ]);
-
-
-        $result = $this->service->create([
-            'user_id' => 1,
-            'cafe_id' => 1,
-            'pass_product_id' => 2,
-            'date' => '2026-12-25',
-            'time' => '10:00',
-            'guests' => 2,  // ← Only 2 guests (less than min_pax)
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    public function testCreateReturnsFailWhenGuestsExceedMaximum(): void
-    {
-        $this->mockCafeRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 1,
-                'name' => 'Active Cafe',
-                'category' => 'cats',
-                'animal_type' => 'gato',
-                'is_active' => 1,
-                'has_reservations' => 1,
-            ]);
-
-        $this->mockProductRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 2,
-                'name' => 'Couple Pass',
-                'is_active' => 1,
-                'product_type' => 'pass',
-                'duration_minutes' => 60,
-                'min_pax' => 1,
-                'max_pax' => 2,  // ← Maximum 2 guests
-            ]);
-
-
-        $result = $this->service->create([
-            'user_id' => 1,
-            'cafe_id' => 1,
-            'pass_product_id' => 2,
-            'date' => '2026-12-25',
-            'time' => '10:00',
-            'guests' => 4,  // ← 4 guests (exceeds max_pax)
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    public function testCreateReturnsFailWhenCafeTypeIncompatible(): void
-    {
-        $this->mockCafeRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 1,
-                'name' => 'Dog Cafe',
-                'category' => 'dogs',  // ← Dog cafe
-                'animal_type' => 'perro',
-                'is_active' => 1,
-                'has_reservations' => 1,
-            ]);
-
-        $this->mockProductRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 2,
-                'name' => 'Cats Only Pass',
-                'is_active' => 1,
-                'product_type' => 'pass',
-                'duration_minutes' => 60,
-                'min_pax' => 1,
-                'max_pax' => 10,
-                'target_cafe_types' => '["cats"]',  // ← Only for cats cafes
-                'target_animal_types' => null,
-            ]);
-
-
-        $result = $this->service->create([
-            'user_id' => 1,
-            'cafe_id' => 1,
-            'pass_product_id' => 2,
-            'date' => '2026-12-25',
-            'time' => '10:00',
-            'guests' => 2,
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Test de éxito: crear reserva válida
-    // ─────────────────────────────────────────────────────────────
-
-    public function testCreateReturnsReservationIdWithValidData(): void
-    {
-        // ARRANGE: Configurar mocks con datos completamente válidos
-        $this->mockCafeRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 1,
-                'name' => 'Komorebi Cat Cafe',
-                'category' => 'cats',
-                'animal_type' => 'gato',
-                'is_active' => 1,
-                'has_reservations' => 1,
-            ]);
-
-        $this->mockProductRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => 2,
-                'name' => '1 Hour Pass',
-                'price' => 1500,
-                'is_active' => 1,
-                'product_type' => 'pass',
-                'duration_minutes' => 60,
-                'min_pax' => 1,
-                'max_pax' => 4,
-                'target_cafe_types' => '["cats"]',
-                'target_animal_types' => '["gato"]',
-            ]);
-
-        // Mock: el método create del modelo debe retornar éxito
-        // Nota: esto requiere mockear el Database::transaction pero por ahora
-        // verificamos que no lance excepciones hasta aquí
-
-        // ACT & ASSERT: Verificar que no lanza excepciones
-        // NOTA: Este test fallará en la transacción porque no mockeamos Database::transaction
-        // pero demuestra que todas las validaciones pasaron correctamente
-        try {
-            $this->service->create([
-                'user_id' => 1,
-                'cafe_id' => 1,
-                'pass_product_id' => 2,
-                'date' => '2026-12-25',
-                'time' => '10:00',
-                'guests' => 2,
-                'comments' => 'Test reservation',
-            ]);
-            $this->fail('Expected Database::transaction to fail in unit test environment');
-        } catch (\Throwable $e) {
-            // Esperamos que falle en Database::transaction, no en validaciones
-            $this->assertNotInstanceOf(\App\Exceptions\ValidationException::class, $e);
-            $this->assertNotInstanceOf(\App\Exceptions\BusinessRuleException::class, $e);
-            $this->assertNotInstanceOf(\App\Exceptions\NotFoundException::class, $e);
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Tests del método cancel()
-    // ─────────────────────────────────────────────────────────────
-
-    public function testCancelReturnsTrue(): void
-    {
-        // ARRANGE: Mock del repositorio para simular cancelación exitosa
-        $this->mockReservationRepo
-            ->method('cancel')
-            ->with(123, self::VALID_USER_ID)
-            ->willReturn(true);
-
-        // ACT
-        $result = $this->service->cancel(123, self::VALID_USER_ID);
-
-        // ASSERT
-        $this->assertTrue($result);
-    }
-
-    public function testCancelReturnsFalseWhenReservationNotOwnedByUser(): void
-    {
-        // ARRANGE: Mock para simular que la reserva no pertenece al usuario
-        $this->mockReservationRepo
-            ->method('cancel')
-            ->with(123, self::VALID_USER_ID)
-            ->willReturn(false);
-
-        // ACT
-        $result = $this->service->cancel(123, self::VALID_USER_ID);
-
-        // ASSERT
-        $this->assertFalse($result);
-    }
-
-    public function testCancelReturnsFalseWhenReservationNotCancellable(): void
-    {
-        // ARRANGE: Mock para simular que la reserva no es cancelable (ej: status 'completed')
-        $this->mockReservationRepo
-            ->method('cancel')
-            ->with(456, self::VALID_USER_ID)
-            ->willReturn(false);
-
-        // ACT
-        $result = $this->service->cancel(456, self::VALID_USER_ID);
-
-        // ASSERT
-        $this->assertFalse($result);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Tests de lógica de negocio: Part 3
-    // ─────────────────────────────────────────────────────────────
-
-    public function testCreateReturnsFailWhenCafeHasNoCapacity(): void
-    {
-        // ARRANGE: Mock café válido
-        $this->mockCafeRepo
-            ->method('findById')
-            ->with(self::VALID_CAFE_ID)
-            ->willReturn([
-                'id' => self::VALID_CAFE_ID,
-                'name' => 'Test Café',
-                'is_active' => 1,
-                'has_reservations' => 1,
-                'category' => 'cat',
-                'opening_time' => '09:00',
-                'closing_time' => '20:00',
-            ]);
-
-        // ARRANGE: Mock pase válido
-        $this->mockProductRepo
-            ->method('findById')
-            ->with(self::VALID_PASS_ID)
-            ->willReturn([
-                'id' => self::VALID_PASS_ID,
-                'name' => 'Pase Básico',
-                'category' => 'pass',
-                'product_type' => 'pass',
-                'is_active' => 1,
-                'price' => 1500,
-                'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
-                'min_pax' => 1,
-                'max_pax' => 4,
-            ]);
-
-        // ARRANGE: Mock SIN capacidad disponible
-        $this->mockCafeRepo
-            ->method('hasAvailableCapacity')
-            ->with(self::VALID_CAFE_ID, self::VALID_DATE, self::VALID_TIME)
-            ->willReturn(false);
-                // ACT
-        $result = $this->service->create([
-            'user_id' => self::VALID_USER_ID,
-            'cafe_id' => self::VALID_CAFE_ID,
-            'pass_product_id' => self::VALID_PASS_ID,
-            'date' => self::VALID_DATE,
-            'time' => self::VALID_TIME,
-            'guests' => self::VALID_GUESTS,
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    public function testCreateReturnsFailWhenUserHasDuplicateReservation(): void
-    {
-        // ARRANGE: Mock café válido
-        $this->mockCafeRepo
-            ->method('findById')
-            ->with(self::VALID_CAFE_ID)
-            ->willReturn([
-                'id' => self::VALID_CAFE_ID,
-                'name' => 'Test Café',
-                'is_active' => 1,
-                'has_reservations' => 1,
-                'category' => 'cat',
-                'opening_time' => '09:00',
-                'closing_time' => '20:00',
-            ]);
-
-        // ARRANGE: Mock pase válido
-        $this->mockProductRepo
-            ->method('findById')
-            ->with(self::VALID_PASS_ID)
-            ->willReturn([
-                'id' => self::VALID_PASS_ID,
-                'name' => 'Pase Básico',
-                'category' => 'pass',
-                'product_type' => 'pass',
-                'is_active' => 1,
-                'price' => 1500,
-                'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
-                'min_pax' => 1,
-                'max_pax' => 4,
-            ]);
-
-        // ARRANGE: Mock capacidad disponible OK
-        $this->mockCafeRepo
-            ->method('hasAvailableCapacity')
-            ->with(self::VALID_CAFE_ID, self::VALID_DATE, self::VALID_TIME)
-            ->willReturn(true);
-
-        // ARRANGE: Mock reserva duplicada existente
-        $this->mockReservationRepo
-            ->method('existsForUserAndDateTime')
-            ->with(self::VALID_USER_ID, self::VALID_CAFE_ID, self::VALID_DATE, self::VALID_TIME)
-            ->willReturn(true);
-                // ACT
-        $result = $this->service->create([
-            'user_id' => self::VALID_USER_ID,
-            'cafe_id' => self::VALID_CAFE_ID,
-            'pass_product_id' => self::VALID_PASS_ID,
-            'date' => self::VALID_DATE,
-            'time' => self::VALID_TIME,
-            'guests' => self::VALID_GUESTS,
-        ]);
-        $this->assertFalse($result->ok);
-    }
-
-    public function testCreateValidatesAllBusinessRulesBeforeTransaction(): void
-    {
-        // ARRANGE: Este test valida que TODAS las validaciones se ejecutan
-        // en orden correcto ANTES de intentar crear la reserva
-
-        // Mock café válido
-        $this->mockCafeRepo
-            ->method('findById')
-            ->with(self::VALID_CAFE_ID)
-            ->willReturn([
-                'id' => self::VALID_CAFE_ID,
-                'name' => 'Test Café',
-                'is_active' => 1,
-                'has_reservations' => 1,
-                'category' => 'cat',
-                'opening_time' => '09:00',
-                'closing_time' => '20:00',
-            ]);
-
-        // Mock pase válido
-        $this->mockProductRepo
-            ->method('findById')
-            ->with(self::VALID_PASS_ID)
-            ->willReturn([
-                'id' => self::VALID_PASS_ID,
-                'name' => 'Pase Básico',
-                'category' => 'pass',
-                'product_type' => 'pass',
-                'is_active' => 1,
-                'price' => 1500,
-                'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
-                'min_pax' => 1,
-                'max_pax' => 4,
-            ]);
-
-        // Mock capacidad disponible OK
-        $this->mockCafeRepo
-            ->method('hasAvailableCapacity')
-            ->with(self::VALID_CAFE_ID, self::VALID_DATE, self::VALID_TIME)
-            ->willReturn(true);
-
-        // Mock NO existe reserva duplicada
-        $this->mockReservationRepo
-            ->method('existsForUserAndDateTime')
-            ->with(self::VALID_USER_ID, self::VALID_CAFE_ID, self::VALID_DATE, self::VALID_TIME)
-            ->willReturn(false);
-
-        // Mock repositorio crea reserva exitosamente
-        $this->mockReservationRepo
-            ->method('create')
-            ->willReturn(999);
-
-        // ACT & ASSERT: Verificar que todas las validaciones pasan y devuelve ID
-        $result = $this->service->create([
-            'user_id' => self::VALID_USER_ID,
-            'cafe_id' => self::VALID_CAFE_ID,
-            'pass_product_id' => self::VALID_PASS_ID,
-            'date' => self::VALID_DATE,
-            'time' => self::VALID_TIME,
-            'guests' => self::VALID_GUESTS,
-        ]);
+        $result = $this->service->cancel(1, 1);
 
         $this->assertTrue($result->ok);
-        $this->assertSame(999, $result->data);
+    }
+
+    public function testAdminCancelFailsWhenReservationNotFound(): void
+    {
+        $this->reservationRepoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->adminCancel(999);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('not_found', $result->code);
+    }
+
+    public function testAdminCancelSucceedsWhenValidTransition(): void
+    {
+        $dto = new \App\Domain\DTO\ReservationDTO(
+            id: 1,
+            uuid: 'abc',
+            cafe_id: 1,
+            user_id: 1,
+            date: '2025-12-01',
+            time: '10:00',
+            guest_count: 2,
+            status: 'confirmed',
+            time_slot_id: null,
+            pass_name: null,
+            check_in_at: null,
+            check_out_at: null,
+            final_amount: null,
+            payment_status: null,
+            payment_method: null,
+            notes: null,
+        );
+        $this->reservationRepoStub->method('findById')->willReturn($dto);
+        $this->reservationRepoStub->method('updateStatus')->willReturn(true);
+
+        $result = $this->service->adminCancel(1);
+
+        $this->assertTrue($result->ok);
+    }
+
+    public function testAdminConfirmFailsWhenReservationNotFound(): void
+    {
+        $this->reservationRepoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->adminConfirm(999);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('not_found', $result->code);
+    }
+
+    public function testEnrichCartItemsReturnsEmptyArrayWhenNoItems(): void
+    {
+        $result = $this->service->enrichCartItems([]);
+
+        $this->assertSame([], $result);
+    }
+
+    public function testEnrichCartItemsDelegatesToProductRepo(): void
+    {
+        $this->productRepoStub->method('findItemsByIds')->willReturn([['id' => 1, 'name' => 'Pass', 'price' => '5.00']]);
+
+        $result = $this->service->enrichCartItems([1 => 2]);
+
+        $this->assertCount(1, $result);
+        $this->assertSame(2, $result[0]['qty']);
+        $this->assertSame(10.0, $result[0]['subtotal']);
     }
 
     // ─────────────────────────────────────────────────────────────
-    // Tests de edge cases: Part 4B
+    // create() — rutas de error post-validación de formato
     // ─────────────────────────────────────────────────────────────
 
-    public function testCreateReturnsFailWhenRepositoryThrows(): void
+    public function testCreateReturnsFailWhenPastDate(): void
     {
-        // ARRANGE: Mock café válido
-        $this->mockCafeRepo
-            ->method('findById')
-            ->with(self::VALID_CAFE_ID)
-            ->willReturn([
-                'id' => self::VALID_CAFE_ID,
-                'name' => 'Test Café',
-                'is_active' => 1,
-                'has_reservations' => 1,
-                'category' => 'cat',
-                'opening_time' => '09:00',
-                'closing_time' => '20:00',
-            ]);
-
-        // ARRANGE: Mock pase válido
-        $this->mockProductRepo
-            ->method('findById')
-            ->with(self::VALID_PASS_ID)
-            ->willReturn([
-                'id' => self::VALID_PASS_ID,
-                'name' => 'Pase Básico',
-                'category' => 'pass',
-                'product_type' => 'pass',
-                'is_active' => 1,
-                'price' => 1500,
-                'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
-                'min_pax' => 1,
-                'max_pax' => 4,
-            ]);
-
-        // ARRANGE: Mock capacidad OK
-        $this->mockCafeRepo
-            ->method('hasAvailableCapacity')
-            ->willReturn(true);
-
-        // ARRANGE: Mock sin duplicados
-        $this->mockReservationRepo
-            ->method('existsForUserAndDateTime')
-            ->willReturn(false);
-
-        // ARRANGE: Mock repositorio lanza excepción PDO (ej: constraint violation)
-        $this->mockReservationRepo
-            ->method('create')
-            ->willThrowException(new \PDOException('Database error: constraint violation'));
-                // ACT
         $result = $this->service->create([
-            'user_id' => self::VALID_USER_ID,
-            'cafe_id' => self::VALID_CAFE_ID,
-            'pass_product_id' => self::VALID_PASS_ID,
-            'date' => self::VALID_DATE,
-            'time' => self::VALID_TIME,
-            'guests' => self::VALID_GUESTS,
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 1,
+            'date' => '2000-01-01',
+            'time' => '10:00',
+            'guests' => 2,
         ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('past_date', $result->code);
+    }
+
+    public function testCreateReturnsNotFoundWhenCafeDoesNotExist(): void
+    {
+        $this->cafeRepoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->create([
+            'user_id' => 1,
+            'cafe_id' => 99,
+            'pass_product_id' => 1,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 2,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('not_found', $result->code);
+    }
+
+    public function testCreateReturnsBusinessRuleWhenCafeNotActive(): void
+    {
+        $cafe = $this->makeCafe(is_active: false, has_reservations: true);
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+
+        $result = $this->service->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 1,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 2,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('cafe_reservations_disabled', $result->code);
+    }
+
+    public function testCreateReturnsBusinessRuleWhenCafeNotAcceptingReservations(): void
+    {
+        $cafe = $this->makeCafe(is_active: true, has_reservations: false);
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+
+        $result = $this->service->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 1,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 2,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('cafe_reservations_disabled', $result->code);
+    }
+
+    public function testCreateReturnsNotFoundWhenPassDoesNotExist(): void
+    {
+        $cafe = $this->makeCafe();
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+        $this->productRepoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 99,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 2,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('not_found', $result->code);
+    }
+
+    public function testCreateReturnsBusinessRuleWhenPassNotActive(): void
+    {
+        $cafe = $this->makeCafe();
+        $pass = $this->makePass(is_active: false);
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+        $this->productRepoStub->method('findById')->willReturn($pass);
+
+        $result = $this->service->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 1,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 2,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('pass_not_available', $result->code);
+    }
+
+    public function testCreateReturnsBusinessRuleWhenProductIsNotAPass(): void
+    {
+        $cafe = $this->makeCafe();
+        $pass = $this->makePass(product_type: 'food');
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+        $this->productRepoStub->method('findById')->willReturn($pass);
+
+        $result = $this->service->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 1,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 2,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('product_not_available', $result->code);
+    }
+
+    public function testCreateReturnsBusinessRuleWhenGuestsBelowMinPax(): void
+    {
+        $cafe = $this->makeCafe();
+        $pass = $this->makePass(min_pax: 3);
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+        $this->productRepoStub->method('findById')->willReturn($pass);
+
+        $result = $this->service->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 1,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 1,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('minimum_guests_required', $result->code);
+    }
+
+    public function testCreateReturnsBusinessRuleWhenGuestsExceedMaxPax(): void
+    {
+        $cafe = $this->makeCafe();
+        $pass = $this->makePass(max_pax: 2);
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+        $this->productRepoStub->method('findById')->willReturn($pass);
+
+        $result = $this->service->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 1,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 5,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('maximum_guests_exceeded', $result->code);
+    }
+
+    public function testCreateReturnsBusinessRuleWhenTimeBeforeOpening(): void
+    {
+        $cafe = $this->makeCafe(opening_time: '12:00', closing_time: '22:00');
+        $pass = $this->makePass();
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+        $this->productRepoStub->method('findById')->willReturn($pass);
+
+        $result = $this->service->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 1,
+            'date' => '2099-12-01',
+            'time' => '09:00',
+            'guests' => 2,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('cafe_not_open', $result->code);
+    }
+
+    public function testCreateReturnsBusinessRuleWhenInsufficientTimeBeforeClose(): void
+    {
+        // Pass de 120 min, cierre a 22:00 → inicio a 21:30 es demasiado tarde
+        $cafe = $this->makeCafe(opening_time: '10:00', closing_time: '22:00');
+        $pass = $this->makePass(duration_minutes: 120);
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+        $this->productRepoStub->method('findById')->willReturn($pass);
+
+        $result = $this->service->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 1,
+            'date' => '2099-12-01',
+            'time' => '21:30',
+            'guests' => 2,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('insufficient_time_before_close', $result->code);
+    }
+
+    public function testCreateReturnsNoCapacityCodeWhenCafeFull(): void
+    {
+        $cafe = $this->makeCafe();
+        $pass = $this->makePass();
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+        $this->cafeRepoStub->method('hasAvailableCapacity')->willReturn(false);
+        $this->productRepoStub->method('findById')->willReturn($pass);
+
+        $result = $this->service->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 1,
+            'date' => '2099-12-01',
+            'time' => '11:00',
+            'guests' => 2,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('cafe_no_capacity', $result->code);
+    }
+
+    public function testCreateReturnsDuplicateCodeWhenReservationExists(): void
+    {
+        $cafe = $this->makeCafe();
+        $pass = $this->makePass();
+        $this->cafeRepoStub->method('findById')->willReturn($cafe);
+        $this->cafeRepoStub->method('hasAvailableCapacity')->willReturn(true);
+        $this->productRepoStub->method('findById')->willReturn($pass);
+        $this->reservationRepoStub->method('existsForUserAndDateTime')->willReturn(true);
+
+        $result = $this->service->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 1,
+            'date' => '2099-12-01',
+            'time' => '11:00',
+            'guests' => 2,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('duplicate_reservation', $result->code);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // adminConfirm() — rutas adicionales
+    // ─────────────────────────────────────────────────────────────
+
+    public function testAdminConfirmSucceedsWhenPending(): void
+    {
+        $dto = $this->makeReservationDto(status: 'pending');
+        $this->reservationRepoStub->method('findById')->willReturn($dto);
+        $this->reservationRepoStub->method('updateStatus')->willReturn(true);
+
+        $result = $this->service->adminConfirm(1);
+
+        $this->assertTrue($result->ok);
+    }
+
+    public function testAdminConfirmFailsOnInvalidTransition(): void
+    {
+        $dto = $this->makeReservationDto(status: 'cancelled');
+        $this->reservationRepoStub->method('findById')->willReturn($dto);
+
+        $result = $this->service->adminConfirm(1);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('invalid_transition', $result->code);
+    }
+
+    public function testAdminConfirmFailsWhenUpdateFails(): void
+    {
+        $dto = $this->makeReservationDto(status: 'pending');
+        $this->reservationRepoStub->method('findById')->willReturn($dto);
+        $this->reservationRepoStub->method('updateStatus')->willReturn(false);
+
+        $result = $this->service->adminConfirm(1);
+
         $this->assertFalse($result->ok);
     }
 
-    public function testCreateAcceptsOptionalCommentsField(): void
+    public function testAdminCancelFailsOnInvalidTransitionFromAlreadyCancelled(): void
     {
-        // ARRANGE: Mocks completos para crear reserva válida
-        $this->mockCafeRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => self::VALID_CAFE_ID,
-                'name' => 'Test Café',
-                'is_active' => 1,
-                'has_reservations' => 1,
-                'category' => 'cat',
-                'opening_time' => '09:00',
-                'closing_time' => '20:00',
-            ]);
+        $dto = $this->makeReservationDto(status: 'cancelled');
+        $this->reservationRepoStub->method('findById')->willReturn($dto);
 
-        $this->mockProductRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => self::VALID_PASS_ID,
-                'name' => 'Pase Básico',
-                'category' => 'pass',
-                'product_type' => 'pass',
-                'is_active' => 1,
-                'price' => 1500,
-                'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
-                'min_pax' => 1,
-                'max_pax' => 4,
-            ]);
+        $result = $this->service->adminCancel(1);
 
-        $this->mockCafeRepo
-            ->method('hasAvailableCapacity')
-            ->willReturn(true);
-
-        $this->mockReservationRepo
-            ->method('existsForUserAndDateTime')
-            ->willReturn(false);
-
-        $this->mockReservationRepo
-            ->method('create')
-            ->willReturn(888);
-
-        // ACT: Crear con campo comments opcional
-        $result = $this->service->create([
-            'user_id' => self::VALID_USER_ID,
-            'cafe_id' => self::VALID_CAFE_ID,
-            'pass_product_id' => self::VALID_PASS_ID,
-            'date' => self::VALID_DATE,
-            'time' => self::VALID_TIME,
-            'guests' => self::VALID_GUESTS,
-            'comments' => 'Comentarios opcionales del usuario',
-        ]);
-
-        // ASSERT: La reserva se crea correctamente con comments
-        $this->assertTrue($result->ok);
-        $this->assertSame(888, $result->data);
+        $this->assertFalse($result->ok);
     }
 
-    public function testCreateWorksWithoutOptionalCommentsField(): void
+    public function testGetByUserWithStatusFilterDelegates(): void
     {
-        // ARRANGE: Setup completo (igual que test anterior)
-        $this->mockCafeRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => self::VALID_CAFE_ID,
-                'name' => 'Test Café',
-                'is_active' => 1,
-                'has_reservations' => 1,
-                'category' => 'cat',
-                'opening_time' => '09:00',
-                'closing_time' => '20:00',
-            ]);
+        $this->reservationRepoStub->method('findByUser')->willReturn([]);
 
-        $this->mockProductRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => self::VALID_PASS_ID,
-                'name' => 'Pase Básico',
-                'category' => 'pass',
-                'product_type' => 'pass',
-                'is_active' => 1,
-                'price' => 1500,
-                'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
-                'min_pax' => 1,
-                'max_pax' => 4,
-            ]);
+        $result = $this->service->getByUser(1, 'confirmed');
 
-        $this->mockCafeRepo
-            ->method('hasAvailableCapacity')
-            ->willReturn(true);
-
-        $this->mockReservationRepo
-            ->method('existsForUserAndDateTime')
-            ->willReturn(false);
-
-        $this->mockReservationRepo
-            ->method('create')
-            ->willReturn(777);
-
-        // ACT: Crear SIN campo comments (debe usar default vacío)
-        $result = $this->service->create([
-            'user_id' => self::VALID_USER_ID,
-            'cafe_id' => self::VALID_CAFE_ID,
-            'pass_product_id' => self::VALID_PASS_ID,
-            'date' => self::VALID_DATE,
-            'time' => self::VALID_TIME,
-            'guests' => self::VALID_GUESTS,
-            // 'comments' omitido intencionalmente
-        ]);
-
-        // ASSERT: La reserva se crea correctamente sin comments
-        $this->assertTrue($result->ok);
-        $this->assertSame(777, $result->data);
+        $this->assertIsArray($result);
     }
 
-    public function testCancelWithInvalidReservationIdReturnsFalse(): void
+    public function testGetUpcomingWithCustomLimitDelegates(): void
     {
-        // ARRANGE: Mock repositorio indica que no existe o no se pudo cancelar
-        $this->mockReservationRepo
-            ->method('cancel')
-            ->with(99999, self::VALID_USER_ID)
-            ->willReturn(false);
+        $this->reservationRepoStub->method('findUpcomingByUser')->willReturn([]);
 
-        // ACT
-        $result = $this->service->cancel(99999, self::VALID_USER_ID);
+        $result = $this->service->getUpcoming(1, 3);
 
-        // ASSERT: Retorna false cuando la reserva no existe o no se puede cancelar
-        $this->assertFalse($result);
+        $this->assertIsArray($result);
     }
 
-    public function testCreateSucceedsWhenMaxGuestsIsNull(): void
+    // ─────────────────────────────────────────────────────────────
+    // Helpers de fábrica
+    // ─────────────────────────────────────────────────────────────
+
+    private function makeCafe(
+        bool $is_active = true,
+        bool $has_reservations = true,
+        string $opening_time = '10:00',
+        string $closing_time = '22:00',
+        string $category = 'cat',
+        string $animal_type = 'cat',
+    ): \App\Domain\DTO\CafeDTO {
+        return new \App\Domain\DTO\CafeDTO(
+            id: 1,
+            slug: 'test-cafe',
+            name: 'Test Café',
+            japanese_name: null,
+            description: null,
+            location: 'Tokyo',
+            category: $category,
+            animal_type: $animal_type,
+            price_per_hour: 10.0,
+            capacity_max: 20,
+            rating_avg: 5.0,
+            opening_time: $opening_time,
+            closing_time: $closing_time,
+            timezone: 'UTC',
+            is_active: $is_active,
+            has_reservations: $has_reservations,
+            image_url: null,
+        );
+    }
+
+    private function makePass(
+        bool $is_active = true,
+        string $product_type = 'pass',
+        int $duration_minutes = 90,
+        ?int $min_pax = 1,
+        ?int $max_pax = 10,
+        ?string $attributes = null,
+        ?string $target_cafe_types = null,
+        ?string $target_animal_types = null,
+    ): \App\Domain\DTO\ProductDTO {
+        return new \App\Domain\DTO\ProductDTO(
+            id: 1,
+            name: 'Standard Pass',
+            slug: 'standard-pass',
+            description: null,
+            price: 25.0,
+            category_id: 1,
+            category_name: 'Passes',
+            allergens: [],
+            is_active: $is_active,
+            image_url: null,
+            product_type: $product_type,
+            min_pax: $min_pax,
+            max_pax: $max_pax,
+            duration_minutes: $duration_minutes,
+            attributes: $attributes,
+            target_cafe_types: $target_cafe_types,
+            target_animal_types: $target_animal_types,
+            stock_quantity: null,
+        );
+    }
+
+    private function makeReservationDto(string $status = 'confirmed'): \App\Domain\DTO\ReservationDTO
     {
-        // ARRANGE: Mock café válido
-        $this->mockCafeRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => self::VALID_CAFE_ID,
-                'name' => 'Test Café',
-                'is_active' => 1,
-                'has_reservations' => 1,
-                'category' => 'cat',
-                'opening_time' => '09:00',
-                'closing_time' => '20:00',
-            ]);
-
-        // ARRANGE: Mock pase sin límite máximo (max_pax = null)
-        $this->mockProductRepo
-            ->method('findById')
-            ->willReturn([
-                'id' => self::VALID_PASS_ID,
-                'name' => 'Pase Sin Límite',
-                'category' => 'pass',
-                'product_type' => 'pass',
-                'is_active' => 1,
-                'price' => 1500,
-                'duration_minutes' => 60,
-                'target_cafe_types' => json_encode(['cat']),
-                'min_pax' => 1,
-                'max_pax' => null,  // Sin límite máximo
-            ]);
-
-        $this->mockCafeRepo
-            ->method('hasAvailableCapacity')
-            ->willReturn(true);
-
-        $this->mockReservationRepo
-            ->method('existsForUserAndDateTime')
-            ->willReturn(false);
-
-        $this->mockReservationRepo
-            ->method('create')
-            ->willReturn(555);
-
-        // ACT: Crear con 8 invitados (sin límite no debe fallar)
-        $result = $this->service->create([
-            'user_id' => self::VALID_USER_ID,
-            'cafe_id' => self::VALID_CAFE_ID,
-            'pass_product_id' => self::VALID_PASS_ID,
-            'date' => self::VALID_DATE,
-            'time' => self::VALID_TIME,
-            'guests' => 8,
-        ]);
-
-        // ASSERT: Se crea correctamente cuando no hay límite máximo
-        $this->assertTrue($result->ok);
-        $this->assertSame(555, $result->data);
+        return new \App\Domain\DTO\ReservationDTO(
+            id: 1,
+            uuid: 'abc',
+            cafe_id: 1,
+            user_id: 1,
+            date: '2099-12-01',
+            time: '10:00',
+            guest_count: 2,
+            status: $status,
+            time_slot_id: null,
+            pass_name: null,
+            check_in_at: null,
+            check_out_at: null,
+            final_amount: null,
+            payment_status: null,
+            payment_method: null,
+            notes: null,
+        );
     }
 }

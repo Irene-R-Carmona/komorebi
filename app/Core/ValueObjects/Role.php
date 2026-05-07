@@ -15,10 +15,10 @@ final readonly class Role
 
     public function __construct(string $value)
     {
-        if (!in_array($value, self::VALID_ROLES, true)) {
+        if (!\in_array($value, self::VALID_ROLES, true)) {
             throw new ValidationException(
                 'Rol inválido',
-                ['role' => sprintf('El rol debe ser uno de: %s', implode(', ', self::VALID_ROLES))]
+                ['role' => \sprintf('El rol debe ser uno de: %s', \implode(', ', self::VALID_ROLES))]
             );
         }
 

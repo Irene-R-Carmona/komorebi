@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Core\Http;
 
 use App\Core\Result;
+use App\Core\ServiceErrorCode;
+use InvalidArgumentException;
 
 /**
  * Genera estructuras RFC 9457 Problem Details for HTTP APIs.
@@ -82,23 +84,34 @@ final readonly class ProblemDetails
     /**
      * Genera un array RFC 9457 a partir de un Result fallido.
      *
-     * @return array{type: string, title: string, status: int, detail: string, code?: string}
+     * Si el code del Result coincide con un case de ServiceErrorCode,
+     * se usa su typeUri() y toTitle() en lugar de los valores genéricos.
+     * El campo context del Result se añade como RFC 9457 extension members.
+     *
+     * @return array<string, mixed>
      */
     public static function fromResult(Result $result, int $status): array
     {
         if ($result->ok) {
-            throw new \InvalidArgumentException('ProblemDetails::fromResult() requires a failed Result');
+            throw new InvalidArgumentException('ProblemDetails::fromResult() requires a failed Result');
         }
 
+        $enumCase = $result->code !== null ? ServiceErrorCode::tryFrom($result->code) : null;
+
         $body = [
-            'type'   => 'about:blank',
-            'title'  => self::HTTP_REASON_PHRASES[$status] ?? 'Unknown',
+            'type' => $enumCase !== null ? $enumCase->typeUri() : 'about:blank',
+            'title' => $enumCase !== null ? $enumCase->toTitle() : (self::HTTP_REASON_PHRASES[$status] ?? 'Unknown'),
             'status' => $status,
             'detail' => $result->error ?? '',
         ];
 
         if ($result->code !== null) {
             $body['code'] = $result->code;
+        }
+
+        // RFC 9457 extension members: context fields are merged at top level
+        if ($result->context !== []) {
+            $body = \array_merge($body, $result->context);
         }
 
         return $body;

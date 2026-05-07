@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS cafes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY cafes_slug_unique (slug),
+    UNIQUE KEY uk_cafes_slug (slug),
     INDEX idx_cafes_category (category),
     INDEX idx_cafes_public_search (is_active, category, animal_type),
     INDEX idx_cafes_coordinates (latitude, longitude)
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS cafe_zones (
     PRIMARY KEY (id),
     INDEX idx_zones_cafe (cafe_id),
     INDEX idx_zones_available (cafe_id, status) COMMENT 'Búsqueda zonas limpias check-in',
-    CONSTRAINT fk_zones_cafe FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE
+    CONSTRAINT fk_cafe_zones_cafes FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Trackers (tokens, beepers, NFC) para sistema de comandas
 CREATE TABLE IF NOT EXISTS trackers (
@@ -69,15 +69,15 @@ CREATE TABLE IF NOT EXISTS trackers (
     type ENUM ('token', 'beeper', 'nfc', 'qr') NOT NULL DEFAULT 'token' COMMENT 'token=físico, beeper=sonoro, nfc=tarjeta, qr=impreso',
     status ENUM ('available', 'in_use', 'lost') DEFAULT 'available',
     last_assigned_at TIMESTAMP NULL COMMENT 'Última asignación',
-    last_assigned_reservation_id BIGINT UNSIGNED NULL COMMENT 'Última reserva (sin FK para evitar ciclos)',
+    last_assigned_reservation_id BIGINT UNSIGNED NULL COMMENT 'Última reserva asignada',
     notes TEXT NULL COMMENT 'Mantenimiento o pérdidas',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY tracker_code_cafe (cafe_id, code),
+    UNIQUE KEY uk_trackers_cafe_code (cafe_id, code),
     INDEX idx_trackers_cafe (cafe_id),
     INDEX idx_trackers_available (cafe_id, status) COMMENT 'Asignación rápida disponibles',
-    CONSTRAINT fk_trackers_cafe FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE
+    CONSTRAINT fk_trackers_cafes FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Evento MySQL 8.4: Purga automática cafés eliminados (RGPD 30 días)
 DROP EVENT IF EXISTS evt_cleanup_deleted_cafes;

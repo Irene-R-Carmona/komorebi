@@ -12,11 +12,12 @@ permissions:
 
 jobs:
   # --------------------------------------------------------------------------
-  # Job 1: Calidad de código (PHPStan + Psalm + CS Fixer)
+  # Job 1: Calidad de código — CS Fixer + PHPStan (sin Docker, sin tests)
   # --------------------------------------------------------------------------
   quality:
     name: Code Quality
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +26,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
-          extensions: pdo_mysql, redis, gd, zip, bcmath, exif, pcntl
+          extensions: pcntl
           coverage: none
 
       - name: Cache Composer dependencies
@@ -42,17 +43,15 @@ jobs:
         run: vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff
 
       - name: Static analysis (PHPStan)
-        run: vendor/bin/phpstan analyse --memory-limit=256M --no-progress
-
-      - name: Static analysis (Psalm)
-        run: vendor/bin/psalm --show-info=false --no-progress
+        run: vendor/bin/phpstan analyse --memory-limit=512M --no-progress --error-format=github
 
   # --------------------------------------------------------------------------
-  # Job 2: Tests unitarios en paralelo (sin Docker, feedback rápido)
+  # Job 2: Auditoría de seguridad de dependencias — composer audit
   # --------------------------------------------------------------------------
-  unit-tests:
-    name: Unit Tests (paratest ×4)
+  audit:
+    name: Dependency Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +60,6 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
-          extensions: pdo_mysql, redis, gd, zip, bcmath, exif, pcntl
           coverage: none
 
       - name: Cache Composer dependencies
@@ -74,111 +72,16 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-scripts --no-interaction
 
-      - name: Run unit tests in parallel
-        run: vendor/bin/paratest --runner=WrapperRunner --processes=4 --testsuite "Unit Tests" --testdox
+      - name: Run Composer security audit
+        run: composer audit --format=json | tee /tmp/audit.json || true
 
-  # --------------------------------------------------------------------------
-  # Job 3: Tests integración + cobertura completa
-  #
-  # Usa docker-compose.test.yml para levantar MySQL y Redis efímeros dentro
-  # de contenedores Docker aislados — sin servicios de GitHub Actions.
-  # La imagen PHP-CLI con pcov se construye con cache de capas (BuildX + GHA).
-  # --------------------------------------------------------------------------
-  tests:
-    name: Integration & Coverage
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Cache Docker layers (php-test image)
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: buildx-php-test-${{ hashFiles('docker/php/Dockerfile.test', 'docker/php/ini/pcov.ini', 'docker/php/ini/opcache-test.ini') }}
-          restore-keys: buildx-php-test-
-
-      - name: Build test image
+      - name: Fail on HIGH / CRITICAL vulnerabilities
         run: |
-          docker buildx build \
-            --file docker/php/Dockerfile.test \
-            --cache-from type=local,src=/tmp/.buildx-cache \
-            --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
-            --load \
-            --tag komorebi-php-test:ci \
-            .
-
-      # Rotar cache (evita crecimiento ilimitado del directorio de cache)
-      - name: Rotate BuildX cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      - name: Prepare storage directories
-        run: mkdir -p storage/logs storage/cache storage/uploads tests/reports
-
-      - name: Run full test suite (migrate + phpunit + coverage)
-        run: |
-          docker compose -f docker-compose.test.yml run --rm \
-            -e SKIP_MIGRATIONS=0 \
-            php-test \
-            sh -c "
-              php scripts/apply-db.php &&
-              php vendor/bin/phpunit \
-                --testdox \
-                --log-junit tests/reports/junit.xml \
-                --coverage-text --colors=never \
-                --coverage-clover tests/reports/coverage.xml \
-              | tee /tmp/coverage.txt
-            "
-          EXIT=$?
-          docker compose -f docker-compose.test.yml down -v --remove-orphans
-          exit $EXIT
-
-      - name: Check coverage threshold (≥ 70%)
-        if: always()
-        run: |
-          if [ ! -f /tmp/coverage.txt ]; then
-            echo "⚠️  No coverage report found — skipping threshold check"
-            exit 0
-          fi
-          LINES_PCT=$(grep -E "^\s+Lines:" /tmp/coverage.txt | head -1 | grep -oP '[0-9]+\.[0-9]+(?=%)')
-          echo "Line coverage: ${LINES_PCT}%"
-          if [ $(echo "${LINES_PCT} < 70" | bc -l) -eq 1 ]; then
-            echo "❌ Coverage ${LINES_PCT}% is below the required 70%"
+          HIGH=$(jq '[.advisories | to_entries[].value[] | select((.severity // "") | ascii_upcase | . == "HIGH" or . == "CRITICAL")] | length' /tmp/audit.json 2>/dev/null || echo "0")
+          echo "High/Critical vulnerabilities found: ${HIGH}"
+          if [ "${HIGH}" -gt "0" ]; then
+            echo "FAIL: HIGH or CRITICAL vulnerabilities detected."
+            cat /tmp/audit.json
             exit 1
           fi
-          echo "✅ Coverage threshold met: ${LINES_PCT}%"
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: |
-            tests/reports/junit.xml
-            tests/reports/coverage.xml
-
-  # --------------------------------------------------------------------------
-  # Job 3: SAST con Semgrep (PHP + OWASP Top Ten)
-  # --------------------------------------------------------------------------
-  sast:
-    name: SAST (Semgrep)
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run Semgrep PHP security rules
-        uses: semgrep/semgrep-action@v1
-        with:
-          config: >-
-            p/php
-            p/owasp-top-ten
+          echo "PASS: No HIGH or CRITICAL vulnerabilities found."

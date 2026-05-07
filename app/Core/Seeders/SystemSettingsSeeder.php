@@ -25,8 +25,7 @@ final class SystemSettingsSeeder
 
     public function run(): void
     {
-        echo "Configurando sistema (settings)...\n";
-        Logger::info('SystemSettingsSeeder: starting');
+        Logger::info('[SystemSettingsSeeder] starting');
 
         $settings = [
             // ════════════════════════════════════════
@@ -132,7 +131,6 @@ final class SystemSettingsSeeder
             $count++;
         }
 
-        echo "✓ $count configuraciones inicializadas\n";
-        Logger::info('SystemSettingsSeeder: completed', ['count' => $count]);
+        Logger::info('[SystemSettingsSeeder] completed', ['count' => $count]);
     }
 }

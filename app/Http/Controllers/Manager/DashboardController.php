@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Manager;
 
+use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Session;
 use App\Core\View;
-use App\Services\CafeService;
-use App\Services\Manager\DashboardService;
+use App\Services\Contracts\CafeServiceInterface;
+use App\Services\Contracts\DashboardServiceInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Random\RandomException;
 
 /**
@@ -21,16 +24,16 @@ use Random\RandomException;
  */
 final class DashboardController
 {
-    private CafeService $cafeService;
+    private CafeServiceInterface $cafeService;
 
-    private DashboardService $dashboardService;
+    private DashboardServiceInterface $dashboardService;
 
     public function __construct(
-        ?CafeService $cafeService = null,
-        ?DashboardService $dashboardService = null
+        ?CafeServiceInterface $cafeService = null,
+        ?DashboardServiceInterface $dashboardService = null
     ) {
-        $this->cafeService = $cafeService ?? new CafeService();
-        $this->dashboardService = $dashboardService ?? new DashboardService();
+        $this->cafeService = $cafeService ?? Container::make(CafeServiceInterface::class);
+        $this->dashboardService = $dashboardService ?? Container::make(DashboardServiceInterface::class);
     }
 
     /**
@@ -39,7 +42,7 @@ final class DashboardController
      *
      * @throws RandomException
      */
-    public function index(): void
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
@@ -49,7 +52,7 @@ final class DashboardController
                 'message' => 'No tienes un café asignado. Contacta con el administrador.',
             ]);
 
-            return;
+            return null;
         }
 
         // Obtener datos del café asignado
@@ -74,6 +77,8 @@ final class DashboardController
             'chartData' => $chartData,
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
+
+        return null;
     }
 
     /**
@@ -91,8 +96,8 @@ final class DashboardController
 
         // Rellenar días faltantes con 0 (último 7 días completos)
         while (\count($labels) < 7) {
-            array_unshift($labels, '');
-            array_unshift($data, 0);
+            \array_unshift($labels, '');
+            \array_unshift($data, 0);
         }
 
         return [

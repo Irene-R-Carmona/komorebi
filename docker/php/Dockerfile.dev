@@ -1,6 +1,6 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1
 
-FROM dunglas/frankenphp:1.11.1-php8.4-alpine
+FROM dunglas/frankenphp:1.12.2-php8.4-alpine
 
 WORKDIR /app
 
@@ -22,21 +22,38 @@ RUN install-php-extensions \
     && chmod +x /usr/local/bin/docker-entrypoint || true
 
 # Composer desde imagen oficial (sin ejecutar código remoto sin verificar)
-COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY docker/php/ini/php.ini /usr/local/etc/php/conf.d/00-php.ini
 COPY docker/php/ini/error-dev.ini /usr/local/etc/php/conf.d/01-error.ini
 COPY docker/php/ini/uploads.ini /usr/local/etc/php/conf.d/02-uploads.ini
 COPY docker/php/ini/memory.ini /usr/local/etc/php/conf.d/03-memory.ini
-COPY docker/php/ini/xdebug.ini /usr/local/etc/php/conf.d/04-xdebug.ini
+COPY docker/php/ini/memory-dev.ini /usr/local/etc/php/conf.d/05-memory-dev.ini
+COPY docker/php/ini/opcache-dev.ini /usr/local/etc/php/conf.d/06-opcache.ini
+
+# Xdebug desactivado por defecto; para activarlo: make xdebug-on
+ARG XDEBUG_ENABLE=false
+COPY docker/php/ini/xdebug.ini /tmp/xdebug.ini
+COPY docker/php/ini/xdebug-disabled.ini /tmp/xdebug-disabled.ini
+RUN if [ "$XDEBUG_ENABLE" = "true" ]; then \
+    cp /tmp/xdebug.ini /usr/local/etc/php/conf.d/04-xdebug.ini; \
+    else \
+    cp /tmp/xdebug-disabled.ini /usr/local/etc/php/conf.d/04-xdebug.ini; \
+    fi \
+    && rm /tmp/xdebug.ini /tmp/xdebug-disabled.ini
 
 COPY frankenphp.Caddyfile /app/frankenphp.Caddyfile
 
-# Crear directorio de storage antes de cambiar usuario
-RUN mkdir -p /app/storage/logs /app/storage/cache /app/storage/uploads \
-    && chown -R www-data:www-data /app/storage
-
-USER www-data
+# Crear directorios de storage completos antes de cambiar usuario
+RUN mkdir -p \
+    /app/storage/logs \
+    /app/storage/cache \
+    /app/storage/cache/di \
+    /app/storage/uploads \
+    /app/storage/uploads/avatars \
+    /app/storage/uploads/animals \
+    && chown -R www-data:www-data /app/storage \
+    && chmod -R 775 /app/storage
 
 EXPOSE 80
 

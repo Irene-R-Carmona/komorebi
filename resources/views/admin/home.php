@@ -32,8 +32,8 @@ $alpineConfig = json_encode([
                 <i class="bi bi-calendar3" aria-hidden="true"></i>
                 <?php
                 $formatter = new IntlDateFormatter('es_ES', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
-                echo $formatter->format(new DateTime());
-                ?>
+echo $formatter->format(new DateTime());
+?>
             </time>
         </div>
     </div>
@@ -106,9 +106,9 @@ $alpineConfig = json_encode([
                 <div class="stat-card__value"><?= number_format($stats['reviews'] ?? 0) ?></div>
                 <div class="stat-card__subtitle">
                     <?php
-                    $pending = $stats['pending_reviews'] ?? 0;
-                    echo $pending > 0 ? "$pending esperando revisión" : 'Todo al día';
-                    ?>
+    $pending = $stats['pending_reviews'] ?? 0;
+echo $pending > 0 ? "$pending esperando revisión" : 'Todo al día';
+?>
                 </div>
             </div>
         </div>
@@ -168,8 +168,8 @@ $alpineConfig = json_encode([
                         <i class="bi bi-graph-up-arrow"></i>
                         Actividad de la Semana
                     </h3>
-                    <div style="display: flex; gap: 1rem; font-size: 0.875rem; color: var(--text-secondary);">
-                        <span>📊 Reservas</span>
+                    <div class="glass-card__meta">
+                        <span><i class="bi bi-bar-chart-fill" aria-hidden="true"></i> Reservas</span>
                     </div>
                 </div>
                 <div class="glass-card__body">
@@ -187,7 +187,7 @@ $alpineConfig = json_encode([
                             <div class="empty-state__icon" aria-hidden="true">
                                 <i class="bi bi-exclamation-triangle"></i>
                             </div>
-                            <p style="color: var(--danger-500); font-weight: 500;">Error al cargar el gráfico</p>
+                            <p class="text-danger fw-medium">Error al cargar el gráfico</p>
                         </div>
                     </div>
                 </div>
@@ -238,12 +238,12 @@ $alpineConfig = json_encode([
                         <i class="bi bi-calendar-check"></i>
                         Reservas Recientes
                     </h3>
-                    <a href="/admin/reservations" class="btn-primary btn-sm" aria-label="Ver todas las reservas">
+                    <a href="/admin/reservations" class="btn btn-primary btn-sm" aria-label="Ver todas las reservas">
                         Ver todas
                         <i class="bi bi-arrow-right" aria-hidden="true"></i>
                     </a>
                 </div>
-                <div class="glass-card__body" style="padding: 0;">
+                <div class="glass-card__body p-0">
                     <?php if (empty($recent_reservations)): ?>
                         <div class="empty-state">
                             <div class="empty-state__icon" aria-hidden="true">
@@ -251,7 +251,7 @@ $alpineConfig = json_encode([
                             </div>
                             <h4 class="empty-state__title">No hay reservas recientes</h4>
                             <p class="empty-state__text">Las visitas aparecerán aquí cuando se confirmen</p>
-                            <a href="/admin/reservas/crear" class="btn-primary btn-sm">Crear reserva</a>
+                            <a href="/admin/reservas/crear" class="btn btn-primary btn-sm">Crear reserva</a>
                         </div>
                     <?php else: ?>
                         <table class="table-modern">
@@ -279,18 +279,18 @@ $alpineConfig = json_encode([
                                         </td>
                                         <td>
                                             <?php
-                                            $dateStr = 'N/A';
-                                            $timeStr = '';
-                                            if (!empty($res['date'])) {
-                                                $timestamp = strtotime($res['date']);
-                                                if ($timestamp !== false) {
-                                                    $dateStr = date('d M Y', $timestamp);
-                                                }
-                                            }
-                                            if (!empty($res['time_slot'])) {
-                                                $timeStr = e($res['time_slot']);
-                                            }
-                                            ?>
+                        $dateStr = 'N/A';
+                                    $timeStr = '';
+                                    if (!empty($res['date'])) {
+                                        $timestamp = strtotime($res['date']);
+                                        if ($timestamp !== false) {
+                                            $dateStr = date('d M Y', $timestamp);
+                                        }
+                                    }
+                                    if (!empty($res['time_slot'])) {
+                                        $timeStr = e($res['time_slot']);
+                                    }
+                                    ?>
                                             <div class="table-cell-date__main"><?= $dateStr ?></div>
                                             <?php if ($timeStr): ?>
                                                 <div class="table-cell-date__time"><?= $timeStr ?></div>
@@ -298,14 +298,14 @@ $alpineConfig = json_encode([
                                         </td>
                                         <td>
                                             <?php
-                                            $statusConfig = match ($res['status'] ?? '') {
-                                                'confirmed' => ['class' => 'badge-modern--success', 'label' => 'Confirmada'],
-                                                'pending' => ['class' => 'badge-modern--warning', 'label' => 'Pendiente'],
-                                                'cancelled' => ['class' => 'badge-modern--danger', 'label' => 'Cancelada'],
-                                                'completed' => ['class' => 'badge-modern--info', 'label' => 'Completada'],
-                                                default => ['class' => 'badge-modern--info', 'label' => ucfirst(e($res['status']))]
-                                            };
-                                            ?>
+                                    $statusConfig = match ($res['status'] ?? '') {
+                                        'confirmed' => ['class' => 'badge-modern--success', 'label' => 'Confirmada'],
+                                        'pending' => ['class' => 'badge-modern--warning', 'label' => 'Pendiente'],
+                                        'cancelled' => ['class' => 'badge-modern--danger', 'label' => 'Cancelada'],
+                                        'completed' => ['class' => 'badge-modern--info', 'label' => 'Completada'],
+                                        default => ['class' => 'badge-modern--info', 'label' => ucfirst(e($res['status']))]
+                                    };
+                                    ?>
                                             <span class="badge-modern <?= $statusConfig['class'] ?>">
                                                 <?= $statusConfig['label'] ?>
                                             </span>
@@ -337,19 +337,19 @@ $alpineConfig = json_encode([
                             ['key' => 'email', 'icon' => 'envelope', 'label' => 'Email', 'desc' => 'SMTP'],
                         ];
 
-                        foreach ($services as $service):
-                            $status = $system_status[$service['key']] ?? 'offline';
-                            $statusClass = match ($status) {
-                                'online' => 'status-item--online',
-                                'warning' => 'status-item--warning',
-                                default => 'status-item--offline'
-                            };
-                            $statusLabel = match ($status) {
-                                'online' => 'Operativo',
-                                'warning' => 'Limitado',
-                                default => 'Inactivo'
-                            };
-                        ?>
+foreach ($services as $service):
+    $status = $system_status[$service['key']] ?? 'offline';
+    $statusClass = match ($status) {
+        'online' => 'status-item--online',
+        'warning' => 'status-item--warning',
+        default => 'status-item--offline'
+    };
+    $statusLabel = match ($status) {
+        'online' => 'Operativo',
+        'warning' => 'Limitado',
+        default => 'Inactivo'
+    };
+    ?>
                             <li class="status-item <?= $statusClass ?>">
                                 <div class="status-item__info">
                                     <div class="status-item__icon" aria-hidden="true">

@@ -5,102 +5,81 @@ declare(strict_types=1);
 namespace App\Core;
 
 /**
- * Clase Result para respuestas estandarizadas
+ * Clase Result para respuestas estandarizadas.
  *
  * Representa el resultado de una operación que puede tener éxito o fallar.
  * Inmutable (readonly) para garantizar consistencia.
+ *
+ * @template-covariant T Tipo del dato en caso de éxito (PHPDoc genérico, sin impacto en runtime)
  */
-final readonly class Result
+final class Result
 {
-    public bool $ok;
+    /** Derivado de $error: true cuando no hay error, false cuando sí. */
+    public bool $ok {
+        get => $this->error === null;
+    }
 
-    public mixed $data;
+    /** @var T|null */
+    public readonly mixed $data;
 
-    public ?string $error;
+    public readonly ?string $error;
 
-    public ?string $code;
+    public readonly ?string $code;
 
-    private function __construct(bool $ok, mixed $data = null, ?string $error = null, ?string $code = null)
-    {
-        $this->ok = $ok;
+    /** @var array<string, mixed> Contexto adicional para Problem Details (RFC 9457 extension members) */
+    public readonly array $context;
+
+    /**
+     * @param T|null $data
+     * @param array<string, mixed> $context
+     */
+    private function __construct(
+        mixed   $data = null,
+        ?string $error = null,
+        ?string $code = null,
+        array   $context = [],
+    ) {
         $this->data = $data;
         $this->error = $error;
         $this->code = $code;
+        $this->context = $context;
     }
 
     /**
-     * Crea un resultado exitoso
+     * Crea un resultado exitoso.
      *
-     * @param mixed $data
-     *
-     * @return self
+     * @template TData
+     * @param TData $data
+     * @return self<TData>
      */
     public static function ok(mixed $data = null): self
     {
-        return new self(true, $data);
+        return new self($data);
     }
 
     /**
-     * Crea un resultado fallido
+     * Crea un resultado fallido.
      *
-     * @param string $error Mensaje de error
-     * @param string $code  Código de error
-     * @param mixed  $data  Datos opcionales
+     * @param string|ServiceErrorCode $code Código de error o case del enum ServiceErrorCode
+     * @param mixed $data Datos opcionales (compatibilidad hacia atrás)
+     * @param array<string, mixed> $context Contexto extra para RFC 9457 extension members
      *
-     * @return self
+     * @return self<null>
      */
-    public static function fail(string $error, string $code = 'error', mixed $data = null): self
-    {
-        return new self(false, $data, $error, $code);
+    public static function fail(
+        string                  $error,
+        string|ServiceErrorCode $code = 'error',
+        mixed                   $data = null,
+        array                   $context = [],
+    ): self {
+        $codeStr = $code instanceof ServiceErrorCode ? $code->value : $code;
+
+        return new self($data, $error, $codeStr, $context);
     }
 
     // ─────────────────────────────────────────────────────────────
     // Helper methods
     // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Obtiene el mensaje de error o un mensaje por defecto
-     *
-     * @param string $default
-     *
-     * @return string
-     */
-    public function getMessage(string $default = 'Error'): string
-    {
-        return $this->error ?? $default;
-    }
-
-    /**
-     * Verifica si el resultado es exitoso
-     *
-     * @return boolean
-     */
-    public function isOk(): bool
-    {
-        return $this->ok;
-    }
-
-    /**
-     * Verifica si el resultado es un fallo
-     *
-     * @return boolean
-     */
-    public function isFail(): bool
-    {
-        return !$this->ok;
-    }
-
-    /**
-     * Obtiene data o un valor por defecto
-     *
-     * @param mixed $default
-     *
-     * @return mixed
-     */
-    public function getDataOr(mixed $default = null): mixed
-    {
-        return $this->data ?? $default;
-    }
 
     /**
      * Propaga el resultado a Flash messages.
@@ -109,9 +88,20 @@ final readonly class Result
     {
         if ($this->ok) {
             $message = $successMessage ?? (\is_string($this->data) ? $this->data : 'Operación completada exitosamente');
-            Flash::set($successType, $message);
+            match ($successType) {
+                'success' => Flash::success($message),
+                'info' => Flash::info($message),
+                'warning' => Flash::warning($message),
+                default => Flash::success($message),
+            };
         } else {
-            Flash::set($errorType, $this->getMessage());
+            $errMsg = $this->error ?? 'Error';
+            match ($errorType) {
+                'error' => Flash::error($errMsg),
+                'warning' => Flash::warning($errMsg),
+                'info' => Flash::info($errMsg),
+                default => Flash::error($errMsg),
+            };
         }
     }
 

@@ -30,7 +30,7 @@ $festivosProximos = array_slice($festivosProximos, 0, 5);
     <!-- Clima en Tokyo -->
     <div class="contexto-card contexto-card--clima">
         <div class="contexto-card__header">
-            <span class="contexto-card__icono">🌤️</span>
+            <span class="contexto-card__icono"><i class="bi bi-cloud-sun" aria-hidden="true"></i></span>
             <div>
                 <h3 class="contexto-card__titulo">Clima en Tokyo</h3>
                 <p class="contexto-card__subtitulo">Ahora mismo</p>
@@ -57,7 +57,7 @@ $festivosProximos = array_slice($festivosProximos, 0, 5);
     <?php if (!empty($festivosProximos)): ?>
         <div class="contexto-card contexto-card--festivos">
             <div class="contexto-card__header">
-                <span class="contexto-card__icono">🎌</span>
+                <span class="contexto-card__icono"><i class="bi bi-flag" aria-hidden="true"></i></span>
                 <div>
                     <h3 class="contexto-card__titulo">Festivos Japoneses</h3>
                     <p class="contexto-card__subtitulo">Próximos 60 días</p>
@@ -98,7 +98,7 @@ $festivosProximos = array_slice($festivosProximos, 0, 5);
 
                 <div class="contexto-card__footer">
                     <small>
-                        💡 Los festivos nacionales pueden afectar disponibilidad y horarios
+                        <i class="bi bi-lightbulb" aria-hidden="true"></i> Los festivos nacionales pueden afectar disponibilidad y horarios
                     </small>
                 </div>
             </div>

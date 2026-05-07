@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Middleware;
 
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Http\Middleware\AuthorizationMiddleware;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,6 +25,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  *
  * Valida el control de permisos granulares con caché Redis.
  */
+#[CoversClass(AuthorizationMiddleware::class)]
 final class AuthorizationMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;
@@ -51,8 +53,8 @@ final class AuthorizationMiddlewareTest extends TestCase
         $this->handler->method('handle')->willReturn($this->response);
 
         // Reset session antes de cada test
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_destroy();
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
         }
     }
 
@@ -114,7 +116,7 @@ final class AuthorizationMiddlewareTest extends TestCase
 
         $this->request->method('getUri')->willReturn($uriMock);
         $this->request->method('getHeaderLine')
-            ->willReturnCallback(static fn($header) => $header === 'Accept' ? 'application/json' : '');
+            ->willReturnCallback(static fn ($header) => $header === 'Accept' ? 'application/json' : '');
 
         $middleware = new AuthorizationMiddleware($this->responseFactory, 'cafe.edit');
         $response = $middleware->process($this->request, $this->handler);

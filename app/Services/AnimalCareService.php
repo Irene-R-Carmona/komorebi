@@ -4,112 +4,89 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\BaseService;
+use App\Core\Container;
 use App\Core\Database;
 use App\Core\Result;
-use App\Core\TransactionalService;
-use App\Repositories\AnimalRepository;
+use App\Domain\AnimalVocabulary;
+use App\Domain\CareLogVocabulary;
+use App\Repositories\Contracts\AnimalIncidentRepositoryInterface;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
+use App\Repositories\Contracts\HealthCheckRepositoryInterface;
+use App\Services\Contracts\AnimalCareServiceInterface;
 use Exception;
-use PDO;
+use Override;
 
-/**
- * Servicio de gestión de bienestar animal
- *
- * Encapsula la lógica de negocio relacionada con animales,
- * logs de cuidado, estado de salud e incidentes.
- *
- * @package Komorebi\Services
- */
-final class AnimalCareService extends TransactionalService
+final class AnimalCareService extends BaseService implements AnimalCareServiceInterface
 {
-    private AnimalRepositoryInterface $animalRepository;
+    private AnimalRepositoryInterface $animalRepo;
+    private AnimalIncidentRepositoryInterface $incidentRepo;
+    private HealthCheckRepositoryInterface $healthCheckRepo;
 
-    public function __construct(?PDO $db = null, ?AnimalRepositoryInterface $animalRepository = null)
-    {
-        parent::__construct($db ?? Database::getConnection());
-        $this->animalRepository = $animalRepository ?? new AnimalRepository($this->db);
+    public function __construct(
+        ?AnimalRepositoryInterface $animalRepo = null,
+        ?AnimalIncidentRepositoryInterface $incidentRepo = null,
+        ?HealthCheckRepositoryInterface $healthCheckRepo = null,
+    ) {
+        $this->animalRepo = $animalRepo ?? Container::make(AnimalRepositoryInterface::class);
+        $this->incidentRepo = $incidentRepo ?? Container::make(AnimalIncidentRepositoryInterface::class);
+        $this->healthCheckRepo = $healthCheckRepo ?? Container::make(HealthCheckRepositoryInterface::class);
     }
 
-    /**
-     * Obtiene todos los animales con información del café
-     *
-     * @return array
-     */
+    #[Override]
     public function getAllAnimals(): array
     {
-        return $this->animalRepository->getAnimalsWithCafeInfoOptimized();
+        return $this->animalRepo->getAnimalsWithCafeInfoOptimized();
     }
 
-    /**
-     * Obtiene un animal por ID
-     *
-     * @param integer $id
-     * @return array|null
-     */
+    #[Override]
     public function getAnimalById(int $id): ?array
     {
-        return $this->animalRepository->findById($id);
+        return $this->animalRepo->findById($id)?->toViewArray();
     }
 
-    /**
-     * Crea un nuevo animal
-     *
-     * @param array $data Datos del animal (name, species, breed, age_years, personality, cafe_id)
-     * @return Result ID del animal creado
-     */
+    #[Override]
     public function createAnimal(array $data): Result
     {
         if (empty($data['name']) || empty($data['species'])) {
             return Result::fail('Nombre y especie son obligatorios');
         }
 
+        if (!AnimalVocabulary::isValidSpecies((string) $data['species'])) {
+            return Result::fail('Especie no válida', 'invalid_species');
+        }
+
+        $status = $data['status'] ?? 'active';
+        if (empty($data['cafe_id']) && $status !== 'quarantine') {
+            return Result::fail('El café es obligatorio (usa estado "quarantine" si el animal no está asignado a un café)', 'cafe_id_required');
+        }
+
+        if (isset($data['age_years'])) {
+            $age = (int) $data['age_years'];
+            if ($age < 0 || $age > 50) {
+                return Result::fail('La edad del animal debe estar entre 0 y 50 años', 'invalid_age');
+            }
+        }
+
         try {
-            $stmt = $this->db->prepare('
-                INSERT INTO animals (cafe_id, name, species_type, age, personality, current_status, created_at, updated_at)
-                VALUES (:cafe_id, :name, :species, :age, :personality, \'active\', NOW(), NOW())
-            ');
-
-            $stmt->execute([
-                'cafe_id' => $data['cafe_id'] ?? null,
-                'name'    => $data['name'],
-                'species' => $data['species'],
-                'age'     => $data['age_years'] ?? null,
-                'personality' => $data['personality'] ?? null,
-            ]);
-
-            return Result::ok((int) $this->db->lastInsertId());
+            return Result::ok($this->animalRepo->createAnimal($data));
         } catch (Exception $e) {
             return Result::fail('Error al crear animal: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Actualiza un animal existente
-     *
-     * @param integer $id   ID del animal
-     * @param array   $data Datos a actualizar
-     * @return Result
-     */
+    #[Override]
     public function updateAnimal(int $id, array $data): Result
     {
+        if (isset($data['age_years'])) {
+            $age = (int) $data['age_years'];
+            if ($age < 0 || $age > 50) {
+                return Result::fail('La edad del animal debe estar entre 0 y 50 años', 'invalid_age');
+            }
+        }
+
         try {
-            $stmt = $this->db->prepare('
-                UPDATE animals
-                SET name = :name, species_type = :species, age = :age,
-                    personality = :personality, cafe_id = :cafe_id, updated_at = NOW()
-                WHERE id = :id AND deleted_at IS NULL
-            ');
-
-            $stmt->execute([
-                'name'        => $data['name'] ?? '',
-                'species'     => $data['species'] ?? '',
-                'age'         => $data['age_years'] ?? null,
-                'personality' => $data['personality'] ?? null,
-                'cafe_id'     => $data['cafe_id'] ?? null,
-                'id'          => $id,
-            ]);
-
-            if ($stmt->rowCount() === 0) {
+            if (!$this->animalRepo->updateAnimal($id, $data)) {
                 return Result::fail('Animal no encontrado');
             }
 
@@ -119,21 +96,11 @@ final class AnimalCareService extends TransactionalService
         }
     }
 
-    /**
-     * Elimina un animal (soft delete)
-     *
-     * @param integer $id ID del animal
-     * @return Result
-     */
+    #[Override]
     public function deleteAnimal(int $id): Result
     {
         try {
-            $stmt = $this->db->prepare('
-                UPDATE animals SET deleted_at = NOW() WHERE id = :id AND deleted_at IS NULL
-            ');
-            $stmt->execute(['id' => $id]);
-
-            if ($stmt->rowCount() === 0) {
+            if (!$this->animalRepo->softDeleteAnimal($id)) {
                 return Result::fail('Animal no encontrado');
             }
 
@@ -143,79 +110,56 @@ final class AnimalCareService extends TransactionalService
         }
     }
 
-    /**
-     * Obtiene el dashboard completo de bienestar animal
-     *
-     * @return array{animals: array, stats: array, recent_logs: array, active_incidents: array}
-     */
+    #[Override]
     public function getDashboardData(): array
     {
         return [
-            'animals' => $this->animalRepository->getAnimalsWithCafeInfoOptimized(),
-            'stats' => $this->animalRepository->getHealthStatistics(),
-            'recent_logs' => $this->animalRepository->getRecentLogs(20),
-            'active_incidents' => $this->animalRepository->getActiveIncidents(),
+            'animals' => $this->animalRepo->getAnimalsWithCafeInfoOptimized(),
+            'stats' => $this->animalRepo->getHealthStatistics(),
+            'recent_logs' => $this->healthCheckRepo->getRecentLogs(20),
+            'active_incidents' => $this->incidentRepo->getActiveIncidents(),
         ];
     }
 
-    /**
-     * Obtiene animales con información del café y logs de hoy
-     *
-     * @return array
-     */
+    #[Override]
     public function getAnimalsWithCafeInfo(): array
     {
-        return $this->animalRepository->getAnimalsWithCafeInfoOptimized();
+        return $this->getAllAnimals();
     }
 
-    /**
-     * Obtiene estadísticas generales de animales
-     *
-     * @return array{total_animals: int, healthy: int, monitoring: int, sick: int, logs_today: int}
-     */
+    #[Override]
     public function getStatistics(): array
     {
-        return $this->animalRepository->getHealthStatistics();
+        return $this->animalRepo->getHealthStatistics();
     }
 
-    /**
-     * Obtiene logs recientes de cuidado
-     *
-     * @param integer $limit Número máximo de logs
-     * @return array
-     */
+    #[Override]
     public function getRecentLogs(int $limit = 20): array
     {
-        return $this->animalRepository->getRecentLogs($limit);
+        return $this->healthCheckRepo->getRecentLogs($limit);
     }
 
-    /**
-     * Obtiene incidentes activos
-     *
-     * @return array
-     */
+    #[Override]
     public function getActiveIncidents(): array
     {
-        return $this->animalRepository->getActiveIncidents();
+        return $this->incidentRepo->getActiveIncidents();
     }
 
-    /**
-     * Registra un log de cuidado animal
-     *
-     * @param array $data Datos del log
-     * @return Result ID del log creado
-     */
+    #[Override]
+    public function getIncidentById(int $id): ?array
+    {
+        return $this->incidentRepo->findById($id)?->toViewArray();
+    }
+
+    #[Override]
     public function createCareLog(array $data): Result
     {
-        // Validaciones de negocio
         $validation = $this->validateCareLogData($data);
-        if ($validation->isFail()) {
+        if ($validation->error !== null) {
             return $validation;
         }
 
         try {
-            // Adaptar al esquema de animal_health_checks
-            // Concatenar tipo de actividad con las notas
             $activityType = $data['activity_type'] ?? 'general';
             $userNotes = $data['notes'] ?? '';
             $fullNotes = "[{$activityType}]";
@@ -233,48 +177,26 @@ final class AnimalCareService extends TransactionalService
                 $fullNotes .= "\n" . $userNotes;
             }
 
-            $stmt = $this->db->prepare('
-                INSERT INTO animal_health_checks
-                (animal_id, checked_by, check_date, notes, created_at)
-                VALUES (:animal_id, :checked_by, CURDATE(), :notes, NOW())
-                ON DUPLICATE KEY UPDATE
-                    notes = CONCAT(notes, "\n---\n", :notes_update),
-                    created_at = NOW()
-            ');
-
-            $stmt->execute([
+            $logId = $this->healthCheckRepo->createCareLog([
                 'animal_id' => $data['animal_id'],
-                'checked_by' => $data['logged_by_user_id'] ?? 1,
+                'logged_by_user_id' => $data['logged_by_user_id'] ?? 1,
                 'notes' => $fullNotes,
-                'notes_update' => $fullNotes,
             ]);
-
-            $logId = (int) $this->db->lastInsertId();
 
             return Result::ok($logId);
         } catch (Exception $e) {
-            return Result::fail('Error al registrar log: ' . $e->getMessage());
+            return Result::fail('Error al registrar chequeo de salud: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Actualiza el estado de salud de un animal
-     *
-     * @param integer      $animalId     ID del animal
-     * @param string       $healthStatus Nuevo estado de salud
-     * @param string|null  $notes        Notas opcionales
-     * @param integer|null $userId       ID del usuario que realiza la actualización
-     * @return Result
-     */
+    #[Override]
     public function updateHealth(int $animalId, string $healthStatus, ?string $notes = null, ?int $userId = null): Result
     {
-        // Validación de estado
         $validStatuses = ['healthy', 'monitoring', 'sick', 'recovering', 'quarantine'];
         if (!\in_array($healthStatus, $validStatuses, true)) {
             return Result::fail('Estado de salud inválido');
         }
 
-        // Mapeo de valores legacy a current_status enum
         $statusMapping = [
             'healthy' => 'active',
             'monitoring' => 'resting',
@@ -284,59 +206,37 @@ final class AnimalCareService extends TransactionalService
         ];
         $currentStatus = $statusMapping[$healthStatus];
 
-        return $this->transact(function () use ($animalId, $currentStatus, $notes, $userId): Result {
-            // Actualizar estado del animal
-            $stmt = $this->db->prepare('
-                UPDATE animals
-                SET current_status = :status, last_health_check = NOW()
-                WHERE id = :animal_id
-            ');
-            $stmt->execute([
-                'status' => $currentStatus,
-                'animal_id' => $animalId,
-            ]);
+        try {
+            return Database::transaction(function () use ($animalId, $currentStatus, $notes, $userId): Result {
+                $this->animalRepo->updateStatus($animalId, $currentStatus);
 
-            // Si hay notas, crear log automático
-            if ($notes) {
-                $this->createCareLog([
-                    'animal_id' => $animalId,
-                    'activity_type' => 'health_check',
-                    'notes' => $notes,
-                    'logged_by_user_id' => $userId,
-                ]);
-            }
+                if ($notes) {
+                    $this->createCareLog([
+                        'animal_id' => $animalId,
+                        'activity_type' => 'observation',
+                        'notes' => $notes,
+                        'logged_by_user_id' => $userId,
+                    ]);
+                }
 
-            return Result::ok(true);
-        });
+                return Result::ok(true);
+            });
+        } catch (Exception $e) {
+            return Result::fail('Error al actualizar salud: ' . $e->getMessage());
+        }
     }
 
-    /**
-     * Activa o desactiva un animal
-     *
-     * @param integer $animalId ID del animal
-     * @return Result
-     */
+    #[Override]
     public function toggleActive(int $animalId): Result
     {
         try {
-            // Obtener estado actual
-            $stmt = $this->db->prepare('SELECT current_status FROM animals WHERE id = :id AND deleted_at IS NULL');
-            $stmt->execute(['id' => $animalId]);
-            $animal = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $result = $this->animalRepo->toggleStatus($animalId);
 
-            if (!$animal) {
+            if (!$result['found']) {
                 return Result::fail('Animal no encontrado');
             }
 
-            // Alternar entre 'active' y 'resting'
-            $newStatus = $animal['current_status'] === 'active' ? 'resting' : 'active';
-
-            $stmt = $this->db->prepare('UPDATE animals SET current_status = :status, updated_at = NOW() WHERE id = :id');
-            $stmt->execute([
-                'status' => $newStatus,
-                'id' => $animalId,
-            ]);
-
+            $newStatus = $result['current_status'];
             $statusText = $newStatus === 'active' ? 'activado' : 'puesto en descanso';
 
             return Result::ok([
@@ -348,71 +248,34 @@ final class AnimalCareService extends TransactionalService
         }
     }
 
-    /**
-     * Crea un nuevo incidente
-     *
-     * @param array $data Datos del incidente
-     * @return Result ID del incidente creado
-     */
+    #[Override]
     public function createIncident(array $data): Result
     {
-        // Validaciones
         $validation = $this->validateIncidentData($data);
-        if ($validation->isFail()) {
+        if (!$validation->ok) {
             return $validation;
         }
 
-        return $this->transact(function () use ($data): Result {
-            $stmt = $this->db->prepare('
-                INSERT INTO animal_incidents
-                (animal_id, severity, description, reported_by_user_id, reported_at, status)
-                VALUES (:animal_id, :severity, :description, :user_id, NOW(), "open")
-            ');
+        try {
+            return Database::transaction(function () use ($data): Result {
+                $incidentId = $this->incidentRepo->create($data);
 
-            $stmt->execute([
-                'animal_id' => $data['animal_id'],
-                'severity' => $data['severity'],
-                'description' => $data['description'],
-                'user_id' => $data['reported_by_user_id'] ?? null,
-            ]);
+                if ($data['severity'] === 'critical') {
+                    $this->animalRepo->updateStatus($data['animal_id'], 'sick');
+                }
 
-            $incidentId = (int) $this->db->lastInsertId();
-
-            // Si es crítico, actualizar estado del animal automáticamente
-            if ($data['severity'] === 'critical') {
-                $stmt = $this->db->prepare('UPDATE animals SET health_status = "monitoring" WHERE id = :id');
-                $stmt->execute(['id' => $data['animal_id']]);
-            }
-
-            return Result::ok($incidentId);
-        });
+                return Result::ok($incidentId);
+            });
+        } catch (Exception $e) {
+            return Result::fail('Error al crear incidente: ' . $e->getMessage());
+        }
     }
 
-    /**
-     * Resuelve un incidente
-     *
-     * @param integer      $incidentId ID del incidente
-     * @param string|null  $resolution Descripción de la resolución
-     * @param integer|null $userId     ID del usuario que resuelve
-     * @return Result
-     */
+    #[Override]
     public function resolveIncident(int $incidentId, ?string $resolution = null, ?int $userId = null): Result
     {
         try {
-            $stmt = $this->db->prepare('
-                UPDATE animal_incidents
-                SET status = "resolved",
-                    resolution = :resolution,
-                    resolved_by_user_id = :user_id,
-                    resolved_at = NOW()
-                WHERE id = :id
-            ');
-
-            $stmt->execute([
-                'resolution' => $resolution,
-                'user_id' => $userId,
-                'id' => $incidentId,
-            ]);
+            $this->incidentRepo->resolve($incidentId, $resolution, $userId);
 
             return Result::ok(true);
         } catch (Exception $e) {
@@ -420,36 +283,55 @@ final class AnimalCareService extends TransactionalService
         }
     }
 
-    /**
-     * Valida datos de log de cuidado
-     *
-     * @param array $data
-     * @return Result
-     */
+    #[Override]
+    public function updateIncident(int $id, array $data): Result
+    {
+        if ($this->incidentRepo->findById($id) === null) {
+            return Result::fail('Incidente no encontrado');
+        }
+
+        $updated = $this->incidentRepo->update($id, $data);
+
+        if (!$updated) {
+            return Result::fail('Error al actualizar el incidente');
+        }
+
+        return Result::ok(true);
+    }
+
     private function validateCareLogData(array $data): Result
     {
         if (empty($data['animal_id']) || $data['animal_id'] <= 0) {
             return Result::fail('ID de animal inválido');
         }
 
-        $validActivities = ['feeding', 'grooming', 'health_check', 'play', 'cleaning', 'medication', 'exercise', 'other'];
-        if (empty($data['activity_type']) || !\in_array($data['activity_type'], $validActivities, true)) {
+        if (empty($data['activity_type']) || !CareLogVocabulary::isValidActivityType((string) $data['activity_type'])) {
             return Result::fail('Tipo de actividad inválido');
+        }
+
+        if (!empty($data['mood_before']) && !CareLogVocabulary::isValidMood((string) $data['mood_before'])) {
+            return Result::fail('Estado de ánimo inicial inválido');
+        }
+
+        if (!empty($data['mood_after']) && !CareLogVocabulary::isValidMood((string) $data['mood_after'])) {
+            return Result::fail('Estado de ánimo final inválido');
         }
 
         return Result::ok();
     }
 
-    /**
-     * Valida datos de incidente
-     *
-     * @param array $data
-     * @return Result
-     */
     private function validateIncidentData(array $data): Result
     {
         if (empty($data['animal_id']) || $data['animal_id'] <= 0) {
             return Result::fail('ID de animal inválido');
+        }
+
+        if (!empty($data['incident_type']) && !AnimalVocabulary::isValidIncidentType((string) $data['incident_type'])) {
+            return Result::fail('Tipo de incidente inválido');
+        }
+
+        if (!empty($data['incident_status']) && !AnimalVocabulary::isValidIncidentStatus((string) $data['incident_status'])) {
+            return Result::fail('Estado de incidente inválido');
         }
 
         $validSeverities = ['low', 'medium', 'high', 'critical'];

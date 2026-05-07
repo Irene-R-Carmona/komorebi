@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Http\ExceptionRenderers;
 
 use App\Core\Env;
+use App\Core\Result;
+use App\Core\ServiceErrorCode;
 use App\Core\View;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Renderer de último recurso: captura cualquier Throwable no cubierto.
@@ -15,31 +19,34 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class FallbackExceptionRenderer extends AbstractExceptionRenderer
 {
-    #[\Override]
-    public function supports(\Throwable $e): bool
+    #[Override]
+    public function supports(Throwable $e): bool
     {
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function priority(): int
     {
         return 1;
     }
 
-    #[\Override]
-    public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface
+    #[Override]
+    public function render(Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
         $isDebug = (bool) (Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production'));
 
         if ($this->isApiRequest($request)) {
-            return $this->response->json(['error' => 'Error interno del servidor.'], 500);
+            return $this->response->problem(
+                Result::fail('Error interno del servidor.', ServiceErrorCode::SERVER_ERROR),
+                500
+            );
         }
 
         $html = View::renderToString('errors/500', [
-            'message'      => $isDebug ? $e->getMessage() : 'Error interno del servidor.',
+            'message' => $isDebug ? $e->getMessage() : 'Error interno del servidor.',
             'show_details' => $isDebug,
-        ]);
+        ], [], 'errors');
 
         return $this->response->html($html, 500);
     }

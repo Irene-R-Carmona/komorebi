@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Http;
 
 use App\Core\Result;
+use JsonException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -34,7 +35,7 @@ final class ResponseFactory
 
     /**
      * Crea una respuesta JSON.
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function json(array $data, int $status = 200, array $headers = []): ResponseInterface
     {
@@ -89,7 +90,7 @@ final class ResponseFactory
     /**
      * Crea una respuesta RFC 9457 Problem Details.
      *
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function problem(Result $result, int $status): ResponseInterface
     {

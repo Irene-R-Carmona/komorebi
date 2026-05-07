@@ -6,6 +6,7 @@ namespace App\Core\Http;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Contrato para renderizar excepciones como respuestas HTTP PSR-7.
@@ -20,7 +21,7 @@ interface ExceptionRendererInterface
     /**
      * Indica si este renderer puede manejar la excepción dada.
      */
-    public function supports(\Throwable $e): bool;
+    public function supports(Throwable $e): bool;
 
     /**
      * Prioridad de este renderer. Mayor número = mayor prioridad.
@@ -31,5 +32,5 @@ interface ExceptionRendererInterface
     /**
      * Convierte la excepción en una respuesta HTTP PSR-7.
      */
-    public function render(\Throwable $e, ServerRequestInterface $request): ResponseInterface;
+    public function render(Throwable $e, ServerRequestInterface $request): ResponseInterface;
 }

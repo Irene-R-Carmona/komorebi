@@ -4,146 +4,108 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Core\Csrf;
-use App\Core\Flash;
-use App\Core\Http\ResponseFactory;
+use App\Core\Container;
 use App\Core\View;
-use App\Exceptions\BusinessRuleException;
-use App\Models\AuditLog;
-use App\Models\Reservation;
-use App\Services\AdminService;
-use JsonException;
+use App\Services\Contracts\AdminActivityServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Random\RandomException;
 
 /**
  * Controlador de Gestión de Reservas (Admin)
  *
- * Responsabilidad única: Gestión administrativa de reservas
- *
- * Métodos:
- * - index() - Lista de reservas
- * - cancel() - Cancelar reserva desde backoffice
+ * Responsabilidad única: Vista SSR de lista de reservas
  */
 final class ReservationController
 {
-    private AdminService $adminService;
-    private ResponseFactory $response;
+    private AdminActivityServiceInterface $activityService;
 
-    public function __construct(?AdminService $adminService = null, ?ResponseFactory $response = null)
-    {
-        $this->adminService = $adminService ?? new AdminService();
-        $this->response = $response ?? new ResponseFactory();
+    public function __construct(
+        ?AdminActivityServiceInterface $activityService = null,
+    ) {
+        $this->activityService = $activityService ?? Container::make(AdminActivityServiceInterface::class);
     }
 
     /**
      * GET /admin/reservas
-     * Lista de todas las reservas
-     *
-     * @throws RandomException
+     * Lista de reservas con filtros server-side (HDA).
      */
-    public function index(): ?ResponseInterface
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        // Obtener reservas desde el servicio
-        $reservations = $this->adminService->getReservationsWithDetails(100);
+        $q = $request->getQueryParams();
+        $search = \trim((string) ($q['search'] ?? ''));
+        $status = \trim((string) ($q['status'] ?? ''));
+        $cafe = \trim((string) ($q['cafe'] ?? ''));
+        $dateFrom = \trim((string) ($q['date_from'] ?? ''));
+        $dateTo = \trim((string) ($q['date_to'] ?? ''));
+        $page = \max(1, (int) ($q['page'] ?? 1));
+
+        $all = $this->activityService->getReservationsWithDetails(500);
+        $all = $all->ok ? $all->data : [];
+
+        $stats = [
+            'total' => \count($all),
+            'confirmed' => \count(\array_filter($all, static fn ($r) => ($r['status'] ?? '') === 'confirmed')),
+            'pending' => \count(\array_filter($all, static fn ($r) => ($r['status'] ?? '') === 'pending')),
+            'cancelled' => \count(\array_filter($all, static fn ($r) => ($r['status'] ?? '') === 'cancelled')),
+        ];
+
+        $cafeNames = \array_values(\array_unique(\array_filter(\array_column($all, 'cafe_name'))));
+        \sort($cafeNames);
+
+        $filtered = \array_values(\array_filter(
+            $all,
+            fn (array $r) => $this->matchesFilters($r, $search, $status, $cafe, $dateFrom, $dateTo),
+        ));
+
+        $perPage = 20;
+        $reservations = \array_slice($filtered, ($page - 1) * $perPage, $perPage);
+
+        $currentParams = \array_filter([
+            'search' => $search,
+            'status' => $status,
+            'cafe' => $cafe,
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ], static fn ($v) => $v !== '');
 
         View::render('admin/reservations/index', [
-            'titulo' => 'Gestión de Reservas',
+            'titulo' => 'Gestión de Reservas | Komorebi Admin',
             'reservations' => $reservations,
-            'csrf_token' => Csrf::token(),
+            'stats' => $stats,
+            'cafeNames' => $cafeNames,
+            'meta' => ['page' => $page, 'has_next_page' => ($page * $perPage) < \count($filtered)],
+            'currentParams' => $currentParams,
             'extraJs' => ['admin/admin-reservations.js'],
         ], ['admin/admin-reservations.css'], 'backoffice');
+
         return null;
     }
 
     /**
-     * POST /admin/reservas/{reservationId}/cancel
-     * Cancelar reserva desde backoffice
-     *
-     * @param integer|array $reservationId
-     *
-     * @throws BusinessRuleException
-     * @throws RandomException
-     * @throws JsonException
+     * GET /admin/reservations/{id}
+     * Detalle no disponible como página independiente — redirige al listado.
      */
-    public function cancel(array|int $reservationId): ResponseInterface
+    public function show(): ResponseInterface
     {
-        if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/admin/reservations');
-        }
-
-        // Normalizar parámetro que puede venir como int o como array desde el Router
-        if (\is_array($reservationId)) {
-            $id = (int) ($reservationId['reservationId'] ?? $reservationId['reservation_id'] ?? $reservationId['id'] ?? ($reservationId[0] ?? 0));
-        } else {
-            $id = $reservationId;
-        }
-
-        if ($id <= 0) {
-            Flash::error('Identificador de reserva inválido');
-            return $this->response->redirect('/admin/reservations');
-        }
-
-        $reservationModel = new Reservation();
-
-        $result = $reservationModel->cancel($id);
-
-        if (!$result->isOk()) {
-            throw BusinessRuleException::withMessage($result->error, 'cancel_failed');
-        }
-
-        // Registrar acción en audit log
-        AuditLog::log('cancel_reservation', 'reservation', $id, null, ['cancelled_at' => date('Y-m-d H:i:s')]);
-
-        Flash::success('Reserva cancelada correctamente');
-
-        return $this->response->redirect('/admin/reservations');
+        return new \App\Core\Http\ResponseFactory()->redirect('/admin/reservations');
     }
 
-    /**
-     * POST /admin/reservas/{reservationId}/confirm
-     * Confirmar reserva pendiente desde backoffice
-     *
-     * @param integer|array $reservationId
-     *
-     * @throws BusinessRuleException
-     * @throws RandomException
-     * @throws JsonException
-     */
-    public function confirm(array|int $reservationId): ResponseInterface
+    private function matchesFilters(array $r, string $search, string $status, string $cafe, string $dateFrom, string $dateTo): bool
     {
-        if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/admin/reservations');
-        }
+        $statusOk = $status === '' || ($r['status'] ?? '') === $status;
+        $cafeOk = $cafe === '' || ($r['cafe_name'] ?? '') === $cafe;
+        $dateFromOk = $dateFrom === '' || ($r['reservation_date'] ?? '') >= $dateFrom;
+        $dateToOk = $dateTo === '' || ($r['reservation_date'] ?? '') <= $dateTo;
+        $searchOk = $search === '' || \str_contains(
+            \strtolower(
+                ($r['customer_name'] ?? '') . ' ' .
+                    ($r['customer_email'] ?? '') . ' ' .
+                    ($r['cafe_name'] ?? '') . ' ' .
+                    (string) ($r['id'] ?? '')
+            ),
+            \strtolower($search),
+        );
 
-        // Normalizar parámetro
-        if (\is_array($reservationId)) {
-            $id = (int) ($reservationId['reservationId'] ?? $reservationId['reservation_id'] ?? $reservationId['id'] ?? ($reservationId[0] ?? 0));
-        } else {
-            $id = $reservationId;
-        }
-
-        if ($id <= 0) {
-            Flash::error('Identificador de reserva inválido');
-            return $this->response->redirect('/admin/reservations');
-        }
-
-        $reservationModel = new Reservation();
-
-        $result = $reservationModel->confirm($id);
-
-        if (!$result->isOk()) {
-            throw BusinessRuleException::withMessage($result->error, 'confirm_failed');
-        }
-
-        // Registrar acción en audit log
-        AuditLog::log('confirm_reservation', 'reservation', $id, null, ['confirmed_at' => date('Y-m-d H:i:s')]);
-
-        Flash::success('Reserva confirmada correctamente');
-
-        return $this->response->redirect('/admin/reservations');
+        return $statusOk && $cafeOk && $dateFromOk && $dateToOk && $searchOk;
     }
 }

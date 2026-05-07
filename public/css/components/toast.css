@@ -1,0 +1,201 @@
+/* ============================================================================
+   KOMOREBI — TOAST NOTIFICATION SYSTEM
+   Posición: fixed bottom-right, z-toast
+   Variantes: success, error, info, warning
+   Animación: slide-up entrada, slide-down salida
+   ============================================================================ */
+
+/* ----------------------------------------
+   Contenedor de toasts
+---------------------------------------- */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: min(380px, calc(100vw - 3rem));
+  pointer-events: none;
+}
+
+/* ----------------------------------------
+   Toast individual
+---------------------------------------- */
+.toast-komorebi {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-left-width: 4px;
+  border-radius: var(--radio-md);
+  box-shadow: var(--elevation-4);
+  pointer-events: all;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Variantes de color */
+.toast-komorebi--success {
+  border-left-color: var(--color-exito);
+}
+
+.toast-komorebi--error {
+  border-left-color: var(--color-error);
+}
+
+.toast-komorebi--info {
+  border-left-color: var(--color-acento);
+}
+
+.toast-komorebi--warning {
+  border-left-color: #B07D21;
+}
+
+/* Icono */
+.toast-komorebi__icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+  line-height: 1;
+}
+
+.toast-komorebi--success .toast-komorebi__icon {
+  color: var(--color-exito);
+}
+
+.toast-komorebi--error .toast-komorebi__icon {
+  color: var(--color-error);
+}
+
+.toast-komorebi--info .toast-komorebi__icon {
+  color: var(--color-acento);
+}
+
+.toast-komorebi--warning .toast-komorebi__icon {
+  color: #B07D21;
+}
+
+/* Texto */
+.toast-komorebi__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-komorebi__title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-texto);
+  line-height: 1.3;
+  margin-bottom: 0.125rem;
+}
+
+.toast-komorebi__message {
+  font-size: var(--text-sm);
+  color: var(--color-texto-suave);
+  line-height: 1.5;
+}
+
+/* Botón de cerrar */
+.toast-komorebi__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-texto-suave);
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0;
+  transition: color var(--duration-fast);
+  flex-shrink: 0;
+}
+
+.toast-komorebi__close:hover {
+  color: var(--color-texto);
+}
+
+/* Barra de progreso (auto-dismiss) */
+.toast-komorebi__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: currentColor;
+  opacity: 0.25;
+  transform-origin: left;
+  animation: toast-progress var(--toast-duration, 4s) linear forwards;
+}
+
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* ----------------------------------------
+   Animaciones Alpine x-transition
+   — usadas en el template del toast
+---------------------------------------- */
+.toast-enter {
+  opacity: 0;
+  transform: translateX(100%) translateY(0.5rem);
+}
+
+.toast-enter-active {
+  transition:
+    opacity var(--duration-normal) var(--easing-out),
+    transform var(--duration-normal) var(--easing-out);
+}
+
+.toast-leave-active {
+  transition:
+    opacity var(--duration-fast) var(--easing-in),
+    transform var(--duration-fast) var(--easing-in);
+}
+
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .toast-enter,
+  .toast-enter-active,
+  .toast-leave-active,
+  .toast-leave-to {
+    transition: none;
+    animation: none;
+    transform: none;
+  }
+
+  .toast-komorebi__progress {
+    animation: none;
+    display: none;
+  }
+}
+
+/* Mobile: full width bottom */
+@media (max-width: 480px) {
+  .toast-container {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: 100%;
+  }
+}
+
+/* ----------------------------------------
+   Dark mode
+---------------------------------------- */
+[data-tema="oscuro"] .toast-komorebi {
+  background: var(--color-superficie);
+  border-color: var(--color-borde);
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.4);
+}

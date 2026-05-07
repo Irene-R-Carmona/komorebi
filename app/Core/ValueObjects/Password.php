@@ -12,7 +12,7 @@ final readonly class Password
 
     public function __construct(string $value)
     {
-        $len = mb_strlen($value);
+        $len = \mb_strlen($value);
 
         if ($len < 8 || $len > 128) {
             throw new ValidationException(
@@ -21,14 +21,14 @@ final readonly class Password
             );
         }
 
-        if (!preg_match('/[A-Z]/', $value)) {
+        if (!\preg_match('/[A-Z]/', $value)) {
             throw new ValidationException(
                 'Contraseña inválida',
                 ['password' => 'La contraseña debe contener al menos una letra mayúscula']
             );
         }
 
-        if (!preg_match('/[0-9]/', $value)) {
+        if (!\preg_match('/[0-9]/', $value)) {
             throw new ValidationException(
                 'Contraseña inválida',
                 ['password' => 'La contraseña debe contener al menos un dígito']

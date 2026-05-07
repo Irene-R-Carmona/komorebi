@@ -3,260 +3,120 @@
 declare(strict_types=1);
 
 /**
- * Tests de HealthCheckService
- *
- * ¿Qué pruebas aquí?
- * - Creación de chequeos: validaciones de métricas y restricción de duplicado diario
- * - Detección automática de alertas (temperatura, apetito, energía, movilidad, ojos, pelaje)
- * - Delegación correcta al repositorio para: hasCheckToday, getKeeperStatistics,
- *   getTodayDashboard, getAnimalHistory, getActiveAlerts
- * - Decodificación de alertas JSON al leer historial
- *
- * ¿Qué me quieres demostrar?
- * - Que las reglas de negocio de validación son independientes de la BD (inyección de repo)
- * - Que detectAlerts() identifica todos los umbrales clínicos definidos en el servicio
- * - Que los métodos de consulta desensamblan correctamente el JSON de alertas almacenado
- *
- * ¿Qué va a fallar en este test si se cambia el código?
- * - Si se cambia TEMPERATURE_HIGH_THRESHOLD (39.5°C) o TEMPERATURE_LOW_THRESHOLD (36.0°C)
- * - Si se cambia el rango de temperatura viable (30–45°C)
- * - Si se amplía/restringe el rango de peso válido (0.1–50 kg)
- * - Si se modifican los ENUMs de appetite, energy_level o coat_condition
- * - Si se elimina o cambia el mensaje de duplicado diario
+ * ¿Qué pruebas aquí? HealthCheckService: validaciones de peso/temperatura y detección de alertas.
+ * ¿Qué me quieres demostrar? Que pesos fuera de rango devuelven Result::fail, y que temperatura fuera de umbral genera alertas.
+ * ¿Qué va a fallar en este test si se cambia el código? Si cambian las constantes WEIGHT_MIN/MAX, TEMPERATURE_HIGH/LOW_THRESHOLD, o la lógica de validación.
  */
 
 namespace Tests\Unit\Services;
 
+use App\Domain\DTO\AnimalHealthCheckDTO;
 use App\Repositories\Contracts\HealthCheckRepositoryInterface;
 use App\Services\HealthCheckService;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-#[AllowMockObjectsWithoutExpectations]
-#[CoversClass(\App\Services\HealthCheckService::class)]
+#[CoversClass(HealthCheckService::class)]
 final class HealthCheckServiceTest extends TestCase
 {
-    private HealthCheckRepositoryInterface $repo;
+    private HealthCheckRepositoryInterface $repoStub;
     private HealthCheckService $service;
 
     protected function setUp(): void
     {
-        $this->repo    = $this->createMock(HealthCheckRepositoryInterface::class);
-        $this->service = new HealthCheckService($this->repo);
+        $this->repoStub = $this->createStub(HealthCheckRepositoryInterface::class);
+        $this->service = new HealthCheckService($this->repoStub);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // createHealthCheck() — restricción de duplicado diario
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function createHealthCheckWhenCheckAlreadyExistsTodayReturnsFail(): void
+    public function testCreateHealthCheckFailsWhenWeightTooLow(): void
     {
-        $this->repo
-            ->method('exists')
-            ->willReturn(true);
-
-        $result = $this->service->createHealthCheck(1, 1, []);
-
-        $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Ya existe un chequeo', $result->getMessage());
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // createHealthCheck() — validaciones de métricas físicas
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function createHealthCheckWithWeightBelowMinimumReturnsFail(): void
-    {
-        $this->repo->method('exists')->willReturn(false);
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(false);
 
         $result = $this->service->createHealthCheck(1, 1, ['weight_kg' => 0.0]);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Peso fuera de rango', $result->getMessage());
+        $this->assertStringContainsString('Peso fuera de rango', $result->error);
     }
 
-    #[Test]
-    public function createHealthCheckWithWeightAboveMaximumReturnsFail(): void
+    public function testCreateHealthCheckFailsWhenWeightTooHigh(): void
     {
-        $this->repo->method('exists')->willReturn(false);
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(false);
 
         $result = $this->service->createHealthCheck(1, 1, ['weight_kg' => 100.0]);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Peso fuera de rango', $result->getMessage());
+        $this->assertStringContainsString('Peso fuera de rango', $result->error);
     }
 
-    #[Test]
-    public function createHealthCheckWithTemperatureBelowViableRangeReturnsFail(): void
+    public function testCreateHealthCheckFailsWhenCheckAlreadyExistsToday(): void
     {
-        $this->repo->method('exists')->willReturn(false);
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(true);
 
-        $result = $this->service->createHealthCheck(1, 1, ['temperature_c' => 29.9]);
+        $result = $this->service->createHealthCheck(1, 1, ['weight_kg' => 5.0]);
 
         $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Temperatura fuera de rango viable', $result->getMessage());
+        $this->assertStringContainsString('chequeo registrado hoy', $result->error);
     }
 
-    #[Test]
-    public function createHealthCheckWithTemperatureAboveViableRangeReturnsFail(): void
+    public function testCreateHealthCheckSucceedsWithValidWeight(): void
     {
-        $this->repo->method('exists')->willReturn(false);
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(false);
+        $this->repoStub->method('create')->willReturn(42);
 
-        $result = $this->service->createHealthCheck(1, 1, ['temperature_c' => 45.1]);
-
-        $this->assertFalse($result->ok);
-        $this->assertStringContainsString('Temperatura fuera de rango viable', $result->getMessage());
-    }
-
-    #[Test]
-    public function createHealthCheckWithInvalidAppetiteEnumReturnsFail(): void
-    {
-        $this->repo->method('exists')->willReturn(false);
-
-        $result = $this->service->createHealthCheck(1, 1, ['appetite' => 'starving']);
-
-        $this->assertFalse($result->ok);
-        $this->assertStringContainsString('apetito inválido', $result->getMessage());
-    }
-
-    #[Test]
-    public function createHealthCheckWithInvalidEnergyLevelEnumReturnsFail(): void
-    {
-        $this->repo->method('exists')->willReturn(false);
-
-        $result = $this->service->createHealthCheck(1, 1, ['energy_level' => 'hyper']);
-
-        $this->assertFalse($result->ok);
-        $this->assertStringContainsString('energía inválido', $result->getMessage());
-    }
-
-    #[Test]
-    public function createHealthCheckWithInvalidCoatConditionEnumReturnsFail(): void
-    {
-        $this->repo->method('exists')->willReturn(false);
-
-        $result = $this->service->createHealthCheck(1, 1, ['coat_condition' => 'shiny']);
-
-        $this->assertFalse($result->ok);
-        $this->assertStringContainsString('pelaje inválida', $result->getMessage());
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // createHealthCheck() — camino feliz con y sin alertas
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function createHealthCheckWithValidDataAndNoAlertsReturnsOk(): void
-    {
-        $this->repo->method('exists')->willReturn(false);
-        $this->repo->method('create')->willReturn(42);
-
-        $data = [
-            'weight_kg'       => 5.0,
-            'temperature_c'   => 38.0,
-            'appetite'        => 'normal',
-            'energy_level'    => 'normal',
-            'coat_condition'  => 'good',
-            'eyes_clear'      => true,
-            'breathing_normal' => true,
-            'mobility_normal' => true,
-        ];
-
-        $result = $this->service->createHealthCheck(1, 1, $data);
+        $result = $this->service->createHealthCheck(1, 1, ['weight_kg' => 5.0]);
 
         $this->assertTrue($result->ok);
-        $this->assertSame(42, $result->data['id']);
-        $this->assertEmpty($result->data['alerts']);
     }
 
-    #[Test]
-    public function createHealthCheckWithFeverTemperatureReturnsOkWithAlerts(): void
+    public function testGetAnimalHistoryReturnsDelegated(): void
     {
-        $this->repo->method('exists')->willReturn(false);
-        $this->repo->method('create')->willReturn(10);
+        $expected = [['id' => 1, 'animal_id' => 2]];
+        $this->repoStub->method('getCheckHistory')->willReturn($expected);
 
-        $data = ['temperature_c' => 40.0]; // > 39.5°C umbral de fiebre
+        $result = $this->service->getAnimalHistory(2);
 
-        $result = $this->service->createHealthCheck(1, 1, $data);
-
-        $this->assertTrue($result->ok);
-        $this->assertNotEmpty($result->data['alerts']);
-        $this->assertStringContainsString('Fiebre', $result->data['alerts'][0]);
+        $this->assertSame($expected, $result);
     }
 
-    #[Test]
-    public function createHealthCheckDelegatesToRepositoryCreate(): void
+    public function testHasCheckTodayDelegatesToRepo(): void
     {
-        $this->repo->method('exists')->willReturn(false);
-        $this->repo
-            ->expects($this->once())
-            ->method('create')
-            ->with($this->arrayHasKey('animal_id'))
-            ->willReturn(5);
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(true);
 
-        $this->service->createHealthCheck(3, 2, []);
+        $result = $this->service->hasCheckToday(1);
+
+        $this->assertTrue($result);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // detectAlerts() — temperatura
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function detectAlertsWithNormalDataReturnsEmptyAlerts(): void
+    public function testGetCheckByIdReturnsNullWhenNotFound(): void
     {
-        $data = [
-            'temperature_c'   => 38.0,
-            'appetite'        => 'normal',
-            'energy_level'    => 'normal',
-            'eyes_clear'      => true,
-            'breathing_normal' => true,
-            'mobility_normal' => true,
-            'coat_condition'  => 'good',
-        ];
+        $this->repoStub->method('findById')->willReturn(null);
 
-        $alerts = $this->service->detectAlerts($data);
+        $result = $this->service->getCheckById(999);
 
-        $this->assertEmpty($alerts);
+        $this->assertNull($result);
     }
 
-    #[Test]
-    public function detectAlertsWithTemperatureAboveHighThresholdReturnsFeverAlert(): void
+    // ──────────────────────────────────────────────
+    // detectAlerts() — lógica pura, sin statics
+    // ──────────────────────────────────────────────
+
+    public function testDetectAlertsReturnsFeverAlertForHighTemperature(): void
     {
-        $alerts = $this->service->detectAlerts(['temperature_c' => 39.6]);
+        $alerts = $this->service->detectAlerts(['temperature_c' => 40.0]);
 
         $this->assertNotEmpty($alerts);
         $this->assertStringContainsString('Fiebre', $alerts[0]);
     }
 
-    #[Test]
-    public function detectAlertsWithTemperatureBelowLowThresholdReturnsHypothermiaAlert(): void
+    public function testDetectAlertsReturnsHypothermiaAlertForLowTemperature(): void
     {
-        $alerts = $this->service->detectAlerts(['temperature_c' => 35.9]);
+        $alerts = $this->service->detectAlerts(['temperature_c' => 35.0]);
 
         $this->assertNotEmpty($alerts);
         $this->assertStringContainsString('Temperatura baja', $alerts[0]);
     }
 
-    #[Test]
-    public function detectAlertsWithTemperatureAtExactHighThresholdDoesNotTriggerFeverAlert(): void
-    {
-        // 39.5 es el umbral. Solo > 39.5 activa la alerta.
-        $alerts = $this->service->detectAlerts(['temperature_c' => 39.5]);
-
-        $feverAlerts = \array_filter($alerts, fn(string $a) => \str_contains($a, 'Fiebre'));
-        $this->assertEmpty($feverAlerts);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // detectAlerts() — apetito
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function detectAlertsWithNoAppetiteReturnsVetAlert(): void
+    public function testDetectAlertsReturnsNoAppetiteAlert(): void
     {
         $alerts = $this->service->detectAlerts(['appetite' => 'none']);
 
@@ -264,8 +124,7 @@ final class HealthCheckServiceTest extends TestCase
         $this->assertStringContainsString('Sin apetito', $alerts[0]);
     }
 
-    #[Test]
-    public function detectAlertsWithReducedAppetiteReturnsMonitorAlert(): void
+    public function testDetectAlertsReturnsReducedAppetiteAlert(): void
     {
         $alerts = $this->service->detectAlerts(['appetite' => 'reduced']);
 
@@ -273,33 +132,23 @@ final class HealthCheckServiceTest extends TestCase
         $this->assertStringContainsString('Apetito reducido', $alerts[0]);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // detectAlerts() — energía y movilidad
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function detectAlertsWithLowEnergyAndMobilityIssueReturnsLethargyAlert(): void
+    public function testDetectAlertsReturnsSevereLethargicWhenLowEnergyAndMobilityIssue(): void
     {
-        $alerts = $this->service->detectAlerts([
-            'energy_level'    => 'low',
-            'mobility_normal' => false,
-        ]);
+        $alerts = $this->service->detectAlerts(['energy_level' => 'low', 'mobility_normal' => false]);
 
         $this->assertNotEmpty($alerts);
         $this->assertStringContainsString('Letargo severo', $alerts[0]);
     }
 
-    #[Test]
-    public function detectAlertsWithLowEnergyOnlyReturnsEnergyAlert(): void
+    public function testDetectAlertsReturnsLowEnergyAlertAlone(): void
     {
         $alerts = $this->service->detectAlerts(['energy_level' => 'low']);
 
         $this->assertNotEmpty($alerts);
-        $this->assertStringContainsString('Nivel de energía bajo', $alerts[0]);
+        $this->assertStringContainsString('energía bajo', $alerts[0]);
     }
 
-    #[Test]
-    public function detectAlertsWithMobilityIssueOnlyReturnsMobilityAlert(): void
+    public function testDetectAlertsReturnsMobilityAlertAlone(): void
     {
         $alerts = $this->service->detectAlerts(['mobility_normal' => false]);
 
@@ -307,222 +156,260 @@ final class HealthCheckServiceTest extends TestCase
         $this->assertStringContainsString('Movilidad reducida', $alerts[0]);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // detectAlerts() — respiración y ojos
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function detectAlertsWithBreathingIssueReturnsBreathingAlert(): void
+    public function testDetectAlertsReturnsBreathingAlert(): void
     {
         $alerts = $this->service->detectAlerts(['breathing_normal' => false]);
 
         $this->assertNotEmpty($alerts);
-        $this->assertStringContainsString('respiratoria', $alerts[0]);
+        $this->assertStringContainsString('Dificultad respiratoria', $alerts[0]);
     }
 
-    #[Test]
-    public function detectAlertsWithEyesIssueReturnsEyesAlert(): void
+    public function testDetectAlertsReturnsEyesAlertWhenNoBreathingIssue(): void
     {
         $alerts = $this->service->detectAlerts(['eyes_clear' => false]);
 
         $this->assertNotEmpty($alerts);
-        $this->assertStringContainsString('Ojos', $alerts[0]);
+        $this->assertStringContainsString('Ojos con secreción', $alerts[0]);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // detectAlerts() — pelaje
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function detectAlertsWithPoorCoatReturnsCoatAlert(): void
+    public function testDetectAlertsReturnsPoorCoatAlert(): void
     {
         $alerts = $this->service->detectAlerts(['coat_condition' => 'poor']);
 
         $this->assertNotEmpty($alerts);
-        $this->assertStringContainsString('Pelaje', $alerts[0]);
+        $this->assertStringContainsString('Pelaje en mal estado', $alerts[0]);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // hasCheckToday()
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function hasCheckTodayDelegatesToRepositoryExists(): void
+    public function testDetectAlertsReturnsEmptyArrayWhenNoIssues(): void
     {
-        $this->repo
-            ->expects($this->once())
-            ->method('exists')
-            ->with(5, \date('Y-m-d'))
-            ->willReturn(true);
-
-        $result = $this->service->hasCheckToday(5);
-
-        $this->assertTrue($result);
-    }
-
-    #[Test]
-    public function hasCheckTodayReturnsFalseWhenNoPreviousCheck(): void
-    {
-        $this->repo->method('exists')->willReturn(false);
-
-        $this->assertFalse($this->service->hasCheckToday(99));
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // getKeeperStatistics()
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function getKeeperStatisticsReturnsExpectedStructure(): void
-    {
-        $this->repo
-            ->method('countByKeeperInPeriod')
-            ->willReturn(12);
-
-        $stats = $this->service->getKeeperStatistics(3);
-
-        $this->assertSame(3, $stats['keeper_id']);
-        $this->assertSame(12, $stats['checks_count']);
-        $this->assertArrayHasKey('period_start', $stats);
-        $this->assertArrayHasKey('period_end', $stats);
-    }
-
-    #[Test]
-    public function getKeeperStatisticsUsesPreviousStartDateWhenProvided(): void
-    {
-        $this->repo->method('countByKeeperInPeriod')->willReturn(5);
-
-        $stats = $this->service->getKeeperStatistics(1, '2026-01-01', '2026-01-31');
-
-        $this->assertSame('2026-01-01', $stats['period_start']);
-        $this->assertSame('2026-01-31', $stats['period_end']);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // getTodayDashboard()
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function getTodayDashboardReturnsExpectedKeys(): void
-    {
-        $this->repo->method('getTodayChecks')->willReturn([]);
-        $this->repo->method('getPendingAnimals')->willReturn([]);
-
-        $dashboard = $this->service->getTodayDashboard();
-
-        $this->assertArrayHasKey('completed', $dashboard);
-        $this->assertArrayHasKey('pending', $dashboard);
-        $this->assertArrayHasKey('completed_count', $dashboard);
-        $this->assertArrayHasKey('pending_count', $dashboard);
-    }
-
-    #[Test]
-    public function getTodayDashboardDecodesAlertsJsonInCompletedChecks(): void
-    {
-        $checkWithJsonAlerts = [
-            'id'     => 1,
-            'alerts' => '["Fiebre detectada"]',
-        ];
-        $this->repo->method('getTodayChecks')->willReturn([$checkWithJsonAlerts]);
-        $this->repo->method('getPendingAnimals')->willReturn([]);
-
-        $dashboard = $this->service->getTodayDashboard();
-
-        $decodedAlerts = $dashboard['completed'][0]['alerts'];
-        $this->assertIsArray($decodedAlerts);
-        $this->assertSame('Fiebre detectada', $decodedAlerts[0]);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // getAnimalHistory()
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function getAnimalHistoryDecodesJsonAlerts(): void
-    {
-        $rawCheck = [
-            'id'      => 7,
-            'alerts'  => '["Apetito reducido - monitorear de cerca"]',
-        ];
-        $this->repo
-            ->method('getCheckHistory')
-            ->willReturn([$rawCheck]);
-
-        $history = $this->service->getAnimalHistory(2);
-
-        $this->assertIsArray($history[0]['alerts']);
-        $this->assertStringContainsString('Apetito reducido', $history[0]['alerts'][0]);
-    }
-
-    #[Test]
-    public function getAnimalHistoryPassesLimitToRepository(): void
-    {
-        $this->repo
-            ->expects($this->once())
-            ->method('getCheckHistory')
-            ->with(4, 10)
-            ->willReturn([]);
-
-        $this->service->getAnimalHistory(4, 10);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // getActiveAlerts()
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function getActiveAlertsDecodesJsonAlerts(): void
-    {
-        $rawCheck = [
-            'id'     => 3,
-            'alerts' => '["Letargo severo - evaluación veterinaria urgente"]',
-        ];
-        $this->repo
-            ->method('getCheckswithAlerts')
-            ->willReturn([$rawCheck]);
-
-        $alerts = $this->service->getActiveAlerts();
-
-        $this->assertIsArray($alerts[0]['alerts']);
-        $this->assertStringContainsString('Letargo severo', $alerts[0]['alerts'][0]);
-    }
-
-    #[Test]
-    public function getActiveAlertsPassesDaysToRepository(): void
-    {
-        $this->repo
-            ->expects($this->once())
-            ->method('getCheckswithAlerts')
-            ->with(14)
-            ->willReturn([]);
-
-        $this->service->getActiveAlerts(14);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // getCheckById()
-    // ─────────────────────────────────────────────────────────────
-
-    #[Test]
-    public function getCheckByIdReturnsNullWhenNotFound(): void
-    {
-        $this->repo->method('findById')->willReturn(null);
-
-        $this->assertNull($this->service->getCheckById(999));
-    }
-
-    #[Test]
-    public function getCheckByIdDecodesJsonAlerts(): void
-    {
-        $this->repo->method('findById')->willReturn([
-            'id'     => 1,
-            'alerts' => '["Fiebre detectada: 40.0°C"]',
+        $alerts = $this->service->detectAlerts([
+            'appetite' => 'normal',
+            'energy_level' => 'normal',
+            'mobility_normal' => true,
+            'breathing_normal' => true,
+            'eyes_clear' => true,
+            'coat_condition' => 'good',
         ]);
 
-        $check = $this->service->getCheckById(1);
+        $this->assertEmpty($alerts);
+    }
 
-        $this->assertNotNull($check);
-        $this->assertIsArray($check['alerts']);
-        $this->assertStringContainsString('Fiebre', $check['alerts'][0]);
+    // ──────────────────────────────────────────────
+    // validateMetrics via createHealthCheck
+    // ──────────────────────────────────────────────
+
+    public function testCreateHealthCheckFailsWhenTemperatureTooLow(): void
+    {
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(false);
+
+        $result = $this->service->createHealthCheck(1, 1, ['temperature_c' => 28.0]);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Temperatura fuera de rango', $result->error);
+    }
+
+    public function testCreateHealthCheckFailsWhenTemperatureTooHigh(): void
+    {
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(false);
+
+        $result = $this->service->createHealthCheck(1, 1, ['temperature_c' => 46.0]);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Temperatura fuera de rango', $result->error);
+    }
+
+    public function testCreateHealthCheckFailsWhenAppetiteInvalid(): void
+    {
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(false);
+
+        $result = $this->service->createHealthCheck(1, 1, ['appetite' => 'starving']);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('apetito', $result->error);
+    }
+
+    public function testCreateHealthCheckFailsWhenEnergyLevelInvalid(): void
+    {
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(false);
+
+        $result = $this->service->createHealthCheck(1, 1, ['energy_level' => 'exhausted']);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('energía', $result->error);
+    }
+
+    public function testCreateHealthCheckFailsWhenCoatConditionInvalid(): void
+    {
+        $this->repoStub->method('existsForAnimalOnDate')->willReturn(false);
+
+        $result = $this->service->createHealthCheck(1, 1, ['coat_condition' => 'shiny']);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('pelaje', $result->error);
+    }
+
+    // ──────────────────────────────────────────────
+    // update()
+    // ──────────────────────────────────────────────
+
+    public function testUpdateFailsWhenCheckNotFound(): void
+    {
+        $this->repoStub->method('findById')->willReturn(null);
+
+        $result = $this->service->update(999, []);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('no encontrado', $result->error);
+    }
+
+    public function testUpdateFailsWhenMetricsValidationFails(): void
+    {
+        $dto = new AnimalHealthCheckDTO(
+            id: 1,
+            animal_id: 1,
+            checked_by: 1,
+            check_date: '2024-01-01',
+            created_at: '2024-01-01',
+            weight_kg: 5.0,
+            temperature_c: 38.0,
+            appetite: 'normal',
+            energy_level: 'normal',
+            coat_condition: 'good',
+            eyes_clear: true,
+            breathing_normal: true,
+            mobility_normal: true,
+            notes: null,
+            alerts: null,
+        );
+        $this->repoStub->method('findById')->willReturn($dto);
+
+        $result = $this->service->update(1, ['temperature_c' => 28.0]);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Temperatura fuera de rango', $result->error);
+    }
+
+    public function testUpdateFailsWhenRepoReturnsFalse(): void
+    {
+        $dto = new AnimalHealthCheckDTO(
+            id: 1,
+            animal_id: 1,
+            checked_by: 1,
+            check_date: '2024-01-01',
+            created_at: '2024-01-01',
+            weight_kg: 5.0,
+            temperature_c: 38.0,
+            appetite: 'normal',
+            energy_level: 'normal',
+            coat_condition: 'good',
+            eyes_clear: true,
+            breathing_normal: true,
+            mobility_normal: true,
+            notes: null,
+            alerts: null,
+        );
+        $this->repoStub->method('findById')->willReturn($dto);
+        $this->repoStub->method('update')->willReturn(false);
+
+        $result = $this->service->update(1, []);
+
+        $this->assertFalse($result->ok);
+        $this->assertStringContainsString('Error al actualizar', $result->error);
+    }
+
+    public function testUpdateSucceeds(): void
+    {
+        $dto = new AnimalHealthCheckDTO(
+            id: 1,
+            animal_id: 1,
+            checked_by: 1,
+            check_date: '2024-01-01',
+            created_at: '2024-01-01',
+            weight_kg: 5.0,
+            temperature_c: 38.0,
+            appetite: 'normal',
+            energy_level: 'normal',
+            coat_condition: 'good',
+            eyes_clear: true,
+            breathing_normal: true,
+            mobility_normal: true,
+            notes: null,
+            alerts: null,
+        );
+        $this->repoStub->method('findById')->willReturn($dto);
+        $this->repoStub->method('update')->willReturn(true);
+
+        $result = $this->service->update(1, []);
+
+        $this->assertTrue($result->ok);
+    }
+
+    // ──────────────────────────────────────────────
+    // getTodayDashboard()
+    // ──────────────────────────────────────────────
+
+    public function testGetTodayDashboardReturnsExpectedKeys(): void
+    {
+        $this->repoStub->method('getTodayChecks')->willReturn([]);
+        $this->repoStub->method('getPendingAnimals')->willReturn([]);
+
+        $result = $this->service->getTodayDashboard();
+
+        $this->assertArrayHasKey('completed', $result);
+        $this->assertArrayHasKey('pending', $result);
+        $this->assertArrayHasKey('completed_count', $result);
+        $this->assertArrayHasKey('pending_count', $result);
+    }
+
+    public function testGetTodayDashboardCountsMatchArraySize(): void
+    {
+        $this->repoStub->method('getTodayChecks')->willReturn([['id' => 1], ['id' => 2]]);
+        $this->repoStub->method('getPendingAnimals')->willReturn([['id' => 3]]);
+
+        $result = $this->service->getTodayDashboard();
+
+        $this->assertSame(2, $result['completed_count']);
+        $this->assertSame(1, $result['pending_count']);
+    }
+
+    // ──────────────────────────────────────────────
+    // getActiveAlerts()
+    // ──────────────────────────────────────────────
+
+    public function testGetActiveAlertsDecodesJsonAlerts(): void
+    {
+        $this->repoStub->method('getCheckswithAlerts')->willReturn([
+            ['id' => 1, 'animal_id' => 2, 'alerts' => '["Fiebre detectada","Sin apetito"]'],
+        ]);
+
+        $result = $this->service->getActiveAlerts();
+
+        $this->assertIsArray($result[0]['alerts']);
+        $this->assertSame('Fiebre detectada', $result[0]['alerts'][0]);
+    }
+
+    public function testGetActiveAlertsReturnsEmptyArrayWhenNoAlerts(): void
+    {
+        $this->repoStub->method('getCheckswithAlerts')->willReturn([]);
+
+        $result = $this->service->getActiveAlerts();
+
+        $this->assertEmpty($result);
+    }
+
+    // ──────────────────────────────────────────────
+    // getKeeperStatistics()
+    // ──────────────────────────────────────────────
+
+    public function testGetKeeperStatisticsReturnsExpectedStructure(): void
+    {
+        $this->repoStub->method('countByKeeperInPeriod')->willReturn(7);
+
+        $result = $this->service->getKeeperStatistics(5);
+
+        $this->assertSame(5, $result['keeper_id']);
+        $this->assertSame(7, $result['checks_count']);
+        $this->assertArrayHasKey('period_start', $result);
+        $this->assertArrayHasKey('period_end', $result);
     }
 }

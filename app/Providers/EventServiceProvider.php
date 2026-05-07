@@ -15,15 +15,13 @@ use App\Listeners\LogUserRegisteredListener;
 use App\Listeners\TelegramNewUserListener;
 use App\Listeners\TelegramReservationListener;
 use App\Listeners\TelegramReviewListener;
+use Override;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
-/**
- * Service Provider para PSR-14 Event Dispatcher.
- */
 final class EventServiceProvider extends ServiceProvider
 {
-    #[\Override]
+    #[Override]
     public function register(): void
     {
         Container::singleton(EventDispatcherInterface::class, static function (): EventDispatcher {
@@ -31,7 +29,7 @@ final class EventServiceProvider extends ServiceProvider
         });
     }
 
-    #[\Override]
+    #[Override]
     public function boot(): void
     {
         $dispatcher = Container::make(EventDispatcherInterface::class);
@@ -40,19 +38,16 @@ final class EventServiceProvider extends ServiceProvider
             return;
         }
 
-        // Registrar listeners de usuarios
         $dispatcher->addListener(
             UserRegisteredEvent::class,
             new LogUserRegisteredListener()
         );
 
-        // Registrar listeners de reservas
         $dispatcher->addListener(
             ReservationConfirmedEvent::class,
             new LogReservationConfirmedListener()
         );
 
-        // Registrar listeners de reviews
         $dispatcher->addListener(
             ReviewPublishedEvent::class,
             new LogReviewPublishedListener()

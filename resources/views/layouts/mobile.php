@@ -19,7 +19,7 @@
     <?php endforeach;
     endif; ?>
 
-    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web" defer></script>
     <!-- Componentes centralizados -->
     <script src="/js/components/fallbacks.js"></script>
     <script src="/js/components/catalogo.js"></script>
@@ -37,7 +37,7 @@
     <header class="mobile-top">
         <h1 class="page-title"><?= $titulo ?></h1>
         <div class="user-avatar-xs">
-            <?= strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)) ?>
+            <?= e(strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1))) ?>
         </div>
     </header>
 
@@ -50,8 +50,8 @@
     <!-- BOTTOM NAV -->
     <nav class="mobile-bottom-nav">
         <?php if (!empty($mobileMenu)): foreach ($mobileMenu as $item):
-                $isActive = ($_SERVER['REQUEST_URI'] == $item['url']) ? 'active' : '';
-        ?>
+            $isActive = ($_SERVER['REQUEST_URI'] == $item['url']) ? 'active' : '';
+            ?>
                 <a href="<?= $item['url'] ?>" class="nav-icon <?= $isActive ?>">
                     <i class="ph ph-<?= $item['icon'] ?>"></i>
                     <span><?= $item['label'] ?></span>
@@ -59,10 +59,13 @@
         <?php endforeach;
         endif; ?>
 
-        <a href="/logout" class="nav-icon logout">
-            <i class="ph ph-sign-out"></i>
-            <span>Salir</span>
-        </a>
+        <form method="POST" action="/logout" style="margin:0;">
+            <?= \App\Core\Csrf::field() ?>
+            <button type="submit" class="nav-icon logout" style="background:none;border:none;cursor:pointer;width:100%;">
+                <i class="ph ph-sign-out"></i>
+                <span>Salir</span>
+            </button>
+        </form>
     </nav>
 
 </body>

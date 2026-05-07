@@ -7,10 +7,10 @@
 
       async onToggle() {
         try {
-          const response = await fetch('/api/cookies/save-preferences', {
-            method: 'POST',
+          const response = await fetch('/api/v1/cookies', {
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-            body: JSON.stringify(this.preferences)
+            body: JSON.stringify({ consent: 'custom', ...this.preferences })
           });
           const data = await response.json();
           if (data.success) {
@@ -28,7 +28,7 @@
       async deleteAllCookies() {
         if (!confirm('¿Eliminar todas las cookies funcionales? Perderás tus filtros guardados, productos vistos y preferencias dietéticas.')) return;
         try {
-          const response = await fetch('/api/cookies/reject-optional', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+          const response = await fetch('/api/v1/cookies', { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify({ consent: 'none' }) });
           const data = await response.json();
           if (data.success) {
             this.preferences.functional = false;

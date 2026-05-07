@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Core\Http\ResponseFactory;
+use InvalidArgumentException;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -38,13 +40,13 @@ final class CorsMiddleware implements MiddlewareInterface
         private readonly int $maxAge = 7200,
     ) {
         if ($this->credentials && \in_array('*', $this->allowedOrigins, true)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Access-Control-Allow-Credentials: true es incompatible con el wildcard "*" (RFC 6454 §7.2).'
             );
         }
     }
 
-    #[\Override]
+    #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $origin = $request->getHeaderLine('Origin');
@@ -65,7 +67,6 @@ final class CorsMiddleware implements MiddlewareInterface
             return $this->buildPreflightResponse($origin);
         }
 
-        // Petición real
         $response = $handler->handle($request);
 
         if (!$isAllowed) {

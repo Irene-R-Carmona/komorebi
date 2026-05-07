@@ -8,6 +8,7 @@ use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
 use App\Core\Session;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -35,7 +36,7 @@ final class RoleMiddleware implements MiddlewareInterface
         $this->allowedRoles = \is_array($allowedRoles) ? $allowedRoles : [$allowedRoles];
     }
 
-    #[\Override]
+    #[Override]
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
@@ -49,13 +50,12 @@ final class RoleMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        // Verificar si usuario tiene alguno de los roles permitidos
         $hasRole = \count(\array_intersect($userRoles, $this->allowedRoles)) > 0;
 
         if (!$hasRole) {
             Logger::warning('[RoleMiddleware] Acceso denegado', [
                 'required_roles' => $this->allowedRoles,
-                'user_roles'     => $userRoles,
+                'user_roles' => $userRoles,
             ]);
 
             Flash::error('No tienes permisos para acceder a este recurso.');

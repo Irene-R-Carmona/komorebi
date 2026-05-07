@@ -79,7 +79,6 @@ final class NewsletterSeeder
             }
         }
 
-        echo "[NewsletterSeeder] $count suscriptores creados\n";
         Logger::info('NewsletterSeeder: completed', ['created' => $count]);
     }
 }

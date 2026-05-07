@@ -17,7 +17,7 @@ procesan a través de un pipeline PSR-15.
 
 **Orden del pipeline de middleware:**
 
-```
+```text
 security headers → session → CSRF → auth → role
 ```
 
@@ -142,3 +142,182 @@ Los diagramas de referencia se encuentran en `docs/diagrams/`:
 | `reservation-flow.md`  | Flujo de creación de reserva         |
 | `auth-flow.md`         | Flujo de autenticación y RBAC        |
 | `er.puml`              | Diagrama entidad-relación (PlantUML) |
+
+---
+
+## Decisiones Arquitectónicas — v2 (Abril 2026)
+
+### Capa de Dominio
+
+Introducida en Fase 0 (streams 1–2). Los DTOs viven en `app/Domain/`:
+
+```text
+app/Domain/
+  DTO/             → Datos de transferencia inmutables (readonly classes)
+  Reservation/     → State machine de reservas
+```
+
+**Nota:** `app/Domain/ValueObjects/` fue eliminado (abril 2026) — los Value Objects con uso activo
+residen en `app/Core/ValueObjects/` (`Email`, `Slug`, `Password`, `GuestCount`, etc.).
+
+**Reglas obligatorias:**
+
+- DTOs son `final readonly` con constructor promocionado y métodos `fromArray(array): static` + `toViewArray(): array`.
+- Los Value Objects son `final readonly`, encapsulan validación, nunca retornan arrays crudos a la vista.
+- Ni DTOs ni VOs contienen lógica de negocio.
+- **Los DTOs no se pasan directamente a `View::render()`.** Deben llamar a `toViewArray()` primero.
+
+### Contratos de Capa (Service Interfaces)
+
+Ubicados en `app/Services/Contracts/`. Cualquier servicio con casos de uso testables debe tener una interfaz aquí.
+Los controladores inyectan la interfaz, no la implementación concreta.
+
+```text
+app/Services/Contracts/
+  ProductServiceInterface.php
+  ReservationServiceInterface.php
+  ...
+```
+
+### Contrato de Repositorios (`getSelectFields`)
+
+`AbstractRepository::getSelectFields()` define exactamente qué columnas expone el repositorio a las capas superiores.
+**Campos internos** (credenciales, flags de borrado lógico, columnas de auditoría interna) **no deben listarse aquí.**
+
+Ejemplo de contrato correcto:
+
+```php
+protected function getSelectFields(): array
+{
+    return ['id', 'name', 'email', 'role', 'created_at']; // SIN: password_hash, deleted_at
+}
+```
+
+### Versionado de API
+
+Todos los endpoints públicos y privados de la API REST se sirven bajo `/api/v1/`.
+
+- Prefijo de URL: `/api/v1/`
+- Namespace PHP: `App\Http\Controllers\Api\V1\`
+- Documentación: `docs/openapi.yaml` (servidor base `url: /api/v1`)
+
+No añadir rutas `/api/` sin versión. Futuras versiones usarán `/api/v2/`, etc.
+
+### Frontera de Escape XSS
+
+`View::render()` escapa automáticamente todos los valores de `$data`.
+Para datos que no deben escaparse (HTML sanitizado, JSON para Alpine.js), usar:
+
+```php
+'jsonData' => Raw::json($array),   // JSON seguro para x-data de Alpine
+'htmlSnippet' => Raw::html($safe), // HTML pre-sanitizado
+```
+
+No pasar objetos en `$data`. Los DTOs deben llamar a `toViewArray()`.
+
+### Nomenclatura CQRS
+
+Los métodos de servicio siguen la convención:
+
+| Acción         | Prefijo                      | Ejemplo                      |
+|----------------|------------------------------|------------------------------|
+| Consulta       | `get`, `find`, `list`        | `getById()`, `findByEmail()` |
+| Mutación       | `create`, `update`, `delete` | `createReservation()`        |
+| Validación     | `validate`, `check`          | `validateRedemptionCode()`   |
+| Operación sync | verbo directo                | `redeem()`, `use()`          |
+
+### Límite de Error
+
+- Los servicios retornan `Result::ok($data)` / `Result::fail($msg, $code)`. **No lanzan excepciones** para fallos
+  esperados.
+- Los controladores traducen `Result` a respuestas HTTP (`$this->unprocessable()`, `$this->success()`, etc.).
+- Las excepciones (`\Throwable`) son para errores inesperados de infraestructura — el middleware de error las convierte
+  en HTTP 500.
+
+---
+
+## Capa de Presentación: HDA + Progressive Enhancement
+
+### Patrón adoptado
+
+La capa de presentación sigue el patrón **HDA (Hypermedia-Driven Application)**. Ver decisión completa en
+`docs/adr/001-hda-architecture.md`.
+
+Principio rector: **PHP es la única fuente de verdad del estado de la aplicación**. El cliente (Alpine.js)
+gestiona exclusivamente comportamiento de UI efímero.
+
+### Rol de Alpine.js post-migración
+
+Alpine.js permanece como capa de **comportamiento**, no de datos:
+
+| Permitido | Prohibido |
+| --------- | --------- |
+| Modales y drawers | `fetch()` de colecciones de dominio en `init()` |
+| Stepper de personas (±1) | Almacenar `cafes`, `passes`, `reservations` en estado Alpine |
+| Validación inline (festivo bloqueado, pass incompatible) | `Alpine.store()` con datos de servidor |
+| Feedback optimista de cancelación | Rutas que sólo existen para alimentar `init()` |
+| Consultas reactivas a input del usuario (slots, clima) | |
+
+**Patrón correcto de configuración:**
+
+```php
+// Controller:
+$config = json_encode(['cafes' => $cafes, 'passes' => $passes], JSON_HEX_APOS | JSON_HEX_QUOT);
+// View:
+// <div x-data="reservaForm(<?= $config ?>)">
+```
+
+El componente Alpine recibe los datos como argumento de inicialización, nunca los obtiene por `fetch()`.
+
+### Contrato REST API — cuándo usar AJAX
+
+Los endpoints GET del API están permitidos exclusivamente cuando la consulta es **reactiva a input del
+usuario que ocurre después de la carga de página**:
+
+| Endpoint | Disparador | Justificación |
+| -------- | ---------- | ------------- |
+| `GET /api/v1/time-slots/available` | Usuario elige fecha | Disponibilidad cambia en tiempo real |
+| `GET /api/v1/weather` | Usuario elige fecha | Dato externo, no cacheable por PHP |
+| `GET /api/v1/holidays/{fecha}` | Usuario elige fecha | Reactivo a selección |
+| `GET /api/v1/user/reservations` | Carga de historial | Asíncrono para no bloquear paso 1 |
+
+Los endpoints POST/PATCH/DELETE son mutaciones de dominio y devuelven `{ok: bool, data?: ..., error?: ...}`.
+
+### Wizard de reservas — patrón PRG
+
+El wizard de reservas (3 pasos) implementa **Post/Redirect/Get** con estado en sesión PHP:
+
+```text
+POST /reservar/paso-1  →  Session::set('reservation_wizard', [...])  →  302 /reservar/paso-2
+GET  /reservar/paso-2  →  PHP lee sesión, renderiza formulario de fecha/hora
+POST /reservar/paso-2  →  Session::set('reservation_wizard', [...])  →  302 /reservar/paso-3
+GET  /reservar/paso-3  →  PHP lee sesión, renderiza confirmación
+POST /reservar         →  crea reserva, Session::remove('reservation_wizard')  →  302 /reservas/confirmacion/{id}
+```
+
+Cada paso es una URL independiente. Recargar devuelve el mismo estado. El botón "Volver" es un `<a href>`.
+
+---
+
+## Deuda Técnica Deliberada
+
+### `app/Models/` — Active Record coexistiendo con Repository pattern
+
+**Ubicación:** `app/Models/` (20 clases: `User`, `Cafe`, `Product`, `Reservation`, `Animal`, etc.)
+
+**Situación:** El proyecto usa Repository pattern (`app/Repositories/`) como arquitectura objetivo,
+pero 20 clases Active Record legacy en `app/Models/` siguen en uso activo en controllers y servicios.
+Ambas capas conviven de forma provisional.
+
+**Impacto:** Viola la separación de capas — la lógica de acceso a BD se mezcla con el dominio.
+Dificulta los tests unitarios (los Models instancian PDO directamente y no son inyectables).
+
+**Criterios de eliminación futura:**
+
+- Cada Model debe tener un Repository equivalente que asuma sus queries.
+- Los controllers que usen `App\Models\*` deben migrar a inyectar la interfaz del Repository.
+- Eliminar el Model cuando todos sus usos hayan migrado al Repository.
+- Prioridad de migración: `Cafe` (9 usos) → `User` (mayor complejidad) → resto.
+
+**Seguimiento:** Crear plan `docs/plans/YYYY-MM-DD-migracion-models-a-repositories.md`
+cuando se inicie la migración. Búsqueda de usos: `grep -r "App\\Models\\" app/`.

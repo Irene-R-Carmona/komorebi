@@ -23,6 +23,8 @@ Aplica con: `make db-migrate`
 | `014_staff_shifts.sql`           | Gestión de turnos de staff por café y fecha                                           | Feb 2026     |
 | `015_animal_health_checks.sql`   | Chequeos diarios de salud de animales realizados por keepers                          | Feb 2026     |
 | `016_supervisor_assignments.sql` | Asignaciones de supervisores a cafés y zonas                                          | Feb 2026     |
+| `017_product_stock.sql`          | Control de stock por producto (`stock_quantity`; NULL = ilimitado, 0 = agotado)       | Abr 2026     |
+| `018_api_tokens.sql`             | Tokens Bearer para autenticación stateless de clientes externos (hash SHA-256)        | Abr 2026     |
 
 ## Aplicar migraciones
 
@@ -43,6 +45,8 @@ Las migraciones deben aplicarse **en orden**. Las dependencias principales son:
 - `003`, `004`, `005`, `006`, `007`, `008` dependen de `002`
 - `011`, `012`, `012b` dependen de `001` y `004`
 - `013`, `014`, `015`, `016` dependen de `002` y `001`
+- `017` depende de `004` (FK `products`)
+- `018` depende de `002` (FK `users`)
 
 ## Crear una nueva migración
 

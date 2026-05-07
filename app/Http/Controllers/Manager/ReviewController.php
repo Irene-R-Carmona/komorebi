@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Manager;
 
+use App\Core\Container;
 use App\Core\Csrf;
-use App\Core\Flash;
-use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
-use App\Services\ReviewService;
+use App\Domain\DTO\PaginationParams;
+use App\Services\Contracts\ReviewQueryServiceInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Controlador de Reseñas del Manager
@@ -20,87 +21,53 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class ReviewController
 {
-    private ReviewService $reviewService;
-    private ResponseFactory $response;
+    private ReviewQueryServiceInterface $queryService;
 
-    public function __construct(?ReviewService $reviewService = null)
-    {
-        $this->reviewService = $reviewService ?? new ReviewService();
-        $this->response = new ResponseFactory();
+    public function __construct(
+        ?ReviewQueryServiceInterface $queryService = null
+    ) {
+        $this->queryService = $queryService ?? Container::make(ReviewQueryServiceInterface::class);
     }
 
     /**
      * GET /manager/reviews
      * Listado de reseñas del café del manager
      */
-    public function index(): ?ResponseInterface
+    public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $user   = Session::user();
+        $user = Session::user();
         $cafeId = $user['cafe_id'] ?? null;
 
         if (!$cafeId) {
             View::render('errors/403', [
                 'message' => 'No tienes un café asignado. Contacta con el administrador.',
             ]);
+
             return null;
         }
 
-        $reviews = $this->reviewService->getReviewsByCafeId($cafeId);
-        $stats   = $this->reviewService->getCafeRatingStats($cafeId);
+        $params = PaginationParams::fromRequest($request);
+        $query = $request->getQueryParams();
+        $status = (isset($query['status']) && $query['status'] !== '') ? (string) $query['status'] : null;
+
+        $rawRows = $this->queryService->getManagerReviews((int) $cafeId, $status, $params->page);
+        $hasNext = \count($rawRows) > 20;
+        $reviews = $hasNext ? \array_slice($rawRows, 0, 20) : $rawRows;
+
+        $meta = ['page' => $params->page, 'has_next_page' => $hasNext];
+        $currentParams = $params->toQueryArray(['status' => $status ?? '']);
+        $stats = $this->queryService->getCafeRatingStats((int) $cafeId);
 
         View::render('manager/reviews/index', [
-            'titulo'     => 'Gestión de Reseñas',
-            'reviews'    => $reviews,
-            'stats'      => $stats,
+            'titulo' => 'Gestión de Reseñas',
+            'reviews' => $reviews,
+            'stats' => $stats,
             'csrf_token' => Csrf::token(),
+            'activeStatus' => $status,
+            'meta' => $meta,
+            'currentParams' => $currentParams,
         ], [], 'backoffice');
+
         return null;
-    }
-
-    /**
-     * POST /manager/reviews/{id}/approve
-     * Aprobar una reseña del café
-     */
-    public function approve(): ResponseInterface
-    {
-        if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/manager/reviews');
-        }
-
-        $id     = (int) ($_POST['id'] ?? 0);
-        $result = $this->reviewService->approveReview($id);
-
-        if ($result->isOk()) {
-            Flash::success('Reseña aprobada correctamente');
-        } else {
-            Flash::error($result->getMessage('Error al aprobar reseña'));
-        }
-
-        return $this->response->redirect('/manager/reviews');
-    }
-
-    /**
-     * POST /manager/reviews/{id}/reject
-     * Rechazar una reseña del café
-     */
-    public function reject(): ResponseInterface
-    {
-        if (!Csrf::validate()) {
-            Flash::error('Token de seguridad inválido');
-            return $this->response->redirect('/manager/reviews');
-        }
-
-        $id     = (int) ($_POST['id'] ?? 0);
-        $reason = $_POST['reason'] ?? 'Contenido inapropiado';
-        $result = $this->reviewService->rejectReview($id, $reason);
-
-        if ($result->isOk()) {
-            Flash::success('Reseña rechazada');
-        } else {
-            Flash::error($result->getMessage('Error al rechazar reseña'));
-        }
-
-        return $this->response->redirect('/manager/reviews');
     }
 }

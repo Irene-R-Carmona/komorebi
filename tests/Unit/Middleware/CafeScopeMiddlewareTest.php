@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
@@ -14,6 +13,7 @@ namespace Middleware;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Http\Middleware\CafeScopeMiddleware;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -25,6 +25,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  *
  * Validación de ownership sobre café asignado (Manager scope).
  */
+#[CoversClass(CafeScopeMiddleware::class)]
 final class CafeScopeMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;
@@ -56,8 +57,8 @@ final class CafeScopeMiddlewareTest extends TestCase
         $this->handler->method('handle')->willReturn($this->response);
 
         // Reset session
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_destroy();
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
         }
     }
 
@@ -109,7 +110,7 @@ final class CafeScopeMiddlewareTest extends TestCase
 
         $this->request->method('getUri')->willReturn($uriMock);
         $this->request->method('getHeaderLine')
-            ->willReturnCallback(static fn($header) => $header === 'Accept' ? 'application/json' : '');
+            ->willReturnCallback(static fn ($header) => $header === 'Accept' ? 'application/json' : '');
 
         $middleware = new CafeScopeMiddleware($this->responseFactory);
         $response = $middleware->process($this->request, $this->handler);
@@ -153,7 +154,7 @@ final class CafeScopeMiddlewareTest extends TestCase
         $request->method('getUri')->willReturn($uriMock);
         $request->method('getHeaderLine')->willReturn('');
         $request->method('getAttribute')->willReturnCallback(
-            static fn(string $attr) => $attr === 'cafeId' ? '2' : null
+            static fn (string $attr) => $attr === 'cafeId' ? '2' : null
         );
 
         $response = $this->middleware->process($request, $this->handler);
@@ -173,7 +174,7 @@ final class CafeScopeMiddlewareTest extends TestCase
         $request->method('getUri')->willReturn($uriMock);
         $request->method('getHeaderLine')->willReturn('');
         $request->method('getAttribute')->willReturnCallback(
-            static fn(string $attr) => $attr === 'cafeId' ? '1' : null
+            static fn (string $attr) => $attr === 'cafeId' ? '1' : null
         );
 
         $response = $this->middleware->process($request, $this->handler);

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Partial: Sección de alérgenos
  * Usado en create.php y edit.php
@@ -31,18 +32,16 @@ $productAllergenIds = array_column($product_allergens, 'id');
             <!-- Acciones rápidas -->
             <div class="mb-3 d-flex gap-2">
                 <button
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        @click="selectAllAllergens([<?= implode(',', array_column($allergens, 'id')) ?>])"
-                >
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    @click="selectAllAllergens([<?= implode(',', array_column($allergens, 'id')) ?>])">
                     <i class="bi bi-check-all me-1"></i>
                     Seleccionar todos
                 </button>
                 <button
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        @click="clearAllAllergens()"
-                >
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    @click="clearAllAllergens()">
                     <i class="bi bi-x-lg me-1"></i>
                     Limpiar selección
                 </button>
@@ -53,7 +52,7 @@ $productAllergenIds = array_column($product_allergens, 'id');
 
             <div class="allergen-grid">
                 <?php foreach ($allergens as $allergen): ?>
-                    <?= View::componentToString('products/allergen-checkbox', [
+                    <?= View::componentToString('components/products/allergen-checkbox', [
                         'allergen' => $allergen,
                         'checked' => in_array($allergen['id'], $productAllergenIds, true),
                     ]) ?>

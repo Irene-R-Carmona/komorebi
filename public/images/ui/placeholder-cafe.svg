@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Imagen de café no disponible">
+    <rect width="400" height="300" fill="#F7F3EB" />
+    <!-- Cup body -->
+    <rect x="148" y="130" width="104" height="80" rx="8" fill="#C9A959" opacity="0.35" />
+    <rect x="155" y="137" width="90" height="66" rx="6" fill="#C9A959" opacity="0.55" />
+    <!-- Cup handle -->
+    <path d="M252 150 Q278 150 278 170 Q278 190 252 190" stroke="#C9A959" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.7" />
+    <!-- Saucer -->
+    <ellipse cx="200" cy="215" rx="70" ry="10" fill="#C9A959" opacity="0.4" />
+    <!-- Steam lines -->
+    <path d="M185 122 Q182 108 185 94" stroke="#C9A959" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.5" />
+    <path d="M200 118 Q197 104 200 90" stroke="#C9A959" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.5" />
+    <path d="M215 122 Q212 108 215 94" stroke="#C9A959" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.5" />
+    <!-- Label -->
+    <text x="200" y="255" text-anchor="middle" font-family="Georgia, serif" font-size="13" fill="#8B6914" opacity="0.7">Komorebi Café</text>
+</svg>

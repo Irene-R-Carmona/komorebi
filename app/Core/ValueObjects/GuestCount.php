@@ -18,7 +18,7 @@ final readonly class GuestCount
         if ($value < self::MIN || $value > self::MAX) {
             throw new ValidationException(
                 'Número de comensales inválido',
-                ['guest_count' => sprintf('El número de comensales debe estar entre %d y %d', self::MIN, self::MAX)]
+                ['guest_count' => \sprintf('El número de comensales debe estar entre %d y %d', self::MIN, self::MAX)]
             );
         }
 

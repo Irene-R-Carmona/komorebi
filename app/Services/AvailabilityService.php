@@ -4,37 +4,48 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Core\Database;
+use App\Core\Container;
 use App\Core\Env;
 use App\Core\Result;
 use App\Core\Time;
+use App\Domain\DTO\CafeDTO;
+use App\Domain\DTO\ProductDTO;
+use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Services\Contracts\AvailabilityServiceInterface;
+use DateMalformedStringException;
 use JsonException;
-use PDO;
+use Override;
 
-final class AvailabilityService
+final class AvailabilityService implements AvailabilityServiceInterface
 {
-    private PDO $db;
+    private CafeRepositoryInterface $cafeRepo;
+    private ProductRepositoryInterface $productRepo;
+    private ReservationRepositoryInterface $reservationRepo;
     private int $maxDaysAhead;
     private int $stepMinutes;
 
-    public function __construct(?PDO $db = null, int $maxDaysAhead = 30, int $stepMinutes = 30)
-    {
-        $this->db = $db ?? Database::getConnection();
+    public function __construct(
+        ?CafeRepositoryInterface $cafeRepo = null,
+        ?ProductRepositoryInterface $productRepo = null,
+        ?ReservationRepositoryInterface $reservationRepo = null,
+        int $maxDaysAhead = 30,
+        int $stepMinutes = 30,
+    ) {
+        $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
+        $this->productRepo = $productRepo ?? Container::make(ProductRepositoryInterface::class);
+        $this->reservationRepo = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
         $this->maxDaysAhead = $maxDaysAhead;
         $this->stepMinutes = $stepMinutes;
     }
 
     /**
-     * @param integer $cafeId
-     * @param integer $passId
-     * @param string  $dateYmd
-     * @param integer $guests
-     * @return Result
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
+    #[Override]
     public function getAvailableSlots(int $cafeId, int $passId, string $dateYmd, int $guests): Result
     {
-        // Validación básica
         if ($cafeId <= 0 || $passId <= 0 || $guests <= 0) {
             return Result::fail('Datos inválidos.', 'invalid_input');
         }
@@ -50,25 +61,24 @@ final class AvailabilityService
             ]);
         }
 
-        $cafe = $this->getCafe($cafeId);
+        $cafe = $this->cafeRepo->findById($cafeId);
         if (!$cafe) {
             return Result::fail('Café no encontrado.', 'cafe_not_found');
         }
-        if ((int) $cafe['is_active'] !== 1 || (int) $cafe['has_reservations'] !== 1) {
+        if (!$cafe->is_active || !$cafe->has_reservations) {
             return Result::fail('Este café no admite reservas.', 'cafe_not_reservable');
         }
 
-        $pass = $this->getPass($passId);
+        $pass = $this->productRepo->findById($passId);
         if (!$pass) {
             return Result::fail('Pase no encontrado.', 'pass_not_found');
         }
-        if ((int) $pass['is_active'] !== 1 || (string) $pass['product_type'] !== 'pass') {
+        if (!$pass->is_active || $pass->product_type !== 'pass') {
             return Result::fail('Pase no disponible.', 'pass_not_available');
         }
 
-        // Reglas pax
-        $min = (int) ($pass['min_pax'] ?? 1);
-        $max = $pass['max_pax'] !== null ? (int) $pass['max_pax'] : null;
+        $min = $pass->min_pax ?? 1;
+        $max = $pass->max_pax;
 
         if ($guests < $min) {
             return Result::fail("Este pase requiere al menos $min persona(s).", 'pax_not_allowed');
@@ -77,7 +87,6 @@ final class AvailabilityService
             return Result::fail("Este pase permite como máximo $max persona(s).", 'pax_not_allowed');
         }
 
-        // Validar compatibilidad pase/café (tipo y animal) para consistencia
         try {
             if (!$this->passMatchesCafe($pass, $cafe)) {
                 return Result::fail('Este pase no aplica a este café.', 'pass_not_allowed');
@@ -86,12 +95,12 @@ final class AvailabilityService
             return Result::fail('Configuración del pase inválida.', 'pass_config_invalid');
         }
 
-        $duration = (int) ($pass['duration_minutes'] ?? 0);
+        $duration = $pass->duration_minutes ?? 0;
         if ($duration <= 0) {
             return Result::fail('Duración de pase inválida.', 'pass_duration_invalid');
         }
 
-        $capacityMax = (int) $cafe['capacity_max'];
+        $capacityMax = $cafe->capacity_max;
         if ($capacityMax <= 0) {
             return Result::fail('Capacidad del café inválida.', 'cafe_capacity_invalid');
         }
@@ -99,12 +108,11 @@ final class AvailabilityService
             return Result::fail('Demasiadas personas para la capacidad del café.', 'capacity_exceeded');
         }
 
-        // Ventana opcional del pase
         $allowedStart = null;
         $allowedEnd = null;
 
         try {
-            $attrs = $this->safeJsonObject((string) ($pass['attributes'] ?? ''));
+            $attrs = $this->safeJsonObject((string) ($pass->attributes ?? ''));
             if (isset($attrs['allowed_start'])) {
                 $allowedStart = $this->timeToMinutes((string) $attrs['allowed_start']);
             }
@@ -115,13 +123,10 @@ final class AvailabilityService
             return Result::fail('Atributos del pase inválidos.', 'pass_config_invalid');
         }
 
-        $open = $this->timeToMinutes((string) $cafe['opening_time']);
-        $close = $this->timeToMinutes((string) $cafe['closing_time']);
-
-        // Primer slot: redondeo hacia arriba a múltiplo de step
+        $open = $this->timeToMinutes($cafe->opening_time);
+        $close = $this->timeToMinutes($cafe->closing_time);
         $first = (int) (\ceil($open / $this->stepMinutes) * $this->stepMinutes);
 
-        // Si es hoy (negocio), no devolver horas pasadas
         if ($daysAhead === 0) {
             $now = Time::nowBusiness();
             $nowMins = ((int) $now->format('H') * 60) + (int) $now->format('i');
@@ -131,12 +136,10 @@ final class AvailabilityService
             }
         }
 
-        // Reservas contables del día
-        $reservations = $this->getCountableReservationsForDay($cafeId, $dateYmd);
+        $reservations = $this->reservationRepo->findByCafeAndDate($cafeId, $dateYmd);
 
         $slots = [];
         for ($t = $first; ($t + $duration) <= $close; $t += $this->stepMinutes) {
-            // Ventana allowed_start/end
             if ($allowedStart !== null && $t < $allowedStart) {
                 continue;
             }
@@ -151,7 +154,6 @@ final class AvailabilityService
                 $resStart = $this->timeToMinutes((string) $r['reservation_time']);
                 $resEnd = $resStart + (int) $r['pass_duration_minutes'];
 
-                // solape: resStart < slotEnd AND resEnd > slotStart
                 if ($resStart < $slotEnd && $resEnd > $t) {
                     $occupied += (int) $r['guests'];
                     if (($occupied + $guests) > $capacityMax) {
@@ -178,15 +180,9 @@ final class AvailabilityService
     }
 
     /**
-     * Validación puntual para Reserva (anti-manipulación). Devuelve Result ok/fail.
-     * @param integer $cafeId
-     * @param integer $passId
-     * @param string  $dateYmd
-     * @param string  $timeHHMM
-     * @param integer $guests
-     * @return Result
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
+    #[Override]
     public function assertSlotAvailable(int $cafeId, int $passId, string $dateYmd, string $timeHHMM, int $guests): Result
     {
         if (!\preg_match('/^\d{2}:\d{2}$/', $timeHHMM)) {
@@ -206,68 +202,41 @@ final class AvailabilityService
         return Result::ok();
     }
 
-    private function getCafe(int $id): ?array
+    #[Override]
+    public function getAvailableCafesForReservation(): array
     {
-        $stmt = $this->db->prepare('
-            SELECT id, category, animal_type, opening_time, closing_time, capacity_max, is_active, has_reservations
-            FROM cafes
-            WHERE id = :id
-            LIMIT 1
-        ');
-        $stmt->execute(['id' => $id]);
-        $row = $stmt->fetch();
-
-        return $row ?: null;
+        return $this->cafeRepo->findAvailableForReservation();
     }
 
-    private function getPass(int $id): ?array
+    #[Override]
+    public function getAvailableCafesById(): array
     {
-        $stmt = $this->db->prepare('
-            SELECT id, product_type, is_active, duration_minutes, min_pax, max_pax,
-                   target_cafe_types, target_animal_types, attributes
-            FROM products
-            WHERE id = :id
-            LIMIT 1
-        ');
-        $stmt->execute(['id' => $id]);
-        $row = $stmt->fetch();
-
-        return $row ?: null;
+        return $this->cafeRepo->findAvailableForReservationById();
     }
 
-    private function getCountableReservationsForDay(int $cafeId, string $dateYmd): array
+    #[Override]
+    public function getAvailablePassesForReservation(): array
     {
-        $stmt = $this->db->prepare("
-            SELECT reservation_time, pass_duration_minutes, guests
-            FROM reservations
-            WHERE cafe_id = :cid
-              AND reservation_date = :d
-              AND status IN ('pending','confirmed','active')
-        ");
-        $stmt->execute(['cid' => $cafeId, 'd' => $dateYmd]);
-
-        return $stmt->fetchAll();
+        return $this->productRepo->findAvailablePasses();
     }
 
     /**
      * @throws JsonException
      */
-    private function passMatchesCafe(array $pass, array $cafe): bool
+    private function passMatchesCafe(ProductDTO $pass, CafeDTO $cafe): bool
     {
-        // Cafe types
-        $targetsRaw = $pass['target_cafe_types'] ?? null;
+        $targetsRaw = $pass->target_cafe_types;
         if ($targetsRaw !== null && $targetsRaw !== '') {
-            $targets = \json_decode((string) $targetsRaw, true, 512, JSON_THROW_ON_ERROR);
-            if (\is_array($targets) && !empty($targets) && !\in_array((string) $cafe['category'], $targets, true)) {
+            $targets = \json_decode($targetsRaw, true, 512, JSON_THROW_ON_ERROR);
+            if (\is_array($targets) && !empty($targets) && !\in_array($cafe->category, $targets, true)) {
                 return false;
             }
         }
 
-        // Animal types
-        $animalTargetsRaw = $pass['target_animal_types'] ?? null;
+        $animalTargetsRaw = $pass->target_animal_types;
         if ($animalTargetsRaw !== null && $animalTargetsRaw !== '') {
-            $animalTargets = \json_decode((string) $animalTargetsRaw, true, 512, JSON_THROW_ON_ERROR);
-            if (\is_array($animalTargets) && !empty($animalTargets) && !\in_array((string) $cafe['animal_type'], $animalTargets, true)) {
+            $animalTargets = \json_decode($animalTargetsRaw, true, 512, JSON_THROW_ON_ERROR);
+            if (\is_array($animalTargets) && !empty($animalTargets) && !\in_array($cafe->animal_type, $animalTargets, true)) {
                 return false;
             }
         }

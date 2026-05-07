@@ -1,84 +1,89 @@
 <?php
+
 /**
- * Partial: Filtros de usuarios
- *
- * Incluye búsqueda, filtro por estado y filtro por rol
+ * Partial: Filtros de usuarios (HDA — GET form, cero fetch de datos)
  */
 
 $roles ??= [];
+$currentParams ??= [];
+
+$currentSearch = (string) ($currentParams['search'] ?? '');
+$currentStatus = (string) ($currentParams['status'] ?? '');
+$currentRole = (string) ($currentParams['role'] ?? '');
 ?>
 
-<div class="filter-bar">
+<form method="GET" action="/admin/users" x-data class="filter-bar">
     <div class="filter-bar__row">
+
         <!-- Búsqueda -->
         <div class="filter-bar__search">
             <div class="search-input">
                 <i class="bi bi-search search-input__icon"></i>
                 <input
                     type="text"
+                    name="search"
                     class="form-control search-input__field"
-                    placeholder="Buscar por nombre, email o rol..."
-                    x-model.debounce.300ms="searchQuery"
-                    @input="currentPage = 1"
-                >
+                    placeholder="Buscar por nombre o email..."
+                    value="<?= htmlspecialchars($currentSearch, ENT_QUOTES, 'UTF-8') ?>"
+                    @input.debounce.500ms="$el.form.requestSubmit()">
             </div>
         </div>
 
-        <!-- Filtros -->
+        <!-- Filtro estado (preserva search + role) -->
         <div class="filter-bar__filters">
-            <!-- Filtro por estado -->
+            <?php
+            $mkStatusUrl = static function (string $val) use ($currentParams): string {
+                $p = array_merge($currentParams, ['page' => '1']);
+                if ($val === '') {
+                    unset($p['status']);
+                } else {
+                    $p['status'] = $val;
+                }
+
+                return '/admin/users?' . http_build_query($p);
+            };
+?>
+            <?php $active = ' filter-btn-group__btn--active'; ?>
             <div class="filter-btn-group">
-                <button
-                    type="button"
-                    class="filter-btn-group__btn"
-                    :class="{ 'filter-btn-group__btn--active': filterStatus === 'all' }"
-                    @click="filterStatus = 'all'; currentPage = 1"
-                >
-                    Todos
-                </button>
-                <button
-                    type="button"
-                    class="filter-btn-group__btn"
-                    :class="{ 'filter-btn-group__btn--active': filterStatus === 'active' }"
-                    @click="filterStatus = 'active'; currentPage = 1"
-                >
-                    Activos
-                </button>
-                <button
-                    type="button"
-                    class="filter-btn-group__btn"
-                    :class="{ 'filter-btn-group__btn--active': filterStatus === 'inactive' }"
-                    @click="filterStatus = 'inactive'; currentPage = 1"
-                >
-                    Inactivos
-                </button>
+                <a href="<?= htmlspecialchars($mkStatusUrl(''), ENT_QUOTES, 'UTF-8') ?>"
+                   class="filter-btn-group__btn<?= $currentStatus === '' ? $active : '' ?>">Todos</a>
+                <a href="<?= htmlspecialchars($mkStatusUrl('active'), ENT_QUOTES, 'UTF-8') ?>"
+                   class="filter-btn-group__btn<?= $currentStatus === 'active' ? $active : '' ?>">Activos</a>
+                <a href="<?= htmlspecialchars($mkStatusUrl('inactive'), ENT_QUOTES, 'UTF-8') ?>"
+                   class="filter-btn-group__btn<?= $currentStatus === 'inactive' ? $active : '' ?>">Inactivos</a>
             </div>
 
             <!-- Filtro por rol -->
             <select
+                name="role"
                 class="form-select"
                 style="min-width: 150px;"
-                x-model="filterRole"
-                @change="currentPage = 1"
-            >
+                @change="$el.form.requestSubmit()">
                 <option value="">Todos los roles</option>
-                <template x-for="role in availableRoles" :key="role.id">
-                    <option :value="role.code" x-text="role.name"></option>
-                </template>
+                <?php foreach ($roles as $r): ?>
+                <option
+                    value="<?= htmlspecialchars((string) $r['code'], ENT_QUOTES, 'UTF-8') ?>"
+                    <?= $currentRole === $r['code'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars((string) $r['name'], ENT_QUOTES, 'UTF-8') ?>
+                </option>
+                <?php endforeach; ?>
             </select>
+
+            <!-- Preservar sort/dir como hidden inputs -->
+            <?php if (!empty($currentParams['sort'])): ?>
+            <input type="hidden" name="sort" value="<?= htmlspecialchars($currentParams['sort'], ENT_QUOTES, 'UTF-8') ?>">
+            <input type="hidden" name="dir"  value="<?= htmlspecialchars($currentParams['dir'] ?? 'asc', ENT_QUOTES, 'UTF-8') ?>">
+            <?php endif; ?>
         </div>
 
-        <!-- Acciones -->
+        <!-- Limpiar (zero JS) -->
         <div class="filter-bar__actions">
-            <button
-                type="button"
-                class="btn btn-outline-secondary"
-                x-show="searchQuery || filterStatus !== 'all' || filterRole"
-                @click="searchQuery = ''; filterStatus = 'all'; filterRole = ''; currentPage = 1"
-            >
+            <?php if ($currentSearch !== '' || $currentStatus !== '' || $currentRole !== ''): ?>
+            <a href="/admin/users" class="btn btn-outline-secondary">
                 <i class="bi bi-x-lg me-1"></i>
                 Limpiar
-            </button>
+            </a>
+            <?php endif; ?>
         </div>
     </div>
-</div>
+</form>

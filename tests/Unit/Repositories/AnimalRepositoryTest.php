@@ -2,17 +2,20 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * ¿Qué me quieres demostrar?
  * ¿Qué va a fallar en este test si se cambia el código?
  */
+
 namespace Repositories;
 
+use App\Domain\DTO\AnimalDTO;
+use App\Domain\Mappers\AnimalMapper;
 use App\Repositories\AnimalRepository;
 use PDO;
 use PDOStatement;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,16 +23,18 @@ use PHPUnit\Framework\TestCase;
  *
  * Verifica acceso a datos de animales con prepared statements
  */
+#[CoversClass(AnimalRepository::class)]
 final class AnimalRepositoryTest extends TestCase
 {
     private AnimalRepository $repository;
 
+    /** @var \PHPUnit\Framework\MockObject\Stub&PDO */
     private PDO $db;
 
     protected function setUp(): void
     {
         $this->db = $this->createStub(PDO::class);
-        $this->repository = new AnimalRepository($this->db);
+        $this->repository = new AnimalRepository(new AnimalMapper(), $this->db);
     }
 
     protected function tearDown(): void
@@ -59,9 +64,9 @@ final class AnimalRepositoryTest extends TestCase
 
         $result = $this->repository->findById(1);
 
-        $this->assertIsArray($result);
-        $this->assertSame(1, $result['id']);
-        $this->assertSame('Luna', $result['name']);
+        $this->assertInstanceOf(AnimalDTO::class, $result);
+        $this->assertSame(1, $result->id);
+        $this->assertSame('Luna', $result->name);
     }
 
     public function testFindByIdReturnsNullWhenNotFound(): void
@@ -163,7 +168,7 @@ final class AnimalRepositoryTest extends TestCase
 
         $this->db->method('prepare')->willReturn($stmt);
 
-        $result = $this->repository->isResting(1, '2026-02-20', '14:00:00');
+        $result = $this->repository->isResting(1);
 
         $this->assertTrue($result);
     }
@@ -179,7 +184,7 @@ final class AnimalRepositoryTest extends TestCase
 
         $this->db->method('prepare')->willReturn($stmt);
 
-        $result = $this->repository->isResting(1, '2026-02-20', '14:00:00');
+        $result = $this->repository->isResting(1);
 
         $this->assertFalse($result);
     }

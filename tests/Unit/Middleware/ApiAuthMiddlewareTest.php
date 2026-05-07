@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * ¿Qué pruebas aquí?
  * Tests unitarios del middleware ApiAuthMiddleware.
@@ -24,7 +23,7 @@ use App\Core\Http\ResponseFactory;
 use App\Core\Result;
 use App\Http\Middleware\ApiAuthMiddleware;
 use App\Services\Contracts\ApiTokenServiceInterface;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -33,24 +32,23 @@ use Psr\Http\Server\RequestHandlerInterface;
 /**
  * Tests para ApiAuthMiddleware (autenticación Bearer + sesión)
  */
-#[AllowMockObjectsWithoutExpectations]
+#[CoversClass(ApiAuthMiddleware::class)]
 final class ApiAuthMiddlewareTest extends TestCase
 {
     private ResponseFactory $responseFactory;
+    /** @var \PHPUnit\Framework\MockObject\Stub&ServerRequestInterface */
     private ServerRequestInterface $request;
-    private RequestHandlerInterface $handler;
 
     protected function setUp(): void
     {
         $this->responseFactory = new ResponseFactory();
-        $this->request         = $this->createMock(ServerRequestInterface::class);
-        $this->handler         = $this->createMock(RequestHandlerInterface::class);
+        $this->request = $this->createStub(ServerRequestInterface::class);
     }
 
     protected function tearDown(): void
     {
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_destroy();
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            \session_destroy();
         }
     }
 
@@ -65,10 +63,10 @@ final class ApiAuthMiddlewareTest extends TestCase
 
     private function mockHandlerReturning(int $status = 200): RequestHandlerInterface
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn($status);
 
-        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler = $this->createStub(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn($response);
 
         return $handler;
@@ -81,24 +79,23 @@ final class ApiAuthMiddlewareTest extends TestCase
     public function testValidBearerSetsAttributesAndDelegatesToHandler(): void
     {
         $tokenData = [
-            'user_id'    => 7,
-            'user'       => ['id' => 7, 'name' => 'Test', 'is_active' => 1],
+            'user_id' => 7,
+            'user' => ['id' => 7, 'name' => 'Test', 'is_active' => 1],
             'user_roles' => ['admin'],
-            'token_id'   => 1,
+            'token_id' => 1,
         ];
 
-        $tokenService = $this->createMock(ApiTokenServiceInterface::class);
+        $tokenService = $this->createStub(ApiTokenServiceInterface::class);
         $tokenService->method('validate')
             ->willReturn(Result::ok($tokenData));
 
         $this->request->method('getHeaderLine')
-            ->with('Authorization')
             ->willReturn('Bearer abc123');
 
         // withAttribute() retorna la misma instancia (fluent)
         $this->request->method('withAttribute')->willReturnSelf();
 
-        $handler  = $this->mockHandlerReturning(200);
+        $handler = $this->mockHandlerReturning(200);
         $response = $this->buildMiddleware($tokenService)->process($this->request, $handler);
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
@@ -106,12 +103,11 @@ final class ApiAuthMiddlewareTest extends TestCase
 
     public function testInvalidBearerReturns401WithoutCallingHandler(): void
     {
-        $tokenService = $this->createMock(ApiTokenServiceInterface::class);
+        $tokenService = $this->createStub(ApiTokenServiceInterface::class);
         $tokenService->method('validate')
             ->willReturn(Result::fail('Token expirado.', 'invalid_token'));
 
         $this->request->method('getHeaderLine')
-            ->with('Authorization')
             ->willReturn('Bearer badtoken');
 
         $handler = $this->createMock(RequestHandlerInterface::class);
@@ -126,7 +122,6 @@ final class ApiAuthMiddlewareTest extends TestCase
     {
         // Si no hay ApiTokenService inyectado y llega un Bearer header, 401.
         $this->request->method('getHeaderLine')
-            ->with('Authorization')
             ->willReturn('Bearer sometoken');
 
         $handler = $this->createMock(RequestHandlerInterface::class);
@@ -145,18 +140,51 @@ final class ApiAuthMiddlewareTest extends TestCase
     public function testWithoutBearerAndNoSessionReturns401(): void
     {
         $this->request->method('getHeaderLine')
-            ->with('Authorization')
             ->willReturn('');
 
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
         }
         // Sin user_id en sesión
         unset($_SESSION['user_id']);
 
-        $handler  = $this->createMock(RequestHandlerInterface::class);
+        $handler = $this->createStub(RequestHandlerInterface::class);
         $response = $this->buildMiddleware()->process($this->request, $handler);
 
         $this->assertSame(401, $response->getStatusCode());
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Bearer path sets auth_method attribute
+    // ─────────────────────────────────────────────────────────────
+
+    public function testValidBearerSetsAuthMethodAttribute(): void
+    {
+        $tokenData = [
+            'user_id' => 3,
+            'user' => ['id' => 3, 'name' => 'Ana', 'is_active' => 1],
+            'user_roles' => ['user'],
+            'token_id' => 5,
+        ];
+
+        $tokenService = $this->createStub(ApiTokenServiceInterface::class);
+        $tokenService->method('validate')->willReturn(Result::ok($tokenData));
+
+        $this->request->method('getHeaderLine')->willReturn('Bearer tok');
+
+        $capturedAttributes = [];
+        $this->request->method('withAttribute')->willReturnCallback(
+            function (string $key, mixed $value) use (&$capturedAttributes): ServerRequestInterface {
+                $capturedAttributes[$key] = $value;
+
+                return $this->request;
+            }
+        );
+
+        $handler = $this->mockHandlerReturning(200);
+        $this->buildMiddleware($tokenService)->process($this->request, $handler);
+
+        $this->assertArrayHasKey('auth_method', $capturedAttributes);
+        $this->assertSame('bearer', $capturedAttributes['auth_method']);
     }
 }

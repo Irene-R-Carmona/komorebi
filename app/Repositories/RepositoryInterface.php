@@ -16,9 +16,9 @@ interface RepositoryInterface
      * Buscar un registro por su ID.
      *
      * @param int $id
-     * @return array|null Array asociativo con los datos o null si no existe
+     * @return mixed Array asociativo, DTO, u null si no existe
      */
-    public function findById(int $id): ?array;
+    public function findById(int $id): mixed;
 
     /**
      * Obtener todos los registros.
