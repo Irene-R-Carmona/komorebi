@@ -44,3 +44,17 @@ restartPolicyMaxRetries = 3
 # Si SKIP_MIGRATIONS no está definida, el entrypoint también las ejecutaría (innecesario).
 #   SKIP_MIGRATIONS=1
 #   MERCURE_JWT_SECRET=genera-con-openssl-rand-base64-32
+#   CLOUDINARY_CLOUD_NAME=tu_cloud_name
+#   CLOUDINARY_API_KEY=tu_api_key
+#   CLOUDINARY_API_SECRET=tu_api_secret
+#   SENTRY_DSN=https://xxx@oXX.ingest.sentry.io/xxx
+#   APP_VERSION=1.0.0
+#   APP_HTTPS=true
+#   SESSION_SECURE=true
+#   MAIL_HOST=smtp.resend.com
+#   MAIL_PORT=587
+#   MAIL_USERNAME=resend
+#   MAIL_PASSWORD=re_xxxxxxxxxxxx     # API key de Resend
+#   MAIL_FROM=no-reply@tu-dominio.com
+#   MAIL_FROM_NAME=Komorebi Café
+#   MAIL_ENCRYPTION=tls
