@@ -31,7 +31,6 @@ $renderView = static function (string $template, array $data = [], array $styles
     return $responseFactory->html($content);
 };
 
-
 $router->get('/', 'Public\HomeController@index');
 $router->get('/cafes', 'Public\CafeController@index');
 $router->get('/cafes/{slug}', 'Public\CafeController@show');
@@ -40,12 +39,10 @@ $router->get('/quiz', 'Public\QuizController@index');
 $router->get('/quiz/resultado', 'Public\QuizController@resultadoGet');
 $router->post('/quiz/resultado', 'Public\QuizController@resultado', [$mw->csrf()]);
 
-// Páginas estáticas
 $router->get('/historia', 'Public\PageController@historia');
 $router->get('/faq', 'Public\PageController@faq');
 $router->get('/contacto', 'Public\PageController@contacto');
 
-// Páginas legales
 $router->get('/legal/privacidad', function () use ($renderView) {
     return $renderView('legal/privacy', ['titulo' => 'Política de Privacidad'], ['static-pages.css']);
 });
@@ -58,15 +55,12 @@ $router->get('/legal/terminos', function () use ($renderView) {
     return $renderView('legal/terms', ['titulo' => 'Términos y Condiciones'], ['static-pages.css']);
 });
 
-// Newsletter
 $router->get('/newsletter/verify', 'Public\NewsletterController@verify');
 $router->get('/newsletter/unsubscribe', 'Public\NewsletterController@unsubscribe');
 
-// Reservas públicas
 $router->get('/reservar', 'Shared\ReservationController@index');
 $router->get('/reservas', 'Shared\ReservationController@index');
 
-// API pública — todas bajo /api/v1/
 $router->group(['prefix' => '/api/v1', 'middleware' => [$mw->requestLog(), $mw->cors(), $mw->rateLimit('api_public')]], function (Router $r): void {
     $r->get('/menu/alergenos', 'Api\V1\MenuController@allergens');
     $r->get('/menu/productos', 'Api\V1\MenuController@products');
@@ -81,18 +75,15 @@ $router->group(['prefix' => '/api/v1', 'middleware' => [$mw->requestLog(), $mw->
     $r->get('/waitlists/{token}', 'Api\V1\WaitlistController@position');
     $r->post('/waitlists/{token}/confirmations', 'Api\V1\WaitlistController@confirm');
 
-    // Cafés y pases (FASE 2) — cacheables públicamente
     $r->get('/cafes', 'Api\V1\CafeController@index');
     $r->get('/cafes/{slug}', 'Api\V1\CafeController@show');
     $r->get('/passes', 'Api\V1\PassController@index');
 });
 
-// Waitlist Views
 $router->get('/waitlist/status/{token}', 'Public\WaitlistViewController@status');
 $router->get('/waitlist/confirm/{token}', 'Public\WaitlistViewController@confirmView');
 $router->post('/waitlist/confirm/{token}', 'Public\WaitlistViewController@confirmSubmit', [$mw->csrf()]);
 
-// Cookies API, cart guest y newsletter — todos bajo /api/v1/
 $router->group(['prefix' => '/api/v1', 'middleware' => [$mw->requestLog()]], function (Router $r): void {
     $r->patch('/cookies', 'Api\V1\CookieController@consent');
     $r->get('/cookies/filters', 'Api\V1\CookieController@getFilters');
@@ -185,7 +176,6 @@ $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw,
     $r->post('/account/change-password', 'Auth\AccountController@changePassword', [$mw->csrf()]);
     $r->post('/account/delete', 'Auth\AccountController@deleteAccount', [$mw->csrf()]);
 
-    // Avatar upload/delete
     $r->post('/account/avatar/upload', 'Shared\UserController@uploadAvatar', [$mw->csrf()]);
     $r->post('/account/avatar/delete', 'Shared\UserController@deleteAvatar', [$mw->csrf()]);
 
@@ -229,13 +219,11 @@ $router->group(['prefix' => '/api/v1', 'middleware' => $apiAuthMiddleware], func
     // Waitlist join — requiere autenticación para evitar IDOR con user_id (S1-02)
     $r->post('/waitlists', 'Api\V1\WaitlistController@join', [$mw->csrf()]);
 
-    // Perfil de usuario (FASE 2)
     $r->get('/user/profile', 'Api\V1\UserController@profile');
     $r->get('/user/stats', 'Api\V1\UserController@stats');
     $r->get('/user/reviews', 'Api\V1\UserController@reviews');
     $r->get('/user/avatar-options', 'Api\V1\UserController@avatarOptions');
 
-    // Reseñas (FASE 2)
     $r->post('/reviews', 'Api\V1\ReviewController@create', [$mw->csrf()]);
     $r->put('/reviews/{id}', 'Api\V1\ReviewController@update', [$mw->csrf()]);
     $r->delete('/reviews/{id}', 'Api\V1\ReviewController@delete', [$mw->csrf()]);
@@ -300,17 +288,14 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->get('/reservations', 'Manager\ReservationController@index');
         $r->get('/reviews', 'Manager\ReviewController@index');
 
-        // Staff Management — vistas web (GETs)
         $r->get('/staff', 'Manager\StaffController@index', [$mw->ownsCafe()]);
         $r->get('/staff/{id:\d+}', 'Manager\StaffController@show', [$mw->ownsCafe()]);
 
         $r->get('/reports', 'Manager\ReportController@index');
         $r->get('/reports/export', 'Manager\ReportController@exportReportes');
 
-        // Café Management — vista web (GET)
         $r->get('/cafe', 'Manager\CafeController@show', [$mw->ownsCafe()]);
 
-        // Gestión de productos del café — vista web (GET)
         $r->get('/products', 'Manager\ProductController@index', [$mw->ownsCafe()]);
     });
 
@@ -322,37 +307,30 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->post('/assignments', 'Supervisor\SupervisorController@createAssignment', [$mw->csrf()]);
     });
 
-    // API Manager - Dashboard
     $router->get('/api/v1/manager/stats', 'Api\V1\ManagerController@stats', [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager'])]);
     $router->get('/api/v1/manager/revenue/weekly', 'Api\V1\ManagerController@weeklyRevenue', [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager'])]);
     $router->get('/api/v1/manager/animals/top', 'Api\V1\ManagerController@topAnimals', [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager'])]);
     $router->get('/api/v1/manager/reservations/status', 'Api\V1\ManagerController@reservationStatus', [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager'])]);
 
-    // API Manager — mutaciones AJAX (FASE 4C)
     /** @var array<int, MiddlewareInterface> $managerApiMiddleware */
     $managerApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager'])];
     $router->group(['prefix' => '/api/v1/manager', 'middleware' => $managerApiMiddleware], function (Router $r) use ($mw): void {
-        // Café
         $r->put('/cafe/capacity', 'Manager\CafeController@updateCapacity', [$mw->csrf(), $mw->ownsCafe()]);
         $r->put('/cafe/schedule', 'Manager\CafeController@updateSchedule', [$mw->csrf(), $mw->ownsCafe()]);
         $r->put('/cafe/settings', 'Manager\CafeController@updateSettings', [$mw->csrf(), $mw->ownsCafe()]);
-        // Products
         $r->post('/products', 'Manager\ProductController@create', [$mw->csrf(), $mw->ownsCafe()]);
         $r->put('/products/{id}', 'Manager\ProductController@update', [$mw->csrf(), $mw->ownsCafe()]);
         $r->patch('/products/{id}/toggle', 'Manager\ProductController@toggleAvailability', [$mw->csrf(), $mw->ownsCafe()]);
         $r->delete('/products/{id}', 'Manager\ProductController@delete', [$mw->csrf(), $mw->ownsCafe()]);
-        // Staff mutations
         $r->post('/staff/assign-shift', 'Manager\StaffController@assignShift', [$mw->csrf(), $mw->ownsCafe()]);
         $r->put('/staff/shifts/{id}', 'Manager\StaffController@updateShift', [$mw->csrf(), $mw->ownsCafe()]);
         $r->delete('/staff/shifts/{id}', 'Manager\StaffController@deleteShift', [$mw->csrf(), $mw->ownsCafe()]);
         $r->post('/staff/edit-permissions', 'Api\V1\Manager\StaffApiController@editPermissions', [$mw->csrf(), $mw->ownsCafe()]);
         $r->get('/staff/performance/{id}', 'Manager\StaffController@viewPerformance', [$mw->ownsCafe()]);
-        // Reviews
         $r->post('/reviews/{id}/approve', 'Api\V1\Admin\ReviewApiController@approve', [$mw->csrf()]);
         $r->post('/reviews/{id}/reject', 'Api\V1\Admin\ReviewApiController@reject', [$mw->csrf()]);
     });
 
-    // API Supervisor
     $router->post('/api/v1/supervisor/assignments', 'Api\V1\SupervisorController@assign', [$mw->cors(), $mw->apiAuth(), $mw->csrf()]);
     $router->get('/api/v1/supervisor/assignments', 'Api\V1\SupervisorController@list', [$mw->cors(), $mw->apiAuth()]);
 
@@ -369,19 +347,16 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
     /** @var array<int, MiddlewareInterface> $adminApiMiddleware */
     $adminApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin'])];
     $router->group(['prefix' => '/api/v1/admin', 'middleware' => $adminApiMiddleware], function (Router $r) use ($mw): void {
-        // Users
         $r->post('/users', 'Api\V1\Admin\UserApiController@create', [$mw->csrf()]);
         $r->put('/users/{id}', 'Api\V1\Admin\UserApiController@update', [$mw->csrf()]);
         $r->delete('/users/{id}', 'Api\V1\Admin\UserApiController@delete', [$mw->csrf()]);
         $r->patch('/users/{id}/status', 'Api\V1\Admin\UserApiController@toggleActive', [$mw->csrf()]);
 
-        // Cafes
         $r->post('/cafes', 'Api\V1\Admin\CafeApiController@create', [$mw->csrf()]);
         $r->put('/cafes/{id}', 'Api\V1\Admin\CafeApiController@update', [$mw->csrf()]);
         $r->delete('/cafes/{id}', 'Api\V1\Admin\CafeApiController@delete', [$mw->csrf()]);
         $r->patch('/cafes/{id}/status', 'Api\V1\Admin\CafeApiController@toggleStatus', [$mw->csrf()]);
 
-        // Menu / Products
         $r->post('/menu', 'Api\V1\Admin\MenuApiController@create', [$mw->csrf()]);
         $r->put('/menu/{id}', 'Api\V1\Admin\MenuApiController@update', [$mw->csrf()]);
         $r->delete('/menu/{id}', 'Api\V1\Admin\MenuApiController@delete', [$mw->csrf()]);
@@ -392,11 +367,9 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->post('/reviews/{id}/reject', 'Api\V1\Admin\ReviewApiController@reject', [$mw->csrf()]);
         $r->delete('/reviews/{id}', 'Api\V1\Admin\ReviewApiController@delete', [$mw->csrf()]);
 
-        // Reservations
         $r->post('/reservations/{id}/confirm', 'Api\V1\Admin\ReservationApiController@confirm', [$mw->csrf()]);
         $r->post('/reservations/{id}/cancel', 'Api\V1\Admin\ReservationApiController@cancel', [$mw->csrf()]);
 
-        // Settings
         $r->get('/settings', 'Api\V1\Admin\SystemApiController@getSettingsData');
         $r->put('/settings/{group}', 'Api\V1\Admin\SystemApiController@updateSettingsGroup', [$mw->csrf()]);
         $r->post('/settings/test-email', 'Api\V1\Admin\SystemApiController@testEmail', [$mw->csrf()]);
@@ -410,15 +383,12 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->get('/logs/auth/suspicious-count', 'Api\V1\Admin\LogApiController@authSuspiciousCount');
         $r->get('/logs/auth/export', 'Api\V1\Admin\LogApiController@authExport');
 
-        // Cache & Security
         $r->post('/cache/clear', 'Api\V1\Admin\SystemApiController@clearCache', [$mw->csrf()]);
         $r->post('/security/block-ip', 'Api\V1\Admin\LogApiController@blockIp', [$mw->csrf()]);
 
-        // Newsletter
         $r->delete('/newsletter/subscribers/{email}', 'Api\V1\Admin\NewsletterApiController@delete', [$mw->csrf()]);
         $r->get('/newsletter/export', 'Api\V1\Admin\NewsletterApiController@export');
 
-        // Loyalty
         $r->get('/loyalty/stats', 'Api\V1\Admin\LoyaltyApiController@stats');
         $r->get('/loyalty/cards', 'Api\V1\Admin\LoyaltyApiController@cards');
         $r->get('/loyalty/catalog', 'Api\V1\Admin\LoyaltyApiController@catalog');
@@ -444,7 +414,6 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
         $r->get('/orders', 'Kitchen\KitchenController@activeOrders');
     });
 
-    // API Ops — Reception + Kitchen (FASE 4D)
     /** @var array<int, MiddlewareInterface> $opsReceptionApiMiddleware */
     $opsReceptionApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager', 'supervisor', 'reception'])];
     $router->group(['prefix' => '/api/v1/ops/reception', 'middleware' => $opsReceptionApiMiddleware], function (Router $r) use ($mw): void {
@@ -494,11 +463,9 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
         $r->post('/incidents/{id}', 'Keeper\AnimalIncidentController@update', [$mw->csrf()]);
         $r->post('/incidents/{incidentId}/resolve', 'Keeper\AnimalIncidentController@resolve', [$mw->csrf()]);
 
-        // Turnos del keeper
         $r->get('/schedule', 'Keeper\ScheduleController@index');
     });
 
-    // API Keeper — mutaciones AJAX (FASE 4B)
     /** @var array<int, MiddlewareInterface> $keeperApiMiddleware */
     $keeperApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'keeper'])];
     $router->group(['prefix' => '/api/v1/keeper', 'middleware' => $keeperApiMiddleware], function (Router $r) use ($mw): void {
