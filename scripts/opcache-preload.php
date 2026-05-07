@@ -36,6 +36,6 @@ $coreFiles = [
 
 foreach ($coreFiles as $file) {
     if (file_exists($file)) {
-        opcache_compile_file($file);
+        require_once $file;
     }
 }

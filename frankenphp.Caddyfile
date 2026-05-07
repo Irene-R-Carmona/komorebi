@@ -12,7 +12,7 @@
 	}
 }
 
-:80 {
+:{$PORT:80} {
 	# HTTP → HTTPS redirect when Railway terminates TLS upstream
 	@http {
 		header X-Forwarded-Proto http
