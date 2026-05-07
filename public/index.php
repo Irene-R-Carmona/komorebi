@@ -24,7 +24,7 @@ declare(strict_types=1);
 $env = $_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? getenv('APP_ENV') ?: 'production';
 $isProduction = $env === 'production';
 
-error_reporting($isProduction ? E_ALL & ~E_DEPRECATED & ~E_STRICT : E_ALL);
+error_reporting($isProduction ? E_ALL & ~E_DEPRECATED : E_ALL);
 ini_set('display_errors', $isProduction ? '0' : '1');
 ini_set('display_startup_errors', $isProduction ? '0' : '1');
 ini_set('log_errors', '1');
