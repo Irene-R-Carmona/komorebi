@@ -2,6 +2,11 @@
 	admin localhost:2019
 	metrics
 
+	servers {
+		# Railway actúa como reverse proxy: confiar en headers X-Forwarded-* de rangos privados
+		trusted_proxies static private_ranges
+	}
+
 	frankenphp {
 		max_threads auto
 	}
@@ -60,6 +65,10 @@
 
 	root * /app/public
 	php_server {
+		# /app/public no es un symlink en Docker — evitar la llamada de stat extra por request
+		resolve_root_symlink false
+		# Evitar búsqueda de directory index — sólo path o index.php
+		try_files {path} index.php
 		# Pool dedicado para admin: operaciones pesadas, reportes, CRUD
 		worker /app/public/index.php {
 			match /admin/*
