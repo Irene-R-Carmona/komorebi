@@ -15,7 +15,8 @@ final class AdminStatisticsService implements AdminStatisticsServiceInterface
 {
     public function __construct(
         private readonly StatisticsRepositoryInterface $statsRepo
-    ) {}
+    ) {
+    }
 
     #[Override]
     public function getSystemStatistics(): Result

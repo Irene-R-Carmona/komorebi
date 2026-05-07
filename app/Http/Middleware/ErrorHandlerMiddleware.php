@@ -26,8 +26,7 @@ final class ErrorHandlerMiddleware implements MiddlewareInterface
     public function __construct(
         private readonly ExceptionRendererRegistry $registry,
         private readonly ResponseFactory $response,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface

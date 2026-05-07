@@ -9,7 +9,7 @@ use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\AbstractApiController;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Services\Contracts\AnimalCareServiceInterface;
-use App\Services\Contracts\FileUploadServiceInterface;
+use App\Services\Contracts\FileStorageServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
@@ -17,18 +17,18 @@ use Psr\Http\Message\UploadedFileInterface;
 final class KeeperApiController extends AbstractApiController
 {
     private AnimalCareServiceInterface $animalCareService;
-    private FileUploadServiceInterface $fileUploadService;
+    private FileStorageServiceInterface $fileStorageService;
     private AnimalRepositoryInterface $animalRepository;
 
     public function __construct(
         ?ResponseFactory $response = null,
         ?AnimalCareServiceInterface $animalCareService = null,
-        ?FileUploadServiceInterface $fileUploadService = null,
+        ?FileStorageServiceInterface $fileStorageService = null,
         ?AnimalRepositoryInterface $animalRepository = null,
     ) {
         parent::__construct($response ?? new ResponseFactory());
         $this->animalCareService = $animalCareService ?? Container::make(AnimalCareServiceInterface::class);
-        $this->fileUploadService = $fileUploadService ?? Container::make(FileUploadServiceInterface::class);
+        $this->fileStorageService = $fileStorageService ?? Container::make(FileStorageServiceInterface::class);
         $this->animalRepository = $animalRepository ?? Container::make(AnimalRepositoryInterface::class);
     }
 
@@ -54,15 +54,18 @@ final class KeeperApiController extends AbstractApiController
             return $this->badRequest('No se recibió ningún archivo válido');
         }
 
-        $fileArray = [
-            'error' => $uploadedFile->getError(),
-            'tmp_name' => (string) ($uploadedFile->getStream()->getMetadata('uri') ?? ''),
-            'name' => $uploadedFile->getClientFilename() ?? '',
-            'size' => $uploadedFile->getSize() ?? 0,
-            'type' => $uploadedFile->getClientMediaType() ?? '',
-        ];
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        $mimeType = $uploadedFile->getClientMediaType() ?? '';
+        if (!\in_array($mimeType, $allowedMimes, true)) {
+            return $this->badRequest('Tipo de archivo no permitido. Solo imágenes JPEG, PNG, WEBP o GIF.');
+        }
 
-        $result = $this->fileUploadService->uploadAnimalPhoto($fileArray, $animalId);
+        $tmpPath = (string) ($uploadedFile->getStream()->getMetadata('uri') ?? '');
+        if ($tmpPath === '') {
+            return $this->badRequest('No se pudo leer el archivo subido');
+        }
+
+        $result = $this->fileStorageService->uploadImage($tmpPath, 'animals', "animal_{$animalId}");
         if (!$result->ok) {
             return $this->badRequest($result->error ?? 'Error al subir archivo');
         }

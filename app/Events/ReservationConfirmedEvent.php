@@ -6,9 +6,6 @@ namespace App\Events;
 
 use DateTimeImmutable;
 
-/**
- * Evento disparado cuando se confirma una reserva.
- */
 final readonly class ReservationConfirmedEvent
 {
     public function __construct(
@@ -19,6 +16,5 @@ final readonly class ReservationConfirmedEvent
         public string $time,
         public int $guests,
         public DateTimeImmutable $confirmedAt
-    ) {
-    }
+    ) {}
 }

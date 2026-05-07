@@ -19,7 +19,9 @@ use Throwable;
  */
 final class StaffShiftService implements StaffShiftServiceInterface
 {
-    public function __construct(private readonly StaffShiftRepositoryInterface $repo) {}
+    public function __construct(private readonly StaffShiftRepositoryInterface $repo)
+    {
+    }
 
     /**
      * Obtiene los turnos de un café para la semana indicada por `$weekOffset` (0 = semana actual).

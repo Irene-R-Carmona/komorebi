@@ -6,9 +6,6 @@ namespace App\Events;
 
 use DateTimeImmutable;
 
-/**
- * Evento disparado cuando se publica una review.
- */
 final readonly class ReviewPublishedEvent
 {
     public function __construct(
@@ -17,6 +14,5 @@ final readonly class ReviewPublishedEvent
         public int $rating,
         public string $comment,
         public DateTimeImmutable $publishedAt
-    ) {
-    }
+    ) {}
 }

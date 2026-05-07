@@ -29,8 +29,7 @@ final class ApiAuthMiddleware implements MiddlewareInterface
     public function __construct(
         private readonly ResponseFactory $response,
         private readonly ?ApiTokenServiceInterface $tokenService = null,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function process(

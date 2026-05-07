@@ -39,7 +39,16 @@ if (
     ($dsn = ($_ENV['SENTRY_DSN'] ?? $_SERVER['SENTRY_DSN'] ?? getenv('SENTRY_DSN') ?: ''))
     && function_exists('\Sentry\init')
 ) {
-    \Sentry\init(['dsn' => $dsn, 'environment' => $env]);
+    \Sentry\init([
+        'dsn' => $dsn,
+        'environment' => $env,
+        'release' => \App\Core\Env::get('APP_VERSION', 'unknown'),
+        'traces_sample_rate' => 0.1,
+        'profiles_sample_rate' => 0.1,
+        'enable_logs' => true,
+        'send_default_pii' => false,
+        'in_app_include' => ['app/'],
+    ]);
 }
 
 use App\Core\Config;

@@ -50,6 +50,19 @@ final class Session
         if (\headers_sent()) {
             // La superglobal ya fue inicializada al inicio de start()
         } else {
+            // Configurar Redis como session handler si SESSION_DRIVER=redis
+            if (Env::get('SESSION_DRIVER', 'file') === 'redis') {
+                $redisHost = Env::get('REDIS_HOST', '127.0.0.1');
+                $redisPort = Env::int('REDIS_PORT', 6379);
+                $redisPass = Env::get('REDIS_PASSWORD', '');
+                $sessionTtl = Env::int('SESSION_LIFETIME', 7200);
+                $savePath = "tcp://{$redisHost}:{$redisPort}?database=1&lifetime={$sessionTtl}";
+                if ($redisPass !== '') {
+                    $savePath .= "&auth={$redisPass}";
+                }
+                \ini_set('session.save_handler', 'redis');
+                \ini_set('session.save_path', $savePath);
+            }
             // En entornos normales (web/server) configuramos cookies y arrancamos
             \session_set_cookie_params([
                 'lifetime' => 0,                              // Hasta cerrar navegador

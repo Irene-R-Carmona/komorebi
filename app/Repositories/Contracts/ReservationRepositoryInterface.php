@@ -75,6 +75,11 @@ interface ReservationRepositoryInterface
     public function updateStatus(int $id, string $status): bool;
 
     /**
+     * Guardar la URL pública del PDF de factura en Cloudinary.
+     */
+    public function updateInvoicePdfUrl(int $id, string $url): bool;
+
+    /**
      * Buscar reservas activas de un usuario
      *
      * @param int $userId

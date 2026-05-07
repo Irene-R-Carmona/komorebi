@@ -19,6 +19,7 @@ use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\FileStorageServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
@@ -43,6 +44,7 @@ final class ReservationService implements ReservationServiceInterface
     // Servicios adicionales
     private InvoicePDFServiceInterface $invoiceService;
     private EmailServiceInterface $emailService;
+    private ?FileStorageServiceInterface $fileStorage;
     private ?EventDispatcherInterface $eventDispatcher;
     private ?UserProfileServiceInterface $userProfileService;
 
@@ -53,7 +55,8 @@ final class ReservationService implements ReservationServiceInterface
         InvoicePDFServiceInterface $invoiceService,
         EmailServiceInterface $emailService,
         ?EventDispatcherInterface $eventDispatcher = null,
-        ?UserProfileServiceInterface $userProfileService = null
+        ?UserProfileServiceInterface $userProfileService = null,
+        ?FileStorageServiceInterface $fileStorage = null
     ) {
         $this->reservationRepo = $reservationRepo;
         $this->cafeRepo = $cafeRepo;
@@ -62,6 +65,7 @@ final class ReservationService implements ReservationServiceInterface
         $this->emailService = $emailService;
         $this->eventDispatcher = $eventDispatcher;
         $this->userProfileService = $userProfileService;
+        $this->fileStorage = $fileStorage;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -592,8 +596,9 @@ final class ReservationService implements ReservationServiceInterface
 
             // Generar PDF
             $pdfPath = $this->invoiceService->generateReservationInvoice($reservation, $user);
+            $reservationId = (int) ($reservation['id'] ?? 0);
 
-            // Enviar email con PDF adjunto
+            // Enviar email con PDF adjunto (primero, mientras el archivo local existe)
             $this->emailService->sendReservationConfirmation(
                 $user['email'],
                 $user['name'],
@@ -601,10 +606,27 @@ final class ReservationService implements ReservationServiceInterface
                 $pdfPath
             );
 
+            // Subir PDF a Cloudinary para acceso permanente (filesystem Railway es efímero)
+            if ($this->fileStorage !== null) {
+                $uploadResult = $this->fileStorage->uploadRaw($pdfPath, 'invoices', "invoice_{$reservationId}");
+                if ($uploadResult->ok && \is_string($uploadResult->data) && $uploadResult->data !== '') {
+                    $this->reservationRepo->updateInvoicePdfUrl($reservationId, $uploadResult->data);
+                } else {
+                    Logger::warning('[ReservationService] PDF upload to Cloudinary failed', [
+                        'reservation_id' => $reservationId,
+                        'error' => $uploadResult->error ?? 'unknown',
+                    ]);
+                }
+            }
+
+            // Eliminar copia local una vez enviado el email y subido a Cloudinary
+            if (\file_exists($pdfPath)) {
+                \unlink($pdfPath);
+            }
+
             Logger::info('Email de confirmación enviado con factura PDF', [
                 'reservation_id' => $reservationId,
                 'user_id' => $userId,
-                'pdf_path' => $pdfPath,
             ]);
         } catch (Throwable $e) {
             // No fallar la reserva si falla el email

@@ -214,6 +214,17 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     }
 
     /**
+     * Guardar la URL pública del PDF de factura en Cloudinary.
+     */
+    public function updateInvoicePdfUrl(int $id, string $url): bool
+    {
+        return $this->update($id, [
+            'invoice_pdf_url' => $url,
+            'updated_at' => \date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    /**
      * Registrar check-in.
      */
     public function checkIn(int $id, array $protocolData = []): bool

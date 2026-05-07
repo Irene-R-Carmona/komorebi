@@ -407,7 +407,7 @@ final class StatisticsRepository extends AbstractRepository implements Statistic
             ];
         }
 
-        \usort($activities, static fn($a, $b) => \strtotime($b['timestamp']) - \strtotime($a['timestamp']));
+        \usort($activities, static fn ($a, $b) => \strtotime($b['timestamp']) - \strtotime($a['timestamp']));
 
         return \array_slice($activities, 0, $limit);
     }
