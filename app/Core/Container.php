@@ -221,10 +221,10 @@ final class Container implements ContainerInterface
             $defs[$abstract] = \DI\value($inst);
         }
 
-        // Closures → DI\factory() (PHP-DI 7 cachea el resultado en resolvedEntries por defecto)
+        // Closures → DI\factory() — se pasan directamente sin wrappers que capturen variables
+        // para que PHP-DI pueda serializar las definiciones al compilar el container.
         foreach (self::$pendingDefinitions as $abstract => [$closure, $isSingleton]) {
-            $captured = $closure;
-            $defs[$abstract] = \DI\factory(static fn () => $captured());
+            $defs[$abstract] = \DI\factory($closure);
         }
 
         // Aliases → DI\get()
