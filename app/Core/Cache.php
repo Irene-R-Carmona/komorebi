@@ -45,7 +45,9 @@ final class Cache
         if (\class_exists(Redis::class)) {
             try {
                 $r = new Redis();
-                if ($r->connect($host, $port, 2.5)) {
+                // @ suprime el E_WARNING de resolución DNS cuando Redis no está disponible
+                // (php_network_getaddresses). La excepción sigue siendo capturada por catch.
+                if (@$r->connect($host, $port, 2.5)) {
                     if ($password && !$r->auth($password)) {
                         Logger::warning('[Cache] Redis auth failed');
                     }
