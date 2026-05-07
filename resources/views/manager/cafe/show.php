@@ -10,10 +10,12 @@ declare(strict_types=1);
  * @var string $titulo
  */
 
+use App\Support\TimeHelper;
+
 $alpineConfig = json_encode([
     'csrfToken' => $csrf_token,
-    'openingTime' => substr($cafe['opening_time'] ?? '', 0, 5),
-    'closingTime' => substr($cafe['closing_time'] ?? '', 0, 5),
+    'openingTime' => TimeHelper::display($cafe['opening_time'] ?? ''),
+    'closingTime' => TimeHelper::display($cafe['closing_time'] ?? ''),
     'capacityMax' => (int) ($cafe['capacity_max'] ?? 1),
     'description' => $cafe['description'] ?? '',
     'pricePerHour' => (int) ($cafe['price_per_hour'] ?? 0),

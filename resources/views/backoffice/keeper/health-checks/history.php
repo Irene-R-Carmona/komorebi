@@ -7,6 +7,9 @@ declare(strict_types=1);
  *
  * Muestra el historial completo de chequeos de salud de un animal específico.
  */
+
+use App\Support\DateFormatting;
+
 ?>
 
 <div class="container py-4">
@@ -61,7 +64,7 @@ declare(strict_types=1);
                     <i class="bi bi-calendar-check fs-1 text-success mb-2"></i>
                     <h4 class="mb-0">
                         <?php if (!empty($history)): ?>
-                            <?= date('d/m/Y', strtotime($history[0]['check_date'])) ?>
+                            <?= e(DateFormatting::toSpanishDate($history[0]['check_date'])) ?>
                         <?php else: ?>
                             -
                         <?php endif; ?>
@@ -77,13 +80,13 @@ declare(strict_types=1);
                     <h4 class="mb-0">
                         <?php
                         $alertCount = 0;
-foreach ($history as $check) {
-    if (!empty($check['alerts']) && is_array($check['alerts'])) {
-        $alertCount += count($check['alerts']);
-    }
-}
-echo $alertCount;
-?>
+                        foreach ($history as $check) {
+                            if (!empty($check['alerts']) && is_array($check['alerts'])) {
+                                $alertCount += count($check['alerts']);
+                            }
+                        }
+                        echo $alertCount;
+                        ?>
                     </h4>
                     <p class="text-muted mb-0">Alertas Totales</p>
                 </div>
@@ -107,7 +110,7 @@ echo $alertCount;
                             <div>
                                 <strong>
                                     <i class="bi bi-calendar3"></i>
-                                    <?= date('d/m/Y', strtotime($check['check_date'])) ?>
+                                    <?= e(DateFormatting::toSpanishDate($check['check_date'])) ?>
                                 </strong>
                                 <span class="text-muted ms-2">
                                     • Registrado <?= date('H:i', strtotime($check['created_at'])) ?> por
@@ -143,7 +146,7 @@ echo $alertCount;
                                             <strong>Temperatura:</strong>
                                             <?php if ($check['temperature_c']): ?>
                                                 <?php
-                        $temp = (float) $check['temperature_c'];
+                                                $temp = (float) $check['temperature_c'];
                                                 $tempClass = $temp > 39.5 ? 'text-danger' : ($temp < 36 ? 'text-warning' : '');
                                                 ?>
                                                 <span class="<?= $tempClass ?>">

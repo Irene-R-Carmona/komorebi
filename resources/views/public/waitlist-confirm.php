@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Csrf;
+use App\Support\DateFormatting;
 
 ?>
 <div class="confirm-container">
@@ -25,7 +26,7 @@ use App\Core\Csrf;
 
         <div class="info-row">
             <span class="info-label">Fecha:</span>
-            <strong><?= htmlspecialchars(date('d/m/Y', strtotime($waitlist['time_slot']['date'])), ENT_QUOTES, 'UTF-8') ?></strong>
+            <strong><?= e(DateFormatting::toSpanishDate($waitlist['time_slot']['date'])) ?></strong>
         </div>
 
         <div class="info-row">

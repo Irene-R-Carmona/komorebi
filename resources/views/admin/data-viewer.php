@@ -11,6 +11,9 @@ declare(strict_types=1);
  */
 
 use App\Core\View;
+use App\Support\CurrencyFormatting;
+use App\Support\DateFormatting;
+use App\Support\TimeHelper;
 
 echo View::componentToString('components/admin/page-header', [
     'icon' => 'database',
@@ -73,7 +76,7 @@ echo View::componentToString('components/admin/page-header', [
                     <td><strong><?= htmlspecialchars($cafe['name']) ?></strong></td>
                     <td><?= htmlspecialchars($cafe['animal_type']) ?></td>
                     <td><?= $cafe['capacity_max'] ?> personas</td>
-                    <td><?= substr($cafe['opening_time'], 0, 5) ?> - <?= substr($cafe['closing_time'], 0, 5) ?></td>
+                    <td><?= e(TimeHelper::display($cafe['opening_time'])) ?> - <?= e(TimeHelper::display($cafe['closing_time'])) ?></td>
                     <td class="dv-rating"><?= $cafe['rating_avg'] ? '<i class="bi bi-star-fill" aria-hidden="true"></i> ' . number_format((float) $cafe['rating_avg'], 1) : 'Sin ratings' ?></td>
                 </tr>
             <?php endforeach; ?>
@@ -99,7 +102,7 @@ echo View::componentToString('components/admin/page-header', [
                 <tr>
                     <td><strong><?= htmlspecialchars($product['name']) ?></strong></td>
                     <td><?= htmlspecialchars($product['japanese_name']) ?></td>
-                    <td class="dv-price">¥<?= number_format((float) $product['price']) ?></td>
+                    <td class="dv-price"><?= e(CurrencyFormatting::yen((float) $product['price'])) ?></td>
                     <td><?= $product['duration'] ?> min</td>
                     <td><?= $product['min_pax'] ?>-<?= $product['max_pax'] ?> personas</td>
                 </tr>
@@ -178,7 +181,7 @@ echo View::componentToString('components/admin/page-header', [
                     <td><?= htmlspecialchars($res['user']) ?></td>
                     <td><?= htmlspecialchars($res['cafe']) ?></td>
                     <td><?= htmlspecialchars($res['pass_name']) ?></td>
-                    <td class="dv-price">¥<?= number_format((float) $res['pass_unit_price']) ?></td>
+                    <td class="dv-price"><?= e(CurrencyFormatting::yen((float) $res['pass_unit_price'])) ?></td>
                     <td><?= date('d/m/Y H:i', strtotime($res['reservation_date'] . ' ' . $res['reservation_time'])) ?></td>
                     <td><?= $res['guest_count'] ?></td>
                     <td>
@@ -223,8 +226,8 @@ echo View::componentToString('components/admin/page-header', [
         <tbody>
             <?php foreach ($samples['time_slots'] as $slot): ?>
                 <tr>
-                    <td><?= date('d/m/Y', strtotime($slot['slot_date'])) ?></td>
-                    <td><?= substr($slot['slot_time'], 0, 5) ?></td>
+                    <td><?= e(DateFormatting::toSpanishDate($slot['slot_date'])) ?></td>
+                    <td><?= e(TimeHelper::display($slot['slot_time'])) ?></td>
                     <td><?= htmlspecialchars($slot['cafe']) ?></td>
                     <td><?= $slot['total_capacity'] ?></td>
                     <td><?= $slot['reserved_spots'] ?></td>
@@ -256,7 +259,7 @@ echo View::componentToString('components/admin/page-header', [
                     <td><strong><?= htmlspecialchars($review['title']) ?></strong></td>
                     <td><?= htmlspecialchars($review['cafe']) ?></td>
                     <td><?= htmlspecialchars($review['user']) ?></td>
-                    <td><?= date('d/m/Y', strtotime($review['created_at'])) ?></td>
+                    <td><?= e(DateFormatting::toSpanishDate($review['created_at'])) ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>

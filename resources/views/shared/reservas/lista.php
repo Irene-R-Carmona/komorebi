@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Support\DateFormatting;
 use App\Support\StatusLabeling;
+use App\Support\TimeHelper;
 
 /**
  * Vista: Mis Reservas (usuario autenticado)
@@ -72,7 +73,7 @@ $statusBadge = [
                         ? DateFormatting::toSpanishDate($rsv['reservation_date'])
                         : '—';
                     $formattedTime = isset($rsv['reservation_time'])
-                        ? substr($rsv['reservation_time'], 0, 5)
+                        ? TimeHelper::display($rsv['reservation_time'])
                         : '—';
                     ?>
                     <div class="rsv2-card">
@@ -111,6 +112,18 @@ $statusBadge = [
                                     <a href="/reservas/mis-reservas/<?= (int) ($rsv['id'] ?? 0) ?>/cancelar"
                                         class="btn-komorebi btn-komorebi-secondary rsv2-card__cancel">
                                         Cancelar reserva
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($rsv['invoice_pdf_url'])): ?>
+                                <div class="rsv2-card__actions">
+                                    <a href="<?= e((string) $rsv['invoice_pdf_url']) ?>"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="btn-komorebi btn-komorebi-secondary rsv2-card__cancel">
+                                        <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+                                        Descargar factura
                                     </a>
                                 </div>
                             <?php endif; ?>

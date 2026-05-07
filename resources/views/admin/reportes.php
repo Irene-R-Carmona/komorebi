@@ -6,6 +6,7 @@
  */
 
 use App\Core\View;
+use App\Support\CurrencyFormatting;
 
 $titulo ??= 'Reportes y Estadísticas';
 ?>
@@ -66,7 +67,7 @@ $titulo ??= 'Reportes y Estadísticas';
                         'icon' => 'cash-stack',
                         'variant' => 'info',
                         'label' => 'Ingresos del Mes',
-                        'value' => '¥' . number_format($stats['monthly_revenue'] ?? 0),
+                        'value' => CurrencyFormatting::yen($stats['monthly_revenue'] ?? 0),
                     ]) ?>
                 </div>
 

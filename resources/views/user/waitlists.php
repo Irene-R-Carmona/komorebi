@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Support\StatusLabeling;
+
 /**
  * Vista: Mis Listas de Espera
  *
@@ -23,19 +25,6 @@ function formatDate(string $date): string
     $time = date('H:i', $timestamp);
 
     return "$day de {$months[$month]} de $year a las $time";
-}
-
-// Helper: obtener badge de estado
-function getStatusBadge(string $status): array
-{
-    $badges = [
-        'waiting' => ['text' => 'Esperando',  'class' => 'status-badge--waiting'],
-        'notified' => ['text' => 'Notificado',  'class' => 'status-badge--notified'],
-        'confirmed' => ['text' => 'Confirmado',  'class' => 'status-badge--confirmed'],
-        'expired' => ['text' => 'Expirado',    'class' => 'status-badge--expired'],
-    ];
-
-    return $badges[$status] ?? ['text' => $status, 'class' => ''];
 }
 ?>
 
@@ -103,7 +92,7 @@ function getStatusBadge(string $status): array
         <div class="waitlist-cards">
             <?php
             foreach ($waitlists as $item):
-                $statusBadge = getStatusBadge((string) ($item['status'] ?? 'waiting'));
+                $itemStatus = (string) ($item['status'] ?? 'waiting');
                 ?>
                 <div class="waitlist-card">
                     <!-- Badge de posición -->
@@ -117,8 +106,8 @@ function getStatusBadge(string $status): array
                             <h3 class="waitlist-card__title">
                                 <?= htmlspecialchars($item['cafe_name'] ?? 'Café', ENT_QUOTES, 'UTF-8') ?>
                             </h3>
-                            <span class="status-badge <?= $statusBadge['class'] ?>">
-                                <?= htmlspecialchars($statusBadge['text'], ENT_QUOTES, 'UTF-8') ?>
+                            <span class="status-badge <?= e(StatusLabeling::waitlistBadge($itemStatus)) ?>">
+                                <?= e(StatusLabeling::waitlistLabel($itemStatus)) ?>
                             </span>
                         </div>
 

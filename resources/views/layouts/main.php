@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Csrf;
+use App\Core\Env;
 
 /**
  * Layout principal público.
@@ -19,6 +20,7 @@ $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
 $content ??= '';
 $extraCss ??= [];
 $extraJs ??= [];
+$assetVersion = Env::get('APP_VERSION', '1');
 ?>
 <!DOCTYPE html>
 <html lang="es" <?= isset($_SESSION['user_id']) ? 'data-authenticated="1"' : '' ?> x-data="{
@@ -79,22 +81,22 @@ $extraJs ??= [];
     <!-- Bootstrap Icons (CDN fallback) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" integrity="" crossorigin="anonymous">
     <!-- Estilos del proyecto -->
-    <link href="/css/global.css" rel="stylesheet">
+    <link href="/css/global.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
     <!-- Design System Components -->
-    <link href="/css/components/focus.css" rel="stylesheet">
-    <link href="/css/components/buttons.css" rel="stylesheet">
-    <link href="/css/components/cards.css" rel="stylesheet">
-    <link href="/css/components/forms.css" rel="stylesheet">
-    <link href="/css/components/toast.css" rel="stylesheet">
-    <link href="/css/components/skeleton.css" rel="stylesheet">
-    <link href="/css/components/empty-state.css" rel="stylesheet">
-    <link href="/css/components/avatar-upload.css" rel="stylesheet">
-    <link href="/css/sections/fusuma-layout.css" rel="stylesheet">
-    <link href="/css/sections/cookie-banner.css" rel="stylesheet">
+    <link href="/css/components/focus.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/components/buttons.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/components/cards.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/components/forms.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/components/toast.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/components/skeleton.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/components/empty-state.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/components/avatar-upload.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/sections/fusuma-layout.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/sections/cookie-banner.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
 
     <?php if (!empty($extraCss)): ?>
         <?php foreach ($extraCss as $css): ?>
-            <link href="/css/sections/<?= $css ?>" rel="stylesheet">
+            <link href="/css/sections/<?= e($css) ?>?v=<?= e($assetVersion) ?>" rel="stylesheet">
         <?php endforeach; ?>
     <?php endif; ?>
 
@@ -120,7 +122,7 @@ $extraJs ??= [];
 ?>
 
     <!-- Event delegation helper: replace inline handlers with `data-action` -->
-    <script defer src="/js/init/event-delegation.js"></script>
+    <script defer src="/js/init/event-delegation.js?v=<?= e($assetVersion) ?>"></script>
 
 </head>
 
@@ -381,35 +383,35 @@ $extraJs ??= [];
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 
     <!-- Scripts específicos y Alpine.js -->
-    <script defer src="/js/cookie-helper.js"></script>
-    <script defer src="/js/ux-enhancements.js"></script>
+    <script defer src="/js/cookie-helper.js?v=<?= e($assetVersion) ?>"></script>
+    <script defer src="/js/ux-enhancements.js?v=<?= e($assetVersion) ?>"></script>
 
     <!-- Componentes centralizados (deben cargarse antes de los scripts de sección y del registro) -->
-    <script src="/js/components/toastManager.js"></script>
-    <script src="/js/components/fallbacks.js"></script>
-    <script src="/js/components/catalogo.js"></script>
-    <script src="/js/components/page-data.js"></script>
-    <script src="/js/components/cookieBanner.js"></script>
-    <script src="/js/components/cookiePreferences.js"></script>
-    <script src="/js/components/loadingState.js"></script>
-    <script src="/js/components/dataTable.js"></script>
-    <script src="/js/components/recentlyViewedWidget.js"></script>
-    <script src="/js/components/climaWidget.js"></script>
-    <script src="/js/components/detalleCafe.js"></script>
-    <script src="/js/components/newsletterPopup.js"></script>
-    <script src="/js/components/reviewForm.js"></script>
-    <script src="/js/components/loyaltyRewards.js"></script>
-    <script src="/js/components/quizFilosofico.js"></script>
-    <script src="/js/components/recentlyViewed-tracker.js"></script>
+    <script src="/js/components/toastManager.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/fallbacks.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/catalogo.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/page-data.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/cookieBanner.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/cookiePreferences.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/loadingState.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/dataTable.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/recentlyViewedWidget.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/climaWidget.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/detalleCafe.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/newsletterPopup.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/reviewForm.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/loyaltyRewards.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/quizFilosofico.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/recentlyViewed-tracker.js?v=<?= e($assetVersion) ?>"></script>
 
     <!-- Scripts de sección (ligeros, deben usar las fábricas expuestas por components) -->
-    <script src="/js/sections/catalogo.js"></script>
-    <script src="/js/sections/reservas.js"></script>
-    <script src="/js/sections/menu.js"></script>
-    <script src="/js/sections/detalle-cafe.js"></script>
-    <script src="/js/sections/quiz-component.js"></script>
-    <script src="/js/sections/avatar-upload.js"></script>
-    <script src="/js/sections/perfil.js"></script>
+    <script src="/js/sections/catalogo.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/sections/reservas.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/sections/menu.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/sections/detalle-cafe.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/sections/quiz-component.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/sections/avatar-upload.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/sections/perfil.js?v=<?= e($assetVersion) ?>"></script>
 
     <!-- Alpine components registry (central) -->
     <script nonce="<?= $cspNonce ?? '' ?>" src="/js/init/alpine-components.js"></script>

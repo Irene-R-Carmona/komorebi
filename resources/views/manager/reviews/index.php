@@ -121,7 +121,7 @@ $statusOptions = ['pending', 'approved', 'rejected'];
                             $rstatus = (string) ($review['status'] ?? 'pending');
                             $rating = (int) ($review['rating'] ?? 0);
                             $stars = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
-                        ?>
+                            ?>
                             <tr>
                                 <td>
                                     <span class="star-rating" title="<?= $rating ?>/5">

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\View;
+use App\Support\DateFormatting;
 
 /**
  * Dashboard de Bienestar Animal (Keeper)
@@ -112,7 +113,7 @@ $getSeverityBadgeClass = static function (string $severity): string {
                                         <h6 class="alert-heading">
                                             <strong><?= htmlspecialchars($alert['animal_name'], ENT_QUOTES, 'UTF-8') ?></strong>
                                             <br>
-                                            <small class="text-muted"><?= date('d/m/Y', strtotime($alert['check_date'])) ?></small>
+                                            <small class="text-muted"><?= e(DateFormatting::toSpanishDate($alert['check_date'])) ?></small>
                                         </h6>
                                         <?php if (!empty($alert['alerts']) && is_array($alert['alerts'])): ?>
                                             <ul class="mb-2 ps-3 small">

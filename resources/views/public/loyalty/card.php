@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Support\DateFormatting;
+
 /**
  * Vista: Tarjeta de Fidelización
  *
@@ -235,7 +237,7 @@ if ($nextMilestone === 0 || $nextMilestone === $stamps) {
                         </span>
                         <div class="history-card__details">
                             <h4><?= htmlspecialchars($item['reward_name'] ?? '', ENT_QUOTES, 'UTF-8') ?></h4>
-                            <p class="history-card__date"><?= date('d/m/Y', strtotime((string) ($item['redeemed_at'] ?? ''))) ?></p>
+                            <p class="history-card__date"><?= e(DateFormatting::toSpanishDate((string) ($item['redeemed_at'] ?? ''))) ?></p>
                         </div>
                         <?php if (!empty($item['is_used'])): ?>
                             <span class="history-card__status history-card__status--used"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Usado</span>

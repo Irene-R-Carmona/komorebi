@@ -9,6 +9,8 @@ declare(strict_types=1);
  * - $waitlist: array con datos del waitlist
  */
 
+use App\Support\DateFormatting;
+
 ?>
 
 <div class="waitlist-container">
@@ -78,7 +80,7 @@ $statusClass = 'status-' . $waitlist['status'];
         <div class="info-row">
             <span class="info-label">Fecha:</span>
             <span class="info-value">
-                <?= htmlspecialchars(date('d/m/Y', strtotime($waitlist['time_slot']['date'])), ENT_QUOTES, 'UTF-8') ?>
+                <?= e(DateFormatting::toSpanishDate($waitlist['time_slot']['date'])) ?>
             </span>
         </div>
 

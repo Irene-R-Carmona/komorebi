@@ -65,8 +65,8 @@
                         <div class="detail-card__content">
                             <h4 class="detail-card__title">Horario</h4>
                             <p class="detail-card__text">
-                                <strong><?= substr($cafe['opening_time'], 0, 5) ?></strong> -
-                                <strong><?= substr($cafe['closing_time'], 0, 5) ?></strong>
+                                <strong><?= e(\App\Support\TimeHelper::display($cafe['opening_time'])) ?></strong> -
+                                <strong><?= e(\App\Support\TimeHelper::display($cafe['closing_time'])) ?></strong>
                             </p>
                         </div>
                     </div>

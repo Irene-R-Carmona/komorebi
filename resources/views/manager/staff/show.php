@@ -10,6 +10,9 @@ declare(strict_types=1);
  * @var array  $metrics       - Métricas de performance (PHP-injected)
  */
 
+use App\Support\DateFormatting;
+use App\Support\TimeHelper;
+
 $staff ??= [];
 $shift_history ??= [];
 $metrics ??= [];
@@ -79,7 +82,7 @@ $metrics ??= [];
                 <?php if (!empty($staff['email_verified_at'])): ?>
                     <div class="info-item">
                         <strong>Email Verificado:</strong>
-                        <span><?= htmlspecialchars(date('d/m/Y', strtotime((string) $staff['email_verified_at'])), ENT_QUOTES, 'UTF-8') ?></span>
+                        <span><?= e(DateFormatting::toSpanishDate((string) $staff['email_verified_at'])) ?></span>
                     </div>
                 <?php endif; ?>
             </div>
@@ -112,9 +115,9 @@ $metrics ??= [];
                             $duration = $start->diff($end);
                             ?>
                             <tr>
-                                <td><?= htmlspecialchars(date('d/m/Y', strtotime((string) ($shift['shift_date'] ?? 'now'))), ENT_QUOTES, 'UTF-8') ?></td>
-                                <td><?= htmlspecialchars(substr((string) ($shift['shift_start'] ?? ''), 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
-                                <td><?= htmlspecialchars(substr((string) ($shift['shift_end'] ?? ''), 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= e(DateFormatting::toSpanishDate((string) ($shift['shift_date'] ?? 'now'))) ?></td>
+                                <td><?= e(TimeHelper::display((string) ($shift['shift_start'] ?? ''))) ?></td>
+                                <td><?= e(TimeHelper::display((string) ($shift['shift_end'] ?? ''))) ?></td>
                                 <td><?= $duration->h ?>h <?= $duration->i ?>m</td>
                                 <td><?= htmlspecialchars((string) ($shift['notes'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
                                 <td>Manager</td>

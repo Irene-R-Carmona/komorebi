@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Support\CurrencyFormatting;
 use App\Support\DateFormatting;
 use App\Support\StatusLabeling;
+use App\Support\TimeHelper;
 
 /**
  * Vista: Confirmación de Reserva
@@ -23,7 +25,7 @@ $formattedDate = isset($reservation['reservation_date'])
     : '—';
 
 $formattedTime = isset($reservation['reservation_time'])
-    ? substr($reservation['reservation_time'], 0, 5)
+    ? TimeHelper::display($reservation['reservation_time'])
     : '—';
 
 $statusLabel = StatusLabeling::reservationLabel($reservation['status'] ?? '');
@@ -96,14 +98,14 @@ $statusLabel = StatusLabeling::reservationLabel($reservation['status'] ?? '');
                                 <?= e((string) ($item['product_name'] ?? '')) ?>
                             </span>
                             <span class="rsv2-confirmation__extras-price">
-                                ¥<?= number_format((float) ($item['quantity'] ?? 1) * (float) ($item['unit_price'] ?? 0)) ?>
+                                <?= e(CurrencyFormatting::yen((float) ($item['quantity'] ?? 1) * (float) ($item['unit_price'] ?? 0))) ?>
                             </span>
                         </li>
                     <?php endforeach; ?>
                 </ul>
                 <div class="rsv2-confirmation__extras-total">
                     <span>Total extras</span>
-                    <strong>¥<?= number_format((float) $cart_total) ?></strong>
+                    <strong><?= e(CurrencyFormatting::yen((float) $cart_total)) ?></strong>
                 </div>
             </div>
         <?php endif; ?>

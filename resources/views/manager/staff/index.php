@@ -15,6 +15,9 @@ declare(strict_types=1);
  * @var string $weekLabel   - Etiqueta legible ej. "2 – 8 jun. 2025"
  */
 
+use App\Support\DateFormatting;
+use App\Support\TimeHelper;
+
 $staff ??= [];
 $shifts ??= [];
 $cafe_id ??= 0;
@@ -91,7 +94,7 @@ $alpineConfig = json_encode([
                                     <?= !empty($member['is_active']) ? 'Activo' : 'Inactivo' ?>
                                 </span>
                             </td>
-                            <td><?= htmlspecialchars(date('d/m/Y', strtotime((string) ($member['created_at'] ?? 'now'))), ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= e(DateFormatting::toSpanishDate((string) ($member['created_at'] ?? 'now'))) ?></td>
                             <td>
                                 <a href="/manager/staff/<?= (int) ($member['id'] ?? 0) ?>" class="btn btn-sm btn-secondary">Ver Detalle</a>
                             </td>
@@ -146,9 +149,9 @@ $alpineConfig = json_encode([
                         ?>
                         <tr>
                             <td><?= e((string) ($shift['staff_name'] ?? '')) ?></td>
-                            <td><?= e(date('d/m/Y', strtotime((string) ($shift['shift_date'] ?? 'now')))) ?></td>
-                            <td><?= e(substr((string) ($shift['shift_start'] ?? ''), 0, 5)) ?></td>
-                            <td><?= e(substr((string) ($shift['shift_end'] ?? ''), 0, 5)) ?></td>
+                            <td><?= e(DateFormatting::toSpanishDate((string) ($shift['shift_date'] ?? 'now'))) ?></td>
+                            <td><?= e(TimeHelper::display((string) ($shift['shift_start'] ?? ''))) ?></td>
+                            <td><?= e(TimeHelper::display((string) ($shift['shift_end'] ?? ''))) ?></td>
                             <td><?= $duration->h ?>h <?= $duration->i ?>m</td>
                             <td><?= e((string) ($shift['notes'] ?? '—')) ?></td>
                             <td>

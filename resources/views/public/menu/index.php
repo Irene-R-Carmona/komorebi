@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Support\CurrencyFormatting;
+
 /**
  * Vista: Menú
  *
@@ -247,7 +249,7 @@ $excludeAllergens ??= [];
 
                                         <div class="producto-card__footer">
                                             <div class="producto-info-row">
-                                                <span class="producto-card__precio">¥<?= number_format((float) $prod['price']) ?></span>
+                                                <span class="producto-card__precio"><?= e(CurrencyFormatting::yen((float) $prod['price'])) ?></span>
                                                 <?php if (!empty($prod['min_pax']) || !empty($prod['max_pax'])): ?>
                                                     <span class="badge-mini">
                                                         Pax <?= (int) ($prod['min_pax'] ?? 1) ?><?= !empty($prod['max_pax']) ? ('-' . (int) $prod['max_pax']) : '+' ?>
@@ -302,7 +304,7 @@ $excludeAllergens ??= [];
 
                                         <div class="producto-card__footer">
                                             <div class="producto-info-row">
-                                                <span class="producto-card__precio">¥<?= number_format((float) $prod['price']) ?></span>
+                                                <span class="producto-card__precio"><?= e(CurrencyFormatting::yen((float) $prod['price'])) ?></span>
 
                                                 <?php if (!empty($prod['allergens_list'])): ?>
                                                     <div class="producto-card__alergenos">

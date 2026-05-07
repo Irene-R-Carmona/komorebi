@@ -1,6 +1,7 @@
 <?php
 
 use App\Core\Csrf;
+use App\Support\DateFormatting;
 use App\Support\ViewHelpers;
 
 /** @var array $waitlists Lista de waitlists activas */
@@ -144,7 +145,7 @@ $total ??= count($waitlists);
                             </td>
                             <td><?= htmlspecialchars($w['cafe_name'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td>
-                                <div><?= date('d/m/Y', strtotime($w['slot_date'])) ?></div>
+                                <div><?= e(DateFormatting::toSpanishDate($w['slot_date'])) ?></div>
                                 <div class="small text-muted"><?= date('H:i', strtotime($w['slot_time'])) ?></div>
                             </td>
                             <td>

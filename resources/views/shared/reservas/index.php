@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Support\CurrencyFormatting;
+
 /**
  * Vista: Reservas (pase obligatorio)
  *
@@ -274,7 +276,7 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                                 <?php foreach ($cartDetails as $item): ?>
                                     <div class="booking-summary__line">
                                         <span><?= (int) $item['qty'] ?>x <?= $item['name'] ?></span>
-                                        <span>¥<?= number_format((float) $item['subtotal']) ?></span>
+                                        <span><?= e(CurrencyFormatting::yen((float) $item['subtotal'])) ?></span>
                                     </div>
                                 <?php endforeach; ?>
                             </div>

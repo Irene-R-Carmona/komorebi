@@ -2,6 +2,7 @@
 // Lógica de Menú
 use App\Core\Container;
 use App\Core\Csrf;
+use App\Core\Env;
 use App\Services\NavigationService;
 
 // CSP Nonce para scripts inline
@@ -16,6 +17,7 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
 $content ??= '';
 $extraCss ??= [];
 $extraJs ??= [];
+$assetVersion = Env::get('APP_VERSION', '1');
 ?>
 <!DOCTYPE html>
 <html lang="es" data-bs-theme="light" data-tema="claro">
@@ -54,37 +56,37 @@ $extraJs ??= [];
     // Chart.js - Solo cargar en dashboards (tree-shaked bundle, -55% size)
     $needsCharts = str_contains($currentUri, '/dashboard');
 if ($needsCharts): ?>
-        <script defer src="/js/charts.min.js"></script>
+        <script defer src="/js/charts.min.js?v=<?= e($assetVersion) ?>"></script>
     <?php endif; ?>
 
     <!-- Tipografía Komorebi OS —— Zen Maru Gothic (fuente-cuerpo oficial) -->
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 
     <!-- Modern Design System -->
-    <link href="/css/design-tokens.css" rel="stylesheet">
-    <link href="/css/backoffice-modern.css" rel="stylesheet">
-    <link href="/css/backoffice-ux.css" rel="stylesheet">
-    <link href="/css/sections/admin/admin-common.css" rel="stylesheet">
+    <link href="/css/design-tokens.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/backoffice-modern.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/backoffice-ux.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/sections/admin/admin-common.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
 
     <!-- Component Library -->
-    <link href="/css/components/button.css" rel="stylesheet">
-    <link href="/css/components/card.css" rel="stylesheet">
-    <link href="/css/components/badge.css" rel="stylesheet">
-    <link href="/css/components/modal.css" rel="stylesheet">
-    <link href="/css/components/stat-card.css" rel="stylesheet">
+    <link href="/css/components/button.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/components/card.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/components/badge.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/components/modal.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
+    <link href="/css/components/stat-card.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
 
     <?php
 // Detectar dashboard actual y cargar CSS correspondiente
 if (str_contains($currentUri, '/manager/dashboard')) {
-    echo '<link href="/css/backoffice/manager-dashboard.css" rel="stylesheet">' . "\n    ";
+    echo '<link href="/css/backoffice/manager-dashboard.css?v=' . e($assetVersion) . '" rel="stylesheet">' . "\n    ";
 } elseif (str_contains($currentUri, '/supervisor/dashboard')) {
-    echo '<link href="/css/backoffice/supervisor-dashboard.css" rel="stylesheet">' . "\n    ";
+    echo '<link href="/css/backoffice/supervisor-dashboard.css?v=' . e($assetVersion) . '" rel="stylesheet">' . "\n    ";
 }
 ?>
 
     <!-- CSS específico por vista -->
     <?php foreach ($extraCss as $css): ?>
-        <link href="/css/sections/<?= e($css) ?>" rel="stylesheet">
+        <link href="/css/sections/<?= e($css) ?>?v=<?= e($assetVersion) ?>" rel="stylesheet">
     <?php endforeach; ?>
 </head>
 
@@ -241,34 +243,34 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-    <script src="/js/backoffice-ux.js"></script>
-    <script src="/js/sections/admin/admin-common.js"></script>
+    <script src="/js/backoffice-ux.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/sections/admin/admin-common.js?v=<?= e($assetVersion) ?>"></script>
 
     <!-- Global Components -->
-    <script src="/js/components/fallbacks.js"></script>
-    <script src="/js/components/notification-manager.js"></script>
-    <script src="/js/components/delete-confirmation-modal.js"></script>
+    <script src="/js/components/fallbacks.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/notification-manager.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/delete-confirmation-modal.js?v=<?= e($assetVersion) ?>"></script>
 
     <!-- Componentes Alpine compartidos por todas las vistas -->
-    <script src="/js/components/catalogo.js"></script>
-    <script src="/js/components/detalleCafe.js"></script>
-    <script src="/js/components/reviewForm.js"></script>
-    <script src="/js/components/loyaltyRewards.js"></script>
-    <script src="/js/components/quizFilosofico.js"></script>
-    <script src="/js/init/alpine-components.js"></script>
+    <script src="/js/components/catalogo.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/detalleCafe.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/reviewForm.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/loyaltyRewards.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/components/quizFilosofico.js?v=<?= e($assetVersion) ?>"></script>
+    <script src="/js/init/alpine-components.js?v=<?= e($assetVersion) ?>"></script>
 
     <!-- Scripts específicos de dashboard -->
     <?php
     if (str_contains($currentUri, '/manager/dashboard')) {
-        echo '<script src="/js/backoffice/manager-dashboard.js"></script>' . "\n";
+        echo '<script src="/js/backoffice/manager-dashboard.js?v=' . e($assetVersion) . '"></script>' . "\n";
     } elseif (str_contains($currentUri, '/supervisor/dashboard')) {
-        echo '<script src="/js/backoffice/supervisor-dashboard.js"></script>' . "\n";
+        echo '<script src="/js/backoffice/supervisor-dashboard.js?v=' . e($assetVersion) . '"></script>' . "\n";
     }
 ?>
 
     <!-- JS específico por vista (ANTES de Alpine) -->
     <?php foreach ($extraJs as $js): ?>
-        <script src="/js/sections/<?= e($js) ?>?v=<?= time() ?>"></script>
+        <script src="/js/sections/<?= e($js) ?>?v=<?= e($assetVersion) ?>"></script>
     <?php endforeach; ?>
 
     <!-- Alpine.js plugins (deben cargarse ANTES de alpine.min.js) -->
@@ -276,7 +278,7 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
 
     <!-- Alpine.js se carga AL FINAL (después de los componentes) -->
-    <script defer src="/js/vendor/alpine.min.js"></script>
+    <script defer src="/js/vendor/alpine.min.js?v=<?= e($assetVersion) ?>"></script>
 
     <script nonce="<?= $cspNonce ?>">
         (function() {

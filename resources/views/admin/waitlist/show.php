@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Support\DateFormatting;
+use App\Support\TimeHelper;
 
 /**
  * Detalle de entrada en lista de espera
@@ -55,7 +56,7 @@ $statusLabels = [
                         <dd class="col-sm-8">
                             <?php if (!empty($waitlist['slot_date'])): ?>
                                 <?= e(DateFormatting::toSpanishDate($waitlist['slot_date'])) ?>
-                                <?= !empty($waitlist['slot_time']) ? e(substr($waitlist['slot_time'], 0, 5)) : '' ?>
+                                <?= !empty($waitlist['slot_time']) ? e(TimeHelper::display($waitlist['slot_time'])) : '' ?>
                             <?php else: ?>
                                 —
                             <?php endif; ?>

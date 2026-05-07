@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\View;
+use App\Support\DateFormatting;
 
 /**
  * Dashboard de Chequeos de Salud Animal
@@ -133,7 +134,7 @@ use App\Core\View;
                                                     <td>
                                                         <?php if ($animal['last_health_check']): ?>
                                                             <span class="text-muted small">
-                                                                <?= date('d/m/Y', strtotime($animal['last_health_check'])) ?>
+                                                                <?= e(DateFormatting::toSpanishDate($animal['last_health_check'])) ?>
                                                             </span>
                                                         <?php else: ?>
                                                             <span class="badge bg-warning">Sin registro</span>
@@ -235,7 +236,7 @@ use App\Core\View;
                                         <h6 class="alert-heading">
                                             <i class="bi bi-exclamation-triangle-fill"></i>
                                             <?= htmlspecialchars($alertCheck['animal_name'], ENT_QUOTES, 'UTF-8') ?>
-                                            <small class="text-muted">(<?= date('d/m/Y', strtotime($alertCheck['check_date'])) ?>)</small>
+                                            <small class="text-muted">(<?= e(DateFormatting::toSpanishDate($alertCheck['check_date'])) ?>)</small>
                                         </h6>
                                         <ul class="mb-2">
                                             <?php if (!empty($alertCheck['alerts']) && is_array($alertCheck['alerts'])): ?>
