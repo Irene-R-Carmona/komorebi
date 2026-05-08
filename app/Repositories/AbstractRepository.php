@@ -80,7 +80,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $params = ['id' => $id];
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -100,7 +100,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $sql = "SELECT $fields FROM $table";
 
         /** @var PDOStatement $stmt */
-        $stmt = $this->execTimed(fn () => $this->getDb()->query($sql), $sql);
+        $stmt = $this->execTimed(fn() => $this->getDb()->query($sql), $sql);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -113,7 +113,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $params = ['id' => $id];
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
+        $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
 
         return (bool) $stmt->fetch();
     }
@@ -123,7 +123,7 @@ abstract class AbstractRepository implements RepositoryInterface
     {
         $table = $this->getTable();
         $fields = \array_keys($data);
-        $placeholders = \array_map(static fn ($f) => ":$f", $fields);
+        $placeholders = \array_map(static fn($f) => ":$f", $fields);
 
         $sql = \sprintf(
             'INSERT INTO %s (%s) VALUES (%s)',
@@ -133,7 +133,7 @@ abstract class AbstractRepository implements RepositoryInterface
         );
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(fn () => $stmt->execute($data), $sql, $data);
+        $this->execTimed(fn() => $stmt->execute($data), $sql, $data);
 
         return (int) $this->getDb()->lastInsertId();
     }
@@ -143,7 +143,7 @@ abstract class AbstractRepository implements RepositoryInterface
     {
         $table = $this->getTable();
         $fields = \array_keys($data);
-        $setParts = \array_map(static fn ($f) => "$f = :$f", $fields);
+        $setParts = \array_map(static fn($f) => "$f = :$f", $fields);
 
         $sql = \sprintf(
             "UPDATE %s SET %s WHERE $this->primaryKey = :id",
@@ -154,7 +154,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $data['id'] = $id;
 
         return (bool) $this->execTimed(
-            fn () => $this->getDb()->prepare($sql)->execute($data),
+            fn() => $this->getDb()->prepare($sql)->execute($data),
             $sql,
             $data
         );
@@ -169,7 +169,7 @@ abstract class AbstractRepository implements RepositoryInterface
 
         $stmt = $this->getDb()->prepare($sql);
 
-        return (bool) $this->execTimed(fn () => $stmt->execute($params), $sql, $params);
+        return (bool) $this->execTimed(fn() => $stmt->execute($params), $sql, $params);
     }
 
     /**
@@ -210,7 +210,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $sql = "SELECT COUNT(*) as total FROM $table";
 
         if (!empty($conditions)) {
-            $whereParts = \array_map(static fn ($f) => "$f = :$f", \array_keys($conditions));
+            $whereParts = \array_map(static fn($f) => "$f = :$f", \array_keys($conditions));
             $sql .= self::SQL_WHERE . \implode(' AND ', $whereParts);
         }
 
@@ -262,7 +262,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $params['offset'] = $pagination->offset;
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(static fn () => $stmt->execute($params), $sql, $params);
+        $this->execTimed(static fn() => $stmt->execute($params), $sql, $params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

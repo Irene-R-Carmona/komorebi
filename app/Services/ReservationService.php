@@ -134,18 +134,18 @@ final class ReservationService implements ReservationServiceInterface
                 $cart
             ) {
                 $reservationData = [
-                        'user_id' => $userId,
-                        'cafe_id' => $cafeId,
-                        'pass_product_id' => $passId,
-                        'pass_name' => $pass->name,
-                        'pass_unit_price' => (int) $pass->price,
-                        'pass_duration_minutes' => $pass->duration_minutes ?? 0,
-                        'reservation_date' => $date,
-                        'reservation_time' => $time . ':00',
-                        'guest_count' => $guests,
-                        'notes' => $comments !== '' ? $comments : null,
-                        'status' => 'confirmed',
-                    ];
+                    'user_id' => $userId,
+                    'cafe_id' => $cafeId,
+                    'pass_product_id' => $passId,
+                    'pass_name' => $pass->name,
+                    'pass_unit_price' => (int) $pass->price,
+                    'pass_duration_minutes' => $pass->duration_minutes ?? 0,
+                    'reservation_date' => $date,
+                    'reservation_time' => $time . ':00',
+                    'guest_count' => $guests,
+                    'notes' => $comments !== '' ? $comments : null,
+                    'status' => 'confirmed',
+                ];
 
                 $reservationId = $this->reservationRepo->create($reservationData);
 

@@ -35,7 +35,8 @@ $assetVersion = Env::get('APP_VERSION', '1');
                     document.documentElement.setAttribute('data-bs-theme', 'dark');
                 }
             } catch (e) {
-                /* localStorage bloqueado */ }
+                /* localStorage bloqueado */
+            }
         })();
     </script>
     <title>Komorebi OS | <?= $titulo ?? 'Panel' ?></title>
@@ -55,7 +56,7 @@ $assetVersion = Env::get('APP_VERSION', '1');
     <?php
     // Chart.js - Solo cargar en dashboards (tree-shaked bundle, -55% size)
     $needsCharts = str_contains($currentUri, '/dashboard');
-if ($needsCharts): ?>
+    if ($needsCharts): ?>
         <script defer src="/js/charts.min.js?v=<?= e($assetVersion) ?>"></script>
     <?php endif; ?>
 
@@ -76,13 +77,13 @@ if ($needsCharts): ?>
     <link href="/css/components/stat-card.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
 
     <?php
-// Detectar dashboard actual y cargar CSS correspondiente
-if (str_contains($currentUri, '/manager/dashboard')) {
-    echo '<link href="/css/backoffice/manager-dashboard.css?v=' . e($assetVersion) . '" rel="stylesheet">' . "\n    ";
-} elseif (str_contains($currentUri, '/supervisor/dashboard')) {
-    echo '<link href="/css/backoffice/supervisor-dashboard.css?v=' . e($assetVersion) . '" rel="stylesheet">' . "\n    ";
-}
-?>
+    // Detectar dashboard actual y cargar CSS correspondiente
+    if (str_contains($currentUri, '/manager/dashboard')) {
+        echo '<link href="/css/backoffice/manager-dashboard.css?v=' . e($assetVersion) . '" rel="stylesheet">' . "\n    ";
+    } elseif (str_contains($currentUri, '/supervisor/dashboard')) {
+        echo '<link href="/css/backoffice/supervisor-dashboard.css?v=' . e($assetVersion) . '" rel="stylesheet">' . "\n    ";
+    }
+    ?>
 
     <!-- CSS específico por vista -->
     <?php foreach ($extraCss as $css): ?>
@@ -113,7 +114,7 @@ if (str_contains($currentUri, '/manager/dashboard')) {
                 <ul class="nav flex-column">
                     <?php foreach ($items as $item):
                         $isActive = ($currentUri === $item['url']) ? 'active' : '';
-                        ?>
+                    ?>
                         <li class="nav-item">
                             <a href="<?= $item['url'] ?>" class="nav-link <?= $isActive ?>">
                                 <i class="bi bi-<?= $item['icon'] ?>"></i>
@@ -206,8 +207,8 @@ if (str_contains($currentUri, '/manager/dashboard')) {
 
     use App\Core\View;
 
-echo View::componentToString('components/admin/delete-confirmation-modal');
-?>
+    echo View::componentToString('components/admin/delete-confirmation-modal');
+    ?>
 
     <!-- Mobile Offcanvas Menu -->
     <div class="offcanvas offcanvas-start offcanvas-sidebar" tabindex="-1" id="mobileNav"
@@ -228,7 +229,7 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
                     <ul class="nav flex-column">
                         <?php foreach ($items as $item):
                             $isActive = ($currentUri === $item['url']) ? 'active' : '';
-                            ?>
+                        ?>
                             <li class="nav-item">
                                 <a href="<?= $item['url'] ?>" class="nav-link <?= $isActive ?>">
                                     <i class="bi bi-<?= $item['icon'] ?>"></i>
@@ -266,7 +267,7 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
     } elseif (str_contains($currentUri, '/supervisor/dashboard')) {
         echo '<script src="/js/backoffice/supervisor-dashboard.js?v=' . e($assetVersion) . '"></script>' . "\n";
     }
-?>
+    ?>
 
     <!-- JS específico por vista (ANTES de Alpine) -->
     <?php foreach ($extraJs as $js): ?>
@@ -274,11 +275,11 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
     <?php endforeach; ?>
 
     <!-- Alpine.js plugins (deben cargarse ANTES de alpine.min.js) -->
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.14.9/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.14.9/dist/cdn.min.js"></script>
 
     <!-- Alpine.js se carga AL FINAL (después de los componentes) -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 
     <script nonce="<?= $cspNonce ?>">
         (function() {
@@ -307,7 +308,8 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
                 var saved = localStorage.getItem('komorebi_bo_tema');
                 if (saved) applyTheme(saved);
             } catch (e) {
-                /* noop */ }
+                /* noop */
+            }
 
             if (btn) {
                 btn.addEventListener('click', function() {
@@ -317,7 +319,8 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
                     try {
                         localStorage.setItem('komorebi_bo_tema', next);
                     } catch (e) {
-                        /* noop */ }
+                        /* noop */
+                    }
                 });
             }
         })();

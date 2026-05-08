@@ -39,11 +39,11 @@ Accesos por defecto en entorno local:
 
 | Servicio   | URL                        |
 |------------|----------------------------|
-| Aplicación | http://localhost:8080       |
-| Mailpit UI | http://localhost:8025       |
+| Aplicación | <http://localhost:8080>       |
+| Mailpit UI | <http://localhost:8025>       |
 | Redis      | localhost:6379              |
 
-Usuario administrador por defecto: `admin@komorebi.local` / `Admin123!`
+Usuario administrador por defecto: `admin@komorebi.cafe` / `komorebi2024`
 
 ---
 

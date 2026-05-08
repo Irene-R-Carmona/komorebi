@@ -16,6 +16,5 @@ final readonly class ReservationConfirmedEvent
         public string $time,
         public int $guests,
         public DateTimeImmutable $confirmedAt
-    ) {
-    }
+    ) {}
 }

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Core\Container;
 use App\Core\Csrf;
+use App\Core\Env;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
 use App\Core\Session;
@@ -80,7 +81,17 @@ final class PasswordResetController
         }
 
         $serverParams = $request->getServerParams();
-        $ipAddress = $serverParams['REMOTE_ADDR'] ?? '0.0.0.0';
+        $remoteAddr = $serverParams['REMOTE_ADDR'] ?? '0.0.0.0';
+        $trustedProxy = Env::get('TRUSTED_PROXY_IP', '');
+        if ($trustedProxy !== '' && $remoteAddr === $trustedProxy) {
+            $forwarded = (string) ($request->getHeaderLine('X-Forwarded-For'));
+            $resolved = \trim(\explode(',', $forwarded)[0]);
+            $ipAddress = ($resolved !== '' && \filter_var($resolved, FILTER_VALIDATE_IP) !== false)
+                ? $resolved
+                : $remoteAddr;
+        } else {
+            $ipAddress = $remoteAddr;
+        }
         $userAgent = $serverParams['HTTP_USER_AGENT'] ?? null;
 
         try {

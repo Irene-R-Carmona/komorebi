@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Env;
 use App\Core\Logger;
 use Throwable;
 
@@ -21,7 +22,7 @@ use Throwable;
 final class MercurePublisherService
 {
     /** URL interna del Mercure Hub (PHP → FrankenPHP dentro del mismo proceso/contenedor) */
-    private const string HUB_INTERNAL_URL = 'http://localhost/.well-known/mercure';
+    private const string HUB_INTERNAL_URL_DEFAULT = 'http://localhost/.well-known/mercure';
     private const int    PUBLISH_TIMEOUT = 3;
 
     /**
@@ -61,7 +62,7 @@ final class MercurePublisherService
                 ],
             ]);
 
-            $response = \file_get_contents(self::HUB_INTERNAL_URL, false, $context);
+            $response = \file_get_contents(Env::get('MERCURE_HUB_URL', self::HUB_INTERNAL_URL_DEFAULT), false, $context);
             $ok = ($response !== false);
 
             if ($ok) {

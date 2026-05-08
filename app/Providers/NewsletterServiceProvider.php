@@ -18,23 +18,21 @@ final class NewsletterServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
-        Container::singleton(NewsletterSubscriptionRepository::class, fn () => new NewsletterSubscriptionRepository(
+        Container::singleton(NewsletterSubscriptionRepository::class, fn() => new NewsletterSubscriptionRepository(
             Database::getConnection()
         ));
 
-        Container::singleton(NewsletterSubscriptionRepositoryInterface::class, fn () => Container::make(
+        Container::singleton(NewsletterSubscriptionRepositoryInterface::class, fn() => Container::make(
             NewsletterSubscriptionRepository::class
         ));
 
-        Container::singleton(NewsletterService::class, fn () => new NewsletterService(
+        Container::singleton(NewsletterService::class, fn() => new NewsletterService(
             Container::make(NewsletterSubscriptionRepositoryInterface::class)
         ));
 
-        Container::singleton(NewsletterServiceInterface::class, fn () => Container::make(NewsletterService::class));
+        Container::singleton(NewsletterServiceInterface::class, fn() => Container::make(NewsletterService::class));
     }
 
     #[Override]
-    public function boot(): void
-    {
-    }
+    public function boot(): void {}
 }

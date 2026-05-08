@@ -61,7 +61,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
     public function login(string $email, string $password): Result
     {
         $email = \strtolower(\trim($email));
-        $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $ipAddress = $this->resolveClientIp();
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 
         // Validar entrada básica
@@ -162,7 +162,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
     {
         $user = Session::user();
         if ($user) {
-            $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+            $ipAddress = $this->resolveClientIp();
             $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 
             $this->sessionService->logAuthEvent(
@@ -216,7 +216,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
         $sessionId = \session_id();
 
         // Registrar sesión activa en BD
-        $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $ipAddress = $this->resolveClientIp();
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
         $deviceName = $this->parseDeviceName($userAgent);
 
@@ -252,6 +252,26 @@ final class AuthService extends BaseService implements AuthServiceInterface
 
         // 3. Regenerar token CSRF tras login
         Csrf::regenerate();
+    }
+
+    /**
+     * Resuelve la IP real del cliente respetando el proxy de confianza.
+     * Si TRUSTED_PROXY_IP está configurada y REMOTE_ADDR coincide, usa X-Forwarded-For.
+     */
+    private function resolveClientIp(): string
+    {
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $trustedProxy = Env::get('TRUSTED_PROXY_IP', '');
+
+        if ($trustedProxy !== '' && $remoteAddr === $trustedProxy) {
+            $forwarded = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
+            $ip = \trim(\explode(',', $forwarded)[0]);
+            if ($ip !== '' && \filter_var($ip, FILTER_VALIDATE_IP) !== false) {
+                return $ip;
+            }
+        }
+
+        return $remoteAddr;
     }
 
     /**

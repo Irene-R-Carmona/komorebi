@@ -47,16 +47,20 @@ final class Session
                 $sessionTtl = Env::int('SESSION_LIFETIME', 7200);
                 $savePath = "tcp://{$redisHost}:{$redisPort}?database=1&lifetime={$sessionTtl}";
                 if ($redisPass !== '') {
-                    $savePath .= "&auth={$redisPass}";
+                    $savePath .= '&auth=' . \urlencode($redisPass);
                 }
                 \ini_set('session.save_handler', 'redis');
                 \ini_set('session.save_path', $savePath);
             }
+            $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+                || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on');
+
             \session_set_cookie_params([
                 'lifetime' => 0,                              // Hasta cerrar navegador
                 'path' => '/',
                 'domain' => '',
-                'secure' => Env::bool('APP_HTTPS', false),  // HTTPS en producción
+                'secure' => $isHttps,                         // Detectado dinámicamente (soporta X-Forwarded-Proto)
                 'httponly' => true,                           // No accesible desde JS
                 'samesite' => 'Lax',                          // Protección CSRF adicional
             ]);

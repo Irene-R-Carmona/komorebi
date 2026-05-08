@@ -30,66 +30,66 @@ final class StaffServiceProvider extends ServiceProvider
     {
         Container::singleton(
             StaffShiftRepository::class,
-            fn () => new StaffShiftRepository(Database::getConnection())
+            fn() => new StaffShiftRepository(Database::getConnection())
         );
         Container::singleton(
             StaffShiftRepositoryInterface::class,
-            fn () => Container::make(StaffShiftRepository::class)
+            fn() => Container::make(StaffShiftRepository::class)
         );
 
         Container::singleton(
             StaffShiftService::class,
-            fn () => new StaffShiftService(Container::make(StaffShiftRepository::class))
+            fn() => new StaffShiftService(Container::make(StaffShiftRepository::class))
         );
         Container::singleton(
             StaffShiftServiceInterface::class,
-            fn () => Container::make(StaffShiftService::class)
+            fn() => Container::make(StaffShiftService::class)
         );
 
         Container::singleton(
             SupervisorAssignmentRepository::class,
-            fn () => new SupervisorAssignmentRepository(Database::getConnection())
+            fn() => new SupervisorAssignmentRepository(Database::getConnection())
         );
         Container::singleton(
             SupervisorAssignmentRepositoryInterface::class,
-            fn () => Container::make(SupervisorAssignmentRepository::class)
+            fn() => Container::make(SupervisorAssignmentRepository::class)
         );
 
         Container::singleton(
             SupervisorAssignmentService::class,
-            fn () => new SupervisorAssignmentService(Container::make(SupervisorAssignmentRepository::class))
+            fn() => new SupervisorAssignmentService(Container::make(SupervisorAssignmentRepository::class))
         );
 
         Container::singleton(
             SupervisorAssignmentServiceInterface::class,
-            fn () => Container::make(SupervisorAssignmentService::class)
+            fn() => Container::make(SupervisorAssignmentService::class)
         );
 
         Container::singleton(
             AuthLogRepository::class,
-            fn () => new AuthLogRepository(Database::getConnection())
+            fn() => new AuthLogRepository(Database::getConnection())
         );
         Container::singleton(
             AuthLogRepositoryInterface::class,
-            fn () => Container::make(AuthLogRepository::class)
+            fn() => Container::make(AuthLogRepository::class)
         );
 
         Container::singleton(
             AuditLogRepository::class,
-            fn () => new AuditLogRepository(Database::getConnection())
+            fn() => new AuditLogRepository(Database::getConnection())
         );
         Container::singleton(
             AuditLogRepositoryInterface::class,
-            fn () => Container::make(AuditLogRepository::class)
+            fn() => Container::make(AuditLogRepository::class)
         );
 
         Container::singleton(
             RoleRepository::class,
-            fn () => new RoleRepository(Database::getConnection())
+            fn() => new RoleRepository(Database::getConnection())
         );
         Container::singleton(
             RoleRepositoryInterface::class,
-            fn () => Container::make(RoleRepository::class)
+            fn() => Container::make(RoleRepository::class)
         );
     }
 

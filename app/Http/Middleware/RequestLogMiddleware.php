@@ -9,6 +9,7 @@ use App\Core\LogContext;
 use App\Core\Logger;
 use App\Core\Session;
 use App\Core\WideEvent;
+use App\Support\IpHelper;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Override;
@@ -54,7 +55,7 @@ final class RequestLogMiddleware implements MiddlewareInterface
         WideEvent::set('timestamp', new DateTimeImmutable()->format(DateTimeInterface::RFC3339_EXTENDED));
         WideEvent::set('method', $request->getMethod());
         WideEvent::set('path', $request->getUri()->getPath());
-        WideEvent::set('ip', self::anonymizeIp((string) ($serverParams['REMOTE_ADDR'] ?? 'N/A')));
+        WideEvent::set('ip', self::anonymizeIp(IpHelper::resolve($serverParams)));
         WideEvent::set('user_agent', $serverParams['HTTP_USER_AGENT'] ?? null);
 
         // LogContext mantiene la propagación automática a otros loggers

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Core\Env;
 use App\Core\Http\ExceptionRendererRegistry;
 use App\Core\Http\ResponseFactory;
 use App\Http\ExceptionRenderers\AuthenticationExceptionRenderer;
@@ -161,11 +162,11 @@ final class MiddlewareFactory
      */
     public function cors(): CorsMiddleware
     {
-        $raw = (string) ($_ENV['CORS_ALLOWED_ORIGINS'] ?? '');
+        $raw = Env::get('CORS_ALLOWED_ORIGINS', '');
         $origins = \array_values(\array_filter(\array_map('trim', \explode(',', $raw))));
-        $allowed = $origins !== [] ? $origins : ['http://localhost:8080'];
-        $credentials = \filter_var($_ENV['CORS_CREDENTIALS'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
-        $maxAge = (int) ($_ENV['CORS_MAX_AGE'] ?? 7200);
+        $allowed = $origins;
+        $credentials = \filter_var(Env::get('CORS_CREDENTIALS', 'false'), FILTER_VALIDATE_BOOLEAN);
+        $maxAge = Env::int('CORS_MAX_AGE', 7200);
 
         return new CorsMiddleware($this->response, $allowed, $credentials, $maxAge);
     }
@@ -184,12 +185,11 @@ final class MiddlewareFactory
     {
         $response = $this->response;
 
-        return new class ($response, $action) implements MiddlewareInterface {
+        return new class($response, $action) implements MiddlewareInterface {
             public function __construct(
                 private readonly ResponseFactory $response,
                 private readonly string $action,
-            ) {
-            }
+            ) {}
 
             #[Override]
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface

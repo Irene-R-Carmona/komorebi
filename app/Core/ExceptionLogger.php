@@ -14,6 +14,7 @@ use App\Exceptions\NotFoundException;
 use App\Exceptions\RateLimitException;
 use App\Exceptions\ValidationException;
 use App\Services\TelegramService;
+use App\Support\IpHelper;
 use Exception;
 use Throwable;
 
@@ -227,7 +228,7 @@ final class ExceptionLogger
         return [
             'method' => $_SERVER['REQUEST_METHOD'] ?? 'CLI',
             'uri' => $_SERVER['REQUEST_URI'] ?? 'N/A',
-            'ip' => self::anonymizeIp($_SERVER['REMOTE_ADDR'] ?? 'N/A'),
+            'ip' => self::anonymizeIp(IpHelper::resolve($_SERVER)),
         ];
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Container;
+use App\Core\Env;
 use App\Exceptions\ConfigurationException;
 use App\Exceptions\DatabaseException;
 use App\Models\AuditLog;
@@ -301,7 +302,7 @@ final class SettingsService implements SettingsServiceInterface
         return [
             // App
             'app_name' => 'Komorebi Café',
-            'app_url' => 'http://localhost',
+            'app_url' => Env::get('APP_URL', 'http://localhost'),
             'app_timezone' => 'Europe/Madrid',
             'app_locale' => 'es_ES',
 

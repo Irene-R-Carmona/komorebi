@@ -1,7 +1,7 @@
 # Plan: Documentación Oficial TFG — Komorebi Café (LaTeX → PDF)
 
-**Estado:** 🔵 Plan creado — pendiente inicio  
-**Fecha:** 2026-05-08  
+**Estado:** 🔵 Plan creado — pendiente inicio
+**Fecha:** 2026-05-08
 **Estimación:** ~157 páginas PDF
 
 ---
@@ -123,7 +123,7 @@ float · graphicx · xcolor · enumitem · appendix(titletoc) · biblatex(biber,
 
 ## Fase 2 — Capturas de pantalla (~62 capturas con Playwright MCP)
 
-**Login:** `admin@komorebi.local` / `Admin123!`  
+**Login:** `admin@komorebi.local` / `Admin123!`
 **Destino:** `docs/screenshots/`
 
 - [ ] **2.1** Páginas públicas (12): `01-home` · `02-cafes-lista` · `03-cafe-detalle` ·

@@ -94,7 +94,7 @@ if ($sessionDriver === 'redis') {
     $redisHost = Config::getString('cache.redis.host', 'localhost');
     $redisPort = Config::getInt('cache.redis.port', 6379);
     $redisPass = Config::getString('cache.redis.password', '');
-    $savePath = "tcp://$redisHost:$redisPort" . ($redisPass !== '' ? "?auth=$redisPass" : '');
+    $savePath = "tcp://$redisHost:$redisPort?database=1" . ($redisPass !== '' ? '&auth=' . urlencode($redisPass) : '');
     ini_set('session.save_handler', 'redis');
     ini_set('session.save_path', $savePath);
 } else {

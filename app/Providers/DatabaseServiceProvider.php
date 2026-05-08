@@ -90,7 +90,7 @@ final class DatabaseServiceProvider extends ServiceProvider
         return [
             Env::get('DB_HOST', 'localhost'),
             (int) Env::get('DB_PORT', '3306'),
-            Env::get('DB_DATABASE', 'komorebi_db'),
+            Env::get('DB_DATABASE', 'komorebi'),
             Env::get('DB_USERNAME', 'root'),
             Env::get('DB_PASSWORD', ''),
         ];

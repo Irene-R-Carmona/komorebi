@@ -51,7 +51,7 @@
     <script defer src="/js/init/event-delegation.js"></script>
     <script nonce="<?= $cspNonce ?? '' ?>" src="/js/init/alpine-components.js"></script>
     <script src="/js/sections/reception.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
     <script nonce="<?= $cspNonce ?? '' ?>">
         window.__MERCURE__ = {
             cafeId: <?= (int) ($cafe_id ?? 0) ?>,

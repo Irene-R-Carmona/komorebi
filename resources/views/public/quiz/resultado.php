@@ -230,7 +230,7 @@ $temaCss = $animalColorMap[$animalIcon] ?? 'tema-default';
             </div>
 
             <div class="cafe-destino__acciones">
-                <a href="/cafes/<?= htmlspecialchars($cafe['slug']) ?>" class="btn-komorebi btn-komorebi-primary">
+                <a href="/cafes/<?= htmlspecialchars($cafeData['slug']) ?>" class="btn-komorebi btn-komorebi-primary">
                     <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
                     Ver el café
                 </a>
@@ -239,6 +239,14 @@ $temaCss = $animalColorMap[$animalIcon] ?? 'tema-default';
                     Reservar experiencia
                 </a>
             </div>
+        </div>
+    <?php else: ?>
+        <div class="cafe-destino cafe-destino--error" role="alert">
+            <p class="cafe-destino__mensaje-error">
+                <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                No hemos podido cargar tu café perfecto en este momento.
+                <a href="/quiz" class="link-inline">Vuelve a intentarlo</a>.
+            </p>
         </div>
     <?php endif; ?>
 

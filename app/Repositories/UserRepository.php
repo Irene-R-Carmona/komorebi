@@ -548,7 +548,7 @@ final class UserRepository extends AbstractRepository implements UserRepositoryI
         $params['offset'] = $pagination->offset;
 
         $stmt = $this->getDb()->prepare($sql);
-        $this->execTimed(static fn () => $stmt->execute($params), $sql, $params);
+        $this->execTimed(static fn() => $stmt->execute($params), $sql, $params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

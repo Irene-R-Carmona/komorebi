@@ -176,7 +176,7 @@ final class SendEmailJob implements JobInterface
         // Configuración SMTP desde variables de entorno
         $mail->isSMTP();
         $mail->Host = Env::get('MAIL_HOST', 'localhost');
-        $mail->Port = (int) Env::get('MAIL_PORT', '1025');
+        $mail->Port = (int) Env::get('MAIL_PORT', '587'); // Railway: requiere MAIL_PORT=587 (o 465/2525 según proveedor)
         $mail->SMTPAuth = false; // Mailpit no requiere autenticación en dev
 
         // En producción, habilitar autenticación
@@ -188,7 +188,7 @@ final class SendEmailJob implements JobInterface
         }
 
         // Remitente por defecto
-        $defaultFrom = Env::get('MAIL_FROM_ADDRESS', 'noreply@komorebi.local');
+        $defaultFrom = Env::get('MAIL_FROM_ADDRESS', 'noreply@komorebi.cafe');
         $defaultName = Env::get('MAIL_FROM_NAME', 'Komorebi Café');
         $mail->setFrom($defaultFrom, $defaultName);
 

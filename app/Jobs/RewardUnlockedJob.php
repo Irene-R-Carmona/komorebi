@@ -110,7 +110,7 @@ final class RewardUnlockedJob implements JobInterface
         }
 
         $mail->setFrom(
-            Env::get('MAIL_FROM_ADDRESS', 'noreply@komorebi.local'),
+            Env::get('MAIL_FROM_ADDRESS', 'noreply@komorebi.cafe'),
             Env::get('MAIL_FROM_NAME', 'Komorebi Café')
         );
 

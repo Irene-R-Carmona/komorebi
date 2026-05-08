@@ -19,7 +19,7 @@
     <?php endforeach;
     endif; ?>
 
-    <script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1" defer></script>
     <!-- Componentes centralizados -->
     <script src="/js/components/fallbacks.js"></script>
     <script src="/js/components/catalogo.js"></script>
@@ -50,8 +50,8 @@
     <!-- BOTTOM NAV -->
     <nav class="mobile-bottom-nav">
         <?php if (!empty($mobileMenu)): foreach ($mobileMenu as $item):
-            $isActive = ($_SERVER['REQUEST_URI'] == $item['url']) ? 'active' : '';
-            ?>
+                $isActive = ($_SERVER['REQUEST_URI'] == $item['url']) ? 'active' : '';
+        ?>
                 <a href="<?= $item['url'] ?>" class="nav-icon <?= $isActive ?>">
                     <i class="ph ph-<?= $item['icon'] ?>"></i>
                     <span><?= $item['label'] ?></span>

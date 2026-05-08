@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\BaseService;
+use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Queue;
 use App\Core\WideEvent;
@@ -356,7 +357,8 @@ final class EmailService extends BaseService implements EmailServiceInterface
 
     private function getWaitlistConfirmationTemplate(string $userName, string $token, array $data): string
     {
-        $statusUrl = 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost:8080') . '/waitlist/status/' . $token;
+        $appUrl = Env::get('APP_URL', 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost'));
+        $statusUrl = \rtrim($appUrl, '/') . '/waitlist/status/' . $token;
         $slotDate = \date('d/m/Y', \strtotime($data['slot_date'] ?? 'now'));
         $slotTime = \date('H:i', \strtotime($data['slot_time'] ?? 'now'));
         $position = $data['position'] ?? 0;

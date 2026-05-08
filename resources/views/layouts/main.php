@@ -79,7 +79,7 @@ $assetVersion = Env::get('APP_VERSION', '1');
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <!-- Bootstrap Icons (CDN fallback) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" integrity="" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" crossorigin="anonymous">
     <!-- Estilos del proyecto -->
     <link href="/css/global.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
     <!-- Design System Components -->
@@ -119,7 +119,7 @@ $assetVersion = Env::get('APP_VERSION', '1');
         }
     }
 
-?>
+    ?>
 
     <!-- Event delegation helper: replace inline handlers with `data-action` -->
     <script defer src="/js/init/event-delegation.js?v=<?= e($assetVersion) ?>"></script>
@@ -467,7 +467,7 @@ $assetVersion = Env::get('APP_VERSION', '1');
     </div>
 
     <!-- Alpine.js debe cargarse AL FINAL para que todos los componentes se registren primero -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 
 </body>
 
