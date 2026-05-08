@@ -58,7 +58,7 @@
     <script src="/js/components/loyaltyRewards.js"></script>
     <script src="/js/components/quizFilosofico.js"></script>
     <script nonce="<?= $cspNonce ?? '' ?>" src="/js/init/alpine-components.js"></script>
-    <script defer src="/js/vendor/alpine.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="/js/sections/kds.js"></script>
 
     <script nonce="<?= $cspNonce ?? '' ?>">

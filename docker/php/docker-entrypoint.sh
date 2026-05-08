@@ -17,7 +17,7 @@ log "  Servicio: ${COMPOSE_SERVICE:-app} | Entorno: ${APP_ENV:-?}"
 log "==================================================="
 
 log "Creando directorios de almacenamiento..."
-mkdir -p "$STORAGE_DIR/uploads/avatars" "$STORAGE_DIR/uploads/animals" "$STORAGE_DIR/logs" "$STORAGE_DIR/cache" "$STORAGE_DIR/cache/di"
+mkdir -p "$STORAGE_DIR/uploads/avatars" "$STORAGE_DIR/uploads/animals" "$STORAGE_DIR/logs" "$STORAGE_DIR/cache" "$STORAGE_DIR/cache/di" 2>/dev/null || true
 chown -R www-data:www-data "$STORAGE_DIR" 2>/dev/null || true
 chmod -R 755 "$STORAGE_DIR" 2>/dev/null || true
 chmod -R 775 "$STORAGE_DIR/uploads" "$STORAGE_DIR/logs" "$STORAGE_DIR/cache" 2>/dev/null || true

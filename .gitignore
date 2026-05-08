@@ -122,3 +122,17 @@ AGENTS.md
 
 # Logs de desarrollo sueltos en raíz
 logs.txt
+
+# LaTeX — archivos de compilación auxiliares
+docs/*.aux
+docs/*.lof
+docs/*.lot
+docs/*.out
+docs/*.toc
+docs/*.run.xml
+docs/*.bbl
+docs/*.blg
+docs/*.fls
+docs/*.fdb_latexmk
+docs/*.synctex.gz
+docs/compile-out.txt

@@ -1,0 +1,4 @@
+[mysqld]
+# Permite crear triggers/stored procedures con binary logging activo
+# sin necesitar SUPER privilege. Requerido por 012b_reservation_triggers.sql.
+log_bin_trust_function_creators = 1

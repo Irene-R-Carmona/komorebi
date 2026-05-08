@@ -1,64 +1,58 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Core\Csrf;
+
 /**
- * Vista: Formulario de Olvido de Contraseña
+ * Vista: Recuperar contraseña
  *
- * @var string $csrf_token
+ * Variables esperadas:
+ * - string $csrf_token  (disponible como fallback, se prefiere Csrf::field())
  */
 ?>
+<section class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <span class="auth-header__icon"><i class="bi bi-key-fill"></i></span>
+            <h1 class="auth-header__titulo">Recupera tu contraseña</h1>
+            <p class="auth-header__subtitulo">Recibirás un enlace para restablecer tu contraseña</p>
+        </div>
 
-<?php $this->extend('layouts/main.php'); ?>
+        <?php if ($error = $this->flash('error')): ?>
+            <div class="alert-error">
+                <i class="bi bi-exclamation-triangle-fill"></i> <?= e($error) ?>
+            </div>
+        <?php endif; ?>
 
-<?php $this->start('content'); ?>
+        <?php if ($success = $this->flash('success')): ?>
+            <div class="alert-success">
+                <i class="bi bi-check-circle-fill"></i> <?= e($success) ?>
+            </div>
+        <?php endif; ?>
 
-<div class="container mx-auto px-4 py-12">
-    <div class="max-w-md mx-auto">
-        <div class="bg-white rounded-lg shadow-lg p-8">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Recupera tu contraseña</h1>
-            <p class="text-gray-600 mb-6">Ingresa tu email para recibir instrucciones de recuperación.</p>
+        <form method="POST" action="/forgot-password" class="auth-form" novalidate>
+            <?= Csrf::field() ?>
 
-            <?php if ($error = $this->flash('error')): ?>
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    <?= htmlspecialchars($error) ?>
-                </div>
-            <?php endif; ?>
+            <div class="form-group">
+                <label for="email" class="form-label">Correo electrónico</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="form-input"
+                    placeholder="ejemplo@email.com"
+                    required
+                    autocomplete="email">
+            </div>
 
-            <?php if ($success = $this->flash('success')): ?>
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    <?= htmlspecialchars($success) ?>
-                </div>
-            <?php endif; ?>
+            <button type="submit" class="btn btn--primario w-100 mt-2">
+                Enviar instrucciones
+            </button>
+        </form>
 
-            <form method="POST" action="/forgot-password" class="space-y-4">
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
-
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                        Email
-                    </label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="tu@email.com">
-                </div>
-
-                <button
-                    type="submit"
-                    class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">
-                    Enviar instrucciones
-                </button>
-
-                <div class="text-center mt-4">
-                    <a href="/login" class="text-green-600 hover:text-green-700 text-sm">
-                        Volver al login
-                    </a>
-                </div>
-            </form>
+        <div class="auth-footer">
+            <a href="/login" class="auth-link small">← Volver al login</a>
         </div>
     </div>
-</div>
-
-<?php $this->end(); ?>
+</section>

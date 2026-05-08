@@ -278,7 +278,7 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
 
     <!-- Alpine.js se carga AL FINAL (después de los componentes) -->
-    <script defer src="/js/vendor/alpine.min.js?v=<?= e($assetVersion) ?>"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <script nonce="<?= $cspNonce ?>">
         (function() {

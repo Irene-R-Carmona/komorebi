@@ -105,7 +105,7 @@ final class RewardUnlockedJob implements JobInterface
             $mail->SMTPAuth = true;
             $mail->Username = Env::get('MAIL_USERNAME');
             $mail->Password = Env::get('MAIL_PASSWORD');
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->SMTPSecure = Env::get('MAIL_ENCRYPTION', 'tls');
             $mail->Port = (int) Env::get('MAIL_PORT', '587');
         }
 

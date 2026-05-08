@@ -265,11 +265,6 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
 
                     <!-- Paso 4: Resumen Financiero & Submit -->
                     <div class="booking-summary" x-show="selectedPassId && fecha && hora">
-                        <div class="booking-summary__line">
-                            <span>Total estimado</span>
-                            <strong>¥<span x-text="grandTotal.toLocaleString()"></span></strong>
-                        </div>
-
                         <?php if (!empty($cartDetails)): ?>
                             <div class="booking-summary__extras">
                                 <div class="booking-summary__extras-title">Extras incluidos</div>
@@ -281,6 +276,11 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
+
+                        <div class="booking-summary__line">
+                            <span>Total estimado</span>
+                            <strong>¥<span x-text="grandTotal.toLocaleString()"></span></strong>
+                        </div>
 
                         <button type="submit" class="btn btn--primario booking-btn-confirm" :disabled="!canSubmit || submitting">
                             <span x-show="!submitting">Confirmar pase</span>

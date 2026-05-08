@@ -184,7 +184,7 @@ final class SendEmailJob implements JobInterface
             $mail->SMTPAuth = true;
             $mail->Username = Env::get('MAIL_USERNAME');
             $mail->Password = Env::get('MAIL_PASSWORD');
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->SMTPSecure = Env::get('MAIL_ENCRYPTION', 'tls');
         }
 
         // Remitente por defecto

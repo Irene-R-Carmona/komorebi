@@ -21,7 +21,7 @@
 \setCJKmonofont{Yu Gothic}
 
 % ─── Idioma ──────────────────────────────────────────────────
-\usepackage[spanish,es-tabla]{babel}
+\usepackage[spanish,es-tabla,es-noshorthands]{babel}
 \usepackage{csquotes}
 
 % ─── Márgenes y geometría ────────────────────────────────────
@@ -83,12 +83,9 @@
 \usemintedstyle{friendly}
 \setminted{
   fontsize=\small,
-  bgcolor=code-bg,
   linenos=true,
-  breaklines=true,
-  frame=leftline,
-  framerule=2pt,
-  framesep=8pt
+  breaklines=true
+  % bgcolor, frame y framesep se controlan por tcolorbox en los entornos phpcode/sqlcode/bashcode
 }
 \usepackage{tcolorbox}
 \tcbuselibrary{minted,skins,breakable}
@@ -144,8 +141,8 @@
 \usepackage[spanish]{cleveref}
 
 % ─── Glosario ────────────────────────────────────────────────
-\usepackage[record,abbreviations]{glossaries-extra}
-\makeglossaries
+\usepackage[abbreviations]{glossaries-extra}
+\makenoidxglossaries
 
 % ─── Bibliografía ────────────────────────────────────────────
 \usepackage[backend=biber,style=ieee,sorting=none]{biblatex}
@@ -232,12 +229,12 @@
 
   \vfill
 
-  \includegraphics[width=2.5cm]{images/logos/komorebi-logo-icon}\\[0.5cm]
+  \includesvg[width=2.5cm]{images/logos/komorebi-logo-icon}\\[0.5cm]
   {\small\color{gray} Komorebi Café · Todos los derechos reservados · 2026}
 \end{titlepage}
 
 % ─── FRONTMATTER ─────────────────────────────────────────────
-\frontmatter
+\pagenumbering{roman}
 \pagestyle{plain}
 
 % ── Resumen en español ───────────────────────────────────────
@@ -311,7 +308,8 @@ cuando más lo hace falta.
 \listoftables
 
 % ─── MAINMATTER ──────────────────────────────────────────────
-\mainmatter
+\clearpage
+\pagenumbering{arabic}
 \pagestyle{fancy}
 
 % ============================================================
@@ -1182,6 +1180,36 @@ make e2e
 make e2e-a11y   # solo accesibilidad WCAG 2.1 AA
 \end{bashcode}
 
+\subsection{Quality gate del proyecto}
+
+El proyecto mantiene un \textit{quality gate} completo que debe superarse antes de
+cualquier \textit{merge} a \texttt{develop} o \texttt{main}. Se ejecuta con un único
+comando:
+
+\begin{bashcode}{Quality gate completo}
+make ci   # PHPStan + Psalm + PHPUnit + cs-check
+\end{bashcode}
+
+Las herramientas que componen el gate son:
+
+\begin{description}[nosep]
+  \item[PHPStan nivel 5] Análisis estático con \texttt{phpstan-baseline.neon}.
+    Detecta tipos incorrectos, llamadas a métodos inexistentes y accesos a propiedades
+    indefinidas.
+  \item[Psalm] Segunda pasada de análisis estático. Complementa PHPStan detectando
+    vulnerabilidades de tipo y problemas de flujo de datos.
+  \item[PSR-12] Verificación de estilo de código con PHP-CS-Fixer.
+    Corrección automática disponible mediante \texttt{make cs-fix}.
+  \item[PHPUnit 13.x] Suite completa de tests unitarios e integración.
+    Los tests unitarios se ejecutan en paralelo con \texttt{make test-unit}.
+    La cobertura se genera con \texttt{make test-coverage} (HTML + Clover).
+\end{description}
+
+\begin{infobox}
+  El entorno \gls{ci} ejecuta \texttt{make ci} en cada \textit{pull request}.
+  Un quality gate fallido bloquea el merge hasta que todos los errores sean corregidos.
+\end{infobox}
+
 \section{Estructura de directorios}
 \label{sec:estructura}
 
@@ -1778,7 +1806,7 @@ quedan ocultas detrás de los frameworks de alto nivel:
 % ============================================================
 %  BACKMATTER — APÉNDICES
 % ============================================================
-\backmatter
+% \backmatter  % solo disponible en clase book — no existe en report
 
 \begin{appendices}
 
@@ -2017,8 +2045,8 @@ La \cref{tab:envvars} describe las variables principales.
 \chapter{Glosario de términos y acrónimos}
 \label{ap:glosario}
 
-\printunsrtglossary[type=abbreviations,title=Acrónimos]
-\printunsrtglossary[type=main,title=Términos]
+\printnoidxglossary[type=abbreviations,title=Acrónimos]
+\printnoidxglossary[type=main,title=Términos]
 
 \end{appendices}
 

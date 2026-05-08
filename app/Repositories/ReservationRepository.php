@@ -289,10 +289,14 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
         $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
         $sql = "SELECT $fields,
-                       c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
+                       c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image,
+                       GROUP_CONCAT(CONCAT(ri.quantity, 'x ', p.name) ORDER BY p.name SEPARATOR ' · ') AS order_summary
                 FROM reservations r
                 JOIN cafes c ON c.id = r.cafe_id
+                LEFT JOIN reservation_items ri ON ri.reservation_id = r.id
+                LEFT JOIN products p ON p.id = ri.product_id
                 WHERE {$whereClause}
+                GROUP BY r.id
                 ORDER BY r.reservation_date DESC, r.reservation_time DESC
                 LIMIT :limit OFFSET :offset";
 

@@ -295,6 +295,7 @@ entity "reservations" as RESERVATIONS {
     payment_status : ENUM
     payment_method : VARCHAR(50)
     payment_notes : TEXT
+    invoice_pdf_url : VARCHAR(500)
     deleted_at : TIMESTAMP
     created_at : TIMESTAMP
     updated_at : TIMESTAMP
@@ -396,7 +397,8 @@ entity "animal_incidents" as ANIMAL_INCIDENTS {
     # animal_id : BIGINT
     incident_type : VARCHAR(50)
     description : TEXT
-    severity : ENUM
+    severity : ENUM('low','medium','high','critical')
+    resolution : TEXT
     # reported_by : BIGINT
     resolved_at : TIMESTAMP
     # resolved_by : BIGINT
@@ -591,6 +593,19 @@ entity "settings" as SETTINGS {
     updated_at : TIMESTAMP
 }
 
+entity "api_tokens" as API_TOKENS {
+    * id : BIGINT
+    --
+    # user_id : BIGINT
+    name : VARCHAR(100)
+    token_hash : VARCHAR(64)
+    abilities : JSON
+    expires_at : DATETIME
+    last_used_at : DATETIME
+    revoked_at : DATETIME
+    created_at : TIMESTAMP
+}
+
 entity "api_audit_log" as API_AUDIT_LOG {
     * id : BIGINT
     --
@@ -716,6 +731,7 @@ CAFES ||--o{ STAFF_SHIFTS : "shift at"
 USERS ||--o{ STAFF_SHIFTS : "created by"
 
 ' --- Misc ---
+USERS ||--o{ API_TOKENS : "owns"
 USERS ||--o{ API_AUDIT_LOG : "triggers"
 USERS ||--|| TELEGRAM_USERS : "linked to"
 TELEGRAM_USERS ||--o{ TELEGRAM_MESSAGE_LOG : "has messages"

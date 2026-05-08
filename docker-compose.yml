@@ -83,6 +83,7 @@ services:
     image: mysql:8.4.8
     container_name: komorebi_db
     restart: unless-stopped
+    command: --log-bin-trust-function-creators=1
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
@@ -91,6 +92,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./docker/mysql/custom.cnf:/etc/mysql/conf.d/custom.cnf:ro
     # ports:  # No exponer al host; accesible solo dentro de la red Docker
     #   - "3306:3306"
     healthcheck:

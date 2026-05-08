@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Support\DateFormatting;
 use App\Support\StatusLabeling;
 use App\Support\TimeHelper;
+use App\Support\CurrencyFormatting;
 
 /**
  * Vista: Mis Reservas (usuario autenticado)
@@ -105,7 +106,20 @@ $statusBadge = [
                                     <i class="bi bi-people" aria-hidden="true"></i>
                                     <?= (int) ($rsv['guest_count'] ?? 0) ?> persona<?= (int) ($rsv['guest_count'] ?? 0) !== 1 ? 's' : '' ?>
                                 </span>
+                                <?php if (!empty($rsv['final_amount'])): ?>
+                                    <span>
+                                        <i class="bi bi-currency-yen" aria-hidden="true"></i>
+                                        <?= e(CurrencyFormatting::yen((float) $rsv['final_amount'])) ?>
+                                    </span>
+                                <?php endif; ?>
                             </div>
+
+                            <?php if (!empty($rsv['order_summary'])): ?>
+                                <p class="rsv2-card__comanda">
+                                    <i class="bi bi-bag" aria-hidden="true"></i>
+                                    <?= e($rsv['order_summary']) ?>
+                                </p>
+                            <?php endif; ?>
 
                             <?php if ($canCancel): ?>
                                 <div class="rsv2-card__actions">
