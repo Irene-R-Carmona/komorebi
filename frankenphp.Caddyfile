@@ -56,11 +56,13 @@
 
 	# Mercure Hub integrado: SSE en tiempo real para KDS y recepción
 	# Endpoint: /.well-known/mercure (no pasa por PHP)
+	# MERCURE_CORS_ORIGINS: en Railway poner el dominio exacto (ej: https://komorebi.up.railway.app)
+	# En desarrollo local se mantiene * como fallback
 	mercure {
 		publisher_jwt {$MERCURE_JWT_SECRET} HS256
 		subscriber_jwt {$MERCURE_JWT_SECRET} HS256
 		anonymous
-		cors_origins *
+		cors_origins {$MERCURE_CORS_ORIGINS:*}
 	}
 
 	root * /app/public
