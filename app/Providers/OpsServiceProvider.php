@@ -28,24 +28,26 @@ final class OpsServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
-        Container::singleton(TrackerRepository::class, fn() => new TrackerRepository(
+        Container::singleton(TrackerRepository::class, fn () => new TrackerRepository(
             Database::getConnection()
         ));
-        Container::singleton(TrackerRepositoryInterface::class, fn() => Container::make(TrackerRepository::class));
+        Container::singleton(TrackerRepositoryInterface::class, fn () => Container::make(TrackerRepository::class));
 
-        Container::singleton(KitchenService::class, fn() => new KitchenService(
+        Container::singleton(KitchenService::class, fn () => new KitchenService(
             Container::make(ReservationItemRepositoryInterface::class)
         ));
-        Container::singleton(KitchenServiceInterface::class, fn() => Container::make(KitchenService::class));
+        Container::singleton(KitchenServiceInterface::class, fn () => Container::make(KitchenService::class));
 
-        Container::singleton(ReceptionService::class, fn() => new ReceptionService(
+        Container::singleton(ReceptionService::class, fn () => new ReceptionService(
             Container::make(ReservationRepositoryInterface::class),
             Container::make(TrackerRepositoryInterface::class),
             Container::make(CafeRepositoryInterface::class)
         ));
-        Container::singleton(ReceptionServiceInterface::class, fn() => Container::make(ReceptionService::class));
+        Container::singleton(ReceptionServiceInterface::class, fn () => Container::make(ReceptionService::class));
     }
 
     #[Override]
-    public function boot(): void {}
+    public function boot(): void
+    {
+    }
 }

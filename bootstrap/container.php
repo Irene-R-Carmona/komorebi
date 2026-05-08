@@ -86,19 +86,19 @@ foreach ($providers as $providerClass) {
 // tenga todos los bindings cuando EventServiceProvider::boot() dispara ensureBuild().
 
 // UserRepositoryInterface → UserRepository
-Container::singleton(UserRepositoryInterface::class, fn() => new UserRepository(
+Container::singleton(UserRepositoryInterface::class, fn () => new UserRepository(
     Container::make(\PDO::class)
 ));
 // Alias concreto para inyección directa (AuthService espera ?UserRepository)
-Container::singleton(UserRepository::class, fn() => Container::make(UserRepositoryInterface::class));
+Container::singleton(UserRepository::class, fn () => Container::make(UserRepositoryInterface::class));
 
 // AccountDeletionService: eliminación atómica de cuentas (GDPR)
-Container::singleton(AccountDeletionService::class, fn() => new AccountDeletionService(
+Container::singleton(AccountDeletionService::class, fn () => new AccountDeletionService(
     Container::make(UserRepositoryInterface::class)
 ));
 
 // RewardUnlockedJob: PDO inyectado (no Database::getConnection() estático)
-Container::singleton(RewardUnlockedJob::class, fn() => new RewardUnlockedJob(
+Container::singleton(RewardUnlockedJob::class, fn () => new RewardUnlockedJob(
     Container::make(\PDO::class)
 ));
 
@@ -112,14 +112,14 @@ Container::singleton(ClimaContextoService::class, static function (): ClimaConte
 });
 
 // Tokens Bearer opacos para la API
-Container::singleton(ApiTokenRepositoryInterface::class, fn() => new ApiTokenRepository());
-Container::singleton(ApiTokenServiceInterface::class, fn() => new ApiTokenService(
+Container::singleton(ApiTokenRepositoryInterface::class, fn () => new ApiTokenRepository());
+Container::singleton(ApiTokenServiceInterface::class, fn () => new ApiTokenService(
     Container::make(ApiTokenRepositoryInterface::class),
     Container::make(UserRepositoryInterface::class)
 ));
 // Alias por concrete class (para compatibilidad interna si fuera necesario)
-Container::singleton(ApiTokenRepository::class, fn() => Container::make(ApiTokenRepositoryInterface::class));
-Container::singleton(ApiTokenService::class, fn() => Container::make(ApiTokenServiceInterface::class));
+Container::singleton(ApiTokenRepository::class, fn () => Container::make(ApiTokenRepositoryInterface::class));
+Container::singleton(ApiTokenService::class, fn () => Container::make(ApiTokenServiceInterface::class));
 
 // ContextServiceInstance: versión inyectable de ContextService (per-request)
 // El bind de la interfaz permite inyectar por contrato (no por clase concreta)
@@ -145,17 +145,17 @@ Container::bind(ContextServiceInstance::class, function (): ContextServiceInstan
 });
 
 // NavigationService: singleton inyectable (sin dependencias, lógica pura)
-Container::singleton(NavigationService::class, fn() => new NavigationService());
-Container::singleton(NavigationServiceInterface::class, fn() => Container::make(NavigationService::class));
+Container::singleton(NavigationService::class, fn () => new NavigationService());
+Container::singleton(NavigationServiceInterface::class, fn () => Container::make(NavigationService::class));
 
 // DashboardService + RecentlyViewedService: bindings para inyección por interfaz
-Container::singleton(DashboardService::class, fn() => new DashboardService());
-Container::singleton(DashboardServiceInterface::class, fn() => Container::make(DashboardService::class));
-Container::singleton(RecentlyViewedService::class, fn() => new RecentlyViewedService());
-Container::singleton(RecentlyViewedServiceInterface::class, fn() => Container::make(RecentlyViewedService::class));
+Container::singleton(DashboardService::class, fn () => new DashboardService());
+Container::singleton(DashboardServiceInterface::class, fn () => Container::make(DashboardService::class));
+Container::singleton(RecentlyViewedService::class, fn () => new RecentlyViewedService());
+Container::singleton(RecentlyViewedServiceInterface::class, fn () => Container::make(RecentlyViewedService::class));
 
 // RateLimitingServiceInterface: rate limiting vía PSR-6 cache
-Container::singleton(RateLimitingServiceInterface::class, fn() => new RateLimitingService(
+Container::singleton(RateLimitingServiceInterface::class, fn () => new RateLimitingService(
     Container::make(CacheService::class)
 ));
 

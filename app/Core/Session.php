@@ -132,7 +132,7 @@ final class Session
 
         // Driver Redis: lectura directa sin módulo de sesiones PHP.
         $name = \session_name(); // 'komorebi_session'
-        $id   = $_COOKIE[$name] ?? '';
+        $id = $_COOKIE[$name] ?? '';
 
         // Validar formato del session ID (phpredis genera IDs alfanuméricos + , -)
         if ($id === '' || \strlen($id) > 256 || \preg_match('/[^a-zA-Z0-9,\-]/', $id)) {

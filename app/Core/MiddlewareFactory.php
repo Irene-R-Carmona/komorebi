@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Core;
 
-use App\Core\Env;
 use App\Core\Http\ExceptionRendererRegistry;
 use App\Core\Http\ResponseFactory;
 use App\Http\ExceptionRenderers\AuthenticationExceptionRenderer;
@@ -185,11 +184,12 @@ final class MiddlewareFactory
     {
         $response = $this->response;
 
-        return new class($response, $action) implements MiddlewareInterface {
+        return new class ($response, $action) implements MiddlewareInterface {
             public function __construct(
                 private readonly ResponseFactory $response,
                 private readonly string $action,
-            ) {}
+            ) {
+            }
 
             #[Override]
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
