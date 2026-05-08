@@ -31,6 +31,9 @@ final class AnimalIncidentSeeder
     {
         Logger::info('AnimalIncidentSeeder: starting');
 
+        // Limpiar incidentes de ejecuciones previas (datos de demo sin unique key natural)
+        $this->db->exec('DELETE FROM animal_incidents');
+
         // Obtener animales existentes
         $stmt = $this->db->query('
             SELECT a.id, a.cafe_id, a.name

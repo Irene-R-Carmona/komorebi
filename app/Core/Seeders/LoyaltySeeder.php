@@ -29,6 +29,13 @@ final class LoyaltySeeder
     {
         Logger::info('[LoyaltySeeder] starting');
 
+        $existingCards = (int) $this->db->query('SELECT COUNT(*) FROM loyalty_cards')->fetchColumn();
+        if ($existingCards > 0) {
+            Logger::info('[LoyaltySeeder] loyalty data already seeded — skipping');
+
+            return;
+        }
+
         $users = $this->getRegularUsers();
         if (\count($users) === 0) {
             Logger::warning('[LoyaltySeeder] no regular users found — skipping');

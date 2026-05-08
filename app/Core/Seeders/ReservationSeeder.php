@@ -30,6 +30,13 @@ final class ReservationSeeder
     {
         Logger::info('[ReservationSeeder] starting');
 
+        $existingCount = (int) $this->db->query('SELECT COUNT(*) FROM reservations')->fetchColumn();
+        if ($existingCount > 0) {
+            Logger::info('[ReservationSeeder] reservations already seeded — skipping');
+
+            return;
+        }
+
         // Obtener usuarios y cafés
         $userIds = $this->db->query('SELECT id FROM users WHERE id > 1 ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);
         $cafeIds = $this->db->query('SELECT id FROM cafes ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);

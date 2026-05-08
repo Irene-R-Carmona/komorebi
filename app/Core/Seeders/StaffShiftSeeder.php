@@ -36,6 +36,13 @@ final class StaffShiftSeeder
     {
         Logger::info('[StaffShiftSeeder] starting');
 
+        $existingCount = (int) $this->db->query('SELECT COUNT(*) FROM staff_shifts')->fetchColumn();
+        if ($existingCount > 0) {
+            Logger::info('[StaffShiftSeeder] shifts already seeded — skipping');
+
+            return;
+        }
+
         $staffByCafe = $this->getStaffByCafe();
         $managers = $this->getManagers();
 

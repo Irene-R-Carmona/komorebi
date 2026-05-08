@@ -138,7 +138,7 @@ final class AnimalSeeder
 
         // 3. INSERCIÓN EN BASE DE DATOS
         $stmt = $this->db->prepare("
-            INSERT INTO animals (cafe_id, current_zone_id, name, species_type, age, personality, description, interaction_level, attributes, image_url, current_status)
+            INSERT IGNORE INTO animals (cafe_id, current_zone_id, name, species_type, age, personality, description, interaction_level, attributes, image_url, current_status)
             VALUES (:cid, :zid, :name, :type, :age, :pers, :desc, :level, :attrs, :img, 'active')
         ");
 

@@ -95,7 +95,7 @@ final class WaitlistSeeder
                 }
 
                 $this->db->prepare('
-                    INSERT INTO waitlist (
+                    INSERT IGNORE INTO waitlist (
                         user_id, time_slot_id, position, status,
                         guest_count, contact_email, contact_phone,
                         token, notified_at, expires_at,

@@ -214,24 +214,25 @@ CREATE TABLE IF NOT EXISTS product_allergens (
 -- ============================================
 -- 4. DATOS INICIALES
 -- ============================================
--- Insertar alérgenos con códigos cortos
-INSERT INTO allergens (code, name, japanese_name, icon_color, severity)
-VALUES ('GLU', 'Gluten', 'グルテン', '#D4A574', 'high'),
-    ('LAC', 'Lácteos', '乳製品', '#87CEEB', 'medium'),
-    ('HUE', 'Huevo', '卵', '#FFE5B4', 'medium'),
-    ('FRU', 'Frutos Secos', 'ナッツ類', '#8B4513', 'high'),
-    ('SOJ', 'Soja', '大豆', '#90EE90', 'medium'),
-    ('PES', 'Pescado', '魚', '#4682B4', 'high'),
-    ('MAR', 'Marisco', '貝類', '#FF6347', 'high'),
-    ('SES', 'Sésamo', 'ごま', '#DEB887', 'medium'),
-    ('MOS', 'Mostaza', 'マスタード', '#FFD700', 'low'),
-    ('API', 'Apio', 'セロリ', '#32CD32', 'low'),
-    ('MOL', 'Moluscos', '軟体動物', '#FFB6C1', 'high'),
-    ('SUL', 'Sulfitos', '亜硫酸塩', '#722F37', 'low') ON DUPLICATE KEY
-UPDATE name =
-VALUES(name),
-    japanese_name =
-VALUES(japanese_name);
+-- Catálogo oficial UE 1169/2011: 14 alérgenos de declaración obligatoria.
+-- Los códigos aquí son la fuente de verdad del sistema.
+-- AllergenSeeder.php usa INSERT IGNORE sobre esta misma tabla → re-ejecución es no-op.
+INSERT IGNORE INTO allergens (code, name, japanese_name, icon_class, icon_color, severity, description)
+VALUES
+    ('gluten',        'Gluten',            'グルテン',    'bi-grain',               '#D4A017', 'high',   'Cereales que contienen gluten: trigo, centeno, cebada, avena y sus variedades.'),
+    ('crustaceos',    'Crustáceos',        '甲殻類',      'bi-water',               '#E87040', 'high',   'Crustáceos y productos a base de crustáceos.'),
+    ('huevos',        'Huevos',            '卵',          'bi-egg',                 '#F5E642', 'medium', 'Huevos y productos a base de huevo.'),
+    ('pescado',       'Pescado',           '魚',          'bi-fish',                '#4A90D9', 'high',   'Pescado y productos a base de pescado.'),
+    ('cacahuetes',    'Cacahuetes',        '落花生',      'bi-circle-fill',         '#C8860A', 'high',   'Cacahuetes y productos a base de cacahuetes.'),
+    ('soja',          'Soja',              '大豆',        'bi-circle',              '#6AAF3D', 'medium', 'Soja y productos a base de soja.'),
+    ('lacteos',       'Lácteos',           '乳製品',      'bi-cup-fill',            '#FFFFFF', 'medium', 'Leche y sus derivados (incluida la lactosa).'),
+    ('frutos_secos',  'Frutos de cáscara', 'ナッツ',      'bi-tree',                '#8B5E3C', 'high',   'Almendras, avellanas, nueces, anacardos, pacanas, nueces de Brasil, pistachos y nueces de macadamia.'),
+    ('apio',          'Apio',              'セロリ',      'bi-flower1',             '#7DBF5C', 'low',    'Apio y productos derivados.'),
+    ('mostaza',       'Mostaza',           'マスタード',  'bi-droplet-fill',        '#E8C84A', 'low',    'Mostaza y productos derivados.'),
+    ('sesamo',        'Sésamo',            'ごま',        'bi-dot',                 '#D4B483', 'medium', 'Granos de sésamo y productos a base de granos de sésamo.'),
+    ('sulfitos',      'Sulfitos',          '亜硫酸塩',    'bi-exclamation-diamond', '#FF6B6B', 'medium', 'Dióxido de azufre y sulfitos en concentraciones superiores a 10 mg/kg o 10 mg/l.'),
+    ('altramuces',    'Altramuces',        'ルピナス',    'bi-flower2',             '#9B59B6', 'low',    'Altramuces y productos a base de altramuces.'),
+    ('moluscos',      'Moluscos',          '軟体動物',    'bi-water',               '#3498DB', 'high',   'Moluscos y productos a base de moluscos.');
 -- ============================================
 -- 5. RELACIONES CON OTRAS MIGRACIONES
 -- ============================================

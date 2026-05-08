@@ -29,6 +29,13 @@ final class SupervisorAssignmentSeeder
     {
         Logger::info('[SupervisorAssignmentSeeder] starting');
 
+        $existingCount = (int) $this->db->query('SELECT COUNT(*) FROM supervisor_assignments')->fetchColumn();
+        if ($existingCount > 0) {
+            Logger::info('[SupervisorAssignmentSeeder] assignments already seeded — skipping');
+
+            return;
+        }
+
         $supervisors = $this->getSupervisors();
         $reservations = $this->getCompletedReservations();
 
