@@ -1,0 +1,2025 @@
+% ============================================================
+%  KOMOREBI CAFÉ — Documentación Oficial TFG
+%  Alumna : Irene Reyes Carmona
+%  Centro  : I.E.S. Ágora
+%  Tutora  : María Lourdes Calleja Flores
+%  Curso   : 2025-2026
+%  Motor   : XeLaTeX + fontspec · compilar con -shell-escape
+% ============================================================
+\documentclass[12pt,a4paper,twoside,openright]{report}
+
+% ─── Codificación y tipografía ───────────────────────────────
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont[Scale=0.9]{Courier New}
+
+% ─── Soporte CJK (caracteres japoneses) ──────────────────────
+\usepackage{xeCJK}
+\setCJKmainfont{Yu Gothic}
+\setCJKsansfont{Yu Gothic}
+\setCJKmonofont{Yu Gothic}
+
+% ─── Idioma ──────────────────────────────────────────────────
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{csquotes}
+
+% ─── Márgenes y geometría ────────────────────────────────────
+\usepackage[a4paper,
+  top=2.5cm, bottom=2.5cm,
+  left=3cm,  right=2.5cm,
+  headheight=15pt]{geometry}
+
+% ─── Encabezados y pie de página ─────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\textit{Komorebi Café}}
+\fancyhead[LO]{\textit{\leftmark}}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ─── Tipografía avanzada ─────────────────────────────────────
+\usepackage{microtype}
+\usepackage{setspace}
+\onehalfspacing
+
+% ─── Colores ─────────────────────────────────────────────────
+\usepackage[dvipsnames,table]{xcolor}
+\definecolor{komorebi}{HTML}{6B8F71}      % verde café
+\definecolor{komorebi-dark}{HTML}{3D5A42}
+\definecolor{komorebi-light}{HTML}{EBF3EC}
+\definecolor{code-bg}{HTML}{F8F8F8}
+\definecolor{link-color}{HTML}{1A5276}
+
+% ─── Títulos de capítulo personalizados ──────────────────────
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\Large\bfseries\color{komorebi-dark}}
+  {\chaptertitlename\ \thechapter}{10pt}{\LARGE}
+\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+
+% ─── Listas ──────────────────────────────────────────────────
+\usepackage{enumitem}
+
+% ─── Tablas ──────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{pdflscape}
+
+% ─── Figuras ─────────────────────────────────────────────────
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{svg}           % requiere Inkscape en PATH
+\svgsetup{inkscapepath=svgdir}
+
+% ─── Código fuente ───────────────────────────────────────────
+\usepackage{minted}
+\usemintedstyle{friendly}
+\setminted{
+  fontsize=\small,
+  bgcolor=code-bg,
+  linenos=true,
+  breaklines=true,
+  frame=leftline,
+  framerule=2pt,
+  framesep=8pt
+}
+\usepackage{tcolorbox}
+\tcbuselibrary{minted,skins,breakable}
+\newtcblisting{phpcode}[2][]{
+  listing engine=minted,
+  minted language=php,
+  title=#2,
+  colback=code-bg,
+  colframe=komorebi,
+  fonttitle=\bfseries,
+  breakable,
+  #1
+}
+\newtcblisting{sqlcode}[2][]{
+  listing engine=minted,
+  minted language=sql,
+  title=#2,
+  colback=code-bg,
+  colframe=komorebi-dark,
+  fonttitle=\bfseries,
+  breakable,
+  #1
+}
+\newtcblisting{bashcode}[2][]{
+  listing engine=minted,
+  minted language=bash,
+  title=#2,
+  colback=code-bg,
+  colframe=gray,
+  fonttitle=\bfseries,
+  breakable,
+  #1
+}
+
+% ─── Diagramas TikZ ──────────────────────────────────────────
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows.meta,positioning,calc,fit,backgrounds,shadows}
+
+% ─── Diagramas de secuencia UML ──────────────────────────────
+\usepackage{pgf-umlsd}
+
+% ─── Árboles de directorios ──────────────────────────────────
+\usepackage{forest}
+
+% ─── Referencias cruzadas ────────────────────────────────────
+\usepackage[hidelinks,
+  colorlinks=false,
+  pdfauthor={Irene Reyes Carmona},
+  pdftitle={Komorebi Café — Documentación TFG},
+  pdfsubject={Proyecto de Fin de Grado},
+  pdfkeywords={PHP,MVC,Docker,PSR-7,Café temático}
+]{hyperref}
+\usepackage[spanish]{cleveref}
+
+% ─── Glosario ────────────────────────────────────────────────
+\usepackage[record,abbreviations]{glossaries-extra}
+\makeglossaries
+
+% ─── Bibliografía ────────────────────────────────────────────
+\usepackage[backend=biber,style=ieee,sorting=none]{biblatex}
+\addbibresource{referencias.bib}
+
+% ─── Apéndices ───────────────────────────────────────────────
+\usepackage[titletoc]{appendix}
+
+% ─── Cajas informativas ──────────────────────────────────────
+\newtcolorbox{infobox}[1][]{
+  colback=komorebi-light,colframe=komorebi,
+  fonttitle=\bfseries,title=Nota,#1
+}
+\newtcolorbox{warnbox}[1][]{
+  colback=yellow!10,colframe=orange!70!black,
+  fonttitle=\bfseries,title=Atención,#1
+}
+
+% ─── Glosario: términos y acrónimos ──────────────────────────
+\newabbreviation{mvc}{MVC}{Model-View-Controller}
+\newabbreviation{psr}{PSR}{PHP Standards Recommendation}
+\newabbreviation{dto}{DTO}{Data Transfer Object}
+\newabbreviation{csrf}{CSRF}{Cross-Site Request Forgery}
+\newabbreviation{rbac}{RBAC}{Role-Based Access Control}
+\newabbreviation{api}{API}{Application Programming Interface}
+\newabbreviation{rest}{REST}{Representational State Transfer}
+\newabbreviation{jwt}{JWT}{JSON Web Token}
+\newabbreviation{orm}{ORM}{Object-Relational Mapping}
+\newabbreviation{ci}{CI/CD}{Continuous Integration / Continuous Delivery}
+\newabbreviation{kds}{KDS}{Kitchen Display System}
+\newabbreviation{lcov}{LCOV}{Linux Test Coverage}
+\newglossaryentry{komorebi}{
+  name={komorebi},
+  description={Término japonés (木漏れ日) que describe la luz del sol que se filtra
+    entre las hojas de los árboles, símbolo del concepto estético del proyecto.}
+}
+\newglossaryentry{result-pattern}{
+  name={Result pattern},
+  description={Patrón de diseño donde los métodos devuelven un objeto \texttt{Result}
+    con \texttt{ok} (bool), \texttt{data} y \texttt{message}, en lugar de lanzar
+    excepciones para fallos esperados.}
+}
+\newglossaryentry{idempotency}{
+  name={idempotencia},
+  description={Propiedad de una operación que produce el mismo resultado aunque se
+    ejecute múltiples veces. En la API REST de Komorebi, las reservas usan un
+    \texttt{Idempotency-Key} para evitar duplicados en caso de reintentos.}
+}
+\newglossaryentry{12factor}{
+  name={12-Factor App},
+  description={Metodología de desarrollo de software que define doce principios
+    para construir aplicaciones SaaS escalables, portables y resilientes.}
+}
+
+% ============================================================
+%  DOCUMENTO
+% ============================================================
+\begin{document}
+
+% ─── PORTADA ─────────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+
+  % Logo del café
+  \includesvg[width=5cm]{images/logos/komorebi-logo-stacked}\\[1.5cm]
+
+  {\fontsize{22}{26}\selectfont\bfseries\color{komorebi-dark}
+    Komorebi Café\\[0.4cm]
+    \fontsize{18}{22}\selectfont\mdseries
+    Plataforma de gestión integral\\
+    para cadena de cafés temáticos\\[2cm]}
+
+  {\large Documentación de Proyecto Final\\[0.3cm]
+   Ciclo Formativo de Grado Superior —
+   Desarrollo de Aplicaciones Web}\\[2.5cm]
+
+  \begin{tabular}{rl}
+    \textbf{Alumna:}         & Irene Reyes Carmona\\[4pt]
+    \textbf{Centro:}         & I.E.S. Ágora\\[4pt]
+    \textbf{Tutora:}         & María Lourdes Calleja Flores\\[4pt]
+    \textbf{Año académico:}  & 2025-2026\\
+  \end{tabular}
+
+  \vfill
+
+  \includegraphics[width=2.5cm]{images/logos/komorebi-logo-icon}\\[0.5cm]
+  {\small\color{gray} Komorebi Café · Todos los derechos reservados · 2026}
+\end{titlepage}
+
+% ─── FRONTMATTER ─────────────────────────────────────────────
+\frontmatter
+\pagestyle{plain}
+
+% ── Resumen en español ───────────────────────────────────────
+\chapter*{Resumen}
+\addcontentsline{toc}{chapter}{Resumen}
+
+Komorebi Café es una plataforma web de gestión integral diseñada para una cadena ficticia
+de catorce cafés temáticos japoneses. El nombre del proyecto proviene del término japonés
+\textit{komorebi} (木漏れ日), que describe la luz solar filtrada entre las hojas de los
+árboles, evocando la atmósfera serena y cuidada que caracteriza estos espacios.
+
+El sistema cubre la totalidad del ciclo operativo: gestión de reservas con control de
+idempotencia, carta digital con filtros por alérgeno, programa de fidelización, panel de
+cocina en tiempo real (\gls{kds}), control de salud de animales del local, operaciones de
+recepción con check-in/checkout y generación asíncrona de facturas en PDF.
+
+Desde el punto de vista técnico, la solución está construida sobre PHP~8.4 con un
+framework \gls{mvc} propio (sin Laravel ni Symfony como capa de aplicación), siguiendo
+los estándares \gls{psr}-7, PSR-14 y PSR-15. La arquitectura sigue los principios
+12-Factor~App, con despliegue mediante Docker Compose y Railway. El sistema incluye
+más de 250~rutas, 53~servicios de negocio, 29~repositorios y más de
+95~endpoints de \gls{api} \gls{rest}.
+
+\bigskip
+\textbf{Palabras clave:} PHP~8.4, MVC, Docker, PSR-7, PSR-15, Result pattern,
+reservas, fidelización, cafés temáticos, 12-Factor.
+
+\vspace{2cm}
+
+% ── Resumen en inglés ────────────────────────────────────────
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+\textit{Komorebi Café} is a comprehensive web management platform designed for a
+fictional chain of fourteen Japanese-themed cafés. The project name derives from the
+Japanese term \textit{komorebi} (木漏れ日), describing sunlight filtering through tree
+leaves, evoking the serene and carefully crafted atmosphere that defines these spaces.
+
+The system covers the complete operational cycle: reservation management with idempotency
+control, a digital menu with allergen filters, a loyalty programme, a real-time Kitchen
+Display System (KDS), animal health tracking, reception operations with check-in/checkout,
+and asynchronous PDF invoice generation.
+
+Technically, the solution is built on PHP~8.4 with a custom MVC framework (no
+Laravel/Symfony application layer), following PSR-7, PSR-14 and PSR-15 standards.
+The architecture adheres to the 12-Factor App principles, deployed via Docker Compose
+and Railway. The system comprises over 250 routes, 53 business services, 29 repositories
+and more than 95 REST API endpoints.
+
+\bigskip
+\textbf{Keywords:} PHP~8.4, MVC, Docker, PSR-7, PSR-15, Result pattern, reservations,
+loyalty, themed cafés, 12-Factor.
+
+% ── Agradecimientos ──────────────────────────────────────────
+\chapter*{Agradecimientos}
+\addcontentsline{toc}{chapter}{Agradecimientos}
+
+A María Lourdes Calleja Flores, tutora de este proyecto, por su orientación constante,
+su rigor técnico y su disponibilidad a lo largo de todo el proceso de desarrollo y
+documentación.
+
+A mis compañeros y compañeras del ciclo, por los debates técnicos, las horas compartidas
+y el apoyo mutuo que han hecho posible completar este proyecto.
+
+Y a todas las personas que, como la luz entre las hojas, iluminan los rincones del camino
+cuando más lo hace falta.
+
+% ── Índices ──────────────────────────────────────────────────
+\tableofcontents
+\listoffigures
+\listoftables
+
+% ─── MAINMATTER ──────────────────────────────────────────────
+\mainmatter
+\pagestyle{fancy}
+
+% ============================================================
+%  CAPÍTULO 1 — INTRODUCCIÓN GENERAL
+% ============================================================
+\chapter{Introducción General}
+\label{chap:intro}
+
+\section{Origen y concepto del proyecto}
+\label{sec:origen}
+
+El punto de partida de Komorebi Café es la pregunta: ¿puede una aplicación web de gestión
+ser, al mismo tiempo, un reflejo fiel de la identidad de la marca que sirve? El proyecto
+nace de la voluntad de demostrar que la tecnología y la estética no son opuestos: un
+sistema de software robusto puede encarnar la filosofía tranquila, detallista y contemplativa
+que inspira el concepto de \textit{komorebi}.
+
+La palabra japonesa \textit{komorebi} (木漏れ日) se compone de tres kanjis:
+\begin{itemize}[nosep]
+  \item 木 (\textit{ki}) — árbol
+  \item 漏れ (\textit{more}) — filtrar, escapar
+  \item 日 (\textit{bi}) — luz, sol
+\end{itemize}
+
+Juntos describen ese fenómeno visual fugaz en que la luz solar se cuela entre las hojas
+creando patrones de claroscuro. Es una palabra sin traducción exacta al español, pero
+precisamente esa intraducibilidad la convierte en símbolo perfecto: algunas experiencias
+solo se pueden \textit{vivir}, no describir.
+
+\section{Los catorce cafés temáticos}
+\label{sec:cafes}
+
+La cadena ficticia está compuesta por catorce cafés, cada uno inspirado en un universo
+estético japonés diferente. La \cref{tab:cafes} recoge los establecimientos registrados
+en el sistema.
+
+\begin{longtable}{@{}lll@{}}
+  \caption{Catálogo de cafés temáticos de Komorebi Café}
+  \label{tab:cafes}\\
+  \toprule
+  \textbf{Slug} & \textbf{Nombre} & \textbf{Animal / Categoría}\\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{l}{\footnotesize\textit{(continuación de la \cref{tab:cafes})}}\\
+  \toprule
+  \textbf{Slug} & \textbf{Nombre} & \textbf{Animal / Categoría}\\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  neko-no-niwa       & Neko no Niwa (猫の庭)         & Gato (lounge)\\
+  usagi-paradise     & Usagi Paradise (うさぎパラダイス) & Conejo (lounge)\\
+  soft-cloud         & Soft Cloud (ソフトクラウド)     & Chinchilla (lounge)\\
+  chipmunk-forest    & Chipmunk Forest (シマリスの森)  & Ardilla (lounge)\\
+  mame-shiba-cafe    & Mame Shiba Café (豆柴カフェ)   & Perro Shiba Inu (playroom)\\
+  mipig-cafe         & Mipig Cafe (マイピッグカフェ)   & Cerdito miniatura (playroom)\\
+  parrot-talk        & Parrot Talk (おしゃべりオウム)  & Loro (playroom)\\
+  capyba-land        & Capyba Land (カピバランド)      & Capybara (farm)\\
+  alpaca-hill        & Alpaca Hill (アルパカの丘)      & Alpaca (farm)\\
+  little-hooves      & Little Hooves (小さなひづめ)   & Caballo miniatura (farm)\\
+  quack-club         & Quack Club (クワッククラブ)     & Pato (farm)\\
+  pui-pui-house      & Pui Pui House (プイプイハウス)  & Cobaya (zen)\\
+  prairie-town       & Prairie Town (プレーリータウン) & Perrito de pradera (zen)\\
+  slow-life          & Slow Life (スローライフ)        & Tortuga (zen)\\
+\end{longtable}
+
+\section{Misión, visión y valores}
+\label{sec:valores}
+
+\begin{description}[style=nextline]
+  \item[Misión]
+    Ofrecer a cada cliente una experiencia de visita única, combinando una carta
+    artesanal con un entorno temático cuidado y un servicio personalizado habilitado
+    por tecnología.
+  \item[Visión]
+    Ser la referencia en España de la hostelería temática de inspiración japonesa,
+    reconocidos tanto por la calidad de nuestros productos como por la excelencia
+    tecnológica de nuestros sistemas de gestión.
+  \item[Valores]
+    \textit{Ma} (間, el espacio entre las cosas), \textit{omotenashi} (hospitalidad
+    total), sostenibilidad, belleza en los detalles y apertura cultural.
+\end{description}
+
+\section{Alcance y finalidad del proyecto}
+\label{sec:alcance}
+
+El proyecto abarca el diseño, implementación, pruebas y documentación de una plataforma
+web completa que gestiona:
+
+\begin{enumerate}[nosep]
+  \item La presencia pública de la cadena (carta, reservas en línea, historia, FAQ)
+  \item La autenticación y gestión de cuentas de usuario
+  \item El programa de fidelización con tarjeta digital y canjes
+  \item El backoffice de administración (usuarios, cafés, menú, reseñas, animales)
+  \item Los paneles de operación: recepción, cocina (\gls{kds}), manager y keeper
+  \item La \gls{api} \gls{rest} para integración con clientes móviles y terceros
+\end{enumerate}
+
+\section{Stack tecnológico}
+\label{sec:stack}
+
+La \cref{tab:stack} resume las tecnologías principales utilizadas en el proyecto.
+
+\begin{longtable}{@{}lll@{}}
+  \caption{Stack tecnológico del proyecto}
+  \label{tab:stack}\\
+  \toprule
+  \textbf{Capa} & \textbf{Tecnología} & \textbf{Versión / Detalles}\\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Capa} & \textbf{Tecnología} & \textbf{Versión / Detalles}\\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Lenguaje backend   & PHP                  & 8.4 (strict types en todos los archivos)\\
+  Framework          & MVC custom           & Sin Laravel / Symfony, PSR-7/14/15\\
+  Servidor HTTP      & FrankenPHP           & Caddy + PHP integrado\\
+  Base de datos      & MySQL                & 8.0, 19 migraciones SQL\\
+  Caché / Cola       & Redis                & 7.x, sesiones + cola de trabajos\\
+  Frontend           & Alpine.js            & 3.x, sin bundler en producción\\
+  CSS                & CSS3 custom          & Variables, Grid, Flexbox\\
+  Contenedores       & Docker Compose       & Multistage build\\
+  Despliegue         & Railway              & + GitHub Actions \gls{ci}\\
+  Tests unitarios    & PHPUnit              & 13.x, tests paralelos\\
+  Tests E2E          & Playwright           & TypeScript\\
+  Análisis estático  & PHPStan + Psalm      & Nivel 5 + baseline\\
+  Email              & Mailpit (dev)        & SMTP local\\
+  Facturas PDF       & Dompdf               & Generación asíncrona\\
+\end{longtable}
+
+\section{Metodología de desarrollo}
+\label{sec:metodologia}
+
+El desarrollo siguió una metodología ágil inspirada en \textbf{Scrum}, adaptada al
+contexto de un equipo unipersonal. Se utilizó Trello como tablero Kanban con las
+columnas \textit{Backlog}, \textit{En progreso}, \textit{Revisión} y \textit{Hecho}.
+
+El control de versiones se gestionó con Git siguiendo el flujo \textbf{Git Flow}:
+\begin{itemize}[nosep]
+  \item \texttt{main} — código en producción (Railway)
+  \item \texttt{develop} — integración continua
+  \item \texttt{feature/\textit{nombre}} — desarrollo de funcionalidades
+  \item \texttt{hotfix/\textit{nombre}} — correcciones urgentes
+\end{itemize}
+
+Cada \textit{pull request} requería superar el \textit{quality gate} completo:
+PHPStan nivel~5, Psalm, suite PHPUnit y verificación de estilo PSR-12.
+
+% ============================================================
+%  CAPÍTULO 2 — DESARROLLO TÉCNICO / MANUAL TÉCNICO
+% ============================================================
+\chapter{Desarrollo Técnico}
+\label{chap:tecnico}
+
+\section{Arquitectura del sistema}
+\label{sec:arquitectura}
+
+Komorebi Café implementa el patrón \gls{mvc} desde cero, sin delegar en ningún
+framework de aplicación externo. El objetivo es demostrar comprensión profunda de los
+mecanismos subyacentes: enrutamiento, inyección de dependencias, ciclo de
+petición-respuesta y gestión de middleware.
+
+\subsection{Capas principales}
+
+\begin{description}[style=nextline]
+  \item[\texttt{public/index.php} — Front controller]
+    Único punto de entrada. Lee variables de entorno, inicializa el contenedor de
+    dependencias y pasa la petición al router.
+  \item[\texttt{bootstrap/container.php} — Contenedor IoC]
+    Registra todos los \textit{Service Providers}. Ciclo \texttt{register→boot}.
+    Singletons enlazados por interfaz.
+  \item[\texttt{app/routes.php} — Definición de rutas]
+    250~rutas agrupadas por dominio con prefijos y middleware declarados de
+    forma explícita.
+  \item[\texttt{app/Core/} — Framework interno]
+    Router PSR-7/15, Contenedor IoC, Vista (auto-escape + Raw), Base de datos (PDO),
+    Caché (Redis + local), Cola (Redis), Logger (stdout 12-Factor).
+  \item[\texttt{app/Http/Controllers/} — Controladores]
+    Agrupados en: \texttt{Admin/}, \texttt{Api/V1/}, \texttt{Auth/}, \texttt{Kitchen/},
+    \texttt{Keeper/}, \texttt{Manager/}, \texttt{Public/}, \texttt{Reception/},
+    \texttt{Shared/}, \texttt{Supervisor/}, \texttt{User/}.
+  \item[\texttt{app/Services/} — Lógica de negocio]
+    53 servicios. Todos devuelven \texttt{Result::ok()/fail()} — nunca lanzan
+    excepciones para fallos esperados.
+  \item[\texttt{app/Repositories/} — Capa de datos]
+    29 repositorios. Extienden \texttt{AbstractRepository} con PDO directo.
+  \item[\texttt{app/Events/ + Listeners/} — Eventos asíncronos]
+    PSR-14 con Symfony EventDispatcher. Procesados por workers Redis.
+  \item[\texttt{migrations/} — Esquema de base de datos]
+    19 archivos SQL numerados, aplicables mediante \texttt{make db-migrate}.
+\end{description}
+
+\subsection{Diagrama de contexto C4 (nivel 1)}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    box/.style={draw,rounded corners,fill=komorebi-light,
+                text width=3cm,align=center,minimum height=1.2cm,
+                font=\small},
+    ext/.style={draw,rounded corners,fill=gray!15,
+                text width=3cm,align=center,minimum height=1.2cm,
+                font=\small},
+    arr/.style={-{Latex},thick}
+  ]
+    \node[box] (app) {\textbf{Komorebi Café}\\Web App};
+    \node[ext,left=2.5cm of app] (cliente) {Cliente\\(navegador)};
+    \node[ext,right=2.5cm of app] (railway) {Railway\\(producción)};
+    \node[ext,above=1.8cm of app] (email) {Mailpit /\\SMTP externo};
+    \node[ext,below=1.8cm of app] (mysql) {MySQL 8.0\\+ Redis 7};
+
+    \draw[arr] (cliente) -- node[above,font=\scriptsize]{HTTPS} (app);
+    \draw[arr] (app) -- node[above,font=\scriptsize]{Deploy} (railway);
+    \draw[arr] (app) -- node[right,font=\scriptsize]{SMTP} (email);
+    \draw[arr] (app) -- node[right,font=\scriptsize]{PDO / Redis} (mysql);
+  \end{tikzpicture}
+  \caption{Diagrama de contexto C4 — nivel sistema}
+  \label{fig:c4-contexto}
+\end{figure}
+
+\section{Ciclo de petición HTTP y pipeline de middleware}
+\label{sec:ciclo-http}
+
+Cada petición HTTP atraviesa un pipeline de quince middlewares \gls{psr}-15 antes de
+llegar al controlador correspondiente. La \cref{fig:pipeline} muestra el orden de
+ejecución.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    mw/.style={draw,fill=komorebi-light,rounded corners,
+               text width=3.2cm,align=center,minimum height=0.7cm,
+               font=\scriptsize},
+    arr/.style={-{Latex},thick,komorebi}
+  ]
+    \foreach \label/\y in {
+      ErrorHandler/0,
+      SecurityHeaders/-1,
+      RequestLog/-2,
+      Session/-3,
+      CSRF/-4,
+      RateLimit/-5,
+      PayloadSize/-6,
+      CORS/-7,
+      Auth/-8,
+      ApiAuth/-9,
+      Role/-10,
+      ApiRole/-11,
+      Authorization/-12,
+      CafeScope/-13,
+      Idempotency/-14
+    }{
+      \node[mw] (\label) at (0,\y) {\label};
+    }
+    \foreach \a/\b in {
+      ErrorHandler/SecurityHeaders,
+      SecurityHeaders/RequestLog,
+      RequestLog/Session,
+      Session/CSRF,
+      CSRF/RateLimit,
+      RateLimit/PayloadSize,
+      PayloadSize/CORS,
+      CORS/Auth,
+      Auth/ApiAuth,
+      ApiAuth/Role,
+      Role/ApiRole,
+      ApiRole/Authorization,
+      Authorization/CafeScope,
+      CafeScope/Idempotency
+    }{
+      \draw[arr] (\a) -- (\b);
+    }
+    \node[right=0.5cm of ErrorHandler,font=\scriptsize,text width=5cm]
+      {Captura toda excepción; devuelve página de error apropiada};
+    \node[right=0.5cm of Session,font=\scriptsize,text width=5cm]
+      {Inicia sesión PHP + regeneración periódica};
+    \node[right=0.5cm of CSRF,font=\scriptsize,text width=5cm]
+      {Valida token en POST/PUT/PATCH/DELETE web};
+    \node[right=0.5cm of Auth,font=\scriptsize,text width=5cm]
+      {Verifica sesión autenticada (rutas web protegidas)};
+    \node[right=0.5cm of ApiAuth,font=\scriptsize,text width=5cm]
+      {Bearer token → hash SHA-256 → \texttt{api\_tokens}};
+    \node[right=0.5cm of Idempotency,font=\scriptsize,text width=5cm]
+      {UUID v4 header → Redis 24h (solo POST /api/v1/reservations)};
+  \end{tikzpicture}
+  \caption{Pipeline de 15 middlewares PSR-15}
+  \label{fig:pipeline}
+\end{figure}
+
+La \cref{tab:middlewares} describe brevemente cada middleware.
+
+\begin{longtable}{@{}lp{7cm}@{}}
+  \caption{Catálogo de middlewares PSR-15}
+  \label{tab:middlewares}\\
+  \toprule
+  \textbf{Middleware} & \textbf{Responsabilidad}\\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Middleware} & \textbf{Responsabilidad}\\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \texttt{ErrorHandlerMiddleware}
+    & Envuelve toda la cadena; captura \texttt{Throwable} y devuelve respuesta
+      de error apropiada (HTML 4xx/5xx o JSON según el tipo de ruta).\\
+  \texttt{SecurityHeadersMiddleware}
+    & Añade cabeceras de seguridad: \texttt{X-Frame-Options}, \texttt{X-Content-Type-Options},
+      \texttt{Content-Security-Policy}, \texttt{Referrer-Policy}.\\
+  \texttt{RequestLogMiddleware}
+    & Registra método, URI, IP, agente y tiempo de respuesta en stdout (12-Factor XI).\\
+  \texttt{SessionMiddleware}
+    & Inicia la sesión PHP, gestiona regeneración periódica del identificador y
+      establece atributos de sesión en el objeto \texttt{Request}.\\
+  \texttt{CsrfMiddleware}
+    & Verifica el token CSRF en todas las rutas mutantes (POST/PUT/PATCH/DELETE) web.
+      Rechaza con 419 si el token falta o no coincide.\\
+  \texttt{RateLimitMiddleware}
+    & Limitación de velocidad por clave (bucket Redis): \texttt{login},
+      \texttt{registration}, \texttt{password\_reset}. Responde 429 al exceder.\\
+  \texttt{PayloadSizeMiddleware}
+    & Rechaza cuerpos de petición superiores a 10~MB para prevenir ataques de
+      agotamiento de memoria.\\
+  \texttt{CorsMiddleware}
+    & Gestiona cabeceras CORS y respuestas \texttt{OPTIONS} preflight para la API.\\
+  \texttt{AuthMiddleware}
+    & Requiere sesión autenticada. Redirige a \texttt{/login} si no está logado.\\
+  \texttt{ApiAuthMiddleware}
+    & Extrae el Bearer token, aplica SHA-256, consulta \texttt{api\_tokens} y
+      autentica la petición de forma stateless.\\
+  \texttt{RoleMiddleware}
+    & Verifica que el rol del usuario en sesión coincide con el rol requerido
+      por la ruta web.\\
+  \texttt{ApiRoleMiddleware}
+    & Igual que \texttt{RoleMiddleware} pero para peticiones API autenticadas
+      con Bearer token.\\
+  \texttt{AuthorizationMiddleware}
+    & Aplica políticas de autorización de grano fino (p.ej.\ solo el propietario
+      puede modificar sus datos).\\
+  \texttt{CafeScopeMiddleware}
+    & Restringe el acceso de managers y supervisors a los datos del café al que
+      están asignados.\\
+  \texttt{IdempotencyMiddleware}
+    & Verifica el header \texttt{Idempotency-Key} (UUID~v4); devuelve la respuesta
+      cacheada (Redis, TTL 24~h) si existe, o ejecuta y almacena el resultado.\\
+\end{longtable}
+
+\section{Flujos de autenticación}
+\label{sec:auth}
+
+El sistema implementa tres mecanismos de autenticación diferenciados según el tipo
+de cliente.
+
+\subsection{Login web con sesión}
+
+\begin{figure}[H]
+  \centering
+  \begin{sequencediagram}
+    \newthread{U}{Usuario}
+    \newthread{C}{AuthController}
+    \newthread{S}{AuthService}
+    \newthread{R}{UserRepository}
+    \newthread{Se}{Session}
+
+    \begin{call}{U}{POST /login (email, password, csrf\_token)}{C}{}
+      \begin{call}{C}{processLogin(\$request)}{S}{}
+        \begin{call}{S}{findByEmail(\$email)}{R}{User|null}
+        \end{call}
+        \begin{call}{S}{password\_verify(\$plain, \$hash)}{S}{bool}
+        \end{call}
+      \end{call}
+      \begin{call}{C}{set(\$userId, \$role)}{Se}{}
+      \end{call}
+    \end{call}
+  \end{sequencediagram}
+  \caption{Diagrama de secuencia: login web}
+  \label{fig:seq-login}
+\end{figure}
+
+\subsection{Verificación \gls{rbac} por middleware}
+
+El \texttt{RoleMiddleware} comprueba el rol almacenado en sesión antes de que la
+petición llegue al controlador. Los roles disponibles son:
+\texttt{admin}, \texttt{manager}, \texttt{supervisor}, \texttt{reception},
+\texttt{kitchen}, \texttt{keeper} y \texttt{user}.
+
+\subsection{API stateless con Bearer token}
+
+\begin{figure}[H]
+  \centering
+  \begin{sequencediagram}
+    \newthread{C}{Cliente API}
+    \newthread{TC}{TokenController}
+    \newthread{TS}{ApiTokenService}
+    \newthread{R}{UserRepository}
+    \newthread{DB}{api\_tokens}
+
+    \begin{call}{C}{POST /api/v1/tokens (email, password)}{TC}{}
+      \begin{call}{TC}{create(\$userId, \$name, \$abilities)}{TS}{}
+        \begin{call}{TS}{\texttt{random\_bytes(32)} → plain token}{TS}{}
+        \end{call}
+        \begin{call}{TS}{\texttt{hash('sha256', token)}}{TS}{hash}
+        \end{call}
+        \begin{call}{TS}{insert(token\_hash, expires\_at, abilities)}{DB}{}
+        \end{call}
+      \end{call}
+    \end{call}
+    \mess{TC}{plain token (devuelto una sola vez)}{C}
+
+    \begin{sdblock}{Petición posterior}{}
+      \begin{call}{C}{GET /api/v1/... Bearer <token>}{TC}{}
+        \begin{call}{TC}{\texttt{hash('sha256', token)}}{TC}{hash}
+        \end{call}
+        \begin{call}{TC}{findByHash(hash)}{DB}{ApiToken}
+        \end{call}
+      \end{call}
+    \end{sdblock}
+  \end{sequencediagram}
+  \caption{Diagrama de secuencia: autenticación Bearer token API}
+  \label{fig:seq-token}
+\end{figure}
+
+\section{Flujo de reservas con control de idempotencia}
+\label{sec:reservas-flujo}
+
+\begin{figure}[H]
+  \centering
+  \begin{sequencediagram}
+    \newthread{U}{Usuario}
+    \newthread{IM}{IdempotencyMW}
+    \newthread{RC}{ReservationController}
+    \newthread{RS}{ReservationService}
+    \newthread{DB}{reservations}
+    \newthread{RD}{Redis}
+    \newthread{EV}{EventDispatcher}
+
+    \begin{call}{U}{POST /api/v1/reservations\\Idempotency-Key: UUID v4}{IM}{}
+      \begin{call}{IM}{GET idempotency:\{key\}}{RD}{hit/miss}
+      \end{call}
+      \begin{sdblock}{Cache HIT}{}
+        \mess{IM}{Response cacheada (200/201)}{U}
+      \end{sdblock}
+      \begin{sdblock}{Cache MISS}{}
+        \begin{call}{IM}{handle(\$request)}{RC}{}
+          \begin{call}{RC}{create(\$dto)}{RS}{}
+            \begin{call}{RS}{INSERT}{DB}{Reservation}
+            \end{call}
+            \begin{call}{RS}{dispatch(ReservationCreatedEvent)}{EV}{}
+            \end{call}
+          \end{call}
+        \end{call}
+        \begin{call}{IM}{SET idempotency:\{key\} TTL 86400}{RD}{}
+        \end{call}
+        \mess{IM}{201 Created (invoice\_pdf\_url: null)}{U}
+      \end{sdblock}
+    \end{call}
+  \end{sequencediagram}
+  \caption{Diagrama de secuencia: creación de reserva con idempotencia}
+  \label{fig:seq-reservas}
+\end{figure}
+
+\begin{infobox}
+  El campo \texttt{invoice\_pdf\_url} es \texttt{NULL} en la respuesta inicial.
+  El \texttt{InvoicePDFService} genera el PDF de forma asíncrona (worker Redis) y
+  actualiza la columna \texttt{reservations.invoice\_pdf\_url} cuando el archivo
+  está disponible.
+\end{infobox}
+
+\section{Modelo entidad-relación}
+\label{sec:er}
+
+La base de datos está compuesta por 19 migraciones SQL que definen las tablas
+principales del sistema. La \cref{tab:entidades} resume las entidades más relevantes.
+
+\begin{longtable}{@{}lp{5cm}p{5cm}@{}}
+  \caption{Entidades principales del modelo de datos}
+  \label{tab:entidades}\\
+  \toprule
+  \textbf{Tabla} & \textbf{Propósito} & \textbf{Columnas clave}\\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Tabla} & \textbf{Propósito} & \textbf{Columnas clave}\\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \texttt{users}
+    & Cuentas de usuario
+    & \texttt{id, email, password\_hash, role, is\_active}\\
+  \texttt{cafes}
+    & Establecimientos temáticos
+    & \texttt{id, slug, name, capacity, is\_active}\\
+  \texttt{products}
+    & Carta del menú
+    & \texttt{id, cafe\_id, name, price, is\_available}\\
+  \texttt{allergens}
+    & Alérgenos por producto
+    & \texttt{id, product\_id, name, severity}\\
+  \texttt{reservations}
+    & Reservas de clientes
+    & \texttt{id, cafe\_id, user\_id, date, guests,}\\
+    & & \texttt{status, idempotency\_key, invoice\_pdf\_url}\\
+  \texttt{api\_tokens}
+    & Tokens de acceso API
+    & \texttt{id, user\_id, token\_hash, abilities,}\\
+    & & \texttt{expires\_at, revoked\_at}\\
+  \texttt{loyalty\_cards}
+    & Tarjetas de fidelización
+    & \texttt{id, user\_id, points, tier}\\
+  \texttt{animals}
+    & Animales de los cafés
+    & \texttt{id, cafe\_id, name, species, is\_active}\\
+  \texttt{animal\_incidents}
+    & Incidencias de animales
+    & \texttt{id, animal\_id, severity, description, resolution}\\
+  \texttt{health\_checks}
+    & Revisiones de salud
+    & \texttt{id, animal\_id, keeper\_id, checked\_at, notes}\\
+  \texttt{reviews}
+    & Reseñas de clientes
+    & \texttt{id, cafe\_id, user\_id, rating, body, status}\\
+  \texttt{newsletter\_subscriptions}
+    & Suscriptores de newsletter
+    & \texttt{id, email, verified\_at, expires\_at}\\
+  \texttt{staff\_shifts}
+    & Turnos de personal
+    & \texttt{id, user\_id, cafe\_id, start\_time, end\_time}\\
+  \texttt{time\_slots}
+    & Franjas horarias de reserva
+    & \texttt{id, cafe\_id, date, time, capacity, booked}\\
+  \texttt{waitlist}
+    & Lista de espera
+    & \texttt{id, cafe\_id, user\_id, token, status}\\
+\end{longtable}
+
+El diagrama entidad-relación completo (en formato PlantUML) se encuentra en
+\texttt{docs/diagrams/er.puml} e incluye todas las relaciones de clave foránea
+y constraints de unicidad.
+
+\section{Implementación frontend}
+\label{sec:frontend}
+
+Las vistas se renderizan en el servidor mediante el motor de plantillas PHP interno
+(\texttt{app/Core/View.php}). Alpine.js proporciona la interactividad del lado del
+cliente sin necesidad de un \textit{bundler} en producción.
+
+\subsection{Convenciones de vistas}
+\begin{itemize}[nosep]
+  \item Todas las vistas viven en \texttt{resources/views/}.
+  \item \texttt{View::render()} auto-escapa todos los valores de \texttt{\$data}.
+  \item Para HTML o JSON pre-procesados se usa \texttt{Raw::html()} / \texttt{Raw::json()}.
+  \item Los layouts se encuentran en \texttt{resources/views/layouts/}:
+    \texttt{main.php} (público/usuario), \texttt{backoffice.php} (admin/manager),
+    \texttt{kds.php} (cocina), \texttt{mobile.php}, \texttt{reception.php}.
+\end{itemize}
+
+\subsection{Patrón de datos para Alpine.js}
+
+\begin{phpcode}{Pasar JSON seguro a Alpine.js}
+<?php declare(strict_types=1);
+
+// En el controlador:
+$data = [
+    'reservations' => Raw::json($reservationsArray),
+    'cafes'        => Raw::json($cafesArray),
+];
+View::render('admin/reservations/index', $data, ['admin-reservations.css']);
+\end{phpcode}
+
+\section{Implementación backend}
+\label{sec:backend}
+
+\subsection{El Result pattern}
+
+Todos los servicios devuelven un objeto \texttt{Result} en lugar de lanzar excepciones
+para fallos esperados. Esto hace que el flujo de control sea explícito y predecible.
+
+\begin{phpcode}{Ejemplo de uso del Result pattern}
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Core\Result;
+
+final class ReservationService
+{
+    public function create(ReservationDTO $dto): Result
+    {
+        if ($dto->guests > $this->getCapacity($dto->cafeId)) {
+            return Result::fail('Capacidad insuficiente', 'capacity_exceeded');
+        }
+
+        $id = $this->repository->insert($dto->toArray());
+        return Result::ok(['id' => $id]);
+    }
+}
+\end{phpcode}
+
+\begin{phpcode}{Consumo del Result en el controlador}
+<?php declare(strict_types=1);
+
+$result = $this->service->create($dto);
+
+if (!$result->ok) {
+    Flash::error($result->getMessage());
+    return $this->response->redirect('/reservar');
+}
+
+return $this->response->redirect('/reservas/confirmacion/' . $result->data['id']);
+\end{phpcode}
+
+\subsection{Catálogo de rutas}
+\label{subsec:rutas}
+
+\begin{landscape}
+\begin{longtable}{@{}llll@{}}
+  \caption{Catálogo de rutas del sistema (selección)}
+  \label{tab:rutas}\\
+  \toprule
+  \textbf{Método} & \textbf{Ruta} & \textbf{Controlador} & \textbf{Middleware}\\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Método} & \textbf{Ruta} & \textbf{Controlador} & \textbf{Middleware}\\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  % ── Públicas ──
+  GET  & \texttt{/}                    & Public\textbackslash HomeController@index          & —\\
+  GET  & \texttt{/cafes}               & Public\textbackslash CafeController@index          & —\\
+  GET  & \texttt{/cafes/\{slug\}}      & Public\textbackslash CafeController@show           & —\\
+  GET  & \texttt{/menu}                & Public\textbackslash MenuController@index          & —\\
+  GET  & \texttt{/quiz}                & Public\textbackslash QuizController@index          & —\\
+  POST & \texttt{/quiz/resultado}      & Public\textbackslash QuizController@resultado      & csrf\\
+  GET  & \texttt{/historia}            & Public\textbackslash PageController@historia       & —\\
+  GET  & \texttt{/faq}                 & Public\textbackslash PageController@faq            & —\\
+  GET  & \texttt{/contacto}            & Public\textbackslash PageController@contacto       & —\\
+  % ── Autenticación ──
+  GET  & \texttt{/login}               & Auth\textbackslash AuthController@showLogin         & guest\\
+  POST & \texttt{/login}               & Auth\textbackslash AuthController@processLogin      & csrf, rateLimit(login)\\
+  GET  & \texttt{/registro}            & Auth\textbackslash AuthController@showRegister      & guest\\
+  POST & \texttt{/registro}            & Auth\textbackslash AuthController@processRegister   & csrf, rateLimit(registration)\\
+  GET  & \texttt{/forgot-password}     & Auth\textbackslash PasswordResetController         & guest\\
+  POST & \texttt{/forgot-password}     & Auth\textbackslash PasswordResetController         & csrf, rateLimit(password\_reset)\\
+  POST & \texttt{/logout}              & Auth\textbackslash AuthController@logout            & csrf\\
+  % ── Usuario autenticado ──
+  GET  & \texttt{/perfil}              & Shared\textbackslash UserController@profile        & auth\\
+  GET  & \texttt{/reservas/mis-reservas}& Shared\textbackslash ReservationController        & auth\\
+  GET  & \texttt{/loyalty/card}        & Public\textbackslash LoyaltyController@card        & auth\\
+  GET  & \texttt{/mis-favoritos}       & User\textbackslash FavoriteController@index        & auth\\
+  % ── Admin ──
+  GET  & \texttt{/admin/dashboard}     & Admin\textbackslash DashboardController@index      & auth, role(admin)\\
+  GET  & \texttt{/admin/users}         & Admin\textbackslash UserController@index           & auth, role(admin)\\
+  GET  & \texttt{/admin/cafes}         & Admin\textbackslash CafeController@index           & auth, role(admin)\\
+  GET  & \texttt{/admin/menu}          & Admin\textbackslash MenuController@index           & auth, role(admin)\\
+  GET  & \texttt{/admin/reservations}  & Admin\textbackslash ReservationController@index    & auth, role(admin)\\
+  GET  & \texttt{/admin/animals}       & Admin\textbackslash AnimalController@index         & auth, role(admin)\\
+  GET  & \texttt{/admin/reports}       & Admin\textbackslash ReportController@index         & auth, role(admin)\\
+  GET  & \texttt{/admin/settings}      & Admin\textbackslash SystemController@settings      & auth, role(admin)\\
+  GET  & \texttt{/admin/logs/audit}    & Admin\textbackslash AuditLogController@index       & auth, role(admin)\\
+  GET  & \texttt{/admin/loyalty}       & Admin\textbackslash LoyaltyController@index        & auth, role(admin)\\
+  % ── Manager ──
+  GET  & \texttt{/manager/dashboard}   & Manager\textbackslash DashboardController@index   & auth, role(manager)\\
+  GET  & \texttt{/manager/products}    & Manager\textbackslash ProductController@index      & auth, role(manager), ownsCafe\\
+  GET  & \texttt{/manager/staff}       & Manager\textbackslash StaffController@index        & auth, role(manager), ownsCafe\\
+  % ── Recepción / Cocina ──
+  GET  & \texttt{/reception}           & Reception\textbackslash ReceptionController@index  & auth, role(reception)\\
+  GET  & \texttt{/kitchen}             & Kitchen\textbackslash KitchenController@index      & auth, role(kitchen)\\
+  % ── Keeper ──
+  GET  & \texttt{/keeper/dashboard}    & Keeper\textbackslash AnimalDashboardController     & auth, role(keeper)\\
+  GET  & \texttt{/keeper/health-checks}& Keeper\textbackslash HealthCheckController@index  & auth, role(keeper)\\
+  % ── API v1 pública ──
+  GET  & \texttt{/api/v1/menu/alergenos}& Api\textbackslash V1\textbackslash MenuController@allergens & cors\\
+  GET  & \texttt{/api/v1/cafes}        & Api\textbackslash V1\textbackslash CafeController@index    & cors\\
+  GET  & \texttt{/api/v1/time-slots/available}& Api\textbackslash V1\textbackslash TimeSlotController & cors\\
+  % ── API v1 autenticada ──
+  POST & \texttt{/api/v1/reservations} & Api\textbackslash V1\textbackslash ReservationController@create & cors, apiAuth, csrf, idempotency\\
+  GET  & \texttt{/api/v1/tokens}       & Api\textbackslash V1\textbackslash TokenController@list        & cors, apiAuth\\
+  POST & \texttt{/api/v1/tokens}       & Api\textbackslash V1\textbackslash TokenController@create      & cors, csrf\\
+  DELETE& \texttt{/api/v1/tokens/\{id\}}& Api\textbackslash V1\textbackslash TokenController@revoke     & cors, apiAuth, csrf\\
+  % ── API Admin ──
+  POST & \texttt{/api/v1/admin/users}  & Api\textbackslash V1\textbackslash Admin\textbackslash UserApiController@create & apiAuth, role(admin), csrf\\
+  PUT  & \texttt{/api/v1/admin/cafes/\{id\}}& Api\textbackslash V1\textbackslash Admin\textbackslash CafeApiController@update & apiAuth, role(admin), csrf\\
+  POST & \texttt{/api/v1/admin/menu}   & Api\textbackslash V1\textbackslash Admin\textbackslash MenuApiController@create & apiAuth, role(admin), csrf\\
+  % ── API Operaciones ──
+  POST & \texttt{/api/v1/ops/reception/reservations/\{id\}/checkin}& Api\textbackslash V1\textbackslash Ops\textbackslash ReceptionApiController & apiAuth, role(reception), csrf\\
+  POST & \texttt{/api/v1/ops/kitchen/orders/\{id\}/complete}& Api\textbackslash V1\textbackslash Ops\textbackslash KitchenApiController & apiAuth, role(kitchen), csrf\\
+\end{longtable}
+\end{landscape}
+
+\subsection{Catálogo de servicios de negocio}
+\label{subsec:servicios}
+
+\begin{longtable}{@{}lp{8cm}@{}}
+  \caption{Catálogo de servicios de negocio (53 servicios)}
+  \label{tab:servicios}\\
+  \toprule
+  \textbf{Servicio} & \textbf{Responsabilidad principal}\\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Servicio} & \textbf{Responsabilidad principal}\\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \texttt{AuthService}                 & Autenticación web: login, logout, verificación de credenciales\\
+  \texttt{ApiTokenService}             & Gestión de tokens Bearer: creación, revocación, validación\\
+  \texttt{AuthTokenService}            & Tokens de verificación de email y reset de contraseña\\
+  \texttt{PasswordResetService}        & Flujo completo de recuperación de contraseña\\
+  \texttt{EmailVerificationService}    & Envío y verificación de emails de confirmación de cuenta\\
+  \texttt{SessionManagementService}    & Listado, revocación y expiración de sesiones activas\\
+  \texttt{UserAccountService}          & Alta, baja y gestión general de cuentas de usuario\\
+  \texttt{UserManagementService}       & Operaciones admin sobre usuarios (toggle activo, roles)\\
+  \texttt{UserProfileService}          & Actualización de perfil, avatar y preferencias de usuario\\
+  \texttt{UserPreferenceService}       & Preferencias de cookies, filtros dietéticos y recientes\\
+  \texttt{CafeService}                 & CRUD de cafés temáticos y gestión de estado\\
+  \texttt{MenuService}                 & Catálogo de menú: categorías y disponibilidad\\
+  \texttt{ProductService}              & CRUD de productos de carta con toggle de disponibilidad\\
+  \texttt{AllergenService}             & Asociación de alérgenos a productos\\
+  \texttt{ReservationService}          & Creación, confirmación y cancelación de reservas\\
+  \texttt{ReservationTimeSlotService}  & Validación y gestión de franjas horarias de reserva\\
+  \texttt{AvailabilityService}         & Cálculo de plazas disponibles por café, fecha y hora\\
+  \texttt{TimeSlotService}             & CRUD de time slots y estadísticas de ocupación\\
+  \texttt{WaitlistService}             & Alta en lista de espera, posición y confirmación\\
+  \texttt{LoyaltyService}              & Acumulación de puntos, canjes y gestión de catálogo\\
+  \texttt{GamificationService}         & Logros, niveles y recompensas del programa de fidelización\\
+  \texttt{ReviewService}               & Creación y gestión de reseñas de clientes\\
+  \texttt{ReviewModerationService}     & Aprobación y rechazo de reseñas por moderadores\\
+  \texttt{ReviewQueryService}          & Consultas y filtros avanzados sobre reseñas\\
+  \texttt{CartService}                 & Gestión del carrito (Redis, por sesión o usuario)\\
+  \texttt{RecentlyViewedService}       & Historial de productos visitados recientemente (cookies)\\
+  \texttt{NewsletterService}           & Suscripción, verificación y baja del boletín\\
+  \texttt{EmailService}                & Envío de emails transaccionales (queue + SMTP)\\
+  \texttt{InvoicePDFService}           & Generación asíncrona de facturas PDF (Dompdf)\\
+  \texttt{KitchenService}              & Órdenes activas e historial del KDS de cocina\\
+  \texttt{ReceptionService}            & Check-in, checkout y procesamiento de pagos en recepción\\
+  \texttt{AnimalCareService}           & CRUD de animales, incidentes y revisiones de salud\\
+  \texttt{HealthCheckService}          & Registro y consulta de revisiones veterinarias\\
+  \texttt{StaffShiftService}           & Gestión de turnos de personal por café\\
+  \texttt{SupervisorAssignmentService} & Asignaciones de supervisor a café y turnos\\
+  \texttt{SettingsService}             & Lectura y escritura de configuración del sistema\\
+  \texttt{CacheService}                & Abstracción de Redis con tags e invalidación por grupo\\
+  \texttt{RateLimitingService}         & Implementación de ventana deslizante en Redis\\
+  \texttt{FileUploadService}           & Subida y validación de imágenes (avatares, animales)\\
+  \texttt{CloudinaryStorageService}    & Almacenamiento de imágenes en Cloudinary (producción)\\
+  \texttt{TelegramService}             & Notificaciones push al bot de Telegram del equipo\\
+  \texttt{MercurePublisherService}     & Publicación de eventos SSE en el hub Mercure (KDS)\\
+  \texttt{WeatherService}              & Consulta de meteorología local (API externa)\\
+  \texttt{NavigationService}           & Generación del menú de navegación según rol activo\\
+  \texttt{AdminActivityService}        & Registro de acciones de administración en audit log\\
+  \texttt{AdminStatisticsService}      & Cálculo de KPIs para el dashboard de administración\\
+  \texttt{AdminReportService}          & Generación y exportación de informes en CSV/PDF\\
+  \texttt{AccountDeletionService}      & Eliminación segura de cuentas de usuario y datos asociados\\
+  \texttt{ClimaContextoService}        & Contexto climático (temperatura, lluvia) para personalizar la experiencia\\
+  \texttt{ContextServiceInstance}      & Versión inyectable de ContextService: resuelve el café activo por sesión\\
+  \texttt{DashboardService}            & Métricas en tiempo real para el panel de control del gestor\\
+  \texttt{FestivosJaponesesService}    & Consulta de festivos japoneses (祝日 Shukujitsu) para validación de slots\\
+  \texttt{MicroestacionesService}      & Calendario solar japonés (24 Sekki) para personalización estacional\\
+\end{longtable}
+
+\subsection{Catálogo de repositorios}
+\label{subsec:repositorios}
+
+\begin{longtable}{@{}lp{7cm}@{}}
+  \caption{Catálogo de repositorios (29 repositorios)}
+  \label{tab:repos}\\
+  \toprule
+  \textbf{Repositorio} & \textbf{Entidad / Tabla gestionada}\\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Repositorio} & \textbf{Entidad / Tabla gestionada}\\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \texttt{UserRepository}                  & \texttt{users}\\
+  \texttt{RoleRepository}                  & \texttt{roles}, \texttt{user\_roles}\\
+  \texttt{SessionRepository}               & \texttt{sessions}\\
+  \texttt{AuthTokenRepository}             & \texttt{auth\_tokens} (email/reset)\\
+  \texttt{ApiTokenRepository}              & \texttt{api\_tokens} (Bearer)\\
+  \texttt{CafeRepository}                  & \texttt{cafes}\\
+  \texttt{MenuCategoryRepository}          & \texttt{menu\_categories}\\
+  \texttt{MenuRepository}                  & \texttt{menu\_items}\\
+  \texttt{ProductRepository}               & \texttt{products}\\
+  \texttt{AllergenRepository}              & \texttt{allergens}\\
+  \texttt{ReservationRepository}           & \texttt{reservations}\\
+  \texttt{ReservationItemRepository}       & \texttt{reservation\_items}\\
+  \texttt{TimeSlotRepository}              & \texttt{time\_slots}\\
+  \texttt{WaitlistRepository}              & \texttt{waitlist}\\
+  \texttt{ReviewRepository}                & \texttt{reviews}\\
+  \texttt{LoyaltyRepository}               & \texttt{loyalty\_cards}, \texttt{loyalty\_transactions}\\
+  \texttt{FavoriteRepository}              & \texttt{favorites}\\
+  \texttt{NewsletterSubscriptionRepository}& \texttt{newsletter\_subscriptions}\\
+  \texttt{AnimalRepository}                & \texttt{animals}\\
+  \texttt{AnimalIncidentRepository}        & \texttt{animal\_incidents}\\
+  \texttt{HealthCheckRepository}           & \texttt{health\_checks}\\
+  \texttt{StaffShiftRepository}            & \texttt{staff\_shifts}\\
+  \texttt{SupervisorAssignmentRepository}  & \texttt{supervisor\_assignments}\\
+  \texttt{SettingRepository}               & \texttt{system\_settings}\\
+  \texttt{AuditLogRepository}              & \texttt{audit\_logs}\\
+  \texttt{AuthLogRepository}               & \texttt{auth\_logs}\\
+  \texttt{StatisticsRepository}            & Vistas agregadas / consultas analytics\\
+  \texttt{TrackerRepository}               & \texttt{interaction\_sessions}\\
+  \texttt{InteractionSessionRepository}    & Sesiones de interacción (A/B testing)\\
+\end{longtable}
+
+\section{Pruebas}
+\label{sec:pruebas}
+
+\subsection{Tests unitarios con PHPUnit}
+
+Los tests unitarios se ubican en \texttt{tests/Unit/} replicando la estructura de
+\texttt{app/}. Cada archivo de test incluye el docblock obligatorio del proyecto:
+
+\begin{phpcode}{Estructura de test unitario}
+<?php declare(strict_types=1);
+
+/**
+ * ¿Qué pruebas aquí?
+ *    El ReservationService crea reservas correctamente y falla
+ *    con gracia cuando se supera la capacidad.
+ * ¿Qué me quieres demostrar?
+ *    Que el Result pattern encapsula los errores sin excepciones.
+ * ¿Qué va a fallar en este test si se cambia el código?
+ *    Si create() lanza una excepción en lugar de devolver Result::fail().
+ */
+class ReservationServiceTest extends TestCase
+{
+    public function testCreateReturnsOkWhenCapacityIsAvailable(): void
+    {
+        $repo = $this->createStub(ReservationRepository::class);
+        $repo->method('insert')->willReturn(42);
+
+        $service = new ReservationService($repo, /* ... */);
+        $result  = $service->create($dto);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(42, $result->data['id']);
+    }
+}
+\end{phpcode}
+
+\subsection{Tests de integración}
+
+Los tests de integración en \texttt{tests/Integration/} utilizan una base de datos
+real (\texttt{docker-compose.test.yml}) con migraciones y seeders ejecutados antes
+de cada suite. Se ejecutan con:
+
+\begin{bashcode}{Ejecutar tests de integración}
+make test-integration
+\end{bashcode}
+
+\subsection{Tests E2E con Playwright}
+
+Los tests end-to-end se encuentran en \texttt{tests/e2e/} y están escritos en
+TypeScript. Cubren flujos completos: login, creación de reserva, check-in y
+verificación de KDS. Se ejecutan con:
+
+\begin{bashcode}{Ejecutar tests E2E}
+make e2e
+make e2e-a11y   # solo accesibilidad WCAG 2.1 AA
+\end{bashcode}
+
+\section{Estructura de directorios}
+\label{sec:estructura}
+
+\begin{figure}[H]
+  \centering
+  \begin{forest}
+    for tree={
+      font=\ttfamily\small,
+      grow'=0,
+      child anchor=west,
+      parent anchor=south,
+      anchor=west,
+      calign=first,
+      edge path={
+        \noexpand\path [draw, \forestoption{edge}]
+        (!u.south west) +(7.5pt,0) |- node[fill,inner sep=1.25pt] {} (.child anchor)\forestoption{edge label};
+      },
+      before typesetting nodes={
+        if n=1 {insert before={[,phantom]}} {}
+      },
+      fit=band,
+      before computing xy={l=15pt},
+    }
+    [komorebi/
+      [app/
+        [Core/ [Router, Container, View, DB, Cache, Queue, Logger]]
+        [Http/ [Controllers/ [Admin/ Manager/ Kitchen/ Keeper/ ...]]]
+        [Services/ [53 servicios de negocio]]
+        [Repositories/ [29 repositorios PDO]]
+        [Events/ + Listeners/]
+        [routes.php]
+      ]
+      [bootstrap/ [container.php]]
+      [migrations/ [001 -- 019 SQL]]
+      [resources/ [views/ [layouts/ admin/ public/ ...]]]
+      [tests/ [Unit/ Integration/ e2e/]]
+      [public/ [index.php css/ js/ images/]]
+      [docs/ [diagrams/ images/ screenshots/ plans/]]
+    ]
+  \end{forest}
+  \caption{Estructura de directorios del proyecto}
+  \label{fig:estructura}
+\end{figure}
+
+\section{Despliegue}
+\label{sec:despliegue}
+
+\subsection{Entorno local con Docker Compose}
+
+\begin{bashcode}{Arrancar el entorno de desarrollo}
+make dev          # Levanta app (FrankenPHP) + MySQL + Redis + Mailpit
+make db-migrate   # Aplica las 19 migraciones SQL
+make db-seed      # Carga datos de prueba
+make test         # Quality gate completo
+\end{bashcode}
+
+El archivo \texttt{docker-compose.yml} define cuatro servicios:
+\begin{itemize}[nosep]
+  \item \texttt{app} — FrankenPHP (Caddy + PHP 8.4 integrado), puerto 8080
+  \item \texttt{mysql} — MySQL 8.0, puerto 3306
+  \item \texttt{redis} — Redis 7, puerto 6379
+  \item \texttt{mailpit} — SMTP local + UI, puertos 1025/8025
+\end{itemize}
+
+\subsection{Producción en Railway}
+
+El despliegue a producción se realiza automáticamente mediante GitHub Actions al
+hacer \textit{push} a \texttt{main}. Railway detecta el \texttt{Dockerfile}
+(multi-stage build) y despliega la imagen resultante.
+
+Las variables de entorno sensibles se gestionan como secretos en Railway. El helper
+\texttt{SecretLoader::require()} busca la variable de entorno primero y después el
+archivo \texttt{/run/secrets/<clave>} (estándar Docker Swarm).
+
+\section{Control de versiones y Git Flow}
+\label{sec:gitflow}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    commit/.style={draw,circle,fill=komorebi,minimum size=0.6cm,
+                   inner sep=0pt,font=\scriptsize\color{white}},
+    branch/.style={font=\small\bfseries,komorebi-dark}
+  ]
+    \node[branch] at (0,3) {main};
+    \node[branch] at (0,2) {develop};
+    \node[branch] at (0,1) {feature/reservas};
+    \node[branch] at (0,0) {hotfix/csrf};
+
+    \foreach \x in {1,3,5,7,9} \node[commit] at (\x,3) {};
+    \foreach \x in {1,2,3,4,5,6,7,8,9} \node[commit] at (\x,2) {};
+    \foreach \x in {2,3,4,5,6} \node[commit] at (\x,1) {};
+    \foreach \x in {4,5} \node[commit] at (\x,0) {};
+
+    \draw[thick,komorebi] (1,3) -- (9,3);
+    \draw[thick,komorebi!60] (1,2) -- (9,2);
+    \draw[thick,gray] (2,1) -- (6,1);
+    \draw[thick,orange!70!black] (4,0) -- (5,0);
+
+    \draw[->,dashed] (6,1) -- (7,2);  % feature merge
+    \draw[->,dashed] (5,0) -- (5,2);  % hotfix merge
+    \draw[->,dashed] (5,2) -- (5,3);  % hotfix a main
+    \draw[->,dashed] (2,2) -- (2,1);  % branch feature
+    \draw[->,dashed] (4,2) -- (4,0);  % branch hotfix
+  \end{tikzpicture}
+  \caption{Flujo de ramas Git Flow del proyecto}
+  \label{fig:gitflow}
+\end{figure}
+
+% ============================================================
+%  CAPÍTULO 3 — MANUAL DE USUARIO
+% ============================================================
+\chapter{Manual de Usuario}
+\label{chap:manual}
+
+Este capítulo describe las funcionalidades de la plataforma desde la perspectiva del
+usuario final, organizadas por tipo de acceso y rol. Cada sección incluye capturas
+de pantalla reales del sistema.
+
+\begin{infobox}
+  Las capturas de pantalla están numeradas del \texttt{01} al \texttt{62} y se
+  encuentran en \texttt{docs/screenshots/}. Se referencian mediante
+  \verb|\cref{fig:NN-nombre}| a lo largo del capítulo.
+\end{infobox}
+
+\section{Área pública}
+\label{sec:manual-publico}
+
+El área pública es accesible sin autenticación y muestra la presentación de la cadena,
+los cafés disponibles, la carta del menú, el sistema de reservas, la historia de la
+marca y los recursos informativos.
+
+\subsection{Página de inicio}
+La página principal (\cref{fig:01-home}) presenta el concepto de la marca mediante
+un encabezado animado con el significado de \textit{komorebi}, seguido de las
+secciones destacadas: cafés disponibles, menú del momento y acceso rápido a reservas.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Página de inicio — Komorebi Café}
+  \label{fig:01-home}
+\end{figure}
+
+\subsection{Catálogo de cafés}
+La página \texttt{/cafes} (\cref{fig:02-cafes-lista}) muestra las tarjetas de los
+catorce cafés temáticos con imagen, nombre y botón de acceso al detalle.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Catálogo de cafés temáticos}
+  \label{fig:02-cafes-lista}
+\end{figure}
+
+\subsection{Detalle de café}
+Cada café dispone de su propia página de detalle (\cref{fig:03-cafe-detalle}) con
+galería de imágenes, descripción temática, horarios, capacidad y acceso directo al
+formulario de reserva.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Página de detalle de un café temático}
+  \label{fig:03-cafe-detalle}
+\end{figure}
+
+\subsection{Carta del menú}
+La carta digital (\cref{fig:04-menu-catalogo}) presenta todos los productos con
+foto, descripción y precio. Incluye filtros por categoría y por alérgeno en tiempo
+real mediante Alpine.js.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Carta digital del menú con filtros por alérgeno}
+  \label{fig:04-menu-catalogo}
+\end{figure}
+
+\subsection{Quiz de recomendación}
+El quiz (\cref{fig:06-quiz-inicio}) guía al visitante a través de una serie de
+preguntas sobre preferencias estéticas y recomienda el café temático más afín a su
+personalidad.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Quiz de recomendación de café}
+  \label{fig:06-quiz-inicio}
+\end{figure}
+
+\subsection{Historia de la marca}
+La página \texttt{/historia} (\cref{fig:08-historia}) narra el origen del concepto
+\textit{komorebi} y la filosofía que inspira cada uno de los establecimientos.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Página de historia de la marca}
+  \label{fig:08-historia}
+\end{figure}
+
+\section{Autenticación y gestión de cuenta}
+\label{sec:manual-auth}
+
+\subsection{Formulario de login}
+El formulario de acceso (\cref{fig:13-login-form}) solicita email y contraseña.
+Incluye protección \gls{csrf} y límite de velocidad de 5 intentos por minuto.
+El campo contraseña dispone de botón de alternancia de visibilidad.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Formulario de inicio de sesión}
+  \label{fig:13-login-form}
+\end{figure}
+
+\subsection{Registro de nueva cuenta}
+El formulario de registro (\cref{fig:14-registro-form}) recoge nombre, email y
+contraseña. Tras el envío, el sistema envía un email de verificación.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Formulario de registro de nueva cuenta}
+  \label{fig:14-registro-form}
+\end{figure}
+
+\subsection{Recuperación de contraseña}
+El flujo de recuperación (\cref{fig:15-forgot-password}) envía un enlace de
+restablecimiento con validez de 60 minutos al email registrado.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Formulario de recuperación de contraseña}
+  \label{fig:15-forgot-password}
+\end{figure}
+
+\section{Usuario autenticado}
+\label{sec:manual-usuario}
+
+Una vez autenticado, el usuario accede a su panel personal con reservas, programa de
+fidelización, favoritos y carrito.
+
+\subsection{Perfil de usuario}
+La página \texttt{/perfil} (\cref{fig:19-perfil}) permite actualizar nombre, email,
+avatar y contraseña. Los cambios de contraseña requieren confirmación de la contraseña
+actual.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Página de perfil de usuario}
+  \label{fig:19-perfil}
+\end{figure}
+
+\subsection{Mis reservas}
+La sección de reservas (\cref{fig:22-mis-reservas}) lista todas las reservas del
+usuario con estado (pendiente, confirmada, cancelada), fecha, café y número de
+comensales. Permite cancelar reservas con más de 24 horas de antelación.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Listado de reservas del usuario}
+  \label{fig:22-mis-reservas}
+\end{figure}
+
+\subsection{Nueva reserva}
+El asistente de reserva en dos pasos (\cref{fig:23-reservar-step1}) muestra
+primero la selección de café, fecha y franja horaria disponible. En el segundo
+paso (\cref{fig:24-reservar-step2}) se confirma el número de comensales y las
+preferencias dietéticas.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Formulario de reserva — paso 1}
+  \label{fig:23-reservar-step1}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Formulario de reserva — paso 2}
+  \label{fig:24-reservar-step2}
+\end{figure}
+
+\subsection{Tarjeta de fidelización}
+La tarjeta digital (\cref{fig:26-loyalty-card}) muestra los puntos acumulados,
+el nivel (\textit{bronze}, \textit{silver}, \textit{gold} o \textit{platinum}), el historial de
+transacciones y los premios canjeables del catálogo.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Tarjeta de fidelización digital}
+  \label{fig:26-loyalty-card}
+\end{figure}
+
+\section{Panel de administración}
+\label{sec:manual-admin}
+
+El backoffice de administración (\texttt{/admin}) está reservado al rol
+\texttt{admin} y proporciona control total sobre todas las entidades del sistema.
+
+\subsection{Dashboard de administración}
+El dashboard (\cref{fig:30-admin-dashboard}) muestra KPIs en tiempo real:
+reservas del día, ingresos semanales, nuevos usuarios, alertas de animales y
+estado del sistema.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Dashboard de administración}
+  \label{fig:30-admin-dashboard}
+\end{figure}
+
+\subsection{Gestión de usuarios}
+La tabla de usuarios (\cref{fig:31-admin-usuarios}) permite buscar, filtrar por
+rol, activar/desactivar cuentas y acceder al detalle de cada usuario.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Panel de gestión de usuarios}
+  \label{fig:31-admin-usuarios}
+\end{figure}
+
+\subsection{Gestión de cafés}
+La administración de cafés (\cref{fig:32-admin-cafes}) permite crear nuevos
+establecimientos, editar sus datos (capacidad, horarios, temática) y activar o
+desactivar su presencia pública.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Panel de gestión de cafés}
+  \label{fig:32-admin-cafes}
+\end{figure}
+
+\subsection{Gestión del menú}
+La carta digital (\cref{fig:33-admin-menu}) permite administrar categorías y
+productos, definir precios, alérgenos y disponibilidad por café.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Panel de gestión del menú}
+  \label{fig:33-admin-menu}
+\end{figure}
+
+\subsection{Gestión de reservas}
+El panel de reservas (\cref{fig:34-admin-reservas}) ofrece una vista tabular de
+todas las reservas con filtros por café, fecha, estado y usuario. Permite confirmar
+o cancelar reservas individualmente.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Panel de gestión de reservas}
+  \label{fig:34-admin-reservas}
+\end{figure}
+
+\subsection{Gestión de animales}
+La sección de animales (\cref{fig:35-admin-animales}) lista todos los residentes
+de los cafés con su especie, estado de salud, café de origen y acceso al historial
+de incidentes y revisiones.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Panel de gestión de animales}
+  \label{fig:35-admin-animales}
+\end{figure}
+
+\subsection{Logs de auditoría}
+El visor de logs (\cref{fig:41-admin-logs-auditoria}) registra todas las acciones
+administrativas con usuario, timestamp, tipo de acción y entidad afectada.
+Permite exportar en CSV.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Visor de logs de auditoría}
+  \label{fig:41-admin-logs-auditoria}
+\end{figure}
+
+\subsection{Configuración del sistema}
+La pantalla de configuración (\cref{fig:40-admin-settings}) agrupa los parámetros
+del sistema por grupos: general, email, reservas, fidelización y mantenimiento.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Pantalla de configuración del sistema}
+  \label{fig:40-admin-settings}
+\end{figure}
+
+\section{Panel de manager}
+\label{sec:manual-manager}
+
+El manager gestiona las operaciones diarias de su café asignado: productos,
+staff, reservas e informes.
+
+\subsection{Dashboard de manager}
+El dashboard (\cref{fig:49-manager-dashboard}) muestra el resumen del día:
+reservas confirmadas, ocupación actual, ingresos y alertas de personal.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Dashboard del manager}
+  \label{fig:49-manager-dashboard}
+\end{figure}
+
+\subsection{Gestión de productos}
+La carta del manager (\cref{fig:50-manager-productos}) permite activar/desactivar
+productos específicos de su café sin necesidad de acudir al administrador.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Gestión de productos del manager}
+  \label{fig:50-manager-productos}
+\end{figure}
+
+\section{Recepción y Cocina}
+\label{sec:manual-ops}
+
+\subsection{Panel de recepción}
+El panel de recepción (\cref{fig:54-reception-dashboard}) muestra en tiempo real
+las reservas del día con sus estados: esperando, sentada, en consumo, pagada.
+Permite hacer check-in con un clic.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Panel de recepción con reservas del día}
+  \label{fig:54-reception-dashboard}
+\end{figure}
+
+\subsection{Kitchen Display System (KDS)}
+El \gls{kds} (\cref{fig:56-kitchen-orders}) muestra las órdenes activas en tiempo
+real mediante Server-Sent Events (Mercure). Cada tarjeta incluye el número de mesa,
+los ítems y el tiempo transcurrido desde la entrada del pedido.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Kitchen Display System — órdenes activas}
+  \label{fig:56-kitchen-orders}
+\end{figure}
+
+\section{Panel del Keeper}
+\label{sec:manual-keeper}
+
+El rol \texttt{keeper} gestiona el bienestar de los animales residentes de los cafés
+temáticos.
+
+\subsection{Dashboard del Keeper}
+El dashboard (\cref{fig:58-keeper-dashboard}) muestra el estado general de todos
+los animales activos: revisiones pendientes, incidentes abiertos y alertas de salud.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Dashboard del Keeper con estado de animales}
+  \label{fig:58-keeper-dashboard}
+\end{figure}
+
+\subsection{Ficha de animal}
+La ficha individual (\cref{fig:59-keeper-animals}) incluye datos biográficos,
+historial de revisiones, incidentes pasados y foto del animal.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Catálogo de animales del café}
+  \label{fig:59-keeper-animals}
+\end{figure}
+
+\subsection{Revisiones de salud}
+El formulario de revisión (\cref{fig:61-keeper-health-check-crear}) registra el
+estado general, peso, temperatura, observaciones y la fecha de la próxima revisión.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Formulario de nueva revisión de salud}
+  \label{fig:61-keeper-health-check-crear}
+\end{figure}
+
+\subsection{Registro de incidentes}
+El historial de incidentes (\cref{fig:62-keeper-incidents}) categoriza cada evento
+por severidad (\texttt{low}, \texttt{medium}, \texttt{high}, \texttt{critical}),
+su descripción, la resolución aplicada y la fecha de cierre.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{6cm}\rule{12cm}{0pt}}
+  \caption{Registro de incidentes de animales}
+  \label{fig:62-keeper-incidents}
+\end{figure}
+
+% ============================================================
+%  CAPÍTULO 4 — CONCLUSIONES Y FUTURAS MEJORAS
+% ============================================================
+\chapter{Conclusiones y Futuras Mejoras}
+\label{chap:conclusiones}
+
+\section{Objetivos alcanzados}
+\label{sec:objetivos-alcanzados}
+
+Al inicio del proyecto se plantearon los siguientes objetivos principales, todos
+ellos cumplidos en la versión actual:
+
+\begin{enumerate}
+  \item \textbf{Plataforma funcional de gestión integral}: el sistema cubre el ciclo
+    completo de operaciones de la cadena, desde la reserva pública hasta el cierre
+    de caja en recepción.
+  \item \textbf{Framework MVC propio sobre PHP~8.4}: se ha demostrado la comprensión
+    profunda de los mecanismos subyacentes al construir el router, el contenedor IoC,
+    el motor de vistas y el sistema de middleware desde cero.
+  \item \textbf{Arquitectura orientada a estándares}: adherencia completa a PSR-7,
+    PSR-14 y PSR-15; Result pattern en todos los servicios; DTOs \texttt{final readonly};
+    inyección por interfaz en todos los controladores.
+  \item \textbf{Calidad verificada}: PHPStan nivel~5, Psalm, suite PHPUnit con tests
+    unitarios y de integración, tests E2E con Playwright, análisis de cobertura.
+  \item \textbf{Despliegue en producción}: imagen Docker multi-stage desplegada en
+    Railway con GitHub Actions como pipeline \gls{ci}.
+  \item \textbf{Identidad visual coherente}: el diseño de la interfaz refleja la
+    estética \textit{komorebi}: paleta natural, tipografía serena y microanimaciones
+    evocadoras.
+\end{enumerate}
+
+\section{Aprendizajes técnicos}
+\label{sec:aprendizajes}
+
+El desarrollo de Komorebi Café ha permitido profundizar en áreas que habitualmente
+quedan ocultas detrás de los frameworks de alto nivel:
+
+\begin{description}[style=nextline]
+  \item[PSR-7 y el ciclo petición-respuesta]
+    Trabajar directamente con \texttt{ServerRequestInterface} y \texttt{ResponseInterface}
+    obliga a entender qué hace realmente un framework cuando procesa una petición HTTP.
+  \item[El Result pattern como alternativa a las excepciones]
+    Diseñar todos los servicios para que devuelvan \texttt{Result::ok()/fail()} en
+    lugar de lanzar excepciones para fallos esperados ha simplificado el flujo de
+    control y hecho el código más predecible.
+  \item[Redis como infraestructura transversal]
+    Usar Redis no solo para caché sino también para colas de jobs, sesiones,
+    rate-limiting e idempotencia ha demostrado la versatilidad de esta herramienta.
+  \item[12-Factor en la práctica]
+    Externalizar toda la configuración en variables de entorno, escribir logs a
+    stdout y construir la imagen Docker de forma que sea idéntica en dev y producción
+    simplifica enormemente el ciclo de despliegue.
+  \item[Accesibilidad como requisito, no como mejora]
+    Integrar los tests de accesibilidad WCAG~2.1 AA en el pipeline desde el principio
+    evita deuda técnica acumulada y garantiza una experiencia inclusiva.
+\end{description}
+
+\section{Futuras mejoras propuestas}
+\label{sec:futuras}
+
+\begin{enumerate}
+  \item \textbf{Aplicación móvil nativa}: iOS + Android consumiendo la \gls{api} REST
+    ya disponible, con notificaciones push mediante Firebase Cloud Messaging.
+  \item \textbf{Motor de recomendación}: sistema de recomendación de cafés y productos
+    basado en el historial de reservas y las preferencias del programa de fidelización.
+  \item \textbf{Integración con pasarela de pago}: Stripe o Redsys para cobro online
+    en el momento de la reserva.
+  \item \textbf{Panel de analytics avanzado}: integración con Grafana y Prometheus
+    para monitorización de métricas de negocio en tiempo real.
+  \item \textbf{Internacionalización (i18n)}: soporte multiidioma (español, inglés,
+    japonés) para el área pública y la carta digital.
+  \item \textbf{Tests de mutación}: implementar Infection PHP para medir la efectividad
+    real de la suite de tests unitarios.
+  \item \textbf{GraphQL para la API pública}: complementar la API REST con un endpoint
+    GraphQL que permita queries más flexibles desde aplicaciones móviles.
+  \item \textbf{Modo offline en el KDS}: Service Worker para que el \gls{kds} de cocina
+    siga operativo durante cortes de conectividad.
+\end{enumerate}
+
+% ============================================================
+%  CAPÍTULO 5 — REFERENCIAS BIBLIOGRÁFICAS
+% ============================================================
+\chapter{Referencias Bibliográficas}
+\label{chap:refs}
+
+\printbibliography[heading=none]
+
+% ============================================================
+%  BACKMATTER — APÉNDICES
+% ============================================================
+\backmatter
+
+\begin{appendices}
+
+% ─── APÉNDICE A ──────────────────────────────────────────────
+\chapter{Catálogo completo de endpoints API REST}
+\label{ap:api}
+
+La \cref{tab:api-completo} recoge todos los endpoints de la API REST pública y
+privada de Komorebi Café. Los endpoints marcados con \dag\ requieren autenticación
+Bearer token.
+
+\begin{landscape}
+\begin{longtable}{@{}lllp{5cm}@{}}
+  \caption{Catálogo completo de endpoints API REST (/api/v1/)}
+  \label{tab:api-completo}\\
+  \toprule
+  \textbf{Método} & \textbf{Ruta} & \textbf{Auth} & \textbf{Descripción}\\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Método} & \textbf{Ruta} & \textbf{Auth} & \textbf{Descripción}\\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  % ── Menú público ──
+  GET  & \texttt{/menu/alergenos}            & —    & Lista de alérgenos\\
+  GET  & \texttt{/menu/productos}            & —    & Catálogo de productos\\
+  GET  & \texttt{/menu/products/\{id\}}      & —    & Detalle de producto\\
+  % ── Cafés público ──
+  GET  & \texttt{/cafes}                     & —    & Lista de cafés activos\\
+  GET  & \texttt{/cafes/\{slug\}}            & —    & Detalle de café\\
+  % ── Festivos y disponibilidad ──
+  GET  & \texttt{/holidays}                  & —    & Festivos del año\\
+  GET  & \texttt{/holidays/\{date\}}         & —    & Verifica si una fecha es festivo\\
+  GET  & \texttt{/time-slots/available}      & —    & Franjas disponibles por café y fecha\\
+  GET  & \texttt{/time-slots/stats}          & —    & Estadísticas de ocupación\\
+  % ── Pases ──
+  GET  & \texttt{/passes}                    & —    & Tipos de pase disponibles\\
+  % ── Cookies / preferencias ──
+  PATCH& \texttt{/cookies}                   & —    & Guardar consentimiento de cookies\\
+  GET  & \texttt{/cookies/filters}           & —    & Obtener filtros de dieta\\
+  PUT  & \texttt{/cookies/filters}           & —    & Guardar filtros de dieta\\
+  DELETE&\texttt{/cookies/filters}           & —    & Eliminar filtros\\
+  PUT  & \texttt{/cookies/dietary}           & —    & Guardar preferencias dietéticas\\
+  POST & \texttt{/cookies/recently-viewed}   & —    & Añadir producto a recientes\\
+  GET  & \texttt{/cookies/recently-viewed/data}& —  & Obtener datos de recientes\\
+  DELETE&\texttt{/cookies/recently-viewed}   & —    & Limpiar recientes\\
+  % ── Newsletter ──
+  POST & \texttt{/newsletter/subscriptions}  & —    & Suscribirse al boletín\\
+  % ── Waitlist pública ──
+  GET  & \texttt{/waitlists/\{token\}}       & —    & Posición en lista de espera\\
+  POST & \texttt{/waitlists/\{token\}/confirmations}& —& Confirmar posición\\
+  POST & \texttt{/waitlists}                 & \dag & Unirse a lista de espera\\
+  % ── Tokens ──
+  GET  & \texttt{/tokens}                    & \dag & Listar tokens propios\\
+  POST & \texttt{/tokens}                    & —    & Crear token Bearer\\
+  DELETE&\texttt{/tokens/\{id\}}             & \dag & Revocar token\\
+  % ── Favoritos ──
+  GET  & \texttt{/favorites}                 & \dag & Listar favoritos\\
+  PUT  & \texttt{/favorites/\{id\}}          & \dag & Añadir favorito\\
+  DELETE&\texttt{/favorites/\{id\}}          & \dag & Eliminar favorito\\
+  % ── Carrito ──
+  GET  & \texttt{/cart}                      & \dag & Obtener carrito\\
+  GET  & \texttt{/cart/guest}                & —    & Carrito de invitado\\
+  POST & \texttt{/cart/items}                & \dag & Añadir ítem\\
+  PATCH& \texttt{/cart/items/\{id\}}         & \dag & Actualizar cantidad\\
+  DELETE&\texttt{/cart/items/\{id\}}         & \dag & Eliminar ítem\\
+  DELETE&\texttt{/cart/items}                & \dag & Vaciar carrito\\
+  % ── Reservas ──
+  GET  & \texttt{/reservations/available}    & —    & Huecos disponibles\\
+  POST & \texttt{/reservations}              & \dag & Crear reserva (idempotente)\\
+  GET  & \texttt{/reservations/\{id\}}       & \dag & Detalle de reserva\\
+  POST & \texttt{/reservations/\{id\}/cancel}& \dag & Cancelar reserva\\
+  GET  & \texttt{/user/reservations}         & \dag & Mis reservas\\
+  % ── Fidelización ──
+  GET  & \texttt{/loyalty/validate/\{code\}} & \dag & Validar código de canje\\
+  POST & \texttt{/loyalty/use}               & \dag & Usar puntos\\
+  POST & \texttt{/loyalty/redeem}            & \dag & Canjear recompensa\\
+  % ── Reseñas ──
+  POST & \texttt{/reviews}                   & \dag & Crear reseña\\
+  PUT  & \texttt{/reviews/\{id\}}            & \dag & Actualizar reseña\\
+  DELETE&\texttt{/reviews/\{id\}}            & \dag & Eliminar reseña\\
+  % ── Usuario ──
+  GET  & \texttt{/user/profile}              & \dag & Perfil del usuario\\
+  GET  & \texttt{/user/stats}                & \dag & Estadísticas del usuario\\
+  GET  & \texttt{/user/reviews}              & \dag & Reseñas del usuario\\
+  GET  & \texttt{/user/avatar-options}       & \dag & Opciones de avatar\\
+  % ── Manager ──
+  GET  & \texttt{/manager/stats}             & \dag & KPIs del manager\\
+  GET  & \texttt{/manager/revenue/weekly}    & \dag & Ingresos semanales\\
+  GET  & \texttt{/manager/animals/top}       & \dag & Animales más populares\\
+  GET  & \texttt{/manager/reservations/status}& \dag & Estado reservas del café\\
+  % ── Admin — Usuarios ──
+  POST & \texttt{/admin/users}               & \dag & Crear usuario\\
+  PUT  & \texttt{/admin/users/\{id\}}        & \dag & Actualizar usuario\\
+  DELETE&\texttt{/admin/users/\{id\}}        & \dag & Eliminar usuario\\
+  PATCH& \texttt{/admin/users/\{id\}/status} & \dag & Toggle activo/inactivo\\
+  % ── Admin — Cafés ──
+  POST & \texttt{/admin/cafes}               & \dag & Crear café\\
+  PUT  & \texttt{/admin/cafes/\{id\}}        & \dag & Actualizar café\\
+  DELETE&\texttt{/admin/cafes/\{id\}}        & \dag & Eliminar café\\
+  PATCH& \texttt{/admin/cafes/\{id\}/status} & \dag & Toggle estado café\\
+  % ── Admin — Menú ──
+  POST & \texttt{/admin/menu}                & \dag & Crear producto\\
+  PUT  & \texttt{/admin/menu/\{id\}}         & \dag & Actualizar producto\\
+  DELETE&\texttt{/admin/menu/\{id\}}         & \dag & Eliminar producto\\
+  PATCH& \texttt{/admin/menu/\{id\}/toggle}  & \dag & Toggle disponibilidad\\
+  % ── Admin — Reservas ──
+  POST & \texttt{/admin/reservations/\{id\}/confirm}& \dag & Confirmar reserva\\
+  POST & \texttt{/admin/reservations/\{id\}/cancel} & \dag & Cancelar reserva (admin)\\
+  % ── Admin — Reseñas ──
+  POST & \texttt{/admin/reviews/\{id\}/approve}& \dag & Aprobar reseña\\
+  POST & \texttt{/admin/reviews/\{id\}/reject} & \dag & Rechazar reseña\\
+  DELETE&\texttt{/admin/reviews/\{id\}}       & \dag & Eliminar reseña (admin)\\
+  % ── Admin — Newsletter ──
+  DELETE&\texttt{/admin/newsletter/subscribers/\{email\}}& \dag & Dar de baja\\
+  GET  & \texttt{/admin/newsletter/export}   & \dag & Exportar suscriptores CSV\\
+  % ── Admin — Fidelización ──
+  GET  & \texttt{/admin/loyalty/stats}       & \dag & Estadísticas de fidelización\\
+  GET  & \texttt{/admin/loyalty/cards}       & \dag & Listado de tarjetas\\
+  GET  & \texttt{/admin/loyalty/catalog}     & \dag & Catálogo de recompensas\\
+  PATCH& \texttt{/admin/loyalty/catalog/\{id\}/toggle}& \dag & Toggle recompensa\\
+  GET  & \texttt{/admin/loyalty/redemptions} & \dag & Historial de canjes\\
+  % ── Admin — Logs ──
+  GET  & \texttt{/admin/logs/audit}          & \dag & Logs de auditoría\\
+  GET  & \texttt{/admin/logs/audit/export}   & \dag & Exportar audit log CSV\\
+  GET  & \texttt{/admin/logs/auth}           & \dag & Logs de autenticación\\
+  GET  & \texttt{/admin/logs/auth/suspicious-count}& \dag & Contador de accesos sospechosos\\
+  GET  & \texttt{/admin/logs/auth/export}    & \dag & Exportar auth log CSV\\
+  % ── Admin — Sistema ──
+  GET  & \texttt{/admin/settings}            & \dag & Obtener configuración\\
+  PUT  & \texttt{/admin/settings/\{group\}}  & \dag & Actualizar grupo de config.\\
+  POST & \texttt{/admin/settings/test-email} & \dag & Enviar email de prueba\\
+  POST & \texttt{/admin/cache/clear}         & \dag & Vaciar caché Redis\\
+  POST & \texttt{/admin/security/block-ip}   & \dag & Bloquear IP\\
+  % ── Operaciones: Recepción ──
+  GET  & \texttt{/ops/reception/reservations}          & \dag & Reservas del día\\
+  POST & \texttt{/ops/reception/reservations/\{id\}/checkin}   & \dag & Check-in\\
+  POST & \texttt{/ops/reception/reservations/\{id\}/checkout}  & \dag & Check-out\\
+  POST & \texttt{/ops/reception/reservations/\{id\}/items}     & \dag & Añadir ítems consumidos\\
+  POST & \texttt{/ops/reception/reservations/\{id\}/payments}  & \dag & Registrar pago\\
+  % ── Operaciones: Cocina ──
+  GET  & \texttt{/ops/kitchen/orders}                & \dag & Órdenes activas\\
+  POST & \texttt{/ops/kitchen/orders/\{id\}/complete}& \dag & Marcar orden como completada\\
+  % ── Supervisor ──
+  POST & \texttt{/supervisor/assignments}    & \dag & Crear asignación\\
+  GET  & \texttt{/supervisor/assignments}    & \dag & Listar asignaciones\\
+\end{longtable}
+\end{landscape}
+
+% ─── APÉNDICE B ──────────────────────────────────────────────
+\chapter{Esquema de base de datos}
+\label{ap:bd}
+
+La base de datos de Komorebi Café está definida en 19 archivos de migración SQL
+ubicados en \texttt{migrations/}. La \cref{tab:migraciones} describe cada migración.
+
+\begin{longtable}{@{}llp{7cm}@{}}
+  \caption{Historial de migraciones SQL}
+  \label{tab:migraciones}\\
+  \toprule
+  \textbf{Nº} & \textbf{Archivo} & \textbf{Contenido}\\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Nº} & \textbf{Archivo} & \textbf{Contenido}\\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  001 & \texttt{001\_infrastructure.sql}       & Infraestructura base: tablas de configuración\\
+  002 & \texttt{002\_users\_rbac.sql}           & Usuarios, roles, permisos RBAC\\
+  003 & \texttt{003\_reviews.sql}               & Reseñas de clientes\\
+  004 & \texttt{004\_reservations.sql}          & Reservas, ítems y time slots\\
+  005 & \texttt{005\_email\_auth.sql}           & Tokens de email y autenticación\\
+  006 & \texttt{006\_telegram\_bot.sql}         & Configuración del bot de Telegram\\
+  007 & \texttt{007\_external\_cache.sql}       & Caché externo de API (festivos, clima)\\
+  008 & \texttt{008\_animals.sql}               & Animales, incidentes y galería\\
+  009 & \texttt{009\_system\_settings.sql}      & Configuración del sistema por grupos\\
+  010 & \texttt{010\_newsletter.sql}            & Suscriptores del boletín\\
+  011 & \texttt{011\_time\_slots\_waitlist.sql} & Franjas horarias y lista de espera\\
+  012 & \texttt{012\_waitlist.sql}              & Estructura definitiva de waitlist\\
+  012b& \texttt{012b\_reservation\_triggers.sql}& Triggers SQL de reservas\\
+  013 & \texttt{013\_loyalty\_system.sql}       & Tarjetas, transacciones y catálogo de fidelización\\
+  014 & \texttt{014\_staff\_shifts.sql}         & Turnos de personal\\
+  015 & \texttt{015\_animal\_health\_checks.sql}& Revisiones de salud de animales\\
+  016 & \texttt{016\_supervisor\_assignments.sql}& Asignaciones de supervisor\\
+  018 & \texttt{018\_api\_tokens.sql}           & Tokens Bearer para API REST\\
+  —   & \texttt{026--030\_*.sql}                & Correcciones y ajustes adicionales\\
+\end{longtable}
+
+% ─── APÉNDICE C ──────────────────────────────────────────────
+\chapter{Variables de entorno}
+\label{ap:env}
+
+La configuración de la aplicación sigue el principio 12-Factor III: toda la
+configuración se externaliza en variables de entorno, nunca en el código fuente.
+La \cref{tab:envvars} describe las variables principales.
+
+\begin{longtable}{@{}lp{4cm}p{5cm}@{}}
+  \caption{Variables de entorno del sistema}
+  \label{tab:envvars}\\
+  \toprule
+  \textbf{Variable} & \textbf{Ejemplo} & \textbf{Descripción}\\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Variable} & \textbf{Ejemplo} & \textbf{Descripción}\\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \texttt{APP\_ENV}          & \texttt{production}      & Entorno de ejecución\\
+  \texttt{APP\_DEBUG}        & \texttt{false}            & Modo debug (nunca true en prod.)\\
+  \texttt{APP\_URL}          & \texttt{https://...}      & URL base pública\\
+  \texttt{DB\_HOST}          & \texttt{mysql}            & Host de la base de datos\\
+  \texttt{DB\_DATABASE}      & \texttt{komorebi}         & Nombre de la base de datos\\
+  \texttt{DB\_USERNAME}      & \texttt{komorebi\_user}   & Usuario MySQL\\
+  \texttt{DB\_PASSWORD}      & (secreto)                 & Contraseña MySQL\\
+  \texttt{REDIS\_HOST}       & \texttt{redis}            & Host Redis\\
+  \texttt{REDIS\_PORT}       & \texttt{6379}             & Puerto Redis\\
+  \texttt{SESSION\_NAME}     & \texttt{komorebi\_sess}   & Nombre de la cookie de sesión\\
+  \texttt{SESSION\_LIFETIME} & \texttt{7200}             & Duración en segundos\\
+  \texttt{MAIL\_HOST}        & \texttt{mailpit}          & Servidor SMTP\\
+  \texttt{MAIL\_PORT}        & \texttt{1025}             & Puerto SMTP\\
+  \texttt{MAIL\_FROM}        & \texttt{no-reply@...}     & Remitente de emails\\
+  \texttt{FEATURE\_OPS}      & \texttt{1}                & Activa módulo Ops (recepción/cocina)\\
+  \texttt{FEATURE\_BACKOFFICE}& \texttt{1}               & Activa módulo backoffice admin\\
+  \texttt{FEATURE\_KEEPER}   & \texttt{1}                & Activa módulo Keeper\\
+  \texttt{TELEGRAM\_BOT\_TOKEN}& (secreto)               & Token del bot de Telegram\\
+  \texttt{CLOUDINARY\_URL}   & \texttt{cloudinary://...} & URL de Cloudinary (imágenes)\\
+\end{longtable}
+
+% ─── APÉNDICE D — GLOSARIO ───────────────────────────────────
+\chapter{Glosario de términos y acrónimos}
+\label{ap:glosario}
+
+\printunsrtglossary[type=abbreviations,title=Acrónimos]
+\printunsrtglossary[type=main,title=Términos]
+
+\end{appendices}
+
+\end{document}
