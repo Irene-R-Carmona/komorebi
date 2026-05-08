@@ -14,5 +14,6 @@ final readonly class ReviewPublishedEvent
         public int $rating,
         public string $comment,
         public DateTimeImmutable $publishedAt
-    ) {}
+    ) {
+    }
 }

@@ -148,8 +148,8 @@ $handler = static function () use ($router): void {
     // ApiAuthMiddleware usa Session::startReadOnly() (read_and_close) que
     // libera el lock inmediatamente → permite requests concurrentes de
     // Alpine.js Promise.all sin bloquearse entre sí (evita 401s en /perfil).
-    $requestPath = \parse_url($_SERVER['REQUEST_URI'] ?? '/', \PHP_URL_PATH) ?? '/';
-    $isApiRequest = \str_starts_with($requestPath, '/api/');
+    $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', \PHP_URL_PATH) ?? '/';
+    $isApiRequest = str_starts_with($requestPath, '/api/');
     if (!$isApiRequest) {
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();

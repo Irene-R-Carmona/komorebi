@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Support\CurrencyFormatting;
 use App\Support\DateFormatting;
 use App\Support\StatusLabeling;
 use App\Support\TimeHelper;
-use App\Support\CurrencyFormatting;
 
 /**
  * Vista: Mis Reservas (usuario autenticado)

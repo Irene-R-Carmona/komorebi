@@ -35,7 +35,7 @@ final class CatalogServiceProvider extends ServiceProvider
     {
         // ── Repositorios ────────────────────────────────────────────
 
-        Container::singleton(MenuRepositoryInterface::class, fn() => new MenuRepository(
+        Container::singleton(MenuRepositoryInterface::class, fn () => new MenuRepository(
             Database::getConnection()
         ));
 
@@ -44,30 +44,32 @@ final class CatalogServiceProvider extends ServiceProvider
 
         // ── Servicios ────────────────────────────────────────────────
 
-        Container::singleton(MenuService::class, fn() => new MenuService(
+        Container::singleton(MenuService::class, fn () => new MenuService(
             Container::make(MenuRepositoryInterface::class)
         ));
 
-        Container::singleton(MenuServiceInterface::class, fn() => Container::make(MenuService::class));
+        Container::singleton(MenuServiceInterface::class, fn () => Container::make(MenuService::class));
 
-        Container::singleton(ProductService::class, fn() => new ProductService(
+        Container::singleton(ProductService::class, fn () => new ProductService(
             Container::make(ProductRepositoryInterface::class)
         ));
 
-        Container::singleton(ProductServiceInterface::class, fn() => Container::make(ProductService::class));
+        Container::singleton(ProductServiceInterface::class, fn () => Container::make(ProductService::class));
 
-        Container::singleton(AllergenRepositoryInterface::class, fn() => new AllergenRepository(
+        Container::singleton(AllergenRepositoryInterface::class, fn () => new AllergenRepository(
             new AllergenMapper(),
             Database::getConnection()
         ));
 
-        Container::singleton(AllergenService::class, fn() => new AllergenService(
+        Container::singleton(AllergenService::class, fn () => new AllergenService(
             Container::make(AllergenRepositoryInterface::class)
         ));
 
-        Container::singleton(AllergenServiceInterface::class, fn() => Container::make(AllergenService::class));
+        Container::singleton(AllergenServiceInterface::class, fn () => Container::make(AllergenService::class));
     }
 
     #[Override]
-    public function boot(): void {}
+    public function boot(): void
+    {
+    }
 }

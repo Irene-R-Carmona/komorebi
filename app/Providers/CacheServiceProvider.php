@@ -28,5 +28,7 @@ final class CacheServiceProvider extends ServiceProvider
     }
 
     #[Override]
-    public function boot(): void {}
+    public function boot(): void
+    {
+    }
 }
