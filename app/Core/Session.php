@@ -105,9 +105,14 @@ final class Session
             \ini_set('session.save_path', $savePath);
         }
 
-        // read_and_close: lee la sesión y libera el lock inmediatamente.
-        // Permite requests concurrentes sin bloquear la sesión.
-        \session_start(['read_and_close' => true]);
+        // session_start() + session_write_close() es más fiable que read_and_close en
+        // FrankenPHP worker mode: con read_and_close, llamadas sucesivas en el mismo
+        // proceso worker no repoblaban $_SESSION correctamente (bug en la integración
+        // phpredis + FrankenPHP Fibers donde PS(http_session_vars) no se restablece).
+        // session_write_close() libera el lock inmediatamente (< 1ms) permitiendo
+        // requests concurrentes (Alpine.js Promise.all) sin bloqueo prolongado.
+        \session_start();
+        \session_write_close();
     }
 
     /**
