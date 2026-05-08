@@ -53,9 +53,7 @@ final class Container implements ContainerInterface
     private static bool $built = false;
     private static ?string $compilationPath = null;
 
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     public static function getInstance(): self
     {
@@ -71,7 +69,7 @@ final class Container implements ContainerInterface
      */
     public static function bind(string $abstract, ?Closure $concrete = null): void
     {
-        $concrete ??= static fn () => throw new RuntimeException("No hay factory concreta para: $abstract");
+        $concrete ??= static fn() => throw new RuntimeException("No hay factory concreta para: $abstract");
         self::$prototypeClosures[$abstract] = $concrete;
     }
 
@@ -244,7 +242,6 @@ final class Container implements ContainerInterface
                 \mkdir(self::$compilationPath, 0o755, true);
             }
             $builder->enableCompilation(self::$compilationPath);
-            $builder->writeProxiesToFile(true, self::$compilationPath);
         }
 
         self::$phpdi = $builder->build();
