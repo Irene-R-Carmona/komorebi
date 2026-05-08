@@ -45,14 +45,16 @@ $assetVersion = Env::get('APP_VERSION', '1');
         })();
     </script>
     <script nonce="<?= $cspNonce ?>">
-        window.CONFIG = { timezone: <?= json_encode(Env::get('APP_TIMEZONE', 'Asia/Tokyo')) ?> };
+        window.CONFIG = {
+            timezone: <?= json_encode(Env::get('APP_TIMEZONE', 'Asia/Tokyo')) ?>
+        };
         window.AppRoutes = {
-            favorites:               '/api/v1/favorites',
-            cart:                    '/api/v1/cart',
-            cartItems:               '/api/v1/cart/items',
-            timeSlotsAvailable:      '/api/v1/time-slots/available',
-            weather:                 '/api/v1/weather',
-            holidays:                '/api/v1/holidays',
+            favorites: '/api/v1/favorites',
+            cart: '/api/v1/cart',
+            cartItems: '/api/v1/cart/items',
+            timeSlotsAvailable: '/api/v1/time-slots/available',
+            weather: '/api/v1/weather',
+            holidays: '/api/v1/holidays',
             newsletterSubscriptions: '/api/v1/newsletter/subscriptions',
         };
     </script>

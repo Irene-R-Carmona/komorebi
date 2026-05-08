@@ -42,9 +42,9 @@ $assetVersion = Env::get('APP_VERSION', '1');
     <script nonce="<?= $cspNonce ?>">
         window.AppRoutes = {
             adminNewsletterSubscribers: '/api/v1/admin/newsletter/subscribers',
-            adminLoyaltyCatalog:        '/api/v1/admin/loyalty/catalog',
-            adminUsers:                 '/api/v1/admin/users',
-            keeperAnimals:              '/api/v1/keeper/animals',
+            adminLoyaltyCatalog: '/api/v1/admin/loyalty/catalog',
+            adminUsers: '/api/v1/admin/users',
+            keeperAnimals: '/api/v1/keeper/animals',
         };
     </script>
     <title>Komorebi OS | <?= $titulo ?? 'Panel' ?></title>

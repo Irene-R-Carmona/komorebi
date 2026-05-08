@@ -1081,14 +1081,17 @@
   background-color: color-mix(in srgb, var(--tier-bronze) 13%, transparent);
   color: var(--tier-bronze);
 }
+
 .tier-icon--silver {
   background-color: color-mix(in srgb, var(--tier-silver) 13%, transparent);
   color: var(--tier-silver);
 }
+
 .tier-icon--gold {
   background-color: color-mix(in srgb, var(--tier-gold) 13%, transparent);
   color: var(--tier-gold);
 }
+
 .tier-icon--platinum {
   background-color: color-mix(in srgb, var(--tier-platinum) 13%, transparent);
   color: var(--tier-platinum);
@@ -1100,21 +1103,25 @@
   color: var(--tier-bronze);
   border: 1px solid var(--tier-bronze);
 }
+
 .tier-badge--silver {
   background-color: color-mix(in srgb, var(--tier-silver) 13%, transparent);
   color: var(--tier-silver);
   border: 1px solid var(--tier-silver);
 }
+
 .tier-badge--gold {
   background-color: color-mix(in srgb, var(--tier-gold) 13%, transparent);
   color: var(--tier-gold);
   border: 1px solid var(--tier-gold);
 }
+
 .tier-badge--platinum {
   background-color: color-mix(in srgb, var(--tier-platinum) 13%, transparent);
   color: var(--tier-platinum);
   border: 1px solid var(--tier-platinum);
 }
+
 .tier-badge--default {
   background-color: color-mix(in srgb, var(--color-texto-suave) 13%, transparent);
   color: var(--color-texto-suave);

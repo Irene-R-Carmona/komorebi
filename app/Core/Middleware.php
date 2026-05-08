@@ -42,8 +42,15 @@ final class Middleware
      * Prefijos de URL que pertenecen al backoffice (para suprimir UI pública).
      */
     public const array BACKOFFICE_URL_PREFIXES = [
-        '/admin', '/manager', '/supervisor', '/keeper',
-        '/reception', '/kitchen', '/ops', '/login', '/registro',
+        '/admin',
+        '/manager',
+        '/supervisor',
+        '/keeper',
+        '/reception',
+        '/kitchen',
+        '/ops',
+        '/login',
+        '/registro',
     ];
 
     /**

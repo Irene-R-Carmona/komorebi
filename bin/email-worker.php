@@ -33,7 +33,7 @@ if (
         'dsn' => $sentryDsn,
         'environment' => getenv('APP_ENV') ?: 'production',
         'release' => getenv('APP_VERSION') ?: 'unknown',
-        'enable_logs'  => true,
+        'enable_logs' => true,
         'send_default_pii' => false,
         'ignore_exceptions' => [
             \App\Exceptions\NotFoundException::class,

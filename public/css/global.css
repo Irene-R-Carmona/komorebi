@@ -266,12 +266,29 @@ h3 {
 }
 
 /* Reception time-indicator ring and text classes */
-.table-ring--time-ok    { --_ring-color: var(--color-time-ok); }
-.table-ring--time-warn  { --_ring-color: var(--color-time-warn); }
-.table-ring--time-danger { --_ring-color: var(--color-time-danger); }
-.text-time-ok    { color: var(--color-time-ok); }
-.text-time-warn  { color: var(--color-time-warn); }
-.text-time-danger { color: var(--color-time-danger); }
+.table-ring--time-ok {
+  --_ring-color: var(--color-time-ok);
+}
+
+.table-ring--time-warn {
+  --_ring-color: var(--color-time-warn);
+}
+
+.table-ring--time-danger {
+  --_ring-color: var(--color-time-danger);
+}
+
+.text-time-ok {
+  color: var(--color-time-ok);
+}
+
+.text-time-warn {
+  color: var(--color-time-warn);
+}
+
+.text-time-danger {
+  color: var(--color-time-danger);
+}
 
 .header__logo:hover {
   color: var(--color-acento);

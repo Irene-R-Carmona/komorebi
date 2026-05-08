@@ -50,4 +50,3 @@ INSERT INTO staff_shifts (user_id, cafe_id, shift_date, shift_start, shift_end, 
 (@reception,  @cafe_id, DATE_ADD(@week_monday, INTERVAL 6 DAY),     '10:00:00', '16:00:00', 'Turno reducido domingo',           @created_by),
 (@kitchen,    @cafe_id, DATE_ADD(@week_monday, INTERVAL 6 DAY),     '10:00:00', '16:00:00', 'Turno reducido domingo',           @created_by),
 (@keeper,     @cafe_id, DATE_ADD(@week_monday, INTERVAL 6 DAY),     '10:00:00', '16:00:00', 'Turno reducido domingo',           @created_by);
-
