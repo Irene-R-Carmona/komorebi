@@ -45,17 +45,9 @@ final class DatabaseServiceProvider extends ServiceProvider
 
     private static function createConnection(): PDO
     {
-        $driver = Env::get('DB_CONNECTION', 'mysql');
-        $host = Env::get('DB_HOST', 'localhost');
-        $port = (int) Env::get('DB_PORT', '3306');
-        $database = Env::get('DB_DATABASE', 'komorebi_db');
-        $username = Env::get('DB_USERNAME', 'root');
-        $password = Env::get('DB_PASSWORD', '');
         $charset = Env::get('DB_CHARSET', 'utf8mb4');
 
-        if ($driver !== 'mysql') {
-            throw new RuntimeException("Database driver no soportado: $driver");
-        }
+        [$host, $port, $database, $username, $password] = self::resolveConnectionParams();
 
         $dsn = "mysql:host=$host;port=$port;dbname=$database;charset=$charset";
 
@@ -74,5 +66,60 @@ final class DatabaseServiceProvider extends ServiceProvider
         } catch (PDOException $e) {
             throw new RuntimeException('No se pudo conectar a la base de datos: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Resuelve los parámetros de conexión.
+     * Prioridad: MYSQL_URL → DATABASE_URL → variables DB_* individuales.
+     *
+     * @return array{0: string, 1: int, 2: string, 3: string, 4: string}
+     */
+    private static function resolveConnectionParams(): array
+    {
+        $url = Env::get('MYSQL_URL') ?: Env::get('DATABASE_URL');
+
+        if ($url !== '') {
+            return self::parseConnectionUrl($url);
+        }
+
+        $driver = Env::get('DB_CONNECTION', 'mysql');
+        if ($driver !== 'mysql') {
+            throw new RuntimeException("Database driver no soportado: $driver");
+        }
+
+        return [
+            Env::get('DB_HOST', 'localhost'),
+            (int) Env::get('DB_PORT', '3306'),
+            Env::get('DB_DATABASE', 'komorebi_db'),
+            Env::get('DB_USERNAME', 'root'),
+            Env::get('DB_PASSWORD', ''),
+        ];
+    }
+
+    /**
+     * Parsea una URL de conexión tipo mysql://user:pass@host:port/dbname.
+     *
+     * @return array{0: string, 1: int, 2: string, 3: string, 4: string}
+     */
+    private static function parseConnectionUrl(string $url): array
+    {
+        $parsed = \parse_url($url);
+
+        if ($parsed === false || !isset($parsed['host'])) {
+            throw new RuntimeException('MYSQL_URL/DATABASE_URL no es una URL válida.');
+        }
+
+        $scheme = $parsed['scheme'] ?? 'mysql';
+        if (!\in_array($scheme, ['mysql', 'mysqli'], true)) {
+            throw new RuntimeException("Database driver no soportado en la URL: $scheme");
+        }
+
+        return [
+            $parsed['host'],
+            (int) ($parsed['port'] ?? 3306),
+            \ltrim($parsed['path'] ?? '', '/'),
+            \urldecode($parsed['user'] ?? ''),
+            \urldecode($parsed['pass'] ?? ''),
+        ];
     }
 }
