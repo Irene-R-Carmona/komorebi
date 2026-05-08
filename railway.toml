@@ -6,8 +6,6 @@ builder = "DOCKERFILE"
 dockerfilePath = "docker/php/Dockerfile.prod"
 
 [deploy]
-releaseCommand = "php /app/scripts/apply-db.php --force"
-startCommand = "supervisord -n -c /etc/supervisor/supervisord.conf"
 healthcheckPath = "/health"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
@@ -39,10 +37,9 @@ restartPolicyMaxRetries = 3
 #   FEATURE_KEEPER=1
 #   MAX_REQUESTS=500                  # Requests por worker FrankenPHP antes de reciclar el proceso
 #
-# OBLIGATORIO PARA RAILWAY (evita doble ejecución de migraciones al reiniciar el contenedor):
-# Las migraciones se ejecutan UNA SOLA VEZ via releaseCommand (arriba).
-# Si SKIP_MIGRATIONS no está definida, el entrypoint también las ejecutaría (innecesario).
-#   SKIP_MIGRATIONS=1
+# Las migraciones se ejecutan automáticamente via el entrypoint al iniciar el contenedor.
+# Establece SKIP_MIGRATIONS=true para omitirlas (útil en entornos donde ya están aplicadas).
+#   SKIP_MIGRATIONS=false
 #   MERCURE_JWT_SECRET=genera-con-openssl-rand-base64-32
 #   CLOUDINARY_CLOUD_NAME=tu_cloud_name
 #   CLOUDINARY_API_KEY=tu_api_key

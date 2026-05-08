@@ -6,7 +6,7 @@ STORAGE_DIR="$APP_DIR/storage"
 LOG_FILE="$STORAGE_DIR/logs/init-migrations.log"
 TMP_LOG="/tmp/init-migrations.log"
 
-# ── Timestamp helper ────────────────────────────────────────────
+# ── Timestamp helper ───────────────────────────────────────
 log() {
     printf '[INIT][%s] %s\n' "$(date +%H:%M:%S)" "$1"
 }
@@ -34,7 +34,7 @@ else
 fi
 : > "$ACTIVE_LOG"
 
-# ── PASO 1/4: Dependencias PHP ──────────────────────────────────
+# ── PASO 1/4: Dependencias PHP ──────────────────────────────
 if [ "${SKIP_COMPOSER:-0}" != "1" ]; then
     if [ ! -f "$APP_DIR/vendor/autoload.php" ]; then
         if command -v composer >/dev/null 2>&1; then
@@ -109,7 +109,7 @@ try {
 done
 log "PASO 2/4: OK — MySQL disponible (tras $attempt intento(s))."
 
-# ── PASO 3/4: Migraciones y seeders ────────────────────────────
+# ── PASO 3/4: Migraciones y seeders ────────────────────────
 if [ "${SKIP_MIGRATIONS:-0}" = "0" ]; then
     log "PASO 3/4: Ejecutando migraciones y seeders..."
     MIGRATE_SCRIPT="$APP_DIR/scripts/apply-db.php"
@@ -158,7 +158,7 @@ else
     log "PASO 3/4: SKIP — SKIP_MIGRATIONS=1 activo."
 fi
 
-# ── PASO 4/4: Listo ────────────────────────────────────────────
+# ── PASO 4/4: Listo ──────────────────────────────────────
 log "PASO 4/4: Entorno listo. Arrancando proceso principal: $*"
 log "==================================================="
 exec "$@"

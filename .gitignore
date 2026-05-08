@@ -117,6 +117,8 @@ docker/redis/dump.rdb
 
 # Claude Code — configuración local del agente (no compartir)
 .claude/
+.agents/
+AGENTS.md
 
 # Logs de desarrollo sueltos en raíz
 logs.txt
