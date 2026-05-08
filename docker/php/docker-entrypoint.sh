@@ -6,7 +6,7 @@ STORAGE_DIR="$APP_DIR/storage"
 LOG_FILE="$STORAGE_DIR/logs/init-migrations.log"
 TMP_LOG="/tmp/init-migrations.log"
 
-# ── Timestamp helper ────────────────────────────────────────────
+# ── Timestamp helper ───────────────────────────────────────
 log() {
     printf '[INIT][%s] %s\n' "$(date +%H:%M:%S)" "$1"
 }
@@ -34,7 +34,7 @@ else
 fi
 : > "$ACTIVE_LOG"
 
-# ── PASO 1/4: Dependencias PHP ──────────────────────────────────
+# ── PASO 1/4: Dependencias PHP ──────────────────────────────
 if [ "${SKIP_COMPOSER:-0}" != "1" ]; then
     if [ ! -f "$APP_DIR/vendor/autoload.php" ]; then
         if command -v composer >/dev/null 2>&1; then
@@ -62,7 +62,25 @@ else
     log "PASO 1/4: SKIP — SKIP_COMPOSER=1 activo."
 fi
 
-# ── PASO 2/4: Esperar MySQL ─────────────────────────────────────
+# ── PASO 2/4: Esperar MySQL ───────────────────────────────────
+# Si MYSQL_URL o DATABASE_URL están presentes (Railway), parsearlas y exportar
+# las variables DB_* individuales para que el resto del script las use.
+_DB_URL="${MYSQL_URL:-${DATABASE_URL:-}}"
+if [ -n "$_DB_URL" ]; then
+    log "PASO 2/4: Resolviendo credenciales desde MYSQL_URL/DATABASE_URL..."
+    eval "$(PARSE_URL="$_DB_URL" php -r "
+        \$u = parse_url(getenv('PARSE_URL'));
+        if (\$u === false || empty(\$u['host'])) { fwrite(STDERR, 'URL inválida'); exit(1); }
+        echo 'export DB_HOST='     . escapeshellarg(\$u['host']                       ) . PHP_EOL;
+        echo 'export DB_PORT='     . escapeshellarg((string)(\$u['port']     ?? 3306) ) . PHP_EOL;
+        echo 'export DB_DATABASE=' . escapeshellarg(ltrim(\$u['path'] ?? '', '/')     ) . PHP_EOL;
+        echo 'export DB_USERNAME=' . escapeshellarg(urldecode(\$u['user']    ?? '')   ) . PHP_EOL;
+        echo 'export DB_PASSWORD=' . escapeshellarg(urldecode(\$u['pass']    ?? '')   ) . PHP_EOL;
+    ")"
+    log "          Host resuelto: ${DB_HOST} | Puerto: ${DB_PORT:-3306} | BD: ${DB_DATABASE}"
+fi
+unset _DB_URL
+
 log "PASO 2/4: Esperando MySQL en ${DB_HOST:-db}:${DB_PORT:-3306} (bd: ${DB_DATABASE:-?})..."
 log "          Timeout máximo: 120s | Intervalo: 2s"
 attempt=0
@@ -91,7 +109,7 @@ try {
 done
 log "PASO 2/4: OK — MySQL disponible (tras $attempt intento(s))."
 
-# ── PASO 3/4: Migraciones y seeders ────────────────────────────
+# ── PASO 3/4: Migraciones y seeders ────────────────────────
 if [ "${SKIP_MIGRATIONS:-0}" = "0" ]; then
     log "PASO 3/4: Ejecutando migraciones y seeders..."
     MIGRATE_SCRIPT="$APP_DIR/scripts/apply-db.php"
@@ -140,7 +158,7 @@ else
     log "PASO 3/4: SKIP — SKIP_MIGRATIONS=1 activo."
 fi
 
-# ── PASO 4/4: Listo ────────────────────────────────────────────
+# ── PASO 4/4: Listo ──────────────────────────────────────
 log "PASO 4/4: Entorno listo. Arrancando proceso principal: $*"
 log "==================================================="
 exec "$@"
