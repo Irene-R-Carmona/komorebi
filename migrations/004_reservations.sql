@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS reservations (
         'cancelled',
         'no_show'
     ) DEFAULT 'pending',
+    invoice_pdf_url VARCHAR(500) NULL COMMENT 'URL pública del PDF de factura (Cloudinary)',
     -- Control de visita y protocolos
     notes TEXT,
     check_in_at TIMESTAMP NULL,

@@ -304,6 +304,90 @@ SET @sql := IF(@fk_exists = 0,
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+
+-- ============================================================================
+-- VISTA: waitlist_active (entradas vigentes con contexto completo)
+-- Absorbida de 012_waitlist.sql
+-- ============================================================================
+DROP VIEW IF EXISTS waitlist_active;
+CREATE OR REPLACE VIEW waitlist_active AS
+SELECT
+    w.id,
+    w.position,
+    w.token,
+    w.guest_count AS guests,
+    w.status,
+    w.expires_at,
+    w.created_at,
+    w.notified_at,
+    w.confirmed_at,
+    u.name AS user_name,
+    u.email AS user_email,
+    w.contact_phone,
+    ts.cafe_id,
+    c.name AS cafe_name,
+    ts.slot_date,
+    ts.slot_time
+FROM waitlist w
+INNER JOIN users u ON w.user_id = u.id
+INNER JOIN time_slots ts ON w.time_slot_id = ts.id
+INNER JOIN cafes c ON ts.cafe_id = c.id
+WHERE w.status IN ('waiting', 'notified')
+  AND w.expires_at > NOW()
+ORDER BY w.position;
+
+-- ============================================================================
+-- TRIGGERS: Sincronización capacidad reservations ↔ time_slots ↔ waitlist
+-- Absorbidos de 012b_reservation_triggers.sql
+-- NOTA: Requieren log_bin_trust_function_creators=1 en MySQL
+--       (variable de entorno MYSQL_LOG_BIN_TRUST_FUNCTION_CREATORS=1 en Railway)
+-- ============================================================================
+DROP TRIGGER IF EXISTS trg_reservation_confirmed;
+DROP TRIGGER IF EXISTS trg_reservation_cancelled;
+
+CREATE TRIGGER trg_reservation_confirmed
+AFTER UPDATE ON reservations
+FOR EACH ROW
+BEGIN
+    IF NEW.status = 'confirmed'
+       AND OLD.status != 'confirmed'
+       AND NEW.time_slot_id IS NOT NULL THEN
+        UPDATE time_slots
+        SET available_spots = GREATEST(available_spots - NEW.guest_count, 0),
+            reserved_spots = reserved_spots + NEW.guest_count,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = NEW.time_slot_id;
+    END IF;
+END;
+
+CREATE TRIGGER trg_reservation_cancelled
+AFTER UPDATE ON reservations
+FOR EACH ROW
+BEGIN
+    DECLARE slot_capacity INT;
+    IF NEW.status = 'cancelled'
+       AND OLD.status IN ('confirmed', 'pending')
+       AND NEW.time_slot_id IS NOT NULL THEN
+        SELECT total_capacity INTO slot_capacity
+        FROM time_slots
+        WHERE id = NEW.time_slot_id;
+        UPDATE time_slots
+        SET available_spots = LEAST(available_spots + OLD.guest_count, slot_capacity),
+            reserved_spots = GREATEST(reserved_spots - OLD.guest_count, 0),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = NEW.time_slot_id;
+        UPDATE waitlist
+        SET status = 'notified',
+            notified_at = CURRENT_TIMESTAMP,
+            expires_at = DATE_ADD(CURRENT_TIMESTAMP, INTERVAL response_timeout_minutes MINUTE),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE time_slot_id = NEW.time_slot_id
+          AND status = 'waiting'
+        ORDER BY position ASC
+        LIMIT 1;
+    END IF;
+END;
+
 -- ============================================================================
 -- FIN MIGRACIÓN 011
 -- ============================================================================
