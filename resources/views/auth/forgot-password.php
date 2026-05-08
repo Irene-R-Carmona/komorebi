@@ -14,9 +14,9 @@ use App\Core\Csrf;
 <section class="auth-page">
     <div class="auth-card">
         <div class="auth-header">
-            <span class="auth-header__icon"><i class="bi bi-key-fill"></i></span>
+            <span class="auth-header__icon"><i class="bi bi-envelope-fill"></i></span>
             <h1 class="auth-header__titulo">Recupera tu contraseña</h1>
-            <p class="auth-header__subtitulo">Recibirás un enlace para restablecer tu contraseña</p>
+            <p class="auth-header__subtitulo">Introduce tu correo y te enviaremos un enlace para restablecer tu contraseña</p>
         </div>
 
         <?php if ($error = $this->flash('error')): ?>
@@ -46,13 +46,13 @@ use App\Core\Csrf;
                     autocomplete="email">
             </div>
 
-            <button type="submit" class="btn btn--primario w-100 mt-2">
+            <button type="submit" class="btn btn--primario w-100 mt-2" aria-label="Enviar instrucciones de recuperación">
                 Enviar instrucciones
             </button>
         </form>
 
         <div class="auth-footer">
-            <a href="/login" class="auth-link small">← Volver al login</a>
+            <a href="/login" class="auth-link small">← Volver al inicio de sesión</a>
         </div>
     </div>
 </section>
