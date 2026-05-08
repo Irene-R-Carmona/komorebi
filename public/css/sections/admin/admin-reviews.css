@@ -270,7 +270,7 @@
    ============================================================================ */
 
 .review-enter {
-    animation: slideInUp 0.3s ease;
+    animation: slideInUp var(--transition-base);
 }
 
 @keyframes slideInUp {
@@ -285,7 +285,7 @@
 }
 
 .review-exit {
-    animation: slideOutRight 0.3s ease forwards;
+    animation: slideOutRight var(--transition-base) forwards;
 }
 
 @keyframes slideOutRight {

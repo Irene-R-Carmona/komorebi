@@ -24,6 +24,33 @@ try {
     exit(1);
 }
 
+// Error tracking (Sentry — opcional)
+if (
+    ($sentryDsn = (getenv('SENTRY_DSN') ?: '')) !== ''
+    && function_exists('Sentry\init')
+) {
+    \Sentry\init([
+        'dsn' => $sentryDsn,
+        'environment' => getenv('APP_ENV') ?: 'production',
+        'release' => getenv('APP_VERSION') ?: 'unknown',
+        'enable_logs'  => true,
+        'send_default_pii' => false,
+        'ignore_exceptions' => [
+            \App\Exceptions\NotFoundException::class,
+            \App\Exceptions\AuthenticationException::class,
+            \App\Exceptions\AuthorizationException::class,
+            \App\Exceptions\BusinessRuleException::class,
+            \App\Exceptions\RateLimitException::class,
+            \App\Exceptions\ValidationException::class,
+        ],
+    ]);
+
+    // Vaciar buffer de eventos/logs antes de terminar (CLI requiere flush explícito)
+    register_shutdown_function(static function (): void {
+        \Sentry\flush();
+    });
+}
+
 // Iniciar worker
 try {
     $worker = new EmailWorker();

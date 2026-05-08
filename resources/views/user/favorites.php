@@ -57,6 +57,8 @@
 </div>
 
 <script nonce="<?= $cspNonce ?? '' ?>">
+    const TOAST_DISMISS_MS = 3000;
+
     window.userFavorites = function(csrfToken) {
         return {
             favorites: [],
@@ -69,7 +71,7 @@
 
             async loadFavorites() {
                 try {
-                    const res = await fetch('/api/v1/favorites', {
+                    const res = await fetch(window.AppRoutes.favorites, {
                         headers: {
                             'Accept': 'application/json'
                         }
@@ -85,7 +87,7 @@
 
             async removeFavorite(cafeId) {
                 try {
-                    const res = await fetch(`/api/v1/favorites/${cafeId}`, {
+                    const res = await fetch(`${window.AppRoutes.favorites}/${cafeId}`, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-Token': csrfToken
@@ -111,7 +113,7 @@
                 };
                 setTimeout(() => {
                     this.toast.visible = false;
-                }, 3000);
+                }, TOAST_DISMISS_MS);
             },
         };
     };

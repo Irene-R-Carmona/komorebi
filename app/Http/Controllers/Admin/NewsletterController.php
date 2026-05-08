@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Core\Container;
 use App\Core\Csrf;
+use App\Core\Pagination;
 use App\Core\View;
 use App\Repositories\Contracts\NewsletterSubscriptionRepositoryInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -33,7 +34,7 @@ final class NewsletterController
     {
         $queryParams = $request->getQueryParams();
         $page = \max(1, (int) ($queryParams['page'] ?? 1));
-        $perPage = 25;
+        $perPage = Pagination::PAGE_SIZE_LIST;
 
         $filters = \array_filter([
             'email' => $queryParams['email'] ?? null,

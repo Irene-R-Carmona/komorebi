@@ -100,6 +100,19 @@
   --color-reception-accent: #d4af37;
   --color-reception-calm: #f5f5f4;
 
+  /* Loyalty Tiers */
+  --tier-bronze: #CD7F32;
+  --tier-silver: #A8A8A8;
+  --tier-gold: #C9A959;
+  --tier-platinum: #8BBCD4;
+
+  /* Avatar palette — variedad decorativa por inicial de usuario */
+  --avatar-c1: linear-gradient(135deg, #e74c5e, #b22234);
+  --avatar-c2: linear-gradient(135deg, #2e8b57, #1a5c37);
+  --avatar-c3: linear-gradient(135deg, #6c3d8e, #4a2263);
+  --avatar-c4: linear-gradient(135deg, #2980b9, #1a5276);
+  --avatar-c5: linear-gradient(135deg, #e67e22, #b85c10);
+
   /* --- COMPATIBILITY ALIASES (Existing Variables) --- */
   /* Para global.css (público) */
   --color-primario: var(--color-primary-500);
@@ -369,7 +382,7 @@
 
 :root {
   /* Focus ring */
-  --focus-ring: 0 0 0 3px var(--color-primary-200);
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--color-acento) 18%, transparent);
   --focus-ring-offset: 2px;
 
   /* Touch targets (WCAG 2.1) */

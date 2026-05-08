@@ -352,7 +352,7 @@ final class ExceptionLogger
      */
     public static function cleanOldLogs(int $daysToKeep = 30): void
     {
-        $logDir = __DIR__ . '/../../storage/logs/';
+        $logDir = Env::get('STORAGE_PATH', '/app/storage') . '/logs/';
         $threshold = \time() - ($daysToKeep * 86400);
 
         if (!\is_dir($logDir)) {

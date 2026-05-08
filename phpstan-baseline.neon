@@ -1,2 +1,19 @@
 parameters:
-	ignoreErrors: []
+	ignoreErrors:
+		-
+			message: '#^Parameter \#1 \$array \(list\<array\|string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: scripts/m3-transitions.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<array\|string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: scripts/m4-radius.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<array\|string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: scripts/m5-rgba.php

@@ -65,7 +65,7 @@
   border-radius: 0.5rem;
   border: 2px solid;
   text-align: center;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .table-cell--free {

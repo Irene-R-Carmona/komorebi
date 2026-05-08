@@ -1352,15 +1352,15 @@
   border-radius: var(--radio-full);
   font-size: 0.8125rem;
   font-weight: 600;
-  background: linear-gradient(135deg, rgba(201, 169, 89, 0.15), rgba(201, 169, 89, 0.08));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-acento) 15%, transparent), color-mix(in srgb, var(--color-acento) 8%, transparent));
   color: var(--color-primario);
-  border: 1px solid rgba(201, 169, 89, 0.35);
+  border: 1px solid color-mix(in srgb, var(--color-acento) 35%, transparent);
   white-space: nowrap;
   transition: all var(--transicion-rapida);
 }
 
 .booking-mini-badge:hover {
-  background: linear-gradient(135deg, rgba(201, 169, 89, 0.25), rgba(201, 169, 89, 0.15));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-acento) 25%, transparent), color-mix(in srgb, var(--color-acento) 15%, transparent));
   transform: translateY(-1px);
 }
 
@@ -1368,7 +1368,7 @@
 .booking-info-box {
   margin-top: var(--espaciado-md);
   padding: var(--espaciado-md);
-  background: linear-gradient(135deg, rgba(92, 61, 46, 0.05), rgba(201, 169, 89, 0.05));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primario) 5%, transparent), color-mix(in srgb, var(--color-acento) 5%, transparent));
   border: 1px solid var(--color-borde);
   border-radius: var(--radio-md);
   display: flex;

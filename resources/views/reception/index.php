@@ -1,5 +1,7 @@
 <?php
-
+// Umbrales de tiempo de estancia (minutos) para colorizar el anillo de estado
+$warnThresholdMins = 50;   // Verde → Naranja
+$dangerThresholdMins = 60; // Naranja → Rojo
 ?>
 <div style="display: contents;" x-data="receptionApp" data-orderable-items='<?= $orderable_items_json ?>'>
 
@@ -92,12 +94,12 @@
                         $elapsed = (time() - $inicio) / 60;
                         $deg = min(360, ($elapsed / 60) * 360);
 
-                        // Color: Verde (<50m) -> Naranja (50-60m) -> Rojo (>60m)
+                        // Color: Verde (<warnThresholdMins) -> Naranja (<dangerThresholdMins) -> Rojo (>dangerThresholdMins)
                         $timeClass = 'time-ok';
-                        if ($elapsed > 50) {
+                        if ($elapsed > $warnThresholdMins) {
                             $timeClass = 'time-warn';
                         }
-                        if ($elapsed > 60) {
+                        if ($elapsed > $dangerThresholdMins) {
                             $timeClass = 'time-danger';
                         }
                         ?>

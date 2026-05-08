@@ -20,6 +20,11 @@ use Throwable;
  */
 final class Cache
 {
+    /** TTL estándar: 1 hora. */
+    public const int TTL_HOUR = 3600;
+    /** TTL largo: 24 horas. */
+    public const int TTL_DAY = 86400;
+
     private static ?Redis $redis = null;
     private static ?Psr16Cache $pool = null;
     private static ?TagAwareAdapter $tagAdapter = null;
@@ -108,9 +113,9 @@ final class Cache
      *
      * @param string $key   Clave del cache
      * @param mixed  $value Valor a almacenar
-     * @param int    $ttl   Tiempo de vida en segundos (default: 3600)
+     * @param int    $ttl   Tiempo de vida en segundos (default: TTL_HOUR)
      */
-    public static function set(string $key, mixed $value, int $ttl = 3600): bool
+    public static function set(string $key, mixed $value, int $ttl = self::TTL_HOUR): bool
     {
         self::init();
 
@@ -192,7 +197,7 @@ final class Cache
      * @param callable $callback Función que genera el valor si no está en cache
      * @param int      $ttl      Tiempo de vida en segundos
      */
-    public static function remember(string $key, callable $callback, int $ttl = 3600): mixed
+    public static function remember(string $key, callable $callback, int $ttl = self::TTL_HOUR): mixed
     {
         // get() already increments hit/miss internally
         $value = self::get($key);
@@ -337,7 +342,7 @@ final class Cache
      *
      * @param string[] $tags
      */
-    public static function setWithTags(string $key, mixed $value, array $tags, int $ttl = 3600): bool
+    public static function setWithTags(string $key, mixed $value, array $tags, int $ttl = self::TTL_HOUR): bool
     {
         self::init();
         if (self::$tagAdapter === null) {
@@ -364,7 +369,7 @@ final class Cache
      *
      * @param string[] $tags
      */
-    public static function computeIfAbsent(string $key, callable $fn, int $ttl = 3600, array $tags = []): mixed
+    public static function computeIfAbsent(string $key, callable $fn, int $ttl = self::TTL_HOUR, array $tags = []): mixed
     {
         self::init();
         $sKey = self::sanitizeKey($key);

@@ -103,7 +103,7 @@
 .stat-card {
   background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(10px);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.25rem;
   text-align: center;
 }
@@ -143,13 +143,13 @@
   aspect-ratio: 1;
   background: rgba(255, 255, 255, 0.1);
   border: 2px dashed rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
   font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-base);
   position: relative;
 }
 
@@ -169,7 +169,7 @@
 .tier-progress {
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
 }
 
@@ -233,9 +233,9 @@
 .reward-card {
   background: var(--color-superficie);
   border: 2px solid var(--color-borde-card);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 1.75rem;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
   position: relative;
   box-shadow: var(--sombra-card);
 }
@@ -347,7 +347,7 @@
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
 }
 
 .btn-reward:hover:not(:disabled) {
@@ -373,7 +373,7 @@
 .history-card {
   background: var(--color-superficie);
   border: 1px solid var(--color-borde-card);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -404,7 +404,7 @@
 
 .history-card__status {
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-weight: 600;
   font-size: 0.9rem;
   background: var(--color-warning-light);
@@ -447,13 +447,13 @@
 .waitlist-card {
   background: var(--color-superficie);
   border: 2px solid var(--color-borde-card);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 2rem;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 2rem;
   align-items: center;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
   box-shadow: var(--sombra-card);
 }
 
@@ -575,10 +575,10 @@
   background: linear-gradient(135deg, var(--color-primary-500), var(--color-acento));
   color: white;
   text-decoration: none;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   font-weight: 700;
   font-size: 1.1rem;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
 }
 
 .btn-primary:hover {
@@ -736,7 +736,7 @@
   padding: 0.75rem 1rem;
   background: color-mix(in srgb, var(--color-warning) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-warning) 35%, transparent);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.9rem;
   color: var(--color-warning-dark);
 }
@@ -792,7 +792,7 @@
 .info-card {
   background: var(--color-superficie);
   border: 1px solid var(--color-borde-card);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   text-align: center;
   box-shadow: var(--sombra-card);
@@ -825,7 +825,7 @@
   align-items: center;
   gap: 1.5rem;
   background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-900) 100%);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 1.75rem 2rem;
   margin-top: 2rem;
   color: white;
@@ -857,7 +857,7 @@
   display: inline-block;
   padding: 0.6rem 1.25rem;
   background: white;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: var(--color-primary-800);
   font-weight: 600;
   font-size: 0.9rem;
@@ -881,7 +881,7 @@
 .info-box {
   background: color-mix(in srgb, var(--color-info) 8%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-info) 25%, transparent);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem 2rem;
 }
 
@@ -930,7 +930,7 @@
   min-height: 36px;
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -955,7 +955,7 @@
   background: var(--color-superficie);
   border: 1px solid color-mix(in srgb, var(--color-success) 40%, transparent);
   border-left: 4px solid var(--color-success, #16a34a);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   font-size: 0.95rem;
@@ -991,7 +991,7 @@
   cursor: pointer;
   color: var(--color-texto-suave);
   padding: 0.25rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   line-height: 1;
   flex-shrink: 0;
   font-size: 1rem;
@@ -1004,7 +1004,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .loyalty-redemption-toast[x-transition] {
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
   }
 }
 
@@ -1070,4 +1070,53 @@
     border-top: 1px solid #ccc;
     padding-top: 0.75rem;
   }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   TIER BADGES & ICONS — usan CSS vars de design-tokens.css
+   ──────────────────────────────────────────────────────────────── */
+
+/* Iconos de stat-card por tier */
+.tier-icon--bronze {
+  background-color: color-mix(in srgb, var(--tier-bronze) 13%, transparent);
+  color: var(--tier-bronze);
+}
+.tier-icon--silver {
+  background-color: color-mix(in srgb, var(--tier-silver) 13%, transparent);
+  color: var(--tier-silver);
+}
+.tier-icon--gold {
+  background-color: color-mix(in srgb, var(--tier-gold) 13%, transparent);
+  color: var(--tier-gold);
+}
+.tier-icon--platinum {
+  background-color: color-mix(in srgb, var(--tier-platinum) 13%, transparent);
+  color: var(--tier-platinum);
+}
+
+/* Badges inline (catálogo y canjes) */
+.tier-badge--bronze {
+  background-color: color-mix(in srgb, var(--tier-bronze) 13%, transparent);
+  color: var(--tier-bronze);
+  border: 1px solid var(--tier-bronze);
+}
+.tier-badge--silver {
+  background-color: color-mix(in srgb, var(--tier-silver) 13%, transparent);
+  color: var(--tier-silver);
+  border: 1px solid var(--tier-silver);
+}
+.tier-badge--gold {
+  background-color: color-mix(in srgb, var(--tier-gold) 13%, transparent);
+  color: var(--tier-gold);
+  border: 1px solid var(--tier-gold);
+}
+.tier-badge--platinum {
+  background-color: color-mix(in srgb, var(--tier-platinum) 13%, transparent);
+  color: var(--tier-platinum);
+  border: 1px solid var(--tier-platinum);
+}
+.tier-badge--default {
+  background-color: color-mix(in srgb, var(--color-texto-suave) 13%, transparent);
+  color: var(--color-texto-suave);
+  border: 1px solid var(--color-texto-suave);
 }

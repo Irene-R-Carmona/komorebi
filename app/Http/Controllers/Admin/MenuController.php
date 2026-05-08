@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Core\Container;
 use App\Core\Csrf;
+use App\Core\Pagination;
 use App\Core\View;
 use App\Http\Transformers\ProductTransformer;
 use App\Repositories\Contracts\AllergenRepositoryInterface;
@@ -45,7 +46,7 @@ final class MenuController
     {
         $q = $request->getQueryParams();
         $page = \max(1, (int) ($q['page'] ?? 1));
-        $perPage = 20;
+        $perPage = Pagination::DEFAULT_LIMIT;
         $search = \trim((string) ($q['search'] ?? ''));
         $categoryId = (int) ($q['category'] ?? 0);
         $status = \trim((string) ($q['status'] ?? ''));

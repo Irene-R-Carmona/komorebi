@@ -78,7 +78,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: rgba(255, 255, 255, 0.8);
 }
 
@@ -101,7 +101,7 @@
 .sop-badge {
   background: var(--sop-border);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-weight: 700;
   font-size: 0.75rem;
 }
@@ -114,7 +114,7 @@
   background: rgba(0, 0, 0, 0.4);
   padding: 0.5rem 1rem;
   border: 1px solid var(--sop-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .timer-digit {
@@ -136,12 +136,12 @@
   background: var(--sop-border);
   border: none;
   color: white;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: background var(--transition-fast);
 }
 
 .btn-close-sop:hover {
@@ -187,7 +187,7 @@
   font-size: 0.75rem;
   background: var(--sop-border);
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-weight: 700;
 }
 
@@ -205,12 +205,12 @@
   background: #1c2630;
   border: 1px solid var(--sop-border);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   gap: 1rem;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color var(--transition-fast);
 }
 
 .mise-item:hover {
@@ -222,13 +222,13 @@
   height: 24px;
   border: 2px solid #324d67;
   background: #111a22;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   color: transparent;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .mise-item.checked .mise-check {
@@ -273,9 +273,9 @@
   background: #1c2630;
   border: 1px solid var(--sop-border);
   padding: 1.5rem 1.5rem 1.5rem 3.5rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   position: relative;
-  transition: opacity 0.3s;
+  transition: opacity var(--transition-base);
 }
 
 .step-card.active {
@@ -354,7 +354,7 @@
   height: 56px;
   background: var(--sop-alert);
   color: black;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -387,7 +387,7 @@
   border: 1px solid #4b5563;
   color: white;
   padding: 4px 10px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;

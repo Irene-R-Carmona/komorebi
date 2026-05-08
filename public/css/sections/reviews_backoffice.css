@@ -89,7 +89,7 @@
     align-items: center;
     gap: 0.5rem;
     flex-shrink: 0;
-    background: linear-gradient(135deg, rgba(201, 169, 89, 0.1) 0%, transparent 100%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-acento) 10%, transparent) 0%, transparent 100%);
     padding: var(--espaciado-xs) var(--espaciado-sm);
     border-radius: var(--radio-md);
 }
@@ -166,7 +166,7 @@
     width: 90%;
     max-height: 80vh;
     overflow-y: auto;
-    animation: slideUp 0.3s ease-out;
+    animation: slideUp var(--transition-base);
 }
 
 @keyframes slideUp {
@@ -235,7 +235,7 @@
 .empty-state {
     text-align: center;
     padding: var(--espaciado-xl) var(--espaciado-lg);
-    background: linear-gradient(135deg, rgba(94, 111, 100, 0.08) 0%, rgba(201, 169, 89, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(94, 111, 100, 0.08) 0%, color-mix(in srgb, var(--color-acento) 5%, transparent) 100%);
     border-radius: var(--radio-lg);
     border: 2px dashed var(--color-borde);
 }

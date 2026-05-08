@@ -23,7 +23,7 @@
 
 .log-table__row {
   border-bottom: 1px solid var(--gray-200);
-  transition: background-color 0.2s;
+  transition: background-color var(--transition-fast);
 }
 
 .log-table__row:hover {
@@ -172,7 +172,7 @@
   border-radius: var(--radius-md);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all var(--transition-base);
 }
 
 .export-btn:hover {

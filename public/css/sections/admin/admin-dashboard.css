@@ -157,7 +157,7 @@
   border-radius: var(--radius-lg);
   border-left: 3px solid transparent;
   background: linear-gradient(to right, transparent, var(--bg-secondary));
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-fast);
   position: relative;
   overflow: hidden;
 }
@@ -170,7 +170,7 @@
   width: 3px;
   height: 100%;
   background: currentColor;
-  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width var(--transition-fast);
 }
 
 .activity-item:hover {
@@ -223,7 +223,7 @@
   color: white;
   flex-shrink: 0;
   font-size: 0.875rem;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--transition-fast);
 }
 
 .activity-item:hover .activity-item__icon {
@@ -311,7 +311,7 @@
   justify-content: center;
   font-size: 1.375rem;
   flex-shrink: 0;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-fast);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 

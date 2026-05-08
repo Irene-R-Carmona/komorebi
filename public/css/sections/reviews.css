@@ -23,7 +23,7 @@
   align-items: start;
   margin-bottom: var(--espaciado-lg);
   padding: var(--espaciado-md);
-  background: linear-gradient(135deg, rgba(92, 61, 46, 0.05) 0%, rgba(201, 169, 89, 0.05) 100%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primario) 5%, transparent) 0%, color-mix(in srgb, var(--color-acento) 5%, transparent) 100%);
   border-radius: var(--radio-md);
 }
 
@@ -188,23 +188,23 @@
 
 /* Variantes de color para avatares — variedad por inicial de usuario */
 .review-card__avatar--c1 {
-  background: linear-gradient(135deg, #e74c5e, #b22234);
+  background: var(--avatar-c1);
 }
 
 .review-card__avatar--c2 {
-  background: linear-gradient(135deg, #2e8b57, #1a5c37);
+  background: var(--avatar-c2);
 }
 
 .review-card__avatar--c3 {
-  background: linear-gradient(135deg, #6c3d8e, #4a2263);
+  background: var(--avatar-c3);
 }
 
 .review-card__avatar--c4 {
-  background: linear-gradient(135deg, #2980b9, #1a5276);
+  background: var(--avatar-c4);
 }
 
 .review-card__avatar--c5 {
-  background: linear-gradient(135deg, #e67e22, #b85c10);
+  background: var(--avatar-c5);
 }
 
 .review-card__meta {
@@ -371,7 +371,7 @@
 .form-textarea:focus {
   outline: none;
   border-color: var(--color-acento);
-  box-shadow: 0 0 0 3px rgba(201, 169, 89, 0.1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-acento) 10%, transparent);
 }
 
 .form-textarea {
@@ -401,7 +401,7 @@
 ────────────────────────────────────────────────────────────────────────── */
 
 .review-form__blocked {
-  background: linear-gradient(135deg, rgba(155, 35, 53, 0.08) 0%, rgba(201, 169, 89, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(155, 35, 53, 0.08) 0%, color-mix(in srgb, var(--color-acento) 5%, transparent) 100%);
   border: 2px dashed var(--color-error);
   border-radius: var(--radio-md);
   padding: var(--espaciado-lg);

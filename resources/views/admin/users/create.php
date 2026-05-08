@@ -64,7 +64,7 @@ $roles ??= [];
                         x-data="{ submitting: false }"
                         @submit.prevent="
                             submitting = true;
-                            fetch('/api/v1/admin/users', {
+                            fetch(window.AppRoutes.adminUsers, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',

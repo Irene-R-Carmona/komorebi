@@ -11,14 +11,13 @@ declare(strict_types=1);
 
 // Detectar si estamos en rutas backoffice o login
 $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
-$isBackofficeRoute = str_starts_with($currentPath, '/admin')
-    || str_starts_with($currentPath, '/manager')
-    || str_starts_with($currentPath, '/supervisor')
-    || str_starts_with($currentPath, '/keeper')
-    || str_starts_with($currentPath, '/reception')
-    || str_starts_with($currentPath, '/kitchen')
-    || str_starts_with($currentPath, '/login')
-    || str_starts_with($currentPath, '/registro');
+$isBackofficeRoute = false;
+foreach (\App\Core\Middleware::BACKOFFICE_URL_PREFIXES as $prefix) {
+    if (str_starts_with($currentPath, $prefix)) {
+        $isBackofficeRoute = true;
+        break;
+    }
+}
 
 // No renderizar popup en rutas backoffice
 if ($isBackofficeRoute) {

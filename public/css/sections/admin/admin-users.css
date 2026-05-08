@@ -19,7 +19,7 @@
    ============================================================================ */
 
 .user-row {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-fast);
   position: relative;
 }
 
@@ -32,7 +32,7 @@
   height: 100%;
   background: var(--admin-primary);
   transform: scaleY(0);
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--transition-fast);
 }
 
 .user-row:hover::before {
@@ -100,7 +100,7 @@
   background: var(--gradient-coffee);
   color: white;
   box-shadow: var(--admin-shadow-sm);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-fast);
   position: relative;
   overflow: hidden;
 }
@@ -111,7 +111,7 @@
   inset: 0;
   background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2));
   opacity: 0;
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity var(--transition-fast);
 }
 
 .user-row:hover .user-avatar::before {
@@ -188,7 +188,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-fast);
   border: 1px solid transparent;
 }
 
@@ -218,7 +218,7 @@
 .role-badge--reception {
   background: var(--admin-primary-light);
   color: var(--admin-primary);
-  border-color: rgba(92, 61, 46, 0.2);
+  border-color: color-mix(in srgb, var(--color-primario) 20%, transparent);
 }
 
 .role-badge--kitchen {
@@ -230,7 +230,7 @@
 .role-badge--keeper {
   background: var(--admin-accent-light);
   color: var(--admin-accent-hover);
-  border-color: rgba(201, 169, 89, 0.3);
+  border-color: color-mix(in srgb, var(--color-acento) 30%, transparent);
 }
 
 .role-badge--user {
@@ -253,7 +253,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-fast);
 }
 
 .user-status:hover {

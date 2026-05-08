@@ -14,6 +14,8 @@ final readonly class Pagination
 {
     public const int MAX_LIMIT = 100;
     public const int DEFAULT_LIMIT = 20;
+    /** Tamaño de página para listados de administración (animals, newsletter, waitlist). */
+    public const int PAGE_SIZE_LIST = 25;
 
     public readonly int $page;
     public readonly int $limit;

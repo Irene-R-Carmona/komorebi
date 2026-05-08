@@ -26,7 +26,7 @@ use Throwable;
  */
 final class AuthorizationMiddleware implements MiddlewareInterface
 {
-    private const int CACHE_TTL = 3600; // 1 hora
+    private const int CACHE_TTL = Cache::TTL_HOUR;
 
     private ResponseFactory $response;
     private string $permission;

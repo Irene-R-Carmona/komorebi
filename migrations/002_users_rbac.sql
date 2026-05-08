@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS users (
     admin_notes TEXT DEFAULT NULL,
     preferences JSON DEFAULT NULL,
     avatar VARCHAR(255) DEFAULT NULL,
-    login_attempts TINYINT UNSIGNED DEFAULT 0,
-    locked_until DATETIME DEFAULT NULL,
+    login_attempts TINYINT UNSIGNED DEFAULT 0, -- DEFAULT estructural; límite dinámico en settings: max_login_attempts
+    locked_until DATETIME DEFAULT NULL,         -- Duración de bloqueo en settings: lockout_duration (minutos)
     last_login DATETIME DEFAULT NULL,
     last_ip_address VARCHAR(45) DEFAULT NULL,
     deleted_at TIMESTAMP NULL COMMENT 'RGPD: soft delete, purga 30 días',

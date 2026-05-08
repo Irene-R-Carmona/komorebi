@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Core\Pagination;
 use App\Domain\DTO\ReviewDTO;
 use App\Domain\Mappers\ReviewMapper;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
@@ -146,7 +147,7 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
     public function findAllStatusesPaginated(int $cafeId, ?string $status = null, int $page = 1): array
     {
         $page = \max(1, $page);
-        $perPage = 20;
+        $perPage = Pagination::DEFAULT_LIMIT;
         $fetchLimit = $perPage + 1;
         $offset = ($page - 1) * $perPage;
 

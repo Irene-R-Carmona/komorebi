@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Env;
 use App\Core\ImageProcessor;
 use App\Core\Result;
 use App\Services\Contracts\FileStorageServiceInterface;
@@ -256,7 +257,7 @@ final class FileUploadService implements FileUploadServiceInterface
 
         // Backward compat: rutas locales en storage/uploads/
         $relativePath = \str_replace('/storage/uploads/', '', $relativeUrl);
-        $localBasePath = __DIR__ . '/../../storage/uploads';
+        $localBasePath = Env::get('STORAGE_PATH', '/app/storage') . '/uploads';
         $filePath = $localBasePath . '/' . $relativePath;
 
         $realPath = \realpath($filePath);

@@ -264,7 +264,7 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  animation: slideInDown 0.3s ease-out;
+  animation: slideInDown var(--transition-base);
 }
 
 .alert__icon {
@@ -299,7 +299,7 @@
 }
 
 .alert--warning {
-  background-color: rgba(201, 169, 89, 0.1);
+  background-color: color-mix(in srgb, var(--color-acento) 10%, transparent);
   border-left-color: var(--color-warning, #C9A959);
   color: var(--color-warning-dark, #927009);
 }
@@ -377,7 +377,7 @@
   inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn var(--transition-base);
 }
 
 .modal__content {
@@ -389,7 +389,7 @@
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  animation: scaleIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  animation: scaleIn var(--transition-base) cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 @keyframes scaleIn {
@@ -500,7 +500,7 @@
 }
 
 .tab-content {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn var(--transition-base);
 }
 
 .tab-content[hidden] {

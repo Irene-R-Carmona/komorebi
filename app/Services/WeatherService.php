@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Cache;
 use App\Core\CircuitBreaker;
 use App\Core\Logger;
 use App\Core\Result;
@@ -29,7 +30,7 @@ use Throwable;
 final class WeatherService implements WeatherServiceInterface
 {
     private const API_URL = 'https://api.open-meteo.com/v1/forecast';
-    private const CACHE_TTL = 3600; // 1 hora
+    private const CACHE_TTL = Cache::TTL_HOUR; // 1 hora
     private const TIMEOUT = 10;
 
     private ?CacheItemPoolInterface $cache;

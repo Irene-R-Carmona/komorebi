@@ -70,6 +70,17 @@ final class AuthMiddleware implements MiddlewareInterface
         // Cargar roles en sesión si no están
         $this->loadUserRolesInSession((int) $userId);
 
+        // Sentry: enriquecer eventos con el usuario autenticado
+        if (\class_exists(\Sentry\State\HubInterface::class)) {
+            $roles = Session::get('user_roles') ?? [];
+            \Sentry\configureScope(static function (\Sentry\State\Scope $scope) use ($userId, $roles): void {
+                $scope->setUser([
+                    'id' => (string) $userId,
+                    'segment' => $roles !== [] ? $roles[0] : 'user',
+                ]);
+            });
+        }
+
         // Guardar usuario en atributos de request para acceso en controllers
         $request = $request->withAttribute('user_id', (int) $userId);
         $request = $request->withAttribute('user', $user);

@@ -23,14 +23,10 @@ $alpineData = json_encode([
     'activeTab' => 'dashboard',
     'toast' => null,
     'loading' => false,
+    'toastDismissMs' => 3500,
+    'reloadDelayMs' => 1000,
 ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
 
-$tierColors = [
-    'bronze' => '#CD7F32',
-    'silver' => '#C0C0C0',
-    'gold' => '#C9A959',
-    'platinum' => '#B5D4E7',
-];
 $tierLabels = [
     'bronze' => 'Bronce',
     'silver' => 'Plata',
@@ -54,7 +50,7 @@ $tierLabels = [
         <div class="alert"
             :class="toast.type === 'success' ? 'alert-success' : 'alert-danger'"
             x-text="toast.msg"
-            x-init="setTimeout(() => toast = null, 3500)">
+            x-init="setTimeout(() => toast = null, toastDismissMs)">
         </div>
     </template>
 
@@ -85,8 +81,7 @@ $tierLabels = [
             <?php foreach (['bronze', 'silver', 'gold', 'platinum'] as $tier): ?>
                 <div class="stat-card">
                     <div class="stat-card__inner">
-                        <div class="stat-card__icon"
-                            style="background-color: <?= $tierColors[$tier] ?>22; color: <?= $tierColors[$tier] ?>">
+                        <div class="stat-card__icon tier-icon--<?= htmlspecialchars($tier, ENT_QUOTES, 'UTF-8') ?>">
                             &#127942;
                         </div>
                         <div class="stat-card__content">
@@ -178,10 +173,8 @@ $tierLabels = [
                                     <td><?= (int) ($item['stamps_required'] ?? 0) ?></td>
                                     <td>
                                         <?php $tierReq = $item['tier_required'] ?? 'bronze'; ?>
-                                        <span class="badge"
-                                            style="background-color: <?= $tierColors[$tierReq] ?? '#888' ?>22;
-                                                     color: <?= $tierColors[$tierReq] ?? '#888' ?>;
-                                                     border: 1px solid <?= $tierColors[$tierReq] ?? '#888' ?>">
+                                        <?php $validTiers = ['bronze', 'silver', 'gold', 'platinum']; ?>
+                                        <span class="badge tier-badge--<?= in_array($tierReq, $validTiers, true) ? htmlspecialchars($tierReq, ENT_QUOTES, 'UTF-8') : 'default' ?>">
                                             <?= $tierLabels[$tierReq] ?? htmlspecialchars($tierReq, ENT_QUOTES, 'UTF-8') ?>
                                         </span>
                                     </td>
@@ -200,7 +193,7 @@ $tierLabels = [
                                             :disabled="loading"
                                             @click="
                                                 loading = true;
-                                                fetch('/api/v1/admin/loyalty/catalog/<?= $itemId ?>/toggle', {
+                                                fetch(window.AppRoutes.adminLoyaltyCatalog + '/<?= $itemId ?>/toggle', {
                                                     method: 'PATCH',
                                                     headers: {
                                                         'Content-Type': 'application/json',
@@ -214,7 +207,7 @@ $tierLabels = [
                                                     toast = d.ok
                                                         ? { type: 'success', msg: 'Estado actualizado.' }
                                                         : { type: 'error', msg: d.error ?? 'Error al actualizar.' };
-                                                    if (d.ok) setTimeout(() => location.reload(), 1000);
+                                                    if (d.ok) setTimeout(() => location.reload(), reloadDelayMs);
                                                 })
                                                 .catch(() => toast = { type: 'error', msg: 'Error de red.' })
                                                 .finally(() => loading = false)

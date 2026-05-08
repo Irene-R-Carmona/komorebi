@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Core\Pagination;
 use App\Domain\DTO\ReservationDTO;
 use App\Domain\Mappers\ReservationMapper;
 use App\Domain\Reservation\ReservationStateMachine;
@@ -145,7 +146,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     public function findByCafeWithFilters(int $cafeId, ?string $status = null, ?string $date = null, int $page = 1): array
     {
         $page = \max(1, $page);
-        $perPage = 20;
+        $perPage = Pagination::DEFAULT_LIMIT;
         $fetchLimit = $perPage + 1;
         $offset = ($page - 1) * $perPage;
 

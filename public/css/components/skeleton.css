@@ -115,11 +115,11 @@
 }
 
 .skeleton-list>*:nth-child(3)::after {
-  animation-delay: 0.2s;
+  animation-delay: var(--transition-fast);
 }
 
 .skeleton-list>*:nth-child(4)::after {
-  animation-delay: 0.3s;
+  animation-delay: var(--transition-base);
 }
 
 .skeleton-list>*:nth-child(5)::after {

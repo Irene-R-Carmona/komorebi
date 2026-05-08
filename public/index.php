@@ -42,10 +42,21 @@ if (
         'environment' => $env,
         'release' => \App\Core\Env::get('APP_VERSION', 'unknown'),
         'traces_sample_rate' => 0.1,
-        'profiles_sample_rate' => 0.1,
         'enable_logs' => true,
         'send_default_pii' => false,
         'in_app_include' => ['app/'],
+        'in_app_exclude' => ['/var/www/html/vendor'],
+        // Excepciones esperadas del negocio — no son bugs, no deben contaminar Sentry
+        'ignore_exceptions' => [
+            \App\Exceptions\NotFoundException::class,
+            \App\Exceptions\AuthenticationException::class,
+            \App\Exceptions\AuthorizationException::class,
+            \App\Exceptions\BusinessRuleException::class,
+            \App\Exceptions\RateLimitException::class,
+            \App\Exceptions\ValidationException::class,
+            \App\Exceptions\RouterException::class,
+            \App\Exceptions\RouterParameterException::class,
+        ],
     ]);
 }
 

@@ -29,7 +29,7 @@
   --sombra-sm: 0 2px 8px rgba(45, 34, 24, 0.08);
   --sombra-md: 0 4px 16px rgba(45, 34, 24, 0.12);
   --sombra-lg: 0 8px 32px rgba(45, 34, 24, 0.16);
-  --transicion: 0.3s ease;
+  --transicion: var(--transition-base);
   --transicion-rapida: 0.15s ease;
 
   /* Espaciado & Bordes */
@@ -409,7 +409,7 @@ h3 {
   align-items: center;
   gap: 0.5rem;
   color: var(--color-texto);
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-fast);
 }
 
 .header__profile-link:hover {
@@ -448,7 +448,7 @@ h3 {
 .header__logout {
   font-size: 0.85rem;
   color: var(--color-texto-suave);
-  transition: color 0.2s;
+  transition: color var(--transition-fast);
   font-weight: 500;
 }
 
@@ -488,7 +488,7 @@ h3 {
 
 .header__dropdown-arrow {
   font-size: 0.7rem;
-  transition: transform 0.2s;
+  transition: transform var(--transition-fast);
 }
 
 .header__dropdown-btn[aria-expanded="true"] .header__dropdown-arrow {
@@ -516,7 +516,7 @@ h3 {
   padding: 0.6rem 1.2rem;
   color: var(--color-texto);
   font-size: 0.9rem;
-  transition: background-color 0.2s;
+  transition: background-color var(--transition-fast);
 }
 
 .header__dropdown-link:hover {
@@ -713,7 +713,7 @@ h3 {
 .form-textarea:focus {
   outline: none;
   border-color: var(--color-acento);
-  box-shadow: 0 0 0 4px rgba(201, 169, 89, 0.15);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-acento) 15%, transparent);
   background-color: var(--color-superficie);
 }
 
@@ -761,7 +761,7 @@ h3 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  animation: slideInDown 0.3s ease-out;
+  animation: slideInDown var(--transition-base);
 }
 
 .form-error::before {
@@ -775,7 +775,7 @@ h3 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  animation: slideInDown 0.3s ease-out;
+  animation: slideInDown var(--transition-base);
 }
 
 .form-success::before {
@@ -1064,7 +1064,7 @@ h3 {
   border-radius: var(--radio-md);
   font-weight: 600;
   z-index: 9999;
-  transition: top 0.3s;
+  transition: top var(--transition-base);
 }
 
 .skip-link:focus {
@@ -1101,7 +1101,7 @@ body.keyboard-navigation *:focus {
 
 ::-webkit-scrollbar-thumb {
   background-color: var(--color-borde);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {

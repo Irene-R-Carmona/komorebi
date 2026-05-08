@@ -423,7 +423,7 @@
 .form-control:focus,
 .form-select:focus {
   border-color: var(--admin-accent);
-  box-shadow: 0 0 0 3px rgba(201, 169, 89, 0.15);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-acento) 15%, transparent);
   outline: none;
 }
 
@@ -496,7 +496,7 @@
 
 .form-check-input:focus {
   border-color: var(--admin-accent);
-  box-shadow: 0 0 0 3px rgba(201, 169, 89, 0.15);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-acento) 15%, transparent);
 }
 
 .form-check-input:checked {
@@ -769,7 +769,7 @@
   border: none;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  animation: slideInRight 0.3s ease;
+  animation: slideInRight var(--transition-base);
 }
 
 @keyframes slideInRight {
@@ -785,7 +785,7 @@
 }
 
 .toast.hiding {
-  animation: slideOutRight 0.3s ease forwards;
+  animation: slideOutRight var(--transition-base) forwards;
 }
 
 @keyframes slideOutRight {
@@ -1172,7 +1172,7 @@
   --admin-surface: #261C14;
   --admin-primary: #C9A959;
   --admin-primary-hover: #B8935C;
-  --admin-primary-light: rgba(201, 169, 89, 0.15);
+  --admin-primary-light: color-mix(in srgb, var(--color-acento) 15%, transparent);
   --admin-accent: #E8C97A;
   --admin-accent-hover: #C9A959;
   --admin-accent-light: rgba(232, 201, 122, 0.12);
@@ -1235,7 +1235,7 @@
   background: var(--admin-bg-alt);
   color: var(--admin-text);
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 0.2rem rgba(201, 169, 89, 0.25);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--color-acento) 25%, transparent);
 }
 
 [data-tema="dark"] .filter-bar {

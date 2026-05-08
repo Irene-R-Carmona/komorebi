@@ -71,7 +71,7 @@
 .form-komorebi__textarea:focus {
   outline: none;
   border-color: var(--color-acento);
-  box-shadow: 0 0 0 3px rgba(201, 169, 89, 0.18);
+  box-shadow: var(--focus-ring);
 }
 
 .form-komorebi__textarea {
