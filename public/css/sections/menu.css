@@ -54,6 +54,10 @@
   border-bottom: 1px solid var(--color-borde);
 }
 
+[data-tema="oscuro"] .menu__tabs {
+  background: rgba(26, 20, 16, 0.95);
+}
+
 .menu__tab {
   padding: 0.6rem 1.2rem;
   font-size: 0.95rem;
@@ -163,8 +167,8 @@
 }
 
 .badge-popular {
-  background: #FFD700;
-  color: #333;
+  background: var(--color-acento);
+  color: var(--color-texto);
 }
 
 .badge-vegano {
@@ -172,7 +176,7 @@
 }
 
 .badge-gluten {
-  background: #3498db;
+  background: var(--color-info);
 }
 
 /* Cuerpo */

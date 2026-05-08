@@ -502,7 +502,7 @@
 }
 
 .btn-icon-text--danger:hover {
-  color: #c73b52;
+  color: var(--color-secondary-500);
 }
 
 .my-review__rejection-reason {
