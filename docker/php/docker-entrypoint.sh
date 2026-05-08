@@ -62,7 +62,7 @@ else
     log "PASO 1/4: SKIP — SKIP_COMPOSER=1 activo."
 fi
 
-# ── PASO 2/4: Esperar MySQL ───────────────────────────────────
+# ── PASO 2/4: Esperar MySQL ─────────────────────────────────────
 # Si MYSQL_URL o DATABASE_URL están presentes (Railway), parsearlas y exportar
 # las variables DB_* individuales para que el resto del script las use.
 _DB_URL="${MYSQL_URL:-${DATABASE_URL:-}}"

@@ -73,7 +73,7 @@ if (isset($options['help'])) {
           --help          Mostrar esta ayuda
 
         Orden de ejecución:
-          1. Migraciones SQL (001-018, idempotente, secuencialmente)
+          1. Migraciones SQL (todos los *.sql en /migrations/, orden alfabético, idempotente)
           2. Seeders: RBAC → Cafes → Animals → Menu → Staff → Users → Reservations → Reviews → Newsletter → TimeSlots → Waitlist
           3. Verificación de eventos RGPD
 
@@ -99,7 +99,7 @@ try {
 // Confirmación (solo si no --force y no --seeders-only)
 if (!$force && !$seedersOnly) {
     echo "\nADVERTENCIA: Este script aplicará cambios a la base de datos.\n";
-    echo "   - Aplicará 18 archivos de migración SQL (idempotente)\n";
+    echo "   - Aplicará todos los archivos de migración SQL en /migrations/ (idempotente)\n";
     echo "   - Ejecutará seeders si la BD está vacía\n";
     echo "   - Verificará eventos RGPD de purga automática\n\n";
     echo '¿Continuar? (yes/no): ';
@@ -126,26 +126,12 @@ if (!$seedersOnly) {
     logMsg(SEPARATOR);
 
     $migrationsPath = __DIR__ . '/../migrations';
-    $migrations = [
-        '001_infrastructure.sql',
-        '002_users_rbac.sql',
-        '003_reviews.sql',
-        '004_reservations.sql',
-        '005_email_auth.sql',
-        '006_telegram_bot.sql',
-        '007_external_cache.sql',
-        '008_animals.sql',
-        '009_system_settings.sql',
-        '010_newsletter.sql',
-        '011_time_slots_waitlist.sql',
-        '012_waitlist.sql',
-        '012b_reservation_triggers.sql',
-        '013_loyalty_system.sql',
-        '014_staff_shifts.sql',
-        '015_animal_health_checks.sql',
-        '016_supervisor_assignments.sql',
-        '018_api_tokens.sql',
-    ];
+    $found = \glob($migrationsPath . '/*.sql');
+    if ($found === false) {
+        $found = [];
+    }
+    \sort($found);
+    $migrations = \array_map('basename', $found);
 
     foreach ($migrations as $migration) {
         $path = $migrationsPath . '/' . $migration;
