@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Core;
 
 use Exception;
+use Redis;
+use Throwable;
 
 /**
  * Gestión centralizada de sesiones.
@@ -91,28 +93,92 @@ final class Session
             return;
         }
 
-        // Configurar Redis si aplica (igual que start())
-        if (Env::get('SESSION_DRIVER', 'file') === 'redis') {
-            $redisHost = Env::get('REDIS_HOST', '127.0.0.1');
-            $redisPort = Env::int('REDIS_PORT', 6379);
-            $redisPass = Env::get('REDIS_PASSWORD', '');
-            $sessionTtl = Env::int('SESSION_LIFETIME', 7200);
-            $savePath = "tcp://{$redisHost}:{$redisPort}?database=1&lifetime={$sessionTtl}";
-            if ($redisPass !== '') {
-                $savePath .= '&auth=' . \urlencode($redisPass);
-            }
-            \ini_set('session.save_handler', 'redis');
-            \ini_set('session.save_path', $savePath);
+        // read_and_close lee la sesión y libera el lock inmediatamente (sin escribir).
+        // No se re-configuran ini_set aquí: el handler ya fue configurado en index.php
+        // (Sección A). Llamar ini_set de nuevo con un save_path diferente puede causar
+        // reconexiones inesperadas en phpredis.
+        \session_start(['read_and_close' => true]);
+    }
+
+    /**
+     * Lee user_id directamente desde Redis sin usar el módulo de sesiones PHP.
+     *
+     * Seguro para FrankenPHP worker mode con requests concurrentes — no adquiere
+     * write locks ni accede a estado global del módulo de sesiones (PS() macros),
+     * que no es fiber-safe.
+     *
+     * Para driver Redis, lee directamente de Redis DB 1.
+     * Para otros drivers (file — típico en dev/test), usa startReadOnly() como
+     * fallback, o la sesión ya activa si PHP_SESSION_ACTIVE.
+     */
+    public static function readUserIdFromSession(): ?int
+    {
+        // Fast path: sesión ya activa en este request (tests o sesión iniciada por
+        // otro middleware anterior). No necesitamos iniciar nada.
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            return isset($_SESSION['user_id']) && \is_numeric($_SESSION['user_id'])
+                ? (int) $_SESSION['user_id']
+                : null;
         }
 
-        // session_start() + session_write_close() es más fiable que read_and_close en
-        // FrankenPHP worker mode: con read_and_close, llamadas sucesivas en el mismo
-        // proceso worker no repoblaban $_SESSION correctamente (bug en la integración
-        // phpredis + FrankenPHP Fibers donde PS(http_session_vars) no se restablece).
-        // session_write_close() libera el lock inmediatamente (< 1ms) permitiendo
-        // requests concurrentes (Alpine.js Promise.all) sin bloqueo prolongado.
-        \session_start();
-        \session_write_close();
+        if (Env::get('SESSION_DRIVER', 'file') !== 'redis') {
+            // Fallback para driver=file (dev/test sin worker mode).
+            self::startReadOnly();
+
+            return isset($_SESSION['user_id']) && \is_numeric($_SESSION['user_id'])
+                ? (int) $_SESSION['user_id']
+                : null;
+        }
+
+        // Driver Redis: lectura directa sin módulo de sesiones PHP.
+        $name = \session_name(); // 'komorebi_session'
+        $id   = $_COOKIE[$name] ?? '';
+
+        // Validar formato del session ID (phpredis genera IDs alfanuméricos + , -)
+        if ($id === '' || \strlen($id) > 256 || \preg_match('/[^a-zA-Z0-9,\-]/', $id)) {
+            return null;
+        }
+
+        $host = Env::get('REDIS_HOST', '127.0.0.1');
+        $port = Env::int('REDIS_PORT', 6379);
+        $pass = Env::get('REDIS_PASSWORD', '');
+
+        try {
+            $redis = new Redis();
+
+            if (!$redis->connect($host, $port, 2.0)) {
+                return null;
+            }
+
+            if ($pass !== '') {
+                $redis->auth($pass);
+            }
+
+            $redis->select(1); // DB 1 = sesiones
+
+            /** @var string|false $raw */
+            $raw = $redis->get('PHPREDIS_SESSION:' . $id);
+            $redis->close();
+
+            if (!\is_string($raw) || $raw === '') {
+                return null;
+            }
+
+            // PHP session serializer: key|serialized_value
+            // user_id se almacena como entero: user_id|i:N;
+            if (\preg_match('/(^|[;}])user_id\|i:(\d+);/', $raw, $m)) {
+                return (int) $m[2];
+            }
+
+            // Fallback defensivo: user_id como string
+            if (\preg_match('/(^|[;}])user_id\|s:\d+:"(\d+)";/', $raw, $m)) {
+                return (int) $m[2];
+            }
+
+            return null;
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     /**

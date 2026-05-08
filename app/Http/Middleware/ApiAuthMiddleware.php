@@ -74,17 +74,10 @@ final class ApiAuthMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
         // ── Session path ─────────────────────────────────────────────────────────
-        // read_and_close: lee la sesión y libera el lock inmediatamente, lo que
-        // permite que requests concurrentes (Promise.all en Alpine.js) lean la
-        // sesión sin bloquearse entre sí.
-        //
-        // IMPORTANTE: tras read_and_close, Session::get() llamaría a start() de
-        // nuevo y re-adquiriría el lock. Leemos $_SESSION directamente para evitar
-        // ese re-lock y mantener la concurrencia.
-        Session::startReadOnly();
-
-        /** @var int|string|null $userId */
-        $userId = $_SESSION['user_id'] ?? null;
+        // Direct Redis read: bypasea el módulo de sesiones PHP, que no es fiber-safe
+        // en FrankenPHP worker mode. Sin write locks → requests concurrentes de
+        // Alpine.js (Promise.all en /perfil) no se bloquean entre sí.
+        $userId = Session::readUserIdFromSession();
 
         if (empty($userId)) {
             Logger::warning('[ApiAuth] Unauthenticated request', [
@@ -99,14 +92,9 @@ final class ApiAuthMiddleware implements MiddlewareInterface
             ], 401);
         }
 
-        /** @var array<string, mixed>|null $sessionUser */
-        $sessionUser = $_SESSION['user'] ?? null;
-        if (!empty($sessionUser) && isset($sessionUser['id']) && (int) $sessionUser['id'] === (int) $userId) {
-            $user = $sessionUser;
-        } else {
-            // Sesión sin caché de usuario → leer de DB directamente.
-            $user = $this->fetchUserFromDb((int) $userId);
-        }
+        // Leer usuario y roles desde DB. La caché de sesión se omite intencionalmente
+        // para evitar depender de $_SESSION (no poblado con la lectura directa de Redis).
+        $user = $this->fetchUserFromDb((int) $userId);
 
         if (!$user || !$user['is_active']) {
             Logger::warning('[ApiAuth] Inactive account attempt', [
@@ -120,13 +108,7 @@ final class ApiAuthMiddleware implements MiddlewareInterface
             ], 401);
         }
 
-        // Leer roles de sesión (ya cargados en login) o de DB si no están.
-        // No escribimos en sesión (read_and_close ya cerró el lock).
-        /** @var string[]|null $roles */
-        $roles = $_SESSION['user_roles'] ?? null;
-        if (empty($roles)) {
-            $roles = $this->fetchUserRolesFromDb((int) $userId);
-        }
+        $roles = $this->fetchUserRolesFromDb((int) $userId);
 
         $request = $request
             ->withAttribute('user_id', (int) $userId)
