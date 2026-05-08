@@ -20,7 +20,7 @@ final class DatabaseServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
-        Container::singleton(PDO::class, static fn () => \App\Providers\DatabaseServiceProvider::createConnection());
+        Container::singleton(PDO::class, static fn() => \App\Providers\DatabaseServiceProvider::createConnection());
 
         // Alias corto
         Container::alias('db', PDO::class);

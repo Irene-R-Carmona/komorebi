@@ -63,6 +63,24 @@ else
 fi
 
 # ── PASO 2/4: Esperar MySQL ─────────────────────────────────────
+# Si MYSQL_URL o DATABASE_URL están presentes (Railway), parsearlas y exportar
+# las variables DB_* individuales para que el resto del script las use.
+_DB_URL="${MYSQL_URL:-${DATABASE_URL:-}}"
+if [ -n "$_DB_URL" ]; then
+    log "PASO 2/4: Resolviendo credenciales desde MYSQL_URL/DATABASE_URL..."
+    eval "$(PARSE_URL="$_DB_URL" php -r "
+        \$u = parse_url(getenv('PARSE_URL'));
+        if (\$u === false || empty(\$u['host'])) { fwrite(STDERR, 'URL inválida'); exit(1); }
+        echo 'export DB_HOST='     . escapeshellarg(\$u['host']                       ) . PHP_EOL;
+        echo 'export DB_PORT='     . escapeshellarg((string)(\$u['port']     ?? 3306) ) . PHP_EOL;
+        echo 'export DB_DATABASE=' . escapeshellarg(ltrim(\$u['path'] ?? '', '/')     ) . PHP_EOL;
+        echo 'export DB_USERNAME=' . escapeshellarg(urldecode(\$u['user']    ?? '')   ) . PHP_EOL;
+        echo 'export DB_PASSWORD=' . escapeshellarg(urldecode(\$u['pass']    ?? '')   ) . PHP_EOL;
+    ")"
+    log "          Host resuelto: ${DB_HOST} | Puerto: ${DB_PORT:-3306} | BD: ${DB_DATABASE}"
+fi
+unset _DB_URL
+
 log "PASO 2/4: Esperando MySQL en ${DB_HOST:-db}:${DB_PORT:-3306} (bd: ${DB_DATABASE:-?})..."
 log "          Timeout máximo: 120s | Intervalo: 2s"
 attempt=0
