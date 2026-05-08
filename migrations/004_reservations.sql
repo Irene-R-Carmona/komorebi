@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS reservations (
     -- Fecha y hora
     reservation_date DATE NOT NULL,
     reservation_time TIME NOT NULL,
-    guest_count INT UNSIGNED NOT NULL DEFAULT 1,
+    guest_count INT UNSIGNED NOT NULL DEFAULT 1, -- DEFAULT estructural; límite máximo dinámico en settings: max_guests_per_reservation
     -- Estados: pending → confirmed → active → completed/cancelled/no_show
     status ENUM (
         'pending',

@@ -55,7 +55,7 @@
   height: 120px;
   border-radius: var(--radius-full);
   background: var(--color-primario);
-  color: #fff;
+  color: var(--color-fondo);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -117,7 +117,7 @@
   border-radius: var(--radius-md);
   font-weight: var(--font-semibold);
   text-align: center;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-fast);
 }
 
 .btn-wl-primary:hover {

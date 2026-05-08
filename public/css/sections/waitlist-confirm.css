@@ -88,7 +88,7 @@
   font-size: 1.1rem;
   font-weight: var(--font-semibold);
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background var(--transition-fast);
 }
 
 .btn-confirm:hover {

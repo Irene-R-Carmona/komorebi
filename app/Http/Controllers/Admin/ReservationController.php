@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Core\Container;
+use App\Core\Pagination;
 use App\Core\View;
 use App\Services\Contracts\AdminActivityServiceInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -57,7 +58,7 @@ final class ReservationController
             fn (array $r) => $this->matchesFilters($r, $search, $status, $cafe, $dateFrom, $dateTo),
         ));
 
-        $perPage = 20;
+        $perPage = Pagination::DEFAULT_LIMIT;
         $reservations = \array_slice($filtered, ($page - 1) * $perPage, $perPage);
 
         $currentParams = \array_filter([

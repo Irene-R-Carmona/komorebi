@@ -23,7 +23,7 @@
   box-shadow: var(--elevation-2);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  background: rgba(247, 243, 235, 0.92);
+  background: color-mix(in srgb, var(--color-fondo) 92%, transparent);
 }
 
 [data-tema="oscuro"] .header--scrolled {
@@ -104,7 +104,7 @@
 
 .header__link:hover {
   color: var(--color-acento);
-  background: rgba(201, 169, 89, 0.08);
+  background: color-mix(in srgb, var(--color-acento) 8%, transparent);
 }
 
 .header__link:hover::after {
@@ -114,7 +114,7 @@
 .header__link--activo {
   color: var(--color-primario);
   font-weight: 600;
-  background: rgba(92, 61, 46, 0.08);
+  background: color-mix(in srgb, var(--color-primario) 8%, transparent);
 }
 
 .header__link--activo::after {
@@ -432,7 +432,7 @@
   }
 
   .header__mobile-btn:hover {
-    background-color: rgba(92, 61, 46, 0.06);
+    background-color: color-mix(in srgb, var(--color-primario) 6%, transparent);
   }
 
   /* Hamburger → X icon swap via Alpine :class */
@@ -486,7 +486,7 @@
 
   .header__mobile-link:hover {
     color: var(--color-acento);
-    background-color: rgba(201, 169, 89, 0.08);
+    background-color: color-mix(in srgb, var(--color-acento) 8%, transparent);
   }
 
   .header__mobile-link:last-child {

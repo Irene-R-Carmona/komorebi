@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Logger;
 use App\Core\Result;
 use App\Core\Session;
+use App\Domain\Validation\UserConstraints;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
 use Override;
@@ -38,7 +39,7 @@ final class UserAccountService implements UserAccountServiceInterface
             return Result::fail('Las contraseñas no coinciden.');
         }
 
-        if (\mb_strlen($newPassword) < 8) {
+        if (\mb_strlen($newPassword) < UserConstraints::PASSWORD_MIN_LENGTH) {
             return Result::fail('La contraseña debe tener al menos 8 caracteres.');
         }
 

@@ -8,6 +8,7 @@ use App\Core\BaseService;
 use App\Core\Logger;
 use App\Core\Result;
 use App\Core\WideEvent;
+use App\Domain\Review\ReviewStatus;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
@@ -97,7 +98,7 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
                 'rating' => $rating,
                 'title' => $title,
                 'body' => $body,
-                'status' => 'pending',
+                'status' => ReviewStatus::Pending->value,
             ]);
 
             WideEvent::setSection('review', [
@@ -177,7 +178,7 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
                 'rating' => $rating,
                 'title' => $title,
                 'body' => $body,
-                'status' => 'pending',
+                'status' => ReviewStatus::Pending->value,
             ]);
 
             return Result::ok('Reseña actualizada exitosamente');

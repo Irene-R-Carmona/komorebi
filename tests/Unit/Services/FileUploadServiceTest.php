@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Services\Contracts\FileStorageServiceInterface;
 use App\Services\FileUploadService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -21,7 +22,8 @@ final class FileUploadServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->service = new FileUploadService(\sys_get_temp_dir());
+        $stub = $this->createStub(FileStorageServiceInterface::class);
+        $this->service = new FileUploadService($stub);
     }
 
     public function testUploadAvatarFailsWhenNoFileSelected(): void
@@ -147,11 +149,11 @@ final class FileUploadServiceTest extends TestCase
 
     public function testDeleteFileSucceedsWhenFileExists(): void
     {
-        $avatarDir = \sys_get_temp_dir() . '/avatars';
-        $filename = 'test_del_' . \getmypid() . '.jpg';
-        \file_put_contents($avatarDir . '/' . $filename, 'fake image content');
+        $stub = $this->createStub(FileStorageServiceInterface::class);
+        $stub->method('destroy')->willReturn(true);
+        $service = new FileUploadService($stub);
 
-        $result = $this->service->deleteFile('/storage/uploads/avatars/' . $filename);
+        $result = $service->deleteFile('https://res.cloudinary.com/demo/image/upload/komorebi/avatars/user_1');
 
         $this->assertTrue($result->ok);
     }

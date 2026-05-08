@@ -53,7 +53,7 @@ ob_start();
                     <?php else: ?>
                         <!-- Error -->
                         <div class="mb-4">
-                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error" style="color: #dc3545;">
+                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error" style="color: var(--color-error);">
                                 <circle cx="40" cy="40" r="35" stroke="currentColor" stroke-width="3" fill="none" />
                                 <line x1="30" y1="30" x2="50" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
                                 <line x1="50" y1="30" x2="30" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round" />

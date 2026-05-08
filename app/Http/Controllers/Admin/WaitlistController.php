@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Core\Container;
 use App\Core\Http\ResponseFactory;
+use App\Core\Pagination;
 use App\Core\View;
 use App\Http\Transformers\WaitlistTransformer;
 use App\Repositories\Contracts\WaitlistRepositoryInterface;
@@ -35,7 +36,7 @@ final class WaitlistController
     {
         $queryParams = $request->getQueryParams();
         $page = \max(1, (int) ($queryParams['page'] ?? 1));
-        $perPage = 25;
+        $perPage = Pagination::PAGE_SIZE_LIST;
 
         $filters = [
             'cafe_id' => $queryParams['cafe_id'] ?? null,

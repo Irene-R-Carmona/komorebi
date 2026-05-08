@@ -80,7 +80,7 @@
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .quick-period-btn:hover {
@@ -266,7 +266,7 @@
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all var(--transition-base);
 }
 
 .export-btn--csv {

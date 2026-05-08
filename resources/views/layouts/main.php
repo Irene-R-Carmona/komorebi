@@ -44,6 +44,20 @@ $assetVersion = Env::get('APP_VERSION', '1');
             }
         })();
     </script>
+    <script nonce="<?= $cspNonce ?>">
+        window.CONFIG = {
+            timezone: <?= json_encode(Env::get('APP_TIMEZONE', 'Asia/Tokyo')) ?>
+        };
+        window.AppRoutes = {
+            favorites: '/api/v1/favorites',
+            cart: '/api/v1/cart',
+            cartItems: '/api/v1/cart/items',
+            timeSlotsAvailable: '/api/v1/time-slots/available',
+            weather: '/api/v1/weather',
+            holidays: '/api/v1/holidays',
+            newsletterSubscriptions: '/api/v1/newsletter/subscriptions',
+        };
+    </script>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta name="csrf-token" content="<?= htmlspecialchars(Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
 
@@ -270,7 +284,7 @@ $assetVersion = Env::get('APP_VERSION', '1');
                 x-data="{ email: '', state: 'idle', message: '' }"
                 @submit.prevent="
                      state = 'loading';
-                     fetch('/api/v1/newsletter/subscriptions', {
+                     fetch(window.AppRoutes.newsletterSubscriptions, {
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json' },
                          body: JSON.stringify({ email })

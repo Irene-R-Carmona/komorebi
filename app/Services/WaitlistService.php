@@ -9,6 +9,7 @@ use App\Core\Queue;
 use App\Core\Result;
 use App\Core\TransactionalService;
 use App\Core\WideEvent;
+use App\Domain\Waitlist\WaitlistStatus;
 use App\Jobs\WaitlistPromotionJob;
 use App\Models\Waitlist;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
@@ -95,7 +96,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             'special_requests' => $data['special_requests'] ?? null,
             'confirmation_token' => $token,
             'expires_at' => $expiresAt,
-            'status' => 'waiting',
+            'status' => WaitlistStatus::Waiting->value,
         ];
 
         $waitlistId = $this->waitlistRepository->create($waitlistData);
@@ -191,7 +192,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::ok(['promoted' => false, 'message' => 'Siguiente en cola inválido']);
             }
 
-            $this->waitlistRepository->updateStatusWithData($nextId, Waitlist::STATUS_NOTIFIED, ['expires_at' => $expiresAt]);
+            $this->waitlistRepository->updateStatusWithData($nextId, WaitlistStatus::Notified->value, ['expires_at' => $expiresAt]);
 
             Queue::push(WaitlistPromotionJob::class, [
                 'waitlist_id' => $nextId,
@@ -250,7 +251,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
                 return Result::fail('Token de waitlist no válido');
             }
 
-            if ($waitlistEntry->status !== Waitlist::STATUS_NOTIFIED) {
+            if ($waitlistEntry->status !== WaitlistStatus::Notified->value) {
                 if ($startedTransaction) {
                     $this->db->rollBack();
                 }
@@ -268,7 +269,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
 
             if ($expiresTimestamp === false || $expiresTimestamp < \time()) {
                 // Marcar como expirado y promocionar al siguiente
-                $this->waitlistRepository->updateStatus($waitlistId, Waitlist::STATUS_EXPIRED);
+                $this->waitlistRepository->updateStatus($waitlistId, WaitlistStatus::Expired->value);
                 $this->waitlistRepository->reorderPositions($timeSlotIdInt, $position);
 
                 // Intentar promocionar al siguiente
@@ -341,7 +342,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
 
             $this->timeSlotRepo->reserveSpots($timeSlotIdInt, $guestCount);
 
-            $this->waitlistRepository->updateStatusWithData($waitlistId, Waitlist::STATUS_CONFIRMED, ['reservation_id' => $newReservationId]);
+            $this->waitlistRepository->updateStatusWithData($waitlistId, WaitlistStatus::Confirmed->value, ['reservation_id' => $newReservationId]);
 
             $this->waitlistRepository->reorderPositions($timeSlotIdInt, $position);
 
@@ -389,7 +390,7 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
     public function getPosition(int $userId, int $timeSlotId): Result
     {
         $position = $this->waitlistRepository->getPosition($timeSlotId, $userId);
-        $totalWaiting = $this->waitlistRepository->countByTimeSlotAndStatus($timeSlotId, Waitlist::STATUS_WAITING);
+        $totalWaiting = $this->waitlistRepository->countByTimeSlotAndStatus($timeSlotId, WaitlistStatus::Waiting->value);
 
         return Result::ok([
             'position' => $position,
@@ -418,11 +419,11 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
             }
 
             // Solo se puede cancelar si está en estado 'waiting' o 'notified'
-            if (!\in_array($entry['status'], [Waitlist::STATUS_WAITING, Waitlist::STATUS_NOTIFIED], true)) {
+            if (!\in_array($entry['status'], [WaitlistStatus::Waiting->value, WaitlistStatus::Notified->value], true)) {
                 return Result::fail('No se puede cancelar una entrada en estado: ' . $entry['status']);
             }
 
-            $this->waitlistRepository->updateStatus($waitlistId, Waitlist::STATUS_CANCELLED);
+            $this->waitlistRepository->updateStatus($waitlistId, WaitlistStatus::Cancelled->value);
 
             $rawTimeSlot = $entry['time_slot_id'] ?? null;
             $timeSlotIdInt = \is_scalar($rawTimeSlot) ? (int) $rawTimeSlot : 0;

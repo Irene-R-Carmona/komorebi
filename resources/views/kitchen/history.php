@@ -1,3 +1,8 @@
+<?php
+// Umbrales de tiempo de espera (minutos) para colorizar el badge de cocina
+$kdsWarnThresholdMins = 10;   // badge amarillo: espera moderada
+$kdsDangerThresholdMins = 15; // badge rojo: espera crítica
+?>
 <div class="container-fluid py-4">
 
     <!-- Cabecera -->
@@ -65,9 +70,9 @@
                                 </td>
                                 <td class="text-center"><?= (int) ($item['quantity'] ?? 1) ?></td>
                                 <td class="text-center">
-                                    <?php if ($mins > 15): ?>
+                                    <?php if ($mins > $kdsDangerThresholdMins): ?>
                                         <span class="badge bg-danger"><?= $mins ?> min</span>
-                                    <?php elseif ($mins > 10): ?>
+                                    <?php elseif ($mins > $kdsWarnThresholdMins): ?>
                                         <span class="badge bg-warning text-dark"><?= $mins ?> min</span>
                                     <?php else: ?>
                                         <span class="badge bg-secondary"><?= $mins ?> min</span>

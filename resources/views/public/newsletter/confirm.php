@@ -18,7 +18,7 @@ ob_start();
                     <?php if ($success): ?>
                         <!-- Éxito -->
                         <div class="mb-4">
-                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Éxito" style="color: #28a745;">
+                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Éxito" style="color: var(--color-exito);">
                                 <circle cx="40" cy="40" r="38" stroke="currentColor" stroke-width="4" fill="none" />
                                 <path d="M25 40L35 50L55 30" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
@@ -47,7 +47,7 @@ ob_start();
                     <?php else: ?>
                         <!-- Error -->
                         <div class="mb-4">
-                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error" style="color: #dc3545;">
+                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error" style="color: var(--color-error);">
                                 <circle cx="40" cy="40" r="38" stroke="currentColor" stroke-width="4" fill="none" />
                                 <path d="M30 30L50 50M50 30L30 50" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
                             </svg>

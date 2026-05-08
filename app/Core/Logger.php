@@ -83,6 +83,22 @@ final class Logger
             $log->pushHandler($bsHandler);
         }
 
+        // Sentry: breadcrumbs (INFO+) para contexto en futuros eventos
+        //         + Sentry Logs dashboard (WARNING+) para búsqueda y alertas
+        if (
+            $isProd
+            && \class_exists(\Sentry\SentrySdk::class)
+            && \Sentry\SentrySdk::getCurrentHub()->getClient() !== null
+        ) {
+            $log->pushHandler(new \Sentry\Monolog\BreadcrumbHandler(
+                hub: \Sentry\SentrySdk::getCurrentHub(),
+                level: Level::Info,
+            ));
+            $log->pushHandler(new \Sentry\Monolog\LogsHandler(
+                \Sentry\Logs\LogLevel::warn(),
+            ));
+        }
+
         $log->pushProcessor(new LogContextProcessor());
 
         self::$channels[$name] = $log;

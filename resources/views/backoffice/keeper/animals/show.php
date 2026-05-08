@@ -108,7 +108,7 @@ $csrfToken = \App\Core\Csrf::token();
                                      const csrfToken = document.querySelector('meta[name=csrf-token]')?.content ?? '';
                                      const body = new FormData();
                                      body.append('csrf_token', csrfToken);
-                                     const res = await fetch('/keeper/animals/<?= (int) $animal['id'] ?>/toggle', {
+                                     const res = await fetch(window.AppRoutes.keeperAnimals + '/<?= (int) $animal['id'] ?>/toggle', {
                                          method: 'POST',
                                          body
                                      });

@@ -10,6 +10,7 @@ use App\Core\Cache;
 use App\Core\Database;
 use App\Core\Env;
 use App\Core\Http\ResponseFactory;
+use App\Core\Middleware;
 use App\Core\MiddlewareFactory;
 use App\Core\Queue;
 use App\Core\Router;
@@ -236,7 +237,7 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
     });
 
     /** @var array<int, MiddlewareInterface> $adminMiddleware */
-    $adminMiddleware = [$mw->auth(), $mw->role('admin')];
+    $adminMiddleware = [$mw->auth(), $mw->role(Middleware::ROLE_ADMIN)];
     $router->group(['prefix' => '/admin', 'middleware' => $adminMiddleware], function (Router $r) use ($mw) {
         $r->get('/dashboard', 'Admin\DashboardController@index');
         $r->get('/users', 'Admin\UserController@index');
@@ -282,7 +283,7 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
     });
 
     /** @var array<int, MiddlewareInterface> $managerMiddleware */
-    $managerMiddleware = [$mw->auth(), $mw->role(['admin', 'manager'])];
+    $managerMiddleware = [$mw->auth(), $mw->role([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER])];
     $router->group(['prefix' => '/manager', 'middleware' => $managerMiddleware], function (Router $r) use ($mw) {
         $r->get('/dashboard', 'Manager\DashboardController@index');
         $r->get('/reservations', 'Manager\ReservationController@index');
@@ -300,20 +301,20 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
     });
 
     /** @var array<int, MiddlewareInterface> $supervisorMiddleware */
-    $supervisorMiddleware = [$mw->auth(), $mw->role(['admin', 'manager', 'supervisor'])];
+    $supervisorMiddleware = [$mw->auth(), $mw->role([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER, Middleware::ROLE_SUPERVISOR])];
     $router->group(['prefix' => '/supervisor', 'middleware' => $supervisorMiddleware], function (Router $r) use ($mw) {
         $r->get('/dashboard', 'Supervisor\SupervisorController@index');
         $r->get('/assignments', 'Supervisor\SupervisorController@assignments');
         $r->post('/assignments', 'Supervisor\SupervisorController@createAssignment', [$mw->csrf()]);
     });
 
-    $router->get('/api/v1/manager/stats', 'Api\V1\ManagerController@stats', [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager'])]);
-    $router->get('/api/v1/manager/revenue/weekly', 'Api\V1\ManagerController@weeklyRevenue', [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager'])]);
-    $router->get('/api/v1/manager/animals/top', 'Api\V1\ManagerController@topAnimals', [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager'])]);
-    $router->get('/api/v1/manager/reservations/status', 'Api\V1\ManagerController@reservationStatus', [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager'])]);
+    $router->get('/api/v1/manager/stats', 'Api\V1\ManagerController@stats', [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER])]);
+    $router->get('/api/v1/manager/revenue/weekly', 'Api\V1\ManagerController@weeklyRevenue', [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER])]);
+    $router->get('/api/v1/manager/animals/top', 'Api\V1\ManagerController@topAnimals', [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER])]);
+    $router->get('/api/v1/manager/reservations/status', 'Api\V1\ManagerController@reservationStatus', [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER])]);
 
     /** @var array<int, MiddlewareInterface> $managerApiMiddleware */
-    $managerApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager'])];
+    $managerApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER])];
     $router->group(['prefix' => '/api/v1/manager', 'middleware' => $managerApiMiddleware], function (Router $r) use ($mw): void {
         $r->put('/cafe/capacity', 'Manager\CafeController@updateCapacity', [$mw->csrf(), $mw->ownsCafe()]);
         $r->put('/cafe/schedule', 'Manager\CafeController@updateSchedule', [$mw->csrf(), $mw->ownsCafe()]);
@@ -345,7 +346,7 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
     );
 
     /** @var array<int, MiddlewareInterface> $adminApiMiddleware */
-    $adminApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin'])];
+    $adminApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN])];
     $router->group(['prefix' => '/api/v1/admin', 'middleware' => $adminApiMiddleware], function (Router $r) use ($mw): void {
         $r->post('/users', 'Api\V1\Admin\UserApiController@create', [$mw->csrf()]);
         $r->put('/users/{id}', 'Api\V1\Admin\UserApiController@update', [$mw->csrf()]);
@@ -400,14 +401,14 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
 if (Env::get('FEATURE_OPS', '1') === '1') {
 
     /** @var array<int, MiddlewareInterface> $receptionMiddleware */
-    $receptionMiddleware = [$mw->auth(), $mw->role(['admin', 'manager', 'supervisor', 'reception'])];
+    $receptionMiddleware = [$mw->auth(), $mw->role([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER, Middleware::ROLE_SUPERVISOR, Middleware::ROLE_RECEPTION])];
     $router->group(['prefix' => '/ops/reception', 'middleware' => $receptionMiddleware], function (Router $r): void {
         $r->get('', 'Reception\ReceptionController@index');
         $r->get('/reservations', 'Reception\ReceptionController@todayReservations');
     });
 
     /** @var array<int, MiddlewareInterface> $kitchenMiddleware */
-    $kitchenMiddleware = [$mw->auth(), $mw->role(['admin', 'manager', 'kitchen', 'supervisor'])];
+    $kitchenMiddleware = [$mw->auth(), $mw->role([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER, Middleware::ROLE_KITCHEN, Middleware::ROLE_SUPERVISOR])];
     $router->group(['prefix' => '/ops/kitchen', 'middleware' => $kitchenMiddleware], function (Router $r): void {
         $r->get('', 'Kitchen\KitchenController@index');
         $r->get('/history', 'Kitchen\KitchenController@history');
@@ -415,7 +416,7 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
     });
 
     /** @var array<int, MiddlewareInterface> $opsReceptionApiMiddleware */
-    $opsReceptionApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager', 'supervisor', 'reception'])];
+    $opsReceptionApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER, Middleware::ROLE_SUPERVISOR, Middleware::ROLE_RECEPTION])];
     $router->group(['prefix' => '/api/v1/ops/reception', 'middleware' => $opsReceptionApiMiddleware], function (Router $r) use ($mw): void {
         $r->get('/reservations', 'Api\V1\Ops\ReceptionApiController@todayReservations');
         $r->post('/reservations/{id}/checkin', 'Api\V1\Ops\ReceptionApiController@checkIn', [$mw->csrf()]);
@@ -425,7 +426,7 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
     });
 
     /** @var array<int, MiddlewareInterface> $opsKitchenApiMiddleware */
-    $opsKitchenApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'manager', 'kitchen', 'supervisor'])];
+    $opsKitchenApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER, Middleware::ROLE_KITCHEN, Middleware::ROLE_SUPERVISOR])];
     $router->group(['prefix' => '/api/v1/ops/kitchen', 'middleware' => $opsKitchenApiMiddleware], function (Router $r) use ($mw): void {
         $r->get('/orders', 'Api\V1\Ops\KitchenApiController@activeOrders');
         $r->post('/orders/{id}/complete', 'Api\V1\Ops\KitchenApiController@completeOrder', [$mw->csrf()]);
@@ -435,12 +436,12 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
 if (Env::get('FEATURE_KEEPER', '1') === '1') {
 
     /** @var array<int, MiddlewareInterface> $keeperMiddleware */
-    $keeperMiddleware = [$mw->auth(), $mw->role(['admin', 'keeper']), $mw->ownsCafe()];
+    $keeperMiddleware = [$mw->auth(), $mw->role([Middleware::ROLE_ADMIN, Middleware::ROLE_KEEPER]), $mw->ownsCafe()];
 
     // Dashboard del keeper: accesible a manager y supervisor sin restricción de café
     $router->get('/keeper/dashboard', 'Keeper\AnimalDashboardController@dashboard', [
         $mw->auth(),
-        $mw->role(['admin', 'keeper', 'manager', 'supervisor']),
+        $mw->role([Middleware::ROLE_ADMIN, Middleware::ROLE_KEEPER, Middleware::ROLE_MANAGER, Middleware::ROLE_SUPERVISOR]),
     ]);
 
     $router->group(['prefix' => '/keeper', 'middleware' => $keeperMiddleware], function (Router $r) use ($mw) {
@@ -467,7 +468,7 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
     });
 
     /** @var array<int, MiddlewareInterface> $keeperApiMiddleware */
-    $keeperApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole(['admin', 'keeper'])];
+    $keeperApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN, Middleware::ROLE_KEEPER])];
     $router->group(['prefix' => '/api/v1/keeper', 'middleware' => $keeperApiMiddleware], function (Router $r) use ($mw): void {
         $r->post('/animals/{id}/photo', 'Api\V1\KeeperApiController@uploadPhoto', [$mw->csrf()]);
         $r->post('/animals/{id}/care-log', 'Api\V1\KeeperApiController@createCareLog', [$mw->csrf()]);

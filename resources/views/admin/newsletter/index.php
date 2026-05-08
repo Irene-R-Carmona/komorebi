@@ -30,6 +30,8 @@ $alpineData = json_encode([
     'showConfirm' => false,
     'loading' => false,
     'toast' => null,
+    'toastDismissMs' => 3500,
+    'reloadDelayMs' => 1200,
 ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
 ?>
 
@@ -54,7 +56,7 @@ $alpineData = json_encode([
         <div class="alert"
             :class="toast.type === 'success' ? 'alert-success' : 'alert-danger'"
             x-text="toast.msg"
-            x-init="setTimeout(() => toast = null, 3500)">
+            x-init="setTimeout(() => toast = null, toastDismissMs)">
         </div>
     </template>
 
@@ -211,7 +213,7 @@ $alpineData = json_encode([
         tabindex="-1"
         role="dialog"
         x-show="showConfirm"
-        style="background: rgba(0,0,0,.5)">
+        style="background: var(--overlay-backdrop, rgba(0,0,0,0.5))">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -234,7 +236,7 @@ $alpineData = json_encode([
                         :disabled="loading"
                         @click="
                                 loading = true;
-                                fetch('/api/v1/admin/newsletter/subscribers/' + encodeURIComponent(confirmEmail), {
+                                fetch(window.AppRoutes.adminNewsletterSubscribers + '/' + encodeURIComponent(confirmEmail), {
                                     method: 'DELETE',
                                     headers: { 'X-CSRF-Token': csrf, 'Accept': 'application/json' }
                                 })
@@ -245,7 +247,7 @@ $alpineData = json_encode([
                                     toast = d.ok
                                         ? { type: 'success', msg: 'Suscriptor eliminado correctamente.' }
                                         : { type: 'error', msg: d.error ?? 'Error al eliminar.' };
-                                    if (d.ok) setTimeout(() => location.reload(), 1200);
+                                    if (d.ok) setTimeout(() => location.reload(), reloadDelayMs);
                                 })
                                 .catch(() => {
                                     toast = { type: 'error', msg: 'Error de red. Intenta de nuevo.' };

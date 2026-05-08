@@ -325,7 +325,7 @@
 .badge--clickable:focus-visible {
   outline: 2px solid var(--color-primary-500, #3a9263);
   outline-offset: 2px;
-  box-shadow: var(--focus-ring, 0 0 0 3px rgba(58, 146, 99, 0.2));
+  box-shadow: var(--focus-ring);
 }
 
 /* Touch target compliant for interactive badges (WCAG 2.1 AA) */

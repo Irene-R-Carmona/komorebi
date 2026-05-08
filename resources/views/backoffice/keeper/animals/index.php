@@ -133,7 +133,7 @@ $getStatusLabel = function (string $status): string {
                                                     const csrfToken = document.querySelector('meta[name=csrf-token]')?.content ?? '';
                                                     const body = new FormData();
                                                     body.append('csrf_token', csrfToken);
-                                                    const res = await fetch('/api/v1/keeper/animals/<?= (int) $animal['id'] ?>/toggle', {
+                                                    const res = await fetch(window.AppRoutes.keeperAnimals + '/<?= (int) $animal['id'] ?>/toggle', {
                                                         method: 'PATCH',
                                                         body
                                                     });

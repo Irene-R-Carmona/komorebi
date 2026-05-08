@@ -23,6 +23,7 @@ use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
@@ -66,6 +67,7 @@ final class UserControllerTest extends TestCase
             reservations: $reservations,
             reviews: $this->createStub(ReviewQueryServiceInterface::class),
             response: new ResponseFactory(),
+            fileUploadService: $this->createStub(FileUploadServiceInterface::class),
         );
     }
 

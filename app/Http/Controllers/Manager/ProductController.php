@@ -8,6 +8,7 @@ use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Http\ResponseFactory;
 use App\Core\Logger;
+use App\Core\Pagination;
 use App\Core\Session;
 use App\Core\View;
 use App\Domain\DTO\PaginationParams;
@@ -66,7 +67,7 @@ final class ProductController
             $filters['search'] = $params->search;
         }
 
-        $productsData = $this->productRepo->findFiltered($filters, $params->page, 20);
+        $productsData = $this->productRepo->findFiltered($filters, $params->page, Pagination::DEFAULT_LIMIT);
         $categories = \array_map(
             static fn ($dto) => $dto->toViewArray(),
             $this->categoryRepo->findAll()

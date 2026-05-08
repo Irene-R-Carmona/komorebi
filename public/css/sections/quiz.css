@@ -21,7 +21,7 @@
   text-align: center;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-base);
 }
 
 .quiz-card:hover {
@@ -756,7 +756,7 @@
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
   text-decoration: none;
 }
 

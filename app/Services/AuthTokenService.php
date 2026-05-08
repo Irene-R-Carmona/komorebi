@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Cache;
 use App\Core\Container;
 use App\Core\Result;
 use App\Repositories\Contracts\AuthTokenRepositoryInterface;
@@ -17,8 +18,8 @@ use Random\RandomException;
 final class AuthTokenService implements AuthTokenServiceInterface
 {
     private AuthTokenRepositoryInterface $authTokenRepo;
-    private int $emailTokenTtl = 3600;
-    private int $passwordTokenTtl = 3600;
+    private int $emailTokenTtl = Cache::TTL_HOUR;
+    private int $passwordTokenTtl = Cache::TTL_HOUR;
 
     public function __construct(?AuthTokenRepositoryInterface $authTokenRepo = null)
     {

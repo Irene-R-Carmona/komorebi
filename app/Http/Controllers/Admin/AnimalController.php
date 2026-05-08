@@ -8,6 +8,7 @@ use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
+use App\Core\Pagination;
 use App\Core\View;
 use App\Http\Transformers\AnimalTransformer;
 use App\Services\Contracts\AnimalCareServiceInterface;
@@ -47,7 +48,7 @@ final class AnimalController
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         $page = \max(1, (int) ($request->getQueryParams()['page'] ?? 1));
-        $perPage = 25;
+        $perPage = Pagination::PAGE_SIZE_LIST;
 
         $allAnimals = $this->animalTransformer->collection(
             $this->animalCareService->getAllAnimals()

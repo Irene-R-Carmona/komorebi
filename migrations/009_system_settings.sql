@@ -1,6 +1,17 @@
 -- ============================================
 -- Migration: 009 - Sistema de Configuración
 -- Descripción: Sistema centralizado de configuración key-value
+--
+-- FUENTE DE VERDAD (source of truth):
+--   Los valores de configuración dinámica de la aplicación se leen
+--   SIEMPRE desde esta tabla `settings`, NO desde los DEFAULT de columna
+--   del esquema. Los DEFAULT SQL en otras migraciones son únicamente
+--   valores de arranque estructurales para inserciones directas en DB.
+--
+--   Referencias cruzadas:
+--     002_users_rbac.sql  → login_attempts DEFAULT 0     ← ver settings: max_login_attempts, lockout_duration
+--     004_reservations.sql → guest_count DEFAULT 1       ← ver settings: max_guests_per_reservation
+--     004_reservations.sql → reservations parámetros     ← ver settings group 'reservations'
 -- ============================================
 
 -- ============================================

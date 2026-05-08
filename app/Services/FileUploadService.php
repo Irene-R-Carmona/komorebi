@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Env;
 use App\Core\ImageProcessor;
 use App\Core\Result;
-use App\Exceptions\ConfigurationException;
+use App\Services\Contracts\FileStorageServiceInterface;
 use App\Services\Contracts\FileUploadServiceInterface;
-use Exception;
 use finfo;
 use Override;
-use Random\RandomException;
-use Throwable;
 
 /**
  * Servicio de gestión de subida de archivos
@@ -33,15 +31,8 @@ final class FileUploadService implements FileUploadServiceInterface
     private const AVATAR_MAX_WIDTH = 500;
     private const AVATAR_MAX_HEIGHT = 500;
 
-    private string $uploadBasePath;
-    private string $avatarPath;
-    private string $animalPhotoPath;
-
-    public function __construct(?string $basePath = null)
+    public function __construct(private readonly ?FileStorageServiceInterface $fileStorage = null)
     {
-        $this->uploadBasePath = $basePath ?? __DIR__ . '/../../storage/uploads';
-        $this->avatarPath = $this->uploadBasePath . '/avatars';
-        $this->animalPhotoPath = $this->uploadBasePath . '/animals';
     }
 
     /**
@@ -49,57 +40,48 @@ final class FileUploadService implements FileUploadServiceInterface
      *
      * @param array   $file   Archivo de $_FILES
      * @param integer $userId ID del usuario
-     * @return Result URL relativa del avatar subido
-     * @throws RandomException
+     * @return Result URL pública del avatar subido (Cloudinary)
      */
     #[Override]
     public function uploadAvatar(array $file, int $userId): Result
     {
-        // Crear directorios si no existen
-        try {
-            $this->ensureDirectoriesExist();
-        } catch (Throwable $e) {
-            return Result::fail('El almacenamiento no está disponible: ' . $e->getMessage());
-        }
-
-        // Validar archivo
-        $validation = $this->validateFile(
-            $file,
-            self::MAX_AVATAR_SIZE
-        );
-
+        $validation = $this->validateFile($file, self::MAX_AVATAR_SIZE);
         if ($validation->error !== null) {
             return $validation;
         }
 
-        // Generar nombre único
+        if ($this->fileStorage === null) {
+            return Result::fail('Almacenamiento externo no disponible');
+        }
+
         $extension = \strtolower(\pathinfo($file['name'], PATHINFO_EXTENSION));
-        $filename = "user_{$userId}_" . \time() . '_' . \bin2hex(\random_bytes(8)) . ".$extension";
-        $filepath = $this->avatarPath . '/' . $filename;
+        $tmpPath = \sys_get_temp_dir() . '/komorebi_avatar_' . $userId . '_' . \time() . '.' . $extension;
 
-        // Eliminar avatar anterior si existe
-        $this->deleteOldUserAvatars($userId);
-
-        // Procesar y guardar imagen
         $saveResult = $this->processAndSaveImage(
             $file['tmp_name'],
-            $filepath,
+            $tmpPath,
             self::AVATAR_MAX_WIDTH,
             self::AVATAR_MAX_HEIGHT
         );
 
         if ($saveResult->error !== null) {
+            @\unlink($tmpPath);
+
             return $saveResult;
         }
 
-        // Retornar URL relativa
-        $relativeUrl = '/storage/uploads/avatars/' . $filename;
+        $uploadResult = $this->fileStorage->uploadImage($tmpPath, 'komorebi/avatars', "user_{$userId}");
+        @\unlink($tmpPath);
 
-        return Result::ok($relativeUrl);
+        if ($uploadResult->error !== null) {
+            return $uploadResult;
+        }
+
+        return Result::ok((string) ($uploadResult->data ?? ''));
     }
 
     /**
-     * Elimina el avatar de un usuario
+     * Elimina el avatar de un usuario de Cloudinary
      *
      * @param integer $userId ID del usuario
      * @return Result
@@ -107,17 +89,17 @@ final class FileUploadService implements FileUploadServiceInterface
     #[Override]
     public function deleteAvatar(int $userId): Result
     {
-        try {
-            $deleted = $this->deleteOldUserAvatars($userId);
-
-            if ($deleted > 0) {
-                return Result::ok(true);
-            }
-
-            return Result::fail('No se encontró ningún avatar para eliminar');
-        } catch (Exception $e) {
-            return Result::fail('Error al eliminar avatar: ' . $e->getMessage());
+        if ($this->fileStorage === null) {
+            return Result::fail('Almacenamiento externo no disponible');
         }
+
+        $destroyed = $this->fileStorage->destroy("komorebi/avatars/user_{$userId}");
+
+        if ($destroyed) {
+            return Result::ok(true);
+        }
+
+        return Result::fail('No se encontró ningún avatar para eliminar');
     }
 
     /**
@@ -125,50 +107,44 @@ final class FileUploadService implements FileUploadServiceInterface
      *
      * @param array   $file     Archivo de $_FILES
      * @param integer $animalId ID del animal
-     * @return Result URL relativa de la foto subida
-     * @throws RandomException
+     * @return Result URL pública de la foto subida (Cloudinary)
      */
     #[Override]
     public function uploadAnimalPhoto(array $file, int $animalId): Result
     {
-        // Crear directorios si no existen
-        try {
-            $this->ensureDirectoriesExist();
-        } catch (Throwable $e) {
-            return Result::fail('El almacenamiento no está disponible: ' . $e->getMessage());
-        }
-
-        // Validar archivo
-        $validation = $this->validateFile(
-            $file,
-            self::MAX_ANIMAL_PHOTO_SIZE
-        );
-
+        $validation = $this->validateFile($file, self::MAX_ANIMAL_PHOTO_SIZE);
         if ($validation->error !== null) {
             return $validation;
         }
 
-        // Generar nombre único
-        $extension = \strtolower(\pathinfo($file['name'], PATHINFO_EXTENSION));
-        $filename = "animal_{$animalId}_" . \time() . '_' . \bin2hex(\random_bytes(8)) . ".$extension";
-        $filepath = $this->animalPhotoPath . '/' . $filename;
+        if ($this->fileStorage === null) {
+            return Result::fail('Almacenamiento externo no disponible');
+        }
 
-        // Procesar y guardar imagen (más grande para animales)
+        $extension = \strtolower(\pathinfo($file['name'], PATHINFO_EXTENSION));
+        $tmpPath = \sys_get_temp_dir() . '/komorebi_animal_' . $animalId . '_' . \time() . '.' . $extension;
+
         $saveResult = $this->processAndSaveImage(
             $file['tmp_name'],
-            $filepath,
+            $tmpPath,
             1200,
             1200
         );
 
         if ($saveResult->error !== null) {
+            @\unlink($tmpPath);
+
             return $saveResult;
         }
 
-        // Retornar URL relativa
-        $relativeUrl = '/uploads/animals/' . $filename;
+        $uploadResult = $this->fileStorage->uploadImage($tmpPath, 'komorebi/animals', "animal_{$animalId}");
+        @\unlink($tmpPath);
 
-        return Result::ok($relativeUrl);
+        if ($uploadResult->error !== null) {
+            return $uploadResult;
+        }
+
+        return Result::ok((string) ($uploadResult->data ?? ''));
     }
 
     /**
@@ -251,46 +227,43 @@ final class FileUploadService implements FileUploadServiceInterface
     }
 
     /**
-     * Elimina avatares antiguos de un usuario
+     * Elimina una foto específica.
+     * Soporta URLs de Cloudinary y rutas locales (backward compat).
      *
-     * @param integer $userId ID del usuario
-     * @return integer Número de archivos eliminados
-     */
-    private function deleteOldUserAvatars(int $userId): int
-    {
-        $pattern = $this->avatarPath . "/user_{$userId}_*.*";
-        $files = \glob($pattern);
-        $deleted = 0;
-
-        if ($files) {
-            foreach ($files as $file) {
-                if (\is_file($file) && @\unlink($file)) {
-                    $deleted++;
-                }
-            }
-        }
-
-        return $deleted;
-    }
-
-    /**
-     * Elimina una foto específica
-     *
-     * @param string $relativeUrl URL relativa del archivo
+     * @param string $relativeUrl URL de Cloudinary o ruta relativa local
      * @return Result
      */
     #[Override]
     public function deleteFile(string $relativeUrl): Result
     {
-        // Construir ruta absoluta desde URL relativa
+        // URLs de Cloudinary: extraer public_id y eliminar vía storage
+        if (\str_starts_with($relativeUrl, 'https://res.cloudinary.com/')) {
+            if ($this->fileStorage === null) {
+                return Result::fail('Almacenamiento externo no disponible');
+            }
+
+            $path = (string) \parse_url($relativeUrl, PHP_URL_PATH);
+            // Eliminar prefijo de entrega: /<cloud>/<resource_type>/upload/[v12345/]
+            $publicId = (string) \preg_replace('#^/[^/]+/(?:image|raw|video)/upload/(?:v\d+/)?#', '', $path);
+            $publicId = \pathinfo($publicId, PATHINFO_DIRNAME) . '/' . \pathinfo($publicId, PATHINFO_FILENAME);
+            $publicId = \ltrim($publicId, '/');
+
+            $destroyed = $this->fileStorage->destroy($publicId);
+
+            return $destroyed
+                ? Result::ok(true)
+                : Result::fail('Error al eliminar el archivo de Cloudinary');
+        }
+
+        // Backward compat: rutas locales en storage/uploads/
         $relativePath = \str_replace('/storage/uploads/', '', $relativeUrl);
-        $filePath = $this->uploadBasePath . '/' . $relativePath;
+        $localBasePath = Env::get('STORAGE_PATH', '/app/storage') . '/uploads';
+        $filePath = $localBasePath . '/' . $relativePath;
 
-        // Validar que el archivo está en el directorio de uploads (seguridad)
         $realPath = \realpath($filePath);
-        $realBasePath = \realpath($this->uploadBasePath);
+        $realBasePath = \realpath($localBasePath);
 
-        if ($realPath === false || !\str_starts_with($realPath, $realBasePath)) {
+        if ($realPath === false || $realBasePath === false || !\str_starts_with($realPath, $realBasePath)) {
             return Result::fail('Archivo no válido o fuera del directorio permitido');
         }
 
@@ -303,30 +276,6 @@ final class FileUploadService implements FileUploadServiceInterface
         }
 
         return Result::fail('Error al eliminar el archivo');
-    }
-
-    /**
-     * Asegura que los directorios de upload existan
-     *
-     * @throws ConfigurationException Si no se puede crear el directorio
-     */
-    private function ensureDirectoriesExist(): void
-    {
-        $directories = [
-            $this->uploadBasePath,
-            $this->avatarPath,
-            $this->animalPhotoPath,
-        ];
-
-        foreach ($directories as $dir) {
-            if (!\is_dir($dir) && !\mkdir($dir, 0o755, true) && !\is_dir($dir)) {
-                throw ConfigurationException::directoryNotWritable($dir);
-            }
-
-            if (!\is_writable($dir)) {
-                throw ConfigurationException::directoryNotWritable($dir);
-            }
-        }
     }
 
     /**

@@ -235,7 +235,7 @@ final class ReservationController
         $passId = (int) ($body['pass_product_id'] ?? 0);
         $guests = (int) ($body['guests'] ?? 0);
 
-        if ($cafeId <= 0 || $passId <= 0 || $guests < 1 || $guests > 6) {
+        if ($cafeId <= 0 || $passId <= 0 || $guests < 1 || $guests > 10) {
             Flash::error('Selecciona un café, un pase y el número de personas.');
 
             return $this->response->redirect(self::ROUTE_RESERVAR);

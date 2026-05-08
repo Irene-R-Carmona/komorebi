@@ -186,7 +186,7 @@ $wizard_json = json_encode([
                 if (!this.fecha || !this.cafeId) return;
                 this.loadingSlots = true;
                 try {
-                    const res = await fetch(`/api/v1/time-slots/available?cafe_id=${this.cafeId}&start_date=${this.fecha}&end_date=${this.fecha}`);
+                    const res = await fetch(`${window.AppRoutes.timeSlotsAvailable}?cafe_id=${this.cafeId}&start_date=${this.fecha}&end_date=${this.fecha}`);
                     if (res.ok) {
                         const json = await res.json();
                         this.slots = (json.data?.slots ?? []).filter(s => s.date === this.fecha);
@@ -204,8 +204,8 @@ $wizard_json = json_encode([
                 this.loadingHoliday = true;
                 try {
                     const [weatherRes, holidayRes] = await Promise.all([
-                        fetch(`/api/v1/weather?timezone=Asia/Tokyo`),
-                        fetch(`/api/v1/holidays/${this.fecha}`),
+                        fetch(`${window.AppRoutes.weather}?timezone=${window.CONFIG?.timezone ?? 'Asia/Tokyo'}`),
+                        fetch(`${window.AppRoutes.holidays}/${this.fecha}`),
                     ]);
                     if (weatherRes.ok) {
                         const d = await weatherRes.json();

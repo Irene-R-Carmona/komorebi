@@ -44,6 +44,7 @@ restartPolicyMaxRetries = 3
 # Si SKIP_MIGRATIONS no está definida, el entrypoint también las ejecutaría (innecesario).
 #   SKIP_MIGRATIONS=1
 #   MERCURE_JWT_SECRET=genera-con-openssl-rand-base64-32
+#   MERCURE_CORS_ORIGINS=https://tu-app.up.railway.app
 #   CLOUDINARY_CLOUD_NAME=tu_cloud_name
 #   CLOUDINARY_API_KEY=tu_api_key
 #   CLOUDINARY_API_SECRET=tu_api_secret

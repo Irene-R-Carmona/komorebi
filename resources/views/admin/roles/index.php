@@ -80,6 +80,8 @@ $alpineConfig = json_encode([
 </div>
 
 <script nonce="<?= $cspNonce ?? '' ?>">
+    const UI_SETTLE_MS = 100;
+
     document.addEventListener('DOMContentLoaded', function() {
         if (globalThis.location.hash === '#permisos') {
             const scope = Alpine.$data(document.querySelector('[x-data]'));
@@ -91,7 +93,7 @@ $alpineConfig = json_encode([
                     behavior: 'smooth',
                     block: 'start'
                 });
-            }, 100);
+            }, UI_SETTLE_MS);
         }
     });
 </script>

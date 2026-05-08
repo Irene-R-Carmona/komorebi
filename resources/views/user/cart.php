@@ -117,6 +117,8 @@
 </div>
 
 <script nonce="<?= $cspNonce ?? '' ?>">
+    const TOAST_DISMISS_MS = 3000;
+
     window.userCart = function(csrfToken) {
         return {
             items: [],
@@ -133,7 +135,7 @@
 
             async loadCart() {
                 try {
-                    const res = await fetch('/api/v1/cart', {
+                    const res = await fetch(window.AppRoutes.cart, {
                         headers: {
                             'Accept': 'application/json'
                         }
@@ -151,7 +153,7 @@
                 if (newQty < 1) return;
                 const delta = newQty - item.quantity;
                 try {
-                    const res = await fetch(`/api/v1/cart/items/${item.product_id}`, {
+                    const res = await fetch(`${window.AppRoutes.cartItems}/${item.product_id}`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
@@ -174,7 +176,7 @@
 
             async removeItem(itemId) {
                 try {
-                    const res = await fetch(`/api/v1/cart/items/${itemId}`, {
+                    const res = await fetch(`${window.AppRoutes.cartItems}/${itemId}`, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-Token': csrfToken
@@ -194,7 +196,7 @@
 
             async clearCart() {
                 try {
-                    const res = await fetch('/api/v1/cart/items', {
+                    const res = await fetch(window.AppRoutes.cartItems, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-Token': csrfToken
@@ -220,7 +222,7 @@
                 };
                 setTimeout(() => {
                     this.toast.visible = false;
-                }, 3000);
+                }, TOAST_DISMISS_MS);
             },
         };
     };

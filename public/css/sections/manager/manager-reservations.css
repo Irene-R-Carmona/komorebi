@@ -341,7 +341,7 @@
 
 [data-bs-theme="dark"] .reservations-table tbody tr:hover,
 [data-tema="oscuro"] .reservations-table tbody tr:hover {
-  background-color: rgba(201, 169, 89, 0.05);
+  background-color: color-mix(in srgb, var(--color-acento) 5%, transparent);
 }
 
 /* Badges en modo oscuro — mayor contraste */

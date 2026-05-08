@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Env;
 use App\Services\Contracts\InvoicePDFServiceInterface;
 use tFPDF;
 use Throwable;
@@ -16,7 +17,10 @@ use Throwable;
  */
 final class InvoicePDFService implements InvoicePDFServiceInterface
 {
-    private const INVOICE_DIR = __DIR__ . '/../../storage/invoices/';
+    private static function invoiceDir(): string
+    {
+        return Env::get('STORAGE_PATH', '/app/storage') . '/invoices/';
+    }
 
     /**
      * Genera un PDF de comprobante de reserva
@@ -28,8 +32,8 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
     public function generateReservationInvoice(array $reservation, array $user): string
     {
         // Crear directorio si no existe
-        if (!\is_dir(self::INVOICE_DIR)) {
-            \mkdir(self::INVOICE_DIR, 0o755, true);
+        if (!\is_dir(self::invoiceDir())) {
+            \mkdir(self::invoiceDir(), 0o755, true);
         }
 
         // Inicializar tFPDF con soporte UTF-8
@@ -242,7 +246,7 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
             $reservationCode,
             \date('Ymd_His')
         );
-        $filePath = self::INVOICE_DIR . $filename;
+        $filePath = self::invoiceDir() . $filename;
 
         // Guardar PDF
         $pdf->Output('F', $filePath);
@@ -299,12 +303,12 @@ final class InvoicePDFService implements InvoicePDFServiceInterface
      */
     public function cleanOldInvoices(): int
     {
-        if (!\is_dir(self::INVOICE_DIR)) {
+        if (!\is_dir(self::invoiceDir())) {
             return 0;
         }
 
         $deleted = 0;
-        $files = \glob(self::INVOICE_DIR . '*.pdf');
+        $files = \glob(self::invoiceDir() . '*.pdf');
         $cutoff = \time() - (30 * 24 * 60 * 60); // 30 días
 
         foreach ($files as $file) {

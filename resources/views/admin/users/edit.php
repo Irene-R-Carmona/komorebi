@@ -76,7 +76,7 @@ $userId = (int) ($user['id'] ?? 0);
                             };
                             const pwd = document.getElementById('password').value;
                             if (pwd !== '') { payload.password = pwd; }
-                            fetch('/api/v1/admin/users/<?= $userId ?>', {
+                            fetch(window.AppRoutes.adminUsers + '/<?= $userId ?>', {
                                 method: 'PUT',
                                 headers: {
                                     'Content-Type': 'application/json',

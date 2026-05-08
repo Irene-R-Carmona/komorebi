@@ -143,7 +143,7 @@ $selectedSpecies = $_POST['species'] ?? ($animal['species'] ?? '');
                  const fd = new FormData();
                  fd.append('photo', file);
                  try {
-                     const resp = await fetch('/api/v1/keeper/animals/<?= $animalId ?>/photo', {
+                     const resp = await fetch(window.AppRoutes.keeperAnimals + '/<?= $animalId ?>/photo', {
                          method: 'POST',
                          body: fd,
                          credentials: 'same-origin'

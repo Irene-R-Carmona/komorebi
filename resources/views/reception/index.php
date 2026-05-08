@@ -1,5 +1,7 @@
 <?php
-
+// Umbrales de tiempo de estancia (minutos) para colorizar el anillo de estado
+$warnThresholdMins = 50;   // Verde → Naranja
+$dangerThresholdMins = 60; // Naranja → Rojo
 ?>
 <div style="display: contents;" x-data="receptionApp" data-orderable-items='<?= $orderable_items_json ?>'>
 
@@ -92,19 +94,19 @@
                         $elapsed = (time() - $inicio) / 60;
                         $deg = min(360, ($elapsed / 60) * 360);
 
-                        // Color: Verde (<50m) -> Naranja (50-60m) -> Rojo (>60m)
-                        $color = '#87a77b'; // Verde
-                        if ($elapsed > 50) {
-                            $color = '#f59e0b';
-                        } // Naranja
-                        if ($elapsed > 60) {
-                            $color = '#ef4444';
-                        } // Rojo
+                        // Color: Verde (<warnThresholdMins) -> Naranja (<dangerThresholdMins) -> Rojo (>dangerThresholdMins)
+                        $timeClass = 'time-ok';
+                        if ($elapsed > $warnThresholdMins) {
+                            $timeClass = 'time-warn';
+                        }
+                        if ($elapsed > $dangerThresholdMins) {
+                            $timeClass = 'time-danger';
+                        }
                         ?>
                         <div class="zen-table">
                             <!-- ANILLO CONIC-GRADIENT (Fix Visual) -->
-                            <div class="table-ring"
-                                style="background: conic-gradient(<?= $color ?> <?= $deg ?>deg, #e5e7eb 0deg); border-radius:50%;">
+                            <div class="table-ring table-ring--<?= $timeClass ?>"
+                                style="background: conic-gradient(var(--_ring-color) <?= $deg ?>deg, #e5e7eb 0deg); border-radius:50%;">
 
                                 <!-- Círculo interior para tapar el centro y crear anillo -->
                                 <div style="position:absolute; inset:6px; background:var(--rec-bg); border-radius:50%;"></div>
@@ -112,7 +114,7 @@
                                 <div class="table-surface">
                                     <span class="table-id">#<?= e($g['tracker_code'] ?? '?') ?></span>
                                     <span class="table-pax"><?= $g['guest_count'] ?></span>
-                                    <span class="table-status" style="color:<?= $color ?>">
+                                    <span class="table-status text-<?= $timeClass ?>">
                                         <?= round($elapsed) ?> min
                                     </span>
                                 </div>

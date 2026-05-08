@@ -26,7 +26,7 @@
   border-radius: 50px;
   padding: 0.5rem 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
   cursor: help;
   max-width: 280px;
 }
@@ -201,7 +201,7 @@
   border-radius: 50px;
   font-weight: 600;
   letter-spacing: 0.5px;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
   text-transform: uppercase;
   border: 2px solid transparent;
 }
@@ -209,7 +209,7 @@
 .btn-hero--primary {
   background-color: var(--color-acento);
   color: var(--color-primario);
-  box-shadow: 0 10px 30px rgba(201, 169, 89, 0.4);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-acento) 40%, transparent);
 }
 
 .btn-hero--primary:hover {
@@ -275,7 +275,7 @@
   border-radius: var(--radio-lg);
   text-align: center;
   position: relative;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
@@ -288,7 +288,7 @@
 .paso-card__numero {
   font-family: var(--fuente-acento);
   font-size: 4rem;
-  color: rgba(201, 169, 89, 0.15);
+  color: color-mix(in srgb, var(--color-acento) 15%, transparent);
   /* Marca de agua */
   position: absolute;
   top: 1rem;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Cache;
 use App\Services\Contracts\RateLimitingServiceInterface;
 use Override;
 use Psr\Cache\CacheItemPoolInterface;
@@ -72,7 +73,7 @@ final class RateLimitingService implements RateLimitingServiceInterface
             $data['locked_until'] = \time() + ($config['lockout_minutes'] * 60);
             $ttl = $config['lockout_minutes'] * 60;
         } else {
-            $ttl = 86400; // 24h ventana de seguimiento
+            $ttl = Cache::TTL_DAY; // 24h ventana de seguimiento
         }
 
         $item->set($data);

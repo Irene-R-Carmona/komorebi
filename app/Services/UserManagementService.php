@@ -8,6 +8,7 @@ use App\Core\BaseService;
 use App\Core\Container;
 use App\Core\Database;
 use App\Core\Result;
+use App\Domain\Validation\UserConstraints;
 use App\Repositories\Contracts\UserManagementRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\UserManagementServiceInterface;
@@ -52,7 +53,7 @@ final class UserManagementService extends BaseService implements UserManagementS
             $errors['email'] = 'Email inválido';
         }
 
-        if ((!$isUpdate || !empty($data['password'])) && (empty($data['password']) || \strlen($data['password']) < 8)) {
+        if ((!$isUpdate || !empty($data['password'])) && (empty($data['password']) || \strlen($data['password']) < UserConstraints::PASSWORD_MIN_LENGTH)) {
             $errors['password'] = 'La contraseña debe tener al menos 8 caracteres';
         }
 

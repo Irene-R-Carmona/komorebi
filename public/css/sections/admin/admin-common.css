@@ -34,11 +34,11 @@
   /* Colores principales */
   --admin-primary: #5C3D2E;
   --admin-primary-hover: #4a2f23;
-  --admin-primary-light: rgba(92, 61, 46, 0.1);
+  --admin-primary-light: color-mix(in srgb, var(--color-primario) 10%, transparent);
 
   --admin-accent: #C9A959;
   --admin-accent-hover: #b8963d;
-  --admin-accent-light: rgba(201, 169, 89, 0.15);
+  --admin-accent-light: color-mix(in srgb, var(--color-acento) 15%, transparent);
 
   /* Superficies */
   --admin-surface: #FFFFFF;
@@ -863,7 +863,7 @@
 
 /* Toast enter animation */
 .toast-enter {
-  animation: toastEnter 0.3s ease forwards;
+  animation: toastEnter var(--transition-base) forwards;
 }
 
 @keyframes toastEnter {
@@ -880,7 +880,7 @@
 
 /* Toast exit animation */
 .toast-exit {
-  animation: toastExit 0.3s ease forwards;
+  animation: toastExit var(--transition-base) forwards;
 }
 
 @keyframes toastExit {
