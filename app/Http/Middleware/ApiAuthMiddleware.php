@@ -73,8 +73,10 @@ final class ApiAuthMiddleware implements MiddlewareInterface
 
             return $handler->handle($request);
         }
-        // ── Session path (sin cambios) ────────────────────────────────────────
-        Session::start();
+        // ── Session path ─────────────────────────────────────────────────────────
+        // read_and_close: libera el lock inmediatamente → permite requests concurrentes
+        // sin bloquear la sesión entre sí (evita 401 en Promise.all de la vista perfil).
+        Session::startReadOnly();
 
         $userId = Session::get('user_id');
 
@@ -95,17 +97,14 @@ final class ApiAuthMiddleware implements MiddlewareInterface
         if (!empty($sessionUser) && isset($sessionUser['id']) && (int) $sessionUser['id'] === (int) $userId) {
             $user = $sessionUser;
         } else {
+            // Sesión read_and_close: sin caché de usuario → leer de DB directamente.
             $user = $this->fetchUserFromDb((int) $userId);
-            if ($user !== null) {
-                Session::set('user', $user);
-            }
         }
 
         if (!$user || !$user['is_active']) {
             Logger::warning('[ApiAuth] Inactive account attempt', [
                 'user_id' => $userId,
             ]);
-            Session::destroy();
 
             return $this->response->json([
                 'ok' => false,
@@ -114,12 +113,17 @@ final class ApiAuthMiddleware implements MiddlewareInterface
             ], 401);
         }
 
-        $this->loadUserRolesInSession((int) $userId);
+        // Leer roles de sesión (ya cargados en login) o de DB si no están.
+        // No escribimos en sesión (read_and_close ya cerró el lock).
+        $roles = Session::get('user_roles');
+        if (empty($roles)) {
+            $roles = $this->fetchUserRolesFromDb((int) $userId);
+        }
 
         $request = $request
             ->withAttribute('user_id', (int) $userId)
             ->withAttribute('user', $user)
-            ->withAttribute('user_roles', Session::get('user_roles') ?? ['user'])
+            ->withAttribute('user_roles', $roles)
             ->withAttribute('auth_method', 'session');
 
         return $handler->handle($request);
@@ -141,21 +145,20 @@ final class ApiAuthMiddleware implements MiddlewareInterface
         }
     }
 
-    private function loadUserRolesInSession(int $userId): void
+    /** @return string[] */
+    private function fetchUserRolesFromDb(int $userId): array
     {
-        if (!empty(Session::get('user_roles'))) {
-            return;
-        }
-
         try {
             $db = Database::getConnection();
             $stmt = $db->prepare('SELECT r.code FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?');
             $stmt->execute([$userId]);
             $roles = $stmt->fetchAll(PDO::FETCH_COLUMN);
-            Session::set('user_roles', $roles);
+
+            return !empty($roles) ? $roles : ['user'];
         } catch (Throwable $e) {
             Logger::error('[ApiAuthMiddleware] Error loading roles', ['user_id' => $userId, 'error' => $e->getMessage()]);
-            Session::set('user_roles', ['user']);
+
+            return ['user'];
         }
     }
 }

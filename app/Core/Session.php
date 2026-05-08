@@ -70,6 +70,47 @@ final class Session
     }
 
     /**
+     * Inicia la sesión en modo solo-lectura (read_and_close).
+     *
+     * Libera el lock de sesión inmediatamente tras leerla.
+     * Usar en rutas API donde múltiples requests concurrentes leen sesión
+     * sin necesidad de escribir (evita race conditions / deadlocks).
+     * No permite escribir en sesión después de llamar a este método.
+     */
+    public static function startReadOnly(): void
+    {
+        if (!\array_key_exists('_SESSION', $GLOBALS) || !\is_array($GLOBALS['_SESSION'])) {
+            $GLOBALS['_SESSION'] = [];
+        }
+
+        if (\session_status() === PHP_SESSION_ACTIVE) {
+            return;
+        }
+
+        if (\headers_sent()) {
+            return;
+        }
+
+        // Configurar Redis si aplica (igual que start())
+        if (Env::get('SESSION_DRIVER', 'file') === 'redis') {
+            $redisHost = Env::get('REDIS_HOST', '127.0.0.1');
+            $redisPort = Env::int('REDIS_PORT', 6379);
+            $redisPass = Env::get('REDIS_PASSWORD', '');
+            $sessionTtl = Env::int('SESSION_LIFETIME', 7200);
+            $savePath = "tcp://{$redisHost}:{$redisPort}?database=1&lifetime={$sessionTtl}";
+            if ($redisPass !== '') {
+                $savePath .= '&auth=' . \urlencode($redisPass);
+            }
+            \ini_set('session.save_handler', 'redis');
+            \ini_set('session.save_path', $savePath);
+        }
+
+        // read_and_close: lee la sesión y libera el lock inmediatamente.
+        // Permite requests concurrentes sin bloquear la sesión.
+        \session_start(['read_and_close' => true]);
+    }
+
+    /**
      * SIEMPRE llamar después de login (previene session fixation).
      */
     public static function regenerate(): void
