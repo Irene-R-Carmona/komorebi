@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Core\Container;
+use App\Core\Env;
 use App\Core\View;
 use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\MenuServiceInterface;
@@ -34,7 +35,7 @@ final class MenuController
         }
 
         // 103 Early Hints — FrankenPHP envía la cabecera antes de las queries
-        \header('Link: </css/sections/menu.css>; rel=preload; as=style', false);
+        \header('Link: </css/sections/menu.css?v=' . Env::get('APP_VERSION', '1') . '>; rel=preload; as=style', false);
         if (\function_exists('headers_send')) {
             \headers_send(103);
         }

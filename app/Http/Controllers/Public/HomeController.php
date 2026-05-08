@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Core\Container;
+use App\Core\Env;
 use App\Core\Session;
 use App\Core\View;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
@@ -38,7 +39,7 @@ final class HomeController
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
         // 103 Early Hints — FrankenPHP envía la cabecera antes de las queries
-        \header('Link: </css/sections/home.css>; rel=preload; as=style', false);
+        \header('Link: </css/sections/home.css?v=' . Env::get('APP_VERSION', '1') . '>; rel=preload; as=style', false);
         if (\function_exists('headers_send')) {
             \headers_send(103);
         }
