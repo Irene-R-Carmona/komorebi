@@ -162,12 +162,9 @@ if (!$seedersOnly) {
             ) {
                 logMsg('(objeto ya existe, skip)');
             } else {
-                logMsg('ERROR: ' . $msg);
-
-                if (!$force) {
-                    logMsg('ERROR: Migración fallida. Detener ejecución.', 'error');
-                    exit(1);
-                }
+                logMsg('ERROR: ' . $msg, 'error');
+                logMsg('ERROR: Migración fallida. Detener ejecución.', 'error');
+                exit(1);
             }
         }
     }
@@ -393,14 +390,11 @@ if ($shouldSeed) {
                 $results[$name] = 'ok';
                 unset($pending[$name]);
             } catch (Throwable $e) {
-                logMsg("ERROR: {$name}Seeder falló: " . $e->getMessage());
+                logMsg("ERROR: {$name}Seeder falló: " . $e->getMessage(), 'error');
                 logMsg("[$name] Exception: " . $e->__toString());
                 $results[$name] = 'failed';
-
-                if (!$force) {
-                    logMsg('ERROR: Seeder fallido. Detener ejecución.', 'error');
-                    exit(1);
-                }
+                logMsg('ERROR: Seeder fallido. Detener ejecución.', 'error');
+                exit(1);
             }
         }
 
