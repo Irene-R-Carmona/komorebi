@@ -74,11 +74,17 @@ final class ApiAuthMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
         // ── Session path ─────────────────────────────────────────────────────────
-        // read_and_close: libera el lock inmediatamente → permite requests concurrentes
-        // sin bloquear la sesión entre sí (evita 401 en Promise.all de la vista perfil).
+        // read_and_close: lee la sesión y libera el lock inmediatamente, lo que
+        // permite que requests concurrentes (Promise.all en Alpine.js) lean la
+        // sesión sin bloquearse entre sí.
+        //
+        // IMPORTANTE: tras read_and_close, Session::get() llamaría a start() de
+        // nuevo y re-adquiriría el lock. Leemos $_SESSION directamente para evitar
+        // ese re-lock y mantener la concurrencia.
         Session::startReadOnly();
 
-        $userId = Session::get('user_id');
+        /** @var int|string|null $userId */
+        $userId = $_SESSION['user_id'] ?? null;
 
         if (empty($userId)) {
             Logger::warning('[ApiAuth] Unauthenticated request', [
@@ -93,11 +99,12 @@ final class ApiAuthMiddleware implements MiddlewareInterface
             ], 401);
         }
 
-        $sessionUser = Session::get('user');
+        /** @var array<string, mixed>|null $sessionUser */
+        $sessionUser = $_SESSION['user'] ?? null;
         if (!empty($sessionUser) && isset($sessionUser['id']) && (int) $sessionUser['id'] === (int) $userId) {
             $user = $sessionUser;
         } else {
-            // Sesión read_and_close: sin caché de usuario → leer de DB directamente.
+            // Sesión sin caché de usuario → leer de DB directamente.
             $user = $this->fetchUserFromDb((int) $userId);
         }
 
@@ -115,7 +122,8 @@ final class ApiAuthMiddleware implements MiddlewareInterface
 
         // Leer roles de sesión (ya cargados en login) o de DB si no están.
         // No escribimos en sesión (read_and_close ya cerró el lock).
-        $roles = Session::get('user_roles');
+        /** @var string[]|null $roles */
+        $roles = $_SESSION['user_roles'] ?? null;
         if (empty($roles)) {
             $roles = $this->fetchUserRolesFromDb((int) $userId);
         }
