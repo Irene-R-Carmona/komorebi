@@ -11,6 +11,7 @@ use App\Core\Queue;
 use App\Core\WideEvent;
 use App\Jobs\SendEmailJob;
 use App\Services\Contracts\EmailServiceInterface;
+use App\Workers\EmailWorker;
 
 /**
  * Servicio de Email ASÍNCRONO
@@ -39,7 +40,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'subject' => 'Verifica tu email en Komorebi',
             'body' => $this->getVerificationEmailTemplate($userName, $verificationUrl),
             '_correlation_id' => WideEvent::get('request_id') ?? '',
-        ], 'emails');
+        ], EmailWorker::QUEUE_NAME);
 
         if ($enqueued) {
             Logger::info('Email de verificación encolado', ['email' => $userEmail]);
@@ -66,7 +67,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'subject' => 'Recupera tu contraseña en Komorebi',
             'body' => $this->getPasswordResetTemplate($userName, $resetUrl),
             '_correlation_id' => WideEvent::get('request_id') ?? '',
-        ], 'emails');
+        ], EmailWorker::QUEUE_NAME);
 
         if ($enqueued) {
             Logger::info('Email de password reset encolado', ['email' => $userEmail]);
@@ -116,7 +117,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             $jobData['attachment_name'] = 'factura_reserva.pdf';
         }
 
-        $enqueued = Queue::push(SendEmailJob::class, $jobData, 'emails');
+        $enqueued = Queue::push(SendEmailJob::class, $jobData, EmailWorker::QUEUE_NAME);
 
         if ($enqueued) {
             Logger::info('Email de confirmación de reserva encolado', [
@@ -155,7 +156,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'subject' => 'Reserva cancelada en Komorebi',
             'body' => $this->getReservationCancellationTemplate($userName, $reservationData, $reason),
             '_correlation_id' => WideEvent::get('request_id') ?? '',
-        ], 'emails');
+        ], EmailWorker::QUEUE_NAME);
 
         if ($enqueued) {
             Logger::info('Email de cancelación de reserva encolado', [
@@ -187,7 +188,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'subject' => 'Email de prueba - Komorebi Café',
             'body' => $this->getTestEmailTemplate($recipientName),
             '_correlation_id' => WideEvent::get('request_id') ?? '',
-        ], 'emails');
+        ], EmailWorker::QUEUE_NAME);
 
         if ($enqueued) {
             Logger::info('Email de prueba encolado', ['email' => $recipientEmail]);
@@ -344,7 +345,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'subject' => '🐾 Confirmación de Lista de Espera - Komorebi Café',
             'body' => $this->getWaitlistConfirmationTemplate($userName, $token, $waitlistData),
             '_correlation_id' => WideEvent::get('request_id') ?? '',
-        ], 'emails');
+        ], EmailWorker::QUEUE_NAME);
 
         if ($enqueued) {
             Logger::info('Email de waitlist encolado', ['email' => $userEmail]);
@@ -432,7 +433,7 @@ final class EmailService extends BaseService implements EmailServiceInterface
             'subject' => $subject,
             'body' => $body,
             '_correlation_id' => WideEvent::get('request_id') ?? '',
-        ], 'emails');
+        ], EmailWorker::QUEUE_NAME);
 
         if ($enqueued) {
             Logger::info('Email genérico encolado', [

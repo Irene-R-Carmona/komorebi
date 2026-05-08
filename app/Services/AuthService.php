@@ -11,6 +11,7 @@ use App\Core\Logger;
 use App\Core\Result;
 use App\Core\Session;
 use App\Domain\DTO\UserDTO;
+use App\Domain\Validation\UserConstraints;
 use App\Events\UserRegisteredEvent;
 use App\Exceptions\ValidationException;
 use App\Repositories\Contracts\UserRepositoryInterface;
@@ -113,7 +114,7 @@ final class AuthService extends BaseService implements AuthServiceInterface
             return Result::fail('Email inválido.');
         }
 
-        if (\mb_strlen($password) < 8) {
+        if (\mb_strlen($password) < UserConstraints::PASSWORD_MIN_LENGTH) {
             return Result::fail('La contraseña debe tener al menos 8 caracteres.');
         }
 

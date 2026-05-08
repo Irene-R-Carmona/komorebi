@@ -58,9 +58,9 @@
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--color-primary-500, #3a9263);
+  outline: 2px solid var(--color-primary-500, #5C3D2E);
   outline-offset: 2px;
-  box-shadow: var(--focus-ring, 0 0 0 3px rgba(58, 146, 99, 0.2));
+  box-shadow: var(--focus-ring, 0 0 0 3px rgba(92, 61, 46, 0.2));
 }
 
 /* ============================================================================
@@ -92,21 +92,21 @@
 
 /* PRIMARY - Main CTAs */
 .btn--primary {
-  background-color: var(--color-primary-500, #3a9263);
+  background-color: var(--color-primary-500, #5C3D2E);
   color: white;
-  border-color: var(--color-primary-500, #3a9263);
+  border-color: var(--color-primary-500, #5C3D2E);
 }
 
 .btn--primary:hover:not(:disabled):not(.btn--disabled) {
-  background-color: var(--color-primary-600, #2a7550);
-  border-color: var(--color-primary-600, #2a7550);
+  background-color: var(--color-primary-600, #4a2f23);
+  border-color: var(--color-primary-600, #4a2f23);
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
 .btn--primary:active:not(:disabled):not(.btn--disabled) {
-  background-color: var(--color-primary-700, #225d41);
-  border-color: var(--color-primary-700, #225d41);
+  background-color: var(--color-primary-700, #3d261c);
+  border-color: var(--color-primary-700, #3d261c);
   transform: translateY(0);
   box-shadow: var(--shadow-sm);
 }

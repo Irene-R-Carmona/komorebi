@@ -117,7 +117,7 @@ $cartTotal = (float) ($cart['totalPrice'] ?? 0);
                                     -
                                 </button>
                                 <div class="stepper-val" x-text="personas"></div>
-                                <button type="button" class="stepper-btn" @click="incrementar" :disabled="personas>=6">
+                                <button type="button" class="stepper-btn" @click="incrementar" :disabled="personas>=10">
                                     +
                                 </button>
                             </div>

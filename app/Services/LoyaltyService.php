@@ -9,6 +9,7 @@ use App\Core\Logger;
 use App\Core\Queue;
 use App\Core\Result;
 use App\Core\WideEvent;
+use App\Domain\Loyalty\LoyaltyRewardStatus;
 use App\Jobs\RewardUnlockedJob;
 use App\Repositories\Contracts\LoyaltyRepositoryInterface;
 use App\Services\Contracts\LoyaltyServiceInterface;
@@ -311,7 +312,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
                 return Result::fail('Código de canje no válido');
             }
 
-            if ($reward->status !== 'pending') {
+            if ($reward->status !== LoyaltyRewardStatus::Pending->value) {
                 return Result::fail('Este código ya fue usado o expiró');
             }
 
@@ -340,7 +341,7 @@ final class LoyaltyService implements LoyaltyServiceInterface
         try {
             $reward = $this->loyaltyRepo->findRewardByCode($code);
 
-            if (!$reward || $reward->status !== 'pending') {
+            if (!$reward || $reward->status !== LoyaltyRewardStatus::Pending->value) {
                 return Result::fail('Código no válido');
             }
 

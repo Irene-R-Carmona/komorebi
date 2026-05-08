@@ -12,6 +12,7 @@ use App\Core\View;
 use App\Domain\AvatarOptions;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
+use App\Services\Contracts\FileUploadServiceInterface;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\UserAccountServiceInterface;
@@ -28,19 +29,22 @@ final class UserController
     private ReservationServiceInterface $reservations;
     private ReviewQueryServiceInterface $reviews;
     private ResponseFactory $response;
+    private FileUploadServiceInterface $fileUploadService;
 
     public function __construct(
         ?UserProfileServiceInterface $profileService = null,
         ?UserAccountServiceInterface $accountService = null,
         ?ReservationServiceInterface $reservations = null,
         ?ReviewQueryServiceInterface $reviews = null,
-        ?ResponseFactory $response = null
+        ?ResponseFactory $response = null,
+        ?FileUploadServiceInterface $fileUploadService = null
     ) {
         $this->profileService = $profileService ?? Container::make(UserProfileServiceInterface::class);
         $this->accountService = $accountService ?? Container::make(UserAccountServiceInterface::class);
         $this->reservations = $reservations ?? Container::make(ReservationServiceInterface::class);
         $this->reviews = $reviews ?? Container::make(ReviewQueryServiceInterface::class);
         $this->response = $response ?? new ResponseFactory();
+        $this->fileUploadService = $fileUploadService ?? Container::make(FileUploadServiceInterface::class);
     }
 
     public function profile(ServerRequestInterface $request): ?ResponseInterface
@@ -199,12 +203,9 @@ final class UserController
             return $this->response->json(['success' => false, 'message' => $result->error ?? 'Error al eliminar el avatar.'], 500);
         }
 
-        // Eliminar archivo físico si existe y es local
-        if ($currentAvatar !== null && \str_starts_with($currentAvatar, '/storage/uploads/')) {
-            $filePath = __DIR__ . '/../../../' . \ltrim($currentAvatar, '/');
-            if (\file_exists($filePath)) {
-                \unlink($filePath);
-            }
+        // Eliminar archivo del almacenamiento externo si existe
+        if ($currentAvatar !== null) {
+            $this->fileUploadService->deleteAvatar($userId);
         }
 
         // Actualizar sesión

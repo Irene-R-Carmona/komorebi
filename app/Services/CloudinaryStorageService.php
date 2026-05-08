@@ -16,20 +16,13 @@ use Throwable;
  * Implementación de almacenamiento de archivos usando Cloudinary.
  *
  * Requiere el paquete: composer require cloudinary/cloudinary_php
- * Variables de entorno: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+ * Variable de entorno: CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>
  */
 final class CloudinaryStorageService implements FileStorageServiceInterface
 {
-    public function __construct(
-        private readonly string $cloudName,
-        private readonly string $apiKey,
-        private readonly string $apiSecret,
-    ) {
-        $config = Configuration::instance();
-        $config->cloud->cloudName = $this->cloudName;
-        $config->cloud->apiKey = $this->apiKey;
-        $config->cloud->apiSecret = $this->apiSecret;
-        $config->url->secure = true;
+    public function __construct(string $cloudinaryUrl)
+    {
+        Configuration::instance($cloudinaryUrl);
     }
 
     /**

@@ -175,7 +175,7 @@ document.addEventListener('alpine:init', () => {
       },
 
       incrementar() {
-        this.personas = Math.min(6, this.personas + 1);
+        this.personas = Math.min(10, this.personas + 1);
       },
       decrementar() {
         this.personas = Math.max(1, this.personas - 1);

@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Env;
 use App\Core\Result;
+use App\Domain\Validation\UserConstraints;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\AuthTokenServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
@@ -116,7 +117,7 @@ final class PasswordResetService implements PasswordResetServiceInterface
             return $validation;
         }
 
-        if (\mb_strlen($newPassword) < 8) {
+        if (\mb_strlen($newPassword) < UserConstraints::PASSWORD_MIN_LENGTH) {
             return Result::fail('La contraseña debe tener al menos 8 caracteres.');
         }
 

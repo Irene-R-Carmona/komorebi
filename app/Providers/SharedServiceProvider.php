@@ -185,15 +185,15 @@ final class SharedServiceProvider extends ServiceProvider
         ));
         Container::singleton(SettingsServiceInterface::class, fn () => Container::make(SettingsService::class));
 
-        Container::singleton(FileUploadService::class, fn () => new FileUploadService());
-        Container::singleton(FileUploadServiceInterface::class, fn () => Container::make(FileUploadService::class));
-
         Container::singleton(CloudinaryStorageService::class, static fn () => new CloudinaryStorageService(
-            Env::get('CLOUDINARY_CLOUD_NAME', ''),
-            Env::get('CLOUDINARY_API_KEY', ''),
-            Env::get('CLOUDINARY_API_SECRET', ''),
+            Env::get('CLOUDINARY_URL', ''),
         ));
         Container::singleton(FileStorageServiceInterface::class, fn () => Container::make(CloudinaryStorageService::class));
+
+        Container::singleton(FileUploadService::class, fn () => new FileUploadService(
+            Container::make(FileStorageServiceInterface::class)
+        ));
+        Container::singleton(FileUploadServiceInterface::class, fn () => Container::make(FileUploadService::class));
 
         Container::singleton(UserManagementRepositoryInterface::class, fn () => Container::make(UserRepositoryInterface::class));
 

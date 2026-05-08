@@ -17,7 +17,7 @@
     aria-modal="true"
     aria-labelledby="deleteModalTitle"
     @keydown.escape.window="if (isOpen && !isDeleting) close()"
-    style="background-color: rgba(0,0,0,0.5);">
+    style="background-color: var(--overlay-backdrop, rgba(0,0,0,0.5));">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content" x-trap="isOpen">
             <div class="modal-header modal-header--danger">

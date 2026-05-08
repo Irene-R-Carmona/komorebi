@@ -14,7 +14,7 @@ use Override;
  */
 final class EmailWorker extends AbstractWorker
 {
-    private const string QUEUE_NAME = 'emails';
+    public const string QUEUE_NAME = 'emails';
     private const int MAX_RETRIES = 3;
     private const int RETRY_DELAY = 60; // segundos
 

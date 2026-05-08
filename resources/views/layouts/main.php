@@ -44,6 +44,9 @@ $assetVersion = Env::get('APP_VERSION', '1');
             }
         })();
     </script>
+    <script nonce="<?= $cspNonce ?>">
+        window.CONFIG = { timezone: <?= json_encode(Env::get('APP_TIMEZONE', 'Asia/Tokyo')) ?> };
+    </script>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta name="csrf-token" content="<?= htmlspecialchars(Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
 

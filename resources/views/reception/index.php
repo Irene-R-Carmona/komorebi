@@ -93,18 +93,18 @@
                         $deg = min(360, ($elapsed / 60) * 360);
 
                         // Color: Verde (<50m) -> Naranja (50-60m) -> Rojo (>60m)
-                        $color = '#87a77b'; // Verde
+                        $timeClass = 'time-ok';
                         if ($elapsed > 50) {
-                            $color = '#f59e0b';
-                        } // Naranja
+                            $timeClass = 'time-warn';
+                        }
                         if ($elapsed > 60) {
-                            $color = '#ef4444';
-                        } // Rojo
+                            $timeClass = 'time-danger';
+                        }
                         ?>
                         <div class="zen-table">
                             <!-- ANILLO CONIC-GRADIENT (Fix Visual) -->
-                            <div class="table-ring"
-                                style="background: conic-gradient(<?= $color ?> <?= $deg ?>deg, #e5e7eb 0deg); border-radius:50%;">
+                            <div class="table-ring table-ring--<?= $timeClass ?>"
+                                style="background: conic-gradient(var(--_ring-color) <?= $deg ?>deg, #e5e7eb 0deg); border-radius:50%;">
 
                                 <!-- Círculo interior para tapar el centro y crear anillo -->
                                 <div style="position:absolute; inset:6px; background:var(--rec-bg); border-radius:50%;"></div>
@@ -112,7 +112,7 @@
                                 <div class="table-surface">
                                     <span class="table-id">#<?= e($g['tracker_code'] ?? '?') ?></span>
                                     <span class="table-pax"><?= $g['guest_count'] ?></span>
-                                    <span class="table-status" style="color:<?= $color ?>">
+                                    <span class="table-status text-<?= $timeClass ?>">
                                         <?= round($elapsed) ?> min
                                     </span>
                                 </div>

@@ -41,11 +41,13 @@ document.addEventListener('alpine:init', () => {
 
     get avatarSrc() {
       if (this.profile.avatar_url) return this.profile.avatar_url;
-      const email = this.profile.email ?? '';
-      const seed = email.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-      const gender = seed % 2 === 0 ? 'men' : 'women';
-      const id = Math.abs(seed) % 100;
-      return `https://randomuser.me/api/portraits/${gender}/${id}.jpg`;
+      const name = this.profile.name ?? 'U';
+      const initials = name.split(' ').map(w => w[0] ?? '').slice(0, 2).join('').toUpperCase() || 'U';
+      const colors = ['#5C3D2E', '#4a2f23', '#C9A959', '#5E6F64', '#5A9FD4'];
+      const idx = name.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % colors.length;
+      const bg = colors[idx];
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="40" fill="${bg}"/><text x="40" y="40" text-anchor="middle" dominant-baseline="central" fill="white" font-size="28" font-family="system-ui,sans-serif" font-weight="600">${initials}</text></svg>`;
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
     },
 
     get nextReservation() {

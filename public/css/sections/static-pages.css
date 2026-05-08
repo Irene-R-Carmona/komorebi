@@ -71,15 +71,15 @@
 }
 
 .static-hero__alert--success {
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
+  background: color-mix(in srgb, var(--color-exito) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-exito) 25%, transparent);
+  color: var(--color-exito);
 }
 
 .static-hero__alert--error {
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-  color: #721c24;
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 20%, transparent);
+  color: var(--color-error);
 }
 
 /* ============================================================

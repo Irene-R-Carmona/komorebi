@@ -56,7 +56,7 @@ final class PasswordResetController
         }
 
         View::render('auth/forgot-password', [
-            'titulo'     => 'Recuperar contraseña',
+            'titulo' => 'Recuperar contraseña',
             'csrf_token' => Csrf::token(),
         ], ['auth.css']);
 
@@ -140,8 +140,8 @@ final class PasswordResetController
         }
 
         View::render('auth/reset-password', [
-            'titulo'     => 'Nueva contraseña',
-            'token'      => \htmlspecialchars($token),
+            'titulo' => 'Nueva contraseña',
+            'token' => \htmlspecialchars($token),
             'csrf_token' => Csrf::token(),
         ], ['auth.css']);
 

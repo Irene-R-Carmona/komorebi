@@ -204,7 +204,7 @@ $wizard_json = json_encode([
                 this.loadingHoliday = true;
                 try {
                     const [weatherRes, holidayRes] = await Promise.all([
-                        fetch(`/api/v1/weather?timezone=Asia/Tokyo`),
+                        fetch(`/api/v1/weather?timezone=${window.CONFIG?.timezone ?? 'Asia/Tokyo'}`),
                         fetch(`/api/v1/holidays/${this.fecha}`),
                     ]);
                     if (weatherRes.ok) {

@@ -68,12 +68,12 @@
 }
 
 .alert-success {
-    background-color: rgba(25, 135, 84, 0.1);
-    color: var(--color-exito, #198754);
+    background-color: color-mix(in srgb, var(--color-exito) 10%, transparent);
+    color: var(--color-exito);
     padding: 1rem;
     border-radius: var(--radio-md);
     font-size: 0.9rem;
-    border: 1px solid rgba(25, 135, 84, 0.2);
+    border: 1px solid color-mix(in srgb, var(--color-exito) 20%, transparent);
     display: flex;
     align-items: center;
     gap: 8px;

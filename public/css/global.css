@@ -260,10 +260,18 @@ h3 {
 
 /* Backoffice logout button hover replacement for inline handlers */
 .btn-logout:hover {
-  background: rgba(220, 53, 69, 0.1) !important;
-  border-color: #dc3545 !important;
-  color: #dc3545 !important;
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent) !important;
+  border-color: var(--color-danger) !important;
+  color: var(--color-danger) !important;
 }
+
+/* Reception time-indicator ring and text classes */
+.table-ring--time-ok    { --_ring-color: var(--color-time-ok); }
+.table-ring--time-warn  { --_ring-color: var(--color-time-warn); }
+.table-ring--time-danger { --_ring-color: var(--color-time-danger); }
+.text-time-ok    { color: var(--color-time-ok); }
+.text-time-warn  { color: var(--color-time-warn); }
+.text-time-danger { color: var(--color-time-danger); }
 
 .header__logo:hover {
   color: var(--color-acento);
