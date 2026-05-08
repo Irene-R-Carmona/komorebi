@@ -75,9 +75,14 @@ ExceptionHandler::register();
 date_default_timezone_set(Config::getString('app.timezone', 'UTC'));
 
 // --- PHP-DI: compilación de container (solo producción) ---------------------
-if ($isProduction) {
-    Container::enableCompilation(__DIR__ . '/../storage/cache/di');
-}
+// DISABLED: FrankenPHP workers construyen el container 1 vez por worker (no por request).
+// El container compilado requiere serializar todas las closures de los providers —
+// cualquier closure que capture contexto de clase (self, static, $this) o variable
+// de bucle causa una excepción fatal en PHP-DI. Con workers persistentes el overhead
+// de construir el container en runtime es negligible.
+// if ($isProduction) {
+//     Container::enableCompilation(__DIR__ . '/../storage/cache/di');
+// }
 
 // --- Service Providers (Database, Cache, Events, Queue…) -------------------
 require_once __DIR__ . '/../bootstrap/container.php';
@@ -128,7 +133,7 @@ $requestsHandled = 0;
 // SECCIÓN B — HANDLER PER-REQUEST
 // ============================================================================
 
-$handler = static function () use ($router, $isProduction): void {
+$handler = static function () use ($router): void {
     // Buffer de salida aislado por request (evita output accidental en headers)
     ob_start();
 
