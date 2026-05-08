@@ -42,17 +42,19 @@
           const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
           const response = await fetch('/quiz/resultado', {
             method: 'POST',
+            redirect: 'manual',
             headers: {
               'Content-Type': 'application/json',
               'X-CSRF-Token': csrfToken,
             },
             body: JSON.stringify({ respuestas }),
           });
-          if (!response.ok) throw new Error('Error del servidor: ' + response.status);
-          if (response.redirected) {
-            window.location.href = response.url;
-          } else {
+          // redirect:'manual' → el servidor devuelve 302; fetch NO lo sigue (type='opaqueredirect', status=0).
+          // Esto preserva el quiz_result en sesión para que el GET del navegador lo encuentre intacto.
+          if (response.type === 'opaqueredirect' || response.ok) {
             window.location.href = '/quiz/resultado';
+          } else {
+            throw new Error('Error del servidor: ' + response.status);
           }
         } catch (e) {
           console.error('quiz enviar error:', e);
