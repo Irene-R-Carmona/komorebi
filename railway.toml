@@ -6,7 +6,6 @@ builder = "DOCKERFILE"
 dockerfilePath = "docker/php/Dockerfile.prod"
 
 [deploy]
-startCommand = "supervisord -n -c /etc/supervisor/supervisord.conf"
 healthcheckPath = "/health"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
