@@ -11,6 +11,7 @@ use App\Exceptions\ExternalServiceException;
 use Override;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
 use Throwable;
 
 /**
@@ -173,26 +174,48 @@ final class SendEmailJob implements JobInterface
     {
         $mail = new PHPMailer(true);
 
-        // Configuración SMTP desde variables de entorno
-        $mail->isSMTP();
-        $mail->Host = Env::get('MAIL_HOST', 'localhost');
-        $mail->Port = (int) Env::get('MAIL_PORT', '587'); // Railway: requiere MAIL_PORT=587 (o 465/2525 según proveedor)
-        $mail->SMTPAuth = false; // Mailpit no requiere autenticación en dev
+        $host = Env::get('MAIL_HOST', 'localhost');
+        $port = (int) Env::get('MAIL_PORT', '587');
+        $username = Env::get('MAIL_USERNAME', '');
+        $password = Env::get('MAIL_PASSWORD', '');
+        $encryption = Env::get('MAIL_ENCRYPTION', '');
 
-        // En producción, habilitar autenticación
-        if (Env::get('APP_ENV', 'production') === 'production') {
+        // MAIL_FROM_ADDRESS es el nombre estándar; MAIL_FROM es el nombre legacy (README/docs)
+        $defaultFrom = Env::get('MAIL_FROM_ADDRESS', '') ?: Env::get('MAIL_FROM', 'noreply@komorebi.cafe');
+        $defaultName = Env::get('MAIL_FROM_NAME', 'Komorebi Café');
+
+        $mail->isSMTP();
+        $mail->Host = $host;
+        $mail->Port = $port;
+
+        // SMTPAuth se activa cuando hay credenciales — no depende de APP_ENV
+        if ($username !== '' && $password !== '') {
             $mail->SMTPAuth = true;
-            $mail->Username = Env::get('MAIL_USERNAME');
-            $mail->Password = Env::get('MAIL_PASSWORD');
-            $mail->SMTPSecure = Env::get('MAIL_ENCRYPTION', 'tls');
+            $mail->Username = $username;
+            $mail->Password = $password;
+
+            if ($encryption !== '') {
+                $mail->SMTPSecure = $encryption;
+            }
+
+            // En Alpine/musl (Railway, Docker) puede fallar la verificación de cert por CA bundle limitado
+            $mail->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => true,
+                    'verify_peer_name' => false,
+                ],
+            ];
+        } else {
+            $mail->SMTPAuth = false;
         }
 
-        // Remitente por defecto
-        $defaultFrom = Env::get('MAIL_FROM_ADDRESS', 'noreply@komorebi.cafe');
-        $defaultName = Env::get('MAIL_FROM_NAME', 'Komorebi Café');
-        $mail->setFrom($defaultFrom, $defaultName);
+        // Debug SMTP — visible en Railway logs / stdout de supervisor
+        $mail->SMTPDebug = SMTP::DEBUG_SERVER;
+        $mail->Debugoutput = static function (string $msg, int $level): void {
+            Logger::debug('[SendEmailJob][SMTP] ' . \rtrim($msg), ['level' => $level]);
+        };
 
-        // Charset UTF-8
+        $mail->setFrom($defaultFrom, $defaultName);
         $mail->CharSet = 'UTF-8';
 
         return $mail;
