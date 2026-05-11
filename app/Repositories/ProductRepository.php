@@ -46,7 +46,6 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             'duration_minutes',
             'min_pax',
             'max_pax',
-            'pass_duration_minutes',
             'image_url',
             'is_active',
             'is_seasonal',
@@ -86,7 +85,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             'SELECT id, category_id, product_type, name, japanese_name, slug, description,
                     price, station, prep_time, recipe_steps, ingredients_list, critical_check,
                     calories, attributes, target_cafe_types, target_animal_types,
-                    duration_minutes, min_pax, max_pax, pass_duration_minutes,
+                    duration_minutes, min_pax, max_pax,
                     image_url, is_active, is_seasonal, sort_order, deleted_at, created_at, updated_at
              FROM products
              WHERE id = :id
@@ -239,7 +238,8 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
     {
         $stmt = $this->getDb()->query(
             "SELECT id, name, japanese_name, description, price,
-                    duration_minutes, min_pax, max_pax,
+                    duration_minutes,
+                    min_pax, max_pax,
                     target_cafe_types, target_animal_types,
                     attributes, image_url
              FROM products
@@ -321,7 +321,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         $placeholders = \implode(',', \array_fill(0, \count($ids), '?'));
 
         $stmt = $this->getDb()->prepare(
-            "SELECT id, name, japanese_name, price, product_type,
+            "SELECT id, category_id, name, japanese_name, price, product_type,
                     is_active, image_url, station
              FROM products
              WHERE id IN ($placeholders)"
@@ -625,9 +625,15 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         $stmt = $this->getDb()->prepare(
             "SELECT p.id, p.name, p.japanese_name, p.slug, p.price,
                     p.image_url, p.product_type, p.prep_time,
-                    mc.name AS category_name
+                    mc.name AS category_name,
+                    GROUP_CONCAT(
+                        DISTINCT CONCAT_WS('|', al.code, al.name, al.icon_color)
+                        SEPARATOR ';;'
+                    ) AS allergen_data
              FROM products p
              LEFT JOIN menu_categories mc ON p.category_id = mc.id
+             LEFT JOIN product_allergens pa ON pa.product_id = p.id
+             LEFT JOIN allergens al ON al.id = pa.allergen_id
              INNER JOIN cafes c ON c.id = :cafe_id
              WHERE p.is_active = 1
                AND p.deleted_at IS NULL
@@ -640,6 +646,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
                    p.target_animal_types IS NULL
                    OR JSON_CONTAINS(p.target_animal_types, JSON_QUOTE(c.animal_type))
                )
+             GROUP BY p.id
              ORDER BY mc.display_order, p.sort_order, p.name"
         );
         $stmt->execute(['cafe_id' => $cafeId]);
@@ -815,7 +822,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
                 $severities = \explode(',', $row['allergen_severities']);
 
                 $row['allergens_list'] = \array_map(
-                    static fn (string $id, string $name, string $code, string $severity): array => [
+                    static fn(string $id, string $name, string $code, string $severity): array => [
                         'id' => (int) $id,
                         'name' => $name,
                         'code' => $code,
@@ -992,5 +999,40 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
         return $row !== false
             ? $row
             : ['total_products' => 0, 'active_products' => 0, 'category_count' => 0, 'with_allergens' => 0];
+    }
+
+    /**
+     * Busca el producto activo más económico dentro de una categoría de menú
+     * que no supere un precio máximo. Usado para asignar automáticamente
+     * los artículos incluidos en los pases (unit_price = 0).
+     *
+     * @param int      $categoryId    ID de menu_categories
+     * @param int|null $maxUnitPrice  Precio máximo en céntimos (null = sin límite)
+     * @return array<string, mixed>|null Fila del producto o null si no hay elegibles
+     */
+    #[Override]
+    public function findEligibleIncludedItems(int $categoryId, ?int $maxUnitPrice): ?array
+    {
+        $sql = 'SELECT id, name, price, category_id
+                FROM products
+                WHERE category_id = :category_id
+                  AND is_active = 1
+                  AND product_type = :type
+                  AND deleted_at IS NULL';
+
+        $params = ['category_id' => $categoryId, 'type' => 'item'];
+
+        if ($maxUnitPrice !== null) {
+            $sql .= ' AND price <= :max_price';
+            $params['max_price'] = $maxUnitPrice;
+        }
+
+        $sql .= ' ORDER BY price ASC LIMIT 1';
+
+        $stmt = $this->getDb()->prepare($sql);
+        $stmt->execute($params);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row !== false ? $row : null;
     }
 }

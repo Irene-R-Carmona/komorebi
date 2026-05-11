@@ -159,16 +159,6 @@ if (!empty($flash) && isset($flash['type'], $flash['message'])) {
                     <div class="next-adventure__label">Próxima aventura</div>
 
                     <div class="next-adventure__card">
-                        <img
-                            class="next-adventure__img"
-                            alt=""
-                            src="data:image/svg+xml;utf8,<?=
-                                                            rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'>
-                                <rect width='80' height='80' rx='12' fill='%23f3efe9'/>
-                                <text x='40' y='48' font-size='34' text-anchor='middle'>茶</text>
-                                </svg>")
-?>" />
-
                         <div class="next-adventure__details">
                             <h3 x-text="nextReservation?.cafe_name ?? 'Café'"></h3>
                             <p><span x-text="nextDateHuman"></span> · <span x-text="nextTimeHuman"></span></p>

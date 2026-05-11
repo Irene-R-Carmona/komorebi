@@ -52,7 +52,7 @@ interface HealthCheckRepositoryInterface
      *
      * @return array Lista de chequeos de hoy con datos del animal y keeper
      */
-    public function getTodayChecks(): array;
+    public function getTodayChecks(?int $cafeId = null): array;
 
     /**
      * Obtener animales que aún no tienen chequeo hoy.

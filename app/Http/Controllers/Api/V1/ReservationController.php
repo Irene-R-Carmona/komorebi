@@ -89,19 +89,20 @@ final class ReservationController extends AbstractApiController
         }
 
         $data = [
-            'user_id' => (int) $userId,
-            'cafe_id' => (int) $body['cafe_id'],
+            'user_id'         => (int) $userId,
+            'cafe_id'         => (int) $body['cafe_id'],
             'pass_product_id' => (int) $body['pass_product_id'],
-            'date' => (string) $body['date'],
-            'time' => (string) $body['time'],
-            'guests' => (int) $body['guests'],
-            'comments' => (string) ($body['special_requests'] ?? ''),
+            'date'            => (string) $body['date'],
+            'time'            => (string) $body['time'],
+            'guests'          => (int) $body['guests'],
+            'comments'        => (string) ($body['special_requests'] ?? ''),
+            'pre_order'       => $body['pre_order'] ?? [],
         ];
 
         $result = $this->reservationService->create($data);
 
         if (!$result->ok) {
-            return $this->unprocessable($result->error, 'reservation_error');
+            return $this->unprocessable($result->error, $result->code ?? 'reservation_error');
         }
 
         $id = (int) $result->data;

@@ -1,18 +1,20 @@
 /* ============================================================================
-   SECCIÓN: DASHBOARD USUARI
+   KOMOREBI CAFÉ — PROFILE & DASHBOARD
+   Correcciones: Variables unificadas, Accesibilidad WCAG AA, Modo Oscuro
    ============================================================================ */
 
+/* ----------------------------------------
+   01. LAYOUT PRINCIPAL
+---------------------------------------- */
 .profile-container {
   max-width: 1100px;
   margin: 0 auto;
   padding-bottom: 4rem;
   display: grid;
   gap: 3rem;
-  /* Animación de entrada suave */
   animation: fadeIn 0.6s ease-out;
 }
 
-/* --- BLOQUE SUPERIOR: DASHBOARD --- */
 .dashboard-header {
   display: grid;
   grid-template-columns: 1fr;
@@ -22,19 +24,20 @@
 @media (min-width: 850px) {
   .dashboard-header {
     grid-template-columns: 1.2fr 1fr;
-    /* Tarjeta Membresía | Próxima Aventura */
   }
 }
 
-/* 1. TARJETA DE MEMBRESÍA (Gamificación) */
+/* ----------------------------------------
+   02. TARJETA DE MEMBRESÍA (Gamificación)
+---------------------------------------- */
 .member-card {
-  background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-primary-700) 100%);
+  background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-primario-hover) 100%);
   border-radius: var(--radio-lg);
   padding: 2rem;
-  color: white;
+  color: var(--color-texto-inverso);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 15px 30px color-mix(in srgb, var(--color-primario) 30%, transparent);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
   min-height: 220px;
   display: flex;
   flex-direction: column;
@@ -49,10 +52,11 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
   background-size: 20px 20px;
   opacity: 0.3;
   transform: rotate(30deg);
+  pointer-events: none;
 }
 
 .member-card__top {
@@ -66,7 +70,8 @@
 .member-card__logo {
   font-family: var(--fuente-titulo);
   font-size: 1.2rem;
-  opacity: 0.8;
+  opacity: 0.9;
+  font-weight: 600;
 }
 
 .member-card__tier {
@@ -76,8 +81,9 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(4px);
+  font-weight: 700;
 }
 
 .member-card__user {
@@ -91,7 +97,7 @@
 .member-card__avatar {
   width: 70px;
   height: 70px;
-  background: white;
+  background: #FFFFFF;
   color: var(--color-primario);
   border-radius: 50%;
   display: flex;
@@ -100,12 +106,19 @@
   font-size: 2rem;
   font-weight: 700;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+[data-tema="oscuro"] .member-card__avatar {
+  background: #F0E6D2;
+  color: #2D2218;
 }
 
 .member-card__info h2 {
   font-size: 1.5rem;
   margin: 0;
   line-height: 1.2;
+  font-weight: 700;
 }
 
 .member-card__info p {
@@ -119,9 +132,49 @@
   font-size: 0.85rem;
   opacity: 0.9;
   font-family: var(--fuente-acento);
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
-/* 2. WIDGET PRÓXIMA AVENTURA (UX: Visibilidad de estado) */
+/* Barra de progreso dentro de member-card */
+.member-progress {
+  margin-top: 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.member-progress__bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.member-progress__fill {
+  height: 100%;
+  width: var(--progress, 0%);
+  border-radius: 999px;
+  background: linear-gradient(90deg, #FFFFFF, #E8DCC4);
+  transition: width 0.5s ease-out;
+}
+
+.member-card__stats--progress {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+}
+
+.member-card__level-hint {
+  opacity: 0.85;
+}
+
+/* ----------------------------------------
+   03. WIDGET PRÓXIMA AVENTURA
+---------------------------------------- */
 .next-adventure {
   background: var(--color-superficie);
   border: 1px solid var(--color-borde-card);
@@ -132,19 +185,22 @@
   justify-content: center;
   position: relative;
   box-shadow: var(--sombra-card);
+  transition: border-color var(--transicion);
 }
 
 .next-adventure--empty {
   text-align: center;
   color: var(--color-texto-suave);
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: var(--color-fondo-alt);
   border-style: dashed;
+  justify-content: center;
+  min-height: 200px;
 }
 
 .next-adventure__label {
   text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 1px;
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
   color: var(--color-acento-text);
   margin-bottom: 1rem;
   font-weight: 700;
@@ -161,12 +217,14 @@
   height: 80px;
   border-radius: var(--radio-md);
   object-fit: cover;
+  background-color: var(--color-fondo-alt);
 }
 
 .next-adventure__details h3 {
   margin: 0 0 0.3rem 0;
   font-size: 1.2rem;
   color: var(--color-primario);
+  font-weight: 700;
 }
 
 .next-adventure__details p {
@@ -177,10 +235,110 @@
 
 .next-adventure__cta {
   margin-top: 1.5rem;
-  align-self: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
-/* --- BLOQUE INFERIOR: CONFIGURACIÓN (Grid) --- */
+/* Badge/estado dentro del widget "Próxima aventura" */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-top: 0.5rem;
+  border: 1px solid transparent;
+}
+
+.status-pill--pending {
+  background: color-mix(in srgb, var(--color-warning) 15%, var(--color-superficie));
+  color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+}
+
+.status-pill--confirmed,
+.status-pill--active {
+  background: color-mix(in srgb, var(--color-exito) 15%, var(--color-superficie));
+  color: var(--color-exito);
+  border-color: color-mix(in srgb, var(--color-exito) 30%, transparent);
+}
+
+/* ----------------------------------------
+   04. ACCESO RÁPIDO (Loyalty & Waitlist)
+---------------------------------------- */
+
+.dashboard-quick-access {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.quick-access-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde-card);
+  border-radius: var(--radio-lg);
+  padding: 1.5rem;
+  transition: all var(--transicion);
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  box-shadow: var(--sombra-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-access-card:hover,
+.quick-access-card:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: var(--sombra-lg);
+  border-color: var(--color-acento);
+  outline: none;
+}
+
+.quick-access-card__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.quick-access-card__icon {
+  font-size: 2rem;
+  color: var(--color-primario);
+  flex-shrink: 0;
+}
+
+.quick-access-card__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-texto);
+}
+
+.quick-access-card__description {
+  color: var(--color-texto-suave);
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.quick-access-card__cta {
+  color: var(--color-acento);
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* ----------------------------------------
+   05. CONFIGURACIÓN (Settings Grid)
+---------------------------------------- */
 .settings-grid {
   display: grid;
   gap: 2rem;
@@ -200,6 +358,15 @@
   box-shadow: var(--sombra-card);
 }
 
+.settings-box--danger {
+  border-color: color-mix(in srgb, var(--color-error) 30%, transparent);
+  background: color-mix(in srgb, var(--color-error) 3%, var(--color-superficie));
+}
+
+.settings-box--danger .settings-header {
+  border-bottom-color: color-mix(in srgb, var(--color-error) 20%, transparent);
+}
+
 .settings-header {
   margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--color-borde);
@@ -211,32 +378,22 @@
 
 .settings-icon {
   font-size: 1.5rem;
+  color: var(--color-primario);
+}
+
+.settings-box--danger .settings-icon {
+  color: var(--color-error);
 }
 
 .settings-title {
   font-size: 1.1rem;
   margin: 0;
-  color: var(--color-primario);
-}
-
-/* Botones de acción específicos */
-.btn-update {
-  background: var(--color-fondo);
   color: var(--color-texto);
-  border: 1px solid var(--color-borde);
-  width: 100%;
-  margin-top: 1rem;
-  padding: 0.8rem;
-  border-radius: var(--radio-md);
-  cursor: pointer;
-  font-weight: 600;
-  transition: all var(--transition-fast);
+  font-weight: 700;
 }
 
-.btn-update:hover {
-  border-color: var(--color-primario);
-  color: var(--color-primario);
-  background: white;
+.settings-box--danger .settings-title {
+  color: var(--color-error);
 }
 
 .settings-divider {
@@ -251,25 +408,49 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+  margin-top: 1rem;
 }
 
 .settings-export__hint {
   font-size: 0.85rem;
   color: var(--color-texto-suave);
   margin: 0;
+  flex: 1;
+}
+
+/* Botones de acción */
+.btn-update,
+.btn-danger-outline {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: var(--radio-md);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all var(--transicion-rapida);
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-update {
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  border: 1px solid var(--color-borde);
+}
+
+.btn-update:hover {
+  border-color: var(--color-primario);
+  color: var(--color-primario);
+  background: var(--color-superficie);
 }
 
 .btn-danger-outline {
   background: transparent;
   color: var(--color-error);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
-  width: 100%;
-  margin-top: 1rem;
-  padding: 0.8rem;
-  border-radius: var(--radio-md);
-  cursor: pointer;
-  font-weight: 600;
-  transition: all var(--transition-fast);
+  border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
 }
 
 .btn-danger-outline:hover {
@@ -277,61 +458,22 @@
   color: white;
 }
 
-/* Barra de progreso dentro de member-card */
-.member-progress {
-  margin-top: 0.75rem;
-  position: relative;
-  z-index: 2;
+.btn-danger-outline--inline {
+  width: auto;
+  margin-top: 0;
 }
 
-.member-progress__bar {
-  width: 100%;
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.25);
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.member-progress__fill {
-  height: 100%;
-  width: var(--progress, 0%);
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.55));
-}
-
-/* Badge/estado dentro del widget "Próxima aventura" */
-.status-pill {
-  display: inline-flex;
+.account-danger-icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+  display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  border: 1px solid var(--color-borde);
-  background: var(--color-primary-100);
-  color: var(--color-texto);
-  margin-top: 0.5rem;
-}
-
-.status-pill--pending {
-  background: var(--color-warning-light);
-  border-color: var(--color-warning);
-  color: var(--color-warning-dark);
-}
-
-.status-pill--confirmed {
-  background: var(--color-info-light);
-  border-color: var(--color-info);
-  color: var(--color-info-dark);
-}
-
-.status-pill--active {
-  background: var(--color-success-light);
-  border-color: var(--color-success);
-  color: var(--color-success-dark);
+  justify-content: center;
+  margin: 0 auto 1rem;
+  font-size: 1.75rem;
+  color: var(--color-error);
 }
 
 /* Acciones del widget */
@@ -342,22 +484,18 @@
   gap: 0.75rem;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   SECCIÓN: MIS RESEÑAS
-────────────────────────────────────────────────────────────────────────── */
-
+/* ----------------------------------------
+   06. MIS RESEÑAS
+---------------------------------------- */
 .my-reviews-section {
   background: var(--color-superficie);
   border: 1px solid var(--color-borde-card);
-  border-radius: var(--radio-md);
+  border-radius: var(--radio-lg);
   padding: var(--espaciado-lg);
   box-shadow: var(--sombra-card);
 }
 
 .my-reviews-section .settings-header {
-  display: flex;
-  align-items: center;
-  gap: var(--espaciado-sm);
   margin-bottom: var(--espaciado-md);
   padding-bottom: var(--espaciado-md);
   border-bottom: 2px solid var(--color-borde);
@@ -370,7 +508,6 @@
   color: var(--color-texto);
 }
 
-/* Empty state */
 .reviews-empty {
   text-align: center;
   padding: var(--espaciado-lg);
@@ -393,15 +530,17 @@
 
 .my-review-card {
   padding: var(--espaciado-md);
-  background: var(--color-fondo-alt);
+  background: var(--color-fondo);
   border-left: 4px solid var(--color-acento);
-  border-radius: var(--radio-sm);
+  border-radius: var(--radio-md);
   transition: all var(--transicion);
+  position: relative;
 }
 
 .my-review-card:hover {
-  background: linear-gradient(135deg, var(--color-fondo-alt) 0%, color-mix(in srgb, var(--color-acento) 5%, transparent) 100%);
+  background: var(--color-superficie);
   transform: translateX(4px);
+  box-shadow: var(--sombra-sm);
 }
 
 .my-review__header {
@@ -418,8 +557,8 @@
 
 .my-review__title {
   margin: 0 0 0.25rem 0;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 700;
   color: var(--color-texto);
 }
 
@@ -431,47 +570,48 @@
 
 .my-review__status {
   display: inline-block;
-  padding: 0.35rem 0.75rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   white-space: nowrap;
-  background: var(--color-fondo);
-  color: var(--color-texto-suave);
 }
 
 .my-review__status--status-pending {
   background: color-mix(in srgb, var(--color-warning) 15%, transparent);
-  color: var(--color-warning-dark);
+  color: var(--color-warning);
 }
 
 .my-review__status--status-approved {
-  background: color-mix(in srgb, var(--color-success) 15%, transparent);
-  color: var(--color-success-dark);
+  background: color-mix(in srgb, var(--color-exito) 15%, transparent);
+  color: var(--color-exito);
 }
 
 .my-review__status--status-rejected {
-  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
-  color: var(--color-danger-dark);
+  background: color-mix(in srgb, var(--color-error) 15%, transparent);
+  color: var(--color-error);
 }
 
 .my-review__rating {
   display: flex;
   gap: 0.25rem;
   margin-bottom: var(--espaciado-sm);
-  font-size: 1rem;
+  font-size: 1.1rem;
+  color: var(--color-acento-brillante, #C9A959);
 }
 
 .my-review__body {
   margin: 0 0 var(--espaciado-sm) 0;
   font-size: 0.95rem;
   line-height: 1.6;
-  color: var(--color-texto-suave);
+  color: var(--color-texto);
 }
 
 .my-review__meta {
   font-size: 0.8rem;
-  color: var(--color-neutral-500);
+  color: var(--color-texto-suave);
   margin-bottom: var(--espaciado-sm);
 }
 
@@ -479,22 +619,34 @@
   display: flex;
   gap: var(--espaciado-sm);
   padding-top: var(--espaciado-sm);
-  border-top: 1px solid rgba(212, 196, 168, 0.3);
+  border-top: 1px solid var(--color-borde);
+  margin-top: var(--espaciado-sm);
 }
 
 .btn-icon-text {
   background: none;
   border: none;
-  color: var(--color-acento-text);
+  color: var(--color-texto-suave);
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: color var(--transicion);
-  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: color var(--transicion-rapida);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radio-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
 }
 
 .btn-icon-text:hover {
-  color: var(--color-accent-900);
+  color: var(--color-primario);
+  background-color: var(--color-fondo-alt);
+}
+
+.btn-icon-text:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
 }
 
 .btn-icon-text--danger {
@@ -502,17 +654,18 @@
 }
 
 .btn-icon-text--danger:hover {
-  color: var(--color-secondary-500);
+  background-color: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error);
 }
 
 .my-review__rejection-reason {
   margin-top: var(--espaciado-sm);
   padding: var(--espaciado-sm);
-  background: rgba(155, 35, 53, 0.08);
+  background: color-mix(in srgb, var(--color-error) 5%, transparent);
   border-left: 3px solid var(--color-error);
   border-radius: var(--radio-sm);
   font-size: 0.85rem;
-  color: var(--color-error);
+  color: var(--color-texto);
   line-height: 1.5;
 }
 
@@ -536,81 +689,135 @@
   }
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   SECCIÓN: ACCESO RÁPIDO — Loyalty & Waitlist
-────────────────────────────────────────────────────────────────────────── */
+/* ----------------------------------------
+   07. UTILIDADES & AVATAR
+---------------------------------------- */
 
-.dashboard-quick-access {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin: 2rem 0;
+/* Estilos para el selector de avatar */
+.avatar-actions {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-.quick-access-card {
-  background: linear-gradient(135deg, var(--color-superficie) 0%, var(--color-fondo) 100%);
-  border: 2px solid var(--color-borde-card);
+.member-card__avatar-wrapper:hover .avatar-actions {
+  opacity: 1;
+}
+
+.avatar-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.avatar-btn:hover {
+  transform: scale(1.1);
+}
+
+.avatar-btn--upload {
+  background-color: var(--color-acento);
+  color: white;
+}
+
+.avatar-btn--delete {
+  background-color: var(--color-error);
+  color: white;
+}
+
+/* Modal Picker */
+.avatar-picker {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-superficie);
+  padding: 2rem;
   border-radius: var(--radio-lg);
-  padding: 1.5rem;
-  transition: all var(--transicion);
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  box-shadow: var(--sombra-card);
+  border: 1px solid var(--color-borde);
+  box-shadow: var(--sombra-lg);
+  z-index: 1000;
+  width: 90%;
+  max-width: 400px;
 }
 
-.quick-access-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 30px rgba(45, 34, 24, 0.22), 0 4px 10px rgba(45, 34, 24, 0.14);
+.avatar-picker::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+.avatar-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.avatar-picker__item {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--color-fondo);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.avatar-picker__item:hover {
+  transform: scale(1.1);
   border-color: var(--color-acento);
 }
 
-.quick-access-card__header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+.avatar-picker__item--active {
+  border-color: var(--color-primario);
+  box-shadow: 0 0 0 2px var(--color-superficie), 0 0 0 4px var(--color-primario);
 }
 
-.quick-access-card__icon {
-  font-size: 2.5rem;
-  flex-shrink: 0;
+.avatar-picker__item img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
-.quick-access-card__title {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-texto);
-}
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .my-review-card {
+    padding: var(--espaciado-sm);
+  }
 
-.quick-access-card__description {
-  color: var(--color-texto-suave);
-  margin: 0 0 1rem 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
+  .my-review__header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 
-.quick-access-card__cta {
-  color: var(--color-acento-text);
-  font-weight: 600;
-  font-size: 0.95rem;
-}
+  .my-review__actions {
+    flex-direction: column;
+  }
 
-.quick-access-card:hover .quick-access-card__cta {
-  color: var(--color-accent-900);
-}
+  .btn-icon-text {
+    width: 100%;
+    justify-content: center;
+  }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   UTILIDADES: member-card progress hints
-────────────────────────────────────────────────────────────────────────── */
-
-.member-card__stats--progress {
-  margin-top: 0.35rem;
-}
-
-.member-card__level-hint {
-  opacity: 0.85;
+  .member-card__user {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -636,49 +843,6 @@
   font-family: var(--fuente-titulo);
   color: var(--color-primario);
 }
-
-/* Modificador: settings-box con tono de peligro */
-.settings-box--danger {
-  border-color: color-mix(in srgb, var(--color-error) 35%, transparent);
-  background: color-mix(in srgb, var(--color-error) 4%, var(--color-superficie));
-}
-
-.settings-box--danger .settings-header {
-  border-bottom-color: color-mix(in srgb, var(--color-error) 20%, transparent);
-}
-
-.settings-box--danger .settings-icon {
-  color: var(--color-error);
-}
-
-.settings-box--danger .settings-title {
-  color: var(--color-error);
-}
-
-/* Variante inline de btn-danger-outline (no ocupa el 100% del ancho) */
-.btn-danger-outline--inline {
-  width: auto;
-  margin-top: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Icono circular de acción destructiva */
-.account-danger-icon {
-  width: 4rem;
-  height: 4rem;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-error) 12%, transparent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1rem;
-  font-size: 1.75rem;
-  color: var(--color-error);
-}
-
-/* ── Utilidades de layout para el perfil ──────────────────────── */
 
 /* Región live del toast del perfil (output[aria-live]) */
 .toast-live-region {

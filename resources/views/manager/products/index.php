@@ -106,7 +106,7 @@ $alpineConfig = json_encode([
                                 <tr>
                                     <td class="fw-semibold"><?= $pName ?></td>
                                     <td><?= htmlspecialchars((string) ($p['category_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td><?= CurrencyFormatting::yen((float) ($p['price'] ?? 0)) ?></td>
+                                    <td><?= CurrencyFormatting::euro((int) ($p['price'] ?? 0)) ?></td>
                                     <td>
                                         <span class="badge <?= $isAvail ? 'bg-success' : 'bg-secondary' ?>">
                                             <?= $isAvail ? 'Disponible' : 'No disponible' ?>

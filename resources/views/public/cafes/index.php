@@ -80,6 +80,40 @@
             </div>
         </div>
 
+        <!-- TIPOS DE CAFÉ: explicador estático para orientar al visitante -->
+        <details class="tipo-explainer" x-show="filtroTipo !== 'todos'" x-cloak>
+            <summary class="tipo-explainer__toggle" aria-expanded="false">
+                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                ¿Qué significa este tipo?
+            </summary>
+            <div class="tipo-explainer__body" role="region">
+                <template x-if="filtroTipo === 'lounge'">
+                    <p class="tipo-explainer__text">
+                        <strong>Lounge</strong> — Ambiente tranquilo y relajado. Ideal para descansar, leer
+                        o tomar un café rodeado de animales dóciles. Sin actividades de alta energía.
+                    </p>
+                </template>
+                <template x-if="filtroTipo === 'playroom'">
+                    <p class="tipo-explainer__text">
+                        <strong>Playroom</strong> — Espacio interactivo con zona de juegos y actividades.
+                        Perfecto para familias y quienes quieren interactuar activamente con los animales.
+                    </p>
+                </template>
+                <template x-if="filtroTipo === 'farm'">
+                    <p class="tipo-explainer__text">
+                        <strong>Farm</strong> — Experiencia al aire libre con animales de granja.
+                        Podrás alimentarlos, pasear con ellos y conocer de cerca su cuidado diario.
+                    </p>
+                </template>
+                <template x-if="filtroTipo === 'zen'">
+                    <p class="tipo-explainer__text">
+                        <strong>Zen</strong> — Espacio de bienestar inspirado en el concepto japonés de
+                        armonía con la naturaleza. Sesiones guiadas de mindfulness y contacto sereno con animales.
+                    </p>
+                </template>
+            </div>
+        </details>
+
         <!-- GRID DE CAFÉS -->
         <div class="catalogo__grid" aria-live="polite" aria-atomic="false">
             <template x-for="cafe in cafesFiltrados" :key="cafe.id">

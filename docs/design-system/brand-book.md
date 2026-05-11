@@ -95,28 +95,47 @@ SERENA · AUTÉNTICA · PRECISA · CÁLIDA · DISCRETA
 
 ### 1.7 Taxonomía de Sedes
 
-Cada una de las 14 sedes tiene un animal temático propio. El sistema de naming combina la marca paraguas con el nombre japonés del animal (en romaji).
+Cada una de las 14 sedes tiene un nombre propio de inspiración japonesa, un animal temático y un distrito de Tokio que define su estética. Los nombres de sede son evocadores e independientes del nombre del animal —el animal es la mascota, no el nombre.
 
-**Fórmula:** `Komorebi [Nombre Japonés del Animal]`
-
-| # | Animal | Nombre japonés | Nombre de sede |
-|---|---|---|---|
-| 1 | Gato | Neko (猫) | Komorebi Neko |
-| 2 | Búho | Fukurō (梟) | Komorebi Fukurō |
-| 3 | Conejo | Usagi (兎) | Komorebi Usagi |
-| 4 | Erizo | Harinezumi (針鼠) | Komorebi Harinezumi |
-| 5 | Ardilla | Risu (栗鼠) | Komorebi Risu |
-| 6 | Mapache | Araiguma (洗熊) | Komorebi Araiguma |
-| 7 | Alpaca | Arupaka (アルパカ) | Komorebi Arupaka |
-| 8 | Serpiente | Hebi (蛇) | Komorebi Hebi |
-| 9 | Camaleón | Kamereen (カメレオン) | Komorebi Kamereen |
-| 10 | Zorro | Kitsune (狐) | Komorebi Kitsune |
-| 11 | Capibara | Kapibara (カピバラ) | Komorebi Kapibara |
-| 12 | Pato | Ahiru (家鸭) | Komorebi Ahiru |
-| 13 | Perro | Inu (犬) | Komorebi Inu |
-| 14 | Pájaro exótico | Tori (鳥) | Komorebi Tori |
+| # | Nombre de sede | Nombre japonés | Slug | Animal | Ciudad | Barrio | Distrito inspirador |
+|---|---|---|---|---|---|---|---|
+| 1 | Neko no Niwa | 猫の庭 | neko-no-niwa | Gato | Madrid | Malasaña | Shibuya |
+| 2 | Usagi Paradise | うさぎパラダイス | usagi-paradise | Conejo | Barcelona | El Born | Harajuku |
+| 3 | Soft Cloud | ソフトクラウド | soft-cloud | Chinchilla | Valencia | Ruzafa | Shinjuku |
+| 4 | Chipmunk Forest | シマリスの森 | chipmunk-forest | Ardilla | Bilbao | Casco Viejo | Kichijoji |
+| 5 | Mame Shiba Café | 豆柴カフェ | mame-shiba-cafe | Perro shiba | Madrid | Barrio de Salamanca | Yoyogi |
+| 6 | Mipig Cafe | マイピッグカフェ | mipig-cafe | Cerdito mipig | Málaga | Centro | Meguro |
+| 7 | Parrot Talk | おしゃべりオウム | parrot-talk | Loro | Sevilla | Alameda | Ueno |
+| 8 | Capyba Land | カピバランド | capyba-land | Capibara | Valencia | Junto a la Albufera | Odaiba |
+| 9 | Alpaca Hill | アルパカの丘 | alpaca-hill | Alpaca | Segovia | Afueras | Setagaya |
+| 10 | Little Hooves | 小さなひづめ | little-hooves | Caballo miniatura | Jerez de la Frontera | Centro | Kichijoji |
+| 11 | Quack Club | クワッククラブ | quack-club | Pato | Zaragoza | Ribera del Ebro | Ikebukuro |
+| 12 | Pui Pui House | プイプイハウス | pui-pui-house | Cobaya | San Sebastián | Centro | Nakano |
+| 13 | Prairie Town | プレーリータウン | prairie-town | Perrito de la pradera | Madrid | Lavapiés | Ikebukuro |
+| 14 | Slow Life | スローライフ | slow-life | Tortuga | Alicante | Centro | Roppongi |
 
 **Regla de aplicación visual:** En comunicaciones de sede específica, el animal temático puede aparecer como variación del símbolo de marca o como ilustración secundaria, **nunca sustituyendo** al logo principal. El logo paraguas es siempre primario.
+
+---
+
+### 1.8 Identidad Dual España-Japón
+
+Komorebi Café no es un café japonés en España. Es un café español con alma japonesa.
+
+- **Ubicación:** España — 14 ciudades. Empleados locales, normativa española, precios en euros.
+- **Estética:** Japón — barrios de Tokio, arquitectura wabi-sabi, nombres en japonés, arte japonés.
+- **Animal:** Cada café tiene un animal temático diferente, seleccionado por su carácter afín al barrio.
+
+Esta dualidad es intencional y es el corazón de la propuesta de valor. La marca opera legalmente en España, vive culturalmente en Japón, y existe emocionalmente en el instante entre ambas.
+
+| Dimensión | España | Japón |
+|---|---|---|
+| Operación | Empleados locales, normativa española, precios en euros, seguridad social | — |
+| Estética | — | Barrios de Tokio, wabi-sabi, caligrafía, animales como símbolo cultural |
+| Naming de sedes | Ciudad española + barrio urbano | Distrito de Tokio como inspiración temática |
+| Comunicación | Español como lengua principal | Japonés decorativo (kanji, romaji como acento) |
+
+> **Regla editorial:** En cualquier texto de comunicación de marca, nunca describir Komorebi como "un café japonés" o como "nuestros locales en Japón". La frase correcta es: "cafeterías españolas con identidad visual y temática japonesa".
 
 ---
 
@@ -176,7 +195,7 @@ La voz de Komorebi tiene cuatro dimensiones:
 |---|---|
 | "Aquí suele haber silencio suficiente para escuchar tu café." | "¡Ven a relajarte con nosotros!" |
 | "Nuestros animales eligen cuándo acercarse." | "¡Pide hora ya! Plazas limitadas." |
-| "La primera vez que visitas Komorebi Neko, probablemente la gata negra no te hará caso." | "100% garantizado que interactuarás con los animales" |
+| "La primera vez que visitas Neko no Niwa, probablemente los gatos no te harán caso." | "100% garantizado que interactuarás con los animales" |
 
 #### Dimensión 2: Cálida, no infantilizante
 
@@ -777,7 +796,7 @@ La marca cuenta con tres patrones aplicables en fondos de packaging, señalétic
 
 - Fondo `#5C3D2E` (madera lacada o vinilo mate, no brillante)
 - Logo primario en versión crema `#F7F3EB`
-- Nombre de la sede (ej. "Komorebi Neko") en Zen Maru Gothic semibold debajo del logo principal
+- Nombre de la sede (ej. "Neko no Niwa") en Zen Maru Gothic semibold debajo del logo principal
 - Tamaño mínimo del logo en señalética: 180mm de ancho
 - Opcional: Kanji del animal de la sede en `#C9A959`, tamaño decorativo en esquina inferior
 

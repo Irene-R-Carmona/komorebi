@@ -23,6 +23,7 @@ final readonly class ReservationMapper implements MapperInterface
             status: (string) ($row['status'] ?? 'pending'),
             time_slot_id: isset($row['time_slot_id']) ? (int) $row['time_slot_id'] : null,
             pass_name: isset($row['pass_name']) ? (string) $row['pass_name'] : null,
+            pass_duration_minutes: isset($row['pass_duration_minutes']) ? (int) $row['pass_duration_minutes'] : null,
             check_in_at: isset($row['check_in_at']) ? (string) $row['check_in_at'] : null,
             check_out_at: isset($row['check_out_at']) ? (string) $row['check_out_at'] : null,
             final_amount: isset($row['final_amount']) ? (float) $row['final_amount'] : null,

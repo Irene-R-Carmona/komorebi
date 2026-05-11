@@ -77,7 +77,6 @@
     <!-- HEADER -->
     <header class="kds-header">
         <div class="kds-brand">
-            <img src="/images/logos/komorebi-logo-icon.svg" class="kds-brand-logo" width="36" height="36" alt="">
             <div>
                 <h1 style="margin:0; font-size:1.25rem;">KITCHEN CONTROL</h1>
                 <div class="kds-subtitle">SYSTEM ONLINE // <?= e($cafe_name ?? '') ?></div>

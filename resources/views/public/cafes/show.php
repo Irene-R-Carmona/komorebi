@@ -139,21 +139,21 @@
                 <!-- Características adicionales si están disponibles -->
                 <?php
                 $amenities = [];
-    if (!empty($cafe['has_wifi'])) {
-        $amenities[] = ['icon' => 'wifi', 'text' => 'WiFi gratuito'];
-    }
-    if (!empty($cafe['has_food'])) {
-        $amenities[] = ['icon' => 'food', 'text' => 'Servicio de comida'];
-    }
-    if (!empty($cafe['has_drinks'])) {
-        $amenities[] = ['icon' => 'drink', 'text' => 'Bebidas incluidas'];
-    }
-    if (!empty($cafe['wheelchair_accessible'])) {
-        $amenities[] = ['icon' => 'accessible', 'text' => 'Accesible'];
-    }
+                if (!empty($cafe['has_wifi'])) {
+                    $amenities[] = ['icon' => 'wifi', 'text' => 'WiFi gratuito'];
+                }
+                if (!empty($cafe['has_food'])) {
+                    $amenities[] = ['icon' => 'food', 'text' => 'Servicio de comida'];
+                }
+                if (!empty($cafe['has_drinks'])) {
+                    $amenities[] = ['icon' => 'drink', 'text' => 'Bebidas incluidas'];
+                }
+                if (!empty($cafe['wheelchair_accessible'])) {
+                    $amenities[] = ['icon' => 'accessible', 'text' => 'Accesible'];
+                }
 
-    if (count($amenities) > 0):
-        ?>
+                if (count($amenities) > 0):
+                ?>
                     <div class="cafe-amenities">
                         <h4 class="cafe-amenities__title">Servicios y comodidades</h4>
                         <ul class="cafe-amenities__list">
@@ -172,6 +172,9 @@
             <aside>
                 <!-- Widget de Vistos Recientemente -->
                 <?php include __DIR__ . '/../../components/recently-viewed-widget.php'; ?>
+
+                <!-- Normas de visita -->
+                <?php include __DIR__ . '/partials/visit_rules_section.php'; ?>
 
                 <div class="cafe-info__cta-box">
                     <h3 class="cafe-info__cta-title">¿Quieres visitarnos?</h3>
@@ -222,8 +225,8 @@
         <?php
         // Variable necesaria para experiences_section.php
         $cafeId = (int) $cafe['id'];
-    include 'experiences_section.php';
-    ?>
+        include 'experiences_section.php';
+        ?>
 
         <!-- RESEÑAS Y VALORACIONES -->
         <section id="reviews-section" class="reviews-section">
@@ -238,10 +241,10 @@
                     <div class="rating-stats__number"><?= \App\Support\CurrencyFormatting::rating($ratingAvg) ?></div>
                     <div class="rating-stats__stars">
                         <?php
-                    $wholePart = floor($ratingAvg);
-    for ($i = 1; $i <= 5; $i++):
-        $filled = $i <= $wholePart ? 'review-star--filled' : '';
-        ?>
+                        $wholePart = floor($ratingAvg);
+                        for ($i = 1; $i <= 5; $i++):
+                            $filled = $i <= $wholePart ? 'review-star--filled' : '';
+                        ?>
                             <span class="review-star <?= $filled ?>">★</span>
                         <?php endfor; ?>
                     </div>
@@ -253,12 +256,12 @@
                 <!-- Distribución de ratings (si hay reseñas) -->
                 <?php if ($ratingCount > 0):
                     $distribution = $ratingStats['distribution'] ?? [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
-                    ?>
+                ?>
                     <div class="rating-distribution">
                         <?php for ($rating = 5; $rating >= 1; $rating--):
                             $count = (int) ($distribution[$rating] ?? 0);
                             $percentage = $ratingCount > 0 ? round(($count / $ratingCount) * 100) : 0;
-                            ?>
+                        ?>
                             <div class="rating-bar">
                                 <span class="rating-bar__label"><?= $rating ?> <i class="bi bi-star-fill" aria-hidden="true"></i></span>
                                 <div class="rating-bar__container">
@@ -276,17 +279,17 @@
                 <h3 class="reviews-container__title">Reseñas recientes</h3>
                 <?php
                 $page = max(1, (int) ($_GET['page'] ?? 1));
-    include 'reviews_section.php';
-    ?>
+                include 'reviews_section.php';
+                ?>
             </div>
 
             <!-- Formulario para dejar reseña -->
             <div class="review-form-container">
                 <h3 class="review-form-container__title">Comparte tu experiencia</h3>
                 <?php
-    // Variables locales para review_form.php
-    include 'review_form.php';
-    ?>
+                // Variables locales para review_form.php
+                include 'review_form.php';
+                ?>
             </div>
         </section>
 

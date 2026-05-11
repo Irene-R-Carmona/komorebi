@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Core\Container;
 use App\Core\Env;
+use App\Core\Logger;
 use App\Core\Session;
 use App\Core\View;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
@@ -13,6 +14,7 @@ use App\Repositories\Contracts\CafeCatalogRepositoryInterface;
 use App\Repositories\Contracts\FavoriteRepositoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Controlador de la Página Principal
@@ -44,26 +46,43 @@ final class HomeController
             \headers_send(103);
         }
 
-        // Estadísticas generales
-        $cafes = $this->cafeRepo->findActive();
-        $totalCafes = \count($cafes);
-
-        // Calcular valoración media de todos los cafés activos
-        $ratings = \array_filter(\array_column($cafes, 'rating_avg'), fn ($r) => $r !== null && (float) $r > 0);
-        $ratingPromedio = $ratings !== []
-            ? \number_format(\array_sum($ratings) / \count($ratings), 1)
-            : '5.0';
-
-        // Número de especies distintas en el sistema
-        $totalEspecies = $this->animalRepo->countDistinctSpecies();
-
-        // Cafés destacados (por rating)
-        $featuredCafes = $this->getFeaturedCafes($cafes);
-
-        // Datos del usuario si está autenticado
+        // Estadísticas generales — con degradación graceful si la BD no está disponible
+        $totalCafes = 0;
+        $totalEspecies = 0;
+        $ratingPromedio = '5.0';
+        $featuredCafes = [];
         $userData = null;
-        if (Session::isAuthenticated()) {
-            $userData = $this->getUserHomeData();
+        $categories = [];
+        $dbError = false;
+
+        try {
+            $cafes = $this->cafeRepo->findActive();
+            $totalCafes = \count($cafes);
+
+            // Calcular valoración media de todos los cafés activos
+            $ratings = \array_filter(\array_column($cafes, 'rating_avg'), fn ($r) => $r !== null && (float) $r > 0);
+            $ratingPromedio = $ratings !== []
+                ? \number_format(\array_sum($ratings) / \count($ratings), 1)
+                : '5.0';
+
+            // Número de especies distintas en el sistema
+            $totalEspecies = $this->animalRepo->countDistinctSpecies();
+
+            // Cafés destacados (por rating)
+            $featuredCafes = $this->getFeaturedCafes($cafes);
+
+            // Datos del usuario si está autenticado
+            if (Session::isAuthenticated()) {
+                $userData = $this->getUserHomeData();
+            }
+
+            $categories = $this->getCategoryStats($cafes);
+        } catch (Throwable $e) {
+            $dbError = true;
+            Logger::error('[HomeController] DB no disponible — modo mantenimiento', [
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+            ]);
         }
 
         View::render('public/home', [
@@ -73,7 +92,8 @@ final class HomeController
             'ratingPromedio' => $ratingPromedio,
             'featuredCafes' => $featuredCafes,
             'userData' => $userData,
-            'categories' => $this->getCategoryStats($cafes),
+            'categories' => $categories,
+            'dbError' => $dbError,
         ], ['home.css']);
 
         return null;

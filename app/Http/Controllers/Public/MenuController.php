@@ -6,11 +6,13 @@ namespace App\Http\Controllers\Public;
 
 use App\Core\Container;
 use App\Core\Env;
+use App\Core\Logger;
 use App\Core\View;
 use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\MenuServiceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 final class MenuController
 {
@@ -40,13 +42,33 @@ final class MenuController
             \headers_send(103);
         }
 
-        $data = $this->menuService->getMenuForView($excludeAllergens);
-        $data['excludeAllergens'] = $excludeAllergens;
+        // Datos del menú — con degradación graceful si la BD no está disponible
+        $dbError = false;
+        $data = [
+            'categorias' => [],
+            'productos' => [],
+            'pases' => [],
+            'allergens' => [],
+            'cafeTypes' => [],
+        ];
 
-        $cart = $this->cartService->get();
-        $cart['total_qty'] = $cart['totalQty'] ?? 0;
-        unset($cart['totalQty']);
-        $data['cartInicial'] = $cart;
+        try {
+            $data = $this->menuService->getMenuForView($excludeAllergens);
+            $cart = $this->cartService->get();
+            $cart['total_qty'] = $cart['totalQty'] ?? 0;
+            unset($cart['totalQty']);
+            $data['cartInicial'] = $cart;
+        } catch (Throwable $e) {
+            $dbError = true;
+            Logger::error('[MenuController] DB no disponible — modo mantenimiento', [
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+            ]);
+            $data['cartInicial'] = ['items' => [], 'total' => 0, 'total_qty' => 0];
+        }
+
+        $data['excludeAllergens'] = $excludeAllergens;
+        $data['dbError'] = $dbError;
 
         View::render('public/menu/index', $data, ['menu.css']);
 

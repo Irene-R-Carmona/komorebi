@@ -138,8 +138,8 @@ final class AnimalSeeder
 
         // 3. INSERCIÓN EN BASE DE DATOS
         $stmt = $this->db->prepare("
-            INSERT IGNORE INTO animals (cafe_id, current_zone_id, name, species_type, age, personality, description, interaction_level, attributes, image_url, current_status)
-            VALUES (:cid, :zid, :name, :type, :age, :pers, :desc, :level, :attrs, :img, 'active')
+            INSERT IGNORE INTO animals (cafe_id, current_zone_id, name, species_type, age_years, personality, description, interaction_level, attributes, image_url, current_status)
+            VALUES (:cid, :zid, :name, :type, :age_years, :pers, :desc, :level, :attrs, :img, 'active')
         ");
 
         foreach ($animales as $cafeId => $lista) {
@@ -166,7 +166,7 @@ final class AnimalSeeder
                         ':zid' => $zoneId,
                         ':name' => $a['nombre'],
                         ':type' => $a['tipo'],
-                        ':age' => $a['edad'],
+                        ':age_years' => (int) $a['edad'],
                         ':pers' => $a['personalidad'],
                         ':desc' => $a['biografia'], // La biografía va al campo description
                         ':level' => $a['nivelInteractividad'],

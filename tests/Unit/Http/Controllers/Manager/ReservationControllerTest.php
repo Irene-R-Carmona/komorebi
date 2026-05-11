@@ -23,6 +23,7 @@ namespace Tests\Unit\Http\Controllers\Manager;
 
 use App\Http\Controllers\Manager\ReservationController;
 use App\Repositories\ReservationRepository;
+use App\Services\Contracts\ReservationServiceInterface;
 use Nyholm\Psr7\ServerRequest;
 use PDO;
 use PDOStatement;
@@ -38,12 +39,15 @@ final class ReservationControllerTest extends TestCase
     /** @var PDOStatement&\PHPUnit\Framework\MockObject\Stub */
     private PDOStatement $stmtStub;
     private ReservationRepository $reservationRepo;
+    /** @var ReservationServiceInterface&\PHPUnit\Framework\MockObject\Stub */
+    private ReservationServiceInterface $serviceStub;
 
     protected function setUp(): void
     {
         $this->pdoStub = $this->createStub(PDO::class);
         $this->stmtStub = $this->createStub(PDOStatement::class);
         $this->reservationRepo = new ReservationRepository($this->pdoStub);
+        $this->serviceStub = $this->createStub(ReservationServiceInterface::class);
     }
 
     protected function tearDown(): void
@@ -77,7 +81,7 @@ final class ReservationControllerTest extends TestCase
         $this->startSession();
         unset($_SESSION['user_cafe_id']);
 
-        $controller = new ReservationController($this->reservationRepo);
+        $controller = new ReservationController($this->reservationRepo, $this->serviceStub);
 
         \ob_start();
         $result = $controller->index($this->makeRequest());
@@ -96,7 +100,7 @@ final class ReservationControllerTest extends TestCase
         $this->stmtStub->method('fetchAll')->willReturn([]);
         $this->pdoStub->method('prepare')->willReturn($this->stmtStub);
 
-        $controller = new ReservationController($this->reservationRepo);
+        $controller = new ReservationController($this->reservationRepo, $this->serviceStub);
 
         \ob_start();
         $result = $controller->index($this->makeRequest());
@@ -122,7 +126,7 @@ final class ReservationControllerTest extends TestCase
         $this->stmtStub->method('fetchAll')->willReturn([]);
         $this->pdoStub->method('prepare')->willReturn($this->stmtStub);
 
-        $controller = new ReservationController($this->reservationRepo);
+        $controller = new ReservationController($this->reservationRepo, $this->serviceStub);
 
         \ob_start();
         $controller->index($this->makeRequest(['status' => 'confirmed']));
@@ -149,7 +153,7 @@ final class ReservationControllerTest extends TestCase
         $this->stmtStub->method('fetchAll')->willReturn([]);
         $this->pdoStub->method('prepare')->willReturn($this->stmtStub);
 
-        $controller = new ReservationController($this->reservationRepo);
+        $controller = new ReservationController($this->reservationRepo, $this->serviceStub);
 
         \ob_start();
         $controller->index($this->makeRequest(['date' => '2026-06-15']));
@@ -176,7 +180,7 @@ final class ReservationControllerTest extends TestCase
         $this->stmtStub->method('fetchAll')->willReturn([]);
         $this->pdoStub->method('prepare')->willReturn($this->stmtStub);
 
-        $controller = new ReservationController($this->reservationRepo);
+        $controller = new ReservationController($this->reservationRepo, $this->serviceStub);
 
         \ob_start();
         $controller->index($this->makeRequest(['status' => '', 'date' => '']));

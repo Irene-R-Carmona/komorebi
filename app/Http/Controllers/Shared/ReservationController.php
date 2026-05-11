@@ -119,8 +119,8 @@ final class ReservationController
         }
 
         $cartItems = $this->itemRepo->findByReservation($id);
-        $cartTotal = \array_sum(\array_map(
-            fn (array $item): float => (float) $item['quantity'] * (float) $item['unit_price'],
+        $cartTotal = (int) \array_sum(\array_map(
+            fn (array $item): int => (int) $item['quantity'] * (int) $item['unit_price'],
             $cartItems
         ));
 

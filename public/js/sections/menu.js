@@ -3,20 +3,29 @@ document.addEventListener('alpine:init', () => {
     // UI
     activeTab: catInicial,
     search: '',
-    showComanda: false,
     showAllergenFilter: false,
 
-    // Estado carrito
-    cart: { items: {}, total_qty: 0, totalPrice: 0 },
-    loading: true,
+    // Simulador de precios (local, sin API)
+    simulatorItems: {},
+    simulatorTotal: 0,
+    productDict: {},
 
     // Filtros
     excludedAllergens: [],
-    selectedCafeType: null, // null = todos, 'lounge' | 'playroom' | 'farm' | 'zen',
+    selectedCafeType: null, // null = todos, 'lounge' | 'playroom' | 'farm' | 'zen'
 
-    async init() {
-      await this.fetchCart();
-      // Si no vino desde el servidor, leer parámetros de la URL
+    init() {
+      // Cargar diccionario de productos desde el DOM
+      const meta = document.getElementById('komorebi-page-meta');
+      if (meta && meta.dataset.productDict) {
+        try {
+          this.productDict = JSON.parse(meta.dataset.productDict);
+        } catch (e) {
+          console.warn('Error al parsear productDict:', e);
+        }
+      }
+
+      // Leer parámetros de alérgenos desde la URL
       try {
         const params = new URLSearchParams(globalThis.location.search);
         const list = params.getAll('exclude_allergens[]');
@@ -27,160 +36,50 @@ document.addEventListener('alpine:init', () => {
         console.warn('No se pudieron leer los parámetros de la URL:', e);
       }
 
-      // Aplicar filtros iniciales si vienen desde el servidor o la URL
       if (Array.isArray(this.excludedAllergens) && this.excludedAllergens.length > 0) {
         this.applyAllergenFilter();
       }
-
-      this.loading = false;
     },
 
     // ----------------------------
-    // API
+    // Simulador de precios
     // ----------------------------
-    async fetchCart() {
-      try {
-        // Si no hay cookies presentes probable usuario anónimo -> evitar solicitar /api/cart y causar 401
-        if (!document.cookie || document.cookie.trim() === '') {
-          const guestRes = await fetch('/api/v1/cart/guest');
-          if (guestRes.ok) {
-            const guestData = await guestRes.json();
-            if (guestData.ok && guestData.data) {
-              this.cart = guestData.data;
-              return;
-            }
-          }
-          this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
-          return;
-        }
 
-        const res = await fetch('/api/v1/cart');
-        if (!res.ok) {
-          // Si el servidor responde 401 (no autenticado), informar al usuario
-          if (res.status === 401) {
-            // Mostrar mensaje amistoso para aclarar por qué no hay carrito
-            window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'El carrito está disponible solo para usuarios registrados. Por favor, inicia sesión para acceder a tu carrito.', type: 'error' } }));
-            // Intentar endpoint público de guest como fallback silencioso
-            try {
-              const guestRes = await fetch('/api/v1/cart/guest');
-              if (guestRes.ok) {
-                const guestData = await guestRes.json();
-                if (guestData.ok && guestData.data) {
-                  this.cart = guestData.data;
-                } else {
-                  this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
-                }
-              } else {
-                this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
-              }
-            } catch (error_) {
-              this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
-            }
-            return;
-          }
-
-          console.warn('Error cargando carrito:', res.status);
-          return;
-        }
-
-        const responseData = await res.json();
-
-        if (responseData.ok && responseData.data) {
-          this.cart = responseData.data;
-        } else {
-          console.warn('Formato de carrito inesperado:', responseData);
-          this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
-        }
-      } catch (e) {
-        console.error('Error cargando carrito:', e);
-        this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
-      }
-    },
-
-    async updateQty(productId, change) {
-      if (this.loading) return;
-
-      this.loading = true;
+    updateQty(productId, change) {
       productId = Number.parseInt(productId, 10);
       change = Number.parseInt(change, 10);
-      if (!Number.isFinite(productId) || !Number.isFinite(change)) {
-        this.loading = false;
-        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Parámetros de cantidad inválidos', type: 'error' } }));
-        return;
-      }
+      if (!Number.isFinite(productId) || !Number.isFinite(change)) return;
 
-      // Backup para rollback (JSON deep-copy evita problemas con Proxy de Alpine)
-      const oldCart = JSON.parse(JSON.stringify(this.cart || { items: {}, total_qty: 0, totalPrice: 0 }));
+      const current = this.simulatorItems[productId] || 0;
+      const next = current + change;
+      if (next < 0 || next > 99) return;
 
-      // Optimistic UI
-      if (!this.cart) this.cart = { items: {}, total_qty: 0, totalPrice: 0 };
-      if (!this.cart.items) this.cart.items = {};
-
-      const currentQty = this.cart.items[productId] || 0;
-      const newQty = currentQty + change;
-
-      if (newQty < 0 || newQty > 99) {
-        this.loading = false;
-        return;
-      }
-
-      if (newQty === 0) {
-        delete this.cart.items[productId];
+      if (next === 0) {
+        delete this.simulatorItems[productId];
       } else {
-        this.cart.items[productId] = newQty;
+        this.simulatorItems[productId] = next;
       }
 
-      const tokenEl = document.querySelector('meta[name="csrf-token"]');
-      const token = tokenEl ? tokenEl.getAttribute('content') : '';
-
-      try {
-        const res = await fetch(`/api/v1/cart/items/${productId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': token
-          },
-          body: JSON.stringify({ change })
-        });
-
-        const responseData = await res.json();
-
-        if (!res.ok) {
-          // Manejo de errores HTTP
-          if (res.status === 419) {
-            window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Sesión expirada. Recarga la página.', type: 'error' } }));
-          } else {
-            window.dispatchEvent(new CustomEvent('toast', { detail: { message: responseData.error || responseData.message || 'Error al actualizar', type: 'error' } }));
-          }
-          this.cart = oldCart; // Rollback
-          return;
-        }
-
-        // Extraer data del wrapper {ok: true, data: {...}}
-        if (responseData.ok && responseData.data) {
-          this.cart = responseData.data;
-        } else {
-          console.error('⚠️ Formato inesperado:', responseData);
-          window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Error de formato en respuesta', type: 'error' } }));
-          this.cart = oldCart;
-        }
-
-      } catch (e) {
-        console.error('❌ Error de red:', e);
-        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Error de conexión', type: 'error' } }));
-        this.cart = oldCart;
-      } finally {
-        this.loading = false;
+      // Recalcular total en céntimos
+      let total = 0;
+      for (const [id, qty] of Object.entries(this.simulatorItems)) {
+        const prod = this.productDict[id];
+        if (prod) total += prod.price * qty;
       }
+      this.simulatorTotal = total;
+    },
+
+    getQty(productId) {
+      return (this.simulatorItems && this.simulatorItems[productId]) || 0;
+    },
+
+    simulatorTotalQty() {
+      return Object.values(this.simulatorItems).reduce((a, b) => a + b, 0);
     },
 
     // ----------------------------
     // UI helpers
     // ----------------------------
-    getQty(productId) {
-      // Defensive: cart.items puede ser undefined durante init
-      return (this.cart && this.cart.items && this.cart.items[productId]) || 0;
-    },
 
     setTab(id) {
       this.activeTab = id;
@@ -242,11 +141,6 @@ document.addEventListener('alpine:init', () => {
         if (this.matchesNode(card)) count++;
       });
       return count;
-    },
-
-    toggleComanda() {
-      this.showComanda = !this.showComanda;
-      document.body.style.overflow = this.showComanda ? 'hidden' : '';
     },
 
     // ----------------------------

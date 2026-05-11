@@ -110,7 +110,7 @@ final class MenuPassSeeder
                 'max_pax' => 4,
                 'image_url' => '/images/products/pass-zen.jpg',
                 'target_cafe_types' => '["zen"]',
-                'target_animal_types' => '["tortugas", "cobayas"]',
+                'target_animal_types' => '["tortuga", "cobaya"]',
             ],
             [
                 'slug' => 'pass-granja',
@@ -123,7 +123,7 @@ final class MenuPassSeeder
                 'max_pax' => 6,
                 'image_url' => '/images/products/pass-granja.jpg',
                 'target_cafe_types' => '["farm"]',
-                'target_animal_types' => '["capibaras", "alpacas", "caballos", "patos"]',
+                'target_animal_types' => '["capibara", "alpaca", "caballo", "pato"]',
             ],
             [
                 'slug' => 'pass-foto-pro',
@@ -172,7 +172,7 @@ final class MenuPassSeeder
             "INSERT INTO products (
                 category_id, product_type, name, japanese_name, slug, description,
                 price, is_active, image_url,
-                pass_duration_minutes, min_pax, max_pax,
+                duration_minutes, min_pax, max_pax,
                 target_cafe_types, target_animal_types,
                 created_at
             ) VALUES (
@@ -188,7 +188,7 @@ final class MenuPassSeeder
                 description        = VALUES(description),
                 price              = VALUES(price),
                 image_url          = VALUES(image_url),
-                pass_duration_minutes = VALUES(pass_duration_minutes),
+                duration_minutes   = VALUES(duration_minutes),
                 min_pax            = VALUES(min_pax),
                 max_pax            = VALUES(max_pax),
                 target_cafe_types  = VALUES(target_cafe_types),

@@ -300,15 +300,16 @@ final class CartServiceTest extends TestCase
                 'is_active' => true,
                 'image_url' => null,
                 'station' => 'bar',
+                'category_id' => 1,
             ],
         ]);
 
         $result = $this->service->getWithDetails();
 
         $this->assertCount(1, $result['items']);
-        $this->assertSame(1, $result['items'][0]['product_id']);
-        $this->assertSame(2, $result['items'][0]['quantity']);
-        $this->assertSame(1000, $result['items'][0]['subtotal']);
+        $this->assertSame(1, $result['items']['1']['product_id']);
+        $this->assertSame(2, $result['items']['1']['quantity']);
+        $this->assertSame(1000, $result['items']['1']['subtotal']);
     }
 
     public function testUpdateItemCapsQuantityAtMaxQtyPerItem(): void
@@ -391,6 +392,7 @@ final class CartServiceTest extends TestCase
                 'is_active' => true,
                 'image_url' => null,
                 'station' => null,
+                'category_id' => 1,
             ],
         ]);
 

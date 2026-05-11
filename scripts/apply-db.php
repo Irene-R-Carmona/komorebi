@@ -14,6 +14,7 @@ use App\Core\Seeders\AuthAuditLogSeeder;
 use App\Core\Seeders\CafeSeeder;
 use App\Core\Seeders\MenuSeeder;
 use App\Core\Seeders\NewsletterSeeder;
+use App\Core\Seeders\PassInclusionsSeeder;
 use App\Core\Seeders\RbacSeeder;
 use App\Core\Seeders\ReservationSeeder;
 use App\Core\Seeders\ReviewSeeder;
@@ -159,6 +160,8 @@ if (!$seedersOnly) {
                 str_contains($msg, 'already exists')
                 || str_contains($msg, 'Duplicate column name')
                 || str_contains($msg, 'Duplicate key name')
+                || str_contains($msg, 'Duplicate foreign key constraint name')
+                || str_contains($msg, 'Duplicate check constraint name')
             ) {
                 logMsg('(objeto ya existe, skip)');
             } else {
@@ -193,6 +196,12 @@ $seeders = [
     'Settings' => ['class' => SystemSettingsSeeder::class, 'prereq' => null],
     'Allergens' => ['class' => AllergenSeeder::class, 'prereq' => null],
     'Menu' => ['class' => MenuSeeder::class, 'prereq' => null],
+    'PassInclusions' => ['class' => PassInclusionsSeeder::class, 'prereq' => static function (PDO $db) {
+        $p = (int) $db->query("SELECT COUNT(*) FROM products WHERE product_type = 'pass'")->fetchColumn();
+        $c = (int) $db->query('SELECT COUNT(*) FROM menu_categories')->fetchColumn();
+
+        return $p > 0 && $c > 0;
+    }],
     'Staff' => ['class' => StaffSeeder::class, 'prereq' => static function (PDO $db) {
         // Requiere cafés creados
         $cnt = (int) $db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
@@ -465,7 +474,7 @@ try {
         'evt_expire_loyalty_rewards',
     ];
 
-    $foundEvents = array_map(static fn ($e) => $e['Name'], $events);
+    $foundEvents = array_map(static fn($e) => $e['Name'], $events);
 
     logMsg('Eventos encontrados:');
     $totalFound = 0;

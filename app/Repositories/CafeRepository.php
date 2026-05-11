@@ -229,7 +229,7 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function hasAvailableCapacity(int $cafeId, string $date, string $time): bool
+    public function hasAvailableCapacity(int $cafeId, string $date, string $time, ?int $durationMinutes = null): bool
     {
         $cafeStmt = $this->getDb()->prepare('SELECT capacity_max FROM cafes WHERE id = :id LIMIT 1');
         $cafeStmt->execute(['id' => $cafeId]);
@@ -241,21 +241,43 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
 
         $capacity = (int) $cafe['capacity_max'];
 
-        $bookingStmt = $this->getDb()->prepare(
-            "SELECT COALESCE(SUM(guest_count), 0) as booked
-             FROM reservations
-             WHERE cafe_id = :cafe_id
-             AND reservation_date = :date
-             AND reservation_time = :time
-             AND status IN ('pending', 'confirmed', 'active')
-             AND deleted_at IS NULL"
-        );
-
-        $bookingStmt->execute([
-            'cafe_id' => $cafeId,
-            'date' => $date,
-            'time' => $time,
-        ]);
+        if ($durationMinutes !== null && $durationMinutes > 0) {
+            // Overlap detection: any reservation whose window intersects [slotStart, slotEnd)
+            // resStart < slotEnd AND resEnd > slotStart
+            $slotDurationSecs = $durationMinutes * 60;
+            $bookingStmt = $this->getDb()->prepare(
+                "SELECT COALESCE(SUM(guest_count), 0) as booked
+                 FROM reservations
+                 WHERE cafe_id = :cafe_id
+                   AND reservation_date = :date
+                   AND status IN ('pending', 'confirmed', 'active')
+                   AND deleted_at IS NULL
+                   AND TIME_TO_SEC(reservation_time) < (TIME_TO_SEC(:slot_time) + :slot_duration_secs)
+                   AND (TIME_TO_SEC(reservation_time) + pass_duration_minutes * 60) > TIME_TO_SEC(:slot_time2)"
+            );
+            $bookingStmt->execute([
+                'cafe_id'            => $cafeId,
+                'date'               => $date,
+                'slot_time'          => $time,
+                'slot_time2'         => $time,
+                'slot_duration_secs' => $slotDurationSecs,
+            ]);
+        } else {
+            $bookingStmt = $this->getDb()->prepare(
+                "SELECT COALESCE(SUM(guest_count), 0) as booked
+                 FROM reservations
+                 WHERE cafe_id = :cafe_id
+                   AND reservation_date = :date
+                   AND reservation_time = :time
+                   AND status IN ('pending', 'confirmed', 'active')
+                   AND deleted_at IS NULL"
+            );
+            $bookingStmt->execute([
+                'cafe_id' => $cafeId,
+                'date'    => $date,
+                'time'    => $time,
+            ]);
+        }
 
         $result = $bookingStmt->fetch(PDO::FETCH_ASSOC);
         $booked = (int) ($result['booked'] ?? 0);
@@ -375,7 +397,7 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
         }
 
         $stmt = $this->getDb()->prepare(
-            "SELECT id, name, species_type, age, personality, description,
+            "SELECT id, name, species_type, age_years, personality, description,
                     interaction_level, attributes, image_url, current_status
              FROM animals
              WHERE cafe_id = :cafe_id AND current_status IN ('active', 'resting')

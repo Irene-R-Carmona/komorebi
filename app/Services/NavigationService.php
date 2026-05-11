@@ -103,6 +103,7 @@ final class NavigationService implements NavigationServiceInterface
                 self::item('health', 'Chequeos de Salud', '/keeper/health-checks'),
                 self::item('incidents', 'Incidentes', '/keeper/incidents'),
                 self::item('calendar-week', 'Mis Turnos', '/keeper/schedule'),
+                self::item('person-hearts', 'Adopciones', '/keeper/adopciones'),
             ],
         ];
     }
@@ -229,7 +230,7 @@ final class NavigationService implements NavigationServiceInterface
     {
         $prefixes = ['/admin', '/manager', '/ops', '/keeper'];
 
-        return \array_any($prefixes, static fn ($prefix) => \str_starts_with($path, $prefix));
+        return \array_any($prefixes, static fn($prefix) => \str_starts_with($path, $prefix));
     }
 
     /**

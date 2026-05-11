@@ -31,8 +31,7 @@ final class HealthCheckController
         private readonly HealthCheckServiceInterface $healthCheckService,
         private readonly AnimalRepositoryInterface $animalRepo,
         private readonly ResponseFactory $response,
-    ) {
-    }
+    ) {}
 
     /**
      * GET /keeper/health-checks
@@ -40,7 +39,8 @@ final class HealthCheckController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $dashboardData = $this->healthCheckService->getTodayDashboard();
+        $cafeId = (int) (Session::user()['cafe_id'] ?? 0);
+        $dashboardData = $this->healthCheckService->getTodayDashboard($cafeId ?: null);
         $activeAlerts = $this->healthCheckService->getActiveAlerts(7);
 
         View::render('backoffice/keeper/health-checks/index', [
@@ -251,7 +251,7 @@ final class HealthCheckController
             'notes' => isset($body['notes']) ? \trim($body['notes']) : null,
         ];
 
-        $data = \array_filter($data, static fn (mixed $v): bool => $v !== null);
+        $data = \array_filter($data, static fn(mixed $v): bool => $v !== null);
 
         $result = $this->healthCheckService->update($checkId, $data);
 

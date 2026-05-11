@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS time_slots (
     blocked_reason VARCHAR(255) DEFAULT NULL COMMENT 'Motivo del bloqueo (visible para staff)',
 
     -- Configuración dinámica
-    duration_minutes TINYINT UNSIGNED NOT NULL DEFAULT 60 COMMENT 'Duración estándar en minutos',
+    duration_minutes TINYINT UNSIGNED NOT NULL DEFAULT 30 COMMENT 'Duración estándar en minutos',
     min_advance_hours TINYINT UNSIGNED NOT NULL DEFAULT 2 COMMENT 'Mínimo de antelación en horas',
     max_advance_days SMALLINT UNSIGNED NOT NULL DEFAULT 30 COMMENT 'Máximo de antelación en días',
 

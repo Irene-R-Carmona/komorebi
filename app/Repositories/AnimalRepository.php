@@ -38,7 +38,7 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
             'current_zone_id',
             'name',
             'species_type',
-            'age',
+            'age_years',
             'personality',
             'description',
             'interaction_level',
@@ -104,48 +104,80 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
     }
 
     #[Override]
-    public function getAnimalsWithCafeInfoOptimized(): array
+    public function getAnimalsWithCafeInfoOptimized(?int $cafeId = null): array
     {
-        $stmt = $this->getDb()->query('
+        $where = 'WHERE a.deleted_at IS NULL';
+        if ($cafeId !== null) {
+            $where .= ' AND a.cafe_id = :cafe_id';
+        }
+
+        $sql = "
             SELECT a.*, c.name as cafe_name, COUNT(hc.id) as logs_today
             FROM animals a
             LEFT JOIN cafes c ON a.cafe_id = c.id
             LEFT JOIN animal_health_checks hc
                 ON hc.animal_id = a.id AND DATE(hc.check_date) = CURDATE()
-            WHERE a.deleted_at IS NULL
+            {$where}
             GROUP BY a.id, a.cafe_id, a.current_zone_id, a.name, a.species_type,
-                     a.age, a.personality, a.description, a.interaction_level,
+                     a.age_years, a.personality, a.description, a.interaction_level,
                      a.attributes, a.current_status, a.image_url,
                      a.last_health_check, a.deleted_at,
                      a.created_at, a.updated_at, c.name
             ORDER BY a.name
-        ');
+        ";
+
+        if ($cafeId !== null) {
+            $stmt = $this->getDb()->prepare($sql);
+            $stmt->execute(['cafe_id' => $cafeId]);
+        } else {
+            $stmt = $this->getDb()->query($sql);
+        }
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     #[Override]
-    public function getHealthStatistics(): array
+    public function getHealthStatistics(?int $cafeId = null): array
     {
-        $stmt = $this->getDb()->query("
-            SELECT COUNT(*) as total_animals,
-                   SUM(CASE WHEN current_status = 'active'  THEN 1 ELSE 0 END) as healthy,
-                   SUM(CASE WHEN current_status = 'resting' THEN 1 ELSE 0 END) as monitoring,
-                   SUM(CASE WHEN current_status = 'sick'    THEN 1 ELSE 0 END) as sick
-            FROM animals WHERE deleted_at IS NULL
-        ");
-        $animalStats = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($cafeId !== null) {
+            $stmt = $this->getDb()->prepare("
+                SELECT COUNT(*) as total_animals,
+                       SUM(CASE WHEN current_status = 'active'  THEN 1 ELSE 0 END) as healthy,
+                       SUM(CASE WHEN current_status = 'resting' THEN 1 ELSE 0 END) as monitoring,
+                       SUM(CASE WHEN current_status = 'sick'    THEN 1 ELSE 0 END) as sick
+                FROM animals WHERE deleted_at IS NULL AND cafe_id = :cafe_id
+            ");
+            $stmt->execute(['cafe_id' => $cafeId]);
+            $animalStats = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $logsToday = (int) $this->getDb()
-            ->query('SELECT COUNT(*) FROM animal_health_checks WHERE check_date = CURDATE()')
-            ->fetchColumn();
+            $logsStmt = $this->getDb()->prepare(
+                'SELECT COUNT(*) FROM animal_health_checks hc
+                 INNER JOIN animals a ON a.id = hc.animal_id
+                 WHERE hc.check_date = CURDATE() AND a.cafe_id = :cafe_id'
+            );
+            $logsStmt->execute(['cafe_id' => $cafeId]);
+            $logsToday = (int) $logsStmt->fetchColumn();
+        } else {
+            $stmt = $this->getDb()->query("
+                SELECT COUNT(*) as total_animals,
+                       SUM(CASE WHEN current_status = 'active'  THEN 1 ELSE 0 END) as healthy,
+                       SUM(CASE WHEN current_status = 'resting' THEN 1 ELSE 0 END) as monitoring,
+                       SUM(CASE WHEN current_status = 'sick'    THEN 1 ELSE 0 END) as sick
+                FROM animals WHERE deleted_at IS NULL
+            ");
+            $animalStats = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $logsToday = (int) $this->getDb()
+                ->query('SELECT COUNT(*) FROM animal_health_checks WHERE check_date = CURDATE()')
+                ->fetchColumn();
+        }
 
         return [
             'total_animals' => (int) $animalStats['total_animals'],
-            'healthy' => (int) $animalStats['healthy'],
-            'monitoring' => (int) $animalStats['monitoring'],
-            'sick' => (int) $animalStats['sick'],
-            'logs_today' => $logsToday,
+            'healthy'       => (int) $animalStats['healthy'],
+            'monitoring'    => (int) $animalStats['monitoring'],
+            'sick'          => (int) $animalStats['sick'],
+            'logs_today'    => $logsToday,
         ];
     }
 
@@ -173,14 +205,14 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
     public function createAnimal(array $data): int
     {
         $stmt = $this->getDb()->prepare('
-            INSERT INTO animals (cafe_id, name, species_type, age, personality, current_status, created_at, updated_at)
-            VALUES (:cafe_id, :name, :species, :age, :personality, \'active\', NOW(), NOW())
+            INSERT INTO animals (cafe_id, name, species_type, age_years, personality, current_status, created_at, updated_at)
+            VALUES (:cafe_id, :name, :species, :age_years, :personality, \'active\', NOW(), NOW())
         ');
         $stmt->execute([
             'cafe_id' => $data['cafe_id'] ?? null,
             'name' => $data['name'],
             'species' => $data['species'],
-            'age' => $data['age_years'] ?? null,
+            'age_years' => $data['age_years'] ?? null,
             'personality' => $data['personality'] ?? null,
         ]);
 
@@ -192,7 +224,7 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
     {
         $stmt = $this->getDb()->prepare('
             UPDATE animals
-            SET name = :name, species_type = :species, age = :age,
+            SET name = :name, species_type = :species, age_years = :age_years,
                 personality = :personality, cafe_id = :cafe_id, updated_at = NOW()
             WHERE id = :id AND deleted_at IS NULL
         ');
@@ -200,7 +232,7 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
         return $stmt->execute([
             'name' => $data['name'] ?? '',
             'species' => $data['species'] ?? '',
-            'age' => $data['age_years'] ?? null,
+            'age_years' => $data['age_years'] ?? null,
             'personality' => $data['personality'] ?? null,
             'cafe_id' => $data['cafe_id'] ?? null,
             'id' => $id,
@@ -243,5 +275,29 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
         )->execute(['status' => $newStatus, 'id' => $id]);
 
         return ['found' => true, 'current_status' => $newStatus];
+    }
+
+    #[Override]
+    public function setAdoptable(int $animalId, bool $adoptable): bool
+    {
+        $stmt = $this->getDb()->prepare(
+            'UPDATE animals SET is_adoptable = :adoptable, updated_at = NOW() WHERE id = :id AND deleted_at IS NULL'
+        );
+
+        return $stmt->execute(['adoptable' => $adoptable ? 1 : 0, 'id' => $animalId])
+            && $stmt->rowCount() > 0;
+    }
+
+    #[Override]
+    public function markAsAdopted(int $animalId, int $adoptedBy): bool
+    {
+        $stmt = $this->getDb()->prepare(
+            'UPDATE animals
+             SET adopted_at = NOW(), adopted_by = :user_id, is_adoptable = 0, updated_at = NOW()
+             WHERE id = :id AND deleted_at IS NULL AND adopted_at IS NULL'
+        );
+
+        return $stmt->execute(['user_id' => $adoptedBy, 'id' => $animalId])
+            && $stmt->rowCount() > 0;
     }
 }

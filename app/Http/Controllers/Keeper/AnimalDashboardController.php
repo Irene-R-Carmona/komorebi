@@ -8,6 +8,7 @@ use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Core\Http\ResponseFactory;
+use App\Core\Session;
 use App\Core\View;
 use App\Repositories\Contracts\AnimalRepositoryInterface;
 use App\Services\Contracts\AnimalCareServiceInterface;
@@ -45,8 +46,9 @@ final class AnimalDashboardController
      */
     public function dashboard(ServerRequestInterface $request): ?ResponseInterface
     {
-        $data = $this->animalCareService->getDashboardData();
-        $healthCheckData = $this->healthCheckService->getTodayDashboard();
+        $cafeId = (int) (Session::user()['cafe_id'] ?? 0);
+        $data = $this->animalCareService->getDashboardData($cafeId);
+        $healthCheckData = $this->healthCheckService->getTodayDashboard($cafeId);
         $activeAlerts = $this->healthCheckService->getActiveAlerts(7);
 
         View::render('backoffice/keeper/dashboard', [
@@ -70,8 +72,44 @@ final class AnimalDashboardController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $animals = $this->animalCareService->getAnimalsWithCafeInfo();
-        View::render('backoffice/keeper/animals/index', ['animals' => $animals], [], 'backoffice');
+        $cafeId   = (int) (Session::user()['cafe_id'] ?? 0);
+        $params   = $request->getQueryParams();
+        $search   = \trim((string) ($params['search'] ?? ''));
+        $status   = (string) ($params['status'] ?? '');
+        $species  = (string) ($params['species'] ?? '');
+        $page     = \max(1, (int) ($params['page'] ?? 1));
+        $pageSize = 20;
+
+        $all = $this->animalCareService->getAnimalsWithCafeInfo($cafeId);
+
+        $filtered = \array_values(\array_filter($all, static function (array $a) use ($search, $status, $species): bool {
+            if ($search !== '' && \stripos($a['name'] . ' ' . ($a['cafe_name'] ?? ''), $search) === false) {
+                return false;
+            }
+            if ($status !== '' && ($a['current_status'] ?? '') !== $status) {
+                return false;
+            }
+            if ($species !== '' && ($a['species_type'] ?? '') !== $species) {
+                return false;
+            }
+            return true;
+        }));
+
+        $total    = count($filtered);
+        $offset   = ($page - 1) * $pageSize;
+        $pageItems = \array_slice($filtered, $offset, $pageSize + 1);
+        $hasNext  = count($pageItems) > $pageSize;
+        $animals  = \array_slice($pageItems, 0, $pageSize);
+        $meta     = ['page' => $page, 'has_next_page' => $hasNext];
+
+        $currentParams = \array_filter(\compact('search', 'status', 'species'));
+
+        View::render('backoffice/keeper/animals/index', [
+            'animals'       => $animals,
+            'meta'          => $meta,
+            'total'         => $total,
+            'currentParams' => $currentParams,
+        ], [], 'backoffice');
 
         return null;
     }

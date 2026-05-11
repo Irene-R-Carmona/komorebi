@@ -82,7 +82,6 @@ use App\Support\DateFormatting;
                         <div class="tab-pane fade show active" id="pending" role="tabpanel">
                             <?php if (empty($pending_animals)): ?>
                                 <div class="alert alert-success" role="alert">
-                                    <i class="bi bi-check-circle-fill"></i>
                                     <strong>¡Excelente trabajo!</strong> Todos los animales tienen su chequeo diario completado.
                                 </div>
                             <?php else: ?>
@@ -117,16 +116,16 @@ use App\Support\DateFormatting;
                                                             'resting' => 'secondary',
                                                             'sick' => 'danger',
                                                         ];
-                                                $statusLabels = [
-                                                    'active' => 'Activo',
-                                                    'monitoring' => 'En observación',
-                                                    'resting' => 'Descansando',
-                                                    'sick' => 'Enfermo',
-                                                    'retired' => 'Retirado',
-                                                ];
-                                                $statusColor = $statusColors[$animal['current_status']] ?? 'secondary';
-                                                $statusLabel = $statusLabels[$animal['current_status']] ?? ucfirst($animal['current_status']);
-                                                ?>
+                                                        $statusLabels = [
+                                                            'active' => 'Activo',
+                                                            'monitoring' => 'En observación',
+                                                            'resting' => 'Descansando',
+                                                            'sick' => 'Enfermo',
+                                                            'retired' => 'Retirado',
+                                                        ];
+                                                        $statusColor = $statusColors[$animal['current_status']] ?? 'secondary';
+                                                        $statusLabel = $statusLabels[$animal['current_status']] ?? ucfirst($animal['current_status']);
+                                                        ?>
                                                         <span class="badge bg-<?= $statusColor ?>">
                                                             <?= htmlspecialchars($statusLabel, ENT_QUOTES, 'UTF-8') ?>
                                                         </span>
@@ -162,7 +161,6 @@ use App\Support\DateFormatting;
                         <div class="tab-pane fade" id="completed" role="tabpanel">
                             <?php if (empty($completed_checks)): ?>
                                 <div class="alert alert-info" role="alert">
-                                    <i class="bi bi-info-circle-fill"></i>
                                     No se han realizado chequeos hoy aún.
                                 </div>
                             <?php else: ?>
@@ -227,7 +225,6 @@ use App\Support\DateFormatting;
                         <div class="tab-pane fade" id="alerts" role="tabpanel">
                             <?php if (empty($active_alerts)): ?>
                                 <div class="alert alert-success" role="alert">
-                                    <i class="bi bi-check-circle-fill"></i>
                                     No hay alertas activas en los últimos 7 días.
                                 </div>
                             <?php else: ?>

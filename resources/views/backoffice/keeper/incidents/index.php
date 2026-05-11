@@ -16,6 +16,8 @@ $severityBadge = static function (string $severity): string {
         default => 'secondary',
     };
 };
+
+$currentParams ??= [];
 ?>
 
 <div class="container-fluid py-4">
@@ -53,6 +55,34 @@ $severityBadge = static function (string $severity): string {
         </div>
     <?php endif; ?>
 
+    <!-- Filtros -->
+    <form method="GET" action="/keeper/incidents" class="row g-2 mb-4">
+        <div class="col-md-5">
+            <input type="search" name="search" class="form-control"
+                placeholder="Buscar por animal o descripción…"
+                value="<?= htmlspecialchars($currentParams['search'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+        </div>
+        <div class="col-md-4">
+            <select name="severity" class="form-select">
+                <option value="">Todas las severidades</option>
+                <option value="critical" <?= ($currentParams['severity'] ?? '') === 'critical' ? 'selected' : '' ?>>Crítico</option>
+                <option value="high" <?= ($currentParams['severity'] ?? '') === 'high' ? 'selected' : '' ?>>Alto</option>
+                <option value="medium" <?= ($currentParams['severity'] ?? '') === 'medium' ? 'selected' : '' ?>>Medio</option>
+                <option value="low" <?= ($currentParams['severity'] ?? '') === 'low' ? 'selected' : '' ?>>Bajo</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-fill">
+                <i class="bi bi-search"></i> Filtrar
+            </button>
+            <?php if (!empty($currentParams)): ?>
+                <a href="/keeper/incidents" class="btn btn-outline-secondary" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            <?php endif; ?>
+        </div>
+    </form>
+
     <!-- Tabla de incidentes -->
     <div class="row">
         <div class="col-12">
@@ -65,7 +95,6 @@ $severityBadge = static function (string $severity): string {
                 <div class="card-body">
                     <?php if (empty($incidents)): ?>
                         <div class="alert alert-success" role="alert">
-                            <i class="bi bi-check-circle-fill"></i>
                             No hay incidentes activos. ¡Todo en orden!
                         </div>
                     <?php else: ?>

@@ -90,7 +90,7 @@ declare(strict_types=1);
                     <h2 class="mb-0 fw-bold">¥<?= number_format((float) $revenueToday, 0) ?></h2>
                 </div>
                 <div class="stat-card__icon stat-card__icon--warning">
-                    <i class="bi bi-currency-yen" aria-hidden="true"></i>
+                    <i class="bi bi-currency-euro" aria-hidden="true"></i>
                 </div>
             </div>
         </div>
@@ -136,7 +136,7 @@ declare(strict_types=1);
                                 'cancelled' => 'Cancelada',
                                 'no_show' => 'No Show',
                             ];
-                    ?>
+                            ?>
                             <?php foreach ($statusDistribution as $row): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($statusLabels[$row['status']] ?? ucfirst($row['status']), ENT_QUOTES, 'UTF-8') ?></td>

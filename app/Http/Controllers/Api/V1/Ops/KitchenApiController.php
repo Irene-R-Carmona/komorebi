@@ -8,6 +8,7 @@ use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Http\Controllers\Api\AbstractApiController;
 use App\Services\Contracts\KitchenServiceInterface;
+use App\Services\MercurePublisherService;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -66,6 +67,14 @@ final class KitchenApiController extends AbstractApiController
 
             if (!$ok) {
                 return $this->unprocessable('No se pudo completar el pedido', 'complete_failed');
+            }
+
+            $cafeId = Session::userCafeId();
+            if ($cafeId !== null) {
+                MercurePublisherService::publish(
+                    'reception/' . $cafeId . '/kitchen-ready',
+                    ['order_id' => $id, 'cafe_id' => $cafeId]
+                );
             }
 
             return $this->success(['message' => 'Pedido completado']);

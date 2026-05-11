@@ -20,9 +20,31 @@ use Throwable;
  */
 final class CloudinaryStorageService implements FileStorageServiceInterface
 {
-    public function __construct(string $cloudinaryUrl)
+    private bool $configured = false;
+
+    public function __construct(private readonly string $cloudinaryUrl)
     {
-        Configuration::instance($cloudinaryUrl);
+        // La configuración del SDK se realiza de forma lazy para evitar
+        // que una CLOUDINARY_URL vacía o ausente rompa la instanciación
+        // del servicio y bloquee módulos que no necesitan almacenamiento.
+    }
+
+    private function configure(): bool
+    {
+        if ($this->configured) {
+            return true;
+        }
+
+        if ($this->cloudinaryUrl === '') {
+            Logger::warning('[CloudinaryStorageService] CLOUDINARY_URL no configurada — operación omitida');
+
+            return false;
+        }
+
+        Configuration::instance($this->cloudinaryUrl);
+        $this->configured = true;
+
+        return true;
     }
 
     /**
@@ -34,6 +56,10 @@ final class CloudinaryStorageService implements FileStorageServiceInterface
     #[Override]
     public function uploadImage(string $localPath, string $folder, string $publicId): Result
     {
+        if (!$this->configure()) {
+            return Result::fail('Almacenamiento en la nube no disponible', 'cloudinary_not_configured');
+        }
+
         try {
             $apiResponse = new UploadApi()->upload($localPath, [
                 'resource_type' => 'image',
@@ -65,6 +91,10 @@ final class CloudinaryStorageService implements FileStorageServiceInterface
     #[Override]
     public function uploadRaw(string $localPath, string $folder, string $publicId): Result
     {
+        if (!$this->configure()) {
+            return Result::fail('Almacenamiento en la nube no disponible', 'cloudinary_not_configured');
+        }
+
         try {
             $apiResponse = new UploadApi()->upload($localPath, [
                 'resource_type' => 'raw',
@@ -94,6 +124,10 @@ final class CloudinaryStorageService implements FileStorageServiceInterface
     #[Override]
     public function destroy(string $publicId, string $resourceType = 'image'): bool
     {
+        if (!$this->configure()) {
+            return false;
+        }
+
         try {
             $apiResponse = new UploadApi()->destroy($publicId, [
                 'resource_type' => $resourceType,

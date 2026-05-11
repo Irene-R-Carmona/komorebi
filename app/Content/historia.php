@@ -18,7 +18,7 @@ return [
 
     'mision' => [
         'titulo' => 'Más que un café, una experiencia de bienestar',
-        'descripcion' => 'Inspirados en la filosofía del kissaten japonés y los cafés de animales, creamos un espacio donde el café de especialidad y la compañía animal se unen para ofrecer momentos de tranquilidad en el ritmo urbano de Madrid.',
+        'descripcion' => 'Inspirados en la filosofía del kissaten japonés y los cafés de animales, creamos un espacio donde el café de especialidad y la compañía animal se unen para ofrecer momentos de tranquilidad en el ritmo urbano de España.',
     ],
 
     'historia' => [
@@ -42,7 +42,7 @@ return [
             [
                 'año' => '2026',
                 'titulo' => 'Abrimos Nuestras Puertas',
-                'descripcion' => 'En febrero de 2026, Komorebi Café abre sus puertas en Madrid. Un espacio donde el café de especialidad japonés, los postres artesanales y la compañía de animales rescatados se combinan para ofrecer una experiencia única de bienestar y conexión.',
+                'descripcion' => 'En febrero de 2026, Komorebi Café abre sus puertas con una red de 14 cafeterías repartidas por toda España: Madrid, Barcelona, Sevilla, Valencia, Bilbao, San Sebastián, Málaga, Granada, Zaragoza, Palma de Mallorca, Murcia y más. Un espacio donde el café de especialidad japonés, los postres artesanales y la compañía de animales rescatados se combinan para ofrecer una experiencia única de bienestar y conexión.',
             ],
         ],
     ],

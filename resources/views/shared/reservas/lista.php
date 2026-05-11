@@ -108,8 +108,8 @@ $statusBadge = [
                                 </span>
                                 <?php if (!empty($rsv['final_amount'])): ?>
                                     <span>
-                                        <i class="bi bi-currency-yen" aria-hidden="true"></i>
-                                        <?= e(CurrencyFormatting::yen((float) $rsv['final_amount'])) ?>
+                                        <i class="bi bi-currency-euro" aria-hidden="true"></i>
+                                        <?= e(CurrencyFormatting::euro((int) $rsv['final_amount'])) ?>
                                     </span>
                                 <?php endif; ?>
                             </div>

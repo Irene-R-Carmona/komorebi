@@ -13,6 +13,7 @@ use App\Http\Transformers\AnimalTransformer;
 use App\Http\Transformers\CafeTransformer;
 use App\Models\Favorite;
 use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\PassInclusionRepositoryInterface;
 use App\Services\Contracts\MenuServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\ReviewServiceInterface;
@@ -45,6 +46,8 @@ final class CafeController
 
     private AnimalTransformer $animalTransformer;
 
+    private PassInclusionRepositoryInterface $passInclusionRepo;
+
     public function __construct(
         ?MenuServiceInterface $menuService = null,
         ?ReviewQueryServiceInterface $queryService = null,
@@ -53,6 +56,7 @@ final class CafeController
         ?Favorite $favoriteModel = null,
         ?CafeTransformer $cafeTransformer = null,
         ?AnimalTransformer $animalTransformer = null,
+        ?PassInclusionRepositoryInterface $passInclusionRepo = null,
     ) {
         $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
         $this->favoriteModel = $favoriteModel ?? new Favorite(Container::make(PDO::class));
@@ -61,6 +65,7 @@ final class CafeController
         $this->reviewService = $reviewService ?? Container::make(ReviewServiceInterface::class);
         $this->cafeTransformer = $cafeTransformer ?? new CafeTransformer();
         $this->animalTransformer = $animalTransformer ?? new AnimalTransformer();
+        $this->passInclusionRepo = $passInclusionRepo ?? Container::make(PassInclusionRepositoryInterface::class);
     }
 
     /**
@@ -130,6 +135,10 @@ final class CafeController
         // Obtener experiencias disponibles para este café (filtradas por categoría y animal)
         $experiences = $this->menuService->getPassesForCafe($cafe['category'], $cafe['animal_type']);
 
+        // Cargar inclusiones de todos los pases en una sola consulta (agrupadas por pass_product_id)
+        $passIds = \array_map(static fn(array $e): int => (int) $e['id'], $experiences);
+        $passInclusions = $passIds !== [] ? $this->passInclusionRepo->findByPassIds($passIds) : [];
+
         // Verificar elegibilidad del usuario para dejar reseña
         $canReview = false;
         $reviewEligibility = [];
@@ -147,7 +156,7 @@ final class CafeController
             'total_animals' => \count($rawAnimals),
             'active_animals' => \count(\array_filter(
                 $rawAnimals,
-                static fn ($a) => $a['current_status'] === 'active'
+                static fn($a) => $a['current_status'] === 'active'
             )),
             'favorites_count' => $this->cafeRepo->getFavoritesCount((int) $cafe['id']),
         ];
@@ -182,6 +191,7 @@ final class CafeController
             'animalesPrep' => $animalesPrep,
             'zones' => $zones,
             'experiences' => $experiences,
+            'passInclusions' => $passInclusions,
             'isFavorite' => $isFavorite,
             'stats' => $stats,
             'ratingStats' => $ratingStats,

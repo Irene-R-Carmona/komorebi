@@ -179,11 +179,15 @@ final class LoyaltyService implements LoyaltyServiceInterface
 
                 $redemptionCode = $this->generateRedemptionCode();
 
-                $validityDays = (int) $rewardInfo['validity_days'];
-                if ($validityDays <= 0) {
-                    $validityDays = self::DEFAULT_VALIDITY_DAYS;
+                if ($rewardInfo['validity_days'] === null) {
+                    $expiresAt = null;
+                } else {
+                    $validityDays = (int) $rewardInfo['validity_days'];
+                    if ($validityDays <= 0) {
+                        $validityDays = self::DEFAULT_VALIDITY_DAYS;
+                    }
+                    $expiresAt = \date('Y-m-d H:i:s', \strtotime("+{$validityDays} days"));
                 }
-                $expiresAt = \date('Y-m-d H:i:s', \strtotime("+{$validityDays} days"));
 
                 $rewardId = $this->loyaltyRepo->createReward([
                     'user_id' => $userId,

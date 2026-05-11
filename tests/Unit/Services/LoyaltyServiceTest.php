@@ -28,7 +28,7 @@ final class LoyaltyServiceTest extends TestCase
     {
         $this->repoStub = $this->createStub(LoyaltyRepositoryInterface::class);
         $this->repoStub->method('withTransaction')->willReturnCallback(
-            fn (callable $cb) => $cb()
+            fn(callable $cb) => $cb()
         );
         $this->service = new LoyaltyService($this->repoStub);
     }
@@ -507,5 +507,68 @@ final class LoyaltyServiceTest extends TestCase
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('Error', $result->error);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // redeemReward — validity_days
+    // ─────────────────────────────────────────────────────────────
+
+    public function testRedeemRewardSetsExpiresAtFromCatalogValidityDays(): void
+    {
+        $card = new LoyaltyCardDTO(
+            id: 1,
+            user_id: 1,
+            stamps: 10,
+            current_tier: 'bronze',
+            visits_count: 1,
+            total_rewards_redeemed: 0,
+            last_stamp_at: null,
+            created_at: '2024-01-01',
+            updated_at: '2024-01-01',
+        );
+        $this->repoStub->method('findCardByUserId')->willReturn($card);
+        $this->repoStub->method('findCatalogByType')->willReturn([
+            'stamps_required' => 5,
+            'tier_required' => 'bronze',
+            'validity_days' => 30,
+            'name_es' => 'Bebida gratis',
+        ]);
+        $this->repoStub->method('consumeStamps')->willReturn(true);
+        $this->repoStub->method('createReward')->willReturn(1);
+
+        $result = $this->service->redeemReward(1, 'drink_free');
+
+        $this->assertTrue($result->ok);
+        $this->assertNotNull($result->data['expires_at']);
+        $this->assertStringStartsWith(\date('Y'), $result->data['expires_at']);
+    }
+
+    public function testRedeemRewardSetsNullExpiresAtWhenValidityDaysIsNull(): void
+    {
+        $card = new LoyaltyCardDTO(
+            id: 1,
+            user_id: 1,
+            stamps: 10,
+            current_tier: 'bronze',
+            visits_count: 1,
+            total_rewards_redeemed: 0,
+            last_stamp_at: null,
+            created_at: '2024-01-01',
+            updated_at: '2024-01-01',
+        );
+        $this->repoStub->method('findCardByUserId')->willReturn($card);
+        $this->repoStub->method('findCatalogByType')->willReturn([
+            'stamps_required' => 5,
+            'tier_required' => 'bronze',
+            'validity_days' => null,
+            'name_es' => 'Bebida gratis',
+        ]);
+        $this->repoStub->method('consumeStamps')->willReturn(true);
+        $this->repoStub->method('createReward')->willReturn(1);
+
+        $result = $this->service->redeemReward(1, 'drink_free');
+
+        $this->assertTrue($result->ok);
+        $this->assertNull($result->data['expires_at']);
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Partial: Modal de detalle de reserva
  * selectedReservation viene de PHP-embedded JSON por fila (ver _table.php)
@@ -10,8 +11,7 @@
     id="reservationModal"
     tabindex="-1"
     aria-labelledby="reservationModalLabel"
-    aria-hidden="true"
->
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <template x-if="selectedReservation">
@@ -78,6 +78,35 @@
                                 <div class="reservation-detail__label">Notas</div>
                                 <p class="mb-0" x-text="selectedReservation.notes"></p>
                             </div>
+
+                            <!-- Pre-comanda -->
+                            <template x-if="selectedReservation.pre_order_items && selectedReservation.pre_order_items.length > 0">
+                                <div class="reservation-detail__section">
+                                    <div class="reservation-detail__label">
+                                        <i class="bi bi-bag-check me-1"></i>Pre-comanda
+                                    </div>
+                                    <table class="table table-sm mb-0 mt-2" style="font-size:0.85rem;">
+                                        <thead>
+                                            <tr>
+                                                <th class="fw-semibold text-muted">Producto</th>
+                                                <th class="fw-semibold text-muted text-center">Cant.</th>
+                                                <th class="fw-semibold text-muted">Categoría</th>
+                                                <th class="fw-semibold text-muted text-end">Precio</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="item in selectedReservation.pre_order_items" :key="item.id">
+                                                <tr>
+                                                    <td x-text="item.name"></td>
+                                                    <td class="text-center" x-text="item.quantity"></td>
+                                                    <td x-text="item.category_name"></td>
+                                                    <td class="text-end" x-text="item.price !== null && item.price !== undefined ? (Number(item.price)/100).toFixed(2).replace('.',',') + '\u00a0€' : '—'"></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </template>
                         </div>
                     </div>
 

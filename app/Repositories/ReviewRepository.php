@@ -298,4 +298,15 @@ final class ReviewRepository extends AbstractRepository implements ReviewReposit
             'one_star' => 0,
         ];
     }
+
+    #[Override]
+    public function existsByReservationId(int $reservationId): bool
+    {
+        $stmt = $this->getDb()->prepare(
+            'SELECT COUNT(*) FROM reviews WHERE reservation_id = :reservation_id'
+        );
+        $stmt->execute(['reservation_id' => $reservationId]);
+
+        return (int) $stmt->fetchColumn() > 0;
+    }
 }

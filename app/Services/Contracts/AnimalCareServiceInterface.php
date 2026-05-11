@@ -18,15 +18,15 @@ interface AnimalCareServiceInterface
 
     public function deleteAnimal(int $id): Result;
 
-    public function getDashboardData(): array;
+    public function getDashboardData(?int $cafeId = null): array;
 
-    public function getAnimalsWithCafeInfo(): array;
+    public function getAnimalsWithCafeInfo(?int $cafeId = null): array;
 
-    public function getStatistics(): array;
+    public function getStatistics(?int $cafeId = null): array;
 
     public function getRecentLogs(int $limit = 20): array;
 
-    public function getActiveIncidents(): array;
+    public function getActiveIncidents(?int $cafeId = null): array;
 
     public function getIncidentById(int $id): ?array;
 

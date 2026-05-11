@@ -3,6 +3,7 @@
 use App\Core\Container;
 use App\Core\Csrf;
 use App\Core\Env;
+use App\Services\Contracts\AdoptionServiceInterface;
 use App\Services\NavigationService;
 
 // CSP Nonce para scripts inline
@@ -11,7 +12,20 @@ $cspNonce = $GLOBALS['cspNonce'] ?? '';
 $role = $_SESSION['user_role'] ?? 'user';
 $userName = $_SESSION['user_name'] ?? 'Usuario';
 $cafeName = $_SESSION['user_cafe_name'] ?? null;
-$menu = Container::make(NavigationService::class)->getMenu($role);
+$badges = [];
+if ($role === 'keeper') {
+    try {
+        $cafeId  = (int) ($_SESSION['user_cafe_id'] ?? 0);
+        $pending = Container::make(AdoptionServiceInterface::class)->getPendingRequests($cafeId);
+        $count   = count($pending);
+        if ($count > 0) {
+            $badges['keeper/adopciones'] = $count;
+        }
+    } catch (\Throwable) {
+        // Badge no crítico — ignorar si falla
+    }
+}
+$menu = Container::make(NavigationService::class)->getMenuBadged($role, $badges);
 $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
 
 $content ??= '';
@@ -64,7 +78,7 @@ $assetVersion = Env::get('APP_VERSION', '1');
     <?php
     // Chart.js - Solo cargar en dashboards (tree-shaked bundle, -55% size)
     $needsCharts = str_contains($currentUri, '/dashboard');
-if ($needsCharts): ?>
+    if ($needsCharts): ?>
         <script defer src="/js/charts.min.js?v=<?= e($assetVersion) ?>"></script>
     <?php endif; ?>
 
@@ -85,13 +99,13 @@ if ($needsCharts): ?>
     <link href="/css/components/stat-card.css?v=<?= e($assetVersion) ?>" rel="stylesheet">
 
     <?php
-// Detectar dashboard actual y cargar CSS correspondiente
-if (str_contains($currentUri, '/manager/dashboard')) {
-    echo '<link href="/css/backoffice/manager-dashboard.css?v=' . e($assetVersion) . '" rel="stylesheet">' . "\n    ";
-} elseif (str_contains($currentUri, '/supervisor/dashboard')) {
-    echo '<link href="/css/backoffice/supervisor-dashboard.css?v=' . e($assetVersion) . '" rel="stylesheet">' . "\n    ";
-}
-?>
+    // Detectar dashboard actual y cargar CSS correspondiente
+    if (str_contains($currentUri, '/manager/dashboard')) {
+        echo '<link href="/css/backoffice/manager-dashboard.css?v=' . e($assetVersion) . '" rel="stylesheet">' . "\n    ";
+    } elseif (str_contains($currentUri, '/supervisor/dashboard')) {
+        echo '<link href="/css/backoffice/supervisor-dashboard.css?v=' . e($assetVersion) . '" rel="stylesheet">' . "\n    ";
+    }
+    ?>
 
     <!-- CSS específico por vista -->
     <?php foreach ($extraCss as $css): ?>
@@ -122,11 +136,14 @@ if (str_contains($currentUri, '/manager/dashboard')) {
                 <ul class="nav flex-column">
                     <?php foreach ($items as $item):
                         $isActive = ($currentUri === $item['url']) ? 'active' : '';
-                        ?>
+                    ?>
                         <li class="nav-item">
                             <a href="<?= $item['url'] ?>" class="nav-link <?= $isActive ?>">
                                 <i class="bi bi-<?= $item['icon'] ?>"></i>
                                 <span><?= $item['label'] ?></span>
+                                <?php if (!empty($item['badge'])): ?>
+                                    <span class="badge bg-danger rounded-pill ms-auto"><?= (int) $item['badge'] > 99 ? '99+' : (int) $item['badge'] ?></span>
+                                <?php endif; ?>
                             </a>
                         </li>
                     <?php endforeach; ?>
@@ -215,8 +232,8 @@ if (str_contains($currentUri, '/manager/dashboard')) {
 
     use App\Core\View;
 
-echo View::componentToString('components/admin/delete-confirmation-modal');
-?>
+    echo View::componentToString('components/admin/delete-confirmation-modal');
+    ?>
 
     <!-- Mobile Offcanvas Menu -->
     <div class="offcanvas offcanvas-start offcanvas-sidebar" tabindex="-1" id="mobileNav"
@@ -237,7 +254,7 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
                     <ul class="nav flex-column">
                         <?php foreach ($items as $item):
                             $isActive = ($currentUri === $item['url']) ? 'active' : '';
-                            ?>
+                        ?>
                             <li class="nav-item">
                                 <a href="<?= $item['url'] ?>" class="nav-link <?= $isActive ?>">
                                     <i class="bi bi-<?= $item['icon'] ?>"></i>
@@ -275,7 +292,7 @@ echo View::componentToString('components/admin/delete-confirmation-modal');
     } elseif (str_contains($currentUri, '/supervisor/dashboard')) {
         echo '<script src="/js/backoffice/supervisor-dashboard.js?v=' . e($assetVersion) . '"></script>' . "\n";
     }
-?>
+    ?>
 
     <!-- JS específico por vista (ANTES de Alpine) -->
     <?php foreach ($extraJs as $js): ?>

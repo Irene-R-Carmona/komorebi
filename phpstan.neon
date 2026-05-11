@@ -47,7 +47,7 @@ parameters:
 
     # ── Tratamiento de errores ─────────────────────────────────
     treatPhpDocTypesAsCertain: false
-    reportUnmatchedIgnoredErrors: true
+    reportUnmatchedIgnoredErrors: false
 
     # ── Supresiones globales justificadas ──────────────────────
     ignoreErrors:

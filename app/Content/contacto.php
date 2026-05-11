@@ -36,10 +36,8 @@ return [
         ],
         [
             'icono' => Raw::html('<i class="bi bi-geo-alt-fill" aria-hidden="true"></i>'),
-            'titulo' => 'Ubicación',
-            'descripcion' => 'Calle Ficticia 123, 28001 Madrid, España',
-            'link' => 'https://maps.google.com',
-            'link_texto' => 'Ver en mapa',
+            'titulo' => 'Dónde estamos',
+            'descripcion' => 'Komorebi Café es una red de cafeterías temáticas presentes en 14 ciudades de España. Para contactar con un café específico, visita su ficha y usa el enlace de contacto directo.',
         ],
         [
             'icono' => Raw::html('<i class="bi bi-calendar-event" aria-hidden="true"></i>'),

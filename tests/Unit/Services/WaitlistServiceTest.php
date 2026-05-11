@@ -16,6 +16,7 @@ use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\TimeSlotRepositoryInterface;
 use App\Repositories\Contracts\WaitlistRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\SettingsServiceInterface;
 use App\Services\WaitlistService;
 use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -35,7 +36,7 @@ final class WaitlistServiceTest extends TestCase
         $this->waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
     }
 
-    private function makeService(?TimeSlotDTO $slot = null): WaitlistService
+    private function makeService(?TimeSlotDTO $slot = null, ?SettingsServiceInterface $settings = null): WaitlistService
     {
         $timeSlotRepoStub = $this->createStub(TimeSlotRepositoryInterface::class);
         $timeSlotRepoStub->method('findById')->willReturn($slot);
@@ -46,7 +47,8 @@ final class WaitlistServiceTest extends TestCase
             $this->emailServiceStub,
             $this->waitlistRepoStub,
             $timeSlotRepoStub,
-            $reservationRepoStub
+            $reservationRepoStub,
+            $settings,
         );
     }
 
@@ -115,6 +117,20 @@ final class WaitlistServiceTest extends TestCase
 
         $this->assertFalse($result->ok);
         $this->assertStringContainsString('comensales', $result->error);
+    }
+
+    public function testJoinWaitlistFailsWhenGuestCountExceedsSettingsMax(): void
+    {
+        $this->waitlistRepoStub = $this->createStub(WaitlistRepositoryInterface::class);
+        $this->waitlistRepoStub->method('userInWaitlist')->willReturn(false);
+
+        $settingsStub = $this->createStub(SettingsServiceInterface::class);
+        $settingsStub->method('get')->willReturnMap([['max_guests_per_reservation', '10', '5']]);
+
+        $result = $this->makeService($this->slotWithSpots(0), $settingsStub)->joinWaitlist(1, 1, ['guest_count' => 6]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('invalid_guest_count', $result->code);
     }
 
     public function testPromoteNextReturnsOkWithPromotedFalseWhenWaitlistEmpty(): void

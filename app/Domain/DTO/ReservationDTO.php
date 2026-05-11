@@ -19,14 +19,14 @@ final readonly class ReservationDTO implements DomainTransferObject
         public string $status,
         public ?int $time_slot_id,
         public ?string $pass_name,
+        public ?int $pass_duration_minutes,
         public ?string $check_in_at,
         public ?string $check_out_at,
         public ?float $final_amount,
         public ?string $payment_status,
         public ?string $payment_method,
         public ?string $notes,
-    ) {
-    }
+    ) {}
 
     public static function fromArray(array $data): self
     {
@@ -41,6 +41,7 @@ final readonly class ReservationDTO implements DomainTransferObject
             status: (string) ($data['status'] ?? 'pending'),
             time_slot_id: isset($data['time_slot_id']) ? (int) $data['time_slot_id'] : null,
             pass_name: isset($data['pass_name']) ? (string) $data['pass_name'] : null,
+            pass_duration_minutes: isset($data['pass_duration_minutes']) ? (int) $data['pass_duration_minutes'] : null,
             check_in_at: isset($data['check_in_at']) ? (string) $data['check_in_at'] : null,
             check_out_at: isset($data['check_out_at']) ? (string) $data['check_out_at'] : null,
             final_amount: isset($data['final_amount']) ? (float) $data['final_amount'] : null,

@@ -152,7 +152,7 @@ $getSeverityBadgeClass = static function (string $severity): string {
                         <?php
                         // Crear array de IDs de animales pendientes de chequeo (Semana 6)
                         $pendingAnimalIds = array_column($pending_animals ?? [], 'animal_id');
-?>
+                        ?>
                         <?php foreach ($animals as $animal): ?>
                             <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
                                 <div class="card animal-card h-100 <?= in_array($animal['id'], $pendingAnimalIds, true) ? 'border-warning' : '' ?>" style="overflow:hidden;">
@@ -198,8 +198,8 @@ $getSeverityBadgeClass = static function (string $severity): string {
 
                                         <p class="card-text text-muted small mb-2">
                                             <i class="bi bi-tag"></i> <?= htmlspecialchars($animal['species_type']) ?>
-                                            <?php if ($animal['age'] > 0): ?>
-                                                · <i class="bi bi-calendar"></i> <?= $animal['age'] ?> años
+                                            <?php if (($animal['age_years'] ?? 0) > 0): ?>
+                                                · <i class="bi bi-calendar"></i> <?= (int) $animal['age_years'] ?> años
                                             <?php endif; ?>
                                         </p>
 
@@ -469,10 +469,11 @@ $getSeverityBadgeClass = static function (string $severity): string {
                     <div class="mb-3">
                         <label for="health_status" class="form-label">Estado de Salud *</label>
                         <select class="form-select" id="health_status" name="health_status" required>
-                            <option value="active">Activo</option>
-                            <option value="resting">Descansando</option>
+                            <option value="healthy">Sano</option>
+                            <option value="monitoring">En observación</option>
                             <option value="sick">Enfermo</option>
-                            <option value="retired">Retirado</option>
+                            <option value="recovering">Recuperándose</option>
+                            <option value="quarantine">Cuarentena</option>
                         </select>
                     </div>
 

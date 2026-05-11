@@ -46,10 +46,9 @@ CREATE TABLE IF NOT EXISTS products (
     target_cafe_types JSON COMMENT 'Tipos de café donde está disponible',
     target_animal_types JSON COMMENT 'Especies de animales objetivo',
     -- Configuración de pases (cuando product_type = pass)
-    duration_minutes INT UNSIGNED COMMENT 'Duración estándar del servicio',
+    duration_minutes INT UNSIGNED COMMENT 'Duración del servicio en minutos',
     min_pax TINYINT UNSIGNED DEFAULT 1 COMMENT 'Mínimo personas',
     max_pax TINYINT UNSIGNED COMMENT 'Máximo personas',
-    pass_duration_minutes INT UNSIGNED COMMENT 'Duración específica del pase (override)',
     -- Visibilidad y metadatos
     image_url VARCHAR(255) DEFAULT NULL,
     is_active BOOLEAN DEFAULT TRUE,
@@ -93,18 +92,21 @@ CREATE TABLE IF NOT EXISTS reservations (
     reservation_date DATE NOT NULL,
     reservation_time TIME NOT NULL,
     guest_count INT UNSIGNED NOT NULL DEFAULT 1, -- DEFAULT estructural; límite máximo dinámico en settings: max_guests_per_reservation
-    -- Estados: pending → confirmed → active → completed/cancelled/no_show
+    -- Estados: pending → confirmed → active → completed/cancelled/no_show/refunded
     status ENUM (
         'pending',
         'confirmed',
         'active',
         'completed',
         'cancelled',
-        'no_show'
-    ) DEFAULT 'pending',
+        'no_show',
+        'refunded'
+    ) NOT NULL DEFAULT 'pending',
     invoice_pdf_url VARCHAR(500) NULL COMMENT 'URL pública del PDF de factura (Cloudinary)',
     -- Control de visita y protocolos
     notes TEXT,
+    cancellation_reason TEXT NULL COMMENT 'Motivo de cancelación introducido por el manager',
+    manager_notes TEXT NULL COMMENT 'Notas internas del manager sobre la reserva',
     check_in_at TIMESTAMP NULL,
     check_out_at TIMESTAMP NULL,
     -- Campos check-in recepción
@@ -114,8 +116,10 @@ CREATE TABLE IF NOT EXISTS reservations (
     -- Pago (sin pasarela online, gestión manual)
     final_amount INT UNSIGNED NULL COMMENT 'Precio final céntimos = pase + sum(items)',
     payment_status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending',
-    payment_method VARCHAR(50) NULL COMMENT 'cash, card, transfer',
+    payment_method ENUM('card','bizum','cash','transfer','free') NULL DEFAULT NULL COMMENT 'Método de pago. NULL hasta que se procesa el cobro.',
     payment_notes TEXT NULL,
+    refund_amount INT UNSIGNED NULL COMMENT 'Importe devuelto en céntimos de €. NULL si no aplica devolución.',
+    refunded_at DATETIME NULL COMMENT 'Momento en que se procesó la devolución.',
     deleted_at TIMESTAMP NULL COMMENT 'Soft delete RGPD',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -157,14 +161,16 @@ CREATE TABLE IF NOT EXISTS reservation_items (
     reservation_id BIGINT UNSIGNED NOT NULL,
     product_id BIGINT UNSIGNED NOT NULL,
     quantity INT UNSIGNED NOT NULL DEFAULT 1,
-    unit_price DECIMAL(10, 2) NOT NULL COMMENT 'Precio histórico',
-    -- Flujo KDS: pending → kitchen → ready → served
+    unit_price INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Precio unitario en céntimos de €',
+    -- Flujo KDS: pre_order (wizard) → pending → kitchen → ready → served
+    -- pre_order: añadido en el wizard, activado a pending en check-in por recepción
     status ENUM (
+        'pre_order',
         'pending',
         'kitchen',
         'ready',
         'served'
-    ) DEFAULT 'pending',
+    ) NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_items_res (reservation_id),
     INDEX idx_items_prod (product_id),
@@ -236,23 +242,13 @@ VALUES
 -- ============================================
 -- 5. RELACIONES CON OTRAS MIGRACIONES
 -- ============================================
--- Agregar foreign key a reviews.reservation_id si no existe
-SET @constraint_exists = (
-    SELECT COUNT(*)
-    FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-    WHERE TABLE_NAME = 'reviews'
-      AND CONSTRAINT_NAME = 'fk_reviews_reservations'
-      AND TABLE_SCHEMA = DATABASE()
-);
-
-SET @sql = IF(@constraint_exists = 0,
-    'ALTER TABLE reviews ADD CONSTRAINT fk_reviews_reservations FOREIGN KEY (reservation_id) REFERENCES reservations (id) ON DELETE SET NULL',
-    'SELECT "Foreign key fk_reviews_reservations ya existe" AS info'
-);
-
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
+-- Agregar FK: reviews.reservation_id → reservations(id)
+ALTER TABLE reviews
+    ADD CONSTRAINT fk_reviews_reservation
+        FOREIGN KEY (reservation_id)
+        REFERENCES reservations (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE;
 
 -- Agregar FK: trackers.last_assigned_reservation_id → reservations(id)
 SET @constraint_exists = (

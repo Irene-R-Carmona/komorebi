@@ -9,7 +9,7 @@ use App\Domain\DTO\AnimalIncidentDTO;
 interface AnimalIncidentRepositoryInterface
 {
     /** @return array<int, array<string, mixed>> */
-    public function getActiveIncidents(): array;
+    public function getActiveIncidents(?int $cafeId = null): array;
 
     public function findById(int $id): ?AnimalIncidentDTO;
 

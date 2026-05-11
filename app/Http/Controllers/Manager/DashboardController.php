@@ -91,7 +91,7 @@ final class DashboardController
 
         foreach ($weeklyData as $day) {
             $labels[] = \date('d/m', \strtotime($day['date']));
-            $data[] = (float) $day['revenue'];
+            $data[] = \round((float) $day['revenue'] / 100, 2);
         }
 
         // Rellenar días faltantes con 0 (último 7 días completos)

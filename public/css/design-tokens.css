@@ -1,36 +1,37 @@
 /**
- * KOMOREBI DESIGN SYSTEM - Design Tokens
- * Versión: 1.0.0
- * Fecha: 2026-02-13
- *
- * Sistema unificado de tokens para todos los layouts:
- * - Public (japonés aesthetic)
- * - Backoffice (modern UI)
- * - KDS (industrial)
- * - Reception (zen minimalist)
- *
- * Estrategia: Crear tokens base estandarizados mientras
- * mantenemos compatibilidad con variables existentes.
+ * KOMOREBI DESIGN SYSTEM - Core Tokens
  */
 
 /* ============================================================================
-   COLOR TOKENS
+   01. COLOR TOKENS
    ============================================================================ */
 
 :root {
-  /* --- PRIMARY (Café Oscuro — Komorebi Brand) --- */
+  /* --- PALETA PRIMARIA (Café) --- */
   --color-primary-50: #faf7f4;
   --color-primary-100: #f2ebe2;
   --color-primary-200: #e2d0bf;
   --color-primary-300: #cdb09a;
   --color-primary-400: #a07860;
   --color-primary-500: #5C3D2E;
-  /* Base — Café Oscuro */
+  /* Brand Base */
   --color-primary-600: #4a2f23;
   --color-primary-700: #3d261c;
   --color-primary-800: #2D2218;
-  /* Marrón Oscuro */
   --color-primary-900: #1e170f;
+
+  /* --- PALETA ACCENTO (Dorado) --- */
+  --color-accent-50: #fefcf3;
+  --color-accent-100: #fdf8e3;
+  --color-accent-200: #faefc7;
+  --color-accent-300: #f6e29f;
+  --color-accent-400: #f0cd6c;
+  --color-accent-500: #c9a959;
+  /* Brand Accent */
+  --color-accent-600: #b8963d;
+  --color-accent-700: #9a7d2f;
+  --color-accent-800: #7d6428;
+  --color-accent-900: #665224;
 
   /* --- SECONDARY (Cherry Blossom Accent) --- */
   --color-secondary-50: #fef2f3;
@@ -44,19 +45,6 @@
   --color-secondary-700: #b22234;
   --color-secondary-800: #951f30;
   --color-secondary-900: #7f1d2d;
-
-  /* --- ACCENT (Gold - Komorebi Signature) --- */
-  --color-accent-50: #fefcf3;
-  --color-accent-100: #fdf8e3;
-  --color-accent-200: #faefc7;
-  --color-accent-300: #f6e29f;
-  --color-accent-400: #f0cd6c;
-  --color-accent-500: #c9a959;
-  /* Base - Existing brand */
-  --color-accent-600: #b8963d;
-  --color-accent-700: #9a7d2f;
-  --color-accent-800: #7d6428;
-  --color-accent-900: #665224;
 
   /* --- NEUTRAL (Zen Grays) --- */
   --color-neutral-50: #fafaf9;

@@ -17,7 +17,7 @@ use Psr\Http\Message\UploadedFileInterface;
 final class KeeperApiController extends AbstractApiController
 {
     private AnimalCareServiceInterface $animalCareService;
-    private FileStorageServiceInterface $fileStorageService;
+    private ?FileStorageServiceInterface $fileStorageService;
     private AnimalRepositoryInterface $animalRepository;
 
     public function __construct(
@@ -28,18 +28,27 @@ final class KeeperApiController extends AbstractApiController
     ) {
         parent::__construct($response ?? new ResponseFactory());
         $this->animalCareService = $animalCareService ?? Container::make(AnimalCareServiceInterface::class);
-        $this->fileStorageService = $fileStorageService ?? Container::make(FileStorageServiceInterface::class);
+        $this->fileStorageService = $fileStorageService; // lazy: resolved on demand in uploadPhoto
         $this->animalRepository = $animalRepository ?? Container::make(AnimalRepositoryInterface::class);
+    }
+
+    private function getFileStorageService(): FileStorageServiceInterface
+    {
+        if ($this->fileStorageService === null) {
+            $this->fileStorageService = Container::make(FileStorageServiceInterface::class);
+        }
+
+        return $this->fileStorageService;
     }
 
     /**
      * POST /api/v1/keeper/animals/{id}/photo → 200 (multipart/form-data)
      */
-    public function uploadPhoto(ServerRequestInterface $request, int $animalId): ResponseInterface
+    public function uploadPhoto(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        $animal = $this->animalRepository->findById($animalId);
+        $animal = $this->animalRepository->findById($id);
         if (!$animal) {
-            return $this->notFound("Animal $animalId no encontrado");
+            return $this->notFound("Animal $id no encontrado");
         }
 
         $cafeId = (int) ($request->getAttribute('user')['cafe_id'] ?? 0);
@@ -65,12 +74,12 @@ final class KeeperApiController extends AbstractApiController
             return $this->badRequest('No se pudo leer el archivo subido');
         }
 
-        $result = $this->fileStorageService->uploadImage($tmpPath, 'animals', "animal_{$animalId}");
+        $result = $this->getFileStorageService()->uploadImage($tmpPath, 'animals', "animal_{$id}");
         if (!$result->ok) {
             return $this->badRequest($result->error ?? 'Error al subir archivo');
         }
 
-        $this->animalRepository->updateImageUrl($animalId, $result->data);
+        $this->animalRepository->updateImageUrl($id, $result->data);
 
         return $this->success(['message' => 'Foto subida correctamente', 'image_url' => $result->data]);
     }
@@ -78,13 +87,13 @@ final class KeeperApiController extends AbstractApiController
     /**
      * POST /api/v1/keeper/animals/{id}/care-log → 201
      */
-    public function createCareLog(ServerRequestInterface $request, int $animalId): ResponseInterface
+    public function createCareLog(ServerRequestInterface $request, int $id): ResponseInterface
     {
         $body = (array) $request->getParsedBody();
         $userId = (int) $request->getAttribute('user_id');
 
         $data = [
-            'animal_id' => $animalId,
+            'animal_id' => $id,
             'activity_type' => $body['activity_type'] ?? '',
             'notes' => isset($body['notes']) ? \trim((string) $body['notes']) : null,
             'duration_minutes' => isset($body['duration_minutes']) ? (int) $body['duration_minutes'] : null,
@@ -106,14 +115,14 @@ final class KeeperApiController extends AbstractApiController
     /**
      * PATCH /api/v1/keeper/animals/{id}/health → 200
      */
-    public function updateHealth(ServerRequestInterface $request, int $animalId): ResponseInterface
+    public function updateHealth(ServerRequestInterface $request, int $id): ResponseInterface
     {
         $body = (array) $request->getParsedBody();
         $healthStatus = (string) ($body['health_status'] ?? '');
         $notes = isset($body['notes']) ? \trim((string) $body['notes']) : null;
         $userId = (int) $request->getAttribute('user_id');
 
-        $result = $this->animalCareService->updateHealth($animalId, $healthStatus, $notes, $userId ?: null);
+        $result = $this->animalCareService->updateHealth($id, $healthStatus, $notes, $userId ?: null);
         if (!$result->ok) {
             return $this->unprocessable($result->error ?? 'Error al actualizar el estado');
         }
@@ -124,9 +133,9 @@ final class KeeperApiController extends AbstractApiController
     /**
      * PATCH /api/v1/keeper/animals/{id}/toggle → 200
      */
-    public function toggleActive(ServerRequestInterface $request, int $animalId): ResponseInterface
+    public function toggleActive(ServerRequestInterface $request, int $id): ResponseInterface
     {
-        $result = $this->animalCareService->toggleActive($animalId);
+        $result = $this->animalCareService->toggleActive($id);
         if (!$result->ok) {
             return $this->unprocessable($result->error ?? 'Error al actualizar el estado');
         }
@@ -162,13 +171,13 @@ final class KeeperApiController extends AbstractApiController
     /**
      * PATCH /api/v1/keeper/incidents/{id}/resolve → 200
      */
-    public function resolveIncident(ServerRequestInterface $request, int $incidentId): ResponseInterface
+    public function resolveIncident(ServerRequestInterface $request, int $id): ResponseInterface
     {
         $body = (array) $request->getParsedBody();
         $resolution = isset($body['resolution']) ? \trim((string) $body['resolution']) : null;
         $userId = (int) $request->getAttribute('user_id');
 
-        $result = $this->animalCareService->resolveIncident($incidentId, $resolution, $userId ?: null);
+        $result = $this->animalCareService->resolveIncident($id, $resolution, $userId ?: null);
         if (!$result->ok) {
             return $this->unprocessable($result->error ?? 'Error al resolver incidente');
         }

@@ -133,7 +133,7 @@ $assetVersion = Env::get('APP_VERSION', '1');
         }
     }
 
-?>
+    ?>
 
     <!-- Event delegation helper: replace inline handlers with `data-action` -->
     <script defer src="/js/init/event-delegation.js?v=<?= e($assetVersion) ?>"></script>
@@ -324,6 +324,7 @@ $assetVersion = Env::get('APP_VERSION', '1');
                         <a href="/menu" class="footer__link">Carta</a>
                         <a href="/reservas" class="footer__link">Reservar Mesa</a>
                         <a href="/quiz" class="footer__link">Quiz Café Ideal</a>
+                        <a href="/adopciones" class="footer__link">Adopciones</a>
                     </nav>
                 </div>
 
@@ -372,7 +373,7 @@ $assetVersion = Env::get('APP_VERSION', '1');
                 <div class="footer__copyright">
                     <span>© 2025-2026 Komorebi Café</span>
                     <span>·</span>
-                    <span>Madrid, España</span>
+                    <span>14 ciudades de España</span>
                 </div>
 
                 <div class="footer__social">
@@ -392,6 +393,9 @@ $assetVersion = Env::get('APP_VERSION', '1');
 
     <!-- Newsletter Popup -->
     <?php require_once __DIR__ . '/../components/newsletter-popup.php'; ?>
+
+    <!-- Modal de normas de visita (cafés) -->
+    <?php require_once __DIR__ . '/../components/modals/visit-rules-modal.php'; ?>
 
     <!-- Bootstrap JS bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>

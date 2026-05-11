@@ -86,9 +86,17 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
                 return Result::fail('Descripción debe tener entre 10 y 5000 caracteres');
             }
 
-            // 3. Guard: una sola reseña por usuario por café (Q-01)
-            if ($this->reviewRepository->userHasReview($userId, $cafeId)) {
-                return Result::fail('Ya has dejado una reseña para este café', 'duplicate_review');
+            // 3. Guard: una reseña por reserva completada (Q-01)
+            $completed = $this->reservationRepo->getCompletedByUserAndCafe($userId, $cafeId);
+            $hasUnreviewed = false;
+            foreach ($completed as $r) {
+                if (!$this->reviewRepository->existsByReservationId((int) $r['id'])) {
+                    $hasUnreviewed = true;
+                    break;
+                }
+            }
+            if (!$hasUnreviewed) {
+                return Result::fail('Ya has dejado una reseña por cada reserva completada en este café', 'duplicate_review');
             }
 
             // 4. Crear reseña usando repository (la sanitización XSS ocurre en la capa de salida con e())
@@ -258,18 +266,25 @@ final class ReviewService extends BaseService implements ReviewServiceInterface
     }
 
     /**
-     * Verifica si usuario puede dejar reseña (tiene reserva completada).
+     * Verifica si usuario puede dejar reseña (tiene reserva completada sin reseña).
      */
     #[Override]
     public function canUserReview(int $userId, int $cafeId): array
     {
         try {
-            // Verificar si ya existe reseña
-            if ($this->reviewRepository->userHasReview($userId, $cafeId)) {
-                return ['can_review' => false, 'reason' => 'Ya has dejado una reseña para este café'];
+            $completed = $this->reservationRepo->getCompletedByUserAndCafe($userId, $cafeId);
+
+            if (empty($completed)) {
+                return ['can_review' => false, 'reason' => 'Necesitas una reserva completada para dejar una reseña'];
             }
 
-            return ['can_review' => true];
+            foreach ($completed as $reservation) {
+                if (!$this->reviewRepository->existsByReservationId((int) $reservation['id'])) {
+                    return ['can_review' => true];
+                }
+            }
+
+            return ['can_review' => false, 'reason' => 'Ya has dejado una reseña por cada reserva completada en este café'];
         } catch (Exception $e) {
             Logger::error('Error al verificar elegibilidad para reseña', [
                 'exception' => \get_class($e),

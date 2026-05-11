@@ -193,25 +193,30 @@ final class TimeSlotRepository extends AbstractRepository implements TimeSlotRep
     #[Override]
     public function findAvailableByDateFiltered(string $date, ?int $cafeId = null, ?int $guests = null): array
     {
-        $sql = '
-            SELECT
-                ts.id,
-                ts.cafe_id,
-                ts.slot_date,
-                ts.slot_time,
-                ts.available_spots,
-                ts.total_capacity,
-                ts.duration_minutes
-            FROM time_slots ts
-            WHERE ts.slot_date      = :date
-              AND ts.is_blocked     = 0
-              AND ts.available_spots > 0
-        ';
-        $params = [':date' => $date];
-
         if ($cafeId !== null) {
-            $sql .= ' AND ts.cafe_id = :cafe_id';
-            $params[':cafe_id'] = $cafeId;
+            $sql = '
+                SELECT ts.id, ts.cafe_id, ts.slot_date, ts.slot_time,
+                       ts.available_spots, ts.total_capacity, ts.duration_minutes
+                FROM time_slots ts
+                JOIN cafes c ON c.id = ts.cafe_id
+                WHERE ts.slot_date       = :date
+                  AND ts.is_blocked      = 0
+                  AND ts.available_spots > 0
+                  AND ts.cafe_id         = :cafe_id
+                  AND ts.slot_time      >= c.opening_time
+                  AND ts.slot_time       < c.closing_time
+            ';
+            $params = [':date' => $date, ':cafe_id' => $cafeId];
+        } else {
+            $sql = '
+                SELECT ts.id, ts.cafe_id, ts.slot_date, ts.slot_time,
+                       ts.available_spots, ts.total_capacity, ts.duration_minutes
+                FROM time_slots ts
+                WHERE ts.slot_date       = :date
+                  AND ts.is_blocked      = 0
+                  AND ts.available_spots > 0
+            ';
+            $params = [':date' => $date];
         }
 
         if ($guests !== null) {
@@ -225,5 +230,50 @@ final class TimeSlotRepository extends AbstractRepository implements TimeSlotRep
         $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    #[Override]
+    public function adjustOccupancyByRange(
+        int $cafeId,
+        string $date,
+        string $startHHMM,
+        int $durationMinutes,
+        int $guests,
+        bool $release,
+    ): void {
+        $startTotalMins = (int) \substr($startHHMM, 0, 2) * 60 + (int) \substr($startHHMM, 3, 2);
+        $endTotalMins   = $startTotalMins + $durationMinutes;
+        $endHHMMSS      = \sprintf('%02d:%02d:00', (int) ($endTotalMins / 60), $endTotalMins % 60);
+        $startHHMMSS    = $startHHMM . ':00';
+
+        $this->getDb()->prepare(
+            'UPDATE time_slots
+             SET
+                 reserved_spots = CASE
+                     WHEN :release1 = 1 THEN GREATEST(0, reserved_spots - :guests1)
+                     ELSE LEAST(total_capacity, reserved_spots + :guests2)
+                 END,
+                 available_spots = CASE
+                     WHEN :release2 = 1 THEN LEAST(total_capacity, available_spots + :guests3)
+                     ELSE GREATEST(0, available_spots - :guests4)
+                 END,
+                 updated_at = NOW()
+             WHERE cafe_id = :cafe_id
+               AND slot_date = :date
+               AND TIME_TO_SEC(slot_time) < TIME_TO_SEC(:end_time)
+               AND (TIME_TO_SEC(slot_time) + duration_minutes * 60) > TIME_TO_SEC(:start_time)
+               AND is_blocked = 0'
+        )->execute([
+            'release1'   => $release ? 1 : 0,
+            'release2'   => $release ? 1 : 0,
+            'guests1'    => $guests,
+            'guests2'    => $guests,
+            'guests3'    => $guests,
+            'guests4'    => $guests,
+            'cafe_id'    => $cafeId,
+            'date'       => $date,
+            'start_time' => $startHHMMSS,
+            'end_time'   => $endHHMMSS,
+        ]);
     }
 }

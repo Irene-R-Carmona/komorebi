@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     cafe_id BIGINT UNSIGNED NOT NULL,
     user_id BIGINT UNSIGNED NOT NULL,
-    reservation_id BIGINT UNSIGNED NULL COMMENT 'Reserva completada (nullable por orden de migraciones)',
+    reservation_id BIGINT UNSIGNED NOT NULL COMMENT 'Reserva completada a la que pertenece esta reseña',
     rating TINYINT UNSIGNED NOT NULL CHECK (
         rating >= 1
         AND rating <= 5
@@ -22,14 +22,13 @@ CREATE TABLE IF NOT EXISTS reviews (
     rejection_reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_reviews_user_cafe (user_id, cafe_id),
+    UNIQUE KEY uk_review_per_reservation (reservation_id),
     INDEX idx_reviews_moderation_queue (status, created_at DESC) COMMENT 'Cola moderación',
     INDEX idx_reviews_cafe_rating (cafe_id, status, rating) COMMENT 'Cálculo rating_avg',
     INDEX idx_reviews_user (user_id),
     INDEX idx_reviews_reservation (reservation_id),
     CONSTRAINT fk_reviews_cafes FOREIGN KEY (cafe_id) REFERENCES cafes (id) ON DELETE CASCADE,
     CONSTRAINT fk_reviews_users FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-    -- FK reservation_id se añade en 004_reservations.sql después de crear la tabla
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- Tabla de auditoría general (cambios críticos)
 CREATE TABLE IF NOT EXISTS audit_logs (

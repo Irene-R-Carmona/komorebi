@@ -111,26 +111,26 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
     }
 
     #[Override]
-    public function getDashboardData(): array
+    public function getDashboardData(?int $cafeId = null): array
     {
         return [
-            'animals' => $this->animalRepo->getAnimalsWithCafeInfoOptimized(),
-            'stats' => $this->animalRepo->getHealthStatistics(),
-            'recent_logs' => $this->healthCheckRepo->getRecentLogs(20),
-            'active_incidents' => $this->incidentRepo->getActiveIncidents(),
+            'animals'          => $this->animalRepo->getAnimalsWithCafeInfoOptimized($cafeId),
+            'stats'            => $this->animalRepo->getHealthStatistics($cafeId),
+            'recent_logs'      => $this->healthCheckRepo->getRecentLogs(20),
+            'active_incidents' => $this->incidentRepo->getActiveIncidents($cafeId),
         ];
     }
 
     #[Override]
-    public function getAnimalsWithCafeInfo(): array
+    public function getAnimalsWithCafeInfo(?int $cafeId = null): array
     {
-        return $this->getAllAnimals();
+        return $this->animalRepo->getAnimalsWithCafeInfoOptimized($cafeId);
     }
 
     #[Override]
-    public function getStatistics(): array
+    public function getStatistics(?int $cafeId = null): array
     {
-        return $this->animalRepo->getHealthStatistics();
+        return $this->animalRepo->getHealthStatistics($cafeId);
     }
 
     #[Override]
@@ -140,9 +140,9 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
     }
 
     #[Override]
-    public function getActiveIncidents(): array
+    public function getActiveIncidents(?int $cafeId = null): array
     {
-        return $this->incidentRepo->getActiveIncidents();
+        return $this->incidentRepo->getActiveIncidents($cafeId);
     }
 
     #[Override]

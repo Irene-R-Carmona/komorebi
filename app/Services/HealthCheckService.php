@@ -120,7 +120,7 @@ final class HealthCheckService implements HealthCheckServiceInterface
     #[Override]
     public function getTodayDashboard(?int $cafeId = null): array
     {
-        $completedChecks = $this->repository->getTodayChecks();
+        $completedChecks = $this->repository->getTodayChecks($cafeId);
         $pendingAnimals = $this->repository->getPendingAnimals($cafeId);
 
         // Decodificar alertas JSON en checks completados

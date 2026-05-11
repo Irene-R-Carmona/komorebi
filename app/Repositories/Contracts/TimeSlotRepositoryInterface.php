@@ -96,4 +96,24 @@ interface TimeSlotRepositoryInterface
      * @return array<int, array<string, mixed>>
      */
     public function findAvailableByDateFiltered(string $date, ?int $cafeId = null, ?int $guests = null): array;
+
+    /**
+     * Ajusta la ocupación de todos los slots que solapen con el rango [startTime, startTime+duration).
+     * Operación atómica. Usa overlap SQL para abarcar pases de múltiples slots.
+     *
+     * @param int    $cafeId          ID del café
+     * @param string $date            Fecha en formato Y-m-d
+     * @param string $startHHMM       Hora de inicio en formato HH:MM (sin segundos)
+     * @param int    $durationMinutes Duración total de la reserva en minutos
+     * @param int    $guests          Número de personas
+     * @param bool   $release         true = liberar (cancelación), false = reservar (creación)
+     */
+    public function adjustOccupancyByRange(
+        int $cafeId,
+        string $date,
+        string $startHHMM,
+        int $durationMinutes,
+        int $guests,
+        bool $release,
+    ): void;
 }

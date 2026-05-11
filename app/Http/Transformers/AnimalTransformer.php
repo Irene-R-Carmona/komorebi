@@ -22,7 +22,7 @@ final class AnimalTransformer extends AbstractTransformer
             'cafe_id' => (int) ($data['cafe_id'] ?? 0),
             'name' => (string) ($data['name'] ?? ''),
             'species_type' => (string) ($data['species_type'] ?? ''),
-            'age' => isset($data['age']) ? (int) $data['age'] : null,
+            'age' => isset($data['age_years']) ? (int) $data['age_years'] : (isset($data['age']) ? (int) $data['age'] : null),
             'personality' => isset($data['personality']) ? (string) $data['personality'] : null,
             'description' => isset($data['description']) ? (string) $data['description'] : null,
             'interaction_level' => (int) ($data['interaction_level'] ?? 3),

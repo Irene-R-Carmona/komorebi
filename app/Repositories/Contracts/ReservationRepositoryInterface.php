@@ -75,6 +75,16 @@ interface ReservationRepositoryInterface
     public function updateStatus(int $id, string $status): bool;
 
     /**
+     * Actualizar el estado con motivo de cancelación (uso manager)
+     */
+    public function updateStatusWithReason(int $id, string $status, string $reason): bool;
+
+    /**
+     * Registrar una devolución (uso manager)
+     */
+    public function recordRefund(int $id, int $amountCents, string $notes): bool;
+
+    /**
      * Guardar la URL pública del PDF de factura en Cloudinary.
      */
     public function updateInvoicePdfUrl(int $id, string $url): bool;
@@ -156,9 +166,33 @@ interface ReservationRepositoryInterface
     public function hasCompletedReservation(int $userId, int $cafeId): bool;
 
     /**
+     * Obtener reservas completadas de un usuario en un café concreto.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getCompletedByUserAndCafe(int $userId, int $cafeId): array;
+
+    /**
      * Find reservation with operational fields (protocol_hygiene, protocol_briefing, protocol_shoes, tracker_id, etc).
      *
      * @return array<string, mixed>|null
      */
     public function findWithOperationalData(int $id): ?array;
+
+    /**
+     * Insertar items pre_order en reservation_items.
+     *
+     * @param array<int, array{product_id: int, qty: int}> $items
+     */
+    public function insertPreOrderItems(int $reservationId, array $items): void;
+
+    /** Eliminar items pre_order de una reserva. Retorna el número de filas eliminadas. */
+    public function deletePreOrderItems(int $reservationId): int;
+
+    /**
+     * Obtener items pre_order de una reserva con datos de producto y categoría.
+     *
+     * @return array<int, array{id: int, product_id: int, quantity: int, name: string, price: int, stock_quantity: int|null, category_id: int, category_name: string}>
+     */
+    public function getPreOrderItems(int $reservationId): array;
 }

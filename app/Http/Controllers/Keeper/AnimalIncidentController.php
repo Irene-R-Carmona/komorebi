@@ -53,9 +53,28 @@ final class AnimalIncidentController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $incidents = $this->service->getActiveIncidents();
+        $params   = $request->getQueryParams();
+        $search   = \trim((string) ($params['search'] ?? ''));
+        $severity = (string) ($params['severity'] ?? '');
 
-        View::render('backoffice/keeper/incidents/index', \compact('incidents'), [], 'backoffice');
+        $cafeId = (int) (Session::user()['cafe_id'] ?? 0);
+        $all = $this->service->getActiveIncidents($cafeId);
+
+        $incidents = ($search !== '' || $severity !== '')
+            ? \array_values(\array_filter($all, static function (array $inc) use ($search, $severity): bool {
+                if ($search !== '' && \stripos($inc['animal_name'] . ' ' . ($inc['description'] ?? ''), $search) === false) {
+                    return false;
+                }
+                if ($severity !== '' && ($inc['severity'] ?? '') !== $severity) {
+                    return false;
+                }
+                return true;
+            }))
+            : $all;
+
+        $currentParams = \array_filter(\compact('search', 'severity'));
+
+        View::render('backoffice/keeper/incidents/index', \compact('incidents', 'currentParams'), [], 'backoffice');
 
         return null;
     }

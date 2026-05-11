@@ -67,13 +67,23 @@ document.addEventListener('alpine:init', () => {
       this.sopData = {
         title: data.title,
         station: data.station || 'General',
-        ingred: this.parseList(data.ingred),
-        steps: this.parseSteps(data.steps),
+        ingred: this.parseList(data.ingred).map(name => ({ name, checked: false })),
+        steps: this.parseSteps(data.steps).map((s, i) => ({ text: s, active: i === 0 })),
         check: data.check,
         allergens: Array.isArray(data.allergens) ? data.allergens : [],
       };
 
       this.sopOpen = true;
+    },
+
+    toggleMise(idx) {
+      if (this.sopData.ingred[idx] !== undefined) {
+        this.sopData.ingred[idx].checked = !this.sopData.ingred[idx].checked;
+      }
+    },
+
+    activateStep(idx) {
+      this.sopData.steps = this.sopData.steps.map((s, i) => ({ ...s, active: i === idx }));
     },
 
     closeSop() {

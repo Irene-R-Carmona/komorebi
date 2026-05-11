@@ -36,23 +36,24 @@ CREATE TABLE IF NOT EXISTS animal_health_checks (
     INDEX idx_animal_date (animal_id, check_date),
     INDEX idx_check_date (check_date),
     INDEX idx_checked_by (checked_by, check_date),
-    INDEX idx_health_check_date (check_date DESC, animal_id),
-    -- Constraint: Un solo chequeo por animal por día
-    UNIQUE KEY uk_animal_check_date (animal_id, check_date)
+    INDEX idx_health_check_date (check_date DESC, animal_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'Chequeos diarios de salud animal realizados por keepers';
 -- ============================================================================
 -- VISTA: health_checks_today
 -- ============================================================================
--- Vista auxiliar para dashboard: chequeos realizados hoy con info del animal
+-- Vista auxiliar para dashboard: chequeos realizados hoy con info del animal y café
 CREATE OR REPLACE VIEW health_checks_today AS
-SELECT hc.id,
+SELECT
+    hc.id,
     hc.animal_id,
-    a.name AS animal_name,
+    a.name          AS animal_name,
     a.species_type,
     a.current_status,
+    a.cafe_id,
+    c.name          AS cafe_name,
     hc.check_date,
     hc.checked_by,
-    u.name AS keeper_name,
+    u.name          AS keeper_name,
     hc.weight_kg,
     hc.temperature_c,
     hc.appetite,
@@ -64,10 +65,11 @@ SELECT hc.id,
     hc.alerts,
     hc.created_at
 FROM animal_health_checks hc
-    INNER JOIN animals a ON hc.animal_id = a.id
-    INNER JOIN users u ON hc.checked_by = u.id
+INNER JOIN animals a ON hc.animal_id = a.id
+INNER JOIN cafes c ON a.cafe_id = c.id
+INNER JOIN users u ON hc.checked_by = u.id
 WHERE hc.check_date = CURDATE()
-    AND a.deleted_at IS NULL
+  AND a.deleted_at IS NULL
 ORDER BY hc.created_at DESC;
 -- ============================================================================
 -- VISTA: animals_pending_check_today
@@ -86,7 +88,7 @@ FROM animals a
     LEFT JOIN animal_health_checks hc ON hc.animal_id = a.id
     AND hc.check_date = CURDATE()
 WHERE a.deleted_at IS NULL
-    AND a.current_status IN ('active', 'monitoring')
+    AND a.current_status IN ('active', 'monitoring', 'quarantine', 'sick')
     AND hc.id IS NULL
 ORDER BY a.last_health_check IS NULL DESC,
     a.last_health_check,

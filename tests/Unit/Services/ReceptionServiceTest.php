@@ -165,8 +165,8 @@ final class ReceptionServiceTest extends TestCase
         );
         $this->cafeRepoStub->method('findById')->willReturn($cafe);
         $this->reservationRepoStub->method('findActiveByCafe')->willReturn([
-            ['guests' => 3],
-            ['guests' => 2],
+            ['guest_count' => 3],
+            ['guest_count' => 2],
         ]);
 
         $result = $this->service->getCapacityInfo(1);
@@ -216,7 +216,7 @@ final class ReceptionServiceTest extends TestCase
         );
         $this->cafeRepoStub->method('findById')->willReturn($cafe);
         $this->reservationRepoStub->method('findActiveByCafe')->willReturn([
-            ['guests' => 5],
+            ['guest_count' => 5],
         ]);
 
         $result = $this->service->getCapacityInfo(1);
@@ -323,6 +323,7 @@ final class ReceptionServiceTest extends TestCase
             status: 'active',
             time_slot_id: null,
             pass_name: null,
+            pass_duration_minutes: null,
             check_in_at: '2025-12-01 10:00:00',
             check_out_at: null,
             final_amount: null,
@@ -385,6 +386,7 @@ final class ReceptionServiceTest extends TestCase
             status: 'confirmed',
             time_slot_id: null,
             pass_name: null,
+            pass_duration_minutes: null,
             check_in_at: null,
             check_out_at: null,
             final_amount: null,
@@ -414,6 +416,7 @@ final class ReceptionServiceTest extends TestCase
             status: 'active',
             time_slot_id: null,
             pass_name: null,
+            pass_duration_minutes: null,
             check_in_at: '2025-12-01 10:00:00',
             check_out_at: null,
             final_amount: null,
@@ -443,6 +446,7 @@ final class ReceptionServiceTest extends TestCase
             status: 'active',
             time_slot_id: null,
             pass_name: null,
+            pass_duration_minutes: null,
             check_in_at: '2025-12-01 10:00:00',
             check_out_at: null,
             final_amount: null,
@@ -473,6 +477,7 @@ final class ReceptionServiceTest extends TestCase
             status: 'active',
             time_slot_id: null,
             pass_name: null,
+            pass_duration_minutes: null,
             check_in_at: '2025-12-01 10:00:00',
             check_out_at: null,
             final_amount: null,

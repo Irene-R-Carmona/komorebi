@@ -16,6 +16,7 @@ use App\Support\ViewHelpers;
 
 $meta ??= ['page' => 1, 'has_next_page' => false];
 $total ??= count($animals);
+$currentParams ??= [];
 
 $getStatusBadgeClass = function (string $status): string {
     return match ($status) {
@@ -74,6 +75,42 @@ $getStatusLabel = function (string $status): string {
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
+
+    <!-- Filtros -->
+    <form method="GET" action="/keeper/animals" class="row g-2 mb-4">
+        <div class="col-md-4">
+            <input type="search" name="search" class="form-control"
+                placeholder="Buscar nombre o café…"
+                value="<?= htmlspecialchars($currentParams['search'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">Todos los estados</option>
+                <option value="active" <?= ($currentParams['status'] ?? '') === 'active' ? 'selected' : '' ?>>Activo</option>
+                <option value="resting" <?= ($currentParams['status'] ?? '') === 'resting' ? 'selected' : '' ?>>Reposo</option>
+                <option value="sick" <?= ($currentParams['status'] ?? '') === 'sick' ? 'selected' : '' ?>>Enfermo</option>
+                <option value="retired" <?= ($currentParams['status'] ?? '') === 'retired' ? 'selected' : '' ?>>Retirado</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="species" class="form-select">
+                <option value="">Todas las especies</option>
+                <?php foreach (['gato', 'perro', 'conejo', 'chinchilla', 'alpaca', 'ardilla', 'pato', 'loro', 'cobaya', 'capybara', 'tortuga', 'cerdito'] as $sp): ?>
+                    <option value="<?= $sp ?>" <?= ($currentParams['species'] ?? '') === $sp ? 'selected' : '' ?>><?= ucfirst($sp) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-fill">
+                <i class="bi bi-search"></i> Filtrar
+            </button>
+            <?php if (!empty($currentParams)): ?>
+                <a href="/keeper/animals" class="btn btn-outline-secondary" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            <?php endif; ?>
+        </div>
+    </form>
 
     <!-- Tabla de animales -->
     <div class="card shadow-sm">
@@ -179,7 +216,7 @@ $getStatusLabel = function (string $status): string {
                 </div>
             <?php endif; ?>
         </div>
-        <?php $paginationHtml = ViewHelpers::paginationLinks($meta, []); ?>
+        <?php $paginationHtml = ViewHelpers::paginationLinks($meta, $currentParams ?? []); ?>
         <?php if ($paginationHtml !== ''): ?>
             <div class="d-flex justify-content-center mt-3 mb-2">
                 <?= $paginationHtml ?>

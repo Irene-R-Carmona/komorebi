@@ -10,7 +10,7 @@ use App\Support\CurrencyFormatting;
  */
 
 if (empty($experiences)):
-    ?>
+?>
     <section class="experiences-section">
         <header class="seccion__header">
             <h2 class="seccion__titulo">Experiencias Disponibles</h2>
@@ -21,7 +21,7 @@ if (empty($experiences)):
         </div>
     </section>
 <?php
-        return;
+    return;
 endif;
 ?>
 
@@ -88,8 +88,7 @@ endif;
                     </p>
 
                     <!-- Meta información -->
-                    <div class="experience-card__meta">
-                        <?php if ($duration > 0): ?>
+                    <div class="experience-card__meta"> <?php if ($duration > 0): ?>
                             <span class="experience-meta__item">
                                 <i class="bi bi-stopwatch" aria-hidden="true"></i>
                                 <?= $duration ?> minutos
@@ -145,11 +144,32 @@ endif;
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
+
+                    <?php
+                    $expInclusions = ($passInclusions ?? [])[(int) $exp['id']] ?? [];
+                    if ($expInclusions !== []):
+                    ?>
+                        <div class="experience-card__inclusions">
+                            <p class="experience-inclusions__label">Incluye:</p>
+                            <ul class="experience-inclusions__list">
+                                <?php foreach ($expInclusions as $inc): ?>
+                                    <li class="experience-inclusions__item">
+                                        <i class="bi bi-check2" aria-hidden="true"></i>
+                                        <?php
+                                        $qty = (int) ($inc['quantity_per_pax'] ?? 0);
+                                        $catName = e((string) ($inc['category_name'] ?? ''));
+                                        echo $qty > 1 ? "{$qty} × {$catName}" : $catName;
+                                        ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="experience-card__footer">
                     <div class="experience-card__price">
-                        <span class="experience-price__amount"><?= CurrencyFormatting::yen($price) ?></span>
+                        <span class="experience-price__amount"><?= CurrencyFormatting::euro($price) ?></span>
                         <span class="experience-price__label">/persona</span>
                     </div>
                     <a href="/reservas?cafe=<?= (int) $cafe['id'] ?>&pass=<?= (int) $exp['id'] ?>"

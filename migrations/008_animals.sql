@@ -24,13 +24,14 @@ CREATE TABLE IF NOT EXISTS animals (
     current_zone_id BIGINT UNSIGNED DEFAULT NULL,
     name VARCHAR(100) NOT NULL,
     species_type VARCHAR(50) NOT NULL,
-    age INT UNSIGNED DEFAULT 0,
+    birth_date DATE NULL COMMENT 'Fecha de nacimiento. NULL si se desconoce.',
+    age_years TINYINT UNSIGNED NULL COMMENT 'Edad en años. NULL si sin birth_date. Se calcula externamente.',
     personality VARCHAR(100),
     description TEXT,
     interaction_level TINYINT UNSIGNED DEFAULT 3,
     attributes JSON,
     image_url VARCHAR(255),
-    current_status ENUM ('active', 'resting', 'sick', 'retired') DEFAULT 'active',
+    current_status ENUM ('active', 'resting', 'sick', 'on_vacation', 'retired', 'quarantine', 'monitoring') NOT NULL DEFAULT 'active',
     last_health_check TIMESTAMP NULL COMMENT 'Última revisión veterinaria o checklist keeper',
     deleted_at TIMESTAMP NULL COMMENT 'Soft delete RGPD',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -49,8 +50,8 @@ CREATE TABLE IF NOT EXISTS animals (
 CREATE TABLE IF NOT EXISTS animal_status_log (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     animal_id BIGINT UNSIGNED NOT NULL,
-    old_status ENUM ('active', 'resting', 'sick', 'retired'),
-    new_status ENUM ('active', 'resting', 'sick', 'retired') NOT NULL,
+    old_status ENUM ('active', 'resting', 'sick', 'on_vacation', 'retired', 'quarantine', 'monitoring') NULL,
+    new_status ENUM ('active', 'resting', 'sick', 'on_vacation', 'retired', 'quarantine', 'monitoring') NOT NULL,
     reason TEXT,
     logged_by BIGINT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -64,6 +65,7 @@ CREATE TABLE IF NOT EXISTS animal_status_log (
 CREATE TABLE IF NOT EXISTS animal_incidents (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     animal_id BIGINT UNSIGNED NOT NULL,
+    reservation_id BIGINT UNSIGNED NULL COMMENT 'Reserva durante la que ocurrió el incidente (opcional).',
     incident_type VARCHAR(50) NOT NULL,
     description TEXT NOT NULL,
     resolution TEXT NULL COMMENT 'Notas de resolución del incidente',
@@ -78,6 +80,7 @@ CREATE TABLE IF NOT EXISTS animal_incidents (
     INDEX idx_incidents_open (severity, created_at DESC, resolved_at) COMMENT 'Alertas pendientes',
     INDEX idx_animal_incidents_status (animal_id, status),
     CONSTRAINT fk_animal_incidents_animals FOREIGN KEY (animal_id) REFERENCES animals (id) ON DELETE CASCADE,
+    CONSTRAINT fk_animal_incidents_reservation FOREIGN KEY (reservation_id) REFERENCES reservations (id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_animal_incidents_reporter FOREIGN KEY (reported_by) REFERENCES users (id) ON DELETE
     SET NULL,
         CONSTRAINT fk_animal_incidents_resolver FOREIGN KEY (resolved_by) REFERENCES users (id) ON DELETE

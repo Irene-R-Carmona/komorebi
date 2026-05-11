@@ -10,8 +10,8 @@
 <div x-data="window.deleteModal"
     x-show="isOpen"
     x-cloak
-    class="modal fade show"
-    :class="{'d-block': isOpen}"
+    class="modal fade"
+    :class="{'show': isOpen, 'd-block': isOpen}"
     tabindex="-1"
     role="dialog"
     aria-modal="true"

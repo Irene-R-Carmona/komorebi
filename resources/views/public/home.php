@@ -9,8 +9,16 @@
  * - $featuredCafes: array
  * - $userData: array|null
  * - $categories: array
+ * - $dbError: bool — true cuando la BD no está disponible
  */
 ?>
+
+<?php if (!empty($dbError)) : ?>
+    <div role="alert" style="background:var(--color-error,#c0392b);color:#fff;padding:.75rem 1.25rem;text-align:center;font-weight:600;">
+        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        El sistema de reservas está temporalmente en mantenimiento. Vuelve en unos minutos.
+    </div>
+<?php endif; ?>
 
 <section class="seccion seccion--activa" style="padding: 0;">
 

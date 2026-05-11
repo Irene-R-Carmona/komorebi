@@ -17,6 +17,7 @@ use App\Exceptions\PhpErrorException;
 use App\Exceptions\RateLimitException;
 use App\Exceptions\RouterException;
 use App\Exceptions\RouterParameterException;
+use App\Exceptions\DateMalformedStringException;
 use App\Exceptions\ValidationException;
 use ErrorException;
 use JsonException;
@@ -66,6 +67,7 @@ final class ExceptionHandler
             $exception instanceof DatabaseException => self::handleDatabase($exception, $isApiRequest),
             $exception instanceof ConfigurationException => self::handleConfiguration($exception, $isApiRequest),
             $exception instanceof ExternalServiceException => self::handleExternalService($exception, $isApiRequest),
+            $exception instanceof DateMalformedStringException => self::handleDateMalformed($exception, $isApiRequest),
             default => self::handleGeneric($exception, $isApiRequest)
         };
     }
@@ -400,6 +402,30 @@ final class ExceptionHandler
                 'message' => $exception->getMessage(),
                 'service' => $exception->getServiceName(),
             ], [], 'errors');
+        }
+    }
+
+    /**
+     * Maneja DateMalformedStringException (400)
+     *
+     * @throws JsonException
+     */
+    private static function handleDateMalformed(DateMalformedStringException $exception, bool $isApi): void
+    {
+        if ($isApi) {
+            self::sendProblem(
+                'La fecha proporcionada no es válida.',
+                'invalid_date',
+                $exception->getHttpCode(),
+                ['expected_format' => $exception->getExpectedFormat()]
+            );
+        } else {
+            Flash::error('La fecha proporcionada no es válida.');
+            if (!\headers_sent()) {
+                @\http_response_code($exception->getHttpCode());
+            }
+            \header('Location: ' . View::safeReferer());
+            exit;
         }
     }
 

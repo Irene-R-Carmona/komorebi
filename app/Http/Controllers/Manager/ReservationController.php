@@ -6,26 +6,38 @@ namespace App\Http\Controllers\Manager;
 
 use App\Core\Container;
 use App\Core\Csrf;
+use App\Core\Flash;
+use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Core\View;
 use App\Domain\DTO\PaginationParams;
+use App\Domain\Reservation\ReservationStateMachine;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Services\Contracts\ReservationServiceInterface;
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Controlador de Reservas del Manager
  *
- * Responsabilidad: Listado y filtrado de reservas del café asignado.
+ * Responsabilidad: Listado, detalle y gestión de estado de reservas del café asignado.
  * Permisos: role = 'manager'
  */
 final class ReservationController
 {
     private ReservationRepositoryInterface $reservationRepo;
+    private ReservationServiceInterface $reservationService;
+    private ResponseFactory $response;
 
-    public function __construct(?ReservationRepositoryInterface $reservationRepo = null)
-    {
+    public function __construct(
+        ?ReservationRepositoryInterface $reservationRepo = null,
+        ?ReservationServiceInterface $reservationService = null,
+        ?ResponseFactory $response = null,
+    ) {
         $this->reservationRepo = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
+        $this->reservationService = $reservationService ?? Container::make(ReservationServiceInterface::class);
+        $this->response = $response ?? Container::make(ResponseFactory::class);
     }
 
     /**
@@ -68,5 +80,141 @@ final class ReservationController
         ], ['manager/manager-reservations.css'], 'backoffice');
 
         return null;
+    }
+
+    /**
+     * GET /manager/reservations/{id}
+     * Detalle de una reserva con formularios de gestión
+     */
+    public function show(ServerRequestInterface $request): ?ResponseInterface
+    {
+        $user = Session::user();
+        $cafeId = (int) ($user['cafe_id'] ?? 0);
+        $id = (int) ($request->getAttribute('id') ?? 0);
+
+        if (!$id) {
+            return $this->response->redirect('/manager/reservations');
+        }
+
+        $reservation = $this->reservationRepo->findByIdWithCafeDetails($id);
+
+        if ($reservation === null) {
+            Flash::error('Reserva no encontrada.');
+
+            return $this->response->redirect('/manager/reservations');
+        }
+
+        if ((int) ($reservation['cafe_id'] ?? 0) !== $cafeId) {
+            Flash::error('No tienes permiso para ver esta reserva.');
+
+            return $this->response->redirect('/manager/reservations');
+        }
+
+        $currentStatus = (string) ($reservation['status'] ?? '');
+        $validTransitions = \array_filter(
+            ['confirmed', 'active', 'cancelled', 'no_show', 'completed'],
+            fn(string $to) => ReservationStateMachine::isValidTransition($currentStatus, $to)
+        );
+
+        View::render('manager/reservations/show', [
+            'titulo' => 'Detalle de Reserva #' . $id,
+            'reservation' => $reservation,
+            'valid_transitions' => \array_values($validTransitions),
+            'csrf_token' => Csrf::token(),
+        ], [], 'backoffice');
+
+        return null;
+    }
+
+    /**
+     * POST /manager/reservations/{id}/status
+     * Cambiar estado de la reserva con justificación
+     */
+    public function updateStatus(ServerRequestInterface $request): ResponseInterface
+    {
+        $user = Session::user();
+        $cafeId = (int) ($user['cafe_id'] ?? 0);
+        $id = (int) ($request->getAttribute('id') ?? 0);
+
+        if (!$id) {
+            return $this->response->redirect('/manager/reservations');
+        }
+
+        $existing = $this->reservationRepo->findByIdWithCafeDetails($id);
+
+        if ($existing === null || (int) ($existing['cafe_id'] ?? 0) !== $cafeId) {
+            Flash::error('Reserva no encontrada o sin permiso.');
+
+            return $this->response->redirect('/manager/reservations');
+        }
+
+        $body = (array) ($request->getParsedBody() ?? []);
+        $newStatus = \trim((string) ($body['new_status'] ?? ''));
+        $reason = \trim((string) ($body['reason'] ?? ''));
+
+        if ($newStatus === '') {
+            Flash::error('Debes seleccionar un estado destino.');
+
+            return $this->response->redirect("/manager/reservations/{$id}");
+        }
+
+        $result = $this->reservationService->managerUpdateStatus($id, $newStatus, $reason);
+
+        if (!$result->ok) {
+            Flash::error($result->getMessage());
+
+            return $this->response->redirect("/manager/reservations/{$id}");
+        }
+
+        Flash::success('Estado actualizado correctamente.');
+
+        return $this->response->redirect("/manager/reservations/{$id}");
+    }
+
+    /**
+     * POST /manager/reservations/{id}/refund
+     * Registrar devolución de una reserva cancelada
+     */
+    public function processRefund(ServerRequestInterface $request): ResponseInterface
+    {
+        $user = Session::user();
+        $cafeId = (int) ($user['cafe_id'] ?? 0);
+        $id = (int) ($request->getAttribute('id') ?? 0);
+
+        if (!$id) {
+            return $this->response->redirect('/manager/reservations');
+        }
+
+        $existing = $this->reservationRepo->findByIdWithCafeDetails($id);
+
+        if ($existing === null || (int) ($existing['cafe_id'] ?? 0) !== $cafeId) {
+            Flash::error('Reserva no encontrada o sin permiso.');
+
+            return $this->response->redirect('/manager/reservations');
+        }
+
+        $body = (array) ($request->getParsedBody() ?? []);
+        $amountEuros = \trim((string) ($body['amount_euros'] ?? ''));
+        $notes = \trim((string) ($body['notes'] ?? ''));
+
+        if ($amountEuros === '' || !\is_numeric($amountEuros) || (float) $amountEuros < 0) {
+            Flash::error('Importe de devolución inválido.');
+
+            return $this->response->redirect("/manager/reservations/{$id}");
+        }
+
+        $amountCents = (int) \round((float) $amountEuros * 100);
+
+        $result = $this->reservationService->managerRecordRefund($id, $amountCents, $notes);
+
+        if (!$result->ok) {
+            Flash::error($result->getMessage());
+
+            return $this->response->redirect("/manager/reservations/{$id}");
+        }
+
+        Flash::success('Devolución registrada correctamente.');
+
+        return $this->response->redirect("/manager/reservations/{$id}");
     }
 }

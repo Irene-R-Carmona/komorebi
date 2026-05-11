@@ -135,12 +135,16 @@ final class DashboardService implements DashboardServiceInterface
         $stmt = $this->db->prepare(
             "SELECT
                 reservation_date AS date,
-                COALESCE(SUM(final_amount), 0) AS revenue
+                COALESCE(SUM(
+                    CASE WHEN final_amount IS NOT NULL
+                         THEN final_amount
+                         ELSE pass_unit_price * guest_count
+                    END
+                ), 0) AS revenue
              FROM reservations
              WHERE cafe_id = :cafe_id
              AND reservation_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-             AND status = 'completed'
-             AND payment_status = 'paid'
+             AND status NOT IN ('cancelled', 'no_show')
              AND deleted_at IS NULL
              GROUP BY reservation_date
              ORDER BY reservation_date"

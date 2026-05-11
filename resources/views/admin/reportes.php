@@ -67,7 +67,7 @@ $titulo ??= 'Reportes y Estadísticas';
                         'icon' => 'cash-stack',
                         'variant' => 'info',
                         'label' => 'Ingresos del Mes',
-                        'value' => CurrencyFormatting::yen($stats['monthly_revenue'] ?? 0),
+                        'value' => CurrencyFormatting::euro((int) ($stats['monthly_revenue'] ?? 0)),
                     ]) ?>
                 </div>
 

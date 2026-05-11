@@ -76,6 +76,9 @@ if (Env::bool('FEATURE_BACKOFFICE', true)) {
     $router->group(['prefix' => '/manager', 'middleware' => $managerMiddleware], function (Router $r) use ($mw) {
         $r->get('/dashboard', 'Manager\DashboardController@index');
         $r->get('/reservations', 'Manager\ReservationController@index');
+        $r->get('/reservations/{id}', 'Manager\ReservationController@show');
+        $r->post('/reservations/{id}/status', 'Manager\ReservationController@updateStatus', [$mw->csrf()]);
+        $r->post('/reservations/{id}/refund', 'Manager\ReservationController@processRefund', [$mw->csrf()]);
         $r->get('/reviews', 'Manager\ReviewController@index');
         $r->post('/reviews/{id}/approve', 'Manager\ReviewController@approve', [$mw->csrf()]);
         $r->post('/reviews/{id}/reject', 'Manager\ReviewController@reject', [$mw->csrf()]);

@@ -24,6 +24,7 @@ use App\Domain\Mappers\CafeMapper;
 use App\Repositories\CafeRepository;
 use App\Repositories\ProductRepository;
 use App\Repositories\ReservationRepository;
+use App\Services\Contracts\UserProfileServiceInterface;
 use App\Services\EmailService;
 use App\Services\InvoicePDFService;
 use App\Services\ReservationService;
@@ -53,12 +54,21 @@ final class ReservationIntegrationTest extends BaseIntegrationTest
         $productRepo = new ProductRepository(self::$db);
         $invoiceService = new InvoicePDFService();
         $emailService = new EmailService();
+        /** @var UserProfileServiceInterface&\PHPUnit\Framework\MockObject\Stub $userProfileStub */
+        $userProfileStub = $this->createStub(UserProfileServiceInterface::class);
+        $userProfileStub->method('getProfile')->willReturn([
+            'id' => self::TEST_USER_ID,
+            'email' => 'integration-test@komorebi.test',
+            'name' => 'Integration Test User',
+        ]);
         $this->service = new ReservationService(
             $reservationRepo,
             $cafeRepo,
             $productRepo,
             $invoiceService,
-            $emailService
+            $emailService,
+            eventDispatcher: null,
+            userProfileService: $userProfileStub,
         );
     }
 

@@ -1,19 +1,31 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Parameter \#1 \$array \(list\<array\|string\>\) of array_values is already a list, call has no effect\.$#'
-			identifier: arrayValues.list
-			count: 1
-			path: scripts/m3-transitions.php
+			message: '#^Call to an undefined method App\\Core\\Result\:\:getMessage\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/Manager/ReservationController.php
 
 		-
-			message: '#^Parameter \#1 \$array \(list\<array\|string\>\) of array_values is already a list, call has no effect\.$#'
-			identifier: arrayValues.list
+			message: '#^Access to an undefined property App\\Services\\ReservationService\:\:\$logger\.$#'
+			identifier: property.notFound
 			count: 1
-			path: scripts/m4-radius.php
+			path: app/Services/ReservationService.php
 
 		-
-			message: '#^Parameter \#1 \$array \(list\<array\|string\>\) of array_values is already a list, call has no effect\.$#'
-			identifier: arrayValues.list
+			message: '#^Access to an undefined property App\\Services\\ReservationService\:\:\$trackerRepo\.$#'
+			identifier: property.notFound
 			count: 1
-			path: scripts/m5-rgba.php
+			path: app/Services/ReservationService.php
+
+		-
+			message: '#^Call to an undefined method App\\Repositories\\Contracts\\ReservationRepositoryInterface\:\:updateTracker\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/ReservationService.php
+
+		-
+			message: '#^Method App\\Services\\ReservationService\:\:attachPassInclusions\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Services/ReservationService.php

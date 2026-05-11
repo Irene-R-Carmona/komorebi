@@ -120,7 +120,7 @@ final class MenuRepository implements MenuRepositoryInterface
                 p.product_type,
                 p.is_active,
                 p.image_url,
-                p.pass_duration_minutes,
+                p.duration_minutes,
                 p.max_pax,
                 p.min_pax
             FROM products p
@@ -145,7 +145,7 @@ final class MenuRepository implements MenuRepositoryInterface
                 p.product_type,
                 p.is_active,
                 p.image_url,
-                p.pass_duration_minutes AS duration_minutes,
+                p.duration_minutes,
                 p.max_pax,
                 p.min_pax,
                 p.target_cafe_types,

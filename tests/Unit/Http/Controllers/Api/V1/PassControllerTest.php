@@ -19,6 +19,7 @@ namespace Tests\Unit\Http\Controllers\Api\V1;
 
 use App\Core\Http\ResponseFactory;
 use App\Http\Controllers\Api\V1\PassController;
+use App\Repositories\Contracts\PassInclusionRepositoryInterface;
 use App\Services\Contracts\AvailabilityServiceInterface;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -30,8 +31,9 @@ final class PassControllerTest extends ControllerTestCase
     private function makeController(?AvailabilityServiceInterface $availability = null): PassController
     {
         $service = $availability ?? $this->createStub(AvailabilityServiceInterface::class);
+        $passInclusionRepo = $this->createStub(PassInclusionRepositoryInterface::class);
 
-        return new PassController(new ResponseFactory(), $service);
+        return new PassController(new ResponseFactory(), $service, $passInclusionRepo);
     }
 
     // ─────────────────────────────────────────────────────────────

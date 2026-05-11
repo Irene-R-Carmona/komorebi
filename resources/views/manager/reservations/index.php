@@ -104,6 +104,7 @@ $statusOptions = ['pending', 'confirmed', 'active', 'completed', 'cancelled', 'n
                             <th scope="col" class="text-center">Pedidos</th>
                             <th scope="col">Estado</th>
                             <th scope="col">Creación</th>
+                            <th scope="col"><span class="sr-only">Acciones</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -139,6 +140,9 @@ $statusOptions = ['pending', 'confirmed', 'active', 'completed', 'cancelled', 'n
                                 </td>
                                 <td class="reservations-table__meta">
                                     <?= e(DateFormatting::toSpanishDate(substr((string) ($r['created_at'] ?? ''), 0, 10))) ?>
+                                </td>
+                                <td class="reservations-table__actions">
+                                    <a href="/manager/reservations/<?= (int) $r['id'] ?>" class="btn btn-sm btn-outline">Ver detalle</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

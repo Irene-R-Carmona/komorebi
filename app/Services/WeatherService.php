@@ -62,7 +62,7 @@ final class WeatherService implements WeatherServiceInterface
                 return Result::fail('Coordenadas inválidas');
             }
 
-            $cacheKey = $this->buildCacheKey($latitude, $longitude);
+            $cacheKey = $this->buildCacheKey($latitude, $longitude, $hourly);
 
             // Intentar caché
             $cached = $this->getFromCache($cacheKey);
@@ -100,10 +100,13 @@ final class WeatherService implements WeatherServiceInterface
     /**
      * Construye clave de caché para ubicación.
      * Usa guiones bajos como separadores (PSR-6 prohíbe los dos puntos).
+     * Incluye sufijo _h cuando se solicitan datos horarios para evitar colisión con la caché del sidebar.
      */
-    private function buildCacheKey(float $latitude, float $longitude): string
+    private function buildCacheKey(float $latitude, float $longitude, bool $hourly = false): string
     {
-        return 'weather_' . \round($latitude, 2) . '_' . \round($longitude, 2);
+        $key = 'weather_' . \round($latitude, 2) . '_' . \round($longitude, 2);
+
+        return $hourly ? $key . '_h' : $key;
     }
 
     /**
@@ -142,7 +145,8 @@ final class WeatherService implements WeatherServiceInterface
         ];
 
         if ($hourly) {
-            $params['hourly'] = 'temperature_2m,precipitation';
+            $params['hourly']        = 'temperature_2m,precipitation,weather_code';
+            $params['forecast_days'] = 16; // Open-Meteo máximo: 16 días
         }
 
         if ($timezone) {
@@ -477,6 +481,7 @@ final class WeatherService implements WeatherServiceInterface
         $times = $hourly['time'] ?? [];
         $temps = $hourly['temperature_2m'] ?? [];
         $precips = $hourly['precipitation'] ?? [];
+        $codes = $hourly['weather_code'] ?? [];
 
         $result = [];
         foreach ($times as $index => $time) {
@@ -484,6 +489,7 @@ final class WeatherService implements WeatherServiceInterface
                 'time' => $time,
                 'temp' => (float) ($temps[$index] ?? 0),
                 'precip' => (float) ($precips[$index] ?? 0),
+                'weather_code' => (int) ($codes[$index] ?? 0),
             ];
         }
 

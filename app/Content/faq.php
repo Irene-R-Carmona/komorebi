@@ -21,6 +21,14 @@ return [
             'titulo' => 'Reservas y Visitas',
             'preguntas' => [
                 [
+                    'pregunta' => '¿Dónde se encuentran los cafés Komorebi?',
+                    'respuesta' => 'Komorebi Café es una red de cafeterías temáticas presentes en 14 ciudades de España: Madrid, Barcelona, Sevilla, Valencia, Bilbao, San Sebastián, Málaga, Granada, Zaragoza, Palma de Mallorca y Murcia, entre otras. Consulta el catálogo para ver todos los locales.',
+                ],
+                [
+                    'pregunta' => '¿Cuánto cuesta la entrada?',
+                    'respuesta' => 'El precio depende del tipo de pase y el café. Las visitas parten desde 8,00 € (pase básico por persona) y pueden incluir consumición y acceso a zonas especiales. Consulta la sección de reservas para ver la tarifa completa de cada local.',
+                ],
+                [
                     'pregunta' => '¿Necesito reservar con antelación?',
                     'respuesta' => 'Recomendamos reservar, especialmente en fines de semana y festivos. Sin embargo, también aceptamos walk-ins si hay disponibilidad.',
                 ],
@@ -47,7 +55,11 @@ return [
                 ],
                 [
                     'pregunta' => '¿Qué animales hay en el café?',
-                    'respuesta' => 'Actualmente tenemos gatos rescatados que viven en nuestro espacio. Todos han sido socializados y tienen personalidades amigables. También colaboramos con refugios locales para facilitar adopciones.',
+                    'respuesta' => 'Cada local tiene su propio residente estrella: gatos, conejos, erizos, perros shiba inu, capibara y más. Todos son animales rescatados o adoptados que viven felices en el espacio. Colaboramos con refugios locales para facilitar adopciones.',
+                ],
+                [
+                    'pregunta' => '¿Puedo adoptar un animal de vuestro café?',
+                    'respuesta' => 'Sí, periódicamente organizamos jornadas de adopción en colaboración con protectoras locales. Consulta los eventos de cada café o pregunta al personal del local que visites.',
                 ],
                 [
                     'pregunta' => '¿Puedo interactuar con los animales?',

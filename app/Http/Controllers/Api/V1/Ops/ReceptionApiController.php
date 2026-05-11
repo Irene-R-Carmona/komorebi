@@ -14,13 +14,6 @@ use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * API REST: Operaciones de recepción (Ops scope)
- *
- * Rutas (bajo /api/v1/ops/reception):
- * - GET  /reservations               → todayReservations()
- * - POST /reservations/{id}/checkin  → checkIn()
- * - POST /reservations/{id}/checkout → checkOut()
- * - POST /reservations/{id}/items    → addItem()
- * - POST /reservations/{id}/payments → processPayment()
  */
 final class ReceptionApiController extends AbstractApiController
 {
@@ -33,8 +26,6 @@ final class ReceptionApiController extends AbstractApiController
 
     /**
      * GET /api/v1/ops/reception/reservations
-     *
-     * Lista las reservas pendientes de llegada para la sede asignada.
      */
     public function todayReservations(ServerRequestInterface $request): ResponseInterface
     {
@@ -46,7 +37,6 @@ final class ReceptionApiController extends AbstractApiController
 
         try {
             $reservations = $this->service->getPendingArrivals($cafeId);
-
             return $this->success(['reservations' => $reservations]);
         } catch (Exception $e) {
             return $this->serverError('Error al obtener reservas: ' . $e->getMessage(), 'fetch_failed');
@@ -55,8 +45,6 @@ final class ReceptionApiController extends AbstractApiController
 
     /**
      * POST /api/v1/ops/reception/reservations/{id}/checkin
-     *
-     * Realiza el check-in de una reserva asignando un tracker.
      */
     public function checkIn(ServerRequestInterface $request, int $id): ResponseInterface
     {
@@ -86,8 +74,6 @@ final class ReceptionApiController extends AbstractApiController
 
     /**
      * POST /api/v1/ops/reception/reservations/{id}/checkout
-     *
-     * Realiza el check-out de una reserva activa.
      */
     public function checkOut(ServerRequestInterface $request, int $id): ResponseInterface
     {
@@ -110,8 +96,6 @@ final class ReceptionApiController extends AbstractApiController
 
     /**
      * POST /api/v1/ops/reception/reservations/{id}/items
-     *
-     * Añade un producto a la comanda de una reserva activa (POS de sala).
      */
     public function addItem(ServerRequestInterface $request, int $id): ResponseInterface
     {
@@ -152,8 +136,6 @@ final class ReceptionApiController extends AbstractApiController
 
     /**
      * POST /api/v1/ops/reception/reservations/{id}/payments
-     *
-     * Registra el cobro y cierra la visita de una reserva activa.
      */
     public function processPayment(ServerRequestInterface $request, int $id): ResponseInterface
     {
@@ -185,6 +167,34 @@ final class ReceptionApiController extends AbstractApiController
             return $this->success($result->data);
         } catch (Exception $e) {
             return $this->serverError('Error al procesar cobro: ' . $e->getMessage(), 'payment_error');
+        }
+    }
+
+    /**
+     * POST /api/v1/ops/reception/reservations/{id}/activate-preorder
+     */
+    public function activatePreorder(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        if ($id <= 0) {
+            return $this->badRequest('Identificador de reserva inválido', 'reservation_id_invalid');
+        }
+
+        $cafeId = Session::userCafeId();
+
+        if (!$cafeId) {
+            return $this->forbidden('No tienes una sede asignada', 'cafe_not_assigned');
+        }
+
+        try {
+            $result = $this->service->activatePreOrder($id, $cafeId);
+
+            if (!$result->ok) {
+                return $this->unprocessable($result->error ?? 'Error al activar pre-order', $result->code ?? 'preorder_error');
+            }
+
+            return $this->success(\array_merge(['ok' => true], $result->data));
+        } catch (Exception $e) {
+            return $this->serverError('Error al activar pre-order: ' . $e->getMessage(), 'preorder_error');
         }
     }
 }

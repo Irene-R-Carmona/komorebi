@@ -23,6 +23,7 @@ use App\Http\Transformers\AnimalTransformer;
 use App\Http\Transformers\CafeTransformer;
 use App\Models\Favorite;
 use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\PassInclusionRepositoryInterface;
 use App\Services\Contracts\MenuServiceInterface;
 use App\Services\Contracts\ReviewQueryServiceInterface;
 use App\Services\Contracts\ReviewServiceInterface;
@@ -44,6 +45,7 @@ final class CafeControllerTest extends TestCase
             favoriteModel: new Favorite($this->createStub(PDO::class)),
             cafeTransformer: new CafeTransformer(),
             animalTransformer: new AnimalTransformer(),
+            passInclusionRepo: $this->createStub(PassInclusionRepositoryInterface::class),
         );
     }
 
@@ -76,6 +78,7 @@ final class CafeControllerTest extends TestCase
             favoriteModel: new Favorite($this->createStub(PDO::class)),
             cafeTransformer: new CafeTransformer(),
             animalTransformer: new AnimalTransformer(),
+            passInclusionRepo: $this->createStub(PassInclusionRepositoryInterface::class),
         );
 
         $this->expectException(NotFoundException::class);

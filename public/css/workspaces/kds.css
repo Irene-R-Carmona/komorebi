@@ -437,103 +437,6 @@ body.kds-mode::before {
   background: #4ade80;
 }
 
-/* --- MODAL SOP (Fixed Overlay) --- */
-.sop-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9999;
-  /* Muy alto */
-  display: none;
-  /* Oculto por defecto */
-  align-items: center;
-  justify-content: center;
-}
-
-.sop-modal.open {
-  display: flex;
-}
-
-/* Clase para mostrar */
-
-.sop-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(5px);
-}
-
-.sop-card {
-  position: relative;
-  z-index: 10000;
-  width: 90%;
-  max-width: 800px;
-  max-height: 90vh;
-  background: #1a1a1a;
-  border: 2px solid var(--kds-border);
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
-}
-
-.sop-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #333;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #222;
-}
-
-.sop-title {
-  margin: 0;
-  font-size: 1.5rem;
-  color: var(--color-primary);
-}
-
-.sop-content {
-  padding: 2rem;
-  overflow-y: auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  color: #ddd;
-}
-
-.sop-section-title {
-  color: var(--kds-muted);
-  font-size: 0.8rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #444;
-  padding-bottom: 0.5rem;
-}
-
-.sop-footer {
-  padding: 1rem 2rem;
-  background: #111;
-  border-top: 1px solid #333;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.sop-close {
-  background: #333;
-  color: white;
-  border: none;
-  padding: 0.8rem 2rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-@media (max-width: 768px) {
-  .sop-content {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* ============================================================================
    STATION LAYOUT — aliases for index.php class names
    ============================================================================ */
@@ -547,9 +450,20 @@ body.kds-mode::before {
   align-items: center;
 }
 
-.col-hot .station-header { border-color: rgba(239, 68, 68, 0.3); background: linear-gradient(to right, rgba(239, 68, 68, 0.1), transparent); }
-.col-bar .station-header { border-color: rgba(19, 127, 236, 0.3); background: linear-gradient(to right, rgba(19, 127, 236, 0.1), transparent); }
-.col-cold .station-header { border-color: rgba(245, 158, 11, 0.3); background: linear-gradient(to right, rgba(245, 158, 11, 0.1), transparent); }
+.col-hot .station-header {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: linear-gradient(to right, rgba(239, 68, 68, 0.1), transparent);
+}
+
+.col-bar .station-header {
+  border-color: rgba(19, 127, 236, 0.3);
+  background: linear-gradient(to right, rgba(19, 127, 236, 0.1), transparent);
+}
+
+.col-cold .station-header {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: linear-gradient(to right, rgba(245, 158, 11, 0.1), transparent);
+}
 
 .station-title {
   font-size: 1.25rem;
@@ -561,9 +475,17 @@ body.kds-mode::before {
   gap: 8px;
 }
 
-.col-hot .station-title { color: var(--col-alert); }
-.col-bar .station-title { color: var(--col-primary); }
-.col-cold .station-title { color: var(--col-warn); }
+.col-hot .station-title {
+  color: var(--col-alert);
+}
+
+.col-bar .station-title {
+  color: var(--col-primary);
+}
+
+.col-cold .station-title {
+  color: var(--col-warn);
+}
 
 .station-tag {
   font-size: 0.7rem;
@@ -608,7 +530,10 @@ body.kds-mode::before {
   animation: slideIn var(--transition-base);
 }
 
-.kds-card--warn { border-left-color: var(--color-warn); }
+.kds-card--warn {
+  border-left-color: var(--color-warn);
+}
+
 .kds-card--late {
   border-left-color: var(--color-alert);
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
@@ -657,7 +582,10 @@ body.kds-mode::before {
   flex-shrink: 0;
 }
 
-.kds-card--warn .kds-card__time { color: var(--color-warn); }
+.kds-card--warn .kds-card__time {
+  color: var(--color-warn);
+}
+
 .kds-card--late .kds-card__time {
   color: var(--color-alert);
   animation: pulse 1s infinite;
@@ -698,7 +626,11 @@ body.kds-mode::before {
   font-size: 1rem;
 }
 
-.kds-card__qty { font-size: 1rem; font-weight: 700; color: var(--color-primary); }
+.kds-card__qty {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
 
 .kds-card__actions {
   display: flex;
@@ -711,7 +643,7 @@ body.kds-mode::before {
 .kds-card__footer {
   padding: 0.4rem 1rem;
   background: #0d1117;
-  border-top: 1px solid rgba(255,255,255,0.04);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
   color: var(--text-muted);
   font-size: 0.75rem;
   display: flex;
@@ -719,7 +651,9 @@ body.kds-mode::before {
   gap: 0.3rem;
 }
 
-.kds-card__footer .material-symbols-outlined { font-size: 0.9rem; }
+.kds-card__footer .material-symbols-outlined {
+  font-size: 0.9rem;
+}
 
 /* KDS Buttons */
 .kds-btn {
@@ -738,7 +672,9 @@ body.kds-mode::before {
   transition: background 0.15s, border-color 0.15s;
 }
 
-.kds-btn .material-symbols-outlined { font-size: 1.1rem; }
+.kds-btn .material-symbols-outlined {
+  font-size: 1.1rem;
+}
 
 .kds-btn--primary {
   flex: 1;
@@ -752,7 +688,9 @@ body.kds-mode::before {
   color: #000;
 }
 
-.kds-btn--primary:active { transform: translateY(1px); }
+.kds-btn--primary:active {
+  transform: translateY(1px);
+}
 
 .kds-btn--secondary {
   background: #233648;

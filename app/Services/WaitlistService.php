@@ -16,6 +16,7 @@ use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\TimeSlotRepositoryInterface;
 use App\Repositories\Contracts\WaitlistRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
+use App\Services\Contracts\SettingsServiceInterface;
 use App\Services\Contracts\WaitlistServiceInterface;
 use Exception;
 use Override;
@@ -40,19 +41,22 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
     private ReservationRepositoryInterface $reservationRepo;
     private EmailServiceInterface $emailService;
     private WaitlistRepositoryInterface $waitlistRepository;
+    private ?SettingsServiceInterface $settingsService;
 
     public function __construct(
         PDO $db,
         EmailServiceInterface $emailService,
         WaitlistRepositoryInterface $waitlistRepository,
         TimeSlotRepositoryInterface $timeSlotRepo,
-        ReservationRepositoryInterface $reservationRepo
+        ReservationRepositoryInterface $reservationRepo,
+        ?SettingsServiceInterface $settingsService = null
     ) {
         parent::__construct($db);
         $this->timeSlotRepo = $timeSlotRepo;
         $this->reservationRepo = $reservationRepo;
         $this->emailService = $emailService;
         $this->waitlistRepository = $waitlistRepository;
+        $this->settingsService = $settingsService;
     }
 
     /**
@@ -79,8 +83,11 @@ final class WaitlistService extends TransactionalService implements WaitlistServ
         }
 
         $guestCount = (int) ($data['guest_count'] ?? 1);
-        if ($guestCount < 1 || $guestCount > 10) {
-            return Result::fail('El número de comensales debe estar entre 1 y 10', 'invalid_guest_count');
+        $maxGuests = $this->settingsService !== null
+            ? (int) $this->settingsService->get('max_guests_per_reservation', '10')
+            : 10;
+        if ($guestCount < 1 || $guestCount > $maxGuests) {
+            return Result::fail(\sprintf('El número de comensales debe estar entre 1 y %d', $maxGuests), 'invalid_guest_count');
         }
 
         $token = \bin2hex(\random_bytes(16));

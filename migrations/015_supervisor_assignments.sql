@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS supervisor_assignments (
     assigned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_supervisor_assignments_supervisor FOREIGN KEY (supervisor_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_supervisor_assignments_supervisor FOREIGN KEY (supervisor_id) REFERENCES users(id) ON DELETE RESTRICT,
     CONSTRAINT fk_supervisor_assignments_reservations FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE CASCADE,
     CONSTRAINT fk_supervisor_assignments_cafes FOREIGN KEY (cafe_id) REFERENCES cafes(id) ON DELETE CASCADE,
     INDEX idx_supervisor_active (supervisor_id, is_active),

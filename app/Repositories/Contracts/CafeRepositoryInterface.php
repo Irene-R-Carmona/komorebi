@@ -65,7 +65,7 @@ interface CafeRepositoryInterface
      * @param string $time
      * @return bool
      */
-    public function hasAvailableCapacity(int $cafeId, string $date, string $time): bool;
+    public function hasAvailableCapacity(int $cafeId, string $date, string $time, ?int $durationMinutes = null): bool;
 
     /**
      * Update cafe fields

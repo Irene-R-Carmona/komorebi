@@ -54,6 +54,10 @@ final class ReservationRepository extends AbstractRepository implements Reservat
             'payment_method',
             'payment_notes',
             'notes',
+            'cancellation_reason',
+            'manager_notes',
+            'refund_amount',
+            'refunded_at',
             'tracker_id',
             'current_zone_id',
             'protocol_hygiene',
@@ -93,7 +97,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     public function findByIdWithCafeDetails(int $id): ?array
     {
         $reservationFields = \array_map(
-            fn ($field) => "r.$field",
+            fn($field) => "r.$field",
             $this->getSelectFields()
         );
         $fields = \implode(', ', $reservationFields);
@@ -104,9 +108,12 @@ final class ReservationRepository extends AbstractRepository implements Reservat
                     c.location AS cafe_location,
                     c.opening_time,
                     c.closing_time,
-                    c.animal_type AS cafe_animal_type
+                    c.animal_type AS cafe_animal_type,
+                    u.name AS user_name,
+                    u.email AS user_email
              FROM reservations r
              LEFT JOIN cafes c ON r.cafe_id = c.id
+             LEFT JOIN users u ON r.user_id = u.id
              WHERE r.id = :id
              LIMIT 1"
         );
@@ -119,7 +126,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
     public function findByCafeAndDate(int $cafeId, string $date): array
     {
-        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields},
@@ -150,7 +157,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         $fetchLimit = $perPage + 1;
         $offset = ($page - 1) * $perPage;
 
-        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
         $where = ['r.cafe_id = :cafe_id', 'r.deleted_at IS NULL'];
         $params = ['cafe_id' => $cafeId];
 
@@ -185,6 +192,26 @@ final class ReservationRepository extends AbstractRepository implements Reservat
     {
         return $this->update($id, [
             'status' => $status,
+            'updated_at' => \date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function updateStatusWithReason(int $id, string $status, string $reason): bool
+    {
+        return $this->update($id, [
+            'status' => $status,
+            'cancellation_reason' => $reason,
+            'updated_at' => \date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function recordRefund(int $id, int $amountCents, string $notes): bool
+    {
+        return $this->update($id, [
+            'refund_amount' => $amountCents,
+            'refunded_at' => \date('Y-m-d H:i:s'),
+            'payment_status' => 'cancelled',
+            'manager_notes' => $notes,
             'updated_at' => \date('Y-m-d H:i:s'),
         ]);
     }
@@ -288,7 +315,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         $stmt->execute($params);
         $total = (int) $stmt->fetchColumn();
 
-        $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(fn($f) => "r.$f", $this->getSelectFields()));
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image,
                        GROUP_CONCAT(CONCAT(ri.quantity, 'x ', p.name) ORDER BY p.name SEPARATOR ' · ') AS order_summary
@@ -317,7 +344,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
     public function findUpcomingByUser(int $userId, int $limit = 5): array
     {
-        $fields = \implode(', ', \array_map(fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(fn($f) => "r.$f", $this->getSelectFields()));
 
         $sql = "SELECT $fields,
                        c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
@@ -414,7 +441,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
     public function findActiveByCafe(int $cafeId): array
     {
-        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields},
@@ -459,7 +486,7 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
     public function findByIdAndUser(int $id, int $userId): ?array
     {
-        $fields = \implode(', ', \array_map(static fn ($f) => "r.$f", $this->getSelectFields()));
+        $fields = \implode(', ', \array_map(static fn($f) => "r.$f", $this->getSelectFields()));
 
         $stmt = $this->getDb()->prepare(
             "SELECT $fields, c.name AS cafe_name, c.slug AS cafe_slug, c.image_url AS cafe_image
@@ -544,6 +571,19 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         return (int) $stmt->fetchColumn() > 0;
     }
 
+    #[Override]
+    public function getCompletedByUserAndCafe(int $userId, int $cafeId): array
+    {
+        $stmt = $this->getDb()->prepare(
+            "SELECT id FROM reservations
+             WHERE user_id = :user_id AND cafe_id = :cafe_id AND status = 'completed'
+             AND deleted_at IS NULL"
+        );
+        $stmt->execute(['user_id' => $userId, 'cafe_id' => $cafeId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function findWithOperationalData(int $id): ?array
     {
         $stmt = $this->getDb()->prepare(
@@ -557,5 +597,57 @@ final class ReservationRepository extends AbstractRepository implements Reservat
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $result ?: null;
+    }
+
+    #[Override]
+    public function insertPreOrderItems(int $reservationId, array $items): void
+    {
+        if (empty($items)) {
+            return;
+        }
+
+        $placeholders = \implode(', ', \array_fill(0, \count($items), "(?, ?, ?, ?, 'pre_order')"));
+        $sql = "INSERT INTO reservation_items (reservation_id, product_id, quantity, unit_price, status) VALUES {$placeholders}";
+
+        $params = [];
+        foreach ($items as $item) {
+            $params[] = $reservationId;
+            $params[] = (int) $item['product_id'];
+            $params[] = (int) $item['qty'];
+            $params[] = (int) ($item['unit_price'] ?? 0);
+        }
+
+        $stmt = $this->getDb()->prepare($sql);
+        $stmt->execute($params);
+    }
+
+    #[Override]
+    public function deletePreOrderItems(int $reservationId): int
+    {
+        $stmt = $this->getDb()->prepare(
+            "DELETE FROM reservation_items
+             WHERE reservation_id = :reservation_id AND status = 'pre_order'"
+        );
+        $stmt->execute(['reservation_id' => $reservationId]);
+
+        return $stmt->rowCount();
+    }
+
+    #[Override]
+    public function getPreOrderItems(int $reservationId): array
+    {
+        $stmt = $this->getDb()->prepare(
+            "SELECT ri.id, ri.product_id, ri.quantity,
+                    p.name, p.price, p.stock_quantity,
+                    mc.id AS category_id, mc.name AS category_name
+             FROM reservation_items ri
+             JOIN products p ON p.id = ri.product_id
+             JOIN menu_categories mc ON mc.id = p.category_id
+             WHERE ri.reservation_id = :reservation_id AND ri.status = 'pre_order'
+             ORDER BY mc.display_order, p.name"
+        );
+        $stmt->execute(['reservation_id' => $reservationId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

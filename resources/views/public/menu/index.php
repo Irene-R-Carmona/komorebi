@@ -44,6 +44,13 @@ $allergens ??= [];
 $excludeAllergens ??= [];
 ?>
 
+<?php if (!empty($dbError)) : ?>
+    <div role="alert" style="background:var(--color-error,#c0392b);color:#fff;padding:.75rem 1.25rem;text-align:center;font-weight:600;">
+        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        El menú no está disponible en este momento. Estamos trabajando para restaurar el servicio.
+    </div>
+<?php endif; ?>
+
 <section class="seccion seccion--activa">
     <script src="/js/sections/menu.js?v=<?= time() ?>"></script>
 
@@ -124,16 +131,6 @@ $excludeAllergens ??= [];
                                         x-model="excludedAllergens"
                                         @change="applyAllergenFilter()">
                                     <span class="allergen-filter-label">
-                                        <?php if (!empty($allergen['icon'])): ?>
-                                            <i class="<?= e($allergen['icon']) ?>"
-                                                style="color: <?= e($allergen['icon_color'] ?? '') ?>; font-size: 1.5rem;"
-                                                aria-hidden="true"></i>
-                                        <?php else: ?>
-                                            <span class="allergen-code-badge" aria-hidden="true"
-                                                style="display:inline-flex;align-items:center;justify-content:center;width:1.5rem;height:1.5rem;border-radius:50%;background:<?= e($allergen['icon_color'] ?? 'var(--color-borde)') ?>;color:#fff;font-size:0.55rem;font-weight:700;line-height:1;">
-                                                <?= e($allergen['code']) ?>
-                                            </span>
-                                        <?php endif; ?>
                                         <span><?= e($allergen['name']) ?></span>
                                     </span>
                                 </label>
@@ -210,7 +207,7 @@ $excludeAllergens ??= [];
                             // Validar que solo contenga valores válidos: lounge, playroom, farm, zen
                             $validTypes = ['lounge', 'playroom', 'farm', 'zen'];
                             $cafeTypesArray = is_array($targetCafeTypes)
-                                ? array_filter($targetCafeTypes, fn ($t) => in_array($t, $validTypes, true))
+                                ? array_filter($targetCafeTypes, fn($t) => in_array($t, $validTypes, true))
                                 : [];
 
                             // Si está vacío = disponible en todos los cafés (no poner atributo)
@@ -249,7 +246,7 @@ $excludeAllergens ??= [];
 
                                         <div class="producto-card__footer">
                                             <div class="producto-info-row">
-                                                <span class="producto-card__precio"><?= e(CurrencyFormatting::yen((float) $prod['price'])) ?></span>
+                                                <span class="producto-card__precio"><?= e(CurrencyFormatting::euro((int) $prod['price'])) ?></span>
                                                 <?php if (!empty($prod['min_pax']) || !empty($prod['max_pax'])): ?>
                                                     <span class="badge-mini">
                                                         Pax <?= (int) ($prod['min_pax'] ?? 1) ?><?= !empty($prod['max_pax']) ? ('-' . (int) $prod['max_pax']) : '+' ?>
@@ -273,7 +270,7 @@ $excludeAllergens ??= [];
                                 <article class="producto-card"
                                     data-name="<?= htmlspecialchars($prod['name'], ENT_QUOTES, 'UTF-8') ?>"
                                     data-desc="<?= htmlspecialchars($prod['description'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                    data-allergens="<?= htmlspecialchars(implode(',', array_map(fn ($a) => (string) ($a['id'] ?? ''), $prod['allergens_list'] ?? [])), ENT_QUOTES, 'UTF-8') ?>"
+                                    data-allergens="<?= htmlspecialchars(implode(',', array_map(fn($a) => (string) ($a['id'] ?? ''), $prod['allergens_list'] ?? [])), ENT_QUOTES, 'UTF-8') ?>"
                                     <?php if ($cafeTypesAttr): ?>data-cafe-types="<?= htmlspecialchars($cafeTypesAttr, ENT_QUOTES, 'UTF-8') ?>" <?php endif; ?>
                                     :class="{ 'producto-card--active': getQty(<?= $prodId ?>) > 0 }"
                                     x-show="matchesNode($el)">
@@ -304,89 +301,89 @@ $excludeAllergens ??= [];
 
                                         <div class="producto-card__footer">
                                             <div class="producto-info-row">
-                                                <span class="producto-card__precio"><?= e(CurrencyFormatting::yen((float) $prod['price'])) ?></span>
+                                                <span class="producto-card__precio"><?= e(CurrencyFormatting::euro((int) $prod['price'])) ?></span>
 
                                                 <?php if (!empty($prod['allergens_list'])): ?>
                                                     <div class="producto-card__alergenos">
                                                         <?php foreach ($prod['allergens_list'] as $allergen): ?>
-                                                            <span class="allergen-badge allergen-badge--<?= e($allergen['severity']) ?>" title="<?= e($allergen['name']) ?>">
+                                                            <span class="allergen-badge" title="<?= e($allergen['name']) ?>">
                                                                 <?php
                                                                 $iconVal = (string) ($allergen['icon'] ?? '');
 
-                                                            // Intentar resolver una imagen PNG en /images/allergens
-                                                            $assetSrc = null;
-                                                            $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? (__DIR__ . '/../../../public');
+                                                                // Intentar resolver una imagen PNG en /images/allergens
+                                                                $assetSrc = null;
+                                                                $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? (__DIR__ . '/../../../public');
 
-                                                            $candidates = [];
-                                                            $clean = trim($iconVal);
-                                                            if ($clean !== '') {
-                                                                $candidates[] = $clean;
-                                                                $candidates[] = strtolower($clean);
-                                                                $candidates[] = strtoupper($clean);
-                                                                $candidates[] = preg_replace('/\.[a-z0-9]+$/i', '', $clean); // sin extensión
-                                                            }
-                                                            $slugName = preg_replace('/[^a-z0-9]+/', '-', strtolower($allergen['name'] ?? ''));
-                                                            $candidates[] = $slugName;
-
-                                                            foreach ($candidates as $cand) {
-                                                                if (!$cand) {
-                                                                    continue;
+                                                                $candidates = [];
+                                                                $clean = trim($iconVal);
+                                                                if ($clean !== '') {
+                                                                    $candidates[] = $clean;
+                                                                    $candidates[] = strtolower($clean);
+                                                                    $candidates[] = strtoupper($clean);
+                                                                    $candidates[] = preg_replace('/\.[a-z0-9]+$/i', '', $clean); // sin extensión
                                                                 }
-                                                                $rel = '/images/alergenos/' . $cand . '.png';
-                                                                $full = $docRoot . $rel;
-                                                                if (file_exists($full)) {
-                                                                    $assetSrc = $rel;
-                                                                    break;
-                                                                }
-                                                                // comprobar mayúsculas/extensiones alternativas
-                                                                $rel2 = '/images/alergenos/' . $cand . '.PNG';
-                                                                if (file_exists($docRoot . $rel2)) {
-                                                                    $assetSrc = $rel2;
-                                                                    break;
-                                                                }
-                                                            }
+                                                                $slugName = preg_replace('/[^a-z0-9]+/', '-', strtolower($allergen['name'] ?? ''));
+                                                                $candidates[] = $slugName;
 
-                                                            // Si no se encontró exactamente, intentar búsqueda flexible en el directorio
-                                                            if (!$assetSrc && is_dir($docRoot . '/images/alergenos')) {
-                                                                $normalize = function (string $s): string {
-                                                                    // eliminar acentos y caracteres no alfanum, minúsculas
-                                                                    $s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s) ?: $s;
-                                                                    $s = strtolower($s);
-                                                                    $s = preg_replace('/[^a-z0-9]+/', '', $s);
-
-                                                                    return $s;
-                                                                };
-
-                                                                $needle1 = $normalize($iconVal);
-                                                                $needle2 = $normalize($allergen['name'] ?? '');
-
-                                                                $files = glob($docRoot . '/images/alergenos/*.*');
-                                                                foreach ($files as $file) {
-                                                                    $base = basename($file);
-                                                                    $nameOnly = pathinfo($base, PATHINFO_FILENAME);
-                                                                    $norm = $normalize($nameOnly);
-                                                                    if ($needle1 !== '') {
-                                                                        if ($norm === $needle1 || strpos($norm, $needle1) === 0 || substr($norm, -strlen($needle1)) === $needle1) {
-                                                                            $assetSrc = '/images/alergenos/' . $base;
-                                                                            break;
-                                                                        }
+                                                                foreach ($candidates as $cand) {
+                                                                    if (!$cand) {
+                                                                        continue;
                                                                     }
-                                                                    if ($needle2 !== '') {
-                                                                        if ($norm === $needle2 || strpos($norm, $needle2) === 0 || substr($norm, -strlen($needle2)) === $needle2) {
-                                                                            $assetSrc = '/images/alergenos/' . $base;
-                                                                            break;
-                                                                        }
+                                                                    $rel = '/images/alergenos/' . $cand . '.png';
+                                                                    $full = $docRoot . $rel;
+                                                                    if (file_exists($full)) {
+                                                                        $assetSrc = $rel;
+                                                                        break;
+                                                                    }
+                                                                    // comprobar mayúsculas/extensiones alternativas
+                                                                    $rel2 = '/images/alergenos/' . $cand . '.PNG';
+                                                                    if (file_exists($docRoot . $rel2)) {
+                                                                        $assetSrc = $rel2;
+                                                                        break;
                                                                     }
                                                                 }
-                                                            }
-                                                            ?>
+
+                                                                // Si no se encontró exactamente, intentar búsqueda flexible en el directorio
+                                                                if (!$assetSrc && is_dir($docRoot . '/images/alergenos')) {
+                                                                    $normalize = function (string $s): string {
+                                                                        // eliminar acentos y caracteres no alfanum, minúsculas
+                                                                        $s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s) ?: $s;
+                                                                        $s = strtolower($s);
+                                                                        $s = preg_replace('/[^a-z0-9]+/', '', $s);
+
+                                                                        return $s;
+                                                                    };
+
+                                                                    $needle1 = $normalize($iconVal);
+                                                                    $needle2 = $normalize($allergen['name'] ?? '');
+
+                                                                    $files = glob($docRoot . '/images/alergenos/*.*');
+                                                                    foreach ($files as $file) {
+                                                                        $base = basename($file);
+                                                                        $nameOnly = pathinfo($base, PATHINFO_FILENAME);
+                                                                        $norm = $normalize($nameOnly);
+                                                                        if ($needle1 !== '') {
+                                                                            if ($norm === $needle1 || strpos($norm, $needle1) === 0 || substr($norm, -strlen($needle1)) === $needle1) {
+                                                                                $assetSrc = '/images/alergenos/' . $base;
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                        if ($needle2 !== '') {
+                                                                            if ($norm === $needle2 || strpos($norm, $needle2) === 0 || substr($norm, -strlen($needle2)) === $needle2) {
+                                                                                $assetSrc = '/images/alergenos/' . $base;
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                ?>
 
                                                                 <?php if ($assetSrc): ?>
                                                                     <img src="<?= e($assetSrc) ?>" alt="<?= e($allergen['name']) ?>" class="allergen-img" loading="lazy" width="24" height="24" @error="$event.target.style.display='none'">
                                                                 <?php else:
                                                                     // Fallback: si es clase de icon-font renderizar <i>, si no mostrar código textual
                                                                     $isFontClass = (strpos($iconVal, 'bi-') === 0) || (strpos($iconVal, 'fa-') === 0) || (strpos($iconVal, ' ') !== false);
-                                                                    ?>
+                                                                ?>
                                                                     <?php if ($isFontClass): ?>
                                                                         <i class="<?= e($iconVal) ?>"></i>
                                                                     <?php else: ?>
@@ -433,58 +430,21 @@ $excludeAllergens ??= [];
             <?php endforeach; ?>
         </div>
 
-        <!-- COMANDA BAR: solo items -->
+        <!-- SIMULADOR DE PRECIO -->
         <div class="comanda-bar"
-            :class="{ 'comanda-bar--visible': cart.total_qty > 0 }"
-            @click="toggleComanda()">
+            :class="{ 'comanda-bar--visible': simulatorTotalQty() > 0 }"
+            style="cursor:default;">
 
             <div class="comanda-info">
-                <span class="comanda-total">¥<span x-text="(cart && cart.totalPrice && cart.totalPrice.toLocaleString()) || '0'"></span></span>
-                <span class="comanda-items">Ver desglose (<span x-text="(cart && cart.total_qty) || 0"></span> items) ▲</span>
+                <span class="comanda-total"><span x-text="(simulatorTotal / 100).toFixed(2).replace('.', ',') + ' €'"></span></span>
+                <span class="comanda-items">Estimación de precio (<span x-text="simulatorTotalQty()"></span> items)</span>
             </div>
 
-            <button class="comanda-btn" type="button">Ver Pedido</button>
-        </div>
-
-        <!-- MODAL COMANDA -->
-        <div class="comanda-modal" :class="{ 'comanda-modal--open': showComanda }">
-            <div class="comanda-overlay" @click="toggleComanda()"></div>
-
-            <div class="comanda-panel">
-                <div class="comanda-header">
-                    <h3 class="comanda-title">Tu Pedido Actual</h3>
-                    <button @click="toggleComanda()"
-                        type="button"
-                        style="border:none; background:none; font-size:1.5rem; cursor:pointer;">×
-                    </button>
-                </div>
-
-                <div class="comanda-list">
-                    <template x-for="(qty, id) in cart.items" :key="id">
-                        <div class="comanda-item" x-show="qty > 0">
-                            <div>
-                                <div class="comanda-item-name" x-text="(productDict[id] && productDict[id].name) || ''"></div>
-                                <div class="comanda-item-price">
-                                    ¥<span x-text="(productDict[id] && productDict[id].price) || 0"></span> x <span x-text="qty"></span>
-                                </div>
-                            </div>
-                            <div style="font-weight:700;">
-                                ¥<span x-text="((productDict[id] && productDict[id].price * qty) || 0).toLocaleString()"></span>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-
-                <div class="comanda-footer">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:1rem; font-size:1.2rem; font-weight:700;">
-                        <span>Total Estimado</span>
-                        <span>¥<span x-text="(cart && cart.totalPrice && cart.totalPrice.toLocaleString()) || '0'"></span></span>
-                    </div>
-                    <a href="/reservas" class="comanda-action-btn">
-                        Añadir extras a mi Reserva
-                    </a>
-                </div>
-            </div>
+            <button class="comanda-btn"
+                type="button"
+                @click.stop="simulatorItems = {}; simulatorTotal = 0;">
+                Limpiar
+            </button>
         </div>
 
     </div>

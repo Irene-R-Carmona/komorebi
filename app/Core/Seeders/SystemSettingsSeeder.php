@@ -32,9 +32,9 @@ final class SystemSettingsSeeder
             // GENERAL
             // ════════════════════════════════════════
             ['site_name', 'Komorebi Café', 'string', 'general', 'Nombre del sitio', true],
-            ['site_description', 'Cafés de animales en Japón', 'string', 'general', 'Descripción del sitio', true],
+            ['site_description', 'Red de cafeterías temáticas de animales con estética japonesa en España', 'string', 'general', 'Descripción del sitio', true],
             ['maintenance_mode', 'false', 'boolean', 'general', 'Modo mantenimiento', false],
-            ['timezone', 'Asia/Tokyo', 'string', 'general', 'Zona horaria por defecto', true],
+            ['timezone', 'Europe/Madrid', 'string', 'general', 'Zona horaria por defecto', true],
             ['default_language', 'es', 'string', 'general', 'Idioma por defecto', true],
             ['items_per_page', '25', 'integer', 'general', 'Elementos por página (admin)', false],
 
@@ -56,7 +56,9 @@ final class SystemSettingsSeeder
             ['reservations_enabled', 'true', 'boolean', 'reservations', 'Sistema de reservas activo', true],
             ['max_advance_days', '30', 'integer', 'reservations', 'Días máximos antelación', false],
             ['min_advance_hours', '2', 'integer', 'reservations', 'Horas mínimas antelación', false],
-            ['cancellation_hours', '24', 'integer', 'reservations', 'Horas para cancelar sin penalización', false],
+            ['cancellation_hours', '24', 'integer', 'reservations', 'Horas de antelación necesarias para cancelar sin cargo. Por debajo de este umbral se aplica cancellation_fee_percentage.', false],
+            ['cancellation_fee_percentage', '0', 'integer', 'reservations', 'Porcentaje del total cobrado si cancela con antelación insuficiente. 0 = sin cargo.', false],
+            ['no_show_fee_percentage', '100', 'integer', 'reservations', 'Porcentaje retenido si no se presenta sin cancelar. 100 = sin devolución.', false],
             ['max_guests_per_reservation', '10', 'integer', 'reservations', 'Máximo personas por reserva', false],
             ['default_duration_minutes', '60', 'integer', 'reservations', 'Duración por defecto (min)', false],
             ['send_confirmation_email', 'true', 'boolean', 'reservations', 'Enviar email confirmación', false],
@@ -81,7 +83,7 @@ final class SystemSettingsSeeder
             ['reviews_enabled', 'true', 'boolean', 'reviews', 'Sistema de reseñas activo', true],
             ['review_requires_reservation', 'true', 'boolean', 'reviews', 'Requiere reserva completada', false],
             ['review_moderation_enabled', 'true', 'boolean', 'reviews', 'Moderar antes de publicar', false],
-            ['max_reviews_per_user', '1', 'integer', 'reviews', 'Máximo reseñas por usuario-café', false],
+            ['max_reviews_per_reservation', '1', 'integer', 'reviews', 'Número máximo de reseñas permitidas por reserva completada', false],
             ['min_review_length', '10', 'integer', 'reviews', 'Longitud mínima comentario', false],
             ['max_review_length', '1000', 'integer', 'reviews', 'Longitud máxima comentario', false],
 

@@ -1,15 +1,16 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LOYALTY & WAITLIST SYSTEM
+   KOMOREBI — LOYALTY & WAITLIST SYSTEM
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ────────────────────────────────────────────────────────────────
-   LOYALTY CARD — Tarjeta de fidelización
+   01. LAYOUT & HEADER (Compartido)
    ──────────────────────────────────────────────────────────────── */
 
-.loyalty-container {
-  max-width: 1200px;
+.loyalty-container,
+.waitlist-container {
+  max-width: 1100px;
   margin: 2rem auto;
-  padding: 0 1.5rem;
+  padding: 0 var(--espaciado-md);
 }
 
 .loyalty-header {
@@ -17,174 +18,273 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 3rem;
+  gap: var(--espaciado-sm);
+  margin-bottom: var(--espaciado-xl);
+  padding-bottom: var(--espaciado-md);
+  border-bottom: 1px solid var(--color-borde);
 }
 
-.loyalty-header h1 {
-  font-size: 2.5rem;
+.loyalty-header__content {
+  flex: 1;
+  min-width: 280px;
+}
+
+.loyalty-header__title {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
   font-weight: 700;
   color: var(--color-texto);
-  margin-bottom: 0.5rem;
+  margin: 0 0 0.5rem 0;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.75rem;
+  font-family: var(--fuente-titulo);
 }
 
 .loyalty-header__description {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--color-texto-suave);
-  font-weight: 400;
+  margin: 0;
+  line-height: 1.5;
 }
 
-/* Tarjeta principal estilo "credit card" */
+.loyalty-header__actions {
+  flex-shrink: 0;
+}
+
+.loyalty-header__print-btn {
+  background: transparent;
+  border: 1px solid var(--color-borde);
+  color: var(--color-texto);
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transicion-rapida);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.loyalty-header__print-btn:hover {
+  background: var(--color-fondo-alt);
+  border-color: var(--color-primario);
+  color: var(--color-primario);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   02. LOYALTY CARD — Tarjeta de Fidelización
+   ──────────────────────────────────────────────────────────────── */
+
+.loyalty-section {
+  margin: 3rem;
+}
+
+/* CORRECCIÓN CRÍTICA: Fondo oscuro para contraste */
 .loyalty-card {
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-900) 100%);
-  border-radius: 20px;
+  background: linear-gradient(135deg, #5C3D2E 0%, #2D2218 100%);
+  border-radius: var(--radius-xl);
   padding: 2.5rem;
-  color: white;
-  box-shadow: 0 20px 60px color-mix(in srgb, var(--color-primario) 40%, transparent);
-  margin-bottom: 3rem;
+  color: #FFFFFF;
+  box-shadow: 0 20px 60px rgba(45, 34, 24, 0.35);
+  margin: 0 auto 3rem auto;
+  max-width: 900px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   position: relative;
   overflow: hidden;
 }
 
+/* Efecto decorativo sutil */
 .loyalty-card::before {
   content: '';
   position: absolute;
   top: -50%;
-  right: -20%;
+  right: -10%;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
   border-radius: 50%;
+  pointer-events: none;
 }
 
-.loyalty-card__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
+/* Forzar texto blanco en TODOS los elementos internos */
+.loyalty-card h2,
+.loyalty-card p,
+.loyalty-card__branding,
+.loyalty-card__branding p,
+.stat-card__label,
+.stat-card__value,
+.stamps-section h3,
+.stamps-section__hint,
+.tier-progress h4,
+.tier-progress__text,
+.stamp__number {
+  color: #FFFFFF !important;
 }
 
-.loyalty-card__title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.loyalty-card__cafe {
-  font-size: 1rem;
-  opacity: 0.9;
-  margin-top: 0.25rem;
-}
-
-.tier-badge {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
-  padding: 0.5rem 1.25rem;
-  border-radius: 50px;
-  font-weight: 700;
-  font-size: 0.95rem;
+.loyalty-card__branding h2 {
+  font-size: 1.5rem;
+  margin: 0 0 0.25rem 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-/* Stats grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
-}
-
-.stat-card {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem;
-  text-align: center;
-}
-
-.stat-card__value {
-  font-size: 2.5rem;
   font-weight: 700;
-  display: block;
-  margin-bottom: 0.25rem;
 }
 
-.stat-card__label {
+.loyalty-card__branding p {
+  opacity: 0.85;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Tier Badge */
+.tier-badge {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
   font-size: 0.9rem;
-  opacity: 0.9;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-/* Stamps grid — Law of Proximity */
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 2rem 0;
+  position: relative;
+  z-index: 2;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.stat-card__value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #FFFFFF;
+}
+
+.stat-card__label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.85;
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+/* Stamps Section */
 .stamps-section {
-  margin-bottom: 2rem;
+  margin: 2rem 0;
+  position: relative;
+  z-index: 2;
 }
 
 .stamps-section h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.stamps-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-  gap: 1rem;
-}
-
-.stamp {
-  aspect-ratio: 1;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px dashed rgba(255, 255, 255, 0.3);
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: all var(--transition-base);
-  position: relative;
-}
-
-.stamp--filled {
-  background: rgba(255, 255, 255, 0.25);
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  transform: scale(1.05);
-}
-
-.stamp--filled::after {
-  content: '🐾';
-  position: absolute;
-  font-size: 1.8rem;
-}
-
-/* Progress bar — Visual feedback */
-.tier-progress {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-}
-
-.tier-progress h4 {
   font-size: 1.1rem;
+  margin: 0 0 1rem 0;
   font-weight: 600;
-  margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
+.stamps-section__hint {
+  font-weight: 400;
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.stamps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  gap: 0.6rem;
+}
+
+.stamp {
+  aspect-ratio: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.stamp__number {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.5;
+  color: #FFFFFF;
+}
+
+.stamp--filled {
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.stamp--filled .stamp__number {
+  opacity: 0;
+}
+
+.stamp__icon {
+  position: absolute;
+  font-size: 1.4rem;
+  color: #FFFFFF;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Tier Progress Bar */
+.tier-progress {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 2;
+}
+
+.tier-progress h4 {
+  font-size: 1rem;
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #FFFFFF;
+}
+
 .tier-progress__bar {
   background: rgba(255, 255, 255, 0.2);
-  height: 12px;
+  height: 10px;
   border-radius: 50px;
   overflow: hidden;
   margin-bottom: 0.75rem;
@@ -192,61 +292,101 @@
 
 .tier-progress__fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-acento), var(--color-primario));
+  background: linear-gradient(90deg, #F4D06F, #C9A959);
   border-radius: 50px;
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.6s ease;
+  box-shadow: 0 0 10px rgba(201, 169, 89, 0.4);
 }
 
 .tier-progress__text {
-  font-size: 0.9rem;
-  opacity: 0.9;
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin: 0;
+  color: #FFFFFF;
 }
 
 /* ────────────────────────────────────────────────────────────────
-   REWARDS — Recompensas disponibles
+   03. REWARDS SECTION
    ──────────────────────────────────────────────────────────────── */
 
-.loyalty-section {
-  margin-top: 3rem;
-}
-
 .section-title {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--color-texto);
-  margin-bottom: 0.5rem;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--fuente-titulo);
 }
 
 .section-subtitle {
-  font-size: 1rem;
   color: var(--color-texto-suave);
-  margin-bottom: 2rem;
+  margin: 0 0 2rem 0;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
+.empty-state {
+  background: var(--color-fondo-alt);
+  border: 2px dashed var(--color-borde);
+  border-radius: var(--radius-lg);
+  padding: 3rem 2rem;
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.empty-state__icon {
+  font-size: 3rem;
+  color: var(--color-acento);
+  opacity: 0.4;
+  margin-bottom: 1.5rem;
+  display: block;
+}
+
+.empty-state__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-texto);
+  margin: 0 0 0.75rem 0;
+  font-family: var(--fuente-titulo);
+}
+
+.empty-state__description {
+  color: var(--color-texto-suave);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 0 1.5rem 0;
+}
+
+/* Rewards Grid */
 .rewards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2rem;
 }
 
 .reward-card {
   background: var(--color-superficie);
-  border: 2px solid var(--color-borde-card);
+  border: 1px solid var(--color-borde-card);
   border-radius: var(--radius-xl);
-  padding: 1.75rem;
-  transition: all var(--transition-base);
-  position: relative;
+  padding: 1.5rem;
   box-shadow: var(--sombra-card);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .reward-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--sombra-lg);
+  border-color: var(--color-acento);
 }
 
 .reward-card--locked {
   opacity: 0.6;
+  filter: grayscale(0.5);
   pointer-events: none;
 }
 
@@ -259,109 +399,109 @@
 
 .reward-card__icon {
   font-size: 2.5rem;
-  display: block;
+  color: var(--color-acento);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: var(--color-accent-50);
+  border-radius: var(--radius-lg);
+}
+
+.reward-card__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-texto);
+  margin: 0 0 0.5rem 0;
+  font-family: var(--fuente-titulo);
+}
+
+.reward-card__description {
+  color: var(--color-texto-suave);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0 0 1.5rem 0;
+  flex-grow: 1;
 }
 
 .reward-card__footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.reward-card__title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-texto);
-  margin-bottom: 0.5rem;
-}
-
-.reward-card__description {
-  font-size: 0.95rem;
-  color: var(--color-texto-suave);
-  margin-bottom: 1rem;
-  line-height: 1.5;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-borde);
 }
 
 .reward-card__cost {
+  font-weight: 700;
+  color: var(--color-acento-text);
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-acento-text);
-  margin-bottom: 1rem;
+  gap: 0.25rem;
+  background: var(--color-fondo-alt);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
 }
 
+/* Reward Badges */
 .reward-badge {
-  display: inline-block;
-  padding: 0.35rem 0.85rem;
-  border-radius: 50px;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: rgba(255, 255, 255, 0.2);
-  color: var(--color-texto);
 }
 
 .reward-badge--locked {
   background: var(--color-danger-light);
-  color: var(--color-danger-dark);
+  color: var(--color-danger);
 }
 
 .reward-badge--available {
   background: var(--color-success-light);
-  color: var(--color-success-dark);
+  color: var(--color-success);
 }
 
-.badge--bronze {
-  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
-  color: var(--color-warning-dark);
-}
-
-.badge--silver {
-  background: color-mix(in srgb, var(--color-neutral-400) 20%, transparent);
-  color: var(--color-neutral-700);
-}
-
-.badge--gold {
-  background: color-mix(in srgb, var(--color-accent-400) 25%, transparent);
-  color: var(--color-accent-900);
-}
-
-.badge--platinum {
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-acento));
-  color: white;
-}
-
+/* Botón Canjear */
 .btn-reward {
-  width: 100%;
-  min-height: 44px;
-  padding: 0.85rem;
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-acento));
+  background: var(--color-primario);
   color: white;
   border: none;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s ease;
+  min-height: 44px;
 }
 
 .btn-reward:hover:not(:disabled) {
-  transform: scale(1.02);
-  box-shadow: 0 6px 20px color-mix(in srgb, var(--color-primario) 40%, transparent);
+  background: var(--color-primario-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-reward:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
 }
 
 .btn-reward:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background: var(--color-borde);
 }
 
 /* ────────────────────────────────────────────────────────────────
-   REDEEMED REWARDS — Historial de canjes
+   04. HISTORY SECTION
    ──────────────────────────────────────────────────────────────── */
 
 .history-grid {
@@ -374,330 +514,67 @@
   background: var(--color-superficie);
   border: 1px solid var(--color-borde-card);
   border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 1.5rem;
   align-items: center;
-  box-shadow: var(--sombra-card);
+  box-shadow: var(--sombra-sm);
+  transition: transform 0.2s ease;
+}
+
+.history-card:hover {
+  transform: translateX(4px);
+  box-shadow: var(--sombra-md);
 }
 
 .history-card__icon {
-  font-size: 2.5rem;
-}
-
-.history-card__details {
-  flex: 1;
+  font-size: 2rem;
+  color: var(--color-acento);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  background: var(--color-accent-50);
+  border-radius: var(--radius-md);
 }
 
 .history-card__details h4 {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--color-texto);
-  margin-bottom: 0.25rem;
+  margin: 0 0 0.25rem 0;
+  font-family: var(--fuente-titulo);
 }
 
 .history-card__date {
   font-size: 0.9rem;
   color: var(--color-texto-suave);
+  margin: 0;
 }
 
 .history-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 0.9rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   background: var(--color-warning-light);
-  color: var(--color-warning-dark);
+  color: var(--color-warning);
 }
 
 .history-card__status--used {
   background: var(--color-success-light);
-  color: var(--color-success-dark);
+  color: var(--color-success);
 }
 
 /* ────────────────────────────────────────────────────────────────
-   WAITLIST — Lista de espera
-   ──────────────────────────────────────────────────────────────── */
-
-.waitlist-container {
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 0 1.5rem;
-}
-
-.waitlist-header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.waitlist-header h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--color-texto);
-  margin-bottom: 0.5rem;
-}
-
-.waitlist-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.waitlist-card {
-  background: var(--color-superficie);
-  border: 2px solid var(--color-borde-card);
-  border-radius: var(--radius-xl);
-  padding: 2rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2rem;
-  align-items: center;
-  transition: all var(--transition-base);
-  box-shadow: var(--sombra-card);
-}
-
-.waitlist-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-}
-
-.waitlist-card__info {
-  flex: 1;
-}
-
-.waitlist-card__title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-texto);
-  margin-bottom: 0.75rem;
-}
-
-.waitlist-card__details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  color: var(--color-texto-suave);
-  font-size: 1rem;
-}
-
-.waitlist-card__detail {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.waitlist-card__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 0.75rem;
-}
-
-.badge--waiting {
-  background: var(--color-warning-light);
-  color: var(--color-warning-dark);
-}
-
-.badge--notified {
-  background: var(--color-success-light);
-  color: var(--color-success-dark);
-}
-
-.badge--expired {
-  background: var(--color-danger-light);
-  color: var(--color-danger-dark);
-}
-
-.waitlist-card__position {
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-900) 100%);
-  color: white;
-  border-radius: 20px;
-  width: 120px;
-  height: 120px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primario) 30%, transparent);
-}
-
-.waitlist-card__position-number {
-  font-size: 3rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.waitlist-card__position-label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  opacity: 0.9;
-  margin-top: 0.25rem;
-}
-
-/* Empty states */
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-}
-
-.empty-state__icon {
-  font-size: 5rem;
-  margin-bottom: 1.5rem;
-  opacity: 0.3;
-}
-
-.empty-state__title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-texto);
-  margin-bottom: 0.75rem;
-}
-
-.empty-state__description {
-  font-size: 1.1rem;
-  color: var(--color-texto-suave);
-  margin-bottom: 2rem;
-  line-height: 1.6;
-}
-
-.btn-primary {
-  display: inline-block;
-  min-height: 44px;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-acento));
-  color: white;
-  text-decoration: none;
-  border-radius: var(--radius-lg);
-  font-weight: 700;
-  font-size: 1.1rem;
-  transition: all var(--transition-base);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primario) 40%, transparent);
-  color: white;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .loyalty-card {
-    padding: 1.75rem;
-  }
-
-  .stamps-grid {
-    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .rewards-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .waitlist-card {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-
-  .waitlist-card__position {
-    margin: 0 auto;
-  }
-
-  .history-card {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-}
-
-/* ────────────────────────────────────────────────────────────────
-   REDUCED MOTION — Accesibilidad
-   ──────────────────────────────────────────────────────────────── */
-
-@media (prefers-reduced-motion: reduce) {
-
-  .stamp,
-  .reward-card,
-  .waitlist-card,
-  .btn-reward,
-  .btn-primary,
-  .tier-progress__fill,
-  .history-card {
-    transition: none;
-    animation: none;
-  }
-
-  .btn-reward:hover:not(:disabled),
-  .btn-primary:hover {
-    transform: none;
-  }
-
-  .reward-card:hover {
-    transform: none;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   DARK MODE — Overrides loyalty + waitlist
-   ═══════════════════════════════════════════════════════════════ */
-
-/* Tarjeta principal: gradient más claro para destacar del fondo #1A1410 */
-[data-tema="oscuro"] .loyalty-card {
-  background: linear-gradient(135deg, var(--color-primary-400) 0%, var(--color-primary-700) 100%);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-}
-
-/* Sombras hover en modo oscuro */
-[data-tema="oscuro"] .reward-card:hover,
-[data-tema="oscuro"] .waitlist-card:hover {
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
-}
-
-/* Status badges: pasteles claros → tintes oscuros legibles */
-[data-tema="oscuro"] .history-card__status {
-  background: rgba(180, 130, 40, 0.25);
-  color: #d4a847;
-}
-
-[data-tema="oscuro"] .history-card__status--used {
-  background: rgba(34, 120, 70, 0.25);
-  color: #4ade80;
-}
-
-[data-tema="oscuro"] .reward-badge--locked {
-  background: rgba(180, 40, 40, 0.25);
-  color: #f87171;
-}
-
-[data-tema="oscuro"] .reward-badge--available {
-  background: rgba(34, 120, 70, 0.25);
-  color: #4ade80;
-}
-
-/* Badges de tier: amarillo puro → ambar más suave */
-[data-tema="oscuro"] .badge--gold {
-  background: #a16207;
-  color: white;
-}
-
-[data-tema="oscuro"] .waitlist-card__position {
-  background: linear-gradient(135deg, #7A5240 0%, #4A2E1E 100%);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-}
-
-.loyalty-header__actions {
-  flex-shrink: 0;
-}
-
-/* ────────────────────────────────────────────────────────────────
-   WAITLIST PAGE — Clases adicionales usadas en waitlists.php
+   05. WAITLIST SECTION
    ──────────────────────────────────────────────────────────────── */
 
 .waitlist-cards {
@@ -706,10 +583,51 @@
   gap: 1.5rem;
 }
 
+.waitlist-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde-card);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.5rem;
+  align-items: center;
+  box-shadow: var(--sombra-card);
+  transition: all 0.2s ease;
+}
+
+.waitlist-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-lg);
+  border-color: var(--color-acento);
+}
+
+.waitlist-card__position {
+  background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-primary-800) 100%);
+  color: white;
+  border-radius: var(--radius-lg);
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(45, 34, 24, 0.25);
+  flex-shrink: 0;
+}
+
+.waitlist-card__position-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #FFFFFF;
+}
+
 .waitlist-card__content {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
+  min-width: 0;
 }
 
 .waitlist-card__header {
@@ -720,13 +638,41 @@
   flex-wrap: wrap;
 }
 
+.waitlist-card__title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-texto);
+  margin: 0;
+  font-family: var(--fuente-titulo);
+}
+
+.waitlist-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .waitlist-card__date,
 .waitlist-card__party {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--color-texto-suave);
+  margin: 0;
+}
+
+.waitlist-card__date i,
+.waitlist-card__party i {
+  color: var(--color-acento);
+  font-size: 1rem;
+}
+
+.waitlist-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .waitlist-card__warning {
@@ -734,28 +680,28 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, transparent);
+  background: var(--color-warning-light);
+  border: 1px solid var(--color-warning);
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--color-warning-dark);
+  font-weight: 500;
+  margin: 0;
 }
 
-.waitlist-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
+.waitlist-card__warning i {
+  color: var(--color-warning);
+  font-size: 1rem;
 }
 
-/* Status badges — el PHP usa .status-badge--* */
+/* Status Badges */
 .status-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: 50px;
-  font-size: 0.8rem;
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -763,133 +709,93 @@
 
 .status-badge--waiting {
   background: var(--color-warning-light);
-  color: var(--color-warning-dark);
+  color: var(--color-warning);
 }
 
 .status-badge--notified {
   background: var(--color-info-light);
-  color: var(--color-info-dark);
+  color: var(--color-info);
 }
 
 .status-badge--confirmed {
   background: var(--color-success-light);
-  color: var(--color-success-dark);
+  color: var(--color-success);
 }
 
 .status-badge--expired {
   background: var(--color-danger-light);
-  color: var(--color-danger-dark);
+  color: var(--color-danger);
 }
 
-/* Info cards — empty state */
+/* ────────────────────────────────────────────────────────────────
+   06. INFO CARDS (How it works)
+   ──────────────────────────────────────────────────────────────── */
+
 .info-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
 }
 
 .info-card {
   background: var(--color-superficie);
   border: 1px solid var(--color-borde-card);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1rem;
   text-align: center;
-  box-shadow: var(--sombra-card);
+  box-shadow: var(--sombra-sm);
+  transition: all 0.2s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-md);
+  border-color: var(--color-acento);
 }
 
 .info-card__icon {
-  font-size: 2rem;
-  color: var(--color-primario);
-  display: block;
+  font-size: 1.5rem;
+  color: var(--color-acento);
   margin-bottom: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--color-accent-50);
+  border-radius: 50%;
 }
 
 .info-card__title {
   font-size: 1rem;
   font-weight: 700;
   color: var(--color-texto);
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.4rem 0;
+  font-family: var(--fuente-titulo);
 }
 
 .info-card__description {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--color-texto-suave);
-  line-height: 1.5;
+  line-height: 1.4;
   margin: 0;
 }
 
-/* Promo card — cross-promo a loyalty */
-.promo-card {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-900) 100%);
-  border-radius: var(--radius-xl);
-  padding: 1.75rem 2rem;
-  margin-top: 2rem;
-  color: white;
-}
-
-.promo-card__icon {
-  font-size: 3rem;
-  flex-shrink: 0;
-}
-
-.promo-card__content {
-  flex: 1;
-}
-
-.promo-card__title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem;
-}
-
-.promo-card__description {
-  font-size: 0.95rem;
-  opacity: 0.9;
-  margin: 0 0 1rem;
-  line-height: 1.5;
-}
-
-.promo-card__cta {
-  display: inline-block;
-  padding: 0.6rem 1.25rem;
-  background: white;
-  border-radius: var(--radius-md);
-  color: var(--color-primary-800);
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-decoration: none;
-  transition: background var(--transicion), color var(--transicion);
-}
-
-.promo-card__cta:hover {
-  background: var(--color-fondo);
-  color: var(--color-primary-900);
-}
-
-@media (max-width: 600px) {
-  .promo-card {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-/* Info box — cómo funciona */
+/* Info Box */
 .info-box {
-  background: color-mix(in srgb, var(--color-info) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-info) 25%, transparent);
+  background: var(--color-info-light);
+  border: 1px solid var(--color-info);
   border-radius: var(--radius-lg);
   padding: 1.5rem 2rem;
+  margin-top: 2rem;
 }
 
 .info-box__title {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--color-info-dark);
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.75rem 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -897,73 +803,113 @@
 
 .info-box__list {
   margin: 0;
-  padding-left: 1.25rem;
+  padding-left: 1.5rem;
   color: var(--color-texto-suave);
-  line-height: 1.7;
+  line-height: 1.8;
   font-size: 0.95rem;
 }
 
-/* Botones secundarios y modificador sm */
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0.75rem 1.5rem;
-  background: transparent;
-  border: 2px solid var(--color-borde);
-  border-radius: 10px;
-  color: var(--color-texto);
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  text-decoration: none;
-  transition: border-color var(--transicion), color var(--transicion);
-}
-
-.btn-secondary:hover {
-  border-color: var(--color-primario);
-  color: var(--color-primario);
-}
-
-.btn-sm {
-  min-height: 36px;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  border-radius: var(--radius-md);
+.info-box__list li {
+  margin-bottom: 0.5rem;
 }
 
 /* ────────────────────────────────────────────────────────────────
-   REDEMPTION TOAST — Notificación de canje exitoso
+   07. PROMO CARD (Cross-promotion)
+   ──────────────────────────────────────────────────────────────── */
+
+.promo-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-acento);
+  border-left: 4px solid var(--color-acento);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--sombra-sm);
+}
+
+.promo-card__icon {
+  font-size: 2rem;
+  color: var(--color-acento);
+  background: var(--color-accent-50);
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.promo-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.promo-card__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-texto);
+  margin: 0 0 0.4rem 0;
+  font-family: var(--fuente-titulo);
+}
+
+.promo-card__description {
+  color: var(--color-texto-suave);
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.promo-card__cta {
+  display: inline-block;
+  background: var(--color-primario);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.promo-card__cta:hover {
+  background: var(--color-primario-hover);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   08. TOAST NOTIFICATION
    ──────────────────────────────────────────────────────────────── */
 
 .loyalty-redemption-toast {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: 2rem;
   left: 50%;
   transform: translateX(-50%);
-  z-index: var(--z-toast, 1000);
-  min-width: 300px;
+  z-index: 1000;
+  width: 90%;
   max-width: 480px;
-  width: calc(100% - 2rem);
 }
 
 .loyalty-redemption-toast__inner {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: 1rem;
   background: var(--color-superficie);
-  border: 1px solid color-mix(in srgb, var(--color-success) 40%, transparent);
-  border-left: 4px solid var(--color-success, #16a34a);
+  border: 1px solid var(--color-borde-card);
+  border-left: 4px solid var(--color-success);
   border-radius: var(--radius-lg);
-  padding: 1rem 1.25rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  font-size: 0.95rem;
+  padding: 1.25rem;
+  box-shadow: var(--sombra-lg);
 }
 
 .loyalty-redemption-toast__inner>i {
-  color: var(--color-success, #16a34a);
-  font-size: 1.25rem;
+  color: var(--color-success);
+  font-size: 1.5rem;
   flex-shrink: 0;
   margin-top: 0.1rem;
 }
@@ -977,12 +923,12 @@
 
 .loyalty-redemption-toast__body strong {
   color: var(--color-texto);
+  font-size: 1rem;
 }
 
 .loyalty-redemption-toast__body span {
   color: var(--color-texto-suave);
-  font-size: 0.875rem;
-  font-family: var(--fuente-mono, monospace);
+  font-size: 0.85rem;
 }
 
 .loyalty-redemption-toast__close {
@@ -991,139 +937,315 @@
   cursor: pointer;
   color: var(--color-texto-suave);
   padding: 0.25rem;
-  border-radius: var(--radius-sm);
+  font-size: 1.25rem;
   line-height: 1;
-  flex-shrink: 0;
-  font-size: 1rem;
-  transition: color var(--transicion);
+  transition: color 0.2s;
 }
 
 .loyalty-redemption-toast__close:hover {
   color: var(--color-texto);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .loyalty-redemption-toast[x-transition] {
-    transition: opacity var(--transition-fast), transform var(--transition-fast);
+/* ────────────────────────────────────────────────────────────────
+   09. BUTTONS (Shared)
+   ──────────────────────────────────────────────────────────────── */
+
+.btn-primary {
+  display: inline-block;
+  min-height: 48px;
+  padding: 1rem 2rem;
+  background: var(--color-primario);
+  color: white;
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.btn-primary:hover {
+  background: var(--color-primario-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(45, 34, 24, 0.2);
+  color: white;
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   10. RESPONSIVE
+   ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .loyalty-card {
+    padding: 1.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-card__value {
+    font-size: 2rem;
+  }
+
+  .stamps-grid {
+    grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+  }
+
+  .waitlist-card {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .waitlist-card__position {
+    margin: 0 auto;
+    width: 80px;
+    height: 80px;
+  }
+
+  .waitlist-card__position-number {
+    font-size: 2rem;
+  }
+
+  .waitlist-card__header {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .waitlist-card__details {
+    align-items: center;
+  }
+
+  .waitlist-card__actions {
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .history-card {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .history-card__icon {
+    margin: 0 auto;
+  }
+
+  .history-card__status {
+    justify-content: center;
+  }
+
+  .promo-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .promo-card__icon {
+    margin: 0 auto;
+  }
+
+  .info-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .loyalty-header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 3rem
+  }
+
+  .loyalty-header__actions {
+    width: 100%;
+  }
+
+  .loyalty-header__print-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .loyalty-container,
+  .waitlist-container {
+    padding: 0 var(--espaciado-sm);
+  }
+
+  .loyalty-card {
+    padding: 1.25rem;
+  }
+
+  .empty-state {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .empty-state__icon {
+    font-size: 3rem;
+  }
+
+  .stamps-grid {
+    grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+    gap: 0.4rem;
   }
 }
 
 /* ────────────────────────────────────────────────────────────────
-   PRINT — Tarjeta de fidelización
+   11. DARK MODE OVERRIDES
    ──────────────────────────────────────────────────────────────── */
+
+[data-tema="oscuro"] .loyalty-card {
+  background: linear-gradient(135deg, #7A5240 0%, #3D2E1F 100%);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+[data-tema="oscuro"] .stat-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-tema="oscuro"] .stat-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+[data-tema="oscuro"] .tier-progress {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+[data-tema="oscuro"] .reward-card,
+[data-tema="oscuro"] .history-card,
+[data-tema="oscuro"] .waitlist-card,
+[data-tema="oscuro"] .info-card {
+  background: var(--color-superficie);
+  border-color: var(--color-borde-card);
+}
+
+[data-tema="oscuro"] .empty-state {
+  background: var(--color-fondo-alt);
+  border-color: var(--color-borde);
+}
+
+[data-tema="oscuro"] .promo-card {
+  background: var(--color-superficie);
+  border-color: var(--color-accent-600);
+  border-left-color: var(--color-accent-600);
+}
+
+[data-tema="oscuro"] .info-box {
+  background: color-mix(in srgb, var(--color-info) 15%, var(--color-superficie));
+  border-color: var(--color-info);
+}
+
+[data-tema="oscuro"] .waitlist-card__position {
+  background: linear-gradient(135deg, #8B6B4E 0%, #4A3728 100%);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+[data-tema="oscuro"] .btn-reward {
+  background: var(--color-accent-600);
+  color: #1a1a1a;
+}
+
+[data-tema="oscuro"] .btn-reward:hover:not(:disabled) {
+  background: var(--color-accent-500);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   12. PRINT STYLES
+   ──────────────────────────────────────────────────────────────── */
+
 @media print {
 
-  /* Ocultar chrome de navegación */
   header,
   nav,
   footer,
-  .site-header,
-  .site-footer,
-  .site-nav,
-  .loyalty-header__print-btn,
   .loyalty-header__actions,
-  .rewards-grid,
-  .section-title+p,
-  .history-grid,
-  [class*="loyalty-section"]:not(:first-of-type),
-  .notification-toast,
-  [data-floating],
-  [data-modal] {
+  .btn-reward,
+  .waitlist-card__actions,
+  .promo-card,
+  .info-cards,
+  .info-box {
     display: none !important;
   }
 
-  html,
   body {
     background: white !important;
     color: black !important;
   }
 
-  /* Preservar gradiente de la tarjeta al imprimir */
   .loyalty-card {
-    background: linear-gradient(135deg, #5C3D2E 0%, #2D1F14 100%) !important;
+    background: linear-gradient(135deg, #5C3D2E 0%, #2D2218 100%) !important;
     color: white !important;
+    border: 1px solid #ccc !important;
     box-shadow: none !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  /* Stamps con color */
+  .loyalty-card h2,
+  .loyalty-card p,
+  .stat-card__value,
+  .stat-card__label,
+  .stamp__number {
+    color: white !important;
+  }
+
   .stamp--filled {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  /* Tier progress bar */
   .tier-progress__fill {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  /* Branding al pie */
   .loyalty-section:first-of-type::after {
     content: "Komorebi Café · komorebi.cafe";
     display: block;
-    margin-top: 1.5rem;
+    margin-top: 2rem;
     font-size: 0.75rem;
     color: #666;
     text-align: center;
     border-top: 1px solid #ccc;
-    padding-top: 0.75rem;
+    padding-top: 1rem;
   }
 }
 
 /* ────────────────────────────────────────────────────────────────
-   TIER BADGES & ICONS — usan CSS vars de design-tokens.css
+   13. ACCESSIBILITY — Reduced Motion
    ──────────────────────────────────────────────────────────────── */
 
-/* Iconos de stat-card por tier */
-.tier-icon--bronze {
-  background-color: color-mix(in srgb, var(--tier-bronze) 13%, transparent);
-  color: var(--tier-bronze);
-}
+@media (prefers-reduced-motion: reduce) {
 
-.tier-icon--silver {
-  background-color: color-mix(in srgb, var(--tier-silver) 13%, transparent);
-  color: var(--tier-silver);
-}
+  .loyalty-card,
+  .stat-card,
+  .reward-card,
+  .waitlist-card,
+  .history-card,
+  .info-card,
+  .btn-reward,
+  .btn-primary,
+  .promo-card,
+  .tier-progress__fill {
+    transition: none !important;
+    animation: none !important;
+  }
 
-.tier-icon--gold {
-  background-color: color-mix(in srgb, var(--tier-gold) 13%, transparent);
-  color: var(--tier-gold);
-}
-
-.tier-icon--platinum {
-  background-color: color-mix(in srgb, var(--tier-platinum) 13%, transparent);
-  color: var(--tier-platinum);
-}
-
-/* Badges inline (catálogo y canjes) */
-.tier-badge--bronze {
-  background-color: color-mix(in srgb, var(--tier-bronze) 13%, transparent);
-  color: var(--tier-bronze);
-  border: 1px solid var(--tier-bronze);
-}
-
-.tier-badge--silver {
-  background-color: color-mix(in srgb, var(--tier-silver) 13%, transparent);
-  color: var(--tier-silver);
-  border: 1px solid var(--tier-silver);
-}
-
-.tier-badge--gold {
-  background-color: color-mix(in srgb, var(--tier-gold) 13%, transparent);
-  color: var(--tier-gold);
-  border: 1px solid var(--tier-gold);
-}
-
-.tier-badge--platinum {
-  background-color: color-mix(in srgb, var(--tier-platinum) 13%, transparent);
-  color: var(--tier-platinum);
-  border: 1px solid var(--tier-platinum);
-}
-
-.tier-badge--default {
-  background-color: color-mix(in srgb, var(--color-texto-suave) 13%, transparent);
-  color: var(--color-texto-suave);
-  border: 1px solid var(--color-texto-suave);
+  .reward-card:hover,
+  .waitlist-card:hover,
+  .info-card:hover,
+  .history-card:hover {
+    transform: none !important;
+  }
 }

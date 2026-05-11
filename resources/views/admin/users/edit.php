@@ -96,7 +96,7 @@ $userId = (int) ($user['id'] ?? 0);
                             .catch(() => { alert('Error de red.'); submitting = false; })
                           ">
 
-                        <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8') ?>">
 
                         <!-- Nombre -->
                         <div class="mb-3">

@@ -3,29 +3,11 @@
 declare(strict_types=1);
 
 use App\Support\StatusLabeling;
+use App\Support\DateFormatting;
 
 /**
  * Vista: Mis Listas de Espera
- *
- * Variables disponibles:
- * @var array $waitlists - Lista de registros de espera del usuario
  */
-
-// Helper: formatear fecha en español
-function formatDate(string $date): string
-{
-    $months = ['', 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-    $timestamp = strtotime($date);
-    if ($timestamp === false) {
-        return $date;
-    }
-    $day = (int) date('d', $timestamp);
-    $month = (int) date('m', $timestamp);
-    $year = date('Y', $timestamp);
-    $time = date('H:i', $timestamp);
-
-    return "$day de {$months[$month]} de $year a las $time";
-}
 ?>
 
 <!-- Encabezado de sección -->
@@ -93,7 +75,10 @@ function formatDate(string $date): string
             <?php
             foreach ($waitlists as $item):
                 $itemStatus = (string) ($item['status'] ?? 'waiting');
-                ?>
+
+                // Unificar fecha y hora para el formateador
+                $slotDatetime = trim(($item['slot_date'] ?? '') . ' ' . ($item['slot_time'] ?? ''));
+            ?>
                 <div class="waitlist-card">
                     <!-- Badge de posición -->
                     <div class="waitlist-card__position">
@@ -113,11 +98,13 @@ function formatDate(string $date): string
 
                         <div class="waitlist-card__details">
                             <p class="waitlist-card__date">
-                                <i class="bi bi-calendar3" aria-hidden="true"></i> <?= formatDate(trim(($item['slot_date'] ?? '') . ' ' . ($item['slot_time'] ?? ''))) ?>
+                                <i class="bi bi-calendar3" aria-hidden="true"></i>
+                                <?= e(DateFormatting::toSpanishLongDate($slotDatetime)) ?>
                             </p>
                             <?php if (!empty($item['guest_count'])): ?>
                                 <p class="waitlist-card__party">
-                                    <i class="bi bi-people" aria-hidden="true"></i> <?= (int) $item['guest_count'] ?> persona<?= (int) $item['guest_count'] > 1 ? 's' : '' ?>
+                                    <i class="bi bi-people" aria-hidden="true"></i>
+                                    <?= (int) $item['guest_count'] ?> persona<?= (int) $item['guest_count'] > 1 ? 's' : '' ?>
                                 </p>
                             <?php endif; ?>
                         </div>
@@ -135,7 +122,7 @@ function formatDate(string $date): string
                                 <a
                                     href="/waitlist/confirm/<?= htmlspecialchars((string) ($item['token'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                                     class="btn-komorebi btn-komorebi-primary btn-komorebi--sm"
-                                    aria-label="Confirmar plaza para <?= htmlspecialchars(trim(($item['slot_date'] ?? '') . ' ' . ($item['slot_time'] ?? '')), ENT_QUOTES, 'UTF-8') ?>">
+                                    aria-label="Confirmar plaza para <?= htmlspecialchars($slotDatetime, ENT_QUOTES, 'UTF-8') ?>">
                                     Confirmar Plaza
                                 </a>
                                 <form method="POST" action="/user/waitlists/<?= (int) ($item['id'] ?? 0) ?>/cancel" style="display:inline">
@@ -143,7 +130,7 @@ function formatDate(string $date): string
                                     <button
                                         type="submit"
                                         class="btn-komorebi btn-komorebi-ghost btn-komorebi--sm"
-                                        aria-label="Rechazar plaza para <?= htmlspecialchars(trim(($item['slot_date'] ?? '') . ' ' . ($item['slot_time'] ?? '')), ENT_QUOTES, 'UTF-8') ?>">
+                                        aria-label="Rechazar plaza para <?= htmlspecialchars($slotDatetime, ENT_QUOTES, 'UTF-8') ?>">
                                         Rechazar
                                     </button>
                                 </form>
@@ -153,7 +140,7 @@ function formatDate(string $date): string
                 </div>
             <?php
             endforeach;
-?>
+            ?>
         </div>
     </section>
 

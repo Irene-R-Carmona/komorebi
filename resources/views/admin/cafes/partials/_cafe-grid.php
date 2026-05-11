@@ -144,7 +144,7 @@ $animalMap = [
                             <span><?= (int) ($cafe['capacity_max'] ?? 0) ?> personas</span>
                         </div>
                         <div class="cafe-card__meta-item">
-                            <i class="bi bi-currency-yen"></i>
+                            <i class="bi bi-currency-euro"></i>
                             <span>Desde <strong><?= number_format((int) ($cafe['price_per_hour'] ?? 0)) ?></strong>¥/h</span>
                         </div>
                     </div>

@@ -209,6 +209,7 @@ final class ReservationTimeSlotServiceTest extends TestCase
             status: 'confirmed',
             time_slot_id: $timeSlotId,
             pass_name: 'Pase básico',
+            pass_duration_minutes: null,
             check_in_at: null,
             check_out_at: null,
             final_amount: null,

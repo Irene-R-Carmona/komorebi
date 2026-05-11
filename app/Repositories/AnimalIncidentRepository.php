@@ -32,16 +32,28 @@ final class AnimalIncidentRepository extends AbstractRepository implements Anima
         return ['id', 'animal_id', 'incident_type', 'severity', 'status', 'description', 'resolution', 'resolved_at', 'created_at'];
     }
 
-    public function getActiveIncidents(): array
+    public function getActiveIncidents(?int $cafeId = null): array
     {
-        $stmt = $this->getDb()->query('
-            SELECT ai.*, a.name AS animal_name, a.species_type AS species
-            FROM animal_incidents ai
-            JOIN animals a ON ai.animal_id = a.id
-            WHERE ai.resolved_at IS NULL
-            ORDER BY ai.severity DESC, ai.created_at DESC
-            LIMIT 200
-        ');
+        if ($cafeId !== null) {
+            $stmt = $this->getDb()->prepare('
+                SELECT ai.*, a.name AS animal_name, a.species_type AS species
+                FROM animal_incidents ai
+                JOIN animals a ON ai.animal_id = a.id
+                WHERE ai.resolved_at IS NULL AND a.cafe_id = :cafe_id
+                ORDER BY ai.severity DESC, ai.created_at DESC
+                LIMIT 200
+            ');
+            $stmt->execute(['cafe_id' => $cafeId]);
+        } else {
+            $stmt = $this->getDb()->query('
+                SELECT ai.*, a.name AS animal_name, a.species_type AS species
+                FROM animal_incidents ai
+                JOIN animals a ON ai.animal_id = a.id
+                WHERE ai.resolved_at IS NULL
+                ORDER BY ai.severity DESC, ai.created_at DESC
+                LIMIT 200
+            ');
+        }
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

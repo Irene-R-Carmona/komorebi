@@ -107,14 +107,24 @@ final class HealthCheckRepository extends AbstractRepository implements HealthCh
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getTodayChecks(): array
+    public function getTodayChecks(?int $cafeId = null): array
     {
         // Usa vista optimizada health_checks_today
-        $stmt = $this->getDb()->query('
-            SELECT *
-            FROM health_checks_today
-            ORDER BY created_at DESC
-        ');
+        if ($cafeId !== null) {
+            $stmt = $this->getDb()->prepare('
+                SELECT *
+                FROM health_checks_today
+                WHERE cafe_id = :cafe_id
+                ORDER BY created_at DESC
+            ');
+            $stmt->execute(['cafe_id' => $cafeId]);
+        } else {
+            $stmt = $this->getDb()->query('
+                SELECT *
+                FROM health_checks_today
+                ORDER BY created_at DESC
+            ');
+        }
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -203,9 +213,9 @@ final class HealthCheckRepository extends AbstractRepository implements HealthCh
             'appetite' => $data['appetite'] ?? 'normal',
             'energy_level' => $data['energy_level'] ?? 'normal',
             'coat_condition' => $data['coat_condition'] ?? 'good',
-            'eyes_clear' => $data['eyes_clear'] ?? true,
-            'breathing_normal' => $data['breathing_normal'] ?? true,
-            'mobility_normal' => $data['mobility_normal'] ?? true,
+            'eyes_clear' => (int) ($data['eyes_clear'] ?? true),
+            'breathing_normal' => (int) ($data['breathing_normal'] ?? true),
+            'mobility_normal' => (int) ($data['mobility_normal'] ?? true),
             'notes' => $data['notes'] ?? null,
             'alerts' => isset($data['alerts']) ? \json_encode($data['alerts']) : null,
         ]);
@@ -216,9 +226,16 @@ final class HealthCheckRepository extends AbstractRepository implements HealthCh
     public function update(int $id, array $data): bool
     {
         $allowed = [
-            'weight_kg', 'temperature_c', 'appetite', 'energy_level',
-            'coat_condition', 'eyes_clear', 'breathing_normal', 'mobility_normal',
-            'notes', 'alerts',
+            'weight_kg',
+            'temperature_c',
+            'appetite',
+            'energy_level',
+            'coat_condition',
+            'eyes_clear',
+            'breathing_normal',
+            'mobility_normal',
+            'notes',
+            'alerts',
         ];
 
         $sets = [];

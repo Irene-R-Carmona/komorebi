@@ -1,0 +1,585 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ADOPCIONES — Galería y Detalle de Animales
+   Integrado con Layout Komorebi (Header + Footer)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ────────────────────────────────────────────────────────────────
+   1. GALERÍA DE ADOPCIONES (Lista)
+   ──────────────────────────────────────────────────────────────── */
+
+/* Empty State — Centrado y accesible */
+.adopciones__vacio {
+  text-align: center;
+  padding: var(--espaciado-xl) var(--espaciado-md);
+  background: var(--color-fondo-alt);
+  border: 2px dashed var(--color-borde);
+  border-radius: var(--radius-lg);
+  max-width: 500px;
+  margin: 3rem auto;
+}
+
+.adopciones__vacio i {
+  font-size: 4rem;
+  color: var(--color-acento);
+  opacity: 0.5;
+  margin-bottom: var(--espaciado-md);
+  display: block;
+}
+
+.adopciones__vacio p {
+  color: var(--color-texto);
+  font-size: 1.05rem;
+  margin: 0.5rem 0;
+  line-height: 1.5;
+}
+
+.adopciones__vacio p:last-of-type {
+  color: var(--color-texto-suave);
+  font-size: 0.95rem;
+}
+
+/* Grid de Animales — Consistente con otros grids del sitio */
+.adopciones__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--espaciado-md);
+  list-style: none;
+  padding: 0;
+  margin: var(--espaciado-lg) 0 0 0;
+}
+
+/* Card de Animal — Mismo estilo que reward-card y waitlist-card */
+.adopciones__card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--sombra-sm);
+  transition: all var(--transicion);
+  position: relative;
+}
+
+.adopciones__card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sombra-lg);
+  border-color: var(--color-acento);
+}
+
+.adopciones__card:focus-within {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
+}
+
+/* Enlace de toda la card (accesible) */
+.adopciones__card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+}
+
+.adopciones__card-link:focus {
+  outline: none;
+}
+
+/* Imagen de la Card — Mismo tratamiento que imágenes globales */
+.adopciones__card-img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  background: var(--color-fondo-alt);
+  transition: transform var(--transicion);
+}
+
+[data-tema="oscuro"] .adopciones__card-img:not([data-no-filter]) {
+  filter: brightness(0.9) saturate(0.95);
+}
+
+.adopciones__card:hover .adopciones__card-img {
+  transform: scale(1.05);
+}
+
+.adopciones__card-img--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-fondo-alt) 0%, var(--color-borde-card) 100%);
+  color: var(--color-texto-suave);
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+/* Body de la Card */
+.adopciones__card-body {
+  padding: var(--espaciado-md);
+}
+
+.adopciones__card-nombre {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-texto);
+  margin: 0 0 0.5rem 0;
+  font-family: var(--fuente-titulo);
+  line-height: 1.2;
+}
+
+.adopciones__card-especie,
+.adopciones__card-cafe {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-texto-suave);
+  margin: 0.35rem 0;
+}
+
+.adopciones__card-especie i,
+.adopciones__card-cafe i {
+  color: var(--color-acento);
+  font-size: 1rem;
+}
+
+/* Botón "Conocerme" — Usa btn--primario existente */
+.adopciones__card .btn--primario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: var(--espaciado-sm);
+  width: 100%;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   2. DETALLE DE ADOPCIÓN
+   ──────────────────────────────────────────────────────────────── */
+
+/* Botón Volver — Consistente con account-back-link */
+.adopcion-detalle__volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-primario);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: var(--espaciado-md);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  transition: all var(--transicion-rapida);
+}
+
+.adopcion-detalle__volver:hover {
+  color: var(--color-acento);
+  background: var(--color-fondo-alt);
+  text-decoration: none;
+}
+
+.adopcion-detalle__volver:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
+}
+
+/* Layout Principal — Mismo estilo que settings-box */
+.adopcion-detalle {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde-card);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--sombra-card);
+}
+
+@media (min-width: 768px) {
+  .adopcion-detalle {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Foto del Animal */
+.adopcion-detalle__foto-wrapper {
+  background: var(--color-fondo-alt);
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.adopcion-detalle__foto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 300px;
+}
+
+[data-tema="oscuro"] .adopcion-detalle__foto:not([data-no-filter]) {
+  filter: brightness(0.9) saturate(0.95);
+}
+
+.adopcion-detalle__foto--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  background: linear-gradient(135deg, var(--color-fondo-alt) 0%, var(--color-borde-card) 100%);
+  color: var(--color-texto-suave);
+  opacity: 0.5;
+}
+
+/* Info del Animal — Mismo padding que settings-box */
+.adopcion-detalle__info {
+  padding: var(--espaciado-lg);
+}
+
+.adopcion-detalle__nombre {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-texto);
+  margin: 0 0 var(--espaciado-md) 0;
+  font-family: var(--fuente-titulo);
+  line-height: 1.2;
+}
+
+/* Ficha de Datos (dl) — Similar a settings-grid */
+.adopcion-detalle__ficha {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espaciado-sm);
+  margin-bottom: var(--espaciado-md);
+  padding-bottom: var(--espaciado-md);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+@media (min-width: 480px) {
+  .adopcion-detalle__ficha {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.adopcion-detalle__ficha-fila {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.adopcion-detalle__ficha-fila dt {
+  font-size: 0.85rem;
+  color: var(--color-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.adopcion-detalle__ficha-fila dd {
+  font-size: 1.05rem;
+  color: var(--color-texto);
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Descripción */
+.adopcion-detalle__descripcion {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-texto);
+  margin: 0 0 var(--espaciado-md) 0;
+  white-space: pre-line;
+}
+
+/* Acciones y Formulario — Consistente con forms existentes */
+.adopcion-detalle__acciones {
+  margin-top: var(--espaciado-md);
+  padding-top: var(--espaciado-md);
+  border-top: 1px solid var(--color-borde);
+}
+
+.adopcion-detalle__aviso {
+  background: var(--color-fondo-alt);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-md);
+  padding: var(--espaciado-sm);
+  font-size: 0.95rem;
+  color: var(--color-texto-suave);
+  margin: 0 0 var(--espaciado-md) 0;
+}
+
+.adopcion-detalle__aviso a {
+  color: var(--color-primario);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.adopcion-detalle__aviso a:hover {
+  color: var(--color-acento);
+}
+
+.adopcion-detalle__aviso--ok {
+  background: var(--color-success-light);
+  border-color: var(--color-success);
+  color: var(--color-success-dark);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.adopcion-detalle__aviso--ok i {
+  color: var(--color-success);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+/* Formulario de Solicitud — Usa form-group y form-control existentes */
+.adopcion-detalle__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaciado-md);
+}
+
+.adopcion-detalle__form .form-group {
+  margin: 0;
+}
+
+.adopcion-detalle__form .form-label {
+  font-weight: 600;
+  color: var(--color-texto);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.adopcion-detalle__form .form-label__opcional {
+  font-weight: 400;
+  color: var(--color-texto-suave);
+  font-size: 0.85rem;
+}
+
+.adopcion-detalle__form .form-control {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--color-borde);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-family: inherit;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  transition: all var(--transicion-rapida);
+  resize: vertical;
+  min-height: 120px;
+}
+
+.adopcion-detalle__form .form-control:focus {
+  outline: none;
+  border-color: var(--color-acento);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-acento) 15%, transparent);
+}
+
+.adopcion-detalle__form .form-hint {
+  font-size: 0.85rem;
+  color: var(--color-texto-suave);
+  margin: 0.5rem 0 0 0;
+}
+
+.adopcion-detalle__form .btn--primario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.adopcion-detalle__form .btn--primario:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-md);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   3. RESPONSIVE — Consistente con header mobile
+   ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .adopciones__grid {
+    grid-template-columns: 1fr;
+    gap: var(--espaciado-sm);
+  }
+
+  .adopcion-detalle {
+    border-radius: var(--radius-md);
+  }
+
+  .adopcion-detalle__foto-wrapper {
+    min-height: 250px;
+  }
+
+  .adopcion-detalle__foto {
+    min-height: 250px;
+  }
+
+  .adopcion-detalle__info {
+    padding: var(--espaciado-md);
+  }
+
+  .adopcion-detalle__nombre {
+    font-size: 1.75rem;
+  }
+
+  .adopcion-detalle__ficha {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   4. LAYOUT — Modificador de contenedor para vista detalle
+   ──────────────────────────────────────────────────────────────── */
+
+/* Contenedor más estrecho para la ficha de detalle de adopción */
+.seccion__container--estrecha {
+  max-width: 900px;
+}
+
+@media (max-width: 480px) {
+  .adopciones__vacio {
+    padding: var(--espaciado-lg) var(--espaciado-sm);
+    margin: 2rem 1rem;
+  }
+
+  .adopciones__vacio i {
+    font-size: 3rem;
+  }
+
+  .adopciones__card-img {
+    height: 200px;
+  }
+
+  .adopcion-detalle__foto-wrapper {
+    min-height: 200px;
+  }
+
+  .adopcion-detalle__form .btn--primario {
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   4. DARK MODE — Consistente con header/footer dark mode
+   ──────────────────────────────────────────────────────────────── */
+
+[data-tema="oscuro"] .adopciones__vacio {
+  background: var(--color-fondo-alt);
+  border-color: var(--color-borde);
+}
+
+[data-tema="oscuro"] .adopciones__card {
+  background: var(--color-superficie);
+  border-color: var(--color-borde-card);
+}
+
+[data-tema="oscuro"] .adopcion-detalle {
+  background: var(--color-superficie);
+  border-color: var(--color-borde-card);
+}
+
+[data-tema="oscuro"] .adopcion-detalle__foto-wrapper {
+  background: var(--color-fondo-alt);
+}
+
+[data-tema="oscuro"] .adopcion-detalle__foto--placeholder,
+[data-tema="oscuro"] .adopciones__card-img--placeholder {
+  background: linear-gradient(135deg, #2A231D 0%, #3D2E1F 100%);
+}
+
+[data-tema="oscuro"] .adopcion-detalle__aviso {
+  background: var(--color-fondo-alt);
+  border-color: var(--color-borde);
+}
+
+[data-tema="oscuro"] .adopcion-detalle__aviso--ok {
+  background: color-mix(in srgb, var(--color-success) 15%, var(--color-superficie));
+  border-color: var(--color-success);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   5. ACCESSIBILITY — Focus States (como header__link)
+   ──────────────────────────────────────────────────────────────── */
+
+.adopciones__card-link:focus-visible {
+  outline: none;
+}
+
+.adopciones__card:focus-within {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
+}
+
+.adopcion-detalle__volver:focus-visible,
+.adopcion-detalle__form .form-control:focus-visible,
+.adopcion-detalle__form .btn--primario:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   6. REDUCED MOTION — Como header/footer
+   ──────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .adopciones__card,
+  .adopciones__card-img,
+  .adopcion-detalle__volver,
+  .adopcion-detalle__form .btn--primario {
+    transition: none !important;
+  }
+
+  .adopciones__card:hover {
+    transform: none !important;
+  }
+
+  .adopciones__card:hover .adopciones__card-img {
+    transform: none !important;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   7. PRINT — Como loyalty.css
+   ──────────────────────────────────────────────────────────────── */
+
+@media print {
+
+  header,
+  nav,
+  footer,
+  .header,
+  .footer,
+  .adopcion-detalle__volver,
+  .adopcion-detalle__form,
+  .adopcion-detalle__acciones {
+    display: none !important;
+  }
+
+  .adopcion-detalle {
+    grid-template-columns: 1fr !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .adopcion-detalle__foto-wrapper {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .adopcion-detalle__nombre {
+    color: black !important;
+  }
+}

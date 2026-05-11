@@ -24,4 +24,8 @@ CREATE TABLE IF NOT EXISTS staff_shifts (
     INDEX idx_staff_shifts_date_range (shift_date, shift_start, shift_end)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'Turnos de staff para gestión de horarios por managers';
 
+ALTER TABLE staff_shifts
+    ADD CONSTRAINT uk_staff_shift_start UNIQUE KEY (user_id, shift_start),
+    ADD CONSTRAINT chk_shift_times CHECK (shift_end > shift_start);
+
 SET FOREIGN_KEY_CHECKS = 1;

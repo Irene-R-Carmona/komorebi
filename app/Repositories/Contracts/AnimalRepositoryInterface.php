@@ -20,12 +20,12 @@ interface AnimalRepositoryInterface
     public function isResting(int $animalId): bool;
 
     /** @return array<int, array<string, mixed>> */
-    public function getAnimalsWithCafeInfoOptimized(): array;
+    public function getAnimalsWithCafeInfoOptimized(?int $cafeId = null): array;
 
     /**
      * @return array{total_animals: int, healthy: int, monitoring: int, sick: int, logs_today: int}
      */
-    public function getHealthStatistics(): array;
+    public function getHealthStatistics(?int $cafeId = null): array;
 
     public function updateImageUrl(int $animalId, string $imageUrl): bool;
 
@@ -43,4 +43,10 @@ interface AnimalRepositoryInterface
 
     /** @return array{found: bool, current_status?: string} */
     public function toggleStatus(int $id): array;
+
+    // ─── Adopciones ─────────────────────────────────────────────────────────
+
+    public function setAdoptable(int $animalId, bool $adoptable): bool;
+
+    public function markAsAdopted(int $animalId, int $adoptedBy): bool;
 }

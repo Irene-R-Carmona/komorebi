@@ -362,7 +362,7 @@ final class AvailabilityServiceTest extends ServiceTestCase
         $this->productRepoStub->method('findById')->willReturn($this->makePass(maxPax: null, duration: 60));
         // Reservation at 09:00 for 2 guests fills entire capacity for that slot
         $this->reservationRepoStub->method('findByCafeAndDate')->willReturn([
-            ['reservation_time' => '09:00', 'pass_duration_minutes' => 60, 'guests' => 2],
+            ['reservation_time' => '09:00', 'pass_duration_minutes' => 60, 'guest_count' => 2],
         ]);
 
         $result = $this->service->getAvailableSlots(1, 1, $this->validFutureDate(), 1);

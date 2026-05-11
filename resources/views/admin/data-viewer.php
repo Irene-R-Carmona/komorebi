@@ -102,7 +102,7 @@ echo View::componentToString('components/admin/page-header', [
                 <tr>
                     <td><strong><?= htmlspecialchars($product['name']) ?></strong></td>
                     <td><?= htmlspecialchars($product['japanese_name']) ?></td>
-                    <td class="dv-price"><?= e(CurrencyFormatting::yen((float) $product['price'])) ?></td>
+                    <td class="dv-price"><?= e(CurrencyFormatting::euro((int) $product['price'])) ?></td>
                     <td><?= $product['duration'] ?> min</td>
                     <td><?= $product['min_pax'] ?>-<?= $product['max_pax'] ?> personas</td>
                 </tr>
@@ -181,7 +181,7 @@ echo View::componentToString('components/admin/page-header', [
                     <td><?= htmlspecialchars($res['user']) ?></td>
                     <td><?= htmlspecialchars($res['cafe']) ?></td>
                     <td><?= htmlspecialchars($res['pass_name']) ?></td>
-                    <td class="dv-price"><?= e(CurrencyFormatting::yen((float) $res['pass_unit_price'])) ?></td>
+                    <td class="dv-price"><?= e(CurrencyFormatting::euro((int) $res['pass_unit_price'])) ?></td>
                     <td><?= date('d/m/Y H:i', strtotime($res['reservation_date'] . ' ' . $res['reservation_time'])) ?></td>
                     <td><?= $res['guest_count'] ?></td>
                     <td>
@@ -192,13 +192,13 @@ echo View::componentToString('components/admin/page-header', [
                             'completed' => 'text-bg-info',
                             default => 'text-bg-danger'
                         };
-                $statusLabelDv = [
-                    'confirmed' => 'Confirmada',
-                    'pending' => 'Pendiente',
-                    'completed' => 'Completada',
-                    'cancelled' => 'Cancelada',
-                ][$res['status']] ?? ucfirst($res['status']);
-                ?>
+                        $statusLabelDv = [
+                            'confirmed' => 'Confirmada',
+                            'pending' => 'Pendiente',
+                            'completed' => 'Completada',
+                            'cancelled' => 'Cancelada',
+                        ][$res['status']] ?? ucfirst($res['status']);
+                        ?>
                         <span class="badge <?= $statusClass ?>"><?= htmlspecialchars($statusLabelDv, ENT_QUOTES, 'UTF-8') ?></span>
                     </td>
                     <td><?= $res['has_slot'] === 'Sí' ? '<i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>' : '<i class="bi bi-x-circle-fill text-danger" aria-hidden="true"></i>' ?></td>

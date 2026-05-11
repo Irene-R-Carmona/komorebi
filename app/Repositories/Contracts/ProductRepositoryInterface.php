@@ -177,4 +177,15 @@ interface ProductRepositoryInterface extends RepositoryInterface
      * @return array<int, array<string, mixed>>
      */
     public function findOrderableItems(int $cafeId): array;
+
+    /**
+     * Busca el producto activo más económico dentro de una categoría de menú
+     * que no supere un precio máximo. Usado para asignar automáticamente
+     * los artículos incluidos en los pases (unit_price = 0).
+     *
+     * @param int      $categoryId    ID de menu_categories
+     * @param int|null $maxUnitPrice  Precio máximo en céntimos (null = sin límite)
+     * @return array<string, mixed>|null Fila del producto o null si no hay elegibles
+     */
+    public function findEligibleIncludedItems(int $categoryId, ?int $maxUnitPrice): ?array;
 }

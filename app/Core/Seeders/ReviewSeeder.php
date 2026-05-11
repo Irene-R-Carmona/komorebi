@@ -103,7 +103,7 @@ final class ReviewSeeder
                 }
 
                 // Insertar esta review
-                $stmt = $this->db->prepare("\n                    INSERT INTO reviews (cafe_id, user_id, reservation_id, rating, title, body, status, created_at)\n                    VALUES (:cafe_id, :user_id, :reservation_id, :rating, :title, :body, :status, NOW() - INTERVAL :days DAY)\n                ");
+                $stmt = $this->db->prepare("\n                    INSERT IGNORE INTO reviews (cafe_id, user_id, reservation_id, rating, title, body, status, created_at)\n                    VALUES (:cafe_id, :user_id, :reservation_id, :rating, :title, :body, :status, NOW() - INTERVAL :days DAY)\n                ");
 
                 try {
                     $stmt->execute([
@@ -151,7 +151,7 @@ final class ReviewSeeder
             }
 
             // Insertar reseña
-            $stmt = $this->db->prepare("\n                INSERT INTO reviews (cafe_id, user_id, reservation_id, rating, title, body, status, created_at)\n                VALUES (:cafe_id, :user_id, :reservation_id, :rating, :title, :body, :status, NOW() - INTERVAL :days DAY)\n            ");
+            $stmt = $this->db->prepare("\n                INSERT IGNORE INTO reviews (cafe_id, user_id, reservation_id, rating, title, body, status, created_at)\n                VALUES (:cafe_id, :user_id, :reservation_id, :rating, :title, :body, :status, NOW() - INTERVAL :days DAY)\n            ");
 
             try {
                 $stmt->execute([

@@ -88,6 +88,7 @@ final class ReceptionController
             'free_trackers' => $freeTrackers,
             'ocupacion' => $ocupacion,
             'cap_max' => $capInfo['max'] ?? 0,
+            'orderable_items' => $orderableItems,
             'orderable_items_json' => Raw::json($orderableItems),
         ], ['workspaces/reception.css'], 'reception');
 

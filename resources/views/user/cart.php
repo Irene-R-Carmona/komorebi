@@ -60,9 +60,9 @@
                                                 @click="updateQty(item, item.quantity + 1)">+</button>
                                         </div>
                                     </td>
-                                    <td class="text-end" x-text="'¥' + parseFloat(item.price).toFixed(0)"></td>
+                                    <td class="text-end" x-text="(item.price / 100).toFixed(2) + ' €'"></td>
                                     <td class="text-end fw-bold"
-                                        x-text="'¥' + (item.price * item.quantity).toFixed(0)">
+                                        x-text="(item.price * item.quantity / 100).toFixed(2) + ' €'">
                                     </td>
                                     <td class="text-end">
                                         <button class="btn btn-sm btn-outline-danger"
@@ -92,12 +92,12 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
                         <span>Productos (<span x-text="items.length"></span>)</span>
-                        <span x-text="'¥' + total.toFixed(0)"></span>
+                        <span x-text="(total / 100).toFixed(2) + ' €'"></span>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between fw-bold fs-5">
                         <span>Total</span>
-                        <span x-text="'¥' + total.toFixed(0)"></span>
+                        <span x-text="(total / 100).toFixed(2) + ' €'"></span>
                     </div>
                     <button class="btn btn-primary w-100 mt-3">
                         Proceder al pago

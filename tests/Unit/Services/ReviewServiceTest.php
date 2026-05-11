@@ -101,7 +101,9 @@ final class ReviewServiceTest extends ServiceTestCase
     public function testCreateReviewFailsWhenDuplicateReview(): void
     {
         $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
-        $this->reviewRepoStub->method('userHasReview')->willReturn(true);
+        // Todas las reservas completadas ya tienen reseña
+        $this->reservationRepoStub->method('getCompletedByUserAndCafe')->willReturn([['id' => 10]]);
+        $this->reviewRepoStub->method('existsByReservationId')->willReturn(true);
 
         $result = $this->service->createReview(1, 1, 4, 'Título válido aquí', 'Cuerpo suficientemente largo para pasar correctamente');
 
@@ -112,7 +114,9 @@ final class ReviewServiceTest extends ServiceTestCase
     public function testCreateReviewSucceedsWithValidData(): void
     {
         $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
-        $this->reviewRepoStub->method('userHasReview')->willReturn(false);
+        // Al menos una reserva completada sin reseña
+        $this->reservationRepoStub->method('getCompletedByUserAndCafe')->willReturn([['id' => 10]]);
+        $this->reviewRepoStub->method('existsByReservationId')->willReturn(false);
         $this->reviewRepoStub->method('create')->willReturn(42);
 
         $result = $this->service->createReview(1, 1, 4, 'Título válido aquí', 'Cuerpo suficientemente largo para pasar correctamente');
@@ -274,7 +278,8 @@ final class ReviewServiceTest extends ServiceTestCase
 
     public function testCanUserReviewReturnsFalseWhenAlreadyReviewed(): void
     {
-        $this->reviewRepoStub->method('userHasReview')->willReturn(true);
+        $this->reservationRepoStub->method('getCompletedByUserAndCafe')->willReturn([['id' => 1]]);
+        $this->reviewRepoStub->method('existsByReservationId')->willReturn(true);
 
         $result = $this->service->canUserReview(1, 1);
 
@@ -284,7 +289,51 @@ final class ReviewServiceTest extends ServiceTestCase
 
     public function testCanUserReviewReturnsTrueWhenNoExistingReview(): void
     {
-        $this->reviewRepoStub->method('userHasReview')->willReturn(false);
+        $this->reservationRepoStub->method('getCompletedByUserAndCafe')->willReturn([['id' => 1]]);
+        $this->reviewRepoStub->method('existsByReservationId')->willReturn(false);
+
+        $result = $this->service->canUserReview(1, 1);
+
+        $this->assertTrue($result['can_review']);
+    }
+
+    public function testCanUserReviewReturnsFalseWhenNoCompletedReservation(): void
+    {
+        $this->reservationRepoStub->method('getCompletedByUserAndCafe')->willReturn([]);
+
+        $result = $this->service->canUserReview(1, 1);
+
+        $this->assertFalse($result['can_review']);
+        $this->assertStringContainsString('reserva', $result['reason']);
+    }
+
+    public function testCanUserReviewReturnsTrueWhenCompletedReservationExists(): void
+    {
+        $this->reservationRepoStub->method('getCompletedByUserAndCafe')->willReturn([['id' => 5]]);
+        $this->reviewRepoStub->method('existsByReservationId')->willReturn(false);
+
+        $result = $this->service->canUserReview(1, 1);
+
+        $this->assertTrue($result['can_review']);
+    }
+
+    public function testCanUserReviewReturnsFalseWhenAllReservationsReviewed(): void
+    {
+        $this->reservationRepoStub->method('getCompletedByUserAndCafe')->willReturn([['id' => 5]]);
+        $this->reviewRepoStub->method('existsByReservationId')->willReturn(true);
+
+        $result = $this->service->canUserReview(1, 1);
+
+        $this->assertFalse($result['can_review']);
+        $this->assertStringContainsString('reseña', $result['reason']);
+    }
+
+    public function testCanUserReviewReturnsTrueWhenSecondReservationNotReviewed(): void
+    {
+        $this->reservationRepoStub->method('getCompletedByUserAndCafe')
+            ->willReturn([['id' => 5], ['id' => 6]]);
+        $this->reviewRepoStub->method('existsByReservationId')
+            ->willReturnOnConsecutiveCalls(true, false);
 
         $result = $this->service->canUserReview(1, 1);
 
@@ -371,7 +420,9 @@ final class ReviewServiceTest extends ServiceTestCase
     public function testCreateReviewHandlesGenericException(): void
     {
         $this->userRepoStub->method('findById')->willReturn($this->makeActiveUser());
-        $this->reviewRepoStub->method('userHasReview')->willReturn(false);
+        // Hay una reserva sin reseña — supera el guard y llega a create()
+        $this->reservationRepoStub->method('getCompletedByUserAndCafe')->willReturn([['id' => 10]]);
+        $this->reviewRepoStub->method('existsByReservationId')->willReturn(false);
         $this->reviewRepoStub->method('create')
             ->willThrowException(new Exception('Unexpected error'));
 
@@ -416,7 +467,7 @@ final class ReviewServiceTest extends ServiceTestCase
 
     public function testCanUserReviewHandlesException(): void
     {
-        $this->reviewRepoStub->method('userHasReview')
+        $this->reservationRepoStub->method('getCompletedByUserAndCafe')
             ->willThrowException(new Exception('DB error'));
 
         $result = $this->service->canUserReview(1, 1);

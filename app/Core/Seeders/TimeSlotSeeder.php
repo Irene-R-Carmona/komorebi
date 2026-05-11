@@ -192,8 +192,8 @@ final class TimeSlotSeeder
                     // Insertar slot
                     $stmt = $this->db->prepare('
                         INSERT INTO time_slots
-                        (cafe_id, slot_date, slot_time, total_capacity, reserved_spots, available_spots, is_blocked)
-                        VALUES (:cafe_id, :date, :time, :capacity, 0, :available, 0)
+                        (cafe_id, slot_date, slot_time, total_capacity, reserved_spots, available_spots, is_blocked, duration_minutes)
+                        VALUES (:cafe_id, :date, :time, :capacity, 0, :available, 0, :slot_duration)
                     ');
 
                     $stmt->execute([
@@ -202,6 +202,7 @@ final class TimeSlotSeeder
                         'time' => $timeStr,
                         'capacity' => $slotCapacity,
                         'available' => $slotCapacity,
+                        'slot_duration' => $slotDuration,
                     ]);
 
                     $created++;

@@ -15,6 +15,7 @@ use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Services\Contracts\SettingsServiceInterface;
 use App\Services\ReservationService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -119,6 +120,7 @@ final class ReservationServiceTest extends TestCase
 
     public function testCancelFailsWhenRepoReturnsFalse(): void
     {
+        $this->reservationRepoStub->method('findById')->willReturn($this->makeReservationDto());
         $this->reservationRepoStub->method('cancel')->willReturn(false);
 
         $result = $this->service->cancel(999, 1);
@@ -129,6 +131,7 @@ final class ReservationServiceTest extends TestCase
 
     public function testCancelSucceeds(): void
     {
+        $this->reservationRepoStub->method('findById')->willReturn($this->makeReservationDto());
         $this->reservationRepoStub->method('cancel')->willReturn(true);
 
         $result = $this->service->cancel(1, 1);
@@ -159,6 +162,7 @@ final class ReservationServiceTest extends TestCase
             status: 'confirmed',
             time_slot_id: null,
             pass_name: null,
+            pass_duration_minutes: null,
             check_in_at: null,
             check_out_at: null,
             final_amount: null,
@@ -523,6 +527,165 @@ final class ReservationServiceTest extends TestCase
     }
 
     // ─────────────────────────────────────────────────────────────
+    // Settings — max_guests_per_reservation
+    // ─────────────────────────────────────────────────────────────
+
+    public function testCreateFailsWhenGuestsExceedsSettingsMaxGuests(): void
+    {
+        $settingsStub = $this->createStub(SettingsServiceInterface::class);
+        $settingsStub->method('get')->willReturnMap([['max_guests_per_reservation', '10', '5']]);
+
+        $service = new ReservationService(
+            $this->reservationRepoStub,
+            $this->cafeRepoStub,
+            $this->productRepoStub,
+            $this->invoiceServiceStub,
+            $this->emailServiceStub,
+            null,
+            null,
+            null,
+            $settingsStub,
+        );
+
+        $result = $service->create([
+            'user_id' => 1,
+            'cafe_id' => 1,
+            'pass_product_id' => 1,
+            'date' => '2099-12-01',
+            'time' => '10:00',
+            'guests' => 6,
+        ]);
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('validation_error', $result->code);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // cancel() — cálculo de tarifa de cancelación
+    // ─────────────────────────────────────────────────────────────
+
+    public function testCancelWithZeroFeeRefundsFullAmount(): void
+    {
+        $settingsStub = $this->createStub(SettingsServiceInterface::class);
+        $settingsStub->method('get')->willReturnMap([['cancellation_fee_percentage', '0', '0']]);
+
+        $service = new ReservationService(
+            $this->reservationRepoStub,
+            $this->cafeRepoStub,
+            $this->productRepoStub,
+            $this->invoiceServiceStub,
+            $this->emailServiceStub,
+            null,
+            null,
+            null,
+            $settingsStub,
+        );
+
+        $reservation = $this->makeReservationDto(final_amount: 2000.0);
+        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+        $this->reservationRepoStub->method('cancel')->willReturn(true);
+
+        $result = $service->cancel(1, 1);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(2000.0, $result->data['refund_amount']);
+    }
+
+    public function testCancelWithFiftyPercentFeeRefundsHalf(): void
+    {
+        $settingsStub = $this->createStub(SettingsServiceInterface::class);
+        $settingsStub->method('get')->willReturnMap([['cancellation_fee_percentage', '0', '50']]);
+
+        $service = new ReservationService(
+            $this->reservationRepoStub,
+            $this->cafeRepoStub,
+            $this->productRepoStub,
+            $this->invoiceServiceStub,
+            $this->emailServiceStub,
+            null,
+            null,
+            null,
+            $settingsStub,
+        );
+
+        $reservation = $this->makeReservationDto(final_amount: 2000.0);
+        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+        $this->reservationRepoStub->method('cancel')->willReturn(true);
+
+        $result = $service->cancel(1, 1);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(1000.0, $result->data['refund_amount']);
+    }
+
+    public function testCancelWithNullFinalAmountRefundsZero(): void
+    {
+        $this->reservationRepoStub->method('findById')->willReturn($this->makeReservationDto(final_amount: null));
+        $this->reservationRepoStub->method('cancel')->willReturn(true);
+
+        $result = $this->service->cancel(1, 1);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(0.0, $result->data['refund_amount']);
+    }
+
+    public function testCancelWithHundredPercentFeeRefundsZero(): void
+    {
+        $settingsStub = $this->createStub(SettingsServiceInterface::class);
+        $settingsStub->method('get')->willReturnMap([['cancellation_fee_percentage', '0', '100']]);
+
+        $service = new ReservationService(
+            $this->reservationRepoStub,
+            $this->cafeRepoStub,
+            $this->productRepoStub,
+            $this->invoiceServiceStub,
+            $this->emailServiceStub,
+            null,
+            null,
+            null,
+            $settingsStub,
+        );
+
+        $reservation = $this->makeReservationDto(final_amount: 2000.0);
+        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+        $this->reservationRepoStub->method('cancel')->willReturn(true);
+
+        $result = $service->cancel(1, 1);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame(0.0, $result->data['refund_amount']);
+    }
+
+    public function testCancelFailsWhenReservationBelongsToDifferentUser(): void
+    {
+        $reservation = new \App\Domain\DTO\ReservationDTO(
+            id: 1,
+            uuid: 'abc',
+            cafe_id: 1,
+            user_id: 999,
+            date: '2099-12-01',
+            time: '10:00',
+            guest_count: 2,
+            status: 'confirmed',
+            time_slot_id: null,
+            pass_name: null,
+            pass_duration_minutes: null,
+            check_in_at: null,
+            check_out_at: null,
+            final_amount: null,
+            payment_status: null,
+            payment_method: null,
+            notes: null,
+        );
+        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+
+        $result = $this->service->cancel(1, 1); // userId=1 but reservation belongs to userId=999
+
+        $this->assertFalse($result->ok);
+        $this->assertSame('not_found', $result->code);
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // Helpers de fábrica
     // ─────────────────────────────────────────────────────────────
 
@@ -587,8 +750,10 @@ final class ReservationServiceTest extends TestCase
         );
     }
 
-    private function makeReservationDto(string $status = 'confirmed'): \App\Domain\DTO\ReservationDTO
-    {
+    private function makeReservationDto(
+        string $status = 'confirmed',
+        ?float $final_amount = null,
+    ): \App\Domain\DTO\ReservationDTO {
         return new \App\Domain\DTO\ReservationDTO(
             id: 1,
             uuid: 'abc',
@@ -600,9 +765,10 @@ final class ReservationServiceTest extends TestCase
             status: $status,
             time_slot_id: null,
             pass_name: null,
+            pass_duration_minutes: null,
             check_in_at: null,
             check_out_at: null,
-            final_amount: null,
+            final_amount: $final_amount,
             payment_status: null,
             payment_method: null,
             notes: null,

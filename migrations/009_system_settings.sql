@@ -53,9 +53,9 @@ INSERT IGNORE INTO settings (`key`, `value`, `type`, `group_name`, `description`
 VALUES
     -- General
     ('site_name',            'Komorebi Café',              'string',  'general',      'Nombre del sitio',                                        1),
-    ('site_description',     'Cafés de animales en Japón', 'string',  'general',      'Descripción del sitio',                                   1),
+    ('site_description',     'Red de cafeterías temáticas de animales con estética japonesa en España', 'string',  'general',      'Descripción del sitio',                                   1),
     ('maintenance_mode',     '0',                          'boolean', 'general',      'Modo mantenimiento (1=activado, 0=desactivado)',           0),
-    ('timezone',             'Asia/Tokyo',                 'string',  'general',      'Zona horaria del sistema',                                0),
+    ('timezone',             'Europe/Madrid',              'string',  'general',      'Zona horaria del sistema',                                0),
     ('default_language',     'es',                         'string',  'general',      'Idioma por defecto',                                      1),
     ('items_per_page',       '25',                         'integer', 'general',      'Elementos por página en listados',                        0),
 
@@ -73,7 +73,7 @@ VALUES
     ('reservations_enabled',        '1',  'boolean', 'reservations', 'Activar sistema de reservas',                             1),
     ('max_advance_days',            '30', 'integer', 'reservations', 'Días máximos de antelación para reservar',                0),
     ('min_advance_hours',           '2',  'integer', 'reservations', 'Horas mínimas de antelación',                             0),
-    ('cancellation_hours',          '24', 'integer', 'reservations', 'Horas mínimas para cancelar sin penalización',            0),
+    ('cancellation_hours',          '24', 'integer', 'reservations', 'Horas de antelación necesarias para cancelar sin cargo. Por debajo de este umbral se aplica cancellation_fee_percentage.',            0),
     ('max_guests_per_reservation',  '10', 'integer', 'reservations', 'Máximo de personas por reserva',                         1),
     ('default_duration_minutes',    '60', 'integer', 'reservations', 'Duración por defecto en minutos',                        1),
     ('send_confirmation_email',     '1',  'boolean', 'reservations', 'Enviar email de confirmación al reservar',                0),
@@ -94,9 +94,13 @@ VALUES
     ('reviews_enabled',             '1',    'boolean', 'reviews', 'Activar sistema de reseñas',                               1),
     ('review_requires_reservation', '1',    'boolean', 'reviews', 'Requiere reserva completada para poder reseñar',           0),
     ('review_moderation_enabled',   '1',    'boolean', 'reviews', 'Moderar reseñas antes de publicar',                       0),
-    ('max_reviews_per_user',        '1',    'integer', 'reviews', 'Máximo de reseñas por usuario por café',                   0),
+    ('max_reviews_per_reservation', '1',    'integer', 'reviews', 'Número máximo de reseñas permitidas por reserva completada',  0),
     ('min_review_length',           '10',   'integer', 'reviews', 'Longitud mínima del comentario de reseña',                 0),
-    ('max_review_length',           '1000', 'integer', 'reviews', 'Longitud máxima del comentario de reseña',                 0);
+    ('max_review_length',           '1000', 'integer', 'reviews', 'Longitud máxima del comentario de reseña',                 0),
+
+    -- Cancelaciones y penalizaciones
+    ('cancellation_fee_percentage', '0',    'integer', 'reservations', 'Porcentaje del total cobrado si el cliente cancela con antelación insuficiente. 0 = sin cargo.', 0),
+    ('no_show_fee_percentage',      '100',  'integer', 'reservations', 'Porcentaje del total retenido si el cliente no se presenta sin cancelar. 100 = sin devolución.', 0);
 
 -- ============================================
 -- DOWN: Revertir migración (comentado)

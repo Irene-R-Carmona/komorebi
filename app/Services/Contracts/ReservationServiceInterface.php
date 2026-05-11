@@ -17,6 +17,16 @@ interface ReservationServiceInterface
     public function adminConfirm(int $id): Result;
 
     /**
+     * Cambiar estado de una reserva con justificación (uso manager)
+     */
+    public function managerUpdateStatus(int $id, string $newStatus, string $reason): Result;
+
+    /**
+     * Registrar devolución de una reserva cancelada (uso manager)
+     */
+    public function managerRecordRefund(int $id, int $amountCents, string $notes): Result;
+
+    /**
      * @return array
      */
     public function getByUser(int $userId, ?string $status = null): array;

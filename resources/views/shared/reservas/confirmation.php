@@ -98,14 +98,14 @@ $statusLabel = StatusLabeling::reservationLabel($reservation['status'] ?? '');
                                 <?= e((string) ($item['product_name'] ?? '')) ?>
                             </span>
                             <span class="rsv2-confirmation__extras-price">
-                                <?= e(CurrencyFormatting::yen((float) ($item['quantity'] ?? 1) * (float) ($item['unit_price'] ?? 0))) ?>
+                                <?= e(CurrencyFormatting::euro((int) ($item['quantity'] ?? 1) * (int) ($item['unit_price'] ?? 0))) ?>
                             </span>
                         </li>
                     <?php endforeach; ?>
                 </ul>
                 <div class="rsv2-confirmation__extras-total">
                     <span>Total extras</span>
-                    <strong><?= e(CurrencyFormatting::yen((float) $cart_total)) ?></strong>
+                    <strong><?= e(CurrencyFormatting::euro((int) $cart_total)) ?></strong>
                 </div>
             </div>
         <?php endif; ?>

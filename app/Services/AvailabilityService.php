@@ -13,8 +13,11 @@ use App\Domain\DTO\ProductDTO;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Repositories\Contracts\TimeSlotRepositoryInterface;
 use App\Services\Contracts\AvailabilityServiceInterface;
 use DateMalformedStringException;
+use DateTimeImmutable;
+use DateTimeZone;
 use JsonException;
 use Override;
 
@@ -23,6 +26,7 @@ final class AvailabilityService implements AvailabilityServiceInterface
     private CafeRepositoryInterface $cafeRepo;
     private ProductRepositoryInterface $productRepo;
     private ReservationRepositoryInterface $reservationRepo;
+    private ?TimeSlotRepositoryInterface $timeSlotRepo;
     private int $maxDaysAhead;
     private int $stepMinutes;
 
@@ -30,12 +34,14 @@ final class AvailabilityService implements AvailabilityServiceInterface
         ?CafeRepositoryInterface $cafeRepo = null,
         ?ProductRepositoryInterface $productRepo = null,
         ?ReservationRepositoryInterface $reservationRepo = null,
+        ?TimeSlotRepositoryInterface $timeSlotRepo = null,
         int $maxDaysAhead = 30,
         int $stepMinutes = 30,
     ) {
         $this->cafeRepo = $cafeRepo ?? Container::make(CafeRepositoryInterface::class);
         $this->productRepo = $productRepo ?? Container::make(ProductRepositoryInterface::class);
         $this->reservationRepo = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
+        $this->timeSlotRepo = $timeSlotRepo;
         $this->maxDaysAhead = $maxDaysAhead;
         $this->stepMinutes = $stepMinutes;
     }
@@ -128,7 +134,8 @@ final class AvailabilityService implements AvailabilityServiceInterface
         $first = (int) (\ceil($open / $this->stepMinutes) * $this->stepMinutes);
 
         if ($daysAhead === 0) {
-            $now = Time::nowBusiness();
+            $cafeTz = new DateTimeZone($cafe->timezone ?: 'Europe/Madrid');
+            $now = new DateTimeImmutable('now', $cafeTz);
             $nowMins = ((int) $now->format('H') * 60) + (int) $now->format('i');
             $minStart = (int) (\ceil($nowMins / $this->stepMinutes) * $this->stepMinutes);
             if ($minStart > $first) {
@@ -137,6 +144,17 @@ final class AvailabilityService implements AvailabilityServiceInterface
         }
 
         $reservations = $this->reservationRepo->findByCafeAndDate($cafeId, $dateYmd);
+
+        $slotMeta = [];
+        if ($this->timeSlotRepo !== null) {
+            $rawSlots = $this->timeSlotRepo->findAvailableByDateFiltered($dateYmd, $cafeId, $guests);
+            foreach ($rawSlots as $ts) {
+                $key = \substr((string) $ts['slot_time'], 0, 5);
+                $slotMeta[$key] = [
+                    'capacity' => (int) $ts['total_capacity'],
+                ];
+            }
+        }
 
         $slots = [];
         for ($t = $first; ($t + $duration) <= $close; $t += $this->stepMinutes) {
@@ -155,16 +173,19 @@ final class AvailabilityService implements AvailabilityServiceInterface
                 $resEnd = $resStart + (int) $r['pass_duration_minutes'];
 
                 if ($resStart < $slotEnd && $resEnd > $t) {
-                    $occupied += (int) $r['guests'];
-                    if (($occupied + $guests) > $capacityMax) {
-                        break;
-                    }
+                    $occupied += (int) $r['guest_count'];
                 }
             }
 
-            if (($occupied + $guests) <= $capacityMax) {
-                $slots[] = $this->minutesToHHMM($t);
-            }
+            $slotKey = $this->minutesToHHMM($t);
+            $slotCapacity = $slotMeta[$slotKey]['capacity'] ?? $capacityMax;
+            $isAvailable = ($occupied + $guests) <= $slotCapacity;
+            $slots[] = [
+                'time'            => $slotKey,
+                'available'       => $isAvailable,
+                'occupied_guests' => $occupied,
+                'total_capacity'  => $slotCapacity,
+            ];
         }
 
         return Result::ok([
@@ -174,7 +195,7 @@ final class AvailabilityService implements AvailabilityServiceInterface
             'guests' => $guests,
             'step_minutes' => $this->stepMinutes,
             'max_days_ahead' => $this->maxDaysAhead,
-            'timezone' => Env::get('APP_BUSINESS_TIMEZONE', 'Asia/Tokyo'),
+            'timezone' => $cafe->timezone,
             'slots' => $slots,
         ]);
     }
@@ -195,7 +216,11 @@ final class AvailabilityService implements AvailabilityServiceInterface
         }
 
         $slots = (array) ($res->data['slots'] ?? []);
-        if (!\in_array($timeHHMM, $slots, true)) {
+        $availableTimes = \array_column(
+            \array_filter($slots, static fn(array $s) => ($s['available'] ?? false) === true),
+            'time'
+        );
+        if (!\in_array($timeHHMM, $availableTimes, true)) {
             return Result::fail('No hay disponibilidad en esa hora.', 'no_availability');
         }
 

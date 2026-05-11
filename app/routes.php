@@ -36,6 +36,12 @@ $router->get('/', 'Public\HomeController@index');
 $router->get('/cafes', 'Public\CafeController@index');
 $router->get('/cafes/{slug}', 'Public\CafeController@show');
 $router->get('/menu', 'Public\MenuController@index');
+
+// Adopciones — galería pública y gestión de solicitudes (requiere auth para solicitar)
+$router->get('/adopciones', 'Public\AdoptionController@index');
+$router->get('/adopciones/{id}', 'Public\AdoptionController@show');
+$router->post('/adopciones/{id}/solicitar', 'Public\AdoptionController@store', [$mw->auth(), $mw->csrf()]);
+$router->post('/adopciones/solicitudes/{id}/retirar', 'Public\AdoptionController@withdraw', [$mw->auth(), $mw->csrf()]);
 $router->get('/quiz', 'Public\QuizController@index');
 $router->get('/quiz/resultado', 'Public\QuizController@resultadoGet');
 $router->post('/quiz/resultado', 'Public\QuizController@resultado', [$mw->csrf()]);
@@ -78,7 +84,9 @@ $router->group(['prefix' => '/api/v1', 'middleware' => [$mw->requestLog(), $mw->
 
     $r->get('/cafes', 'Api\V1\CafeController@index');
     $r->get('/cafes/{slug}', 'Api\V1\CafeController@show');
+    $r->get('/passes/slots', 'Api\V1\PassController@slots');
     $r->get('/passes', 'Api\V1\PassController@index');
+    $r->get('/weather', 'Api\V1\WeatherController@getWeather');
 });
 
 $router->get('/waitlist/status/{token}', 'Public\WaitlistViewController@status');
@@ -165,7 +173,7 @@ $router->group(['prefix' => '', 'middleware' => $guestMiddleware], function (Rou
 $authMiddleware = [$mw->auth()];
 $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw, $responseFactory) {
     $r->post('/logout', 'Auth\AuthController@logout', [$mw->csrf()]);
-    $r->get('/profile', static fn (): ResponseInterface => $responseFactory->redirect('/perfil', 301));
+    $r->get('/profile', static fn(): ResponseInterface => $responseFactory->redirect('/perfil', 301));
     $r->get('/perfil', 'Shared\UserController@profile');
     $r->post('/profile/update', 'Shared\UserController@update', [$mw->csrf()]);
     $r->post('/profile/avatar', 'Shared\UserController@updateAvatar', [$mw->csrf()]);
@@ -287,6 +295,9 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
     $router->group(['prefix' => '/manager', 'middleware' => $managerMiddleware], function (Router $r) use ($mw) {
         $r->get('/dashboard', 'Manager\DashboardController@index');
         $r->get('/reservations', 'Manager\ReservationController@index');
+        $r->get('/reservations/{id}', 'Manager\ReservationController@show');
+        $r->post('/reservations/{id}/status', 'Manager\ReservationController@updateStatus', [$mw->csrf()]);
+        $r->post('/reservations/{id}/refund', 'Manager\ReservationController@processRefund', [$mw->csrf()]);
         $r->get('/reviews', 'Manager\ReviewController@index');
 
         $r->get('/staff', 'Manager\StaffController@index', [$mw->ownsCafe()]);
@@ -423,6 +434,7 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
         $r->post('/reservations/{id}/checkout', 'Api\V1\Ops\ReceptionApiController@checkOut', [$mw->csrf()]);
         $r->post('/reservations/{id}/items', 'Api\V1\Ops\ReceptionApiController@addItem', [$mw->csrf()]);
         $r->post('/reservations/{id}/payments', 'Api\V1\Ops\ReceptionApiController@processPayment', [$mw->csrf()]);
+        $r->post('/reservations/{id}/activate-preorder', 'Api\V1\Ops\ReceptionApiController@activatePreorder', [$mw->csrf()]);
     });
 
     /** @var array<int, MiddlewareInterface> $opsKitchenApiMiddleware */
@@ -465,6 +477,13 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
         $r->post('/incidents/{incidentId}/resolve', 'Keeper\AnimalIncidentController@resolve', [$mw->csrf()]);
 
         $r->get('/schedule', 'Keeper\ScheduleController@index');
+
+        // Adopciones — gestión de solicitudes por el keeper
+        $r->get('/adopciones', 'Keeper\AdoptionController@index');
+        $r->get('/adopciones/historial', 'Keeper\AdoptionController@history');
+        $r->get('/adopciones/{id}', 'Keeper\AdoptionController@show');
+        $r->post('/adopciones/{id}/aprobar', 'Keeper\AdoptionController@approve', [$mw->csrf()]);
+        $r->post('/adopciones/{id}/rechazar', 'Keeper\AdoptionController@reject', [$mw->csrf()]);
     });
 
     /** @var array<int, MiddlewareInterface> $keeperApiMiddleware */
@@ -480,9 +499,9 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
 } // end FEATURE_KEEPER
 
 $corsOnly = [$mw->cors()];
-$router->options('/api/v1/{resource}', fn () => '', $corsOnly);
-$router->options('/api/v1/{resource}/{id}', fn () => '', $corsOnly);
-$router->options('/api/v1/{resource}/{sub}/{id}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}/{id}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}/{sub}/{id}', fn() => '', $corsOnly);
 
 $router->get('/health', function () use ($responseFactory) {
     $status = 'healthy';

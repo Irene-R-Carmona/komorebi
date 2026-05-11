@@ -12,24 +12,50 @@
    01. VARIABLES CSS - Temas
 ---------------------------------------- */
 :root {
-  /* Paleta */
-  --color-fondo: #F7F3EB;
-  --color-fondo-alt: #E8DCC4;
-  --color-superficie: #FFFFFF;
-  --color-texto: #2D2218;
-  --color-texto-suave: #5C4A3A;
-  --color-primario: #5C3D2E;
-  --color-acento: #C9A959;
-  --color-acento-hover: #B8963D;
-  --color-borde: #D4C4A8;
-  --color-exito: #5E6F64;
-  --color-error: #9B2335;
+  /* --- PALETA CLARA (Base) --- */
 
-  /* Sombras & Efectos */
+  /* Fondos y Superficies */
+  --color-fondo: #F7F3EB;
+  /* Crema suave */
+  --color-fondo-alt: #E8DCC4;
+  /* Crema más oscuro para hovers/bordes */
+  --color-superficie: #FFFFFF;
+  /* Blanco puro para tarjetas */
+
+  /* Textos */
+  --color-texto: #2D2218;
+  /* Café muy oscuro (casi negro) */
+  --color-texto-suave: #5C4A3A;
+  /* Café medio para secundarios */
+  --color-texto-inverso: #FFFFFF;
+  /* Texto sobre fondos oscuros */
+
+  /* Colores Semánticos */
+  --color-primario: #4A3226;
+  --color-primario-hover: #36241B;
+
+  /* Acento: Oscurecido para texto (Accesibilidad), Brillante para fondos */
+  --color-acento: #8B6C28;
+  --color-acento-brillante: #C9A959;
+  /* Usar solo en iconos grandes o fondos */
+  --color-acento-hover: #6B521D;
+
+  /* Bordes y Estados */
+  --color-borde: #D4C4A8;
+  --color-exito: #2F5E38;
+  /* Verde más oscuro para contraste */
+  --color-error: #B93B48;
+  /* Rojo más intenso */
+  --color-warning: #B8963D;
+
+  /* Sombras (Mismo color base, ajustado opacidad) */
   --sombra-sm: 0 2px 8px rgba(45, 34, 24, 0.08);
   --sombra-md: 0 4px 16px rgba(45, 34, 24, 0.12);
   --sombra-lg: 0 8px 32px rgba(45, 34, 24, 0.16);
-  --transicion: var(--transition-base);
+  --sombra-card: 0 4px 20px rgba(45, 34, 24, 0.10);
+
+  /* Transiciones */
+  --transicion: 0.3s ease;
   --transicion-rapida: 0.15s ease;
 
   /* Espaciado & Bordes */
@@ -92,23 +118,48 @@
   --easing-inout: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Tokens de tarjeta — mayor opacidad para visibilidad sobre fondo crema */
-  --sombra-card: 0 2px 8px rgba(45, 34, 24, 0.18), 0 6px 20px rgba(45, 34, 24, 0.12);
   --color-acento-text: #7d6428;
-  --color-borde-card: color-mix(in srgb, var(--color-primario) 50%, var(--color-borde));
+  --color-borde-card: color-mix(in srgb, var(--color-primario-700) 50%, var(--color-borde));
 }
 
+/* --- MODO OSCURO --- */
 [data-tema="oscuro"] {
-  --color-fondo: #1A1410;
-  --color-fondo-alt: #2D2218;
-  --color-superficie: #3D2E1F;
+  /* Fondos más oscuros para reducir fatiga visual */
+  --color-fondo: #12100E;
+  --color-fondo-alt: #1F1A16;
+  --color-superficie: #2A231D;
+  /* Tarjetas ligeramente más claras que el fondo */
+
+  /* Textos más claros */
   --color-texto: #E8DCC4;
   --color-texto-suave: #B8A890;
-  --color-primario: #C9A959;
-  --color-borde: #4A3828;
-  --sombra-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --sombra-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --sombra-card: 0 2px 8px rgba(0, 0, 0, 0.35), 0 6px 20px rgba(0, 0, 0, 0.25);
-  --color-acento-text: #f0cd6c;
+  --color-texto-inverso: #12100E;
+
+  /* Ajuste de colores para fondo oscuro */
+  --color-primario: #D4B499;
+  /* Un tono más claro para que resalte sobre oscuro */
+  --color-primario-hover: #F0DCC4;
+
+  --color-acento: #E5C565;
+  /* Dorado más brillante para destacar */
+  --color-acento-brillante: #F4D778;
+  --color-acento-hover: #F9E69C;
+
+  --color-borde: #3E3226;
+  --color-exito: #6FA87C;
+  /* Verde pastel suave */
+  --color-error: #E06C7A;
+  /* Rojo pastel suave */
+  --color-warning: #E5C565;
+
+  /* Sombras más profundas y difusas en oscuro */
+  --sombra-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --sombra-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --sombra-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --sombra-card: 0 4px 20px rgba(0, 0, 0, 0.5);
+
+  --color-acento-text: #F4D778;
+  --color-borde-card: #3E3226;
 }
 
 /* ----------------------------------------
@@ -132,13 +183,12 @@ body {
   line-height: 1.6;
   color: var(--color-texto);
   background-color: var(--color-fondo);
-  transition: background-color var(--transicion), color var(--transicion);
-  /* Patrón SVG inyectado */
+  transition: background-color 0.3s ease, color 0.3s ease;
   background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30L30 0z' fill='none' stroke='%23D4C4A8' stroke-width='0.5' opacity='0.3'/%3E%3C/svg%3E");
 }
 
 [data-tema="oscuro"] body {
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30L30 0z' fill='none' stroke='%234A3828' stroke-width='0.5' opacity='0.4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30L30 0z' fill='none' stroke='%233E3226' stroke-width='0.5' opacity='0.2'/%3E%3C/svg%3E");
 }
 
 /* Imágenes atenuadas en dark mode para reducir contraste
@@ -612,12 +662,12 @@ h3 {
 
 .btn--primario {
   background-color: var(--color-primario);
-  color: white;
+  color: var(--color-texto-inverso);
   box-shadow: var(--sombra-sm);
 }
 
 .btn--primario:hover {
-  background-color: var(--color-acento);
+  background-color: var(--color-primario-hover);
   box-shadow: var(--sombra-md);
   transform: translateY(-2px);
 }

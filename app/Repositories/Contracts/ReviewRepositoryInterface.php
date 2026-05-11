@@ -116,4 +116,12 @@ interface ReviewRepositoryInterface
      * @return array<string, mixed>
      */
     public function getRatingStats(int $cafeId): array;
+
+    /**
+     * Verificar si existe una reseña vinculada a una reserva concreta
+     *
+     * @param int $reservationId
+     * @return bool
+     */
+    public function existsByReservationId(int $reservationId): bool;
 }

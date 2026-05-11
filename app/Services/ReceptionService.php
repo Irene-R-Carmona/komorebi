@@ -76,7 +76,7 @@ final class ReceptionService implements ReceptionServiceInterface
     {
         $reservations = $this->reservationRepo->findByCafeAndDate($cafeId, \date('Y-m-d'));
 
-        return \array_filter($reservations, static fn ($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
+        return \array_filter($reservations, static fn($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
     }
 
     #[Override]
@@ -133,6 +133,14 @@ final class ReceptionService implements ReceptionServiceInterface
 
                 $this->reservationRepo->checkIn($reservationId, ['tracker_id' => $trackerId]);
                 $this->interactionRepo->createForReservation($reservationId, $reservation->cafe_id);
+
+                // Activar pre-orders al hacer check-in para que aparezcan en el KDS
+                $db = Database::getConnection();
+                $stmt = $db->prepare(
+                    "UPDATE reservation_items SET status = 'pending'
+                     WHERE reservation_id = :id AND status = 'pre_order'"
+                );
+                $stmt->execute(['id' => $reservationId]);
 
                 return true;
             });
@@ -259,7 +267,7 @@ final class ReceptionService implements ReceptionServiceInterface
         $maxCapacity = (int) ($cafe->capacity_max ?? 0);
 
         $activeGroups = $this->reservationRepo->findActiveByCafe($cafeId);
-        $currentGuests = \array_sum(\array_column($activeGroups, 'guests'));
+        $currentGuests = \array_sum(\array_column($activeGroups, 'guest_count'));
 
         return [
             'max' => $maxCapacity,
@@ -341,7 +349,6 @@ final class ReceptionService implements ReceptionServiceInterface
     public function processPayment(int $reservationId, string $paymentMethod, int $cafeId, ?string $notes = null): Result
     {
         try {
-            // Validations before opening the DB transaction (unit-testable)
             if ($reservationId <= 0 || $cafeId <= 0 || $paymentMethod === '') {
                 return Result::fail('Parámetros inválidos', 'invalid_params');
             }
@@ -365,11 +372,9 @@ final class ReceptionService implements ReceptionServiceInterface
 
             $checkoutData = Database::transaction(function () use ($reservationId, $paymentMethod, $notes, $rawReservation) {
 
-                // Calcular importe del pase
                 $passAmount = (float) ($rawReservation['pass_unit_price'] ?? 0)
                     * (int) ($rawReservation['guest_count'] ?? 1);
 
-                // Sumar pedidos de sala
                 $items = $this->itemRepo->findByReservation($reservationId);
                 $itemsAmount = 0.0;
                 foreach ($items as $item) {
@@ -421,6 +426,74 @@ final class ReceptionService implements ReceptionServiceInterface
             return Result::ok($checkoutData);
         } catch (PDOException $e) {
             Logger::error('[ReceptionService] DB error en processPayment()', ['exception' => $e->getMessage()]);
+
+            return Result::fail('Error de base de datos', 'db_error');
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Pre-order — Activación en check-in
+    // ─────────────────────────────────────────────────────────────
+
+    #[Override]
+    public function activatePreOrder(int $reservationId, int $cafeId): Result
+    {
+        try {
+            $reservation = $this->reservationRepo->findByIdWithCafeDetails($reservationId);
+
+            if ($reservation === null) {
+                return Result::fail('Reserva no encontrada', 'not_found');
+            }
+
+            if ((int) $reservation['cafe_id'] !== $cafeId) {
+                return Result::fail('La reserva no pertenece a esta sede', 'cafe_mismatch');
+            }
+
+            $items = $this->reservationRepo->getPreOrderItems($reservationId);
+
+            if (empty($items)) {
+                return Result::fail('La reserva no tiene items pre-order', 'no_preorder');
+            }
+
+            $unavailable = [];
+            $toActivateIds = [];
+
+            foreach ($items as $item) {
+                $stock = $item['stock_quantity'];
+                if ($stock !== null && (int) $stock === 0) {
+                    $unavailable[] = [
+                        'product_id' => (int) $item['product_id'],
+                        'name' => $item['name'],
+                    ];
+                } else {
+                    $toActivateIds[] = (int) $item['id'];
+                }
+            }
+
+            if (empty($toActivateIds)) {
+                return Result::fail('Todos los items pre-order están agotados', 'all_unavailable');
+            }
+
+            $inClause = \implode(',', \array_fill(0, \count($toActivateIds), '?'));
+            $db = Database::getConnection();
+            $stmt = $db->prepare(
+                "UPDATE reservation_items SET status = 'pending' WHERE id IN ({$inClause}) AND status = 'pre_order'"
+            );
+            $stmt->execute($toActivateIds);
+            $activated = $stmt->rowCount();
+
+            Logger::info('[ReceptionService] Pre-order activado', [
+                'reservation_id' => $reservationId,
+                'activated' => $activated,
+                'unavailable' => \count($unavailable),
+            ]);
+
+            return Result::ok([
+                'activated' => $activated,
+                'unavailable' => $unavailable,
+            ]);
+        } catch (PDOException $e) {
+            Logger::error('[ReceptionService] DB error en activatePreOrder()', ['exception' => $e->getMessage()]);
 
             return Result::fail('Error de base de datos', 'db_error');
         }

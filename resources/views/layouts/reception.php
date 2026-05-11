@@ -48,6 +48,7 @@
     endif; ?>
     <!-- Componentes centralizados -->
     <script src="/js/components/fallbacks.js"></script>
+    <script src="/js/components/notification-manager.js"></script>
     <script defer src="/js/init/event-delegation.js"></script>
     <script nonce="<?= $cspNonce ?? '' ?>" src="/js/init/alpine-components.js"></script>
     <script src="/js/sections/reception.js"></script>
