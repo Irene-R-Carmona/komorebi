@@ -83,17 +83,8 @@
 \usepackage{svg}           % requiere Inkscape en PATH
 \svgsetup{inkscapepath=svgdir}
 
-% ─── Código fuente (listings, sin dependencia Python) ────────
+% ─── Código fuente (listings puro, sin tcolorbox) ────────────
 \usepackage{listings}
-\lstset{
-  basicstyle=\small\ttfamily,
-  numbers=left,
-  numberstyle=\tiny\color{gray},
-  breaklines=true,
-  showstringspaces=false,
-  tabsize=2
-}
-% Definición de lenguaje PHP básico (keywords y colores)
 \lstdefinelanguage{phpex}{
   language=PHP,
   morekeywords={declare,strict_types,readonly,match,fn,null,true,false},
@@ -101,45 +92,59 @@
   commentstyle=\color{gray}\itshape,
   stringstyle=\color{komorebi-dark},
 }
-\usepackage{tcolorbox}
-\tcbuselibrary{listings,skins,breakable}
-\newtcblisting{phpcode}[2][]{
-  listing only,
-  listing options={language=phpex,basicstyle=\small\ttfamily,numbers=left,
-    numberstyle=\tiny\color{gray},breaklines=true,showstringspaces=false,
-    keywordstyle=\color{komorebi}\bfseries,commentstyle=\color{gray}\itshape,
-    stringstyle=\color{komorebi-dark}},
-  title=#2,
-  colback=code-bg,
-  colframe=komorebi,
-  fonttitle=\bfseries,
-  breakable,
-  #1
+\lstdefinestyle{phpstyle}{
+  language=phpex,
+  basicstyle=\small\ttfamily,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single,
+  rulecolor=\color{komorebi},
+  backgroundcolor=\color{code-bg},
+  keywordstyle=\color{komorebi}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{komorebi-dark},
+  captionpos=t,
 }
-\newtcblisting{sqlcode}[2][]{
-  listing only,
-  listing options={language=SQL,basicstyle=\small\ttfamily,numbers=left,
-    numberstyle=\tiny\color{gray},breaklines=true,showstringspaces=false,
-    keywordstyle=\color{komorebi-dark}\bfseries},
-  title=#2,
-  colback=code-bg,
-  colframe=komorebi-dark,
-  fonttitle=\bfseries,
-  breakable,
-  #1
+\lstdefinestyle{sqlstyle}{
+  language=SQL,
+  basicstyle=\small\ttfamily,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single,
+  rulecolor=\color{komorebi-dark},
+  backgroundcolor=\color{code-bg},
+  keywordstyle=\color{komorebi-dark}\bfseries,
+  captionpos=t,
 }
-\newtcblisting{bashcode}[2][]{
-  listing only,
-  listing options={language=bash,basicstyle=\small\ttfamily,numbers=left,
-    numberstyle=\tiny\color{gray},breaklines=true,showstringspaces=false,
-    keywordstyle=\color{gray!60!black}\bfseries},
-  title=#2,
-  colback=code-bg,
-  colframe=gray,
-  fonttitle=\bfseries,
-  breakable,
-  #1
+\lstdefinestyle{bashstyle}{
+  language=bash,
+  basicstyle=\small\ttfamily,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  frame=single,
+  rulecolor=\color{gray},
+  backgroundcolor=\color{code-bg},
+  keywordstyle=\color{gray!60!black}\bfseries,
+  captionpos=t,
 }
+\lstnewenvironment{phpcode}[2][]
+  {\lstset{style=phpstyle,caption={#2},#1}}
+  {}
+\lstnewenvironment{sqlcode}[2][]
+  {\lstset{style=sqlstyle,caption={#2},#1}}
+  {}
+\lstnewenvironment{bashcode}[2][]
+  {\lstset{style=bashstyle,caption={#2},#1}}
+  {}
 
 % ─── Diagramas TikZ ──────────────────────────────────────────
 \usepackage{tikz}
@@ -174,6 +179,7 @@
 \usepackage[titletoc]{appendix}
 
 % ─── Cajas informativas ──────────────────────────────────────
+\usepackage{tcolorbox}
 \newtcolorbox{infobox}[1][]{
   colback=komorebi-light,colframe=komorebi,
   fonttitle=\bfseries,title=Nota,#1
