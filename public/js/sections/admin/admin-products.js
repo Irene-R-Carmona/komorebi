@@ -188,7 +188,7 @@
     Alpine.data('productForm', (config = {}) => ({
       isEdit: config.isEdit || false,
       productId: config.productId || null,
-      submitUrl: config.submitUrl || '/admin/productos/crear',
+      submitUrl: config.submitUrl || '/api/v1/admin/menu',
 
       form: {
         name: config.name || '',
@@ -325,7 +325,7 @@
           if (response.ok && data.ok) {
             KomorebiToast.success(data.message || 'Producto guardado correctamente');
             setTimeout(() => {
-              window.location.href = data.redirect || '/admin/productos';
+              window.location.href = data.redirect || '/admin/menu';
             }, 800);
           } else {
             if (data.errors && typeof data.errors === 'object') {

@@ -15,6 +15,10 @@ use App\Support\CurrencyFormatting;
 use App\Support\DateFormatting;
 use App\Support\TimeHelper;
 
+$dvMeta = $samples['meta'] ?? ['page' => 1, 'per_page' => 10, 'has_next_page' => false];
+$dvPage = (int) ($dvMeta['page'] ?? 1);
+$dvHasNext = (bool) ($dvMeta['has_next_page'] ?? false);
+
 echo View::componentToString('components/admin/page-header', [
     'icon' => 'database',
     'title' => 'Data Viewer',
@@ -192,13 +196,13 @@ echo View::componentToString('components/admin/page-header', [
                             'completed' => 'text-bg-info',
                             default => 'text-bg-danger'
                         };
-                        $statusLabelDv = [
-                            'confirmed' => 'Confirmada',
-                            'pending' => 'Pendiente',
-                            'completed' => 'Completada',
-                            'cancelled' => 'Cancelada',
-                        ][$res['status']] ?? ucfirst($res['status']);
-                        ?>
+                $statusLabelDv = [
+                    'confirmed' => 'Confirmada',
+                    'pending' => 'Pendiente',
+                    'completed' => 'Completada',
+                    'cancelled' => 'Cancelada',
+                ][$res['status']] ?? ucfirst($res['status']);
+                ?>
                         <span class="badge <?= $statusClass ?>"><?= htmlspecialchars($statusLabelDv, ENT_QUOTES, 'UTF-8') ?></span>
                     </td>
                     <td><?= $res['has_slot'] === 'Sí' ? '<i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>' : '<i class="bi bi-x-circle-fill text-danger" aria-hidden="true"></i>' ?></td>
@@ -296,6 +300,21 @@ echo View::componentToString('components/admin/page-header', [
 </div>
 
 <p class="text-center text-muted py-3 small">
-    Sistema de datos Komorebi Café — Moneda: Yen japonés (¥)
+    Sistema de datos Komorebi Café — Moneda: Euro (€)
 </p>
+
+<!-- Paginación -->
+<nav class="d-flex justify-content-center gap-2 py-3" aria-label="Paginación data viewer">
+    <?php if ($dvPage > 1): ?>
+        <a href="/admin/data-viewer?page=<?= $dvPage - 1 ?>" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-left"></i> Página anterior
+        </a>
+    <?php endif; ?>
+    <span class="btn btn-light btn-sm disabled">Página <?= $dvPage ?></span>
+    <?php if ($dvHasNext): ?>
+        <a href="/admin/data-viewer?page=<?= $dvPage + 1 ?>" class="btn btn-outline-secondary btn-sm">
+            Página siguiente <i class="bi bi-chevron-right"></i>
+        </a>
+    <?php endif; ?>
+</nav>
 </div>

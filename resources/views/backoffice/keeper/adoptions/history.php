@@ -89,7 +89,7 @@ $processed ??= [];
                                     <td>
                                         <?php if (!empty($row['keeper_notes'])): ?>
                                             <span class="text-muted" title="<?= htmlspecialchars((string) $row['keeper_notes'], ENT_QUOTES, 'UTF-8') ?>">
-                                                <?= htmlspecialchars(\mb_strimwidth((string) $row['keeper_notes'], 0, 60, '…'), ENT_QUOTES, 'UTF-8') ?>
+                                                <?= htmlspecialchars(mb_strimwidth((string) $row['keeper_notes'], 0, 60, '…'), ENT_QUOTES, 'UTF-8') ?>
                                             </span>
                                         <?php else: ?>
                                             <span class="text-muted">—</span>
@@ -98,10 +98,10 @@ $processed ??= [];
                                     <td class="text-nowrap">
                                         <?php
                                         $fecha = $row['updated_at'] ?? $row['reviewed_at'] ?? null;
-                                        echo $fecha
-                                            ? htmlspecialchars((new DateTimeImmutable((string) $fecha))->format('d/m/Y H:i'), ENT_QUOTES, 'UTF-8')
-                                            : '—';
-                                        ?>
+                                echo $fecha
+                                    ? htmlspecialchars(new DateTimeImmutable((string) $fecha)->format('d/m/Y H:i'), ENT_QUOTES, 'UTF-8')
+                                    : '—';
+                                ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

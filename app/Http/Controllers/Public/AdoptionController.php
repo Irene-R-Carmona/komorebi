@@ -25,7 +25,8 @@ final class AdoptionController
     public function __construct(
         private readonly AdoptionServiceInterface $adoptionService,
         private readonly ResponseFactory $response,
-    ) {}
+    ) {
+    }
 
     /**
      * GET /adopciones

@@ -89,7 +89,7 @@ final class WeatherController extends AbstractApiController
             if (\is_array($hourlyEntries)) {
                 $dayEntries = \array_values(\array_filter(
                     $hourlyEntries,
-                    static fn(array $h): bool => \str_starts_with($h['time'], $date)
+                    static fn (array $h): bool => \str_starts_with($h['time'], $date)
                 ));
                 if (\count($dayEntries) > 0) {
                     $dateForecast = $dayEntries;

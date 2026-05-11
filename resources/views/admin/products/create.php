@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Vista: Crear Producto
- * Ruta: GET /admin/productos/crear
+ * Ruta: GET /admin/menu/create
  *
  * @var array $categories - Categorías disponibles
  * @var array $allergens - Alérgenos del sistema
@@ -16,7 +17,7 @@ $allergens ??= [];
 // Config para Alpine.js
 $alpineConfig = json_encode([
     'isEdit' => false,
-    'submitUrl' => '/admin/productos/crear',
+    'submitUrl' => '/api/v1/admin/menu',
 ], JSON_HEX_APOS | JSON_HEX_QUOT);
 ?>
 
@@ -33,12 +34,11 @@ $alpineConfig = json_encode([
 
     <!-- Formulario -->
     <form
-            method="POST"
-            action="/admin/productos/crear"
-            x-data='productForm(<?= $alpineConfig ?>)'
-            @submit.prevent="submitForm"
-            :class="{ 'form-submitting': isSubmitting }"
-    >
+        method="POST"
+        action="/api/v1/admin/menu"
+        x-data='productForm(<?= $alpineConfig ?>)'
+        @submit.prevent="submitForm"
+        :class="{ 'form-submitting': isSubmitting }">
         <?= Csrf::field() ?>
 
         <div class="row">
@@ -56,10 +56,9 @@ $alpineConfig = json_encode([
                 <!-- Acciones -->
                 <div class="form-actions form-actions--sticky">
                     <button
-                            type="submit"
-                            class="btn btn-primary btn-lg w-100"
-                            :disabled="isSubmitting"
-                    >
+                        type="submit"
+                        class="btn btn-primary btn-lg w-100"
+                        :disabled="isSubmitting">
                         <template x-if="!isSubmitting">
                             <span><i class="bi bi-check-lg me-2"></i>Crear Producto</span>
                         </template>

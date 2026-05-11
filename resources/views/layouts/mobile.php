@@ -9,6 +9,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?= $titulo ?? 'App' ?></title>
+    <link rel="icon" type="image/svg+xml" href="/images/logos/komorebi-logo-icon.svg">
+    <link rel="alternate icon" href="/favicon.ico">
 
     <link href="/css/global.css" rel="stylesheet">
     <link href="/css/mobile.css" rel="stylesheet">

@@ -170,7 +170,7 @@ $alpineConfig = json_encode([
                     </div>
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label for="pm-price" class="form-label">Precio (¥) *</label>
+                            <label for="pm-price" class="form-label">Precio (€) *</label>
                             <input type="number" id="pm-price" step="0.01" min="0" class="form-control" x-model="form.price" required>
                         </div>
                         <div class="col-md-6">

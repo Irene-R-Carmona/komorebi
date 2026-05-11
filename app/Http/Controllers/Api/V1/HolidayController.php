@@ -22,10 +22,10 @@ use Throwable;
  */
 final class HolidayController extends AbstractApiController
 {
-    private const API_BASE   = 'https://date.nager.at/api/v3';
-    private const COUNTRY    = 'ES'; // Festivos nacionales de España
-    private const CACHE_TTL  = 86400; // 24 horas
-    private const TIMEOUT    = 10;   // segundos
+    private const API_BASE = 'https://date.nager.at/api/v3';
+    private const COUNTRY = 'ES'; // Festivos nacionales de España
+    private const CACHE_TTL = 86400; // 24 horas
+    private const TIMEOUT = 10;   // segundos
 
     private ?CacheItemPoolInterface $cache;
 
@@ -42,7 +42,7 @@ final class HolidayController extends AbstractApiController
     public function getHolidays(ServerRequestInterface $request): ResponseInterface
     {
         try {
-            $year     = (int) \date('Y');
+            $year = (int) \date('Y');
             $holidays = $this->fetchHolidays($year);
 
             // Incluir año siguiente si estamos en noviembre o diciembre
@@ -50,12 +50,12 @@ final class HolidayController extends AbstractApiController
                 $holidays = \array_merge($holidays, $this->fetchHolidays($year + 1));
             }
 
-            $today    = \date('Y-m-d');
-            $upcoming = \array_values(\array_filter($holidays, static fn(array $h) => $h['date'] >= $today));
+            $today = \date('Y-m-d');
+            $upcoming = \array_values(\array_filter($holidays, static fn (array $h) => $h['date'] >= $today));
 
             $data = ['holidays' => $upcoming, 'count' => \count($upcoming)];
             $etag = $this->makeEtag($data);
-            $cc   = 'public, max-age=3600';
+            $cc = 'public, max-age=3600';
 
             if ($request->getHeaderLine('If-None-Match') === $etag) {
                 return $this->notModified($etag, $cc);
@@ -87,7 +87,7 @@ final class HolidayController extends AbstractApiController
         }
 
         try {
-            $year     = (int) \substr($date, 0, 4);
+            $year = (int) \substr($date, 0, 4);
             $holidays = $this->fetchHolidays($year);
 
             $matched = null;
@@ -101,22 +101,22 @@ final class HolidayController extends AbstractApiController
             $isHoliday = $matched !== null;
 
             return $this->success([
-                'date'                       => $date,
-                'is_holiday'                 => $isHoliday,
-                'holiday_name'               => $isHoliday ? ($matched['name'] ?? null) : null,
+                'date' => $date,
+                'is_holiday' => $isHoliday,
+                'holiday_name' => $isHoliday ? ($matched['name'] ?? null) : null,
                 'available_for_reservations' => !$isHoliday,
             ]);
         } catch (Throwable $e) {
             Logger::error('[HolidayController] Error en checkHoliday', [
-                'date'    => $date,
+                'date' => $date,
                 'message' => $e->getMessage(),
             ]);
 
             // Degradación elegante: la fecha no bloquea reservas si falla la API
             return $this->success([
-                'date'                       => $date,
-                'is_holiday'                 => false,
-                'holiday_name'               => null,
+                'date' => $date,
+                'is_holiday' => false,
+                'holiday_name' => null,
                 'available_for_reservations' => true,
             ]);
         }
@@ -143,7 +143,7 @@ final class HolidayController extends AbstractApiController
         }
 
         $url = self::API_BASE . '/PublicHolidays/' . $year . '/' . self::COUNTRY;
-        $ch  = \curl_init($url);
+        $ch = \curl_init($url);
 
         if ($ch === false) {
             throw new RuntimeException('No se pudo inicializar cURL para date.nager.at');
@@ -151,12 +151,12 @@ final class HolidayController extends AbstractApiController
 
         \curl_setopt_array($ch, [
             \CURLOPT_RETURNTRANSFER => true,
-            \CURLOPT_TIMEOUT        => self::TIMEOUT,
-            \CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+            \CURLOPT_TIMEOUT => self::TIMEOUT,
+            \CURLOPT_HTTPHEADER => ['Accept: application/json'],
         ]);
 
-        $result   = \curl_exec($ch);
-        $curlErr  = \curl_error($ch);
+        $result = \curl_exec($ch);
+        $curlErr = \curl_error($ch);
         $httpCode = (int) \curl_getinfo($ch, \CURLINFO_HTTP_CODE);
         \curl_close($ch);
 
@@ -172,11 +172,11 @@ final class HolidayController extends AbstractApiController
         }
 
         /** @var array<int, array{date: string, name: string, localName: string, global: bool}> $raw */
-        $globalOnly = \array_filter($raw, static fn(array $h): bool => $h['global'] === true);
+        $globalOnly = \array_filter($raw, static fn (array $h): bool => $h['global'] === true);
         $holidays = \array_values(\array_map(
-            static fn(array $item): array => [
-                'date'      => $item['date'],
-                'name'      => $item['name'],
+            static fn (array $item): array => [
+                'date' => $item['date'],
+                'name' => $item['name'],
                 'localName' => $item['localName'],
             ],
             $globalOnly

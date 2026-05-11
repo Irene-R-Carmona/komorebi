@@ -47,23 +47,44 @@ final class AnimalController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $page = \max(1, (int) ($request->getQueryParams()['page'] ?? 1));
+        $params = $request->getQueryParams();
+        $search = \trim((string) ($params['search'] ?? ''));
+        $status = (string) ($params['status'] ?? '');
+        $species = (string) ($params['species'] ?? '');
+        $page = \max(1, (int) ($params['page'] ?? 1));
         $perPage = Pagination::PAGE_SIZE_LIST;
 
         $allAnimals = $this->animalTransformer->collection(
             $this->animalCareService->getAllAnimals()
         );
 
-        $total = \count($allAnimals);
-        $animals = \array_slice($allAnimals, ($page - 1) * $perPage, $perPage);
+        $filtered = \array_values(\array_filter($allAnimals, static function (array $a) use ($search, $status, $species): bool {
+            if ($search !== '' && \stripos($a['name'] . ' ' . ($a['cafe_name'] ?? ''), $search) === false) {
+                return false;
+            }
+            if ($status !== '' && ($a['current_status'] ?? '') !== $status) {
+                return false;
+            }
+            if ($species !== '' && ($a['species_type'] ?? '') !== $species) {
+                return false;
+            }
+
+            return true;
+        }));
+
+        $total = \count($filtered);
+        $animals = \array_slice($filtered, ($page - 1) * $perPage, $perPage);
         $hasNextPage = ($page * $perPage) < $total;
         $meta = ['page' => $page, 'has_next_page' => $hasNextPage];
+        $currentParams = \array_filter(\compact('search', 'status', 'species'));
 
         View::render('backoffice/keeper/animals/index', [
             'titulo' => 'Gestión de Animales',
             'animals' => $animals,
             'total' => $total,
             'meta' => $meta,
+            'currentParams' => $currentParams,
+            'baseUrl' => '/admin/animals',
             'csrf_token' => Csrf::token(),
         ], [], 'backoffice');
 

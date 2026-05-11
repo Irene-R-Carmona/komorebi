@@ -27,7 +27,7 @@ final class ReservationController
     }
 
     /**
-     * GET /admin/reservas
+     * GET /admin/reservations
      * Lista de reservas con filtros server-side (HDA).
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface

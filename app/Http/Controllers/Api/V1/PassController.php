@@ -67,11 +67,11 @@ final class PassController extends AbstractApiController
      */
     public function slots(ServerRequestInterface $request): ResponseInterface
     {
-        $params  = $request->getQueryParams();
-        $cafeId  = isset($params['cafe_id']) ? (int) $params['cafe_id']  : 0;
-        $passId  = isset($params['pass_id']) ? (int) $params['pass_id']  : 0;
-        $date    = \trim((string) ($params['date'] ?? ''));
-        $guests  = isset($params['guests'])  ? (int) $params['guests']   : 0;
+        $params = $request->getQueryParams();
+        $cafeId = isset($params['cafe_id']) ? (int) $params['cafe_id'] : 0;
+        $passId = isset($params['pass_id']) ? (int) $params['pass_id'] : 0;
+        $date = \trim((string) ($params['date'] ?? ''));
+        $guests = isset($params['guests']) ? (int) $params['guests'] : 0;
 
         if ($cafeId <= 0 || $passId <= 0 || $guests <= 0) {
             return $this->unprocessable(

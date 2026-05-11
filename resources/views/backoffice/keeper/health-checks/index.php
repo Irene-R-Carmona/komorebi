@@ -116,16 +116,16 @@ use App\Support\DateFormatting;
                                                             'resting' => 'secondary',
                                                             'sick' => 'danger',
                                                         ];
-                                                        $statusLabels = [
-                                                            'active' => 'Activo',
-                                                            'monitoring' => 'En observación',
-                                                            'resting' => 'Descansando',
-                                                            'sick' => 'Enfermo',
-                                                            'retired' => 'Retirado',
-                                                        ];
-                                                        $statusColor = $statusColors[$animal['current_status']] ?? 'secondary';
-                                                        $statusLabel = $statusLabels[$animal['current_status']] ?? ucfirst($animal['current_status']);
-                                                        ?>
+                                                $statusLabels = [
+                                                    'active' => 'Activo',
+                                                    'monitoring' => 'En observación',
+                                                    'resting' => 'Descansando',
+                                                    'sick' => 'Enfermo',
+                                                    'retired' => 'Retirado',
+                                                ];
+                                                $statusColor = $statusColors[$animal['current_status']] ?? 'secondary';
+                                                $statusLabel = $statusLabels[$animal['current_status']] ?? ucfirst($animal['current_status']);
+                                                ?>
                                                         <span class="badge bg-<?= $statusColor ?>">
                                                             <?= htmlspecialchars($statusLabel, ENT_QUOTES, 'UTF-8') ?>
                                                         </span>

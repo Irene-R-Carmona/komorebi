@@ -242,9 +242,9 @@ final class TimeSlotRepository extends AbstractRepository implements TimeSlotRep
         bool $release,
     ): void {
         $startTotalMins = (int) \substr($startHHMM, 0, 2) * 60 + (int) \substr($startHHMM, 3, 2);
-        $endTotalMins   = $startTotalMins + $durationMinutes;
-        $endHHMMSS      = \sprintf('%02d:%02d:00', (int) ($endTotalMins / 60), $endTotalMins % 60);
-        $startHHMMSS    = $startHHMM . ':00';
+        $endTotalMins = $startTotalMins + $durationMinutes;
+        $endHHMMSS = \sprintf('%02d:%02d:00', (int) ($endTotalMins / 60), $endTotalMins % 60);
+        $startHHMMSS = $startHHMM . ':00';
 
         $this->getDb()->prepare(
             'UPDATE time_slots
@@ -264,16 +264,16 @@ final class TimeSlotRepository extends AbstractRepository implements TimeSlotRep
                AND (TIME_TO_SEC(slot_time) + duration_minutes * 60) > TIME_TO_SEC(:start_time)
                AND is_blocked = 0'
         )->execute([
-            'release1'   => $release ? 1 : 0,
-            'release2'   => $release ? 1 : 0,
-            'guests1'    => $guests,
-            'guests2'    => $guests,
-            'guests3'    => $guests,
-            'guests4'    => $guests,
-            'cafe_id'    => $cafeId,
-            'date'       => $date,
+            'release1' => $release ? 1 : 0,
+            'release2' => $release ? 1 : 0,
+            'guests1' => $guests,
+            'guests2' => $guests,
+            'guests3' => $guests,
+            'guests4' => $guests,
+            'cafe_id' => $cafeId,
+            'date' => $date,
             'start_time' => $startHHMMSS,
-            'end_time'   => $endHHMMSS,
+            'end_time' => $endHHMMSS,
         ]);
     }
 }

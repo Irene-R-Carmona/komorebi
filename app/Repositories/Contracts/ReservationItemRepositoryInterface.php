@@ -38,4 +38,12 @@ interface ReservationItemRepositoryInterface
 
     /** Suma de (prep_time × quantity) de items aún en cocina. */
     public function getEstimatedWaitTime(int $cafeId): int;
+
+    /**
+     * Número de ítems con status='ready' por reserva.
+     *
+     * @param  int[]           $ids
+     * @return array<int, int> reservation_id => count
+     */
+    public function getReadyCountsByReservations(array $ids): array;
 }

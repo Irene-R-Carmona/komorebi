@@ -145,7 +145,7 @@ $animalMap = [
                         </div>
                         <div class="cafe-card__meta-item">
                             <i class="bi bi-currency-euro"></i>
-                            <span>Desde <strong><?= number_format((int) ($cafe['price_per_hour'] ?? 0)) ?></strong>¥/h</span>
+                            <span>Desde <strong><?= number_format((int) ($cafe['price_per_hour'] ?? 0)) ?></strong>€/h</span>
                         </div>
                     </div>
                 </div>

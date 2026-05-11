@@ -57,9 +57,9 @@ interface StatisticsRepositoryInterface
     /**
      * Muestras de datos para el DataViewer admin.
      *
-     * @return array<string, array<int, array<string, mixed>>>
+     * @return array<string, mixed>
      */
-    public function getDataViewerSamples(): array;
+    public function getDataViewerSamples(int $page = 1, int $perPage = 10): array;
 
     /** @return array<int, array<string, mixed>> */
     public function getRecentReservations(int $limit = 10): array;

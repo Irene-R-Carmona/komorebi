@@ -14,7 +14,6 @@ use App\Domain\DTO\PaginationParams;
 use App\Domain\Reservation\ReservationStateMachine;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\ReservationServiceInterface;
-use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -113,7 +112,7 @@ final class ReservationController
         $currentStatus = (string) ($reservation['status'] ?? '');
         $validTransitions = \array_filter(
             ['confirmed', 'active', 'cancelled', 'no_show', 'completed'],
-            fn(string $to) => ReservationStateMachine::isValidTransition($currentStatus, $to)
+            fn (string $to) => ReservationStateMachine::isValidTransition($currentStatus, $to)
         );
 
         View::render('manager/reservations/show', [

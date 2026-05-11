@@ -13,7 +13,7 @@
 
 | # | Plan | Archivo | Wave | Estado | Última actualización |
 |---|---|---|---|---|---|
-| — | Documentación Oficial TFG (LaTeX → PDF) | [2026-05-08-documentacion-tfg.md](2026-05-08-documentacion-tfg.md) | — | 🔵 Plan creado | 2026-05-08 |
+| — | Documentación Oficial TFG (LaTeX → PDF) | [2026-05-08-documentacion-tfg.md](2026-05-08-documentacion-tfg.md) | — | � En implementación | 2026-05-11 |
 | 1 | Identidad & Ubicación (14 cafés españoles) | _(eliminado)_ | 1 | ✅ Completado y eliminado (2026-05-09) | 2026-05-09 |
 | 2 | Moneda & Precios (€) | _(eliminado)_ | 1 | ✅ Completado y eliminado (2026-05-09) | 2026-05-09 |
 | 3 | Weather API & Tech Debt | _(eliminado)_ | 1 | ✅ Completado y eliminado (2026-05-09) | 2026-05-09 |
@@ -25,10 +25,11 @@
 | 9 | Brand-Book Update | — | 4 | ✅ Completado y eliminado (2026-05-09) | 2026-05-09 |
 | 10 | Pases con Incluidos + Rediseño Formulario Reserva | _(eliminado)_ | 4 | ✅ Completado y eliminado (2026-05-09) | 2026-05-09 |
 | 11 | 4 Features Wizard Reservas (weather forecast, slot filter, pass inclusions, comanda step) | _(eliminado)_ | 5 | ✅ Completado y eliminado (2026-05-09) | 2026-05-09 |
-| 12 | Rediseño Comanda Wizard Step 5 + KDS pre_order | [2026-05-09-comanda-redesign.md](2026-05-09-comanda-redesign.md) | 5 | 🟡 En implementación | 2026-05-09 |
-| 13 | Time Slots y Sistema de Disponibilidad | [2026-05-11-timeslots-y-disponibilidad.md](2026-05-11-timeslots-y-disponibilidad.md) | 6 | 🔵 Plan creado — pendiente inicio | 2026-05-11 |
-| 14 | Bugfixes UI/UX (escape, SOP, €, notif, filtros) | [2026-05-11-bugfixes-ui.md](2026-05-11-bugfixes-ui.md) | 6 | 🔵 Plan creado — pendiente inicio | 2026-05-11 |
-| 15 | Bugfixes panel Admin (10 bugs confirmados) | [2026-05-11-bugfixes-admin.md](2026-05-11-bugfixes-admin.md) | 6 | 🔵 Plan creado — pendiente inicio | 2026-05-11 |
+| 12 | Rediseño Comanda Wizard Step 5 + KDS pre_order | _(eliminado)_ | 5 | ✅ Completado y eliminado (2026-05-12) | 2026-05-12 |
+| 13 | Time Slots y Sistema de Disponibilidad | _(eliminado)_ | 6 | ✅ Completado y eliminado (2026-05-12) | 2026-05-12 |
+| 14 | Bugfixes UI/UX (escape, SOP, €, notif, filtros) | _(eliminado)_ | 6 | ✅ Completado y eliminado (2026-05-12) | 2026-05-12 |
+| 15 | Bugfixes panel Admin (10 bugs confirmados) | _(eliminado)_ | 6 | ✅ Completado y eliminado (2026-05-12) | 2026-05-12 |
+| 16 | Comanda realtime + recibo + bugfixes recepción | _(eliminado)_ | 6 | ✅ Completado y eliminado (2026-05-12) | 2026-05-12 |
 
 ---
 

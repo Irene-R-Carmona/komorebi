@@ -102,11 +102,11 @@ final class AdoptionServiceTest extends TestCase
     public function testApproveRequestFailsWhenNotPending(): void
     {
         $this->adoptionRepo->method('findRequestById')->willReturn([
-            'id'            => 7,
-            'animal_id'     => 3,
-            'user_id'       => 5,
+            'id' => 7,
+            'animal_id' => 3,
+            'user_id' => 5,
             'animal_cafe_id' => 1,
-            'status'        => 'rejected',
+            'status' => 'rejected',
         ]);
 
         $result = $this->service->approveRequest(keeperId: 1, requestId: 7, cafeId: 1);
@@ -118,11 +118,11 @@ final class AdoptionServiceTest extends TestCase
     public function testApproveRequestFailsWhenAnimalBelongsToAnotherCafe(): void
     {
         $this->adoptionRepo->method('findRequestById')->willReturn([
-            'id'            => 7,
-            'animal_id'     => 3,
-            'user_id'       => 5,
+            'id' => 7,
+            'animal_id' => 3,
+            'user_id' => 5,
             'animal_cafe_id' => 2,
-            'status'        => 'pending',
+            'status' => 'pending',
         ]);
 
         $result = $this->service->approveRequest(keeperId: 1, requestId: 7, cafeId: 1);
@@ -134,11 +134,11 @@ final class AdoptionServiceTest extends TestCase
     public function testApproveRequestSucceedsAndMarksAnimalAdopted(): void
     {
         $this->adoptionRepo->method('findRequestById')->willReturn([
-            'id'            => 7,
-            'animal_id'     => 3,
-            'user_id'       => 5,
+            'id' => 7,
+            'animal_id' => 3,
+            'user_id' => 5,
             'animal_cafe_id' => 1,
-            'status'        => 'pending',
+            'status' => 'pending',
         ]);
         $this->adoptionRepo->method('updateRequest')->willReturn(true);
         $this->animalRepo->method('markAsAdopted')->willReturn(true);
@@ -163,11 +163,11 @@ final class AdoptionServiceTest extends TestCase
     public function testRejectRequestFailsWhenAnimalBelongsToAnotherCafe(): void
     {
         $this->adoptionRepo->method('findRequestById')->willReturn([
-            'id'            => 7,
-            'animal_id'     => 3,
-            'user_id'       => 5,
+            'id' => 7,
+            'animal_id' => 3,
+            'user_id' => 5,
             'animal_cafe_id' => 2,
-            'status'        => 'pending',
+            'status' => 'pending',
         ]);
 
         $result = $this->service->rejectRequest(keeperId: 1, requestId: 7, notes: null, cafeId: 1);
@@ -179,11 +179,11 @@ final class AdoptionServiceTest extends TestCase
     public function testRejectRequestSucceedsWithNotes(): void
     {
         $this->adoptionRepo->method('findRequestById')->willReturn([
-            'id'            => 7,
-            'animal_id'     => 3,
-            'user_id'       => 5,
+            'id' => 7,
+            'animal_id' => 3,
+            'user_id' => 5,
             'animal_cafe_id' => 1,
-            'status'        => 'pending',
+            'status' => 'pending',
         ]);
         $this->adoptionRepo->method('updateRequest')->willReturn(true);
 

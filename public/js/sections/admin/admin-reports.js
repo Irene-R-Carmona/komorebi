@@ -51,7 +51,7 @@
       loadChartJs() {
         return new Promise((resolve, reject) => {
           const script = document.createElement('script');
-          script.src = '/js/vendor/chart.umd.min.js';
+          script.src = '/js/charts.min.js';
           script.onload = resolve;
           script.onerror = reject;
           document.head.appendChild(script);

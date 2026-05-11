@@ -124,6 +124,35 @@ $alpineConfig = json_encode([
                     <option value="1" <?= ($currentParams['status'] ?? '') === '1' ? 'selected' : '' ?>>Disponibles</option>
                     <option value="0" <?= ($currentParams['status'] ?? '') === '0' ? 'selected' : '' ?>>No disponibles</option>
                 </select>
+
+                <select
+                    name="allergen"
+                    class="form-select select-filter-md"
+                    @change="$el.form.requestSubmit()">
+                    <option value="">Todos los alérgenos</option>
+                    <?php foreach (
+                        [
+                            'gluten' => 'Gluten',
+                            'crustaceos' => 'Crustáceos',
+                            'huevos' => 'Huevos',
+                            'pescado' => 'Pescado',
+                            'cacahuetes' => 'Cacahuetes',
+                            'soja' => 'Soja',
+                            'lacteos' => 'Lácteos',
+                            'frutos_secos' => 'Frutos de cáscara',
+                            'apio' => 'Apio',
+                            'mostaza' => 'Mostaza',
+                            'sesamo' => 'Sésamo',
+                            'sulfitos' => 'Sulfitos',
+                            'altramuces' => 'Altramuces',
+                            'moluscos' => 'Moluscos',
+                        ] as $code => $label
+                    ): ?>
+                        <option value="<?= $code ?>" <?= ($currentParams['allergen'] ?? '') === $code ? 'selected' : '' ?>>
+                            <?= $label ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
             <?php if ($currentParams !== []): ?>
@@ -205,7 +234,7 @@ $alpineConfig = json_encode([
 
                                 <td class="text-end">
                                     <span class="product-price fw-semibold">
-                                        ¥<?= number_format((float) ($product['price'] ?? 0)) ?>
+                                        €<?= number_format((float) ($product['price'] ?? 0) / 100, 2, ',', '.') ?>
                                     </span>
                                 </td>
 
@@ -240,7 +269,7 @@ $alpineConfig = json_encode([
                                     <button
                                         type="button"
                                         class="btn btn-sm w-100 <?= $isActive ? 'btn-success' : 'btn-outline-secondary' ?>"
-                                        @click="toggleProduct(<?= $productId ?>, <?= $isActive ? 'true' : 'false' ?>)"
+                                        @click="toggleProductStatus(<?= $productId ?>, <?= $isActive ? 'true' : 'false' ?>)"
                                         aria-label="<?= $isActive ? 'Desactivar' : 'Activar' ?> <?= $productName ?>">
                                         <?= $isActive ? 'Activo' : 'Inactivo' ?>
                                     </button>

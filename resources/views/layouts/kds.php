@@ -13,6 +13,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="csrf-token" content="<?= Csrf::token() ?>">
     <title>KDS | <?= e($cafe_name ?? 'Cocina') ?></title>
+    <link rel="icon" type="image/svg+xml" href="/images/logos/komorebi-logo-icon.svg">
+    <link rel="alternate icon" href="/favicon.ico">
 
     <!-- Fuentes Técnicas (Space Grotesk + Roboto Mono) -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">

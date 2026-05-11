@@ -9,6 +9,8 @@ document.addEventListener('alpine:init', () => {
     checkinPreOrder: [],
     activatingPreOrder: false,
     preOrderResult: null,
+    preOrdersActivated: false,
+    _checkinAbortController: null,
 
     // ── POS (añadir pedido) ───────────────────────────────────
     posOpen: false,
@@ -26,7 +28,20 @@ document.addEventListener('alpine:init', () => {
     cobroNotes: '',
     cobroError: '',
 
+    // ── comanda ───────────────────────────────────────────────
+    comandaOpen: false,
+    comandaResId: null,
+    comandaItems: [],
+    comandaResInfo: null,
+    comandaTotals: null,
+    comandaLoading: false,
+
+    // ── kitchen-ready badges ──────────────────────────────────
+    readyByRes: {},
+
     init() {
+      const raw = this.$el.dataset.readyByRes;
+      this.readyByRes = raw ? JSON.parse(raw) : {};
       document.addEventListener('reception:refresh', () => this.refresh());
     },
 
@@ -50,22 +65,28 @@ document.addEventListener('alpine:init', () => {
     // ── check-in ──────────────────────────────────────────────
 
     openCheckin(reservationId) {
+      if (this._checkinAbortController) {
+        this._checkinAbortController.abort();
+      }
+      this._checkinAbortController = new AbortController();
       this.selectedResId = reservationId;
       this.checkinPreOrder = [];
       this.preOrderResult = null;
+      this.preOrdersActivated = false;
       this.checkinOpen = true;
       this.$nextTick(() => {
         const select = document.querySelector('select[name="tracker_id"]');
         if (select) select.focus();
       });
-      fetch(`/api/v1/ops/reception/reservations`)
+      fetch(`/api/v1/ops/reception/reservations`, { signal: this._checkinAbortController.signal })
         .then(r => r.json())
         .then(json => {
           const list = json.data?.reservations ?? json.data?.items ?? json.data ?? [];
-          const res = list.find(r => r.id === reservationId);
+          const res = list.find(r => Number(r.id) === Number(reservationId));
           this.checkinPreOrder = res?.pre_order_items ?? [];
+          this.preOrdersActivated = res?.pre_orders_activated ?? false;
         })
-        .catch(() => { this.checkinPreOrder = []; });
+        .catch(err => { if (err.name !== 'AbortError') this.checkinPreOrder = []; });
     },
 
     closeCheckin() {
@@ -73,6 +94,11 @@ document.addEventListener('alpine:init', () => {
       this.selectedResId = null;
       this.checkinPreOrder = [];
       this.preOrderResult = null;
+      this.preOrdersActivated = false;
+      if (this._checkinAbortController) {
+        this._checkinAbortController.abort();
+        this._checkinAbortController = null;
+      }
     },
 
     async submitCheckin() {
@@ -123,7 +149,8 @@ document.addEventListener('alpine:init', () => {
             activated: data.data?.activated ?? 0,
             unavailable: data.data?.unavailable ?? []
           };
-          this.checkinPreOrder = [];
+          // No borrar checkinPreOrder aquí: la lista permanece visible junto al mensaje de éxito.
+          // Se limpiará cuando el usuario cierre el modal (closeCheckin).
         } else {
           this.preOrderResult = {
             ok: false,
@@ -264,11 +291,15 @@ document.addEventListener('alpine:init', () => {
       this.cobroNotes = '';
       this.cobroError = '';
       this.cobroOpen = true;
+      this.loadComandaItems(reservationId);
     },
 
     closeCobro() {
       this.cobroOpen = false;
       this.cobroResId = null;
+      this.comandaItems = [];
+      this.comandaResInfo = null;
+      this.comandaTotals = null;
     },
 
     async submitCobro() {
@@ -276,14 +307,16 @@ document.addEventListener('alpine:init', () => {
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
       this.cobroError = '';
       this.loading = true;
+      const paidResId = this.cobroResId;
       try {
-        const res = await fetch(`/api/v1/ops/reception/reservations/${this.cobroResId}/payments`, {
+        const res = await fetch(`/api/v1/ops/reception/reservations/${paidResId}/payments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
           body: JSON.stringify({ payment_method: this.cobroMethod, notes: this.cobroNotes }),
         });
         const data = await res.json();
         if (data.ok) {
+          delete this.readyByRes[paidResId];
           this.closeCobro();
           this.refresh();
         } else {
@@ -295,6 +328,60 @@ document.addEventListener('alpine:init', () => {
       } finally {
         this.loading = false;
       }
+    },
+
+    // ── comanda ───────────────────────────────────────────────
+
+    openComanda(resId) {
+      this.comandaResId = resId;
+      this.comandaItems = [];
+      this.comandaResInfo = null;
+      this.comandaTotals = null;
+      this.comandaOpen = true;
+      this.loadComandaItems(resId);
+    },
+
+    closeComanda() {
+      this.comandaOpen = false;
+      this.comandaResId = null;
+    },
+
+    async loadComandaItems(resId) {
+      this.comandaLoading = true;
+      try {
+        const res = await fetch(`/api/v1/ops/reception/reservations/${resId}/items`);
+        const data = await res.json();
+        if (data.ok) {
+          this.comandaItems = data.data?.items ?? [];
+          this.comandaResInfo = data.data?.reservation ?? null;
+          this.comandaTotals = data.data?.totals ?? null;
+        }
+      } catch (e) {
+        console.error('loadComandaItems failed:', e);
+      } finally {
+        this.comandaLoading = false;
+      }
+    },
+
+    comandaStatusLabel(status) {
+      const map = { pending: 'Pendiente', in_progress: 'En cocina', ready: 'Listo', served: 'Servido', cancelled: 'Cancelado' };
+      return map[status] || status;
+    },
+
+    comandaStatusClass(status) {
+      const map = { pending: 'status-pending', in_progress: 'status-in-progress', ready: 'status-ready', served: 'status-served', cancelled: 'status-cancelled' };
+      return map[status] || '';
+    },
+
+    /**
+     * Formatea euros (float) como moneda: 12.5 → '12,50 €'
+     * Usado para totales de comanda (pass_unit_price, totals.*)
+     */
+    formatEuroFloat(amount) {
+      return (Number(amount) || 0).toLocaleString('es-ES', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }) + ' €';
     },
   }));
 });
@@ -334,6 +421,20 @@ document.addEventListener('alpine:init', () => {
   function connect() {
     es = new EventSource(url);
     es.onmessage = function (e) {
+      try {
+        const payload = JSON.parse(e.data || '{}');
+        const resId = payload.reservation_id;
+        if (resId) {
+          const app = document.querySelector('[x-data="receptionApp"]');
+          if (app && app._x_dataStack) {
+            const alpine = app._x_dataStack[0];
+            if (alpine && alpine.readyByRes !== undefined) {
+              const prev = alpine.readyByRes[resId] || 0;
+              alpine.readyByRes = { ...alpine.readyByRes, [resId]: prev + 1 };
+            }
+          }
+        }
+      } catch (_) { /* ignore */ }
       if (notif) {
         notif.show('\u00a1Un pedido de cocina est\u00e1 listo para servir!', 'success', 8000);
       }

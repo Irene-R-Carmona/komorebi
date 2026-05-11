@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Vista: Editar Producto
- * Ruta: GET /admin/productos/{id}/editar
+ * Ruta: GET /admin/menu/{id}/edit
  *
  * @var array $product - Datos del producto
  * @var array $categories - Categorías disponibles
@@ -24,7 +25,7 @@ $productAllergenIds = array_map('intval', array_column($product_allergens, 'id')
 $alpineConfig = json_encode([
     'isEdit' => true,
     'productId' => $productId,
-    'submitUrl' => "/admin/productos/$productId/actualizar",
+    'submitUrl' => "/api/v1/admin/menu/$productId",
     'name' => $product['name'] ?? '',
     'japanese_name' => $product['name_jp'] ?? $product['japanese_name'] ?? '',
     'slug' => $product['slug'] ?? '',
@@ -52,12 +53,11 @@ $alpineConfig = json_encode([
 
     <!-- Formulario -->
     <form
-            method="POST"
-            action="/admin/productos/<?= $productId ?>/actualizar"
-            x-data='productForm(<?= $alpineConfig ?>)'
-            @submit.prevent="submitForm"
-            :class="{ 'form-submitting': isSubmitting }"
-    >
+        method="POST"
+        action="/api/v1/admin/menu/<?= $productId ?>"
+        x-data='productForm(<?= $alpineConfig ?>)'
+        @submit.prevent="submitForm"
+        :class="{ 'form-submitting': isSubmitting }">
         <?= Csrf::field() ?>
         <input type="hidden" name="id" value="<?= $productId ?>">
 
@@ -95,10 +95,9 @@ $alpineConfig = json_encode([
                 <!-- Acciones -->
                 <div class="form-actions form-actions--sticky">
                     <button
-                            type="submit"
-                            class="btn btn-primary btn-lg w-100"
-                            :disabled="isSubmitting"
-                    >
+                        type="submit"
+                        class="btn btn-primary btn-lg w-100"
+                        :disabled="isSubmitting">
                         <template x-if="!isSubmitting">
                             <span><i class="bi bi-check-lg me-2"></i>Guardar Cambios</span>
                         </template>

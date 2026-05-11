@@ -17,6 +17,7 @@ final class ReservationVocabulary
         'cash',
         'card',
         'transfer',
+        'bizum',
     ];
 
     public static function isValidPaymentMethod(string $value): bool

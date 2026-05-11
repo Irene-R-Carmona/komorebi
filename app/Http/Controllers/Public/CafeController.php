@@ -136,7 +136,7 @@ final class CafeController
         $experiences = $this->menuService->getPassesForCafe($cafe['category'], $cafe['animal_type']);
 
         // Cargar inclusiones de todos los pases en una sola consulta (agrupadas por pass_product_id)
-        $passIds = \array_map(static fn(array $e): int => (int) $e['id'], $experiences);
+        $passIds = \array_map(static fn (array $e): int => (int) $e['id'], $experiences);
         $passInclusions = $passIds !== [] ? $this->passInclusionRepo->findByPassIds($passIds) : [];
 
         // Verificar elegibilidad del usuario para dejar reseña
@@ -156,7 +156,7 @@ final class CafeController
             'total_animals' => \count($rawAnimals),
             'active_animals' => \count(\array_filter(
                 $rawAnimals,
-                static fn($a) => $a['current_status'] === 'active'
+                static fn ($a) => $a['current_status'] === 'active'
             )),
             'favorites_count' => $this->cafeRepo->getFavoritesCount((int) $cafe['id']),
         ];

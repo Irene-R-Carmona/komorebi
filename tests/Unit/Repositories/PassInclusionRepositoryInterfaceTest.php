@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Repositories;
 
-use App\Repositories\Contracts\PassInclusionRepositoryInterface;
 use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\PassInclusionRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
@@ -71,13 +71,13 @@ final class PassInclusionRepositoryInterfaceTest extends TestCase
     public function testPassInclusionRepositoryInterfaceReturnsExpectedStructure(): void
     {
         $expectedRow = [
-            'id'               => 1,
-            'pass_product_id'  => 42,
-            'category_id'      => 3,
+            'id' => 1,
+            'pass_product_id' => 42,
+            'category_id' => 3,
             'quantity_per_pax' => 1,
-            'max_unit_price'   => 500,
-            'category_name'    => 'Bebidas',
-            'category_slug'    => 'bebidas',
+            'max_unit_price' => 500,
+            'category_name' => 'Bebidas',
+            'category_slug' => 'bebidas',
         ];
 
         $repo = $this->createStub(PassInclusionRepositoryInterface::class);

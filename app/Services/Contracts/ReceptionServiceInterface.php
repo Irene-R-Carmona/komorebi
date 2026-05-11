@@ -38,4 +38,6 @@ interface ReceptionServiceInterface
     public function processPayment(int $reservationId, string $paymentMethod, int $cafeId, ?string $notes = null): Result;
 
     public function activatePreOrder(int $reservationId, int $cafeId): Result;
+
+    public function getItemsForComanda(int $reservationId, int $cafeId): Result;
 }

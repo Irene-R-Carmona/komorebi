@@ -46,7 +46,7 @@ class AuthLogService {
   }
 
   async fetchUsers() {
-    const response = await fetch('/admin/usuarios/list', {
+    const response = await fetch('/api/v1/admin/users', {
       headers: this.headers
     });
 

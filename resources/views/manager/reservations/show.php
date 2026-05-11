@@ -15,34 +15,34 @@ declare(strict_types=1);
 use App\Support\DateFormatting;
 use App\Support\StatusLabeling;
 
-$id          = (int) ($reservation['id'] ?? 0);
-$status      = (string) ($reservation['status'] ?? '');
-$date        = (string) ($reservation['reservation_date'] ?? '');
-$time        = (string) ($reservation['reservation_time'] ?? '');
-$guests      = (int) ($reservation['guest_count'] ?? 0);
-$passName    = (string) ($reservation['pass_name'] ?? '—');
+$id = (int) ($reservation['id'] ?? 0);
+$status = (string) ($reservation['status'] ?? '');
+$date = (string) ($reservation['reservation_date'] ?? '');
+$time = (string) ($reservation['reservation_time'] ?? '');
+$guests = (int) ($reservation['guest_count'] ?? 0);
+$passName = (string) ($reservation['pass_name'] ?? '—');
 $finalAmount = (int) ($reservation['final_amount'] ?? 0);
-$payStatus   = (string) ($reservation['payment_status'] ?? '');
-$userName    = (string) ($reservation['user_name'] ?? '—');
-$userEmail   = (string) ($reservation['user_email'] ?? '');
-$cafeName    = (string) ($reservation['cafe_name'] ?? '—');
-$notes       = (string) ($reservation['notes'] ?? '');
+$payStatus = (string) ($reservation['payment_status'] ?? '');
+$userName = (string) ($reservation['user_name'] ?? '—');
+$userEmail = (string) ($reservation['user_email'] ?? '');
+$cafeName = (string) ($reservation['cafe_name'] ?? '—');
+$notes = (string) ($reservation['notes'] ?? '');
 $cancelReason = (string) ($reservation['cancellation_reason'] ?? '');
 $managerNotes = (string) ($reservation['manager_notes'] ?? '');
 $refundAmount = (int) ($reservation['refund_amount'] ?? 0);
-$refundedAt  = (string) ($reservation['refunded_at'] ?? '');
-$createdAt   = (string) ($reservation['created_at'] ?? '');
+$refundedAt = (string) ($reservation['refunded_at'] ?? '');
+$createdAt = (string) ($reservation['created_at'] ?? '');
 
 $statusLabels = [
     'confirmed' => 'Confirmar',
-    'active'    => 'Activar',
+    'active' => 'Activar',
     'cancelled' => 'Cancelar',
-    'no_show'   => 'Marcar No-Show',
+    'no_show' => 'Marcar No-Show',
     'completed' => 'Completar',
 ];
 
 $isCancelled = $status === 'cancelled';
-$hasRefund   = $refundAmount > 0;
+$hasRefund = $refundAmount > 0;
 ?>
 <div class="container-fluid">
 
@@ -54,7 +54,7 @@ $hasRefund   = $refundAmount > 0;
         </div>
     </div>
 
-    <?php if (\function_exists('flash_messages')): ?>
+    <?php if (function_exists('flash_messages')): ?>
         <?= flash_messages() ?>
     <?php endif; ?>
 
@@ -77,7 +77,7 @@ $hasRefund   = $refundAmount > 0;
                     <dd><?= e(DateFormatting::toSpanishDate($date)) ?></dd>
 
                     <dt>Hora</dt>
-                    <dd><?= e(\substr($time, 0, 5)) ?></dd>
+                    <dd><?= e(substr($time, 0, 5)) ?></dd>
 
                     <dt>Personas</dt>
                     <dd><?= $guests ?></dd>
@@ -86,7 +86,7 @@ $hasRefund   = $refundAmount > 0;
                     <dd><?= e($passName) ?></dd>
 
                     <dt>Importe</dt>
-                    <dd><?= \number_format($finalAmount / 100, 2) ?> €</dd>
+                    <dd><?= number_format($finalAmount / 100, 2) ?> €</dd>
 
                     <dt>Pago</dt>
                     <dd><?= e($payStatus !== '' ? $payStatus : '—') ?></dd>
@@ -107,7 +107,7 @@ $hasRefund   = $refundAmount > 0;
                     <?php endif; ?>
 
                     <dt>Creada</dt>
-                    <dd><?= e(DateFormatting::toSpanishDate(\substr($createdAt, 0, 10))) ?></dd>
+                    <dd><?= e(DateFormatting::toSpanishDate(substr($createdAt, 0, 10))) ?></dd>
                 </dl>
             </div>
 
@@ -142,7 +142,7 @@ $hasRefund   = $refundAmount > 0;
                                 <option value="" disabled selected>Selecciona...</option>
                                 <?php foreach ($valid_transitions as $transition): ?>
                                     <option value="<?= e($transition) ?>">
-                                        <?= e($statusLabels[$transition] ?? \ucfirst($transition)) ?>
+                                        <?= e($statusLabels[$transition] ?? ucfirst($transition)) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -183,7 +183,7 @@ $hasRefund   = $refundAmount > 0;
                                 class="form-control"
                                 min="0"
                                 step="0.01"
-                                max="<?= \number_format($finalAmount / 100, 2, '.', '') ?>"
+                                max="<?= number_format($finalAmount / 100, 2, '.', '') ?>"
                                 placeholder="0.00"
                                 required
                                 aria-required="true">
@@ -210,10 +210,10 @@ $hasRefund   = $refundAmount > 0;
                     <h2 class="section-title mb-3">Devolución registrada</h2>
                     <dl class="detail-grid">
                         <dt>Importe</dt>
-                        <dd><?= \number_format($refundAmount / 100, 2) ?> €</dd>
+                        <dd><?= number_format($refundAmount / 100, 2) ?> €</dd>
                         <?php if ($refundedAt !== ''): ?>
                             <dt>Fecha</dt>
-                            <dd><?= e(DateFormatting::toSpanishDate(\substr($refundedAt, 0, 10))) ?></dd>
+                            <dd><?= e(DateFormatting::toSpanishDate(substr($refundedAt, 0, 10))) ?></dd>
                         <?php endif; ?>
                         <?php if ($managerNotes !== ''): ?>
                             <dt>Notas</dt>

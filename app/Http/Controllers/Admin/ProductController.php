@@ -74,8 +74,8 @@ final class ProductController
         if ($category > 0) {
             $filters['category_id'] = $category;
         }
-        if ($status !== '') {
-            $filters['is_active'] = $status === '1' ? 1 : 0;
+        if ($status === '1' || $status === '0') {
+            $filters['is_active'] = (int) $status;
         }
 
         $result = $this->productService->getAllPaginated($page, 20, $filters);

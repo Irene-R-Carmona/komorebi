@@ -68,7 +68,7 @@ $roles ??= [];
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'X-CSRF-Token': document.querySelector('[name=_csrf]').value
+                                    'X-CSRF-Token': document.querySelector('[name=csrf_token]').value
                                 },
                                 body: JSON.stringify({
                                     name:     document.getElementById('name').value,

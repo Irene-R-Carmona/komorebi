@@ -10,7 +10,7 @@ use App\Support\CurrencyFormatting;
  */
 
 if (empty($experiences)):
-?>
+    ?>
     <section class="experiences-section">
         <header class="seccion__header">
             <h2 class="seccion__titulo">Experiencias Disponibles</h2>
@@ -21,7 +21,7 @@ if (empty($experiences)):
         </div>
     </section>
 <?php
-    return;
+        return;
 endif;
 ?>
 
@@ -147,8 +147,8 @@ endif;
 
                     <?php
                     $expInclusions = ($passInclusions ?? [])[(int) $exp['id']] ?? [];
-                    if ($expInclusions !== []):
-                    ?>
+            if ($expInclusions !== []):
+                ?>
                         <div class="experience-card__inclusions">
                             <p class="experience-inclusions__label">Incluye:</p>
                             <ul class="experience-inclusions__list">
@@ -156,10 +156,10 @@ endif;
                                     <li class="experience-inclusions__item">
                                         <i class="bi bi-check2" aria-hidden="true"></i>
                                         <?php
-                                        $qty = (int) ($inc['quantity_per_pax'] ?? 0);
-                                        $catName = e((string) ($inc['category_name'] ?? ''));
-                                        echo $qty > 1 ? "{$qty} × {$catName}" : $catName;
-                                        ?>
+                                    $qty = (int) ($inc['quantity_per_pax'] ?? 0);
+                                    $catName = e((string) ($inc['category_name'] ?? ''));
+                                    echo $qty > 1 ? "{$qty} × {$catName}" : $catName;
+                                    ?>
                                     </li>
                                 <?php endforeach; ?>
                             </ul>

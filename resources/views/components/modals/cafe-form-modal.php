@@ -192,10 +192,10 @@
             <!-- Precio por Hora -->
             <div class="mb-3">
                 <label for="cafePricePerHour" class="form-label">
-                    Precio por Hora (¥) <span class="text-danger">*</span>
+                    Precio por Hora (€) <span class="text-danger">*</span>
                 </label>
                 <div class="input-group">
-                    <span class="input-group-text">¥</span>
+                    <span class="input-group-text">€</span>
                     <input
                         type="number"
                         class="form-control"

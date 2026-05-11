@@ -249,4 +249,29 @@ final class ReservationItemRepository extends AbstractRepository implements Rese
 
         return (int) ($stmt->fetchColumn() ?: 0);
     }
+
+    #[Override]
+    public function getReadyCountsByReservations(array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        $placeholders = \implode(',', \array_fill(0, \count($ids), '?'));
+        $sql = "SELECT reservation_id, COUNT(*) AS cnt
+                FROM reservation_items
+                WHERE reservation_id IN ({$placeholders})
+                  AND status = 'ready'
+                GROUP BY reservation_id";
+
+        $stmt = $this->getDb()->prepare($sql);
+        $stmt->execute(\array_values($ids));
+
+        $result = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+            $result[(int) $row['reservation_id']] = (int) $row['cnt'];
+        }
+
+        return $result;
+    }
 }

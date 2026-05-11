@@ -176,7 +176,7 @@ declare(strict_types=1);
             <p>Si debemos cancelar tu reserva por causas ajenas a ti:</p>
             <ul>
                 <li>Reembolso 100% si hubo prepago</li>
-                <li>Compensación: vale de ¥1,000 para tu próxima visita</li>
+                <li>Compensación: vale de €10 para tu próxima visita</li>
             </ul>
 
             <h2 id="propiedad">7. Propiedad intelectual</h2>

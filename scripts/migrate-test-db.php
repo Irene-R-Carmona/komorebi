@@ -9,8 +9,8 @@ declare(strict_types=1);
 
 $host = 'db';
 $dbname = 'komorebi_test';
-$user = \getenv('MIGRATE_DB_USER') ?: 'komorebi_user';
-$pass = \getenv('MIGRATE_DB_PASS') ?: 'komorebi';
+$user = getenv('MIGRATE_DB_USER') ?: 'komorebi_user';
+$pass = getenv('MIGRATE_DB_PASS') ?: 'komorebi';
 
 $pdo = new PDO(
     "mysql:host={$host};dbname={$dbname};charset=utf8mb4",
@@ -24,19 +24,20 @@ $pdo = new PDO(
 
 $migrationDir = __DIR__ . '/../migrations';
 $files = glob($migrationDir . '/*.sql');
-\sort($files);
+sort($files);
 
 foreach ($files as $file) {
-    $sql = \file_get_contents($file);
+    $sql = file_get_contents($file);
     if ($sql === false) {
         echo "ERROR: No se pudo leer {$file}\n";
         continue;
     }
+
     try {
         $pdo->exec($sql);
-        echo "OK: " . \basename($file) . "\n";
+        echo 'OK: ' . basename($file) . "\n";
     } catch (\PDOException $e) {
-        echo "ERROR en " . \basename($file) . ": " . $e->getMessage() . "\n";
+        echo 'ERROR en ' . basename($file) . ': ' . $e->getMessage() . "\n";
     }
 }
 

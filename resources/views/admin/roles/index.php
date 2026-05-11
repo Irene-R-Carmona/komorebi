@@ -39,7 +39,7 @@ $alpineConfig = json_encode([
     ]) ?>
 
     <!-- Estadísticas -->
-    <?php include_once __DIR__ . '/partials/_stats.php'; ?>
+    <?php include __DIR__ . '/partials/_stats.php'; ?>
 
     <!-- Tabs -->
     <ul class="nav nav-tabs roles-tabs mb-4">
@@ -66,16 +66,16 @@ $alpineConfig = json_encode([
     <!-- Tab Content -->
     <div class="tab-content">
         <div x-show="activeTab === 'roles'">
-            <?php include_once __DIR__ . '/partials/_role-list.php'; ?>
+            <?php include __DIR__ . '/partials/_role-list.php'; ?>
         </div>
         <div x-show="activeTab === 'matrix'">
-            <?php include_once __DIR__ . '/partials/_permissions-matrix.php'; ?>
+            <?php include __DIR__ . '/partials/_permissions-matrix.php'; ?>
         </div>
     </div>
 
     <!-- Modals -->
-    <?php include_once __DIR__ . '/partials/_role-modal.php'; ?>
-    <?php include_once __DIR__ . '/partials/_permissions-modal.php'; ?>
+    <?php include __DIR__ . '/partials/_role-modal.php'; ?>
+    <?php include __DIR__ . '/partials/_permissions-modal.php'; ?>
 
 </div>
 

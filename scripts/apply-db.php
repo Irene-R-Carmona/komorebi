@@ -474,7 +474,7 @@ try {
         'evt_expire_loyalty_rewards',
     ];
 
-    $foundEvents = array_map(static fn($e) => $e['Name'], $events);
+    $foundEvents = array_map(static fn ($e) => $e['Name'], $events);
 
     logMsg('Eventos encontrados:');
     $totalFound = 0;

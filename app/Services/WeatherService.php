@@ -145,7 +145,7 @@ final class WeatherService implements WeatherServiceInterface
         ];
 
         if ($hourly) {
-            $params['hourly']        = 'temperature_2m,precipitation,weather_code';
+            $params['hourly'] = 'temperature_2m,precipitation,weather_code';
             $params['forecast_days'] = 16; // Open-Meteo máximo: 16 días
         }
 

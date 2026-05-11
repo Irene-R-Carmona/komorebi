@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Core\Container;
 use App\Core\Csrf;
+use App\Core\Http\ResponseFactory;
 use App\Core\Pagination;
 use App\Core\View;
 use App\Http\Transformers\ProductTransformer;
@@ -50,6 +51,7 @@ final class MenuController
         $search = \trim((string) ($q['search'] ?? ''));
         $categoryId = (int) ($q['category'] ?? 0);
         $status = \trim((string) ($q['status'] ?? ''));
+        $allergen = \trim((string) ($q['allergen'] ?? ''));
 
         $filters = [];
         if ($search !== '') {
@@ -58,8 +60,11 @@ final class MenuController
         if ($categoryId > 0) {
             $filters['category_id'] = $categoryId;
         }
-        if ($status !== '') {
+        if ($status === '1' || $status === '0') {
             $filters['is_active'] = (int) $status;
+        }
+        if ($allergen !== '') {
+            $filters['allergen_code'] = $allergen;
         }
 
         $productsData = $this->productRepo->findFiltered($filters, $page, $perPage);
@@ -118,6 +123,7 @@ final class MenuController
             'search' => $search,
             'category' => $categoryId > 0 ? (string) $categoryId : '',
             'status' => $status,
+            'allergen' => $allergen,
         ], static fn ($v) => $v !== '');
 
         $stats = [
@@ -154,7 +160,7 @@ final class MenuController
         $productDto = $id > 0 ? $this->productRepo->findById($id) : null;
 
         if ($productDto === null) {
-            return new \App\Core\Http\ResponseFactory()->redirect('/admin/menu');
+            return new ResponseFactory()->redirect('/admin/menu');
         }
 
         $product = $productDto->toViewArray();

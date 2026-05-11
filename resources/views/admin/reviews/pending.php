@@ -33,7 +33,7 @@ $alpineConfig = json_encode([
     ]) ?>
 
     <!-- Estadísticas -->
-    <?php include_once __DIR__ . '/partials/_stats.php'; ?>
+    <?php include __DIR__ . '/partials/_stats.php'; ?>
 
     <!-- Lista de Reseñas -->
     <?php if ($pending === []): ?>
@@ -51,7 +51,7 @@ $alpineConfig = json_encode([
     <?php endif; ?>
 
     <!-- Modal Rechazar -->
-    <?php include_once __DIR__ . '/partials/_reject-modal.php'; ?>
+    <?php include __DIR__ . '/partials/_reject-modal.php'; ?>
 
     <!-- Paginación -->
     <?php $paginationHtml = ViewHelpers::paginationLinks($meta, []); ?>

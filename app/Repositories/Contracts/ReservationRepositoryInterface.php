@@ -195,4 +195,10 @@ interface ReservationRepositoryInterface
      * @return array<int, array{id: int, product_id: int, quantity: int, name: string, price: int, stock_quantity: int|null, category_id: int, category_name: string}>
      */
     public function getPreOrderItems(int $reservationId): array;
+
+    /**
+     * Cuenta los ítems de una reserva que ya fueron activados desde pre-comanda
+     * (status IN pending/kitchen/ready/served). Fiable solo antes del check-in.
+     */
+    public function countActivatedPreOrders(int $reservationId): int;
 }

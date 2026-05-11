@@ -72,12 +72,12 @@ final class AnimalDashboardController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $cafeId   = (int) (Session::user()['cafe_id'] ?? 0);
-        $params   = $request->getQueryParams();
-        $search   = \trim((string) ($params['search'] ?? ''));
-        $status   = (string) ($params['status'] ?? '');
-        $species  = (string) ($params['species'] ?? '');
-        $page     = \max(1, (int) ($params['page'] ?? 1));
+        $cafeId = (int) (Session::user()['cafe_id'] ?? 0);
+        $params = $request->getQueryParams();
+        $search = \trim((string) ($params['search'] ?? ''));
+        $status = (string) ($params['status'] ?? '');
+        $species = (string) ($params['species'] ?? '');
+        $page = \max(1, (int) ($params['page'] ?? 1));
         $pageSize = 20;
 
         $all = $this->animalCareService->getAnimalsWithCafeInfo($cafeId);
@@ -92,23 +92,25 @@ final class AnimalDashboardController
             if ($species !== '' && ($a['species_type'] ?? '') !== $species) {
                 return false;
             }
+
             return true;
         }));
 
-        $total    = count($filtered);
-        $offset   = ($page - 1) * $pageSize;
+        $total = \count($filtered);
+        $offset = ($page - 1) * $pageSize;
         $pageItems = \array_slice($filtered, $offset, $pageSize + 1);
-        $hasNext  = count($pageItems) > $pageSize;
-        $animals  = \array_slice($pageItems, 0, $pageSize);
-        $meta     = ['page' => $page, 'has_next_page' => $hasNext];
+        $hasNext = \count($pageItems) > $pageSize;
+        $animals = \array_slice($pageItems, 0, $pageSize);
+        $meta = ['page' => $page, 'has_next_page' => $hasNext];
 
         $currentParams = \array_filter(\compact('search', 'status', 'species'));
 
         View::render('backoffice/keeper/animals/index', [
-            'animals'       => $animals,
-            'meta'          => $meta,
-            'total'         => $total,
+            'animals' => $animals,
+            'meta' => $meta,
+            'total' => $total,
             'currentParams' => $currentParams,
+            'baseUrl' => '/keeper/animals',
         ], [], 'backoffice');
 
         return null;

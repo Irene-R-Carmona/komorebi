@@ -71,9 +71,14 @@ final class KitchenApiController extends AbstractApiController
 
             $cafeId = Session::userCafeId();
             if ($cafeId !== null) {
+                $reservationId = $this->service->getItemReservationId($id);
                 MercurePublisherService::publish(
                     'reception/' . $cafeId . '/kitchen-ready',
-                    ['order_id' => $id, 'cafe_id' => $cafeId]
+                    ['order_id' => $id, 'cafe_id' => $cafeId, 'reservation_id' => $reservationId]
+                );
+                MercurePublisherService::publish(
+                    'kds/' . $cafeId . '/orders',
+                    ['event' => 'order_completed', 'order_id' => $id, 'cafe_id' => $cafeId]
                 );
             }
 

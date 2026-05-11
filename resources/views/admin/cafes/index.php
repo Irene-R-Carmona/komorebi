@@ -36,15 +36,15 @@ $alpineConfig = json_encode([
     ]) ?>
 
     <!-- Estadísticas -->
-    <?php include_once __DIR__ . '/partials/_stats.php'; ?>
+    <?php include __DIR__ . '/partials/_stats.php'; ?>
 
     <!-- Filtros -->
-    <?php include_once __DIR__ . '/partials/_filters.php'; ?>
+    <?php include __DIR__ . '/partials/_filters.php'; ?>
 
     <!-- Grid de Cafés -->
-    <?php include_once __DIR__ . '/partials/_cafe-grid.php'; ?>
+    <?php include __DIR__ . '/partials/_cafe-grid.php'; ?>
 
     <!-- Modal de Café -->
-    <?php include_once __DIR__ . '/partials/_cafe-modal.php'; ?>
+    <?php include __DIR__ . '/partials/_cafe-modal.php'; ?>
 
 </div>

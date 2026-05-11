@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Support\CurrencyFormatting;
-
 /**
  * Vista: Recepción (Dashboard de Check-in y Gestión de Sala)
  *
@@ -19,7 +17,9 @@ $capacityAvailable = max(0, $cap_max - $ocupacion);
 $isFull = $capacityAvailable <= 0;
 ?>
 
-<div style="display: contents;" x-data="receptionApp" data-orderable-items='<?= $orderable_items_json ?>'>
+<div style="display: contents;" x-data="receptionApp"
+    data-orderable-items='<?= $orderable_items_json ?>'
+    data-ready-by-res='<?= $ready_by_res_json ?>'>
 
     <!-- ────────────────────────────────────────────────────────────────
         SIDEBAR: LLEGADAS (Guestbook)
@@ -59,7 +59,7 @@ $isFull = $capacityAvailable <= 0;
                         </div>
                         <div class="guest-info">
                             <div class="guest-avatar">
-                                <?= strtoupper(\substr($r['user_name'], 0, 1)) ?>
+                                <?= strtoupper(substr($r['user_name'], 0, 1)) ?>
                             </div>
                             <div class="guest-details">
                                 <h4><?= $r['user_name'] ?></h4>
@@ -125,16 +125,20 @@ $isFull = $capacityAvailable <= 0;
                 <div class="tables-grid">
                     <?php
                     $warnThresholdMins = 50;
-                    $dangerThresholdMins = 60;
+                $dangerThresholdMins = 60;
 
-                    foreach ($active_groups as $g):
-                        $inicio = strtotime($g['check_in_at'] ?? 'now');
-                        $elapsed = (time() - $inicio) / 60;
-                        $deg = min(360, ($elapsed / 60) * 360);
+                foreach ($active_groups as $g):
+                    $inicio = strtotime($g['check_in_at'] ?? 'now');
+                    $elapsed = (time() - $inicio) / 60;
+                    $deg = min(360, ($elapsed / 60) * 360);
 
-                        $timeClass = 'time-ok';
-                        if ($elapsed > $warnThresholdMins) $timeClass = 'time-warn';
-                        if ($elapsed > $dangerThresholdMins) $timeClass = 'time-danger';
+                    $timeClass = 'time-ok';
+                    if ($elapsed > $warnThresholdMins) {
+                        $timeClass = 'time-warn';
+                    }
+                    if ($elapsed > $dangerThresholdMins) {
+                        $timeClass = 'time-danger';
+                    }
                     ?>
                         <div class="zen-table"
                             tabindex="0"
@@ -163,6 +167,16 @@ $isFull = $capacityAvailable <= 0;
                             <?php endif; ?>
 
                             <div class="table-actions">
+                                <button type="button" class="btn-table btn-table--comanda"
+                                    @click="openComanda(<?= (int) $g['id'] ?>)"
+                                    :disabled="loading"
+                                    aria-label="Ver comanda de <?= $g['user_name'] ?? '' ?>">
+                                    Comanda
+                                    <span class="ready-badge"
+                                        x-show="readyByRes[<?= (int) $g['id'] ?>] > 0"
+                                        x-text="readyByRes[<?= (int) $g['id'] ?>]"
+                                        aria-label="Platos listos"></span>
+                                </button>
                                 <button type="button" class="btn-table"
                                     @click="openPos(<?= (int) $g['id'] ?>)"
                                     :disabled="loading"
@@ -245,6 +259,12 @@ $isFull = $capacityAvailable <= 0;
                                 <p class="message-error" x-text="preOrderResult.message"></p>
                             </template>
                         </div>
+                    </div>
+                </template>
+
+                <template x-if="preOrdersActivated && checkinPreOrder.length === 0">
+                    <div class="pre-order-box">
+                        <p class="message-success">✓ Pre-comanda ya enviada a cocina.</p>
                     </div>
                 </template>
 
@@ -357,8 +377,74 @@ $isFull = $capacityAvailable <= 0;
         </div>
     </div>
 
-    <!-- ────────────────────────────────────────────────────────────────
-        MODAL: COBRO (Cierre de Visita)
+    <!-- ────────────────────────────────────────────────────────────────        MODAL: COMANDA
+        ──────────────────────────────────────────────────────────────────── -->
+    <div class="welcome-modal" x-show="comandaOpen" x-cloak>
+        <div class="modal-backdrop" @click="closeComanda()"></div>
+        <div class="welcome-card comanda-card">
+            <div class="welcome-header">
+                <p class="welcome-subtitle">Comanda</p>
+                <h2 class="welcome-title" x-text="comandaResInfo ? comandaResInfo.user_name : 'Cargando...'">&nbsp;</h2>
+                <p class="welcome-desc" x-show="comandaResInfo">
+                    <span x-text="comandaResInfo?.pass_name"></span>
+                    &middot;
+                    <span x-text="comandaResInfo?.guest_count"></span> pax
+                </p>
+            </div>
+
+            <div x-show="comandaLoading" class="comanda-loading">
+                Cargando comanda…
+            </div>
+
+            <template x-if="!comandaLoading && comandaItems.length === 0">
+                <p class="comanda-empty">Sin artículos en la comanda.</p>
+            </template>
+
+            <template x-if="!comandaLoading && comandaItems.length > 0">
+                <div class="comanda-items">
+                    <template x-for="item in comandaItems" :key="item.id">
+                        <div class="comanda-item">
+                            <span class="comanda-item__qty" x-text="item.quantity + '×'"></span>
+                            <span class="comanda-item__name" x-text="item.product_name"></span>
+                            <span class="comanda-status-badge"
+                                :class="comandaStatusClass(item.status)"
+                                x-text="comandaStatusLabel(item.status)"></span>
+                            <span class="comanda-item__price"
+                                x-text="formatEuro(item.unit_price * item.quantity)"></span>
+                        </div>
+                    </template>
+
+                    <template x-if="comandaTotals">
+                        <div class="comanda-totals">
+                            <div class="comanda-total-row">
+                                <span>Entrada (<span x-text="comandaResInfo?.pass_name"></span>)</span>
+                                <span x-text="formatEuro(comandaTotals.pass_subtotal)"></span>
+                            </div>
+                            <div class="comanda-total-row">
+                                <span>Pedidos</span>
+                                <span x-text="formatEuro(comandaTotals.items_amount)"></span>
+                            </div>
+                            <div class="comanda-total-row comanda-total-row--grand">
+                                <strong>Total</strong>
+                                <strong x-text="formatEuro(comandaTotals.total)"></strong>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <div class="welcome-actions" style="margin-top:1.5rem;">
+                <button type="button" class="btn-confirm"
+                    @click="closeComanda(); openCobro(comandaResId)"
+                    x-show="!comandaLoading && comandaItems.length >= 0">
+                    Ir a Cobro
+                </button>
+                <button type="button" class="btn-edit" @click="closeComanda()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ────────────────────────────────────────────────────────────────────        MODAL: COBRO (Cierre de Visita)
         ──────────────────────────────────────────────────────────────── -->
     <div class="welcome-modal" x-show="cobroOpen" x-cloak>
         <div class="modal-backdrop" @click="closeCobro()"></div>
@@ -370,6 +456,32 @@ $isFull = $capacityAvailable <= 0;
             </div>
 
             <form @submit.prevent="submitCobro()">
+
+                <!-- Recibo de comanda -->
+                <template x-if="comandaItems.length > 0">
+                    <div class="cobro-receipt">
+                        <p class="cobro-receipt__title">Resumen de comanda</p>
+                        <template x-for="item in comandaItems" :key="item.id">
+                            <div class="cobro-receipt__line">
+                                <span x-text="item.quantity + '× ' + item.product_name"></span>
+                                <span x-text="formatEuro(item.unit_price * item.quantity)"></span>
+                            </div>
+                        </template>
+                        <template x-if="comandaTotals">
+                            <div>
+                                <div class="cobro-receipt__line cobro-receipt__line--pass">
+                                    <span x-text="'Entrada: ' + (comandaResInfo?.pass_name ?? '')"></span>
+                                    <span x-text="formatEuro(comandaTotals.pass_subtotal)"></span>
+                                </div>
+                                <div class="cobro-receipt__total">
+                                    <span>Total</span>
+                                    <span x-text="formatEuro(comandaTotals.total)"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
                 <div class="minimal-field">
                     <label class="minimal-label" for="cobroMethod">Método de Pago</label>
                     <select class="minimal-input" id="cobroMethod" x-model="cobroMethod" required>

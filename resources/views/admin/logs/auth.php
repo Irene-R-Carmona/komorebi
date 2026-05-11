@@ -10,7 +10,7 @@ use App\Core\View;
 $titulo ??= 'Logs de Autenticación';
 ?>
 
-<div class="container-fluid py-4" x-cloak>
+<div class="container-fluid py-4">
 
     <!-- Header -->
     <?= View::componentToString('components/admin/page-header', [
@@ -19,7 +19,7 @@ $titulo ??= 'Logs de Autenticación';
         'subtitle' => 'Actividad de inicio de sesión',
     ]) ?>
 
-    <div x-data="authLogsManagement()">
+    <div x-data="authLogsManagement()" x-cloak>
 
         <!-- Stats Grid -->
         <div class="stats-grid mb-4 animate-fade-in">

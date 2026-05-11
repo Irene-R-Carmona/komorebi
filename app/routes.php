@@ -173,7 +173,7 @@ $router->group(['prefix' => '', 'middleware' => $guestMiddleware], function (Rou
 $authMiddleware = [$mw->auth()];
 $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw, $responseFactory) {
     $r->post('/logout', 'Auth\AuthController@logout', [$mw->csrf()]);
-    $r->get('/profile', static fn(): ResponseInterface => $responseFactory->redirect('/perfil', 301));
+    $r->get('/profile', static fn (): ResponseInterface => $responseFactory->redirect('/perfil', 301));
     $r->get('/perfil', 'Shared\UserController@profile');
     $r->post('/profile/update', 'Shared\UserController@update', [$mw->csrf()]);
     $r->post('/profile/avatar', 'Shared\UserController@updateAvatar', [$mw->csrf()]);
@@ -359,6 +359,7 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
     /** @var array<int, MiddlewareInterface> $adminApiMiddleware */
     $adminApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN])];
     $router->group(['prefix' => '/api/v1/admin', 'middleware' => $adminApiMiddleware], function (Router $r) use ($mw): void {
+        $r->get('/users', 'Api\V1\Admin\UserApiController@list');
         $r->post('/users', 'Api\V1\Admin\UserApiController@create', [$mw->csrf()]);
         $r->put('/users/{id}', 'Api\V1\Admin\UserApiController@update', [$mw->csrf()]);
         $r->delete('/users/{id}', 'Api\V1\Admin\UserApiController@delete', [$mw->csrf()]);
@@ -388,10 +389,13 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
 
         // Logs — Audit (GET, sin CSRF)
         $r->get('/logs/audit', 'Api\V1\Admin\LogApiController@auditLogs');
+        $r->get('/logs/audit/stats', 'Api\V1\Admin\LogApiController@auditStats');
         $r->get('/logs/audit/export', 'Api\V1\Admin\LogApiController@auditExport');
 
         // Logs — Auth (GET, sin CSRF)
         $r->get('/logs/auth', 'Api\V1\Admin\LogApiController@authLogs');
+        $r->get('/logs/auth/stats', 'Api\V1\Admin\LogApiController@authStats');
+        $r->get('/logs/auth/suspicious', 'Api\V1\Admin\LogApiController@authSuspicious');
         $r->get('/logs/auth/suspicious-count', 'Api\V1\Admin\LogApiController@authSuspiciousCount');
         $r->get('/logs/auth/export', 'Api\V1\Admin\LogApiController@authExport');
 
@@ -430,6 +434,7 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
     $opsReceptionApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER, Middleware::ROLE_SUPERVISOR, Middleware::ROLE_RECEPTION])];
     $router->group(['prefix' => '/api/v1/ops/reception', 'middleware' => $opsReceptionApiMiddleware], function (Router $r) use ($mw): void {
         $r->get('/reservations', 'Api\V1\Ops\ReceptionApiController@todayReservations');
+        $r->get('/reservations/{id}/items', 'Api\V1\Ops\ReceptionApiController@getComandaItems');
         $r->post('/reservations/{id}/checkin', 'Api\V1\Ops\ReceptionApiController@checkIn', [$mw->csrf()]);
         $r->post('/reservations/{id}/checkout', 'Api\V1\Ops\ReceptionApiController@checkOut', [$mw->csrf()]);
         $r->post('/reservations/{id}/items', 'Api\V1\Ops\ReceptionApiController@addItem', [$mw->csrf()]);
@@ -499,9 +504,9 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
 } // end FEATURE_KEEPER
 
 $corsOnly = [$mw->cors()];
-$router->options('/api/v1/{resource}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{id}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{sub}/{id}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{id}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{sub}/{id}', fn () => '', $corsOnly);
 
 $router->get('/health', function () use ($responseFactory) {
     $status = 'healthy';

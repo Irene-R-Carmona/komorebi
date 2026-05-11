@@ -134,11 +134,11 @@ $alpineConfig = json_encode([
                     <small>Máximo 2000 caracteres</small>
                 </div>
                 <div class="form-group">
-                    <label for="price_per_hour">Precio por hora (¥)</label>
+                    <label for="price_per_hour">Precio por hora (€)</label>
                     <input type="number" id="price_per_hour" name="price_per_hour"
                         x-model.number="settingsForm.price_per_hour"
                         min="0" max="10000" step="1">
-                    <small>Entre ¥0 y ¥10,000</small>
+                    <small>Entre €0 y €10.000</small>
                 </div>
                 <button type="submit" class="btn btn-komorebi-primary" :disabled="saving">
                     <i class="bi bi-check-lg me-1" aria-hidden="true"></i> Actualizar configuración

@@ -31,7 +31,8 @@ final class HealthCheckController
         private readonly HealthCheckServiceInterface $healthCheckService,
         private readonly AnimalRepositoryInterface $animalRepo,
         private readonly ResponseFactory $response,
-    ) {}
+    ) {
+    }
 
     /**
      * GET /keeper/health-checks
@@ -251,7 +252,7 @@ final class HealthCheckController
             'notes' => isset($body['notes']) ? \trim($body['notes']) : null,
         ];
 
-        $data = \array_filter($data, static fn(mixed $v): bool => $v !== null);
+        $data = \array_filter($data, static fn (mixed $v): bool => $v !== null);
 
         $result = $this->healthCheckService->update($checkId, $data);
 

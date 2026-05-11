@@ -37,15 +37,15 @@ $alpineConfig = json_encode([
     ]) ?>
 
     <!-- Estadísticas -->
-    <?php include_once __DIR__ . '/partials/_stats.php'; ?>
+    <?php include __DIR__ . '/partials/_stats.php'; ?>
 
     <!-- Filtros -->
-    <?php include_once __DIR__ . '/partials/_filters.php'; ?>
+    <?php include __DIR__ . '/partials/_filters.php'; ?>
 
     <!-- Tabla de Usuarios -->
-    <?php include_once __DIR__ . '/partials/_user-table.php'; ?>
+    <?php include __DIR__ . '/partials/_user-table.php'; ?>
 
     <!-- Modal de Usuario -->
-    <?php include_once __DIR__ . '/partials/_user-modal.php'; ?>
+    <?php include __DIR__ . '/partials/_user-modal.php'; ?>
 
 </div>

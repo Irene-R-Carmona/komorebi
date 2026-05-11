@@ -192,7 +192,7 @@
                                             Precio por hora
                                         </label>
                                         <div class="price-input">
-                                            <span class="price-input__symbol">¥</span>
+                                            <span class="price-input__symbol">€</span>
                                             <input
                                                 type="number"
                                                 class="form-control"

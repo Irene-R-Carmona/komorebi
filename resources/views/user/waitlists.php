@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Support\StatusLabeling;
 use App\Support\DateFormatting;
+use App\Support\StatusLabeling;
 
 /**
  * Vista: Mis Listas de Espera
@@ -78,7 +78,7 @@ use App\Support\DateFormatting;
 
                 // Unificar fecha y hora para el formateador
                 $slotDatetime = trim(($item['slot_date'] ?? '') . ' ' . ($item['slot_time'] ?? ''));
-            ?>
+                ?>
                 <div class="waitlist-card">
                     <!-- Badge de posición -->
                     <div class="waitlist-card__position">
@@ -140,7 +140,7 @@ use App\Support\DateFormatting;
                 </div>
             <?php
             endforeach;
-            ?>
+?>
         </div>
     </section>
 

@@ -25,4 +25,6 @@ interface KitchenServiceInterface
     public function getEstimatedWaitTime(int $cafeId): int;
 
     public function getCompletedToday(int $cafeId): array;
+
+    public function getItemReservationId(int $itemId): ?int;
 }

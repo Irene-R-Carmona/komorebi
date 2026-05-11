@@ -133,7 +133,7 @@ $assetVersion = Env::get('APP_VERSION', '1');
         }
     }
 
-    ?>
+?>
 
     <!-- Event delegation helper: replace inline handlers with `data-action` -->
     <script defer src="/js/init/event-delegation.js?v=<?= e($assetVersion) ?>"></script>

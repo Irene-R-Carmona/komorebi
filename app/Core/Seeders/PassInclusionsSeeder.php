@@ -33,6 +33,7 @@ final class PassInclusionsSeeder
 
         if (\count($passIds) === 0 || \count($categoryIds) === 0) {
             Logger::warning('PassInclusionsSeeder: passes or categories not found, skipping');
+
             return;
         }
 
@@ -73,10 +74,10 @@ final class PassInclusionsSeeder
                 continue;
             }
             $stmt->execute([
-                'pass_id'     => $passIds[$passSlug],
+                'pass_id' => $passIds[$passSlug],
                 'category_id' => $categoryIds[$categoryKey],
-                'qty'         => $qty,
-                'max_price'   => $maxPrice,
+                'qty' => $qty,
+                'max_price' => $maxPrice,
             ]);
             $inserted++;
         }
@@ -120,28 +121,28 @@ final class PassInclusionsSeeder
 
             if (!empty($attrs['includes_drink']) && isset($categoryIds['bebidas'])) {
                 $rows[] = [
-                    'pass_id'     => $passId,
+                    'pass_id' => $passId,
                     'category_id' => $categoryIds['bebidas'],
-                    'qty'         => 1,
-                    'max_price'   => null,
+                    'qty' => 1,
+                    'max_price' => null,
                 ];
             }
 
             if (!empty($attrs['includes_dessert']) && isset($categoryIds['postres'])) {
                 $rows[] = [
-                    'pass_id'     => $passId,
+                    'pass_id' => $passId,
                     'category_id' => $categoryIds['postres'],
-                    'qty'         => 1,
-                    'max_price'   => 700,
+                    'qty' => 1,
+                    'max_price' => 700,
                 ];
             }
 
             if (!empty($attrs['includes_feed']) && isset($categoryIds['animal_snacks'])) {
                 $rows[] = [
-                    'pass_id'     => $passId,
+                    'pass_id' => $passId,
                     'category_id' => $categoryIds['animal_snacks'],
-                    'qty'         => 1,
-                    'max_price'   => null,
+                    'qty' => 1,
+                    'max_price' => null,
                 ];
             }
         }

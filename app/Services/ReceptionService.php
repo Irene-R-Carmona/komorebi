@@ -76,7 +76,20 @@ final class ReceptionService implements ReceptionServiceInterface
     {
         $reservations = $this->reservationRepo->findByCafeAndDate($cafeId, \date('Y-m-d'));
 
-        return \array_filter($reservations, static fn($r) => $r['status'] === Reservation::STATUS_CONFIRMED);
+        $pending = \array_values(\array_filter(
+            $reservations,
+            static fn ($r) => $r['status'] === Reservation::STATUS_CONFIRMED
+        ));
+
+        foreach ($pending as &$reservation) {
+            $resId = (int) $reservation['id'];
+            $reservation['pre_order_items'] = $this->reservationRepo->getPreOrderItems($resId);
+            $reservation['pre_orders_activated'] = empty($reservation['pre_order_items'])
+                && $this->reservationRepo->countActivatedPreOrders($resId) > 0;
+        }
+        unset($reservation);
+
+        return $pending;
     }
 
     #[Override]
@@ -87,6 +100,15 @@ final class ReceptionService implements ReceptionServiceInterface
         foreach ($groups as &$group) {
             $group = $this->enrichActiveGroup($group);
         }
+        unset($group);
+
+        $ids = \array_column($groups, 'id');
+        $readyCounts = $this->itemRepo->getReadyCountsByReservations($ids);
+
+        foreach ($groups as &$group) {
+            $group['ready_item_count'] = $readyCounts[(int) $group['id']] ?? 0;
+        }
+        unset($group);
 
         return $groups;
     }
@@ -439,7 +461,19 @@ final class ReceptionService implements ReceptionServiceInterface
     public function activatePreOrder(int $reservationId, int $cafeId): Result
     {
         try {
+            Logger::info('[ReceptionService] activatePreOrder llamado', [
+                'reservation_id' => $reservationId,
+                'cafe_id_session' => $cafeId,
+            ]);
+
             $reservation = $this->reservationRepo->findByIdWithCafeDetails($reservationId);
+
+            Logger::info('[ReceptionService] findByIdWithCafeDetails resultado', [
+                'reservation_id' => $reservationId,
+                'found' => $reservation !== null,
+                'db_cafe_id' => $reservation['cafe_id'] ?? null,
+                'db_status' => $reservation['status'] ?? null,
+            ]);
 
             if ($reservation === null) {
                 return Result::fail('Reserva no encontrada', 'not_found');
@@ -527,5 +561,58 @@ final class ReceptionService implements ReceptionServiceInterface
         }
 
         return (int) ((\strtotime($reservation->check_out_at) - \strtotime($reservation->check_in_at)) / 60);
+    }
+    // ─────────────────────────────────────────────────────────────
+    // Comanda — Datos para el modal de comanda y recibo
+    // ─────────────────────────────────────────────────────────────
+
+    #[Override]
+    public function getItemsForComanda(int $reservationId, int $cafeId): Result
+    {
+        try {
+            $rawReservation = $this->reservationRepo->findByIdWithCafeDetails($reservationId);
+
+            if ($rawReservation === null) {
+                return Result::fail("Reserva {$reservationId} no encontrada", 'not_found');
+            }
+
+            if ((int) $rawReservation['cafe_id'] !== $cafeId) {
+                return Result::fail('La reserva no pertenece a esta sede', 'cafe_mismatch');
+            }
+
+            $items = $this->itemRepo->findByReservation($reservationId);
+
+            $itemsAmount = 0.0;
+            foreach ($items as $item) {
+                $itemsAmount += (float) ($item['unit_price'] ?? 0) * (int) ($item['quantity'] ?? 1);
+            }
+
+            $passUnitPrice = (float) ($rawReservation['pass_unit_price'] ?? 0);
+            $guestCount = (int) ($rawReservation['guest_count'] ?? 1);
+            $passSubtotal = $passUnitPrice * $guestCount;
+            $total = $passSubtotal + $itemsAmount;
+
+            return Result::ok([
+                'reservation' => [
+                    'id' => (int) $rawReservation['id'],
+                    'user_name' => $rawReservation['user_name'] ?? '',
+                    'pass_name' => $rawReservation['pass_name'] ?? '',
+                    'pass_unit_price' => $passUnitPrice,
+                    'guest_count' => $guestCount,
+                    'reservation_time' => $rawReservation['reservation_time'] ?? '',
+                    'status' => $rawReservation['status'] ?? '',
+                ],
+                'items' => $items,
+                'totals' => [
+                    'pass_subtotal' => $passSubtotal,
+                    'items_amount' => $itemsAmount,
+                    'total' => $total,
+                ],
+            ]);
+        } catch (PDOException $e) {
+            Logger::error('[ReceptionService] DB error en getItemsForComanda()', ['exception' => $e->getMessage()]);
+
+            return Result::fail('Error de base de datos', 'db_error');
+        }
     }
 }

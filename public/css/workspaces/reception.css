@@ -1189,3 +1189,212 @@ body.reception-mode {
   outline: 2px solid var(--rec-accent);
   outline-offset: 2px;
 }
+
+/* ── Botón Comanda con badge ───────────────────────────────────────── */
+.btn-table--comanda {
+  position: relative;
+}
+
+.ready-badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  background: #22c55e;
+  color: #fff;
+  border-radius: 9999px;
+  min-width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0 4px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* ── Modal Comanda ─────────────────────────────────────────────────── */
+.comanda-card {
+  max-width: 480px;
+  width: 100%;
+}
+
+.comanda-loading,
+.comanda-empty {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9rem;
+  padding: 1.25rem 0;
+}
+
+.comanda-items {
+  margin-top: 0.75rem;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 0;
+}
+
+.comanda-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.85rem;
+}
+
+.comanda-item:last-child {
+  border-bottom: none;
+}
+
+.comanda-item__qty {
+  color: #9ca3af;
+  min-width: 24px;
+}
+
+.comanda-item__name {
+  flex: 1;
+}
+
+.comanda-item__price {
+  color: #374151;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status badges */
+.comanda-status-badge {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-pending {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.status-in-progress {
+  background: #fef9c3;
+  color: #b45309;
+}
+
+.status-ready {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-served {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.comanda-totals {
+  padding: 10px 12px 4px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 4px;
+}
+
+.comanda-total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  padding: 3px 0;
+  color: #6b7280;
+}
+
+.comanda-total-row--grand {
+  font-size: 0.95rem;
+  color: #111827;
+  border-top: 1px solid #d1d5db;
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+/* ── Cobro receipt ──────────────────────────────────────────────────── */
+.cobro-receipt {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.cobro-receipt__title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.cobro-receipt__line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  padding: 2px 0;
+  color: #374151;
+}
+
+.cobro-receipt__line--pass {
+  color: #6b7280;
+  font-style: italic;
+  border-top: 1px dashed #e5e7eb;
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+.cobro-receipt__total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-top: 1px solid #d1d5db;
+  margin-top: 6px;
+  padding-top: 6px;
+  color: #111827;
+}
+
+/* Scrollbars temáticos recepción */
+.zen-list::-webkit-scrollbar,
+.floor-container::-webkit-scrollbar,
+.pos-product-grid::-webkit-scrollbar,
+.comanda-items::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.zen-list::-webkit-scrollbar-track,
+.floor-container::-webkit-scrollbar-track,
+.pos-product-grid::-webkit-scrollbar-track,
+.comanda-items::-webkit-scrollbar-track {
+  background: var(--rec-border);
+  border-radius: 3px;
+}
+
+.zen-list::-webkit-scrollbar-thumb,
+.floor-container::-webkit-scrollbar-thumb,
+.pos-product-grid::-webkit-scrollbar-thumb,
+.comanda-items::-webkit-scrollbar-thumb {
+  background: var(--rec-text-muted);
+  border-radius: 3px;
+}
+
+.zen-list::-webkit-scrollbar-thumb:hover,
+.floor-container::-webkit-scrollbar-thumb:hover,
+.pos-product-grid::-webkit-scrollbar-thumb:hover,
+.comanda-items::-webkit-scrollbar-thumb:hover {
+  background: var(--rec-text);
+}

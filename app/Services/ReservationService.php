@@ -206,10 +206,10 @@ final class ReservationService implements ReservationServiceInterface
             $isDebug = Env::get('APP_DEBUG', '') ?: (Env::get('APP_ENV', '') !== 'production');
 
             Logger::error('[ReservationService] DB error in create()', [
-                'sqlstate'  => $e->getCode(),
-                'message'   => $e->getMessage(),
-                'location'  => $e->getFile() . ':' . $e->getLine(),
-                'trace'     => \implode("\n", \array_slice(\explode("\n", $e->getTraceAsString()), 0, 6)),
+                'sqlstate' => $e->getCode(),
+                'message' => $e->getMessage(),
+                'location' => $e->getFile() . ':' . $e->getLine(),
+                'trace' => \implode("\n", \array_slice(\explode("\n", $e->getTraceAsString()), 0, 6)),
             ]);
 
             $detail = $isDebug
@@ -238,12 +238,12 @@ final class ReservationService implements ReservationServiceInterface
                     'pass_name' => 'Walk-in',
                     'pass_unit_price' => 0,
                     'pass_duration_minutes' => 0,
-                    'reservation_date' => date('Y-m-d'),
-                    'reservation_time' => date('H:i:00'),
+                    'reservation_date' => \date('Y-m-d'),
+                    'reservation_time' => \date('H:i:00'),
                     'guest_count' => $guests,
                     'notes' => $notes !== '' ? $notes : null,
                     'status' => 'active', // Auto-activo
-                    'check_in_at' => date('Y-m-d H:i:s'),
+                    'check_in_at' => \date('Y-m-d H:i:s'),
                     'payment_status' => 'pending',
                 ];
 
@@ -259,10 +259,11 @@ final class ReservationService implements ReservationServiceInterface
             });
 
             return Result::ok($reservationId);
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             $this->logger->error('[ReceptionService] DB error in createWalkin()', [
-                'exception' => $e->getMessage()
+                'exception' => $e->getMessage(),
             ]);
+
             return Result::fail('Error de base de datos', 'db_error');
         }
     }
@@ -804,9 +805,9 @@ final class ReservationService implements ReservationServiceInterface
         );
 
         foreach ($inclusions as $inclusion) {
-            $catId    = (int) $inclusion['category_id'];
+            $catId = (int) $inclusion['category_id'];
             $totalQty = (int) $inclusion['quantity_per_pax'] * $guests;
-            $covered  = $preOrderQtyByCategory[$catId] ?? 0;
+            $covered = $preOrderQtyByCategory[$catId] ?? 0;
             $remaining = \max(0, $totalQty - $covered);
 
             if ($remaining === 0) {
@@ -820,7 +821,7 @@ final class ReservationService implements ReservationServiceInterface
 
             if ($product === null) {
                 Logger::warning('[ReservationService] No eligible product for pass inclusion', [
-                    'pass_id'     => $passId,
+                    'pass_id' => $passId,
                     'category_id' => $catId,
                 ]);
                 continue;
@@ -828,9 +829,9 @@ final class ReservationService implements ReservationServiceInterface
 
             $stmt->execute([
                 'reservation_id' => $reservationId,
-                'product_id'     => (int) $product['id'],
-                'quantity'       => $remaining,
-                'unit_price'     => 0,
+                'product_id' => (int) $product['id'],
+                'quantity' => $remaining,
+                'unit_price' => 0,
             ]);
         }
     }
@@ -848,14 +849,14 @@ final class ReservationService implements ReservationServiceInterface
         }
 
         $productIds = \array_column($items, 'product_id');
-        $products   = $this->productRepo->findByIds($productIds);
+        $products = $this->productRepo->findByIds($productIds);
 
         return \array_values(\array_map(static function (array $item) use ($products): array {
             $product = $products[(int) $item['product_id']] ?? null;
 
             return [
                 'product_id' => (int) $item['product_id'],
-                'qty'        => (int) $item['qty'],
+                'qty' => (int) $item['qty'],
                 'unit_price' => $product !== null ? (int) $product['price'] : 0,
                 'category_id' => $product !== null ? (int) $product['category_id'] : 0,
             ];

@@ -80,7 +80,7 @@ $userId = (int) ($user['id'] ?? 0);
                                 method: 'PUT',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'X-CSRF-Token': document.querySelector('[name=_csrf]').value
+                                    'X-CSRF-Token': document.querySelector('[name=csrf_token]').value
                                 },
                                 body: JSON.stringify(payload)
                             })

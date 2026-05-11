@@ -697,6 +697,11 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
             $params['search_jp'] = $searchTerm;
         }
 
+        if (!empty($filters['allergen_code'])) {
+            $where[] = 'EXISTS (SELECT 1 FROM product_allergens pa2 INNER JOIN allergens al2 ON pa2.allergen_id = al2.id WHERE pa2.product_id = p.id AND al2.code = :allergen_code)';
+            $params['allergen_code'] = $filters['allergen_code'];
+        }
+
         $whereClause = \implode(' AND ', $where);
 
         // Contar total
@@ -822,7 +827,7 @@ final class ProductRepository extends AbstractRepository implements ProductRepos
                 $severities = \explode(',', $row['allergen_severities']);
 
                 $row['allergens_list'] = \array_map(
-                    static fn(string $id, string $name, string $code, string $severity): array => [
+                    static fn (string $id, string $name, string $code, string $severity): array => [
                         'id' => (int) $id,
                         'name' => $name,
                         'code' => $code,

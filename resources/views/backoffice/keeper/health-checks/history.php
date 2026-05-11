@@ -80,13 +80,13 @@ use App\Support\DateFormatting;
                     <h4 class="mb-0">
                         <?php
                         $alertCount = 0;
-                        foreach ($history as $check) {
-                            if (!empty($check['alerts']) && is_array($check['alerts'])) {
-                                $alertCount += count($check['alerts']);
-                            }
-                        }
-                        echo $alertCount;
-                        ?>
+foreach ($history as $check) {
+    if (!empty($check['alerts']) && is_array($check['alerts'])) {
+        $alertCount += count($check['alerts']);
+    }
+}
+echo $alertCount;
+?>
                     </h4>
                     <p class="text-muted mb-0">Alertas Totales</p>
                 </div>
@@ -145,7 +145,7 @@ use App\Support\DateFormatting;
                                             <strong>Temperatura:</strong>
                                             <?php if ($check['temperature_c']): ?>
                                                 <?php
-                                                $temp = (float) $check['temperature_c'];
+                        $temp = (float) $check['temperature_c'];
                                                 $tempClass = $temp > 39.5 ? 'text-danger' : ($temp < 36 ? 'text-warning' : '');
                                                 ?>
                                                 <span class="<?= $tempClass ?>">

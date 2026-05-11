@@ -8,6 +8,7 @@ use App\Core\Http\ResponseFactory;
 use App\Core\Session;
 use App\Http\Controllers\Api\AbstractApiController;
 use App\Services\Contracts\ReceptionServiceInterface;
+use App\Services\MercurePublisherService;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -37,6 +38,7 @@ final class ReceptionApiController extends AbstractApiController
 
         try {
             $reservations = $this->service->getPendingArrivals($cafeId);
+
             return $this->success(['reservations' => $reservations]);
         } catch (Exception $e) {
             return $this->serverError('Error al obtener reservas: ' . $e->getMessage(), 'fetch_failed');
@@ -66,6 +68,14 @@ final class ReceptionApiController extends AbstractApiController
                 return $this->unprocessable($result->error ?? 'Error al realizar check-in', 'checkin_failed');
             }
 
+            $cafeId = Session::userCafeId();
+            if ($cafeId) {
+                MercurePublisherService::publish(
+                    'reception/' . $cafeId . '/reservations',
+                    ['event' => 'checkin', 'reservation_id' => $id, 'cafe_id' => $cafeId]
+                );
+            }
+
             return $this->success(['message' => 'Check-in realizado']);
         } catch (Exception $e) {
             return $this->serverError('Error al procesar check-in: ' . $e->getMessage(), 'checkin_error');
@@ -86,6 +96,14 @@ final class ReceptionApiController extends AbstractApiController
 
             if (!$result->ok) {
                 return $this->unprocessable($result->error ?? 'Error al realizar check-out', 'checkout_failed');
+            }
+
+            $cafeId = Session::userCafeId();
+            if ($cafeId) {
+                MercurePublisherService::publish(
+                    'reception/' . $cafeId . '/reservations',
+                    ['event' => 'checkout', 'reservation_id' => $id, 'cafe_id' => $cafeId]
+                );
             }
 
             return $this->success(['message' => 'Check-out realizado']);
@@ -128,6 +146,11 @@ final class ReceptionApiController extends AbstractApiController
                 return $this->unprocessable($result->error ?? 'Error al añadir ítem', 'add_item_failed');
             }
 
+            MercurePublisherService::publish(
+                'kds/' . $cafeId . '/orders',
+                ['event' => 'item_added', 'reservation_id' => $id, 'cafe_id' => $cafeId]
+            );
+
             return $this->success($result->data, 201);
         } catch (Exception $e) {
             return $this->serverError('Error al añadir pedido: ' . $e->getMessage(), 'add_item_error');
@@ -167,6 +190,39 @@ final class ReceptionApiController extends AbstractApiController
             return $this->success($result->data);
         } catch (Exception $e) {
             return $this->serverError('Error al procesar cobro: ' . $e->getMessage(), 'payment_error');
+        }
+    }
+
+    /**
+     * GET /api/v1/ops/reception/reservations/{id}/items
+     */
+    public function getComandaItems(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        if ($id <= 0) {
+            return $this->badRequest('Identificador de reserva inválido', 'reservation_id_invalid');
+        }
+
+        $cafeId = Session::userCafeId();
+
+        if (!$cafeId) {
+            return $this->forbidden('No tienes una sede asignada', 'cafe_not_assigned');
+        }
+
+        try {
+            $result = $this->service->getItemsForComanda($id, $cafeId);
+
+            if (!$result->ok) {
+                $code = $result->code ?? 'fetch_failed';
+                if ($code === 'not_found') {
+                    return $this->notFound($result->error ?? 'Reserva no encontrada', $code);
+                }
+
+                return $this->unprocessable($result->error ?? 'Error al obtener comanda', $code);
+            }
+
+            return $this->success($result->data);
+        } catch (Exception $e) {
+            return $this->serverError('Error al obtener comanda: ' . $e->getMessage(), 'fetch_error');
         }
     }
 

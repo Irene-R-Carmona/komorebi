@@ -18,6 +18,7 @@ use Random\RandomException;
  * API REST: Gestión de usuarios (Admin)
  *
  * Rutas:
+ * - GET    /api/v1/admin/users          → list()
  * - POST   /api/v1/admin/users          → create()
  * - PUT    /api/v1/admin/users/{id}     → update()
  * - DELETE /api/v1/admin/users/{id}     → delete()
@@ -30,6 +31,18 @@ final class UserApiController extends AbstractApiController
         private readonly UserManagementServiceInterface $userManagementService,
     ) {
         parent::__construct($response);
+    }
+
+    /**
+     * GET /api/v1/admin/users → 200
+     *
+     * @throws JsonException
+     */
+    public function list(): ResponseInterface
+    {
+        $users = $this->userManagementService->getUsersWithRoles();
+
+        return $this->success(['users' => $users]);
     }
 
     /**

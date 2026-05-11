@@ -53,8 +53,8 @@ final class AnimalIncidentController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $params   = $request->getQueryParams();
-        $search   = \trim((string) ($params['search'] ?? ''));
+        $params = $request->getQueryParams();
+        $search = \trim((string) ($params['search'] ?? ''));
         $severity = (string) ($params['severity'] ?? '');
 
         $cafeId = (int) (Session::user()['cafe_id'] ?? 0);
@@ -68,6 +68,7 @@ final class AnimalIncidentController
                 if ($severity !== '' && ($inc['severity'] ?? '') !== $severity) {
                     return false;
                 }
+
                 return true;
             }))
             : $all;

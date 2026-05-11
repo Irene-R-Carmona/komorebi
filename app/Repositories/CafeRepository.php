@@ -256,10 +256,10 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
                    AND (TIME_TO_SEC(reservation_time) + pass_duration_minutes * 60) > TIME_TO_SEC(:slot_time2)"
             );
             $bookingStmt->execute([
-                'cafe_id'            => $cafeId,
-                'date'               => $date,
-                'slot_time'          => $time,
-                'slot_time2'         => $time,
+                'cafe_id' => $cafeId,
+                'date' => $date,
+                'slot_time' => $time,
+                'slot_time2' => $time,
                 'slot_duration_secs' => $slotDurationSecs,
             ]);
         } else {
@@ -274,8 +274,8 @@ final class CafeRepository extends AbstractRepository implements CafeCatalogRepo
             );
             $bookingStmt->execute([
                 'cafe_id' => $cafeId,
-                'date'    => $date,
-                'time'    => $time,
+                'date' => $date,
+                'time' => $time,
             ]);
         }
 

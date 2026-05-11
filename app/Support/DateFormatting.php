@@ -93,7 +93,7 @@ final class DateFormatting
             9 => 'septiembre',
             10 => 'octubre',
             11 => 'noviembre',
-            12 => 'diciembre'
+            12 => 'diciembre',
         ];
 
         $ts = \strtotime($datetimeStr);

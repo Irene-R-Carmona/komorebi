@@ -90,6 +90,7 @@ final class ReceptionController
             'cap_max' => $capInfo['max'] ?? 0,
             'orderable_items' => $orderableItems,
             'orderable_items_json' => Raw::json($orderableItems),
+            'ready_by_res_json' => Raw::json(\array_column($activeGroups, 'ready_item_count', 'id')),
         ], ['workspaces/reception.css'], 'reception');
 
         return null;

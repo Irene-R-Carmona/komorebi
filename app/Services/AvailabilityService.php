@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Container;
-use App\Core\Env;
 use App\Core\Result;
 use App\Core\Time;
 use App\Domain\DTO\CafeDTO;
@@ -181,10 +180,10 @@ final class AvailabilityService implements AvailabilityServiceInterface
             $slotCapacity = $slotMeta[$slotKey]['capacity'] ?? $capacityMax;
             $isAvailable = ($occupied + $guests) <= $slotCapacity;
             $slots[] = [
-                'time'            => $slotKey,
-                'available'       => $isAvailable,
+                'time' => $slotKey,
+                'available' => $isAvailable,
                 'occupied_guests' => $occupied,
-                'total_capacity'  => $slotCapacity,
+                'total_capacity' => $slotCapacity,
             ];
         }
 
@@ -217,7 +216,7 @@ final class AvailabilityService implements AvailabilityServiceInterface
 
         $slots = (array) ($res->data['slots'] ?? []);
         $availableTimes = \array_column(
-            \array_filter($slots, static fn(array $s) => ($s['available'] ?? false) === true),
+            \array_filter($slots, static fn (array $s) => ($s['available'] ?? false) === true),
             'time'
         );
         if (!\in_array($timeHHMM, $availableTimes, true)) {

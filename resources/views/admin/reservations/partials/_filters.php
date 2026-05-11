@@ -11,7 +11,7 @@ $cafeNames ??= [];
 $currentParams ??= [];
 ?>
 
-<form method="GET" action="/admin/reservas" class="filter-bar mb-4" x-data>
+<form method="GET" action="/admin/reservations" class="filter-bar mb-4" x-data>
     <div class="reservation-filters">
 
         <!-- Búsqueda -->
@@ -36,7 +36,7 @@ $currentParams ??= [];
             <select id="filter-status" name="status" class="form-select" @change="$el.form.requestSubmit()">
                 <option value="">Todos</option>
                 <option value="confirmed" <?= ($currentParams['status'] ?? '') === 'confirmed' ? 'selected' : '' ?>>Confirmada</option>
-                <option value="pending"   <?= ($currentParams['status'] ?? '') === 'pending' ? 'selected' : '' ?>>Pendiente</option>
+                <option value="pending" <?= ($currentParams['status'] ?? '') === 'pending' ? 'selected' : '' ?>>Pendiente</option>
                 <option value="cancelled" <?= ($currentParams['status'] ?? '') === 'cancelled' ? 'selected' : '' ?>>Cancelada</option>
                 <option value="completed" <?= ($currentParams['status'] ?? '') === 'completed' ? 'selected' : '' ?>>Completada</option>
             </select>
@@ -48,11 +48,11 @@ $currentParams ??= [];
             <select id="filter-cafe" name="cafe" class="form-select" @change="$el.form.requestSubmit()">
                 <option value="">Todos los cafés</option>
                 <?php foreach ($cafeNames as $cafeName): ?>
-                <option
-                    value="<?= htmlspecialchars((string) $cafeName, ENT_QUOTES, 'UTF-8') ?>"
-                    <?= ($currentParams['cafe'] ?? '') === $cafeName ? 'selected' : '' ?>>
-                    <?= htmlspecialchars((string) $cafeName, ENT_QUOTES, 'UTF-8') ?>
-                </option>
+                    <option
+                        value="<?= htmlspecialchars((string) $cafeName, ENT_QUOTES, 'UTF-8') ?>"
+                        <?= ($currentParams['cafe'] ?? '') === $cafeName ? 'selected' : '' ?>>
+                        <?= htmlspecialchars((string) $cafeName, ENT_QUOTES, 'UTF-8') ?>
+                    </option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -83,11 +83,11 @@ $currentParams ??= [];
 
         <!-- Limpiar -->
         <?php if ($currentParams !== []): ?>
-        <div>
-            <a href="/admin/reservas" class="btn btn-outline-secondary" title="Limpiar filtros" aria-label="Limpiar filtros">
-                <i class="bi bi-x-lg"></i>
-            </a>
-        </div>
+            <div>
+                <a href="/admin/reservations" class="btn btn-outline-secondary" title="Limpiar filtros" aria-label="Limpiar filtros">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
         <?php endif; ?>
 
     </div>

@@ -13,6 +13,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= Csrf::token() ?>">
     <title>Komorebi Reception</title>
+    <link rel="icon" type="image/svg+xml" href="/images/logos/komorebi-logo-icon.svg">
+    <link rel="alternate icon" href="/favicon.ico">
 
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//fonts.gstatic.com">

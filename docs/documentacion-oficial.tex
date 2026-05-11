@@ -10,7 +10,7 @@
 
 % ─── Codificación y tipografía ───────────────────────────────
 \usepackage{fontspec}
-\setmainfont{Times New Roman}
+\setmainfont{Arial}
 \setsansfont{Arial}
 \setmonofont[Scale=0.9]{Courier New}
 
@@ -34,15 +34,19 @@
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[LE,RO]{\thepage}
-\fancyhead[RE]{\textit{Komorebi Café}}
-\fancyhead[LO]{\textit{\leftmark}}
+\fancyhead[L]{\small Irene Reyes Carmona}
+\fancyhead[R]{\small Komorebi Café}
+\fancyhead[C]{}
+\fancyfoot[C]{\thepage}
+\fancyfoot[L]{}
+\fancyfoot[R]{}
 \renewcommand{\headrulewidth}{0.4pt}
 
 % ─── Tipografía avanzada ─────────────────────────────────────
 \usepackage{microtype}
 \usepackage{setspace}
 \onehalfspacing
+\setlength{\parskip}{0.5\baselineskip}
 
 % ─── Colores ─────────────────────────────────────────────────
 \usepackage[dvipsnames,table]{xcolor}
@@ -72,26 +76,39 @@
 
 % ─── Figuras ─────────────────────────────────────────────────
 \usepackage{graphicx}
+\usepackage{pdfpages}
 \usepackage{float}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{svg}           % requiere Inkscape en PATH
 \svgsetup{inkscapepath=svgdir}
 
-% ─── Código fuente ───────────────────────────────────────────
-\usepackage{minted}
-\usemintedstyle{friendly}
-\setminted{
-  fontsize=\small,
-  linenos=true,
-  breaklines=true
-  % bgcolor, frame y framesep se controlan por tcolorbox en los entornos phpcode/sqlcode/bashcode
+% ─── Código fuente (listings, sin dependencia Python) ────────
+\usepackage{listings}
+\lstset{
+  basicstyle=\small\ttfamily,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2
+}
+% Definición de lenguaje PHP básico (keywords y colores)
+\lstdefinelanguage{phpex}{
+  language=PHP,
+  morekeywords={declare,strict_types,readonly,match,fn,null,true,false},
+  keywordstyle=\color{komorebi}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{komorebi-dark},
 }
 \usepackage{tcolorbox}
-\tcbuselibrary{minted,skins,breakable}
+\tcbuselibrary{listings,skins,breakable}
 \newtcblisting{phpcode}[2][]{
-  listing engine=minted,
-  minted language=php,
+  listing only,
+  listing options={language=phpex,basicstyle=\small\ttfamily,numbers=left,
+    numberstyle=\tiny\color{gray},breaklines=true,showstringspaces=false,
+    keywordstyle=\color{komorebi}\bfseries,commentstyle=\color{gray}\itshape,
+    stringstyle=\color{komorebi-dark}},
   title=#2,
   colback=code-bg,
   colframe=komorebi,
@@ -100,8 +117,10 @@
   #1
 }
 \newtcblisting{sqlcode}[2][]{
-  listing engine=minted,
-  minted language=sql,
+  listing only,
+  listing options={language=SQL,basicstyle=\small\ttfamily,numbers=left,
+    numberstyle=\tiny\color{gray},breaklines=true,showstringspaces=false,
+    keywordstyle=\color{komorebi-dark}\bfseries},
   title=#2,
   colback=code-bg,
   colframe=komorebi-dark,
@@ -110,8 +129,10 @@
   #1
 }
 \newtcblisting{bashcode}[2][]{
-  listing engine=minted,
-  minted language=bash,
+  listing only,
+  listing options={language=bash,basicstyle=\small\ttfamily,numbers=left,
+    numberstyle=\tiny\color{gray},breaklines=true,showstringspaces=false,
+    keywordstyle=\color{gray!60!black}\bfseries},
   title=#2,
   colback=code-bg,
   colframe=gray,
@@ -138,6 +159,7 @@
   pdfsubject={Proyecto de Fin de Grado},
   pdfkeywords={PHP,MVC,Docker,PSR-7,Café temático}
 ]{hyperref}
+\usepackage{amsmath}% requerido por cleveref
 \usepackage[spanish]{cleveref}
 
 % ─── Glosario ────────────────────────────────────────────────
@@ -202,36 +224,17 @@
 % ============================================================
 \begin{document}
 
-% ─── PORTADA ─────────────────────────────────────────────────
-\begin{titlepage}
-  \centering
-  \vspace*{1.5cm}
-
-  % Logo del café
-  \includesvg[width=5cm]{images/logos/komorebi-logo-stacked}\\[1.5cm]
-
-  {\fontsize{22}{26}\selectfont\bfseries\color{komorebi-dark}
-    Komorebi Café\\[0.4cm]
-    \fontsize{18}{22}\selectfont\mdseries
-    Plataforma de gestión integral\\
-    para cadena de cafés temáticos\\[2cm]}
-
-  {\large Documentación de Proyecto Final\\[0.3cm]
-   Ciclo Formativo de Grado Superior —
-   Desarrollo de Aplicaciones Web}\\[2.5cm]
-
-  \begin{tabular}{rl}
-    \textbf{Alumna:}         & Irene Reyes Carmona\\[4pt]
-    \textbf{Centro:}         & I.E.S. Ágora\\[4pt]
-    \textbf{Tutora:}         & María Lourdes Calleja Flores\\[4pt]
-    \textbf{Año académico:}  & 2025-2026\\
-  \end{tabular}
-
-  \vfill
-
-  \includesvg[width=2.5cm]{images/logos/komorebi-logo-icon}\\[0.5cm]
-  {\small\color{gray} Komorebi Café · Todos los derechos reservados · 2026}
-\end{titlepage}
+% ─── PORTADA (plantilla oficial IES Ágora) ──────────────────
+\IfFileExists{portada-oficial.pdf}{
+  \includepdf[pages=1]{portada-oficial.pdf}
+}{
+  % Portada temporal mientras se añade portada-oficial.pdf
+  \begin{titlepage}
+    \centering\vspace*{4cm}
+    {\large\textbf{[PORTADA OFICIAL IES ÁGORA]}}\\[1cm]
+    {\normalsize Guardar la portada oficial como \texttt{docs/portada-oficial.pdf}}
+  \end{titlepage}
+}
 
 % ─── FRONTMATTER ─────────────────────────────────────────────
 \pagenumbering{roman}
@@ -287,20 +290,6 @@ and more than 95 REST API endpoints.
 \bigskip
 \textbf{Keywords:} PHP~8.4, MVC, Docker, PSR-7, PSR-15, Result pattern, reservations,
 loyalty, themed cafés, 12-Factor.
-
-% ── Agradecimientos ──────────────────────────────────────────
-\chapter*{Agradecimientos}
-\addcontentsline{toc}{chapter}{Agradecimientos}
-
-A María Lourdes Calleja Flores, tutora de este proyecto, por su orientación constante,
-su rigor técnico y su disponibilidad a lo largo de todo el proceso de desarrollo y
-documentación.
-
-A mis compañeros y compañeras del ciclo, por los debates técnicos, las horas compartidas
-y el apoyo mutuo que han hecho posible completar este proyecto.
-
-Y a todas las personas que, como la luz entre las hojas, iluminan los rincones del camino
-cuando más lo hace falta.
 
 % ── Índices ──────────────────────────────────────────────────
 \tableofcontents
@@ -547,7 +536,7 @@ ejecución.
                font=\scriptsize},
     arr/.style={-{Latex},thick,komorebi}
   ]
-    \foreach \label/\y in {
+    \foreach \mwlabel/\y in {
       ErrorHandler/0,
       SecurityHeaders/-1,
       RequestLog/-2,
@@ -564,7 +553,7 @@ ejecución.
       CafeScope/-13,
       Idempotency/-14
     }{
-      \node[mw] (\label) at (0,\y) {\label};
+      \node[mw] (\mwlabel) at (0,\y) {\mwlabel};
     }
     \foreach \a/\b in {
       ErrorHandler/SecurityHeaders,
@@ -580,7 +569,7 @@ ejecución.
       Role/ApiRole,
       ApiRole/Authorization,
       Authorization/CafeScope,
-      CafeScope/Idempotency
+      CafeScope/Idempotency%
     }{
       \draw[arr] (\a) -- (\b);
     }
@@ -712,7 +701,7 @@ petición llegue al controlador. Los roles disponibles son:
 
     \begin{call}{C}{POST /api/v1/tokens (email, password)}{TC}{}
       \begin{call}{TC}{create(\$userId, \$name, \$abilities)}{TS}{}
-        \begin{call}{TS}{\texttt{random\_bytes(32)} → plain token}{TS}{}
+        \begin{call}{TS}{\texttt{random\_bytes(32)} $\to$ plain token}{TS}{}
         \end{call}
         \begin{call}{TS}{\texttt{hash('sha256', token)}}{TS}{hash}
         \end{call}
@@ -720,7 +709,7 @@ petición llegue al controlador. Los roles disponibles son:
         \end{call}
       \end{call}
     \end{call}
-    \mess{TC}{plain token (devuelto una sola vez)}{C}
+    \mess{TC}{plain token {[}devuelto una sola vez{]}}{C}
 
     \begin{sdblock}{Petición posterior}{}
       \begin{call}{C}{GET /api/v1/... Bearer <token>}{TC}{}
@@ -749,11 +738,11 @@ petición llegue al controlador. Los roles disponibles son:
     \newthread{RD}{Redis}
     \newthread{EV}{EventDispatcher}
 
-    \begin{call}{U}{POST /api/v1/reservations\\Idempotency-Key: UUID v4}{IM}{}
+    \begin{call}{U}{POST /api/v1/reservations, Idempotency-Key: UUID~v4}{IM}{}
       \begin{call}{IM}{GET idempotency:\{key\}}{RD}{hit/miss}
       \end{call}
       \begin{sdblock}{Cache HIT}{}
-        \mess{IM}{Response cacheada (200/201)}{U}
+        \mess{IM}{Response cacheada {[}200/201{]}}{U}
       \end{sdblock}
       \begin{sdblock}{Cache MISS}{}
         \begin{call}{IM}{handle(\$request)}{RC}{}
@@ -766,7 +755,7 @@ petición llegue al controlador. Los roles disponibles son:
         \end{call}
         \begin{call}{IM}{SET idempotency:\{key\} TTL 86400}{RD}{}
         \end{call}
-        \mess{IM}{201 Created (invoice\_pdf\_url: null)}{U}
+        \mess{IM}{201 Created {[}invoice\_pdf\_url: null{]}}{U}
       \end{sdblock}
     \end{call}
   \end{sequencediagram}
@@ -1235,19 +1224,19 @@ Las herramientas que componen el gate son:
     }
     [komorebi/
       [app/
-        [Core/ [Router, Container, View, DB, Cache, Queue, Logger]]
-        [Http/ [Controllers/ [Admin/ Manager/ Kitchen/ Keeper/ ...]]]
-        [Services/ [53 servicios de negocio]]
-        [Repositories/ [29 repositorios PDO]]
-        [Events/ + Listeners/]
+        [Core/ [{Router, Container, View, DB, Cache, Queue, Logger}]]
+        [Http/ [Controllers/ [{Admin/ Manager/ Kitchen/ Keeper/ ...}]]]
+        [Services/ [{53 servicios de negocio}]]
+        [Repositories/ [{29 repositorios PDO}]]
+        [{Events/ + Listeners/}]
         [routes.php]
       ]
       [bootstrap/ [container.php]]
-      [migrations/ [001 -- 019 SQL]]
-      [resources/ [views/ [layouts/ admin/ public/ ...]]]
-      [tests/ [Unit/ Integration/ e2e/]]
-      [public/ [index.php css/ js/ images/]]
-      [docs/ [diagrams/ images/ screenshots/ plans/]]
+      [migrations/ [{001 -- 019 SQL}]]
+      [resources/ [views/ [{layouts/ admin/ public/ ...}]]]
+      [tests/ [{Unit/ Integration/ e2e/}]]
+      [public/ [{index.php css/ js/ images/}]]
+      [docs/ [{diagrams/ images/ screenshots/ plans/}]]
     ]
   \end{forest}
   \caption{Estructura de directorios del proyecto}
@@ -1320,7 +1309,14 @@ archivo \texttt{/run/secrets/<clave>} (estándar Docker Swarm).
 \end{figure}
 
 % ============================================================
-%  CAPÍTULO 3 — MANUAL DE USUARIO
+%  CAPÍTULO 3 — ALTERNATIVAS CONSIDERADAS
+% ============================================================
+\chapter{Alternativas Consideradas}
+\label{ch:alternativas}
+% TODO: contenido Fase 3.B
+
+% ============================================================
+%  CAPÍTULO 4 — MANUAL DE USUARIO
 % ============================================================
 \chapter{Manual de Usuario}
 \label{chap:manual}
@@ -1717,10 +1713,17 @@ su descripción, la resolución aplicada y la fecha de cierre.
 \end{figure}
 
 % ============================================================
-%  CAPÍTULO 4 — CONCLUSIONES Y FUTURAS MEJORAS
+%  CAPÍTULO 5 — RESULTADOS
+% ============================================================
+\chapter{Resultados}
+\label{ch:resultados}
+% TODO: contenido Fase 3.C
+
+% ============================================================
+%  CAPÍTULO 6 — CONCLUSIONES Y FUTURAS MEJORAS
 % ============================================================
 \chapter{Conclusiones y Futuras Mejoras}
-\label{chap:conclusiones}
+\label{ch:conclusiones}
 
 \section{Objetivos alcanzados}
 \label{sec:objetivos-alcanzados}
@@ -1796,10 +1799,10 @@ quedan ocultas detrás de los frameworks de alto nivel:
 \end{enumerate}
 
 % ============================================================
-%  CAPÍTULO 5 — REFERENCIAS BIBLIOGRÁFICAS
+%  CAPÍTULO 7 — REFERENCIAS BIBLIOGRÁFICAS
 % ============================================================
 \chapter{Referencias Bibliográficas}
-\label{chap:refs}
+\label{ch:refs}
 
 \printbibliography[heading=none]
 
@@ -2047,6 +2050,11 @@ La \cref{tab:envvars} describe las variables principales.
 
 \printnoidxglossary[type=abbreviations,title=Acrónimos]
 \printnoidxglossary[type=main,title=Términos]
+
+% ─── APÉNDICE E — MANUAL TÉCNICO ─────────────────────────────
+\chapter{Manual Técnico}
+\label{ch:manual-tecnico}
+% TODO: contenido Fase 3.D
 
 \end{appendices}
 

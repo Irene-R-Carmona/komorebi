@@ -24,7 +24,8 @@ final class AdoptionService implements AdoptionServiceInterface
     public function __construct(
         private readonly AdoptionRepositoryInterface $adoptionRepo,
         private readonly AnimalRepositoryInterface $animalRepo,
-    ) {}
+    ) {
+    }
 
     // ─── Consultas ────────────────────────────────────────────────────────────
 

@@ -174,10 +174,10 @@ final class AnimalRepository extends AbstractRepository implements AnimalReposit
 
         return [
             'total_animals' => (int) $animalStats['total_animals'],
-            'healthy'       => (int) $animalStats['healthy'],
-            'monitoring'    => (int) $animalStats['monitoring'],
-            'sick'          => (int) $animalStats['sick'],
-            'logs_today'    => $logsToday,
+            'healthy' => (int) $animalStats['healthy'],
+            'monitoring' => (int) $animalStats['monitoring'],
+            'sick' => (int) $animalStats['sick'],
+            'logs_today' => $logsToday,
         ];
     }
 

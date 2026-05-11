@@ -89,17 +89,17 @@ final class CartService implements CartServiceInterface
             $isAvailable = $product['is_active'] ?? false;
             if ($product && $isAvailable) {
                 $detailedItems[(string) $productId] = [
-                    'product_id'    => $productId,
-                    'name'          => $product['name'],
+                    'product_id' => $productId,
+                    'name' => $product['name'],
                     'japanese_name' => $product['japanese_name'],
-                    'category_id'   => (int) $product['category_id'],
-                    'price_cents'   => (int) $product['price'],
-                    'price'         => (int) $product['price'],
-                    'qty'           => (int) $qty,
-                    'quantity'      => (int) $qty,
-                    'subtotal'      => (int) $product['price'] * (int) $qty,
-                    'image_url'     => $product['image_url'],
-                    'station'       => $product['station'],
+                    'category_id' => (int) $product['category_id'],
+                    'price_cents' => (int) $product['price'],
+                    'price' => (int) $product['price'],
+                    'qty' => (int) $qty,
+                    'quantity' => (int) $qty,
+                    'subtotal' => (int) $product['price'] * (int) $qty,
+                    'image_url' => $product['image_url'],
+                    'station' => $product['station'],
                 ];
             }
         }

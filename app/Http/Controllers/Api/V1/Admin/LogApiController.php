@@ -17,12 +17,13 @@ use Psr\Http\Message\ServerRequestInterface;
  *
  * Rutas:
  * - GET /api/v1/admin/logs/audit            → auditLogs()
- * - GET /api/v1/admin/logs/audit/export     → auditExport()
  * - GET /api/v1/admin/logs/audit/stats      → auditStats()
+ * - GET /api/v1/admin/logs/audit/export     → auditExport()
  * - GET /api/v1/admin/logs/auth             → authLogs()
- * - GET /api/v1/admin/logs/auth/export      → authExport()
+ * - GET /api/v1/admin/logs/auth/stats       → authStats()
  * - GET /api/v1/admin/logs/auth/suspicious  → authSuspicious()
  * - GET /api/v1/admin/logs/auth/suspicious-count → authSuspiciousCount()
+ * - GET /api/v1/admin/logs/auth/export      → authExport()
  * - POST /api/v1/admin/security/block-ip    → blockIp()
  */
 final class LogApiController extends AbstractApiController
@@ -46,7 +47,7 @@ final class LogApiController extends AbstractApiController
     {
         $q = $request->getQueryParams();
         $page = \max(1, (int) ($q['page'] ?? 1));
-        $limit = \max(10, \min(100, (int) ($q['limit'] ?? 50)));
+        $limit = \max(10, \min(100, (int) ($q['perPage'] ?? $q['limit'] ?? 50)));
         $offset = ($page - 1) * $limit;
 
         $filters = \array_filter([
@@ -143,7 +144,7 @@ final class LogApiController extends AbstractApiController
     {
         $q = $request->getQueryParams();
         $page = \max(1, (int) ($q['page'] ?? 1));
-        $limit = \max(10, \min(100, (int) ($q['limit'] ?? 50)));
+        $limit = \max(10, \min(100, (int) ($q['perPage'] ?? $q['limit'] ?? 50)));
         $offset = ($page - 1) * $limit;
 
         $filters = \array_filter([
@@ -161,6 +162,25 @@ final class LogApiController extends AbstractApiController
             'logs' => $result['data'],
             'total' => $result['total'],
         ]);
+    }
+
+    /**
+     * GET /api/v1/admin/logs/auth/stats → 200
+     *
+     * @throws JsonException
+     */
+    public function authStats(ServerRequestInterface $request): ResponseInterface
+    {
+        $q = $request->getQueryParams();
+
+        $filters = \array_filter([
+            'date_from' => $q['date_from'] ?? null,
+            'date_to' => $q['date_to'] ?? null,
+        ], static fn ($v) => $v !== null && $v !== '');
+
+        $stats = $this->authLogRepo->getStats($filters);
+
+        return $this->success(['stats' => $stats]);
     }
 
     /**

@@ -22,9 +22,12 @@ final class DataViewerController
 
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
+        $page = \max(1, (int) ($request->getQueryParams()['page'] ?? 1));
+        $perPage = 10;
+
         try {
             $stats = $this->statsRepo->getDataViewerStats();
-            $samples = $this->statsRepo->getDataViewerSamples();
+            $samples = $this->statsRepo->getDataViewerSamples($page, $perPage);
         } catch (Throwable) {
             $stats = \array_fill_keys(
                 [
@@ -46,6 +49,7 @@ final class DataViewerController
                 ['cafes', 'products', 'staff', 'users', 'reservations', 'time_slots', 'reviews', 'incidents'],
                 []
             );
+            $samples['meta'] = ['page' => $page, 'per_page' => $perPage, 'has_next_page' => false];
         }
 
         View::render('admin/data-viewer', ['stats' => $stats, 'samples' => $samples], ['admin/data-viewer.css'], 'backoffice');

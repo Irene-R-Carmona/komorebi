@@ -27,75 +27,75 @@ final class FestivosEspañolesService implements FestivosJaponesesServiceInterfa
      */
     private const FESTIVOS_FIJOS = [
         '01-01' => [
-            'nombre_es'       => 'Año Nuevo',
-            'descripcion'     => 'Primer día del año.',
-            'icono'           => '🎉',
+            'nombre_es' => 'Año Nuevo',
+            'descripcion' => 'Primer día del año.',
+            'icono' => '🎉',
             'permite_reservas' => false,
         ],
         '01-06' => [
-            'nombre_es'       => 'Epifanía del Señor',
-            'descripcion'     => 'Día de Reyes.',
-            'icono'           => '👑',
+            'nombre_es' => 'Epifanía del Señor',
+            'descripcion' => 'Día de Reyes.',
+            'icono' => '👑',
             'permite_reservas' => false,
         ],
         '05-01' => [
-            'nombre_es'       => 'Fiesta del Trabajo',
-            'descripcion'     => 'Día Internacional de los Trabajadores.',
-            'icono'           => '⚒️',
+            'nombre_es' => 'Fiesta del Trabajo',
+            'descripcion' => 'Día Internacional de los Trabajadores.',
+            'icono' => '⚒️',
             'permite_reservas' => false,
         ],
         '05-02' => [
-            'nombre_es'       => 'Fiesta de la Comunidad de Madrid',
-            'descripcion'     => 'Conmemoración del levantamiento del 2 de mayo de 1808.',
-            'icono'           => '🏛️',
+            'nombre_es' => 'Fiesta de la Comunidad de Madrid',
+            'descripcion' => 'Conmemoración del levantamiento del 2 de mayo de 1808.',
+            'icono' => '🏛️',
             'permite_reservas' => false,
         ],
         '05-15' => [
-            'nombre_es'       => 'San Isidro Labrador',
-            'descripcion'     => 'Patrón de Madrid. Festividad local del municipio.',
-            'icono'           => '🌾',
+            'nombre_es' => 'San Isidro Labrador',
+            'descripcion' => 'Patrón de Madrid. Festividad local del municipio.',
+            'icono' => '🌾',
             'permite_reservas' => false,
         ],
         '08-15' => [
-            'nombre_es'       => 'Asunción de la Virgen',
-            'descripcion'     => 'Festividad religiosa nacional.',
-            'icono'           => '🌸',
+            'nombre_es' => 'Asunción de la Virgen',
+            'descripcion' => 'Festividad religiosa nacional.',
+            'icono' => '🌸',
             'permite_reservas' => false,
         ],
         '10-12' => [
-            'nombre_es'       => 'Fiesta Nacional de España',
-            'descripcion'     => 'Día de la Hispanidad.',
-            'icono'           => '🇪🇸',
+            'nombre_es' => 'Fiesta Nacional de España',
+            'descripcion' => 'Día de la Hispanidad.',
+            'icono' => '🇪🇸',
             'permite_reservas' => false,
         ],
         '11-01' => [
-            'nombre_es'       => 'Todos los Santos',
-            'descripcion'     => 'Festividad religiosa nacional.',
-            'icono'           => '🕯️',
+            'nombre_es' => 'Todos los Santos',
+            'descripcion' => 'Festividad religiosa nacional.',
+            'icono' => '🕯️',
             'permite_reservas' => false,
         ],
         '11-09' => [
-            'nombre_es'       => 'La Almudena',
-            'descripcion'     => 'Patrona de Madrid. Festividad local del municipio.',
-            'icono'           => '⛪',
+            'nombre_es' => 'La Almudena',
+            'descripcion' => 'Patrona de Madrid. Festividad local del municipio.',
+            'icono' => '⛪',
             'permite_reservas' => false,
         ],
         '12-06' => [
-            'nombre_es'       => 'Día de la Constitución Española',
-            'descripcion'     => 'Conmemoración de la Constitución de 1978.',
-            'icono'           => '📜',
+            'nombre_es' => 'Día de la Constitución Española',
+            'descripcion' => 'Conmemoración de la Constitución de 1978.',
+            'icono' => '📜',
             'permite_reservas' => false,
         ],
         '12-08' => [
-            'nombre_es'       => 'Inmaculada Concepción',
-            'descripcion'     => 'Festividad religiosa nacional.',
-            'icono'           => '✨',
+            'nombre_es' => 'Inmaculada Concepción',
+            'descripcion' => 'Festividad religiosa nacional.',
+            'icono' => '✨',
             'permite_reservas' => false,
         ],
         '12-25' => [
-            'nombre_es'       => 'Navidad',
-            'descripcion'     => 'Día de Navidad.',
-            'icono'           => '🎄',
+            'nombre_es' => 'Navidad',
+            'descripcion' => 'Día de Navidad.',
+            'icono' => '🎄',
             'permite_reservas' => false,
         ],
     ];
@@ -134,7 +134,7 @@ final class FestivosEspañolesService implements FestivosJaponesesServiceInterfa
     public function obtenerFestivosDelAnio(?int $anio = null): array
     {
         if ($anio === null) {
-            $anio = (int) (new DateTimeImmutable('now', new DateTimeZone(self::TIMEZONE)))->format('Y');
+            $anio = (int) new DateTimeImmutable('now', new DateTimeZone(self::TIMEZONE))->format('Y');
         }
 
         $festivos = [];
@@ -154,7 +154,7 @@ final class FestivosEspañolesService implements FestivosJaponesesServiceInterfa
             }
         }
 
-        \usort($festivos, static fn(array $a, array $b) => \strcmp($a['fecha'], $b['fecha']));
+        \usort($festivos, static fn (array $a, array $b) => \strcmp($a['fecha'], $b['fecha']));
 
         return $festivos;
     }
@@ -228,13 +228,13 @@ final class FestivosEspañolesService implements FestivosJaponesesServiceInterfa
         $fecha = $pascua->modify('-2 days');
 
         return [
-            'fecha'           => $fecha->format('Y-m-d'),
-            'tipo'            => 'movil',
-            'nombre_es'       => 'Viernes Santo',
-            'nombre_ja'       => '',
-            'romaji'          => '',
-            'descripcion'     => 'Viernes de Semana Santa. Festivo nacional.',
-            'icono'           => '✝️',
+            'fecha' => $fecha->format('Y-m-d'),
+            'tipo' => 'movil',
+            'nombre_es' => 'Viernes Santo',
+            'nombre_ja' => '',
+            'romaji' => '',
+            'descripcion' => 'Viernes de Semana Santa. Festivo nacional.',
+            'icono' => '✝️',
             'permite_reservas' => false,
         ];
     }
@@ -253,13 +253,13 @@ final class FestivosEspañolesService implements FestivosJaponesesServiceInterfa
         $fecha = $pascua->modify('+1 day');
 
         return [
-            'fecha'           => $fecha->format('Y-m-d'),
-            'tipo'            => 'movil',
-            'nombre_es'       => 'Lunes de Pascua',
-            'nombre_ja'       => '',
-            'romaji'          => '',
-            'descripcion'     => 'Lunes de Pascua. Festivo autonómico de la Comunidad de Madrid.',
-            'icono'           => '🐣',
+            'fecha' => $fecha->format('Y-m-d'),
+            'tipo' => 'movil',
+            'nombre_es' => 'Lunes de Pascua',
+            'nombre_ja' => '',
+            'romaji' => '',
+            'descripcion' => 'Lunes de Pascua. Festivo autonómico de la Comunidad de Madrid.',
+            'icono' => '🐣',
             'permite_reservas' => false,
         ];
     }

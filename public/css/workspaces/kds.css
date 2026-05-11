@@ -702,3 +702,26 @@ body.kds-mode::before {
   border-color: var(--color-primary);
   color: white;
 }
+
+/* Scrollbars temáticos KDS */
+.station-content::-webkit-scrollbar,
+.col-tickets::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.station-content::-webkit-scrollbar-track,
+.col-tickets::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+.station-content::-webkit-scrollbar-thumb,
+.col-tickets::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.station-content::-webkit-scrollbar-thumb:hover,
+.col-tickets::-webkit-scrollbar-thumb:hover {
+  background: var(--col-primary);
+}

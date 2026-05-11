@@ -118,6 +118,14 @@ final class KitchenService implements KitchenServiceInterface
         );
     }
 
+    #[Override]
+    public function getItemReservationId(int $itemId): ?int
+    {
+        $dto = $this->itemRepo->findById($itemId);
+
+        return $dto?->reservation_id;
+    }
+
     // ─────────────────────────────────────────────────────────────
     // Helpers
     // ─────────────────────────────────────────────────────────────

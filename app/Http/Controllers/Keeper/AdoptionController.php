@@ -25,7 +25,8 @@ final class AdoptionController
     public function __construct(
         private readonly AdoptionServiceInterface $adoptionService,
         private readonly ResponseFactory $response,
-    ) {}
+    ) {
+    }
 
     /**
      * GET /keeper/adopciones
@@ -33,7 +34,7 @@ final class AdoptionController
      */
     public function index(ServerRequestInterface $request): ?ResponseInterface
     {
-        $cafeId  = (int) (Session::user()['cafe_id'] ?? 0);
+        $cafeId = (int) (Session::user()['cafe_id'] ?? 0);
         $pending = $this->adoptionService->getPendingRequests($cafeId);
 
         View::render('backoffice/keeper/adoptions/index', [
@@ -51,11 +52,11 @@ final class AdoptionController
      */
     public function history(ServerRequestInterface $request): ?ResponseInterface
     {
-        $cafeId    = (int) (Session::user()['cafe_id'] ?? 0);
+        $cafeId = (int) (Session::user()['cafe_id'] ?? 0);
         $processed = $this->adoptionService->getProcessedRequests($cafeId);
 
         View::render('backoffice/keeper/adoptions/history', [
-            'titulo'    => 'Historial de Adopciones',
+            'titulo' => 'Historial de Adopciones',
             'processed' => $processed,
         ], [], 'backoffice');
 
@@ -70,7 +71,7 @@ final class AdoptionController
      */
     public function show(ServerRequestInterface $request, int $id): ?ResponseInterface
     {
-        $cafeId          = (int) (Session::user()['cafe_id'] ?? 0);
+        $cafeId = (int) (Session::user()['cafe_id'] ?? 0);
         $adoptionRequest = $this->adoptionService->getPendingRequests($cafeId);
 
         // Buscar la solicitud específica dentro de los datos del servicio
@@ -106,8 +107,8 @@ final class AdoptionController
     public function approve(ServerRequestInterface $request, int $id): ResponseInterface
     {
         $keeperId = (int) Session::get('user_id');
-        $cafeId   = (int) (Session::user()['cafe_id'] ?? 0);
-        $result   = $this->adoptionService->approveRequest($keeperId, $id, $cafeId);
+        $cafeId = (int) (Session::user()['cafe_id'] ?? 0);
+        $result = $this->adoptionService->approveRequest($keeperId, $id, $cafeId);
 
         if (!$result->ok) {
             Flash::error($result->error ?? 'No se pudo aprobar la adopción.');
@@ -127,9 +128,9 @@ final class AdoptionController
     public function reject(ServerRequestInterface $request, int $id): ResponseInterface
     {
         $keeperId = (int) Session::get('user_id');
-        $cafeId   = (int) (Session::user()['cafe_id'] ?? 0);
-        $body     = (array) ($request->getParsedBody() ?? []);
-        $notes    = isset($body['keeper_notes']) ? \trim((string) $body['keeper_notes']) : null;
+        $cafeId = (int) (Session::user()['cafe_id'] ?? 0);
+        $body = (array) ($request->getParsedBody() ?? []);
+        $notes = isset($body['keeper_notes']) ? \trim((string) $body['keeper_notes']) : null;
 
         $result = $this->adoptionService->rejectRequest($keeperId, $id, $notes ?: null, $cafeId);
 

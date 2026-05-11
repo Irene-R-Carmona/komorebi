@@ -13,8 +13,9 @@ final class CurrencyFormatting
     public static function euro(int $cents): string
     {
         if ($cents < 0) {
-            return '-' . \number_format(abs($cents) / 100, 2, ',', '.') . ' €';
+            return '-' . \number_format(\abs($cents) / 100, 2, ',', '.') . ' €';
         }
+
         return \number_format($cents / 100, 2, ',', '.') . ' €';
     }
 
@@ -28,6 +29,7 @@ final class CurrencyFormatting
         if ($euros === (int) $euros) {
             return (int) $euros . ' €';
         }
+
         return \number_format($euros, 2, ',', '.') . ' €';
     }
 
@@ -46,6 +48,7 @@ final class CurrencyFormatting
     public static function rating(float $value): string
     {
         $clamped = \max(0.0, \min(5.0, $value));
+
         return \number_format($clamped, 1, '.', '');
     }
 

@@ -251,7 +251,7 @@ echo $pending > 0 ? "$pending esperando revisión" : 'Todo al día';
                             </div>
                             <h4 class="empty-state__title">No hay reservas recientes</h4>
                             <p class="empty-state__text">Las visitas aparecerán aquí cuando se confirmen</p>
-                            <a href="/admin/reservas/crear" class="btn btn-primary btn-sm">Crear reserva</a>
+                            <a href="/admin/reservations" class="btn btn-primary btn-sm">Ver reservas</a>
                         </div>
                     <?php else: ?>
                         <table class="table-modern">

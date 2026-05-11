@@ -167,9 +167,9 @@
                             min="0"
                             step="50"
                             required>
-                        <span class="input-group-text">¥</span>
+                        <span class="input-group-text">€</span>
                     </div>
-                    <small class="text-muted">Precio en yenes</small>
+                    <small class="text-muted">Precio en euros (céntimos)</small>
                 </div>
 
                 <!-- Estado -->

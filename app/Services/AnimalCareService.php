@@ -114,9 +114,9 @@ final class AnimalCareService extends BaseService implements AnimalCareServiceIn
     public function getDashboardData(?int $cafeId = null): array
     {
         return [
-            'animals'          => $this->animalRepo->getAnimalsWithCafeInfoOptimized($cafeId),
-            'stats'            => $this->animalRepo->getHealthStatistics($cafeId),
-            'recent_logs'      => $this->healthCheckRepo->getRecentLogs(20),
+            'animals' => $this->animalRepo->getAnimalsWithCafeInfoOptimized($cafeId),
+            'stats' => $this->animalRepo->getHealthStatistics($cafeId),
+            'recent_logs' => $this->healthCheckRepo->getRecentLogs(20),
             'active_incidents' => $this->incidentRepo->getActiveIncidents($cafeId),
         ];
     }
