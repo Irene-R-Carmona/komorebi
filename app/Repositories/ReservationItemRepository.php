@@ -320,4 +320,15 @@ final class ReservationItemRepository extends AbstractRepository implements Rese
         );
         $stmt->execute([$id]);
     }
+
+    #[Override]
+    public function updateStatusAndKitchenStarted(int $id, string $status): bool
+    {
+        $stmt = $this->getDb()->prepare(
+            'UPDATE reservation_items SET status = ?, kitchen_started_at = NOW() WHERE id = ?'
+        );
+        $stmt->execute([$status, $id]);
+
+        return $stmt->rowCount() > 0;
+    }
 }

@@ -65,12 +65,7 @@ final class KitchenService implements KitchenServiceInterface
     #[Override]
     public function startPreparing(int $itemId): bool
     {
-        $ok = $this->itemRepo->updateStatus($itemId, ReservationItem::STATUS_KITCHEN);
-        if ($ok) {
-            $this->itemRepo->updateKitchenStarted($itemId);
-        }
-
-        return $ok;
+        return $this->itemRepo->updateStatusAndKitchenStarted($itemId, ReservationItem::STATUS_KITCHEN);
     }
 
     #[Override]

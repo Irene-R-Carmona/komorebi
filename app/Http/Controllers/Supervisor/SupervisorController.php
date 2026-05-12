@@ -124,7 +124,7 @@ final class SupervisorController
                     'id' => (int) $r['id'],
                     'customer_name' => $r['user_name'] ?? 'Cliente #' . (int) $r['user_id'],
                     'time' => $time,
-                    'unix_time' => \strtotime(\date('Y-m-d') . ' ' . $time),
+                    'unix_time' => (int) (\strtotime(\date('Y-m-d') . ' ' . $time) ?: 0),
                     'guests' => (int) ($r['guest_count'] ?? 0),
                     'status' => $status,
                     'statusLabel' => self::STATUS_LABELS[$status] ?? \ucfirst($status),

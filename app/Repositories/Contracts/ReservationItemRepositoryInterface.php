@@ -54,4 +54,7 @@ interface ReservationItemRepositoryInterface
     public function getReadyItemsByReservations(array $ids): array;
 
     public function updateKitchenStarted(int $id): void;
+
+    /** Actualiza status y kitchen_started_at en un único UPDATE atómico. */
+    public function updateStatusAndKitchenStarted(int $id, string $status): bool;
 }
