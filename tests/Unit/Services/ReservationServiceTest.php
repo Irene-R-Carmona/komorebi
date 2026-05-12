@@ -15,8 +15,10 @@ use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Services\Contracts\LoyaltyServiceInterface;
 use App\Services\Contracts\SettingsServiceInterface;
 use App\Services\ReservationService;
+use App\Core\Result;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -753,6 +755,7 @@ final class ReservationServiceTest extends TestCase
     private function makeReservationDto(
         string $status = 'confirmed',
         ?float $final_amount = null,
+        bool $loyalty_awarded = false,
     ): \App\Domain\DTO\ReservationDTO {
         return new \App\Domain\DTO\ReservationDTO(
             id: 1,
@@ -772,6 +775,60 @@ final class ReservationServiceTest extends TestCase
             payment_status: null,
             payment_method: null,
             notes: null,
+            loyalty_awarded: $loyalty_awarded,
         );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // managerUpdateStatus() — lógica de fidelización
+    // ─────────────────────────────────────────────────────────────
+
+    public function testManagerUpdateStatusCallsAddStampWhenCompletedAndNotAwarded(): void
+    {
+        $loyaltyMock = $this->createMock(LoyaltyServiceInterface::class);
+        $loyaltyMock->expects($this->once())->method('addStamp')->willReturn(Result::ok(null));
+
+        $service = new ReservationService(
+            $this->reservationRepoStub,
+            $this->cafeRepoStub,
+            $this->productRepoStub,
+            $this->invoiceServiceStub,
+            $this->emailServiceStub,
+            loyaltyService: $loyaltyMock,
+        );
+
+        $confirmed = $this->makeReservationDto(status: 'active', loyalty_awarded: false);
+
+        $this->reservationRepoStub->method('findById')->willReturn($confirmed);
+        $this->reservationRepoStub->method('updateStatusWithReason')->willReturn(true);
+        $this->reservationRepoStub->method('update')->willReturn(true);
+
+        $result = $service->managerUpdateStatus(1, 'completed', 'test');
+
+        $this->assertTrue($result->ok);
+    }
+
+    public function testManagerUpdateStatusSkipsAddStampWhenAlreadyAwarded(): void
+    {
+        $loyaltyMock = $this->createMock(LoyaltyServiceInterface::class);
+        $loyaltyMock->expects($this->never())->method('addStamp');
+
+        $service = new ReservationService(
+            $this->reservationRepoStub,
+            $this->cafeRepoStub,
+            $this->productRepoStub,
+            $this->invoiceServiceStub,
+            $this->emailServiceStub,
+            loyaltyService: $loyaltyMock,
+        );
+
+        $confirmed = $this->makeReservationDto(status: 'active', loyalty_awarded: true);
+
+        $this->reservationRepoStub->method('findById')->willReturn($confirmed);
+        $this->reservationRepoStub->method('updateStatusWithReason')->willReturn(true);
+
+        $result = $service->managerUpdateStatus(1, 'completed', 'test');
+
+        $this->assertTrue($result->ok);
     }
 }

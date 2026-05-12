@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Seeders;
 
 use App\Core\Database;
+use App\Core\Env;
 use App\Core\Logger;
 use PDO;
 
@@ -27,6 +28,25 @@ final class SystemSettingsSeeder
     {
         Logger::info('[SystemSettingsSeeder] starting');
 
+        $isProduction = Env::get('APP_ENV', 'production') === 'production';
+        $smtp = $isProduction ? [
+            'host'       => 'smtp.gmail.com',
+            'port'       => '587',
+            'username'   => Env::get('MAIL_FROM_ADDRESS', ''),
+            'password'   => Env::get('SMTP_PASSWORD', ''),
+            'encryption' => 'tls',
+            'from'       => Env::get('MAIL_FROM_ADDRESS', 'noreply@komorebi.es'),
+            'support'    => Env::get('SUPPORT_EMAIL', 'soporte@komorebi.es'),
+        ] : [
+            'host'       => 'mailpit',
+            'port'       => '1025',
+            'username'   => '',
+            'password'   => '',
+            'encryption' => 'none',
+            'from'       => 'noreply@komorebi.test',
+            'support'    => 'soporte@komorebi.test',
+        ];
+
         $settings = [
             // ════════════════════════════════════════
             // GENERAL
@@ -41,14 +61,14 @@ final class SystemSettingsSeeder
             // ════════════════════════════════════════
             // EMAIL / SMTP
             // ════════════════════════════════════════
-            ['smtp_host', 'mailpit', 'string', 'email', 'Host SMTP', false],
-            ['smtp_port', '1025', 'integer', 'email', 'Puerto SMTP', false],
-            ['smtp_username', '', 'string', 'email', 'Usuario SMTP', false],
-            ['smtp_password', '', 'string', 'email', 'Contraseña SMTP (encriptada)', false],
-            ['smtp_encryption', 'none', 'string', 'email', 'Encriptación: none, tls, ssl', false],
-            ['mail_from_address', 'noreply@komorebi.test', 'string', 'email', 'Email remitente', false],
+            ['smtp_host', $smtp['host'], 'string', 'email', 'Host SMTP', false],
+            ['smtp_port', $smtp['port'], 'integer', 'email', 'Puerto SMTP', false],
+            ['smtp_username', $smtp['username'], 'string', 'email', 'Usuario SMTP', false],
+            ['smtp_password', $smtp['password'], 'string', 'email', 'Contraseña SMTP (encriptada)', false],
+            ['smtp_encryption', $smtp['encryption'], 'string', 'email', 'Encriptación: none, tls, ssl', false],
+            ['mail_from_address', $smtp['from'], 'string', 'email', 'Email remitente', false],
             ['mail_from_name', 'Komorebi Café', 'string', 'email', 'Nombre remitente', false],
-            ['support_email', 'soporte@komorebi.test', 'string', 'email', 'Email de soporte', true],
+            ['support_email', $smtp['support'], 'string', 'email', 'Email de soporte', true],
 
             // ════════════════════════════════════════
             // RESERVAS

@@ -30,6 +30,7 @@ final readonly class ReservationMapper implements MapperInterface
             payment_status: isset($row['payment_status']) ? (string) $row['payment_status'] : null,
             payment_method: isset($row['payment_method']) ? (string) $row['payment_method'] : null,
             notes: isset($row['notes']) ? (string) $row['notes'] : null,
+            loyalty_awarded: (bool) ($row['loyalty_awarded'] ?? false),
         );
     }
 }

@@ -201,6 +201,20 @@ final class LoyaltySeeder
             }
         }
 
+        // Demo: garantizar al menos un usuario en tier gold (≥ 30 visitas)
+        // current_tier es GENERATED STORED — se recalcula automáticamente con visits_count
+        $topCardId = $this->db->query(
+            'SELECT id FROM loyalty_cards ORDER BY visits_count DESC LIMIT 1'
+        )->fetchColumn();
+        if ($topCardId !== false) {
+            $this->db->prepare(
+                'UPDATE loyalty_cards
+                 SET visits_count = 35, stamps = 5, last_stamp_at = NOW() - INTERVAL 1 DAY
+                 WHERE id = :id'
+            )->execute(['id' => (int) $topCardId]);
+            Logger::info('[LoyaltySeeder] promoted top user to gold tier (visits_count = 35)');
+        }
+
         Logger::info('[LoyaltySeeder] done', [
             'loyalty_cards' => $totalCards,
             'loyalty_rewards' => $totalRewards,
@@ -268,13 +282,6 @@ final class LoyaltySeeder
 
     private function generateRedemptionCode(): string
     {
-        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        $code = '';
-        $length = \strlen($chars) - 1;
-        for ($i = 0; $i < 8; $i++) {
-            $code .= $chars[\random_int(0, $length)];
-        }
-
-        return $code;
+        return \sprintf('KOM-%04X-%04X', \random_int(0, 0xFFFF), \random_int(0, 0xFFFF));
     }
 }

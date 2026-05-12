@@ -69,8 +69,12 @@ final class AuthAuditLogSeeder
 
             // IPs normales (la mayoría del tráfico legítimo)
             $normalIps = [
-                '192.168.1.10', '192.168.1.11', '192.168.1.15',
-                '10.0.0.5', '10.0.0.8', '10.0.0.12',
+                '192.168.1.10',
+                '192.168.1.11',
+                '192.168.1.15',
+                '10.0.0.5',
+                '10.0.0.8',
+                '10.0.0.12',
             ];
 
             // IPs sospechosas (pocas, pero repetidas muchas veces para simular fuerza bruta)
@@ -98,7 +102,7 @@ final class AuthAuditLogSeeder
                     'device' => $deviceNames[$uaIdx],
                     'success' => 1,
                     'reason' => null,
-                    'days' => $this->weightedDays(90),
+                    'days' => $this->weightedDays(132),
                     'hours' => \rand(7, 22), // horario de uso típico
                     'mins' => \rand(0, 59),
                 ]);
@@ -117,7 +121,7 @@ final class AuthAuditLogSeeder
                     'device' => $deviceNames[$uaIdx],
                     'success' => 1,
                     'reason' => null,
-                    'days' => $this->weightedDays(90),
+                    'days' => $this->weightedDays(132),
                     'hours' => \rand(8, 23),
                     'mins' => \rand(0, 59),
                 ]);
@@ -149,7 +153,7 @@ final class AuthAuditLogSeeder
                     'device' => null,
                     'success' => 0,
                     'reason' => $failReasons[\array_rand($failReasons)],
-                    'days' => $this->weightedDays(90),
+                    'days' => $this->weightedDays(132),
                     'hours' => \rand(0, 23),
                     'mins' => \rand(0, 59),
                 ]);

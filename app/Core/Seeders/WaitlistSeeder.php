@@ -26,35 +26,6 @@ final class WaitlistSeeder
     {
         Logger::info('[WaitlistSeeder] starting');
 
-        // Obtener algunos time slots con capacidad completa
-        $fullSlots = $this->db->query('
-            SELECT id, cafe_id, slot_date, slot_time, available_spots
-            FROM time_slots
-            WHERE available_spots = 0
-            ORDER BY slot_date DESC, slot_time DESC
-            LIMIT 5
-        ')->fetchAll(PDO::FETCH_ASSOC);
-
-        if (empty($fullSlots)) {
-            Logger::warning('[WaitlistSeeder] no full slots, marking some as full');
-            // Marcar algunos slots como completos
-            $this->db->exec('
-                UPDATE time_slots
-                SET available_spots = 0
-                WHERE slot_date >= CURDATE()
-                ORDER BY slot_date, slot_time
-                LIMIT 5
-            ');
-
-            $fullSlots = $this->db->query('
-                SELECT id, cafe_id, slot_date, slot_time, available_spots
-                FROM time_slots
-                WHERE available_spots = 0
-                ORDER BY slot_date DESC, slot_time DESC
-                LIMIT 5
-            ')->fetchAll(PDO::FETCH_ASSOC);
-        }
-
         // Obtener usuarios de prueba (clientes, no staff)
         $users = $this->db->query("
             SELECT DISTINCT u.id, u.name, u.email
@@ -63,7 +34,7 @@ final class WaitlistSeeder
             INNER JOIN roles r ON ur.role_id = r.id
             WHERE r.code = 'user'
             ORDER BY RAND()
-            LIMIT 15
+            LIMIT 25
         ")->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($users)) {
@@ -72,26 +43,68 @@ final class WaitlistSeeder
             return;
         }
 
-        $inserted = 0;
-        $position = 1;
+        // Seleccionar slots en horas punta de los próximos fines de semana (fechas pico para demo)
+        $peakSlots = $this->db->query("
+            SELECT id, cafe_id, slot_date, slot_time, available_spots
+            FROM time_slots
+            WHERE slot_date IN ('2026-05-16', '2026-05-17', '2026-05-23', '2026-05-24')
+            AND slot_time BETWEEN '17:00:00' AND '20:30:00'
+            ORDER BY RAND()
+            LIMIT 6
+        ")->fetchAll(PDO::FETCH_ASSOC);
 
-        foreach ($fullSlots as $slot) {
-            // Añadir 2-4 personas en waitlist por slot
-            $peopleInWaitlist = \rand(2, 4);
+        // Fallback: usar slots futuros disponibles si las fechas pico no existen aún
+        if (empty($peakSlots)) {
+            Logger::warning('[WaitlistSeeder] no peak slots found, using available future slots');
+            $peakSlots = $this->db->query('
+                SELECT id, cafe_id, slot_date, slot_time, available_spots
+                FROM time_slots
+                WHERE slot_date >= CURDATE()
+                AND available_spots > 0
+                ORDER BY slot_date ASC
+                LIMIT 6
+            ')->fetchAll(PDO::FETCH_ASSOC);
+        }
 
-            for ($i = 0; $i < $peopleInWaitlist && $inserted < \count($users); $i++) {
-                $user = $users[$inserted % \count($users)];
+        if (empty($peakSlots)) {
+            Logger::warning('[WaitlistSeeder] no suitable slots for waitlist');
 
-                $status = 'waiting';
+            return;
+        }
+
+        // Marcar los slots pico como completos (justifica la lista de espera)
+        foreach ($peakSlots as $slot) {
+            $this->db->prepare('
+                UPDATE time_slots
+                SET available_spots = 0,
+                    reserved_spots  = total_capacity
+                WHERE id = :id
+            ')->execute(['id' => $slot['id']]);
+        }
+
+        $inserted  = 0;
+        $userIndex = 0;
+        $userCount = \count($users);
+
+        foreach ($peakSlots as $slot) {
+            // 3-5 personas en lista de espera por slot pico
+            $perSlot  = \rand(3, 5);
+            $position = 1;
+
+            for ($i = 0; $i < $perSlot; $i++) {
+                $user = $users[$userIndex % $userCount];
+                $userIndex++;
+
+                $status     = 'waiting';
                 $notifiedAt = null;
-                $expiresAt = \date('Y-m-d H:i:s', \time() + 86400); // seed: expira en 24h
-                $token = \bin2hex(\random_bytes(16));
+                $expiresAt  = \date('Y-m-d H:i:s', \time() + 86400);
+                $token      = \bin2hex(\random_bytes(16));
 
-                // Algunos en estado 'notified' (10%)
-                if ($i === 0 && \rand(1, 10) === 1) {
-                    $status = 'notified';
+                // El primero de cada slot puede estar en estado 'notified' (40%)
+                if ($i === 0 && \rand(1, 5) <= 2) {
+                    $status     = 'notified';
                     $notifiedAt = \date('Y-m-d H:i:s', \time() - \rand(60, 600));
-                    $expiresAt = \date('Y-m-d H:i:s', \time() + \rand(300, 900));
+                    $expiresAt  = \date('Y-m-d H:i:s', \time() + \rand(300, 900));
                 }
 
                 $this->db->prepare('
@@ -108,24 +121,21 @@ final class WaitlistSeeder
                         15, :special_requests, NOW()
                     )
                 ')->execute([
-                    'user_id' => $user['id'],
-                    'time_slot_id' => $slot['id'],
-                    'position' => $position++,
-                    'status' => $status,
-                    'guest_count' => \rand(1, 4),
-                    'contact_email' => $user['email'],
-                    'contact_phone' => $this->generatePhone(),
-                    'token' => $token,
-                    'notified_at' => $notifiedAt,
-                    'expires_at' => $expiresAt,
+                    'user_id'          => $user['id'],
+                    'time_slot_id'     => $slot['id'],
+                    'position'         => $position++,
+                    'status'           => $status,
+                    'guest_count'      => \rand(1, 4),
+                    'contact_email'    => $user['email'],
+                    'contact_phone'    => $this->generatePhone(),
+                    'token'            => $token,
+                    'notified_at'      => $notifiedAt,
+                    'expires_at'       => $expiresAt,
                     'special_requests' => $this->getRandomRequest(),
                 ]);
 
                 $inserted++;
             }
-
-            // Resetear posición para el siguiente slot
-            $position = 1;
         }
 
         Logger::info('[WaitlistSeeder] completed', ['inserted' => $inserted]);

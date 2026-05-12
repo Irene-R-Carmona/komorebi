@@ -82,7 +82,7 @@ final class ReceptionService implements ReceptionServiceInterface
 
         $pending = \array_values(\array_filter(
             $reservations,
-            static fn ($r) => $r['status'] === Reservation::STATUS_CONFIRMED
+            static fn($r) => $r['status'] === Reservation::STATUS_CONFIRMED
         ));
 
         foreach ($pending as &$reservation) {
@@ -205,12 +205,13 @@ final class ReceptionService implements ReceptionServiceInterface
                 $this->interactionRepo->closeForReservation($reservationId);
                 $updated = $this->reservationRepo->findById($reservationId);
 
-                if ($updated !== null && $updated->status === Reservation::STATUS_COMPLETED && $updated->user_id) {
+                if ($updated !== null && $updated->status === Reservation::STATUS_COMPLETED && $updated->user_id && !$updated->loyalty_awarded) {
                     try {
                         $loyaltyService = Container::make(LoyaltyServiceInterface::class);
                         $loyaltyService->addStamp($updated->user_id, 1, $reservationId);
+                        $this->reservationRepo->update($reservationId, ['loyalty_awarded' => true]);
                     } catch (Throwable $e) {
-                        Logger::warning('Error al añadir sello de fidelización', [
+                        Logger::error('[ReceptionService] Error al añadir sello de fidelización', [
                             'reservation_id' => $reservationId,
                             'user_id' => $updated->user_id,
                             'error' => $e->getMessage(),
@@ -452,12 +453,13 @@ final class ReceptionService implements ReceptionServiceInterface
 
                 $updated = $this->reservationRepo->findById($reservationId);
 
-                if ($updated !== null && $updated->status === Reservation::STATUS_COMPLETED && $updated->user_id) {
+                if ($updated !== null && $updated->status === Reservation::STATUS_COMPLETED && $updated->user_id && !$updated->loyalty_awarded) {
                     try {
                         $loyaltyService = Container::make(LoyaltyServiceInterface::class);
                         $loyaltyService->addStamp($updated->user_id, 1, $reservationId);
+                        $this->reservationRepo->update($reservationId, ['loyalty_awarded' => true]);
                     } catch (Throwable $e) {
-                        Logger::warning('[ReceptionService] Error al añadir sello de fidelización', [
+                        Logger::error('[ReceptionService] Error al añadir sello de fidelización', [
                             'reservation_id' => $reservationId,
                             'user_id' => $updated->user_id,
                             'error' => $e->getMessage(),

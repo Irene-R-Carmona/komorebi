@@ -20,10 +20,12 @@ use App\Repositories\Contracts\PassInclusionRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
 use App\Repositories\Contracts\TimeSlotRepositoryInterface;
+use App\Models\Reservation;
 use App\Services\Contracts\CartServiceInterface;
 use App\Services\Contracts\EmailServiceInterface;
 use App\Services\Contracts\FileStorageServiceInterface;
 use App\Services\Contracts\InvoicePDFServiceInterface;
+use App\Services\Contracts\LoyaltyServiceInterface;
 use App\Services\Contracts\ReservationServiceInterface;
 use App\Services\Contracts\SettingsServiceInterface;
 use App\Services\Contracts\UserProfileServiceInterface;
@@ -54,6 +56,7 @@ final class ReservationService implements ReservationServiceInterface
     private ?EventDispatcherInterface $eventDispatcher;
     private ?UserProfileServiceInterface $userProfileService;
     private ?SettingsServiceInterface $settingsService;
+    private ?LoyaltyServiceInterface $loyaltyService;
 
     public function __construct(
         ReservationRepositoryInterface $reservationRepo,
@@ -66,7 +69,8 @@ final class ReservationService implements ReservationServiceInterface
         ?FileStorageServiceInterface $fileStorage = null,
         ?SettingsServiceInterface $settingsService = null,
         ?PassInclusionRepositoryInterface $passInclusionRepo = null,
-        ?TimeSlotRepositoryInterface $timeSlotRepo = null
+        ?TimeSlotRepositoryInterface $timeSlotRepo = null,
+        ?LoyaltyServiceInterface $loyaltyService = null
     ) {
         $this->reservationRepo = $reservationRepo;
         $this->cafeRepo = $cafeRepo;
@@ -79,6 +83,7 @@ final class ReservationService implements ReservationServiceInterface
         $this->settingsService = $settingsService;
         $this->passInclusionRepo = $passInclusionRepo;
         $this->timeSlotRepo = $timeSlotRepo;
+        $this->loyaltyService = $loyaltyService;
     }
 
     #[Override]
@@ -395,6 +400,19 @@ final class ReservationService implements ReservationServiceInterface
             Logger::warning('[ReservationService] managerUpdateStatus failed', ['reservation_id' => $id]);
 
             return Result::fail('No se pudo actualizar el estado de la reserva');
+        }
+
+        if ($newStatus === Reservation::STATUS_COMPLETED && $reservation->user_id > 0 && !$reservation->loyalty_awarded) {
+            try {
+                $this->loyaltyService?->addStamp($reservation->user_id, 1, $id);
+                $this->reservationRepo->update($id, ['loyalty_awarded' => true]);
+            } catch (Throwable $e) {
+                Logger::error('[ReservationService] Error al añadir sello de fidelización en managerUpdateStatus', [
+                    'reservation_id' => $id,
+                    'user_id' => $reservation->user_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         return Result::ok(null);

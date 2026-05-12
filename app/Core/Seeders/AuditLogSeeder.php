@@ -62,8 +62,12 @@ final class AuditLogSeeder
             ];
 
             $ips = [
-                '192.168.1.10', '192.168.1.11', '10.0.0.5',
-                '85.43.21.99', '203.0.113.42', '198.51.100.7',
+                '192.168.1.10',
+                '192.168.1.11',
+                '10.0.0.5',
+                '85.43.21.99',
+                '203.0.113.42',
+                '198.51.100.7',
             ];
 
             $userAgents = [
@@ -87,7 +91,7 @@ final class AuditLogSeeder
             // ~200 registros en 90 días: densidad variable (más recientes = más registros)
             for ($i = 0; $i < 210; $i++) {
                 // Distribución no uniforme: más actividad reciente
-                $days = $this->weightedDays(90);
+                $days = $this->weightedDays(132);
                 $hours = \rand(0, 23);
                 $mins = \rand(0, 59);
 

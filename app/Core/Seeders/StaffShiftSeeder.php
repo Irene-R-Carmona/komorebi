@@ -59,19 +59,18 @@ final class StaffShiftSeeder
         Logger::info('[StaffShiftSeeder] staff loaded', ['cafes' => \count($staffByCafe)]);
 
         $stmt = $this->db->prepare(
-            'INSERT INTO staff_shifts
+            'INSERT IGNORE INTO staff_shifts
                 (user_id, cafe_id, shift_date, shift_start, shift_end, notes, created_by)
              VALUES
                 (:user_id, :cafe_id, :shift_date, :shift_start, :shift_end, :notes, :created_by)'
         );
 
-        $today = \strtotime('today');
-        // 3 semanas pasadas + esta semana + 1 semana futura = 5 semanas, lunes a domingo
-        $startMonday = $today - ((\date('N', $today) - 1) * 86400) - (21 * 86400); // lunes de hace 3 semanas
+        // 22 semanas de histórico: primera semana completa de 2026 (Jan 5) hasta fin de mayo
+        $startMonday = \strtotime('2026-01-05');
 
         $total = 0;
 
-        for ($week = 0; $week < 5; $week++) {
+        for ($week = 0; $week < 22; $week++) {
             for ($day = 0; $day < 7; $day++) {
                 $dayTs = $startMonday + ($week * 7 * 86400) + ($day * 86400);
                 $dayStr = \date('Y-m-d', $dayTs);

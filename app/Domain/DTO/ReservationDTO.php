@@ -26,8 +26,8 @@ final readonly class ReservationDTO implements DomainTransferObject
         public ?string $payment_status,
         public ?string $payment_method,
         public ?string $notes,
-    ) {
-    }
+        public bool $loyalty_awarded = false,
+    ) {}
 
     public static function fromArray(array $data): self
     {
@@ -49,6 +49,7 @@ final readonly class ReservationDTO implements DomainTransferObject
             payment_status: isset($data['payment_status']) ? (string) $data['payment_status'] : null,
             payment_method: isset($data['payment_method']) ? (string) $data['payment_method'] : null,
             notes: isset($data['notes']) ? (string) $data['notes'] : null,
+            loyalty_awarded: (bool) ($data['loyalty_awarded'] ?? false),
         );
     }
 
@@ -72,6 +73,7 @@ final readonly class ReservationDTO implements DomainTransferObject
             'payment_status' => $this->payment_status,
             'payment_method' => $this->payment_method,
             'notes' => $this->notes,
+            'loyalty_awarded' => $this->loyalty_awarded,
         ];
     }
 }

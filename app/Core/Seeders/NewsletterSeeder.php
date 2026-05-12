@@ -61,8 +61,12 @@ final class NewsletterSeeder
         foreach ($subscribers as $sub) {
             $token = \bin2hex(\random_bytes(32));
 
-            $confirmedAt = ($sub['status'] === 'confirmed') ? \date('Y-m-d H:i:s') : null;
-            $unsubscribedAt = ($sub['status'] === 'unsubscribed') ? \date('Y-m-d H:i:s') : null;
+            $confirmedAt    = ($sub['status'] === 'confirmed')
+                ? \date('Y-m-d H:i:s', \strtotime('-' . \random_int(1, 132) . ' days'))
+                : null;
+            $unsubscribedAt = ($sub['status'] === 'unsubscribed')
+                ? \date('Y-m-d H:i:s', \strtotime('-' . \random_int(1, 30) . ' days'))
+                : null;
 
             try {
                 $stmt->execute([

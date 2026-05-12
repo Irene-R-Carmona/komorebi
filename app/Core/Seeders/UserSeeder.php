@@ -44,8 +44,9 @@ final class UserSeeder
 
         $userRoleId = (int) $roleRow['id'];
 
-        // Usuarios más realistas con nombres comunes en España y emails variados
+        // 60 usuarios con nombres españoles y proveedores variados
         $users = [
+            // Bloque 1: 20 usuarios originales
             ['name' => 'Carmen Ruiz', 'email' => 'carmen.ruiz@gmail.com', 'newsletter' => true],
             ['name' => 'Antonio García', 'email' => 'antonio.garcia@hotmail.es', 'newsletter' => false],
             ['name' => 'Isabel López', 'email' => 'isabel.lopez@yahoo.es', 'newsletter' => true],
@@ -66,6 +67,48 @@ final class UserSeeder
             ['name' => 'Raúl Hernández', 'email' => 'raul.hernandez@hotmail.es', 'newsletter' => false],
             ['name' => 'Beatriz Gil', 'email' => 'bea.gil@gmail.com', 'newsletter' => true],
             ['name' => 'Alberto Vázquez', 'email' => 'alberto.vazquez@outlook.com', 'newsletter' => false],
+            // Bloque 2: 20 usuarios adicionales
+            ['name' => 'Elena Castillo', 'email' => 'elena.castillo@gmail.com', 'newsletter' => true],
+            ['name' => 'Pablo Ortega', 'email' => 'pablo.ortega@hotmail.es', 'newsletter' => true],
+            ['name' => 'Silvia Ramos', 'email' => 'silvia.ramos@yahoo.es', 'newsletter' => false],
+            ['name' => 'Fernando Molina', 'email' => 'fernando.molina@gmail.com', 'newsletter' => true],
+            ['name' => 'Amparo Herrera', 'email' => 'amparo.herrera@outlook.com', 'newsletter' => true],
+            ['name' => 'Óscar Aguilar', 'email' => 'oscar.aguilar@gmail.com', 'newsletter' => false],
+            ['name' => 'Nuria Domínguez', 'email' => 'nuria.dominguez@hotmail.es', 'newsletter' => true],
+            ['name' => 'Ignacio Rubio', 'email' => 'ignacio.rubio@gmail.com', 'newsletter' => false],
+            ['name' => 'Mónica Pardo', 'email' => 'monica.pardo@yahoo.es', 'newsletter' => true],
+            ['name' => 'Adrián Santos', 'email' => 'adrian.santos@gmail.com', 'newsletter' => true],
+            ['name' => 'Natalia Cano', 'email' => 'natalia.cano@outlook.com', 'newsletter' => false],
+            ['name' => 'Jorge Vargas', 'email' => 'jorge.vargas@gmail.com', 'newsletter' => true],
+            ['name' => 'Paloma Iglesias', 'email' => 'paloma.iglesias@hotmail.com', 'newsletter' => true],
+            ['name' => 'Víctor Serrano', 'email' => 'victor.serrano@gmail.com', 'newsletter' => false],
+            ['name' => 'Laura Medina', 'email' => 'laura.medina@yahoo.es', 'newsletter' => true],
+            ['name' => 'Roberto Guerrero', 'email' => 'roberto.guerrero@gmail.com', 'newsletter' => true],
+            ['name' => 'Susana Blanco', 'email' => 'susana.blanco@outlook.com', 'newsletter' => false],
+            ['name' => 'Alejandro Campos', 'email' => 'alex.campos@gmail.com', 'newsletter' => true],
+            ['name' => 'Inmaculada Reyes', 'email' => 'inma.reyes@hotmail.es', 'newsletter' => true],
+            ['name' => 'Tomás Fuentes', 'email' => 'tomas.fuentes@gmail.com', 'newsletter' => false],
+            // Bloque 3: 20 usuarios para demostrar tiers de fidelización
+            ['name' => 'Valentina Cruz', 'email' => 'valentina.cruz@gmail.com', 'newsletter' => true],
+            ['name' => 'Rodrigo Peña', 'email' => 'rodrigo.pena@yahoo.es', 'newsletter' => true],
+            ['name' => 'Rocío Caballero', 'email' => 'rocio.caballero@gmail.com', 'newsletter' => false],
+            ['name' => 'Enrique Prieto', 'email' => 'enrique.prieto@hotmail.es', 'newsletter' => true],
+            ['name' => 'Gemma Vidal', 'email' => 'gemma.vidal@gmail.com', 'newsletter' => true],
+            ['name' => 'Marcos León', 'email' => 'marcos.leon@outlook.com', 'newsletter' => false],
+            ['name' => 'Patricia Gallego', 'email' => 'patricia.gallego@gmail.com', 'newsletter' => true],
+            ['name' => 'Héctor Mora', 'email' => 'hector.mora@yahoo.es', 'newsletter' => true],
+            ['name' => 'Alicia Ibáñez', 'email' => 'alicia.ibanez@gmail.com', 'newsletter' => false],
+            ['name' => 'Gonzalo Soto', 'email' => 'gonzalo.soto@hotmail.com', 'newsletter' => true],
+            ['name' => 'Claudia Bermejo', 'email' => 'claudia.bermejo@gmail.com', 'newsletter' => true],
+            ['name' => 'Ángel Miranda', 'email' => 'angel.miranda@outlook.com', 'newsletter' => false],
+            ['name' => 'Noelia Carrasco', 'email' => 'noelia.carrasco@gmail.com', 'newsletter' => true],
+            ['name' => 'Rafael Lozano', 'email' => 'rafael.lozano@hotmail.es', 'newsletter' => true],
+            ['name' => 'Diana Cortés', 'email' => 'diana.cortes@yahoo.es', 'newsletter' => false],
+            ['name' => 'Emilio Pascual', 'email' => 'emilio.pascual@gmail.com', 'newsletter' => true],
+            ['name' => 'Verónica Calvo', 'email' => 'veronica.calvo@outlook.com', 'newsletter' => true],
+            ['name' => 'César Montero', 'email' => 'cesar.montero@gmail.com', 'newsletter' => false],
+            ['name' => 'Lorena Velasco', 'email' => 'lorena.velasco@hotmail.es', 'newsletter' => true],
+            ['name' => 'Nicolás Bravo', 'email' => 'nicolas.bravo@gmail.com', 'newsletter' => true],
         ];
 
         $count = 0;

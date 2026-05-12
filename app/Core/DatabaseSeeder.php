@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Core\Seeders\AnimalAdoptionRequestSeeder;
 use App\Core\Seeders\AnimalHealthCheckSeeder;
 use App\Core\Seeders\AnimalIncidentSeeder;
 use App\Core\Seeders\AnimalRelationshipSeeder;
@@ -13,8 +14,10 @@ use App\Core\Seeders\AuthAuditLogSeeder;
 use App\Core\Seeders\CafeSeeder;
 use App\Core\Seeders\InteractionSessionSeeder;
 use App\Core\Seeders\LoyaltySeeder;
+use App\Core\Seeders\AllergenSeeder;
 use App\Core\Seeders\MenuSeeder;
 use App\Core\Seeders\NewsletterSeeder;
+use App\Core\Seeders\PassInclusionsSeeder;
 use App\Core\Seeders\RbacSeeder;
 use App\Core\Seeders\ReservationSeeder;
 use App\Core\Seeders\ReviewSeeder;
@@ -51,13 +54,14 @@ final class DatabaseSeeder
         'user_animal_visits',
         'loyalty_rewards',
         'loyalty_cards',
-        'loyalty_reward_catalog',
+        // loyalty_reward_catalog se omite: lo gestiona la migración 012 con ON DUPLICATE KEY UPDATE
         'supervisor_assignments',
         'reservation_items',
         'reservations',
         'reviews',
         'animal_health_checks',
         'animal_incidents',
+        'animal_adoption_requests',
         'animal_relationships',
         'animal_status_log',
         'interaction_sessions',
@@ -68,6 +72,7 @@ final class DatabaseSeeder
         'cafe_zones',
         'user_roles',
         'users',
+        'pass_inclusions',
         'product_allergens',
         'products',
         'allergens',
@@ -87,21 +92,24 @@ final class DatabaseSeeder
         SystemSettingsSeeder::class, // 4. Configuración del sistema
         StaffSeeder::class,          // 5. Staff con roles asignados
         UserSeeder::class,           // 6. Usuarios de prueba normales
-        MenuSeeder::class,           // 7. Menú y productos
-        TimeSlotSeeder::class,       // 8. Ajustar time_slots a horarios reales
-        ReservationSeeder::class,    // 9. Reservas sincronizadas con time_slots
-        WaitlistSeeder::class,       // 10. Lista de espera
-        AnimalIncidentSeeder::class, // 11. Incidentes de animales (necesita staff)
-        ReviewSeeder::class,         // 12. Reseñas de demo
-        NewsletterSeeder::class,     // 13. Suscripciones newsletter
-        AuditLogSeeder::class,           // 14. Logs de auditoría de acciones
-        AuthAuditLogSeeder::class,       // 15. Logs de autenticación
-        LoyaltySeeder::class,            // 16. Loyalty cards, rewards y visitas a animales
-        StaffShiftSeeder::class,         // 17. Turnos de staff (5 semanas)
-        AnimalHealthCheckSeeder::class,  // 18. Chequeos de salud (14 días)
-        SupervisorAssignmentSeeder::class, // 19. Asignaciones de supervisores
-        AnimalRelationshipSeeder::class, // 20. Relaciones entre animales del mismo café
-        InteractionSessionSeeder::class, // 21. Sesiones de interacción (retroactivas)
+        MenuSeeder::class,             // 7. Menú y productos
+        AllergenSeeder::class,        // 8. Alérgenos UE 1169/2011 (14 obligatorios)
+        PassInclusionsSeeder::class,  // 9. Inclusiones de pases por categoría
+        TimeSlotSeeder::class,        // 10. Ajustar time_slots a horarios reales
+        ReservationSeeder::class,     // 11. Reservas sincronizadas con time_slots
+        WaitlistSeeder::class,        // 12. Lista de espera
+        AnimalIncidentSeeder::class,  // 13. Incidentes de animales (necesita staff)
+        ReviewSeeder::class,          // 14. Reseñas de demo
+        NewsletterSeeder::class,      // 15. Suscripciones newsletter
+        AuditLogSeeder::class,            // 16. Logs de auditoría de acciones
+        AuthAuditLogSeeder::class,        // 17. Logs de autenticación
+        LoyaltySeeder::class,             // 18. Loyalty cards, rewards y visitas a animales
+        StaffShiftSeeder::class,          // 19. Turnos de staff (5 semanas)
+        AnimalHealthCheckSeeder::class,   // 20. Chequeos de salud (14 días)
+        SupervisorAssignmentSeeder::class, // 21. Asignaciones de supervisores
+        AnimalRelationshipSeeder::class,  // 22. Relaciones entre animales del mismo café
+        InteractionSessionSeeder::class,  // 23. Sesiones de interacción (retroactivas)
+        AnimalAdoptionRequestSeeder::class, // 24. Solicitudes de adopción
     ];
 
     private bool $isCli;

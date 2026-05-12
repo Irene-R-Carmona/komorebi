@@ -7,11 +7,16 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Core\Database;
 use App\Core\Logger;
 use App\Core\Seeders\AllergenSeeder;
+use App\Core\Seeders\AnimalAdoptionRequestSeeder;
+use App\Core\Seeders\AnimalHealthCheckSeeder;
 use App\Core\Seeders\AnimalIncidentSeeder;
+use App\Core\Seeders\AnimalRelationshipSeeder;
 use App\Core\Seeders\AnimalSeeder;
 use App\Core\Seeders\AuditLogSeeder;
 use App\Core\Seeders\AuthAuditLogSeeder;
 use App\Core\Seeders\CafeSeeder;
+use App\Core\Seeders\InteractionSessionSeeder;
+use App\Core\Seeders\LoyaltySeeder;
 use App\Core\Seeders\MenuSeeder;
 use App\Core\Seeders\NewsletterSeeder;
 use App\Core\Seeders\PassInclusionsSeeder;
@@ -19,6 +24,8 @@ use App\Core\Seeders\RbacSeeder;
 use App\Core\Seeders\ReservationSeeder;
 use App\Core\Seeders\ReviewSeeder;
 use App\Core\Seeders\StaffSeeder;
+use App\Core\Seeders\StaffShiftSeeder;
+use App\Core\Seeders\SupervisorAssignmentSeeder;
 use App\Core\Seeders\SystemSettingsSeeder;
 use App\Core\Seeders\TimeSlotSeeder;
 use App\Core\Seeders\UserSeeder;
@@ -188,11 +195,6 @@ $seeders = [
     'RBAC' => ['class' => RbacSeeder::class, 'prereq' => null],
     'Cafes' => ['class' => CafeSeeder::class, 'prereq' => null],
     'Animals' => ['class' => AnimalSeeder::class, 'prereq' => null],
-    'AnimalIncidents' => ['class' => AnimalIncidentSeeder::class, 'prereq' => static function (PDO $db) {
-        $cnt = (int) $db->query('SELECT COUNT(*) FROM animals')->fetchColumn();
-
-        return $cnt > 0;
-    }],
     'Settings' => ['class' => SystemSettingsSeeder::class, 'prereq' => null],
     'Allergens' => ['class' => AllergenSeeder::class, 'prereq' => null],
     'Menu' => ['class' => MenuSeeder::class, 'prereq' => null],
@@ -244,6 +246,41 @@ $seeders = [
 
         return $u > 0 && $t > 0;
     }],
+    'AnimalIncidents' => ['class' => AnimalIncidentSeeder::class, 'prereq' => static function (PDO $db) {
+        $a = (int) $db->query('SELECT COUNT(*) FROM animals')->fetchColumn();
+        $s = (int) $db->query('SELECT COUNT(*) FROM users WHERE cafe_id IS NOT NULL')->fetchColumn();
+
+        return $a > 0 && $s > 0;
+    }],
+    'StaffShifts' => ['class' => StaffShiftSeeder::class, 'prereq' => static function (PDO $db) {
+        $s = (int) $db->query('SELECT COUNT(*) FROM users WHERE cafe_id IS NOT NULL')->fetchColumn();
+        $c = (int) $db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
+
+        return $s > 0 && $c > 0;
+    }],
+    'SupervisorAssignments' => ['class' => SupervisorAssignmentSeeder::class, 'prereq' => static function (PDO $db) {
+        $s = (int) $db->query('SELECT COUNT(*) FROM users WHERE cafe_id IS NOT NULL')->fetchColumn();
+        $r = (int) $db->query("SELECT COUNT(*) FROM reservations WHERE status = 'completed'")->fetchColumn();
+
+        return $s > 0 && $r > 0;
+    }],
+    'AnimalHealthChecks' => ['class' => AnimalHealthCheckSeeder::class, 'prereq' => static function (PDO $db) {
+        $a = (int) $db->query('SELECT COUNT(*) FROM animals')->fetchColumn();
+        $s = (int) $db->query('SELECT COUNT(*) FROM users WHERE cafe_id IS NOT NULL')->fetchColumn();
+
+        return $a > 0 && $s > 0;
+    }],
+    'AnimalRelationships' => ['class' => AnimalRelationshipSeeder::class, 'prereq' => static function (PDO $db) {
+        $a = (int) $db->query('SELECT COUNT(*) FROM animals')->fetchColumn();
+
+        return $a > 1;
+    }],
+    'AnimalAdoptionRequests' => ['class' => AnimalAdoptionRequestSeeder::class, 'prereq' => static function (PDO $db) {
+        $a = (int) $db->query('SELECT COUNT(*) FROM animals')->fetchColumn();
+        $u = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn();
+
+        return $a > 0 && $u > 0;
+    }],
     'AuditLog' => ['class' => AuditLogSeeder::class, 'prereq' => static function (PDO $db) {
         // Requiere usuarios existentes
         $u = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn();
@@ -255,6 +292,18 @@ $seeders = [
         $u = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn();
 
         return $u > 0;
+    }],
+    'Loyalty' => ['class' => LoyaltySeeder::class, 'prereq' => static function (PDO $db) {
+        $u = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn();
+        $r = (int) $db->query("SELECT COUNT(*) FROM reservations WHERE status = 'completed'")->fetchColumn();
+
+        return $u > 0 && $r > 0;
+    }],
+    'InteractionSessions' => ['class' => InteractionSessionSeeder::class, 'prereq' => static function (PDO $db) {
+        $r = (int) $db->query('SELECT COUNT(*) FROM reservations WHERE check_in_at IS NOT NULL')->fetchColumn();
+        $a = (int) $db->query('SELECT COUNT(*) FROM animals')->fetchColumn();
+
+        return $r > 0 && $a > 0;
     }],
 ];
 
@@ -308,7 +357,7 @@ if ($shouldSeed) {
         'user_animal_visits',
         'loyalty_rewards',
         'loyalty_cards',
-        'loyalty_reward_catalog',
+        // loyalty_reward_catalog se omite: lo gestiona la migración 012 con ON DUPLICATE KEY UPDATE
         'supervisor_assignments',
         'reservation_items',
         'reservations',
@@ -326,6 +375,7 @@ if ($shouldSeed) {
         'user_roles',
         'users',
         'product_allergens',
+        'pass_inclusions',
         'products',
         'allergens',
         'menu_categories',
@@ -335,6 +385,7 @@ if ($shouldSeed) {
         'roles',
         'settings',
         'newsletter_subscriptions',
+        'animal_adoption_requests',
     ];
 
     try {
@@ -474,7 +525,7 @@ try {
         'evt_expire_loyalty_rewards',
     ];
 
-    $foundEvents = array_map(static fn ($e) => $e['Name'], $events);
+    $foundEvents = array_map(static fn($e) => $e['Name'], $events);
 
     logMsg('Eventos encontrados:');
     $totalFound = 0;

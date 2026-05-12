@@ -167,8 +167,8 @@ final class TimeSlotSeeder
         foreach ($cafes as $cafe) {
             $capacity = (int) $cafe['capacity_max'];
 
-            // Generar slots para los próximos 14 días
-            for ($day = 0; $day < 14; $day++) {
+            // Generar slots para los próximos 16 días (ventana de reserva)
+            for ($day = 0; $day < 16; $day++) {
                 $date = $today->modify("+$day days");
                 $dateStr = $date->format('Y-m-d');
 

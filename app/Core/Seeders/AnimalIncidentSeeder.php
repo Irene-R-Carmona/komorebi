@@ -38,7 +38,6 @@ final class AnimalIncidentSeeder
         $stmt = $this->db->query('
             SELECT a.id, a.cafe_id, a.name
             FROM animals a
-            LIMIT 20
         ');
         $animals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -141,9 +140,9 @@ final class AnimalIncidentSeeder
 
         $stmt = $this->db->prepare('
             INSERT INTO animal_incidents (
-                animal_id, incident_type, description, severity, reported_by, resolved_at, resolved_by, created_at
+                animal_id, incident_type, description, severity, status, reported_by, resolved_at, resolved_by, created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ');
 
         $count = 0;
@@ -163,9 +162,10 @@ final class AnimalIncidentSeeder
                         $incident['type'],             // incident_type
                         $incident['description'],      // description
                         $incident['severity'],         // severity
+                        $incident['status'],           // status
                         $loggedBy,                     // reported_by
                         $resolvedAt,                   // resolved_at
-                        $resolvedBy,                    // resolved_by
+                        $resolvedBy,                   // resolved_by
                     ]);
                     $count++;
                 } catch (Throwable $e) {

@@ -63,10 +63,15 @@ final class AnimalHealthCheckSeeder
         );
 
         $today = \strtotime('today');
-        $days = 14;
+        $days = 90; // 14 días diarios + 76 días semanales = ~90 días de histórico
         $total = 0;
 
         for ($d = $days - 1; $d >= 0; $d--) {
+            // Para días anteriores a las últimas 2 semanas: solo chequeos semanales
+            if ($d >= 14 && ($d % 7 !== 0)) {
+                continue;
+            }
+
             $dayTs = $today - ($d * 86400);
             $dayStr = \date('Y-m-d', $dayTs);
             $keeperId = $keepers[\array_rand($keepers)]['id'];
@@ -164,16 +169,21 @@ final class AnimalHealthCheckSeeder
     private function getWeightBase(string $speciesType): float
     {
         return match ($speciesType) {
-            'cat' => 4.2,
-            'dog' => 8.5,
-            'rabbit' => 2.1,
-            'hamster' => 0.12,
-            'guinea_pig' => 0.9,
-            'bird' => 0.4,
-            'reptile' => 0.8,
-            'hedgehog' => 0.45,
-            'ferret' => 0.9,
-            default => 1.5,
+            'gato'            => 4.2,
+            'perro'           => 8.5,
+            'conejo'          => 2.1,
+            'chinchilla'      => 0.48,
+            'ardilla'         => 0.35,
+            'loro'            => 0.35,
+            'capybara'        => 55.0,
+            'alpaca'          => 70.0,
+            'cerdito'         => 12.0,
+            'pato'            => 1.8,
+            'cobaya'          => 0.9,
+            'perrito_pradera' => 1.2,
+            'caballo'         => 90.0,
+            'tortuga'         => 5.5,
+            default           => 2.0,
         };
     }
 }
