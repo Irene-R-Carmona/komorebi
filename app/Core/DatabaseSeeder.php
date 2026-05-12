@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Core\Seeders\AllergenSeeder;
 use App\Core\Seeders\AnimalAdoptionRequestSeeder;
 use App\Core\Seeders\AnimalHealthCheckSeeder;
 use App\Core\Seeders\AnimalIncidentSeeder;
@@ -14,7 +15,6 @@ use App\Core\Seeders\AuthAuditLogSeeder;
 use App\Core\Seeders\CafeSeeder;
 use App\Core\Seeders\InteractionSessionSeeder;
 use App\Core\Seeders\LoyaltySeeder;
-use App\Core\Seeders\AllergenSeeder;
 use App\Core\Seeders\MenuSeeder;
 use App\Core\Seeders\NewsletterSeeder;
 use App\Core\Seeders\PassInclusionsSeeder;

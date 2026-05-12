@@ -115,8 +115,8 @@ final class AnimalAdoptionRequestSeeder
 
         $total = 0;
         foreach ($requests as $i => $req) {
-            $animalId  = (int) $animals[$i % \count($animals)];
-            $userId    = (int) $users[$i % \count($users)];
+            $animalId = (int) $animals[$i % \count($animals)];
+            $userId = (int) $users[$i % \count($users)];
             $createdAt = \date('Y-m-d H:i:s', \strtotime('-' . $req['days_ago'] . ' days'));
 
             $reviewedAt = null;
@@ -127,24 +127,24 @@ final class AnimalAdoptionRequestSeeder
             $keeperNotes = match ($req['status']) {
                 'approved' => 'Solicitante verificado. Domicilio apto. Aprobado sin observaciones.',
                 'rejected' => 'No cumple los requisitos mínimos de espacio habitable.',
-                default    => null,
+                default => null,
             };
 
             try {
                 $stmt->execute([
-                    'animal_id'    => $animalId,
-                    'user_id'      => $userId,
-                    'status'       => $req['status'],
-                    'message'      => $messages[$i],
+                    'animal_id' => $animalId,
+                    'user_id' => $userId,
+                    'status' => $req['status'],
+                    'message' => $messages[$i],
                     'keeper_notes' => $keeperNotes,
-                    'reviewed_by'  => $req['reviewed_by'],
-                    'reviewed_at'  => $reviewedAt,
-                    'created_at'   => $createdAt,
+                    'reviewed_by' => $req['reviewed_by'],
+                    'reviewed_at' => $reviewedAt,
+                    'created_at' => $createdAt,
                 ]);
                 $total++;
             } catch (PDOException $e) {
                 Logger::warning('[AnimalAdoptionRequestSeeder] insert skipped', [
-                    'index'     => $i,
+                    'index' => $i,
                     'exception' => $e->getMessage(),
                 ]);
             }

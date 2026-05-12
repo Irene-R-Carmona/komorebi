@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Core\Result;
 use App\Repositories\Contracts\CafeRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
@@ -18,7 +19,6 @@ use App\Services\Contracts\InvoicePDFServiceInterface;
 use App\Services\Contracts\LoyaltyServiceInterface;
 use App\Services\Contracts\SettingsServiceInterface;
 use App\Services\ReservationService;
-use App\Core\Result;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

@@ -169,21 +169,21 @@ final class AnimalHealthCheckSeeder
     private function getWeightBase(string $speciesType): float
     {
         return match ($speciesType) {
-            'gato'            => 4.2,
-            'perro'           => 8.5,
-            'conejo'          => 2.1,
-            'chinchilla'      => 0.48,
-            'ardilla'         => 0.35,
-            'loro'            => 0.35,
-            'capybara'        => 55.0,
-            'alpaca'          => 70.0,
-            'cerdito'         => 12.0,
-            'pato'            => 1.8,
-            'cobaya'          => 0.9,
+            'gato' => 4.2,
+            'perro' => 8.5,
+            'conejo' => 2.1,
+            'chinchilla' => 0.48,
+            'ardilla' => 0.35,
+            'loro' => 0.35,
+            'capybara' => 55.0,
+            'alpaca' => 70.0,
+            'cerdito' => 12.0,
+            'pato' => 1.8,
+            'cobaya' => 0.9,
             'perrito_pradera' => 1.2,
-            'caballo'         => 90.0,
-            'tortuga'         => 5.5,
-            default           => 2.0,
+            'caballo' => 90.0,
+            'tortuga' => 5.5,
+            default => 2.0,
         };
     }
 }

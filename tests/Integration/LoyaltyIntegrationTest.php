@@ -32,6 +32,7 @@ use App\Services\InvoicePDFService;
 use App\Services\LoyaltyService;
 use App\Services\ReservationService;
 use Override;
+use PDO;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use Tests\Support\BaseIntegrationTest;
 
@@ -179,7 +180,7 @@ final class LoyaltyIntegrationTest extends BaseIntegrationTest
         // Verificar tarjeta antes (0 sellos si no existe aún)
         $cardBefore = self::$db->query(
             'SELECT visits_count FROM loyalty_cards WHERE user_id = ' . self::TEST_USER_ID
-        )->fetch(\PDO::FETCH_ASSOC);
+        )->fetch(PDO::FETCH_ASSOC);
         $stampsBefore = $cardBefore ? (int) $cardBefore['visits_count'] : 0;
 
         // ACT
@@ -195,7 +196,7 @@ final class LoyaltyIntegrationTest extends BaseIntegrationTest
         // ASSERT — se añadió exactamente 1 sello
         $cardAfter = self::$db->query(
             'SELECT visits_count FROM loyalty_cards WHERE user_id = ' . self::TEST_USER_ID
-        )->fetch(\PDO::FETCH_ASSOC);
+        )->fetch(PDO::FETCH_ASSOC);
         $this->assertNotFalse($cardAfter, 'Debe existir una loyalty_card para el usuario');
         $this->assertSame(
             $stampsBefore + 1,
@@ -206,7 +207,7 @@ final class LoyaltyIntegrationTest extends BaseIntegrationTest
         // ASSERT — la reserva queda marcada como loyalty_awarded = true
         $reservation = self::$db->query(
             'SELECT loyalty_awarded FROM reservations WHERE id = ' . $reservationId
-        )->fetch(\PDO::FETCH_ASSOC);
+        )->fetch(PDO::FETCH_ASSOC);
         $this->assertSame(1, (int) $reservation['loyalty_awarded'], 'loyalty_awarded debe ser 1 tras completar');
     }
 
@@ -243,7 +244,7 @@ final class LoyaltyIntegrationTest extends BaseIntegrationTest
         $this->loyaltyService->addStamp(self::TEST_USER_ID, 1, null);
         $cardBefore = self::$db->query(
             'SELECT visits_count FROM loyalty_cards WHERE user_id = ' . self::TEST_USER_ID
-        )->fetch(\PDO::FETCH_ASSOC);
+        )->fetch(PDO::FETCH_ASSOC);
         $stampsBefore = (int) $cardBefore['visits_count'];
 
         // ACT — manager intenta completar una reserva ya premiada
@@ -259,7 +260,7 @@ final class LoyaltyIntegrationTest extends BaseIntegrationTest
         // ASSERT — no se añadió ningún sello extra
         $cardAfter = self::$db->query(
             'SELECT visits_count FROM loyalty_cards WHERE user_id = ' . self::TEST_USER_ID
-        )->fetch(\PDO::FETCH_ASSOC);
+        )->fetch(PDO::FETCH_ASSOC);
         $this->assertSame(
             $stampsBefore,
             (int) $cardAfter['visits_count'],

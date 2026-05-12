@@ -27,7 +27,8 @@ final readonly class ReservationDTO implements DomainTransferObject
         public ?string $payment_method,
         public ?string $notes,
         public bool $loyalty_awarded = false,
-    ) {}
+    ) {
+    }
 
     public static function fromArray(array $data): self
     {

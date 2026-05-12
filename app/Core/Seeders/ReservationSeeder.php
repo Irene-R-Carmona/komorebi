@@ -39,8 +39,8 @@ final class ReservationSeeder
         }
 
         // Obtener usuarios y cafés
-        $userIds     = $this->db->query('SELECT id FROM users WHERE id > 1 ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);
-        $cafeIds     = $this->db->query('SELECT id FROM cafes ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);
+        $userIds = $this->db->query('SELECT id FROM users WHERE id > 1 ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);
+        $cafeIds = $this->db->query('SELECT id FROM cafes ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);
         $passProduct = $this->db->query("SELECT id, name, price, duration_minutes FROM products WHERE product_type = 'pass' LIMIT 1")->fetch(PDO::FETCH_ASSOC);
 
         if (empty($userIds) || empty($cafeIds) || empty($passProduct)) {
@@ -74,8 +74,8 @@ final class ReservationSeeder
 
         Logger::info('[ReservationSeeder] completed', [
             'historical' => $historicalCreated,
-            'future'     => $futureCreated,
-            'total'      => $historicalCreated + $futureCreated,
+            'future' => $futureCreated,
+            'total' => $historicalCreated + $futureCreated,
         ]);
     }
 
@@ -86,14 +86,14 @@ final class ReservationSeeder
      */
     private function seedHistorical(array $userIds, array $cafeIds, array $passProduct): int
     {
-        $created   = 0;
+        $created = 0;
         $maxTarget = 300;
-        $today     = new DateTimeImmutable('today');
-        $d         = new DateTimeImmutable('2026-01-01');
+        $today = new DateTimeImmutable('today');
+        $d = new DateTimeImmutable('2026-01-01');
 
         while ($d < $today && $created < $maxTarget) {
-            $dateStr   = $d->format('Y-m-d');
-            $dow       = (int) $d->format('N'); // 1=lun, 7=dom
+            $dateStr = $d->format('Y-m-d');
+            $dow = (int) $d->format('N'); // 1=lun, 7=dom
             $isWeekend = $dow >= 6;
 
             // Reservas base del día
@@ -112,25 +112,25 @@ final class ReservationSeeder
             $dayTarget = \min($dayTarget, $maxTarget - $created);
 
             for ($i = 0; $i < $dayTarget; $i++) {
-                $userId    = $userIds[\array_rand($userIds)];
-                $cafeId    = $cafeIds[\array_rand($cafeIds)];
-                $hour      = \random_int(10, 19);
-                $minute    = [0, 15, 30, 45][\random_int(0, 3)];
-                $time      = \sprintf('%02d:%02d:00', $hour, $minute);
-                $guests    = \random_int(1, 4);
-                $status    = \random_int(1, 10) > 2 ? 'completed' : 'no_show';
+                $userId = $userIds[\array_rand($userIds)];
+                $cafeId = $cafeIds[\array_rand($cafeIds)];
+                $hour = \random_int(10, 19);
+                $minute = [0, 15, 30, 45][\random_int(0, 3)];
+                $time = \sprintf('%02d:%02d:00', $hour, $minute);
+                $guests = \random_int(1, 4);
+                $status = \random_int(1, 10) > 2 ? 'completed' : 'no_show';
 
-                $checkInAt     = null;
-                $checkOutAt    = null;
+                $checkInAt = null;
+                $checkOutAt = null;
                 $paymentStatus = 'pending';
-                $finalAmount   = null;
+                $finalAmount = null;
 
                 if ($status === 'completed') {
-                    $checkInAt       = $dateStr . ' ' . $time;
+                    $checkInAt = $dateStr . ' ' . $time;
                     $durationMinutes = (int) ($passProduct['duration_minutes'] ?? 60);
-                    $checkOutAt      = \date('Y-m-d H:i:s', \strtotime($checkInAt) + $durationMinutes * 60);
-                    $paymentStatus   = 'paid';
-                    $finalAmount     = (int) $passProduct['price'] * $guests;
+                    $checkOutAt = \date('Y-m-d H:i:s', \strtotime($checkInAt) + $durationMinutes * 60);
+                    $paymentStatus = 'paid';
+                    $finalAmount = (int) $passProduct['price'] * $guests;
                 }
 
                 $this->insertReservation(
@@ -171,11 +171,11 @@ final class ReservationSeeder
             $slotsByDate[$slot['slot_date']][] = $slot;
         }
 
-        $created   = 0;
+        $created = 0;
         $usedSlots = [];
 
         foreach ($slotsByDate as $date => $daySlots) {
-            $dow       = (int) (new DateTimeImmutable($date))->format('N');
+            $dow = (int) new DateTimeImmutable($date)->format('N');
             $isWeekend = $dow >= 6;
 
             // Fin de semana: más reservas (pico de demanda)
@@ -194,9 +194,9 @@ final class ReservationSeeder
                     continue;
                 }
 
-                $userId     = $userIds[\array_rand($userIds)];
+                $userId = $userIds[\array_rand($userIds)];
                 $guestCount = \min(\random_int(1, 3), (int) $slot['available_spots']);
-                $status     = \random_int(1, 10) > 3 ? 'confirmed' : 'pending';
+                $status = \random_int(1, 10) > 3 ? 'confirmed' : 'pending';
 
                 $this->insertReservation(
                     $userId,
@@ -219,7 +219,7 @@ final class ReservationSeeder
                 ')->execute([
                     'guests_sub' => $guestCount,
                     'guests_add' => $guestCount,
-                    'slot_id'    => (int) $slot['id'],
+                    'slot_id' => (int) $slot['id'],
                 ]);
 
                 $created++;

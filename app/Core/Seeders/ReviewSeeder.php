@@ -83,7 +83,7 @@ final class ReviewSeeder
                 }
 
                 $cafeId = $reservation['cafe_id'];
-                $cafeReviews = \array_filter($allReviews, static fn($r) => $r['cafe_id'] === $cafeId);
+                $cafeReviews = \array_filter($allReviews, static fn ($r) => $r['cafe_id'] === $cafeId);
 
                 if (empty($cafeReviews)) {
                     continue;
@@ -136,7 +136,7 @@ final class ReviewSeeder
             }
 
             // Buscar reseñas para este café específico
-            $cafeReviews = \array_filter($allReviews, static fn($r) => $r['cafe_id'] === $cafeId);
+            $cafeReviews = \array_filter($allReviews, static fn ($r) => $r['cafe_id'] === $cafeId);
 
             if (empty($cafeReviews)) {
                 continue;

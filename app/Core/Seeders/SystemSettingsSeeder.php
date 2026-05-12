@@ -30,21 +30,21 @@ final class SystemSettingsSeeder
 
         $isProduction = Env::get('APP_ENV', 'production') === 'production';
         $smtp = $isProduction ? [
-            'host'       => 'smtp.gmail.com',
-            'port'       => '587',
-            'username'   => Env::get('MAIL_FROM_ADDRESS', ''),
-            'password'   => Env::get('SMTP_PASSWORD', ''),
+            'host' => 'smtp.gmail.com',
+            'port' => '587',
+            'username' => Env::get('MAIL_FROM_ADDRESS', ''),
+            'password' => Env::get('SMTP_PASSWORD', ''),
             'encryption' => 'tls',
-            'from'       => Env::get('MAIL_FROM_ADDRESS', 'noreply@komorebi.es'),
-            'support'    => Env::get('SUPPORT_EMAIL', 'soporte@komorebi.es'),
+            'from' => Env::get('MAIL_FROM_ADDRESS', 'noreply@komorebi.es'),
+            'support' => Env::get('SUPPORT_EMAIL', 'soporte@komorebi.es'),
         ] : [
-            'host'       => 'mailpit',
-            'port'       => '1025',
-            'username'   => '',
-            'password'   => '',
+            'host' => 'mailpit',
+            'port' => '1025',
+            'username' => '',
+            'password' => '',
             'encryption' => 'none',
-            'from'       => 'noreply@komorebi.test',
-            'support'    => 'soporte@komorebi.test',
+            'from' => 'noreply@komorebi.test',
+            'support' => 'soporte@komorebi.test',
         ];
 
         $settings = [

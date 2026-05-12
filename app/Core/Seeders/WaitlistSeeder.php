@@ -82,29 +82,29 @@ final class WaitlistSeeder
             ')->execute(['id' => $slot['id']]);
         }
 
-        $inserted  = 0;
+        $inserted = 0;
         $userIndex = 0;
         $userCount = \count($users);
 
         foreach ($peakSlots as $slot) {
             // 3-5 personas en lista de espera por slot pico
-            $perSlot  = \rand(3, 5);
+            $perSlot = \rand(3, 5);
             $position = 1;
 
             for ($i = 0; $i < $perSlot; $i++) {
                 $user = $users[$userIndex % $userCount];
                 $userIndex++;
 
-                $status     = 'waiting';
+                $status = 'waiting';
                 $notifiedAt = null;
-                $expiresAt  = \date('Y-m-d H:i:s', \time() + 86400);
-                $token      = \bin2hex(\random_bytes(16));
+                $expiresAt = \date('Y-m-d H:i:s', \time() + 86400);
+                $token = \bin2hex(\random_bytes(16));
 
                 // El primero de cada slot puede estar en estado 'notified' (40%)
                 if ($i === 0 && \rand(1, 5) <= 2) {
-                    $status     = 'notified';
+                    $status = 'notified';
                     $notifiedAt = \date('Y-m-d H:i:s', \time() - \rand(60, 600));
-                    $expiresAt  = \date('Y-m-d H:i:s', \time() + \rand(300, 900));
+                    $expiresAt = \date('Y-m-d H:i:s', \time() + \rand(300, 900));
                 }
 
                 $this->db->prepare('
@@ -121,16 +121,16 @@ final class WaitlistSeeder
                         15, :special_requests, NOW()
                     )
                 ')->execute([
-                    'user_id'          => $user['id'],
-                    'time_slot_id'     => $slot['id'],
-                    'position'         => $position++,
-                    'status'           => $status,
-                    'guest_count'      => \rand(1, 4),
-                    'contact_email'    => $user['email'],
-                    'contact_phone'    => $this->generatePhone(),
-                    'token'            => $token,
-                    'notified_at'      => $notifiedAt,
-                    'expires_at'       => $expiresAt,
+                    'user_id' => $user['id'],
+                    'time_slot_id' => $slot['id'],
+                    'position' => $position++,
+                    'status' => $status,
+                    'guest_count' => \rand(1, 4),
+                    'contact_email' => $user['email'],
+                    'contact_phone' => $this->generatePhone(),
+                    'token' => $token,
+                    'notified_at' => $notifiedAt,
+                    'expires_at' => $expiresAt,
                     'special_requests' => $this->getRandomRequest(),
                 ]);
 
