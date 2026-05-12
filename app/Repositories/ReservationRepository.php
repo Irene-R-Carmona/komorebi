@@ -130,9 +130,11 @@ final class ReservationRepository extends AbstractRepository implements Reservat
 
         $stmt = $this->getDb()->prepare(
             "SELECT {$fields},
-                    u.name AS user_name
+                    u.name AS user_name,
+                    sa.table_code
              FROM reservations r
              JOIN users u ON u.id = r.user_id
+             LEFT JOIN supervisor_assignments sa ON sa.reservation_id = r.id AND sa.is_active = 1
              WHERE r.cafe_id = :cafe_id
              AND r.reservation_date = :date
              AND r.status IN ('pending', 'confirmed', 'active')

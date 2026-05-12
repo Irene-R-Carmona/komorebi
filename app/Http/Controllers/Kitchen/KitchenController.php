@@ -211,8 +211,13 @@ final class KitchenController
         $now = \time();
 
         foreach ($itemsRaw as $item) {
-            // Calcular tiempo de espera (created_ts viene como UNIX_TIMESTAMP desde MySQL — sin desfase de timezone)
-            $seconds = $now - (int) ($item['created_ts'] ?? \strtotime($item['created_at']));
+            // Usar kitchen_started_at como base cuando el cocinero ha pulsado INICIAR.
+            // El timer mide el tiempo de preparación real, no el de creación del ítem.
+            $baseTs = ($item['status'] === 'kitchen' && !empty($item['kitchen_started_ts']))
+                ? (int) $item['kitchen_started_ts']
+                : (int) ($item['created_ts'] ?? \strtotime($item['created_at']));
+
+            $seconds = $now - $baseTs;
 
             // Formatear tiempo para UI
             $item['ui_time'] = \gmdate(($seconds > 3600 ? 'H:i:s' : 'i:s'), $seconds);

@@ -52,4 +52,6 @@ interface ReservationItemRepositoryInterface
      * @return array<int, list<array{id: int, product_name: string, quantity: int}>>
      */
     public function getReadyItemsByReservations(array $ids): array;
+
+    public function updateKitchenStarted(int $id): void;
 }

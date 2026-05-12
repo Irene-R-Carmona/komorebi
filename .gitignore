@@ -87,6 +87,7 @@ public/hot
 .psalm/cache/
 .sonarqube/
 .quality/baselines/
+.deptrac.cache
 
 # Security — Keys & Certs
 secrets/
@@ -119,6 +120,13 @@ docker/redis/dump.rdb
 .claude/
 .agents/
 AGENTS.md
+
+# GitHub Copilot / AI agents — instrucciones, prompts y skills (no compartir)
+.github/copilot-instructions.md
+.github/instructions/
+.github/prompts/
+skills-lock.json
+docs/superpowers/
 
 # Logs de desarrollo sueltos en raíz
 logs.txt

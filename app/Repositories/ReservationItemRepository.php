@@ -50,6 +50,8 @@ final class ReservationItemRepository extends AbstractRepository implements Rese
     private const ITEM_SELECT = '
         ri.id, ri.quantity, ri.status, ri.created_at,
         UNIX_TIMESTAMP(ri.created_at) AS created_ts,
+        ri.kitchen_started_at,
+        UNIX_TIMESTAMP(ri.kitchen_started_at) AS kitchen_started_ts,
         ri.reservation_id,
         p.id AS product_id, p.name AS product_name, p.station,
         p.prep_time, p.recipe_steps, p.ingredients_list, p.critical_check,
@@ -301,12 +303,21 @@ final class ReservationItemRepository extends AbstractRepository implements Rese
         $result = [];
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
             $result[(int) $row['reservation_id']][] = [
-                'id'           => (int) $row['id'],
+                'id' => (int) $row['id'],
                 'product_name' => (string) $row['product_name'],
-                'quantity'     => (int) $row['quantity'],
+                'quantity' => (int) $row['quantity'],
             ];
         }
 
         return $result;
+    }
+
+    #[Override]
+    public function updateKitchenStarted(int $id): void
+    {
+        $stmt = $this->getDb()->prepare(
+            'UPDATE reservation_items SET kitchen_started_at = NOW() WHERE id = ?'
+        );
+        $stmt->execute([$id]);
     }
 }

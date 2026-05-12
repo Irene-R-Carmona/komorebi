@@ -82,7 +82,7 @@ final class ReceptionService implements ReceptionServiceInterface
 
         $pending = \array_values(\array_filter(
             $reservations,
-            static fn($r) => $r['status'] === Reservation::STATUS_CONFIRMED
+            static fn ($r) => $r['status'] === Reservation::STATUS_CONFIRMED
         ));
 
         foreach ($pending as &$reservation) {

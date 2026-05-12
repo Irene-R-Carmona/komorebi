@@ -36,6 +36,41 @@
         return this.reservations.filter(r => r.status === this.reservationFilter);
       },
 
+      /**
+       * Agrupa los ítems en estado 'ready' por tracker_code/reservation_id.
+       * Devuelve [{tracker_code, total, ready, complete}].
+       */
+      get readyByTable() {
+        var groups = {};
+        var allOrders = this.pendingOrders.concat(this.kitchenOrders).concat(this.readyOrders);
+
+        // Contar totales por tracker (todos los estados activos)
+        allOrders.forEach(function (o) {
+          var key = o.tracker_code || String(o.reservation_id);
+          if (!groups[key]) { groups[key] = { tracker_code: key, total: 0, ready: 0 }; }
+          groups[key].total++;
+          if (o.status === 'ready') { groups[key].ready++; }
+        });
+
+        // Filtrar solo grupos que tengan al menos 1 listo
+        return Object.values(groups).filter(function (g) { return g.ready > 0; });
+      },
+
+      /**
+       * Reservas confirmadas que llegan en los próximos 30 min.
+       * Usa r.unix_time (generado en PHP con strtotime).
+       */
+      get upcomingArrivals() {
+        var nowTs = Math.floor(Date.now() / 1000);
+        var horizon = nowTs + 1800; // 30 min
+        return this.reservations.filter(function (r) {
+          return r.status === 'confirmed' &&
+            r.unix_time != null &&
+            r.unix_time >= nowTs &&
+            r.unix_time <= horizon;
+        }).sort(function (a, b) { return a.unix_time - b.unix_time; });
+      },
+
       init() {
         this.lastUpdate = new Date();
         this.connectMercure();
@@ -86,15 +121,17 @@
         }
       },
 
-      getOrderAge(order) {
-        if (!order || !order.created_ts) return 0;
-        return Math.floor((Date.now() / 1000 - order.created_ts) / 60);
+      getOrderAge(order, field) {
+        var f = field || 'created_ts';
+        var ts = (order && order[f]) ? order[f] : (order && order.created_ts ? order.created_ts : null);
+        if (!ts) return 0;
+        return Math.floor((Date.now() / 1000 - ts) / 60);
       },
 
       getTimerClass(minutes) {
-        if (minutes >= 15) return 'timer--critical';
-        if (minutes >= 10) return 'timer--urgent';
-        if (minutes >= 6) return 'timer--warning';
+        if (minutes >= 12) return 'timer--critical';
+        if (minutes >= 8) return 'timer--urgent';
+        if (minutes >= 5) return 'timer--warning';
         return '';
       },
 

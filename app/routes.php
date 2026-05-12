@@ -173,7 +173,7 @@ $router->group(['prefix' => '', 'middleware' => $guestMiddleware], function (Rou
 $authMiddleware = [$mw->auth()];
 $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw, $responseFactory) {
     $r->post('/logout', 'Auth\AuthController@logout', [$mw->csrf()]);
-    $r->get('/profile', static fn(): ResponseInterface => $responseFactory->redirect('/perfil', 301));
+    $r->get('/profile', static fn (): ResponseInterface => $responseFactory->redirect('/perfil', 301));
     $r->get('/perfil', 'Shared\UserController@profile');
     $r->post('/profile/update', 'Shared\UserController@update', [$mw->csrf()]);
     $r->post('/profile/avatar', 'Shared\UserController@updateAvatar', [$mw->csrf()]);
@@ -504,9 +504,9 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
 } // end FEATURE_KEEPER
 
 $corsOnly = [$mw->cors()];
-$router->options('/api/v1/{resource}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{id}', fn() => '', $corsOnly);
-$router->options('/api/v1/{resource}/{sub}/{id}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{id}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}/{sub}/{id}', fn () => '', $corsOnly);
 
 $router->get('/health', function () use ($responseFactory) {
     $status = 'healthy';

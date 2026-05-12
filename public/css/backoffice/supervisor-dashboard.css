@@ -74,8 +74,9 @@
 }
 
 .table-cell--occupied {
-  border-color: var(--color-danger, #9B2335);
-  background: var(--color-danger-light, #F5E0E4);
+  border-color: var(--color-accent-500, #c9a959);
+  background: var(--color-accent-50, #fdf8ee);
+  color: #1a1a1a;
 }
 
 .table-cell__code {
@@ -283,4 +284,201 @@
 
 [x-cloak] {
   display: none !important;
+}
+
+/* =======================================================
+   Supervisor 2-col layout
+   ======================================================= */
+
+.supervisor-2col {
+  display: grid;
+  grid-template-columns: 65fr 35fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.supervisor-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .supervisor-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =======================================================
+   Panel genérico supervisor
+   ======================================================= */
+
+.sv-panel {
+  background: var(--color-surface-1, #fff);
+  border: 1px solid var(--color-border, #e5e0d8);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.sv-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--color-surface-0, #faf8f5);
+  border-bottom: 1px solid var(--color-border, #e5e0d8);
+  color: var(--color-text-secondary, #6b5b52);
+}
+
+.sv-panel__header .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+.sv-panel__header--pending {
+  border-left: 3px solid var(--color-warning, #c9a959);
+}
+
+.sv-panel__header--kitchen {
+  border-left: 3px solid var(--color-info, #3b82f6);
+}
+
+.sv-panel__header--ready {
+  border-left: 3px solid var(--color-success, #22c55e);
+}
+
+.sv-panel__header--arrivals {
+  border-left: 3px solid var(--color-accent-500, #c9a959);
+}
+
+.sv-panel__body {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sv-panel__body--scroll {
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sv-empty {
+  text-align: center;
+  color: var(--color-text-muted, #9ca3af);
+  font-size: 0.8125rem;
+  padding: 0.75rem 0;
+  margin: 0;
+}
+
+/* =======================================================
+   Expeditor row (panel Listos)
+   ======================================================= */
+
+.expeditor-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--color-surface-0, #faf8f5);
+  border-radius: 6px;
+  border: 1px solid var(--color-border, #e5e0d8);
+}
+
+.expeditor-row__id {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-text-primary, #1a1a1a);
+  min-width: 4.5rem;
+}
+
+.expeditor-row__id .material-symbols-outlined {
+  font-size: 1rem;
+  color: var(--color-accent-500, #c9a959);
+}
+
+.expeditor-row__count {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #6b5b52);
+  flex: 1;
+}
+
+/* =======================================================
+   Upcoming arrivals
+   ======================================================= */
+
+.upcoming-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border, #e5e0d8);
+  background: var(--color-surface-0, #faf8f5);
+  transition: background 0.15s;
+}
+
+.upcoming-item--urgent {
+  background: var(--color-warning-light, #fdf8ee);
+  border-color: var(--color-accent-500, #c9a959);
+}
+
+.upcoming-item__time {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-primary-700, #3b2519);
+  min-width: 3.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.upcoming-item__info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.125rem;
+}
+
+.upcoming-item__name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text-primary, #1a1a1a);
+}
+
+.upcoming-item__guests {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #6b5b52);
+}
+
+.upcoming-item__mins {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-accent-600, #a88540);
+  background: var(--color-accent-50, #fdf8ee);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* =======================================================
+   Extra badge variants
+   ======================================================= */
+
+.badge--info {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.badge--neutral {
+  background: var(--color-surface-2, #f3f0eb);
+  color: var(--color-text-secondary, #6b5b52);
+  border: 1px solid var(--color-border, #e5e0d8);
 }

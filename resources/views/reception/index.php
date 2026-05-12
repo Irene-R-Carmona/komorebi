@@ -111,6 +111,16 @@ $isFull = $capacityAvailable <= 0;
                     <span class="stat-label">Grupos</span>
                     <span class="stat-val"><?= count($active_groups) ?></span>
                 </div>
+                <form method="POST" action="/logout" style="margin:0;">
+                    <?= \App\Core\Csrf::field() ?>
+                    <button type="submit"
+                        title="Cerrar sesión"
+                        aria-label="Cerrar sesión"
+                        style="background:none;border:none;cursor:pointer;padding:0.25rem;display:flex;align-items:center;color:inherit;opacity:0.6;transition:opacity 0.2s;"
+                        onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
+                        <span class="material-symbols-outlined" style="font-size:1.4rem;">power_settings_new</span>
+                    </button>
+                </form>
             </div>
         </header>
 
@@ -125,20 +135,20 @@ $isFull = $capacityAvailable <= 0;
                 <div class="tables-grid">
                     <?php
                     $warnThresholdMins = 50;
-                    $dangerThresholdMins = 60;
+                $dangerThresholdMins = 60;
 
-                    foreach ($active_groups as $g):
-                        $inicio = strtotime($g['check_in_at'] ?? 'now');
-                        $elapsed = (time() - $inicio) / 60;
-                        $deg = min(360, ($elapsed / 60) * 360);
+                foreach ($active_groups as $g):
+                    $inicio = strtotime($g['check_in_at'] ?? 'now');
+                    $elapsed = (time() - $inicio) / 60;
+                    $deg = min(360, ($elapsed / 60) * 360);
 
-                        $timeClass = 'time-ok';
-                        if ($elapsed > $warnThresholdMins) {
-                            $timeClass = 'time-warn';
-                        }
-                        if ($elapsed > $dangerThresholdMins) {
-                            $timeClass = 'time-danger';
-                        }
+                    $timeClass = 'time-ok';
+                    if ($elapsed > $warnThresholdMins) {
+                        $timeClass = 'time-warn';
+                    }
+                    if ($elapsed > $dangerThresholdMins) {
+                        $timeClass = 'time-danger';
+                    }
                     ?>
                         <div class="zen-table"
                             tabindex="0"
@@ -458,7 +468,7 @@ $isFull = $capacityAvailable <= 0;
 
             <div class="welcome-actions" style="margin-top:1.5rem;">
                 <button type="button" class="btn-confirm"
-                    @click="closeComanda(); openCobro(comandaResId)"
+                    @click="let _id = comandaResId; closeComanda(); openCobro(_id)"
                     x-show="!comandaLoading && comandaItems.length >= 0">
                     Ir a Cobro
                 </button>

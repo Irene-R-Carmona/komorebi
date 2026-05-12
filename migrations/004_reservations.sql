@@ -172,10 +172,12 @@ CREATE TABLE IF NOT EXISTS reservation_items (
         'served'
     ) NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    kitchen_started_at TIMESTAMP NULL DEFAULT NULL COMMENT 'Cuándo se inició la preparación (status → kitchen)',
     INDEX idx_items_res (reservation_id),
     INDEX idx_items_prod (product_id),
     INDEX idx_items_kds_active (status, created_at) COMMENT 'KDS: filtro activos pending+kitchen',
     INDEX idx_reservation_items_timeline (reservation_id, created_at DESC),
+    INDEX idx_ri_kitchen_started (kitchen_started_at),
     CONSTRAINT fk_reservation_items_reservations FOREIGN KEY (reservation_id) REFERENCES reservations (id) ON DELETE CASCADE,
     CONSTRAINT fk_reservation_items_products FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE RESTRICT
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'Líneas de pedido dentro de una reserva (KDS)';

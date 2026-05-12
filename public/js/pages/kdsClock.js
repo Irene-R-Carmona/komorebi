@@ -13,14 +13,21 @@
   }
 
   function updateCardTimes() {
-    document.querySelectorAll('[data-created-ts]').forEach(function (card) {
-      var ts = parseInt(card.dataset.createdTs, 10);
-      if (!ts) return;
+    document.querySelectorAll('[data-started-ts]').forEach(function (card) {
+      var ts = parseInt(card.dataset.startedTs, 10);
       var prepMins = parseInt(card.dataset.prepTime, 10) || 5;
+      var el = card.querySelector('.kds-card__time');
+
+      // Si el cocinero aún no ha pulsado INICIAR (ts === 0), mostrar -- sin urgencia
+      if (!ts) {
+        if (el) el.textContent = '--:--';
+        card.classList.remove('kds-card--late', 'kds-card--warn');
+        return;
+      }
+
       var elapsed = Math.max(0, Math.floor((Date.now() / 1000) - ts));
       var remaining = (prepMins * 60) - elapsed;
 
-      var el = card.querySelector('.kds-card__time');
       if (el) el.textContent = countdownLabel(ts, prepMins);
 
       card.classList.remove('kds-card--late', 'kds-card--warn');

@@ -28,10 +28,10 @@ use App\Http\Controllers\Supervisor\SupervisorController;
 use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Repositories\ReservationRepository;
 use App\Services\KitchenService;
-use Psr\Http\Message\ResponseInterface;
 use PDO;
 use PDOStatement;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Tests\Support\ControllerTestCase;
 
@@ -76,6 +76,7 @@ final class SupervisorControllerTest extends ControllerTestCase
     {
         $itemRepo = $this->createStub(ReservationItemRepositoryInterface::class);
         $itemRepo->method('getReadyItemsByReservations')->willReturn([]);
+
         return $itemRepo;
     }
 
@@ -295,10 +296,10 @@ final class SupervisorControllerTest extends ControllerTestCase
         $body = (string) $result->getBody();
         $decoded = \json_decode($body, true);
         $this->assertIsArray($decoded);
-        $this->assertArrayHasKey('reservations',  $decoded);
-        $this->assertArrayHasKey('activeTables',  $decoded);
+        $this->assertArrayHasKey('reservations', $decoded);
+        $this->assertArrayHasKey('activeTables', $decoded);
         $this->assertArrayHasKey('pendingOrders', $decoded);
         $this->assertArrayHasKey('kitchenOrders', $decoded);
-        $this->assertArrayHasKey('readyOrders',   $decoded);
+        $this->assertArrayHasKey('readyOrders', $decoded);
     }
 }
