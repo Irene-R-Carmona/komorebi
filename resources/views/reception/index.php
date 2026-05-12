@@ -19,8 +19,8 @@ $isFull = $capacityAvailable <= 0;
 
 <div style="display: contents;" x-data="receptionApp"
     data-orderable-items='<?= $orderable_items_json ?>'
-    data-ready-by-res='<?= $ready_by_res_json ?>'>
-
+    data-ready-by-res='<?= $ready_by_res_json ?>'
+    data-ready-items='<?= $ready_items_json ?>'>
     <!-- ────────────────────────────────────────────────────────────────
         SIDEBAR: LLEGADAS (Guestbook)
         ──────────────────────────────────────────────────────────────── -->
@@ -125,20 +125,20 @@ $isFull = $capacityAvailable <= 0;
                 <div class="tables-grid">
                     <?php
                     $warnThresholdMins = 50;
-                $dangerThresholdMins = 60;
+                    $dangerThresholdMins = 60;
 
-                foreach ($active_groups as $g):
-                    $inicio = strtotime($g['check_in_at'] ?? 'now');
-                    $elapsed = (time() - $inicio) / 60;
-                    $deg = min(360, ($elapsed / 60) * 360);
+                    foreach ($active_groups as $g):
+                        $inicio = strtotime($g['check_in_at'] ?? 'now');
+                        $elapsed = (time() - $inicio) / 60;
+                        $deg = min(360, ($elapsed / 60) * 360);
 
-                    $timeClass = 'time-ok';
-                    if ($elapsed > $warnThresholdMins) {
-                        $timeClass = 'time-warn';
-                    }
-                    if ($elapsed > $dangerThresholdMins) {
-                        $timeClass = 'time-danger';
-                    }
+                        $timeClass = 'time-ok';
+                        if ($elapsed > $warnThresholdMins) {
+                            $timeClass = 'time-warn';
+                        }
+                        if ($elapsed > $dangerThresholdMins) {
+                            $timeClass = 'time-danger';
+                        }
                     ?>
                         <div class="zen-table"
                             tabindex="0"
@@ -175,7 +175,11 @@ $isFull = $capacityAvailable <= 0;
                                     <span class="ready-badge"
                                         x-show="readyByRes[<?= (int) $g['id'] ?>] > 0"
                                         x-text="readyByRes[<?= (int) $g['id'] ?>]"
-                                        aria-label="Platos listos"></span>
+                                        @click.stop="toggleReadyPanel(<?= (int) $g['id'] ?>)"
+                                        role="button"
+                                        tabindex="0"
+                                        @keydown.enter.stop="toggleReadyPanel(<?= (int) $g['id'] ?>)"
+                                        aria-label="Platos listos — ver para servir"></span>
                                 </button>
                                 <button type="button" class="btn-table"
                                     @click="openPos(<?= (int) $g['id'] ?>)"
@@ -189,6 +193,25 @@ $isFull = $capacityAvailable <= 0;
                                     aria-label="Cobrar a <?= $g['user_name'] ?? '' ?>">
                                     Cobrar
                                 </button>
+                            </div>
+
+                            <div class="ready-items-panel"
+                                x-show="activeReadyPanel === <?= (int) $g['id'] ?>"
+                                x-cloak>
+                                <template x-for="item in (readyItemsByRes[<?= (int) $g['id'] ?>] || [])" :key="item.id">
+                                    <div class="ready-item-row">
+                                        <span class="ready-item-name" x-text="item.quantity + '× ' + item.product_name"></span>
+                                        <button type="button" class="btn-serve"
+                                            @click="serveItem(<?= (int) $g['id'] ?>, item.id)"
+                                            :disabled="loading">
+                                            Servir
+                                        </button>
+                                    </div>
+                                </template>
+                                <p class="ready-panel-empty"
+                                    x-show="(readyItemsByRes[<?= (int) $g['id'] ?>] || []).length === 0">
+                                    Cargando…
+                                </p>
                             </div>
                         </div>
                     <?php endforeach; ?>

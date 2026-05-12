@@ -62,6 +62,7 @@ final class ReceptionControllerTest extends ControllerTestCase
             ),
             response: new ResponseFactory(),
             productRepo: $this->createStub(ProductRepositoryInterface::class),
+            itemRepo: $this->createStub(ReservationItemRepositoryInterface::class),
         );
     }
 

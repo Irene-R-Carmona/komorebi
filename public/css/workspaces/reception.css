@@ -1211,7 +1211,78 @@ body.reception-mode {
   font-weight: 700;
   padding: 0 4px;
   line-height: 1;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.15s ease;
+}
+
+.ready-badge:hover {
+  background: #16a34a;
+  transform: scale(1.15);
+}
+
+/* ── Panel ítems listos (Servir) ───────────────────────────────────── */
+.ready-items-panel {
+  margin-top: 8px;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 8px;
+  padding: 6px 8px;
+  width: 100%;
+}
+
+.ready-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 2px;
+  font-size: 0.78rem;
+  border-bottom: 1px solid rgba(34, 197, 94, 0.12);
+}
+
+.ready-item-row:last-child {
+  border-bottom: none;
+}
+
+.ready-item-name {
+  flex: 1;
+  color: #166534;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-serve {
+  flex-shrink: 0;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #166534;
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-serve:hover {
+  background: #22c55e;
+  color: #fff;
+}
+
+.btn-serve:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ready-panel-empty {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: center;
+  padding: 4px 0;
+  margin: 0;
 }
 
 /* ── Modal Comanda ─────────────────────────────────────────────────── */

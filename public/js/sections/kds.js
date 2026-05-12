@@ -8,11 +8,32 @@ document.addEventListener('alpine:init', () => {
     init() {
       document.addEventListener('kds:refresh', () => this.refresh());
       document.addEventListener('mark-ready', (e) => this.completeOrder(e.detail.id));
+      document.addEventListener('start-prep', (e) => this.startOrder(e.detail.id));
       document.addEventListener('show-sop', (e) => this.openSop(e.detail));
     },
 
     refresh() {
       window.location.reload();
+    },
+
+    async startOrder(orderId) {
+      if (!orderId) return;
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      try {
+        const res = await fetch(`/api/v1/ops/kitchen/orders/${orderId}/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+          body: JSON.stringify({}),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          document.dispatchEvent(new CustomEvent('kds:refresh'));
+        } else {
+          console.error('Start order error:', data.error || data.detail);
+        }
+      } catch (e) {
+        console.error('Start order fetch failed:', e);
+      }
     },
 
     async completeOrder(orderId) {

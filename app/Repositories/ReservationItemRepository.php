@@ -274,4 +274,39 @@ final class ReservationItemRepository extends AbstractRepository implements Rese
 
         return $result;
     }
+
+    /**
+     * Devuelve los ítems con status 'ready' agrupados por reservation_id.
+     *
+     * @param  int[] $ids
+     * @return array<int, list<array{id: int, product_name: string, quantity: int}>>
+     */
+    public function getReadyItemsByReservations(array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        $placeholders = \implode(',', \array_fill(0, \count($ids), '?'));
+        $sql = "SELECT ri.id, ri.reservation_id, ri.quantity, p.name AS product_name
+                FROM reservation_items ri
+                JOIN products p ON p.id = ri.product_id
+                WHERE ri.reservation_id IN ({$placeholders})
+                  AND ri.status = 'ready'
+                ORDER BY ri.reservation_id, ri.created_at";
+
+        $stmt = $this->getDb()->prepare($sql);
+        $stmt->execute(\array_values($ids));
+
+        $result = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+            $result[(int) $row['reservation_id']][] = [
+                'id'           => (int) $row['id'],
+                'product_name' => (string) $row['product_name'],
+                'quantity'     => (int) $row['quantity'],
+            ];
+        }
+
+        return $result;
+    }
 }

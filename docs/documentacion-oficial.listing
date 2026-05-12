@@ -1,4 +1,0 @@
-make dev          # Levanta app (FrankenPHP) + MySQL + Redis + Mailpit
-make db-migrate   # Aplica las 19 migraciones SQL
-make db-seed      # Carga datos de prueba
-make test         # Quality gate completo

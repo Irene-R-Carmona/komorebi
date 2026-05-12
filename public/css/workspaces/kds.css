@@ -121,6 +121,8 @@ body.kds-mode::before {
 /* MAIN BOARD */
 .kds-board {
   flex: 1;
+  min-height: 0;
+  /* permite que el flex-child se contraiga al espacio disponible para que las columnas scrolleen */
   padding: 1rem;
   display: flex;
   gap: 1rem;
@@ -701,6 +703,21 @@ body.kds-mode::before {
 .kds-btn--secondary:hover {
   border-color: var(--color-primary);
   color: white;
+}
+
+.kds-btn--start {
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+}
+
+.kds-btn--start:hover {
+  background: #fbbf24;
+  color: #000;
+}
+
+.kds-btn--start:active {
+  transform: translateY(1px);
 }
 
 /* Scrollbars temáticos KDS */

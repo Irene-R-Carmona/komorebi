@@ -74,14 +74,24 @@
 }
 
 .table-cell--occupied {
-  border-color: #ef4444;
-  background: #fee2e2;
+  border-color: var(--color-danger, #9B2335);
+  background: var(--color-danger-light, #F5E0E4);
 }
 
 .table-cell__code {
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
+}
+
+.table-cell__name {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .table-cell__capacity {
@@ -125,6 +135,150 @@
 /* Status badge is now handled by badge component */
 .order-card .badge {
   display: inline-block;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Orders status 3-column grid
+   ───────────────────────────────────────────────────────────── */
+
+.orders-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.orders-status-col {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.7));
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.orders-status-col__header {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.orders-status-col--pending {
+  border-top: 3px solid var(--color-warning, #f59e0b);
+}
+
+.orders-status-col--kitchen {
+  border-top: 3px solid var(--color-info, #3b82f6);
+}
+
+.orders-status-col--ready {
+  border-top: 3px solid var(--color-success, #22c55e);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Responsive: colapsar a 1 columna en móvil
+   ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .orders-status-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* KPI Strip */
+.supervisor-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.supervisor-kpi {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.7));
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  text-align: center;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.supervisor-kpi[data-alert="warning"] {
+  background: var(--color-warning-light, #FAF3DC);
+  border-color: var(--color-warning, #C9A959);
+}
+
+.supervisor-kpi[data-alert="danger"] {
+  background: var(--color-danger-light, #F5E0E4);
+  border-color: var(--color-danger, #9B2335);
+}
+
+.supervisor-kpi__value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-primary-500, #5C3D2E);
+}
+
+.supervisor-kpi__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #6b7280);
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 992px) {
+  .supervisor-kpi-strip {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .supervisor-kpi-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Order age timers */
+.timer {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  background: var(--color-neutral-100, #f3f4f6);
+  color: var(--text-secondary, #6b7280);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.timer--warning {
+  background: var(--color-warning-light, #FAF3DC);
+  color: var(--color-warning, #C9A959);
+}
+
+.timer--urgent {
+  background: #FEF3C7;
+  color: #92400E;
+  animation: timer-pulse 2s ease-in-out infinite;
+}
+
+.timer--critical {
+  background: var(--color-danger-light, #F5E0E4);
+  color: var(--color-danger, #9B2335);
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+
+@keyframes timer-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
 }
 
 [x-cloak] {

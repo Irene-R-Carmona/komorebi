@@ -87,4 +87,68 @@ final class KitchenApiController extends AbstractApiController
             return $this->serverError('Error al completar pedido: ' . $e->getMessage(), 'complete_error');
         }
     }
+
+    /**
+     * POST /api/v1/ops/kitchen/orders/{id}/start
+     *
+     * Marca un ítem como en preparación: pending → kitchen.
+     */
+    public function startOrder(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        if ($id <= 0) {
+            return $this->badRequest('Identificador de pedido inválido', 'order_id_invalid');
+        }
+
+        try {
+            $ok = $this->service->startPreparing($id);
+
+            if (!$ok) {
+                return $this->unprocessable('No se pudo iniciar la preparación', 'start_failed');
+            }
+
+            $cafeId = Session::userCafeId();
+            if ($cafeId !== null) {
+                MercurePublisherService::publish(
+                    'kds/' . $cafeId . '/orders',
+                    ['event' => 'order_started', 'order_id' => $id, 'cafe_id' => $cafeId]
+                );
+            }
+
+            return $this->success(['message' => 'Preparación iniciada']);
+        } catch (Exception $e) {
+            return $this->serverError('Error al iniciar preparación: ' . $e->getMessage(), 'start_error');
+        }
+    }
+
+    /**
+     * POST /api/v1/ops/kitchen/orders/{id}/serve
+     *
+     * Marca un ítem como servido: ready → served.
+     */
+    public function serveOrder(ServerRequestInterface $request, int $id): ResponseInterface
+    {
+        if ($id <= 0) {
+            return $this->badRequest('Identificador de pedido inválido', 'order_id_invalid');
+        }
+
+        try {
+            $ok = $this->service->markServed($id);
+
+            if (!$ok) {
+                return $this->unprocessable('No se pudo marcar el ítem como servido', 'serve_failed');
+            }
+
+            $cafeId = Session::userCafeId();
+            if ($cafeId !== null) {
+                MercurePublisherService::publish(
+                    'reception/' . $cafeId . '/reservations',
+                    ['event' => 'item_served', 'order_id' => $id, 'cafe_id' => $cafeId]
+                );
+            }
+
+            return $this->success(['message' => 'Ítem marcado como servido']);
+        } catch (Exception $e) {
+            return $this->serverError('Error al servir ítem: ' . $e->getMessage(), 'serve_error');
+        }
+    }
 }

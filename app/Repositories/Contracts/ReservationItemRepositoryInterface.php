@@ -46,4 +46,10 @@ interface ReservationItemRepositoryInterface
      * @return array<int, int> reservation_id => count
      */
     public function getReadyCountsByReservations(array $ids): array;
+
+    /**
+     * @param  int[] $ids
+     * @return array<int, list<array{id: int, product_name: string, quantity: int}>>
+     */
+    public function getReadyItemsByReservations(array $ids): array;
 }

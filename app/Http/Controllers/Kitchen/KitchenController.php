@@ -129,6 +129,26 @@ final class KitchenController
     }
 
     /**
+     * POST /ops/kitchen/start
+     * Marca un ítem de comanda como en preparación: pending → kitchen (AJAX KDS).
+     *
+     * @throws ValidationException
+     */
+    public function start(ServerRequestInterface $request): ResponseInterface
+    {
+        $body = (array) $request->getParsedBody();
+        $itemId = (int) ($body['item_id'] ?? 0);
+
+        if ($itemId <= 0) {
+            throw ValidationException::required('item_id');
+        }
+
+        $this->service->startPreparing($itemId);
+
+        return $this->response->json(['ok' => true, 'status' => 'kitchen']);
+    }
+
+    /**
      * POST /ops/kitchen/ready
      * Marca un ítem de comanda como listo (AJAX KDS).
      *
@@ -198,13 +218,17 @@ final class KitchenController
             $item['ui_time'] = \gmdate(($seconds > 3600 ? 'H:i:s' : 'i:s'), $seconds);
 
             // Asignar clase CSS según urgencia (basada en prep_time restante)
+            // Solo aplica urgencia si la preparación ha empezado (status = 'kitchen')
+            // Los items 'pending' muestran el timer pero sin coloración de urgencia
             $remaining = (($item['prep_time'] ?? 5) * 60) - $seconds;
             $item['ui_class'] = '';
 
-            if ($remaining <= 0) {
-                $item['ui_class'] = 'kds-card--late';
-            } elseif ($remaining <= 120) {
-                $item['ui_class'] = 'kds-card--warn';
+            if ($item['status'] === 'kitchen') {
+                if ($remaining <= 0) {
+                    $item['ui_class'] = 'kds-card--late';
+                } elseif ($remaining <= 120) {
+                    $item['ui_class'] = 'kds-card--warn';
+                }
             }
 
             // Codificar SOP (Standard Operating Procedure) para embeber en HTML

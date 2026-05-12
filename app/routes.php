@@ -173,7 +173,7 @@ $router->group(['prefix' => '', 'middleware' => $guestMiddleware], function (Rou
 $authMiddleware = [$mw->auth()];
 $router->group(['middleware' => $authMiddleware], function (Router $r) use ($mw, $responseFactory) {
     $r->post('/logout', 'Auth\AuthController@logout', [$mw->csrf()]);
-    $r->get('/profile', static fn (): ResponseInterface => $responseFactory->redirect('/perfil', 301));
+    $r->get('/profile', static fn(): ResponseInterface => $responseFactory->redirect('/perfil', 301));
     $r->get('/perfil', 'Shared\UserController@profile');
     $r->post('/profile/update', 'Shared\UserController@update', [$mw->csrf()]);
     $r->post('/profile/avatar', 'Shared\UserController@updateAvatar', [$mw->csrf()]);
@@ -313,10 +313,9 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
 
     /** @var array<int, MiddlewareInterface> $supervisorMiddleware */
     $supervisorMiddleware = [$mw->auth(), $mw->role([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER, Middleware::ROLE_SUPERVISOR])];
-    $router->group(['prefix' => '/supervisor', 'middleware' => $supervisorMiddleware], function (Router $r) use ($mw) {
+    $router->group(['prefix' => '/supervisor', 'middleware' => $supervisorMiddleware], function (Router $r) {
         $r->get('/dashboard', 'Supervisor\SupervisorController@index');
-        $r->get('/assignments', 'Supervisor\SupervisorController@assignments');
-        $r->post('/assignments', 'Supervisor\SupervisorController@createAssignment', [$mw->csrf()]);
+        $r->get('/dashboard/data', 'Supervisor\SupervisorController@dashboardData');
     });
 
     $router->get('/api/v1/manager/stats', 'Api\V1\ManagerController@stats', [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER])]);
@@ -342,9 +341,6 @@ if (Env::get('FEATURE_BACKOFFICE', '1') === '1') {
         $r->post('/reviews/{id}/approve', 'Api\V1\Admin\ReviewApiController@approve', [$mw->csrf()]);
         $r->post('/reviews/{id}/reject', 'Api\V1\Admin\ReviewApiController@reject', [$mw->csrf()]);
     });
-
-    $router->post('/api/v1/supervisor/assignments', 'Api\V1\SupervisorController@assign', [$mw->cors(), $mw->apiAuth(), $mw->csrf()]);
-    $router->get('/api/v1/supervisor/assignments', 'Api\V1\SupervisorController@list', [$mw->cors(), $mw->apiAuth()]);
 
     // API Tokens — gestión de Bearer tokens (requiere sesión activa para generarlos)
     $router->group(
@@ -424,10 +420,12 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
 
     /** @var array<int, MiddlewareInterface> $kitchenMiddleware */
     $kitchenMiddleware = [$mw->auth(), $mw->role([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER, Middleware::ROLE_KITCHEN, Middleware::ROLE_SUPERVISOR])];
-    $router->group(['prefix' => '/ops/kitchen', 'middleware' => $kitchenMiddleware], function (Router $r): void {
+    $router->group(['prefix' => '/ops/kitchen', 'middleware' => $kitchenMiddleware], function (Router $r) use ($mw): void {
         $r->get('', 'Kitchen\KitchenController@index');
         $r->get('/history', 'Kitchen\KitchenController@history');
         $r->get('/orders', 'Kitchen\KitchenController@activeOrders');
+        $r->post('/start', 'Kitchen\KitchenController@start', [$mw->csrf()]);
+        $r->post('/ready', 'Kitchen\KitchenController@ready', [$mw->csrf()]);
     });
 
     /** @var array<int, MiddlewareInterface> $opsReceptionApiMiddleware */
@@ -446,7 +444,9 @@ if (Env::get('FEATURE_OPS', '1') === '1') {
     $opsKitchenApiMiddleware = [$mw->cors(), $mw->apiAuth(), $mw->apiRole([Middleware::ROLE_ADMIN, Middleware::ROLE_MANAGER, Middleware::ROLE_KITCHEN, Middleware::ROLE_SUPERVISOR])];
     $router->group(['prefix' => '/api/v1/ops/kitchen', 'middleware' => $opsKitchenApiMiddleware], function (Router $r) use ($mw): void {
         $r->get('/orders', 'Api\V1\Ops\KitchenApiController@activeOrders');
+        $r->post('/orders/{id}/start', 'Api\V1\Ops\KitchenApiController@startOrder', [$mw->csrf()]);
         $r->post('/orders/{id}/complete', 'Api\V1\Ops\KitchenApiController@completeOrder', [$mw->csrf()]);
+        $r->post('/orders/{id}/serve', 'Api\V1\Ops\KitchenApiController@serveOrder', [$mw->csrf()]);
     });
 } // end FEATURE_OPS
 
@@ -504,9 +504,9 @@ if (Env::get('FEATURE_KEEPER', '1') === '1') {
 } // end FEATURE_KEEPER
 
 $corsOnly = [$mw->cors()];
-$router->options('/api/v1/{resource}', fn () => '', $corsOnly);
-$router->options('/api/v1/{resource}/{id}', fn () => '', $corsOnly);
-$router->options('/api/v1/{resource}/{sub}/{id}', fn () => '', $corsOnly);
+$router->options('/api/v1/{resource}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}/{id}', fn() => '', $corsOnly);
+$router->options('/api/v1/{resource}/{sub}/{id}', fn() => '', $corsOnly);
 
 $router->get('/health', function () use ($responseFactory) {
     $status = 'healthy';

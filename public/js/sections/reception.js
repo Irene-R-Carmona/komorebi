@@ -38,15 +38,85 @@ document.addEventListener('alpine:init', () => {
 
     // ── kitchen-ready badges ──────────────────────────────────
     readyByRes: {},
+    readyItemsByRes: {},
+    activeReadyPanel: null,
 
     init() {
       const raw = this.$el.dataset.readyByRes;
       this.readyByRes = raw ? JSON.parse(raw) : {};
+      const rawItems = this.$el.dataset.readyItems;
+      this.readyItemsByRes = rawItems ? JSON.parse(rawItems) : {};
       document.addEventListener('reception:refresh', () => this.refresh());
     },
 
     refresh() {
       window.location.reload();
+    },
+
+    toggleReadyPanel(resId) {
+      if (this.activeReadyPanel === resId) {
+        this.activeReadyPanel = null;
+      } else {
+        this.activeReadyPanel = resId;
+        this.loadReadyItems(resId);
+      }
+    },
+
+    async loadReadyItems(resId) {
+      try {
+        const res = await fetch(`/api/v1/ops/reception/reservations/${resId}/items`);
+        const data = await res.json();
+        if (data.ok) {
+          const allItems = data.data?.items ?? [];
+          this.readyItemsByRes = {
+            ...this.readyItemsByRes,
+            [resId]: allItems
+              .filter(i => i.status === 'ready')
+              .map(i => ({ id: i.id, product_name: i.product_name, quantity: i.quantity })),
+          };
+        }
+      } catch (e) {
+        console.error('loadReadyItems failed:', e);
+      }
+    },
+
+    async serveItem(resId, itemId) {
+      if (this.loading) return;
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      this.loading = true;
+      try {
+        const res = await fetch(`/api/v1/ops/kitchen/orders/${itemId}/serve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+          body: JSON.stringify({}),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          // Eliminar ítem del panel local
+          if (this.readyItemsByRes[resId]) {
+            this.readyItemsByRes = {
+              ...this.readyItemsByRes,
+              [resId]: this.readyItemsByRes[resId].filter(i => i.id !== itemId),
+            };
+          }
+          // Actualizar badge
+          const prev = this.readyByRes[resId] || 0;
+          if (prev > 1) {
+            this.readyByRes = { ...this.readyByRes, [resId]: prev - 1 };
+          } else {
+            const updated = { ...this.readyByRes };
+            delete updated[resId];
+            this.readyByRes = updated;
+            this.activeReadyPanel = null;
+          }
+        } else {
+          console.error('Serve item error:', data.error || data.detail);
+        }
+      } catch (e) {
+        console.error('Serve item fetch failed:', e);
+      } finally {
+        this.loading = false;
+      }
     },
 
     // ── UTILIDADES ────────────────────────────────────────────
@@ -432,9 +502,13 @@ document.addEventListener('alpine:init', () => {
               const prev = alpine.readyByRes[resId] || 0;
               alpine.readyByRes = { ...alpine.readyByRes, [resId]: prev + 1 };
             }
+            if (alpine && alpine.activeReadyPanel === resId) {
+              alpine.loadReadyItems(resId);
+            }
           }
         }
       } catch (_) { /* ignore */ }
+      new Audio('/sounds/order-ready.mp3').play().catch(() => { });
       if (notif) {
         notif.show('\u00a1Un pedido de cocina est\u00e1 listo para servir!', 'success', 8000);
       }

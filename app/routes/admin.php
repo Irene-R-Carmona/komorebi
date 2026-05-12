@@ -137,10 +137,6 @@ if (Env::bool('FEATURE_BACKOFFICE', true)) {
         $r->post('/reviews/{id}/reject', 'Api\V1\Admin\ReviewApiController@reject', [$mw->csrf()]);
     });
 
-    // API Supervisor
-    $router->post('/api/v1/supervisor/assignments', 'Api\V1\SupervisorController@assign', [$mw->cors(), $mw->apiAuth(), $mw->csrf()]);
-    $router->get('/api/v1/supervisor/assignments', 'Api\V1\SupervisorController@list', [$mw->cors(), $mw->apiAuth()]);
-
     // API Tokens — gestión de Bearer tokens (requiere sesión activa para generarlos)
     $router->group(
         ['prefix' => '/api/v1/tokens', 'middleware' => [$mw->cors(), $mw->apiAuth()]],

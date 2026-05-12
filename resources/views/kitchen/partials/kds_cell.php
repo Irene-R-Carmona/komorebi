@@ -52,6 +52,15 @@
 
     <!-- ACCIONES -->
     <div class="kds-card__actions">
+        <?php if (($item['status'] ?? '') === 'pending'): ?>
+            <button class="kds-btn kds-btn--start"
+                @click="$dispatch('start-prep', { id: <?= (int) ($item['id'] ?? 0) ?> })"
+                type="button">
+                <span class="material-symbols-outlined">play_arrow</span>
+                INICIAR
+            </button>
+        <?php endif; ?>
+
         <button class="kds-btn kds-btn--primary"
             @click="$dispatch('mark-ready', { id: <?= (int) ($item['id'] ?? 0) ?> })"
             type="button">

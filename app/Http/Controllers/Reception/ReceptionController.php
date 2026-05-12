@@ -10,6 +10,7 @@ use App\Core\Raw;
 use App\Core\Session;
 use App\Core\View;
 use App\Exceptions\AuthorizationException;
+use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\ContextServiceInstance;
 use App\Services\Contracts\ReceptionServiceInterface;
@@ -31,16 +32,20 @@ final class ReceptionController
 
     private ProductRepositoryInterface $productRepo;
 
+    private ReservationItemRepositoryInterface $itemRepo;
+
     public function __construct(
         ?ReceptionServiceInterface $service = null,
         ?ContextServiceInstance $context = null,
         ?ResponseFactory $response = null,
         ?ProductRepositoryInterface $productRepo = null,
+        ?ReservationItemRepositoryInterface $itemRepo = null,
     ) {
         $this->service = $service ?? Container::make(ReceptionServiceInterface::class);
         $this->context = $context;
         $this->response = $response ?? Container::make(ResponseFactory::class);
         $this->productRepo = $productRepo ?? Container::make(ProductRepositoryInterface::class);
+        $this->itemRepo = $itemRepo ?? Container::make(ReservationItemRepositoryInterface::class);
     }
 
     private function context(): ContextServiceInstance
@@ -79,6 +84,12 @@ final class ReceptionController
         $cafeName = $this->context()->getCafeName();
         Session::set('user_cafe_name', $cafeName);
 
+        // Ítems listos por reserva (para panel de servir)
+        $activeResIds = \array_column($activeGroups, 'id');
+        $readyItemsByRes = !empty($activeResIds)
+            ? $this->itemRepo->getReadyItemsByReservations($activeResIds)
+            : [];
+
         // Renderizar vista
         View::render('reception/index', [
             'titulo' => 'Recepción - ' . $cafeName,
@@ -91,6 +102,7 @@ final class ReceptionController
             'orderable_items' => $orderableItems,
             'orderable_items_json' => Raw::json($orderableItems),
             'ready_by_res_json' => Raw::json(\array_column($activeGroups, 'ready_item_count', 'id')),
+            'ready_items_json' => Raw::json($readyItemsByRes),
         ], ['workspaces/reception.css'], 'reception');
 
         return null;

@@ -12,6 +12,7 @@ use App\Exceptions\BusinessRuleException;
 use App\Exceptions\NotFoundException;
 use App\Models\Reservation;
 use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\PassInclusionRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
@@ -36,6 +37,7 @@ final class ReceptionService implements ReceptionServiceInterface
     private InteractionSessionRepository $interactionRepo;
     private ReservationItemRepositoryInterface $itemRepo;
     private ProductRepositoryInterface $productRepo;
+    private ?PassInclusionRepositoryInterface $passInclusionRepo;
 
     public function __construct(
         ?ReservationRepositoryInterface $reservationRepo = null,
@@ -43,7 +45,8 @@ final class ReceptionService implements ReceptionServiceInterface
         ?CafeRepositoryInterface $cafeRepo = null,
         ?InteractionSessionRepository $interactionRepo = null,
         ?ReservationItemRepositoryInterface $itemRepo = null,
-        ?ProductRepositoryInterface $productRepo = null
+        ?ProductRepositoryInterface $productRepo = null,
+        ?PassInclusionRepositoryInterface $passInclusionRepo = null
     ) {
         $this->reservationRepo = $reservationRepo ?? Container::make(ReservationRepositoryInterface::class);
         $this->trackerRepo = $trackerRepo ?? Container::make(TrackerRepositoryInterface::class);
@@ -51,6 +54,7 @@ final class ReceptionService implements ReceptionServiceInterface
         $this->interactionRepo = $interactionRepo ?? new InteractionSessionRepository();
         $this->itemRepo = $itemRepo ?? Container::make(ReservationItemRepositoryInterface::class);
         $this->productRepo = $productRepo ?? Container::make(ProductRepositoryInterface::class);
+        $this->passInclusionRepo = $passInclusionRepo;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -78,7 +82,7 @@ final class ReceptionService implements ReceptionServiceInterface
 
         $pending = \array_values(\array_filter(
             $reservations,
-            static fn ($r) => $r['status'] === Reservation::STATUS_CONFIRMED
+            static fn($r) => $r['status'] === Reservation::STATUS_CONFIRMED
         ));
 
         foreach ($pending as &$reservation) {
@@ -321,17 +325,17 @@ final class ReceptionService implements ReceptionServiceInterface
             return Result::fail('Parámetros inválidos', 'invalid_params');
         }
 
-        $reservation = $this->reservationRepo->findById($reservationId);
+        $rawReservation = $this->reservationRepo->findByIdWithCafeDetails($reservationId);
 
-        if ($reservation === null) {
+        if ($rawReservation === null) {
             return Result::fail('Reserva no encontrada', 'not_found');
         }
 
-        if ($reservation->status !== Reservation::STATUS_ACTIVE) {
+        if ($rawReservation['status'] !== Reservation::STATUS_ACTIVE) {
             return Result::fail('La reserva no está activa', 'invalid_state');
         }
 
-        if ($reservation->cafe_id !== $cafeId) {
+        if ((int) $rawReservation['cafe_id'] !== $cafeId) {
             return Result::fail('La reserva no pertenece a esta sede', 'cafe_mismatch');
         }
 
@@ -345,13 +349,45 @@ final class ReceptionService implements ReceptionServiceInterface
             return Result::fail('No se pueden añadir pases como pedido de sala', 'invalid_product_type');
         }
 
+        $unitPrice = $product->price;
+        if ($rawReservation['pass_product_id'] !== null && $this->passInclusionRepo !== null) {
+            try {
+                $inclusions = $this->passInclusionRepo->findByPassId((int) $rawReservation['pass_product_id']);
+                foreach ($inclusions as $inclusion) {
+                    if ((int) $inclusion['category_id'] === $product->category_id) {
+                        $allowed = (int) $inclusion['quantity_per_pax'] * (int) ($rawReservation['guest_count'] ?? 1);
+                        $db = Database::getConnection();
+                        $countStmt = $db->prepare(
+                            'SELECT COALESCE(SUM(ri.quantity), 0)
+                             FROM reservation_items ri
+                             JOIN products p ON p.id = ri.product_id
+                             WHERE ri.reservation_id = :res_id
+                               AND ri.unit_price = 0
+                               AND p.category_id = :cat_id'
+                        );
+                        $countStmt->execute(['res_id' => $reservationId, 'cat_id' => $product->category_id]);
+                        $usedQty = (int) $countStmt->fetchColumn();
+                        if ($usedQty < $allowed) {
+                            $unitPrice = 0.0;
+                        }
+                        break;
+                    }
+                }
+            } catch (PDOException $e) {
+                Logger::warning('[ReceptionService] pass_inclusions check falló en addItem(), usando precio normal', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         try {
-            $itemId = $this->itemRepo->add($reservationId, $productId, $qty, $product->price);
+            $itemId = $this->itemRepo->add($reservationId, $productId, $qty, $unitPrice);
 
             Logger::info('[ReceptionService] Item añadido a reserva', [
                 'reservation_id' => $reservationId,
                 'product_id' => $productId,
                 'quantity' => $qty,
+                'unit_price' => $unitPrice,
                 'item_id' => $itemId,
             ]);
 
@@ -522,6 +558,16 @@ final class ReceptionService implements ReceptionServiceInterface
                 'unavailable' => \count($unavailable),
             ]);
 
+            // Aplicar inclusiones del pase para categorías no cubiertas por el pre-order
+            if ($reservation['pass_product_id'] !== null && $this->passInclusionRepo !== null) {
+                $this->applyPassInclusions(
+                    $reservationId,
+                    (int) $reservation['pass_product_id'],
+                    (int) ($reservation['guest_count'] ?? 1),
+                    $items,
+                );
+            }
+
             return Result::ok([
                 'activated' => $activated,
                 'unavailable' => $unavailable,
@@ -536,6 +582,76 @@ final class ReceptionService implements ReceptionServiceInterface
     // ─────────────────────────────────────────────────────────────
     // Helpers
     // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Insert reservation items at unit_price = 0 for pass inclusion categories
+     * not already covered by existing items on the reservation.
+     *
+     * @param array<int, array{product_id: int, quantity: int, category_id: int, ...}> $existingItems
+     */
+    private function applyPassInclusions(
+        int $reservationId,
+        int $passProductId,
+        int $guests,
+        array $existingItems = [],
+    ): void {
+        try {
+            $inclusions = $this->passInclusionRepo->findByPassId($passProductId);
+        } catch (PDOException $e) {
+            Logger::warning('[ReceptionService] pass_inclusions unavailable, skipping', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return;
+        }
+
+        if ($inclusions === []) {
+            return;
+        }
+
+        $coveredByCategory = [];
+        foreach ($existingItems as $item) {
+            $catId = (int) $item['category_id'];
+            $coveredByCategory[$catId] = ($coveredByCategory[$catId] ?? 0) + (int) $item['quantity'];
+        }
+
+        $db = Database::getConnection();
+        $stmt = $db->prepare(
+            'INSERT INTO reservation_items (reservation_id, product_id, quantity, unit_price)
+             VALUES (:reservation_id, :product_id, :quantity, :unit_price)'
+        );
+
+        foreach ($inclusions as $inclusion) {
+            $catId = (int) $inclusion['category_id'];
+            $totalQty = (int) $inclusion['quantity_per_pax'] * $guests;
+            $covered = $coveredByCategory[$catId] ?? 0;
+            $remaining = \max(0, $totalQty - $covered);
+
+            if ($remaining === 0) {
+                continue;
+            }
+
+            $product = $this->productRepo->findEligibleIncludedItems(
+                $catId,
+                isset($inclusion['max_unit_price']) ? (int) $inclusion['max_unit_price'] : null,
+            );
+
+            if ($product === null) {
+                Logger::warning('[ReceptionService] No eligible product for pass inclusion', [
+                    'pass_product_id' => $passProductId,
+                    'category_id' => $catId,
+                ]);
+                continue;
+            }
+
+            $stmt->execute([
+                'reservation_id' => $reservationId,
+                'product_id' => (int) $product['id'],
+                'quantity' => $remaining,
+                'unit_price' => 0,
+            ]);
+        }
+    }
 
     private function enrichActiveGroup(array $group): array
     {

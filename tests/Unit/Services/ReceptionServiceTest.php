@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Repositories\Contracts\CafeRepositoryInterface;
+use App\Repositories\Contracts\PassInclusionRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\ReservationItemRepositoryInterface;
 use App\Repositories\Contracts\ReservationRepositoryInterface;
@@ -27,6 +28,7 @@ final class ReceptionServiceTest extends TestCase
     private CafeRepositoryInterface $cafeRepoStub;
     private ReservationItemRepositoryInterface $itemRepoStub;
     private ProductRepositoryInterface $productRepoStub;
+    private PassInclusionRepositoryInterface $passInclusionRepoStub;
     private ReceptionService $service;
 
     protected function setUp(): void
@@ -36,6 +38,7 @@ final class ReceptionServiceTest extends TestCase
         $this->cafeRepoStub = $this->createStub(CafeRepositoryInterface::class);
         $this->itemRepoStub = $this->createStub(ReservationItemRepositoryInterface::class);
         $this->productRepoStub = $this->createStub(ProductRepositoryInterface::class);
+        $this->passInclusionRepoStub = $this->createStub(PassInclusionRepositoryInterface::class);
 
         $this->service = new ReceptionService(
             $this->reservationRepoStub,
@@ -43,7 +46,8 @@ final class ReceptionServiceTest extends TestCase
             $this->cafeRepoStub,
             null,
             $this->itemRepoStub,
-            $this->productRepoStub
+            $this->productRepoStub,
+            $this->passInclusionRepoStub
         );
     }
 
@@ -312,25 +316,13 @@ final class ReceptionServiceTest extends TestCase
 
     public function testAddItemSuccessReturnsOk(): void
     {
-        $reservation = new \App\Domain\DTO\ReservationDTO(
-            id: 10,
-            uuid: 'uuid-1',
-            cafe_id: 1,
-            user_id: 5,
-            date: '2025-12-01',
-            time: '10:00',
-            guest_count: 2,
-            status: 'active',
-            time_slot_id: null,
-            pass_name: null,
-            pass_duration_minutes: null,
-            check_in_at: '2025-12-01 10:00:00',
-            check_out_at: null,
-            final_amount: null,
-            payment_status: null,
-            payment_method: null,
-            notes: null
-        );
+        $rawReservation = [
+            'id' => 10,
+            'cafe_id' => 1,
+            'status' => 'active',
+            'guest_count' => 2,
+            'pass_product_id' => null,
+        ];
 
         $product = new \App\Domain\DTO\ProductDTO(
             id: 7,
@@ -353,7 +345,7 @@ final class ReceptionServiceTest extends TestCase
             stock_quantity: null
         );
 
-        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+        $this->reservationRepoStub->method('findByIdWithCafeDetails')->willReturn($rawReservation);
         $this->productRepoStub->method('findById')->willReturn($product);
         $this->itemRepoStub->method('add')->willReturn(42);
 
@@ -365,7 +357,7 @@ final class ReceptionServiceTest extends TestCase
 
     public function testAddItemFailsWhenReservationNotFound(): void
     {
-        $this->reservationRepoStub->method('findById')->willReturn(null);
+        $this->reservationRepoStub->method('findByIdWithCafeDetails')->willReturn(null);
 
         $result = $this->service->addItem(99, 7, 1, 1);
 
@@ -375,27 +367,15 @@ final class ReceptionServiceTest extends TestCase
 
     public function testAddItemFailsWhenReservationNotActive(): void
     {
-        $reservation = new \App\Domain\DTO\ReservationDTO(
-            id: 10,
-            uuid: 'uuid-1',
-            cafe_id: 1,
-            user_id: 5,
-            date: '2025-12-01',
-            time: '10:00',
-            guest_count: 2,
-            status: 'confirmed',
-            time_slot_id: null,
-            pass_name: null,
-            pass_duration_minutes: null,
-            check_in_at: null,
-            check_out_at: null,
-            final_amount: null,
-            payment_status: null,
-            payment_method: null,
-            notes: null
-        );
+        $rawReservation = [
+            'id' => 10,
+            'cafe_id' => 1,
+            'status' => 'confirmed',
+            'guest_count' => 2,
+            'pass_product_id' => null,
+        ];
 
-        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+        $this->reservationRepoStub->method('findByIdWithCafeDetails')->willReturn($rawReservation);
 
         $result = $this->service->addItem(10, 7, 1, 1);
 
@@ -405,27 +385,15 @@ final class ReceptionServiceTest extends TestCase
 
     public function testAddItemFailsWhenCafeMismatch(): void
     {
-        $reservation = new \App\Domain\DTO\ReservationDTO(
-            id: 10,
-            uuid: 'uuid-1',
-            cafe_id: 2,
-            user_id: 5,
-            date: '2025-12-01',
-            time: '10:00',
-            guest_count: 2,
-            status: 'active',
-            time_slot_id: null,
-            pass_name: null,
-            pass_duration_minutes: null,
-            check_in_at: '2025-12-01 10:00:00',
-            check_out_at: null,
-            final_amount: null,
-            payment_status: null,
-            payment_method: null,
-            notes: null
-        );
+        $rawReservation = [
+            'id' => 10,
+            'cafe_id' => 2,
+            'status' => 'active',
+            'guest_count' => 2,
+            'pass_product_id' => null,
+        ];
 
-        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+        $this->reservationRepoStub->method('findByIdWithCafeDetails')->willReturn($rawReservation);
 
         $result = $this->service->addItem(10, 7, 1, 1); // cafe_id=1 but reservation is cafe_id=2
 
@@ -435,27 +403,15 @@ final class ReceptionServiceTest extends TestCase
 
     public function testAddItemFailsWhenProductNotFound(): void
     {
-        $reservation = new \App\Domain\DTO\ReservationDTO(
-            id: 10,
-            uuid: 'uuid-1',
-            cafe_id: 1,
-            user_id: 5,
-            date: '2025-12-01',
-            time: '10:00',
-            guest_count: 2,
-            status: 'active',
-            time_slot_id: null,
-            pass_name: null,
-            pass_duration_minutes: null,
-            check_in_at: '2025-12-01 10:00:00',
-            check_out_at: null,
-            final_amount: null,
-            payment_status: null,
-            payment_method: null,
-            notes: null
-        );
+        $rawReservation = [
+            'id' => 10,
+            'cafe_id' => 1,
+            'status' => 'active',
+            'guest_count' => 2,
+            'pass_product_id' => null,
+        ];
 
-        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+        $this->reservationRepoStub->method('findByIdWithCafeDetails')->willReturn($rawReservation);
         $this->productRepoStub->method('findById')->willReturn(null);
 
         $result = $this->service->addItem(10, 999, 1, 1);
@@ -466,25 +422,13 @@ final class ReceptionServiceTest extends TestCase
 
     public function testAddItemFailsWhenProductIsAPass(): void
     {
-        $reservation = new \App\Domain\DTO\ReservationDTO(
-            id: 10,
-            uuid: 'uuid-1',
-            cafe_id: 1,
-            user_id: 5,
-            date: '2025-12-01',
-            time: '10:00',
-            guest_count: 2,
-            status: 'active',
-            time_slot_id: null,
-            pass_name: null,
-            pass_duration_minutes: null,
-            check_in_at: '2025-12-01 10:00:00',
-            check_out_at: null,
-            final_amount: null,
-            payment_status: null,
-            payment_method: null,
-            notes: null
-        );
+        $rawReservation = [
+            'id' => 10,
+            'cafe_id' => 1,
+            'status' => 'active',
+            'guest_count' => 2,
+            'pass_product_id' => null,
+        ];
 
         $product = new \App\Domain\DTO\ProductDTO(
             id: 1,
@@ -507,7 +451,7 @@ final class ReceptionServiceTest extends TestCase
             stock_quantity: null
         );
 
-        $this->reservationRepoStub->method('findById')->willReturn($reservation);
+        $this->reservationRepoStub->method('findByIdWithCafeDetails')->willReturn($rawReservation);
         $this->productRepoStub->method('findById')->willReturn($product);
 
         $result = $this->service->addItem(10, 1, 1, 1);
