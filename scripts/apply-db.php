@@ -34,9 +34,16 @@ use App\Core\Seeders\WaitlistSeeder;
 const SEPARATOR = "\n===============================================================\n";
 
 // Parse argumentos
-$options = getopt('', ['force', 'seeders-only', 'help']);
-$force = isset($options['force']);
-$seedersOnly = isset($options['seeders-only']);
+// --no-interaction : omite el prompt TTY (modo CI/CD, contenedores sin TTY)
+// --force-seed     : fuerza la ejecución de seeders aunque la BD tenga datos
+//                    (equivalente a FORCE_SEED=1; solo para dev/staging, NUNCA producción sin intención explícita)
+// --dry-run        : muestra qué migraciones/seeders se aplicarían sin ejecutar nada (safe para inspección)
+// --seeders-only   : solo ejecutar seeders, skip migraciones
+$options = getopt('', ['no-interaction', 'force-seed', 'dry-run', 'seeders-only', 'help']);
+$noInteraction = isset($options['no-interaction']);
+$forceSeed     = isset($options['force-seed']);
+$dryRun        = isset($options['dry-run']);
+$seedersOnly   = isset($options['seeders-only']);
 
 $logDir = __DIR__ . '/../storage/logs';
 if (!is_dir($logDir)) {
@@ -68,6 +75,45 @@ function logMsg(string $msg, string $level = 'info'): void
     }
 }
 
+/**
+ * Comprueba si una migración ya fue aplicada consultando schema_migrations.
+ * Devuelve false si la tabla aún no existe (bootstrap inicial: primera migración crea la tabla).
+ */
+function isMigrationApplied(PDO $db, string $filename): bool
+{
+    try {
+        $stmt = $db->prepare('SELECT COUNT(*) FROM schema_migrations WHERE filename = :filename');
+        $stmt->execute(['filename' => $filename]);
+
+        return ((int) $stmt->fetchColumn()) > 0;
+    } catch (PDOException $e) {
+        // La tabla schema_migrations todavía no existe (primer deploy) → nunca saltar
+        if (\str_contains($e->getMessage(), "doesn't exist")) {
+            return false;
+        }
+
+        throw $e;
+    }
+}
+
+/**
+ * Registra una migración como aplicada en schema_migrations.
+ * Ignora duplicados (ON DUPLICATE KEY UPDATE) por seguridad ante re-ejecuciones.
+ */
+function recordMigration(PDO $db, string $filename, int $executionMs): void
+{
+    try {
+        $stmt = $db->prepare(
+            'INSERT INTO schema_migrations (filename, execution_ms) VALUES (:filename, :ms)
+             ON DUPLICATE KEY UPDATE execution_ms = VALUES(execution_ms)'
+        );
+        $stmt->execute(['filename' => $filename, 'ms' => $executionMs]);
+    } catch (Throwable $e) {
+        // No crítico: la migración se aplicó correctamente aunque no podamos registrarla
+        echo '[schema_migrations] WARNING: No se pudo registrar migración ' . $filename . ': ' . $e->getMessage() . PHP_EOL;
+    }
+}
+
 if (isset($options['help'])) {
     echo <<<HELP
 
@@ -76,8 +122,10 @@ if (isset($options['help'])) {
         Uso: php scripts/apply-db.php [opciones]
 
         Opciones:
-          --force         Aplicar sin confirmación (modo CI/CD)
-          --seeders-only  Solo ejecutar seeders (skip migraciones)
+          --no-interaction  Aplicar sin confirmación (modo CI/CD, contenedores sin TTY)
+          --force-seed     Forzar seeders aunque la BD tenga datos (solo dev/staging)
+          --dry-run        Mostrar qué se aplicaría sin ejecutar nada (safe para inspección)
+          --seeders-only   Solo ejecutar seeders (skip migraciones)
           --help          Mostrar esta ayuda
 
         Orden de ejecución:
@@ -100,12 +148,17 @@ try {
     $db = Database::getConnection();
     logMsg('OK: Conexión a BD establecida');
 } catch (Throwable $e) {
-    logMsg('ERROR: Error conectando a BD: ' . $e->getMessage());
-    exit(1);
+    if ($dryRun) {
+        logMsg('[DRY-RUN] WARNING: Sin conexión a BD — todas las migraciones se mostrarán como PENDIENTES.', 'warning');
+        $db = null;
+    } else {
+        logMsg('ERROR: Error conectando a BD: ' . $e->getMessage());
+        exit(1);
+    }
 }
 
-// Confirmación (solo si no --force y no --seeders-only)
-if (!$force && !$seedersOnly) {
+// Confirmación (solo si no --no-interaction y no --seeders-only)
+if (!$noInteraction && !$seedersOnly) {
     echo "\nADVERTENCIA: Este script aplicará cambios a la base de datos.\n";
     echo "   - Aplicará todos los archivos de migración SQL en /migrations/ (idempotente)\n";
     echo "   - Ejecutará seeders si la BD está vacía\n";
@@ -149,12 +202,27 @@ if (!$seedersOnly) {
             continue;
         }
 
+        // Saltar si ya fue aplicada y registrada (salvo 019 que crea la propia tabla)
+        if ($migration !== '019_schema_migrations.sql' && $db !== null && isMigrationApplied($db, $migration)) {
+            logMsg("SKIP: $migration (ya aplicada)");
+            continue;
+        }
+
+        if ($dryRun) {
+            logMsg("  [DRY-RUN] PENDIENTE: $migration");
+            continue;
+        }
+
         logMsg("Aplicando: $migration ...");
+        $migStart = \microtime(true);
 
         try {
             $sql = file_get_contents($path);
 
             $db->exec($sql);
+
+            $migMs = (int) \round((\microtime(true) - $migStart) * 1000);
+            recordMigration($db, $migration, $migMs);
 
             logMsg('OK');
         } catch (PDOException $e) {
@@ -170,6 +238,8 @@ if (!$seedersOnly) {
                 || str_contains($msg, 'Duplicate foreign key constraint name')
                 || str_contains($msg, 'Duplicate check constraint name')
             ) {
+                $migMs = (int) \round((\microtime(true) - $migStart) * 1000);
+                recordMigration($db, $migration, $migMs);
                 logMsg('(objeto ya existe, skip)');
             } else {
                 logMsg('ERROR: ' . $msg, 'error');
@@ -307,35 +377,61 @@ $seeders = [
     }],
 ];
 
+// ─── GUARD DE PRODUCCIÓN ────────────────────────────────────────────────────
+// En APP_ENV=production los seeders están SIEMPRE desactivados salvo FORCE_SEED=1
+// explícito. Esto protege contra TRUNCATE accidental en cada deploy a main.
+// --force-seed en CLI o FORCE_SEED=1 en env son la única vía de escape intencional.
+$appEnv       = (string) \getenv('APP_ENV');
+$forceSeedEnv = \getenv('FORCE_SEED');
+$isProduction = ($appEnv === 'production');
+
 // Verificar si necesitamos ejecutar seeders
 $shouldSeed = true;
-$forceSeedEnv = getenv('FORCE_SEED');
 
-if (!$force && $forceSeedEnv !== '1') {
-    try {
-        $userCount = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn();
-        $cafeCount = (int) $db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
-        $roleCount = (int) $db->query('SELECT COUNT(*) FROM roles')->fetchColumn();
+if ($isProduction && !$forceSeed && $forceSeedEnv !== '1') {
+    // Producción sin intención explícita → bloquear seeders incondicionalmente
+    logMsg('SKIP: APP_ENV=production — seeders desactivados para proteger datos reales.', 'warning');
+    logMsg('      Para re-sembrar intencionalmente: configura FORCE_SEED=1 en Railway variables.');
+    $shouldSeed = false;
+} elseif (!$forceSeed && $forceSeedEnv !== '1') {
+    if ($db === null) {
+        logMsg('INFO: Sin conexión a BD en dry-run — se omite verificación de datos existentes.');
+    } else {
+        // Entornos no-producción: verificar si la BD ya tiene datos
+        try {
+            $userCount = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn();
+            $cafeCount = (int) $db->query('SELECT COUNT(*) FROM cafes')->fetchColumn();
+            $roleCount = (int) $db->query('SELECT COUNT(*) FROM roles')->fetchColumn();
 
-        if ($userCount > 0 && $cafeCount > 0 && $roleCount > 0) {
-            $lockStatus = file_exists($seedLock)
-                ? "Lockfile encontrado ($seedLock) y"
-                : 'Lockfile ausente (filesystem efímero) pero';
-            logMsg("SKIP: $lockStatus BD contiene datos. Saltando seeders.");
-            logMsg("      (usuarios: $userCount, cafés: $cafeCount, roles: $roleCount)");
-            logMsg('      Para forzar re-seeding usar variable de entorno FORCE_SEED=1');
-            $shouldSeed = false;
-        } else {
-            $lockStatus = file_exists($seedLock)
-                ? 'Lockfile existe pero tablas están vacías.'
-                : 'Primera ejecución — tablas vacías.';
-            logMsg("INFO: $lockStatus Ejecutando seeders...");
-            logMsg("      (usuarios: $userCount, cafés: $cafeCount, roles: $roleCount)");
+            if ($userCount > 0 && $cafeCount > 0 && $roleCount > 0) {
+                $lockStatus = \file_exists($seedLock)
+                    ? "Lockfile encontrado ($seedLock) y"
+                    : 'Lockfile ausente (filesystem efímero) pero';
+                logMsg("SKIP: $lockStatus BD contiene datos. Saltando seeders.");
+                logMsg("      (usuarios: $userCount, cafés: $cafeCount, roles: $roleCount)");
+                logMsg('      Para forzar re-seeding usar --force-seed o FORCE_SEED=1');
+                $shouldSeed = false;
+            } else {
+                $lockStatus = \file_exists($seedLock)
+                    ? 'Lockfile existe pero tablas están vacías.'
+                    : 'Primera ejecución — tablas vacías.';
+                logMsg("INFO: $lockStatus Ejecutando seeders...");
+                logMsg("      (usuarios: $userCount, cafés: $cafeCount, roles: $roleCount)");
+            }
+        } catch (Throwable $e) {
+            logMsg('WARNING: Error verificando datos existentes: ' . $e->getMessage());
+            logMsg('      Ejecutando seeders por precaución...');
         }
-    } catch (Throwable $e) {
-        logMsg('WARNING: Error verificando datos existentes: ' . $e->getMessage());
-        logMsg('      Ejecutando seeders por precaución...');
     }
+}
+
+if ($dryRun) {
+    logMsg('[DRY-RUN] Seeders que se ejecutarían:');
+    foreach (\array_keys($seeders) as $name) {
+        logMsg("  - {$name}Seeder");
+    }
+    logMsg('[DRY-RUN] Ningún seeder ejecutado.');
+    $shouldSeed = false;
 }
 
 if ($shouldSeed) {
@@ -507,6 +603,9 @@ logMsg(SEPARATOR);
 logMsg('  PASO 3: VERIFICANDO EVENTOS RGPD');
 logMsg(SEPARATOR);
 
+if ($dryRun || $db === null) {
+    logMsg('[DRY-RUN] PASO 3: verificación de eventos RGPD omitida (modo dry-run o sin conexión).');
+} else {
 try {
     $stmt = $db->query('SHOW EVENTS');
     $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -547,14 +646,25 @@ try {
 } catch (PDOException $e) {
     logMsg('WARNING: No se pudo verificar eventos: ' . $e->getMessage());
 }
+} // end else (not dry-run)
 
 // ════════════════════════════════════════════════════════════════
 // RESUMEN FINAL
 // ════════════════════════════════════════════════════════════════
 
 logMsg(SEPARATOR);
-logMsg('  PROCESO COMPLETADO (resumen)');
+if ($dryRun) {
+    logMsg('  PROCESO COMPLETADO — MODO DRY-RUN (ningún dato modificado)');
+} else {
+    logMsg('  PROCESO COMPLETADO (resumen)');
+}
 logMsg(SEPARATOR);
+
+if ($dryRun) {
+    logMsg('[DRY-RUN] Inspección completada. No se ha modificado ningún dato ni esquema.');
+    logMsg('[DRY-RUN] Para aplicar los cambios, ejecutar sin --dry-run.');
+    exit(0);
+}
 
 logMsg('Próximos pasos recomendados:');
 logMsg('1. Verificar eventos MySQL: SHOW EVENTS;');
