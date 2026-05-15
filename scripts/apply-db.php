@@ -606,46 +606,46 @@ logMsg(SEPARATOR);
 if ($dryRun || $db === null) {
     logMsg('[DRY-RUN] PASO 3: verificación de eventos RGPD omitida (modo dry-run o sin conexión).');
 } else {
-try {
-    $stmt = $db->query('SHOW EVENTS');
-    $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $stmt = $db->query('SHOW EVENTS');
+        $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $expectedEvents = [
-        'evt_cleanup_deleted_cafes',
-        'evt_gdpr_purge_users',
-        'evt_purge_audit_logs',
-        'evt_purge_auth_logs',
-        'evt_cleanup_old_reservations',
-        'evt_cleanup_old_products',
-        'evt_purge_telegram_logs',
-        'evt_cleanup_old_animals',
-        'evt_expire_waitlist',
-        'evt_cleanup_old_time_slots',
-        'evt_expire_loyalty_rewards',
-    ];
+        $expectedEvents = [
+            'evt_cleanup_deleted_cafes',
+            'evt_gdpr_purge_users',
+            'evt_purge_audit_logs',
+            'evt_purge_auth_logs',
+            'evt_cleanup_old_reservations',
+            'evt_cleanup_old_products',
+            'evt_purge_telegram_logs',
+            'evt_cleanup_old_animals',
+            'evt_expire_waitlist',
+            'evt_cleanup_old_time_slots',
+            'evt_expire_loyalty_rewards',
+        ];
 
-    $foundEvents = array_map(static fn ($e) => $e['Name'], $events);
+        $foundEvents = array_map(static fn($e) => $e['Name'], $events);
 
-    logMsg('Eventos encontrados:');
-    $totalFound = 0;
-    foreach ($expectedEvents as $expected) {
-        $found = in_array($expected, $foundEvents, true);
-        $status = $found ? '[OK]' : '[MISSING]';
-        logMsg("  $status $expected");
-        if ($found) {
-            $totalFound++;
+        logMsg('Eventos encontrados:');
+        $totalFound = 0;
+        foreach ($expectedEvents as $expected) {
+            $found = in_array($expected, $foundEvents, true);
+            $status = $found ? '[OK]' : '[MISSING]';
+            logMsg("  $status $expected");
+            if ($found) {
+                $totalFound++;
+            }
         }
-    }
 
-    logMsg('Total: ' . $totalFound . ' / ' . count($expectedEvents) . ' eventos RGPD activos');
+        logMsg('Total: ' . $totalFound . ' / ' . count($expectedEvents) . ' eventos RGPD activos');
 
-    if ($totalFound < count($expectedEvents)) {
-        logMsg('ADVERTENCIA: Algunos eventos RGPD no están activos.', 'warning');
-        logMsg('   Verifica que MySQL tenga el event_scheduler habilitado: SET GLOBAL event_scheduler = ON;');
+        if ($totalFound < count($expectedEvents)) {
+            logMsg('ADVERTENCIA: Algunos eventos RGPD no están activos.', 'warning');
+            logMsg('   Verifica que MySQL tenga el event_scheduler habilitado: SET GLOBAL event_scheduler = ON;');
+        }
+    } catch (PDOException $e) {
+        logMsg('WARNING: No se pudo verificar eventos: ' . $e->getMessage());
     }
-} catch (PDOException $e) {
-    logMsg('WARNING: No se pudo verificar eventos: ' . $e->getMessage());
-}
 } // end else (not dry-run)
 
 // ════════════════════════════════════════════════════════════════

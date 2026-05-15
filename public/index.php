@@ -41,7 +41,8 @@ if (
         'dsn' => $dsn,
         'environment' => $env,
         'release' => \App\Core\Env::get('APP_VERSION', 'unknown'),
-        'traces_sample_rate' => 0.1,
+        'traces_sample_rate'  => 0.1,
+        'profiles_sample_rate' => 0.1, // requiere ext-excimer (instalado en imagen prod)
         'enable_logs' => true,
         'send_default_pii' => false,
         'in_app_include' => ['app/'],

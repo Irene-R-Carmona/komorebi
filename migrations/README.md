@@ -26,6 +26,8 @@ Aplica con: `make db-migrate`
 | `017_product_stock.sql`          | Control de stock por producto (`stock_quantity`; NULL = ilimitado, 0 = agotado)       | Abr 2026     |
 | `018_api_tokens.sql`             | Tokens Bearer para autenticación stateless de clientes externos (hash SHA-256)        | Abr 2026     |
 
+| `019_schema_migrations.sql`      | Tabla de trazabilidad de migraciones aplicadas (`schema_migrations`)                  | May 2026     |
+
 ## Aplicar migraciones
 
 ```bash
@@ -50,7 +52,56 @@ Las migraciones deben aplicarse **en orden**. Las dependencias principales son:
 
 ## Crear una nueva migración
 
-1. Crea el archivo con el siguiente número de secuencia: `017_nombre_descriptivo.sql`
+1. Crea el archivo con el siguiente número de secuencia: `020_nombre_descriptivo.sql`
 2. Incluye el encabezado estándar con módulo y dependencias
 3. Usa siempre `CREATE TABLE IF NOT EXISTS` para que sea reentrante
 4. Ejecuta `make db-migrate` para aplicar
+
+---
+
+## Reglas obligatorias para migraciones seguras en producción
+
+> Estas reglas son válidas para todos los entornos que usen auto-deploy continuo (Railway, etc.)
+> donde un commit a `main` desencadena el deploy sin aprobación manual.
+
+### 1. Expand-only: añadir antes de borrar
+
+Nunca eliminar una columna o tabla en el mismo deploy en que se elimina el código que la usa.
+Sigue el patrón de **dos fases** para cualquier eliminación:
+
+| Fase | Cuándo | Qué se hace |
+|------|--------|-------------|
+| Fase 1 | Deploy N | El código deja de leer/escribir la columna/tabla. La estructura sigue en BD. |
+| Fase 2 | Deploy N+1 (días/semanas después) | La columna/tabla se borra mediante migración. |
+
+Esto garantiza que si se hace rollback al deploy anterior, la BD sigue siendo compatible.
+
+### 2. Sin transacciones alrededor de DDL
+
+MySQL hace commit implícito antes y después de cualquier sentencia DDL (`CREATE TABLE`, `ALTER TABLE`, `DROP`).
+Envolver DDL en `BEGIN ... ROLLBACK` **no funciona** — el `ROLLBACK` no deshace el DDL.
+Por ello, las migraciones de este proyecto no usan transacciones. Cada sentencia debe ser idempotente por sí misma (`IF NOT EXISTS`, `IF EXISTS`).
+
+### 3. Datos de configuración vs datos de desarrollo
+
+| Tipo de dato | Dónde va | Llega a producción |
+|---|---|---|
+| Estructura de tabla | Migración SQL | ✅ Sí, en cada deploy |
+| Datos de configuración base (roles, permisos, settings) | Migración SQL con `INSERT IGNORE` | ✅ Sí |
+| Datos de desarrollo / demo (usuarios, reservas, animales de prueba) | Seeders (`app/Core/Seeders/`) | ❌ Nunca (bloqueado en `APP_ENV=production`) |
+
+**Regla de oro:** Si un dato debe existir en producción desde el primer deploy, ponlo en una migración con `INSERT IGNORE INTO`. Los seeders son exclusivamente para entornos locales y de staging.
+
+### 4. Guard de producción en seeders
+
+El script `scripts/apply-db.php` tiene una guardia explícita:
+
+- `APP_ENV=production` → los seeders **nunca** se ejecutan, salvo `FORCE_SEED=1` en Railway Variables.
+- `--force` (alias legacy) y `--no-interaction` solo controlan si se muestra el prompt TTY.
+- Para re-sembrar intencionalmente en staging: `--force-seed` o `FORCE_SEED=1`.
+
+### 5. Tabla `schema_migrations` (desde migración 019)
+
+Desde la migración 019, `apply-db.php` registra cada migración aplicada en la tabla `schema_migrations`.
+En deploys sucesivos, las migraciones ya registradas se **saltan** automáticamente — no se re-ejecutan aunque el archivo siga en `migrations/`.
+Excepción: la propia migración `019_schema_migrations.sql` se aplica siempre con `CREATE TABLE IF NOT EXISTS`.

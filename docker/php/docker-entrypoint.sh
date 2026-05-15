@@ -126,9 +126,9 @@ if [ "${SKIP_MIGRATIONS:-0}" = "0" ]; then
             log "--------------------------------------------------------------"
 
             # Ejecutar con salida en tiempo real (tee) y capturar exit code con PIPESTATUS
-            # --force: salta el prompt interactivo (no disponible en contenedor sin TTY).
+            # --no-interaction: salta el prompt interactivo (no disponible en contenedor sin TTY).
             # Las migraciones siguen siendo idempotentes: no aplica nada ya aplicado.
-            php "$MIGRATE_SCRIPT" --force 2>&1 | tee /tmp/migrate-attempt.log
+            php "$MIGRATE_SCRIPT" --no-interaction 2>&1 | tee /tmp/migrate-attempt.log
             rc=${PIPESTATUS[0]:-1}
 
             log "--------------------------------------------------------------"
