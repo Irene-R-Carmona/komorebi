@@ -142,7 +142,7 @@ abstract class AbstractWorker
         WideEvent::set('job_class', $jobClass);
         WideEvent::set('queue', $queueName);
         WideEvent::set('pid', \getmypid());
-        WideEvent::set('request_id', ($jobData['payload'] ?? [])['_correlation_id'] ?? '');
+        WideEvent::set('request_id', $jobData['correlation_id'] ?? '');
 
         try {
             $job->handle($jobData['payload'] ?? []);
@@ -198,11 +198,10 @@ abstract class AbstractWorker
                 'attempt' => $attempts,
             ]);
 
+            // correlation_id se propaga automáticamente via WideEvent::get('request_id') en buildJobPayload()
             Queue::push(
                 $jobData['job'],
-                \array_merge($jobData['payload'] ?? [], [
-                    '_correlation_id' => ($jobData['payload']['_correlation_id'] ?? ''),
-                ]),
+                $jobData['payload'] ?? [],
                 $queueName,
                 $this->getRetryDelay()
             );

@@ -7,6 +7,7 @@ namespace App\Core;
 use App\Exceptions\ExternalServiceException;
 use RedisException;
 use Throwable;
+use App\Core\WideEvent;
 
 /**
  * Queue Manager con Redis
@@ -45,9 +46,7 @@ final class Queue
     /**
      * Constructor privado para evitar instanciación directa (Singleton)
      */
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     /**
      * Genera un nombre único de consumidor para este proceso worker.
@@ -149,6 +148,28 @@ final class Queue
     }
 
     /**
+     * Construye el array de datos del job con todos los metadatos necesarios.
+     * Extrae el correlation_id de WideEvent si hay una petición activa,
+     * permitiendo trazar un job asíncrono hasta el request HTTP que lo originó.
+     *
+     * @param string               $jobClass Nombre completo de la clase del job
+     * @param array<string, mixed> $payload  Datos para el job
+     * @param integer|null         $delay    Segundos de retraso (null = inmediato)
+     * @return array<string, mixed>
+     */
+    public static function buildJobPayload(string $jobClass, array $payload, ?int $delay = null): array
+    {
+        return [
+            'job'            => $jobClass,
+            'payload'        => $payload,
+            'attempts'       => 0,
+            'correlation_id' => (string) (WideEvent::get('request_id') ?? ''),
+            'created_at'     => \time(),
+            'available_at'   => $delay !== null ? \time() + $delay : \time(),
+        ];
+    }
+
+    /**
      * Añade un job a la cola
      *
      * @param string               $jobClass Nombre completo de la clase del job (ej: App\Jobs\SendEmailJob)
@@ -167,14 +188,8 @@ final class Queue
         try {
             $redis = self::getRedis();
 
-            // Preparar datos del job
-            $jobData = [
-                'job' => $jobClass,
-                'payload' => $payload,
-                'attempts' => 0,
-                'created_at' => \time(),
-                'available_at' => $delay !== null ? \time() + $delay : \time(),
-            ];
+            // Preparar datos del job (incluye correlation_id para trazabilidad)
+            $jobData = self::buildJobPayload($jobClass, $payload, $delay);
 
             $serialized = \json_encode($jobData, JSON_THROW_ON_ERROR);
             $queueKey = self::REDIS_PREFIX . $queue;

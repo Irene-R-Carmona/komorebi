@@ -161,7 +161,7 @@ while (!$shouldStop) {
         WideEvent::set('job_class', $jobClass);
         WideEvent::set('queue', $queueName);
         WideEvent::set('pid', getmypid());
-        WideEvent::set('request_id', ($jobData['payload'] ?? [])['_correlation_id'] ?? '');
+        WideEvent::set('request_id', $jobData['correlation_id'] ?? '');
 
         try {
             $job->handle($jobData['payload'] ?? []);
