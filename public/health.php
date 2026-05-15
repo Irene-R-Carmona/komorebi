@@ -111,8 +111,10 @@ if ($usagePercent > 90) {
 // 4. Verificar queues de workers (Redis debe estar disponible)
 if ($redis !== null) {
     try {
-        $emailPending = (int) ($redis->lLen('queue:emails') ?: 0);
-        $notificationPending = (int) ($redis->lLen('queue:notifications') ?: 0);
+        // Redis Streams: usar xLen, no lLen (que es para Lists)
+        $emailPending        = (int) ($redis->xLen('queue:emails') ?: 0);
+        $notificationPending = (int) ($redis->xLen('queue:notifications') ?: 0);
+        $dlqCount            = (int) ($redis->xLen('queue:failed:dlq') ?: 0);
 
         $queueStatus = static function (int $pending): string {
             if ($pending >= 5000) {
@@ -125,22 +127,56 @@ if ($redis !== null) {
             return 'ok';
         };
 
-        $emailStatus = $queueStatus($emailPending);
+        $emailStatus        = $queueStatus($emailPending);
         $notificationStatus = $queueStatus($notificationPending);
+
+        // Worker heartbeats: workers escriben /tmp/worker-{name}-heartbeat cada 60s
+        $heartbeatMaxAge = 120; // segundos; > 120s = stale
+        $now             = \time();
+
+        $workerNames = [
+            'email'        => '/tmp/worker-email-heartbeat',
+            'notification' => '/tmp/worker-notification-heartbeat',
+            'default'      => '/tmp/worker-default-heartbeat',
+        ];
+
+        $heartbeats = [];
+        foreach ($workerNames as $workerKey => $heartbeatFile) {
+            if (!\file_exists($heartbeatFile)) {
+                $heartbeats[$workerKey] = ['status' => 'not_started'];
+            } else {
+                $ts  = (int) \file_get_contents($heartbeatFile);
+                $age = $now - $ts;
+
+                if ($age > $heartbeatMaxAge) {
+                    $heartbeats[$workerKey] = ['status' => 'stale', 'last_seen_seconds_ago' => $age];
+                } else {
+                    $heartbeats[$workerKey] = ['status' => 'ok', 'last_seen_seconds_ago' => $age];
+                }
+            }
+        }
+
+        $mailEnabled = Env::bool('MAIL_ENABLED', true);
 
         $checks['workers'] = [
             'emails' => [
-                'status' => $emailStatus,
+                'status'  => $emailStatus,
                 'pending' => $emailPending,
             ],
             'notifications' => [
-                'status' => $notificationStatus,
+                'status'  => $notificationStatus,
                 'pending' => $notificationPending,
             ],
+            'dlq' => [
+                'failed' => $dlqCount,
+            ],
+            'heartbeats'   => $heartbeats,
+            'mail_enabled' => $mailEnabled,
+            'mail_driver'  => Env::get('MAIL_DRIVER', 'smtp'),
         ];
 
         if ($emailStatus === 'unhealthy' || $notificationStatus === 'unhealthy') {
-            $healthy = false;
+            $healthy    = false;
             $statusCode = 503;
         }
     } catch (Throwable $e) {

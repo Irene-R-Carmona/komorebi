@@ -51,8 +51,9 @@ COPY --from=vendor-build /app/vendor /app/vendor
 
 # Install system packages BEFORE copying config files to avoid dpkg conffile prompt
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends dos2unix supervisor && \
-    rm -rf /var/lib/apt/lists/*
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends dos2unix supervisor ca-certificates && \
+    rm -rf /var/lib/apt/lists/* && \
+    update-ca-certificates
 
 # Copy entrypoint and supervisor config (overwrite defaults after install)
 COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint

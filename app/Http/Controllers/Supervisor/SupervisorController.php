@@ -135,15 +135,15 @@ final class SupervisorController
 
         // Mesas ocupadas = clientes físicamente en el local (status 'active' tras check-in)
         $activeTables = \array_values(
-            \array_filter($reservations, fn (array $r): bool => $r['status'] === 'active')
+            \array_filter($reservations, fn(array $r): bool => $r['status'] === 'active')
         );
 
         $activeResIds = \array_column($activeTables, 'id');
 
         // Órdenes en curso desde el KDS (pending + kitchen)
         $allActive = $cafeId > 0 ? $this->kitchenService->getAllPending($cafeId) : [];
-        $pendingOrders = \array_values(\array_filter($allActive, fn (array $o): bool => $o['status'] === 'pending'));
-        $kitchenOrders = \array_values(\array_filter($allActive, fn (array $o): bool => $o['status'] === 'kitchen'));
+        $pendingOrders = \array_values(\array_filter($allActive, fn(array $o): bool => $o['status'] === 'pending'));
+        $kitchenOrders = \array_values(\array_filter($allActive, fn(array $o): bool => $o['status'] === 'kitchen'));
 
         // Ítems listos para servir (agrupados por reserva, aplanamos a lista plana)
         $readyRaw = !empty($activeResIds) ? $this->itemRepo->getReadyItemsByReservations($activeResIds) : [];

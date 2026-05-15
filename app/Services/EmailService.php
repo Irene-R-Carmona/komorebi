@@ -35,6 +35,11 @@ final class EmailService extends BaseService implements EmailServiceInterface
         string $userName,
         string $verificationUrl
     ): bool {
+        if (!$this->isMailEnabled()) {
+            Logger::info('[EmailService] Email desactivado (MAIL_ENABLED=false)', ['method' => __FUNCTION__]);
+            return false;
+        }
+
         $enqueued = Queue::push(SendEmailJob::class, [
             'to' => $userEmail,
             'subject' => 'Verifica tu email en Komorebi',
@@ -62,6 +67,11 @@ final class EmailService extends BaseService implements EmailServiceInterface
      */
     public function sendPasswordResetEmail(string $userEmail, string $userName, string $resetUrl): bool
     {
+        if (!$this->isMailEnabled()) {
+            Logger::info('[EmailService] Email desactivado (MAIL_ENABLED=false)', ['method' => __FUNCTION__]);
+            return false;
+        }
+
         $enqueued = Queue::push(SendEmailJob::class, [
             'to' => $userEmail,
             'subject' => 'Recupera tu contraseña en Komorebi',
@@ -94,6 +104,11 @@ final class EmailService extends BaseService implements EmailServiceInterface
         ?array $reservationData = null,
         ?string $pdfPath = null
     ): bool {
+        if (!$this->isMailEnabled()) {
+            Logger::info('[EmailService] Email desactivado (MAIL_ENABLED=false)', ['method' => __FUNCTION__]);
+            return false;
+        }
+
         // Backwards-compatible handling: callers may pass (email, reservationData)
         if (\is_array($userNameOrReservationData)) {
             $reservationData = $userNameOrReservationData;
@@ -151,6 +166,11 @@ final class EmailService extends BaseService implements EmailServiceInterface
         array $reservationData,
         string $reason = ''
     ): bool {
+        if (!$this->isMailEnabled()) {
+            Logger::info('[EmailService] Email desactivado (MAIL_ENABLED=false)', ['method' => __FUNCTION__]);
+            return false;
+        }
+
         $enqueued = Queue::push(SendEmailJob::class, [
             'to' => $userEmail,
             'subject' => 'Reserva cancelada en Komorebi',
@@ -183,6 +203,11 @@ final class EmailService extends BaseService implements EmailServiceInterface
      */
     public function sendTestEmail(string $recipientEmail, string $recipientName = 'Administrador'): bool
     {
+        if (!$this->isMailEnabled()) {
+            Logger::info('[EmailService] Email desactivado (MAIL_ENABLED=false)', ['method' => __FUNCTION__]);
+            return false;
+        }
+
         $enqueued = Queue::push(SendEmailJob::class, [
             'to' => $recipientEmail,
             'subject' => 'Email de prueba - Komorebi Café',
@@ -340,6 +365,11 @@ final class EmailService extends BaseService implements EmailServiceInterface
         string $token,
         array $waitlistData
     ): bool {
+        if (!$this->isMailEnabled()) {
+            Logger::info('[EmailService] Email desactivado (MAIL_ENABLED=false)', ['method' => __FUNCTION__]);
+            return false;
+        }
+
         $enqueued = Queue::push(SendEmailJob::class, [
             'to' => $userEmail,
             'subject' => '🐾 Confirmación de Lista de Espera - Komorebi Café',
@@ -428,6 +458,11 @@ final class EmailService extends BaseService implements EmailServiceInterface
      */
     public function send(string $to, string $subject, string $body): bool
     {
+        if (!$this->isMailEnabled()) {
+            Logger::info('[EmailService] Email desactivado (MAIL_ENABLED=false)', ['method' => __FUNCTION__]);
+            return false;
+        }
+
         $enqueued = Queue::push(SendEmailJob::class, [
             'to' => $to,
             'subject' => $subject,
@@ -443,5 +478,10 @@ final class EmailService extends BaseService implements EmailServiceInterface
         }
 
         return $enqueued;
+    }
+
+    private function isMailEnabled(): bool
+    {
+        return Env::bool('MAIL_ENABLED', true);
     }
 }

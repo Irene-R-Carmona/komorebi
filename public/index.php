@@ -34,9 +34,11 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 // --- Error tracking (Sentry — opcional) ------------------------------------
 if (
-    ($dsn = ($_ENV['SENTRY_DSN'] ?? $_SERVER['SENTRY_DSN'] ?? getenv('SENTRY_DSN') ?: ''))
+    ($dsn = \App\Core\Env::get('SENTRY_DSN', '')) !== ''
+    && \str_starts_with($dsn, 'https://')
     && function_exists('\Sentry\init')
 ) {
+    try {
     \Sentry\init([
         'dsn' => $dsn,
         'environment' => $env,
@@ -59,6 +61,9 @@ if (
             \App\Exceptions\RouterParameterException::class,
         ],
     ]);
+    } catch (Throwable $e) {
+        fwrite(STDERR, '[Sentry] Error al inicializar: ' . $e->getMessage() . "\n");
+    }
 }
 
 use App\Core\Config;

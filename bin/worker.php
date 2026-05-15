@@ -15,6 +15,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Core\Config;
+use App\Core\Env;
 use App\Core\Logger;
 use App\Core\Queue;
 use App\Core\WideEvent;
@@ -34,13 +35,15 @@ try {
 
 // Error tracking (Sentry — opcional)
 if (
-    ($sentryDsn = (getenv('SENTRY_DSN') ?: '')) !== ''
+    ($sentryDsn = Env::get('SENTRY_DSN', '')) !== ''
+    && \str_starts_with($sentryDsn, 'https://')
     && function_exists('Sentry\init')
 ) {
+    try {
     \Sentry\init([
         'dsn' => $sentryDsn,
-        'environment' => getenv('APP_ENV') ?: 'production',
-        'release' => getenv('APP_VERSION') ?: 'unknown',
+        'environment' => Env::get('APP_ENV', 'production'),
+        'release' => Env::get('APP_VERSION', 'unknown'),
         'enable_logs' => true,
         'send_default_pii' => false,
         'ignore_exceptions' => [
@@ -57,6 +60,9 @@ if (
     register_shutdown_function(static function (): void {
         \Sentry\flush();
     });
+    } catch (Throwable $e) {
+        fwrite(STDERR, '[Sentry] Error al inicializar: ' . $e->getMessage() . "\n");
+    }
 }
 
 // Obtener nombre de la cola

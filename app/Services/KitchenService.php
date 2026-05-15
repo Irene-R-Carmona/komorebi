@@ -19,8 +19,7 @@ final class KitchenService implements KitchenServiceInterface
 {
     public function __construct(
         private readonly ReservationItemRepositoryInterface $itemRepo
-    ) {
-    }
+    ) {}
 
     // ─────────────────────────────────────────────────────────────
     // Comandas Pendientes

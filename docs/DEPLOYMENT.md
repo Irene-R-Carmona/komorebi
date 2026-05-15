@@ -76,6 +76,17 @@ docker compose exec -i db mysql -u root -p komorebi < backups/FILENAME.sql
 
 ### Backup en Railway (producción)
 
+**Opción A — Dashboard web (sin CLI, recomendada para backups puntuales):**
+
+1. En [railway.app](https://railway.app) → seleccionar el proyecto.
+2. Clic en el plugin **MySQL** → pestaña **Data**.
+3. Botón **Backup** → Railway genera un dump SQL descargable.
+4. Guardar el archivo `.sql` fuera del repositorio.
+
+> Esta opción no requiere Railway CLI ni acceso directo al host MySQL.
+
+**Opción B — Railway CLI (automatizable en scripts):**
+
 ```bash
 # Exportar BD desde Railway (requiere Railway CLI: npm install -g @railway/cli)
 railway run mysqldump -h $MYSQLHOST -P $MYSQLPORT -u $MYSQLUSER -p$MYSQLPASSWORD $MYSQLDATABASE \
@@ -89,6 +100,8 @@ railway run mysql -h $MYSQLHOST -P $MYSQLPORT -u $MYSQLUSER -p$MYSQLPASSWORD $MY
 > **Nota:** Railway no ofrece acceso SSH directo al MySQL Plugin. `railway run <comando>`
 > inyecta automáticamente las variables `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`,
 > `MYSQLPASSWORD` y `MYSQLDATABASE` en el entorno del comando ejecutado.
+
+**Frecuencia recomendada:** antes de cada deploy que incluya cambios de esquema.
 
 ## Rollback
 

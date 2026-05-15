@@ -406,6 +406,20 @@ final class Queue
     }
 
     /**
+     * Mueve un job a la cola de fallos permanentes (Dead-Letter Queue pública).
+     *
+     * Llamada por AbstractWorker cuando un job supera el máximo de reintentos.
+     *
+     * @param array<string, mixed> $jobData Datos del job
+     * @param string               $queue   Nombre de la cola original
+     * @return void
+     */
+    public static function pushToDlq(array $jobData, string $queue): void
+    {
+        self::pushToFailedQueue($jobData, $queue);
+    }
+
+    /**
      * Mueve un job a la cola de fallos permanentes
      *
      * @param array<string, mixed> $jobData Datos del job

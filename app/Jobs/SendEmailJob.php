@@ -180,6 +180,14 @@ final class SendEmailJob implements JobInterface
         $password = Env::get('MAIL_PASSWORD', '');
         $encryption = Env::get('MAIL_ENCRYPTION', '');
 
+        Logger::info('[SendEmailJob] Conectando SMTP', [
+            'host' => $host,
+            'port' => $port,
+            'username' => $username !== '' ? \substr($username, 0, 4) . '***' : '(vacío)',
+            'encryption' => $encryption !== '' ? $encryption : '(vacío)',
+            'has_password' => $password !== '',
+        ]);
+
         // MAIL_FROM_ADDRESS es el nombre estándar; MAIL_FROM es el nombre legacy (README/docs)
         $defaultFrom = Env::get('MAIL_FROM_ADDRESS', '') ?: Env::get('MAIL_FROM', 'noreply@komorebi.cafe');
         $defaultName = Env::get('MAIL_FROM_NAME', 'Komorebi Café');

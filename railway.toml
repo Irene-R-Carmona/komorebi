@@ -24,13 +24,6 @@ restartPolicyMaxRetries = 3
 #   REDIS_PASSWORD=${{Redis.REDISPASSWORD}}
 #   SESSION_DRIVER=redis
 #   CACHE_DRIVER=redis
-#   MAIL_HOST=smtp.mailgun.org
-#   MAIL_PORT=587
-#   MAIL_USERNAME=postmaster@mg.komorebi-cafe.com
-#   MAIL_PASSWORD=tu-api-key-de-mailgun
-#   MAIL_FROM=no-reply@komorebi-cafe.com
-#   MAIL_FROM_NAME=Komorebi Café
-#   MAIL_ENCRYPTION=tls
 #   CSRF_TOKEN_SECRET=genera-con-bin/generate-secrets.php
 #   SESSION_SECRET=genera-con-bin/generate-secrets.php
 #   ENCRYPTION_KEY=genera-con-bin/generate-secrets.php
@@ -45,17 +38,21 @@ restartPolicyMaxRetries = 3
 #   SKIP_MIGRATIONS=1
 #   MERCURE_JWT_SECRET=genera-con-openssl-rand-base64-32
 #   MERCURE_CORS_ORIGINS=https://tu-app.up.railway.app
-#   CLOUDINARY_CLOUD_NAME=tu_cloud_name
-#   CLOUDINARY_API_KEY=tu_api_key
-#   CLOUDINARY_API_SECRET=tu_api_secret
-#   SENTRY_DSN=https://xxx@oXX.ingest.sentry.io/xxx
-#   APP_VERSION=1.0.0
-#   APP_HTTPS=true
-#   SESSION_SECURE=true
+#
+# SMTP (sin dominio propio requerido):
+# Opción Gmail App Password (500 emails/día):
 #   MAIL_HOST=smtp.gmail.com
 #   MAIL_PORT=587
-#   MAIL_USERNAME=tu@gmail.com
-#   MAIL_PASSWORD=app-password-16-chars   # Google App Password (sin espacios)
-#   MAIL_FROM_ADDRESS=tu@gmail.com
-#   MAIL_FROM_NAME=Komorebi Cafe
 #   MAIL_ENCRYPTION=tls
+#   MAIL_USERNAME=tucuenta@gmail.com
+#   MAIL_PASSWORD=abcdefghijklmnop   # 16 chars de Google App Password
+#   MAIL_FROM_ADDRESS=tucuenta@gmail.com   # DEBE coincidir con MAIL_USERNAME
+#   MAIL_FROM_NAME=Komorebi Café
+#
+# CLOUDINARY — solo CLOUDINARY_URL (formato: cloudinary://api_key:api_secret@cloud_name):
+#   CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
+#
+# OBSERVABILIDAD:
+#   SENTRY_DSN=https://xxx@oXX.ingest.sentry.io/xxx
+#   BETTER_STACK_SOURCE_TOKEN=tu-token
+#   BETTER_STACK_SOURCE_ENDPOINT=https://in.logs.betterstack.com

@@ -92,8 +92,8 @@ final class RewardUnlockedJob implements JobInterface
     {
         $appEnv = Env::get('APP_ENV', 'production');
 
-        if ($appEnv === 'development') {
-            // Mailpit en desarrollo (sin TLS)
+        if ($appEnv !== 'production') {
+            // Mailpit en desarrollo (sin TLS) — APP_ENV=local o cualquier valor no-production
             $mail->isSMTP();
             $mail->Host = Env::get('MAIL_HOST', 'mailpit');
             $mail->Port = (int) Env::get('MAIL_PORT', '1025');

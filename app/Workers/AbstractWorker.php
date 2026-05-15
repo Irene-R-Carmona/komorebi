@@ -210,6 +210,8 @@ abstract class AbstractWorker
                 'job' => $jobData['job'] ?? 'unknown',
                 'attempts' => $attempts,
             ]);
+
+            Queue::pushToDlq($jobData, $queueName);
         }
     }
 
